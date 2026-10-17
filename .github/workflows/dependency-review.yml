@@ -1,0 +1,48 @@
+name: Dependency Review
+
+# Diffs the dependency graph on every PR (vcpkg.json plus the actions used in
+# .github/workflows) and fails the check if the diff introduces a
+# moderate-or-worse known vulnerability.
+#
+# Public-only: the dependency review API needs the dependency graph and, for a
+# private repository, a paid plan. The job is skipped - not red - while the
+# repository is private. "Scan dependency diff" joins the required checks only
+# after it has reported on a pull request once the repository is public
+# (docs/branch-protection.md, "Required checks").
+#
+# develop's merge queue needs "Scan dependency diff" to report on its
+# temporary gh-readonly-queue/... ref: GitHub only runs workflows that opt into
+# merge_group there. actions/dependency-review-action diffs a queue entry
+# against github.event.merge_group.base_sha.
+
+on:
+  pull_request:
+    branches: [main, develop]
+  merge_group:
+    branches: [develop]
+
+permissions: {}
+
+concurrency:
+  group: dependency-review-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Scan dependency diff
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: moderate
+          comment-summary-in-pr: on-failure
