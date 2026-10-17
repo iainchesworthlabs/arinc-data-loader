@@ -2,11 +2,14 @@ find_package(Catch2 3 CONFIG REQUIRED)
 include(Catch)
 
 add_executable(adl_unit_tests
+    unit/arinc615a_golden_test.cpp
+    unit/arinc615a_robustness_test.cpp
     unit/batch_file_test.cpp
     unit/check_value_type_test.cpp
     unit/compatibility_test.cpp
     unit/crc_test.cpp
     unit/digest_test.cpp
+    unit/find_test.cpp
     unit/golden_test.cpp
     unit/header_file_test.cpp
     unit/integrity_checker_test.cpp
@@ -19,7 +22,10 @@ add_executable(adl_unit_tests
     unit/naming_test.cpp
     unit/part_number_test.cpp
     unit/paths_test.cpp
-    unit/robustness_test.cpp)
+    unit/protocol_files_test.cpp
+    unit/robustness_test.cpp
+    unit/tftp_options_test.cpp
+    unit/tftp_test.cpp)
 
 target_include_directories(adl_unit_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support"
@@ -27,6 +33,7 @@ target_include_directories(adl_unit_tests PRIVATE
 
 target_link_libraries(adl_unit_tests
     PRIVATE
+        adl::arinc615a
         adl::arinc665
         adl::media_tree
         adl::platform

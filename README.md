@@ -34,10 +34,19 @@ This is the data format and the foundation, not a loader yet. What exists:
   that QNX, VxWorks, FreeRTOS and Zephyr can be added.
   [docs/platform-abstraction.md](docs/platform-abstraction.md) has the design and
   says what has been verified.
+- **`adl::arinc615a`**, the codec half of ARINC 615A-3: the TFTP packets with their
+  options (and the WAIT and ABORT messages), the FIND packets and the twelve
+  protocol files (`.LCI`, `.LCL`, `.LCS`, `.LUI`, `.LUR`, `.LUS`, `.LND`, `.LNO`,
+  `.LNR`, `.LNS`, `.LNL`, `.LNA`), written into caller-supplied buffers and read
+  back as checked views, with no allocation and no exceptions, so it can run on
+  an embedded target. It does not yet send or receive anything: the operations
+  and state machines are the next stage.
+  [docs/arinc615a-codec.md](docs/arinc615a-codec.md) has the layouts and the
+  choices made where the standard is unclear.
 - The build, the tests, the CI and the repository rules.
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
-against another tool's files, the ARINC 615A protocol, a Qt 6.12 application,
+against another tool's files, the ARINC 615A operations and state machines, a Qt 6.12 application,
 Tracy profiling, and a build of the loader library for an embedded VxWorks
 target.
 
@@ -57,6 +66,7 @@ ctest --preset windows-msvc-debug
 
 ```text
 src/arinc665/        the ARINC 665 library (platform-free, GUI-free)
+src/arinc615a/       the ARINC 615A codec: TFTP, FIND and the protocol files (platform-free)
 src/media_tree/      media sets on a disk: a directory per member
 src/samples/         the sample loads and media sets
 src/write_payloads/  adl_write_payloads, which writes the samples to a directory
@@ -64,7 +74,7 @@ src/platforms/       everything that differs between operating systems
 tests/               Catch2 unit tests, the platform conformance suite and the fake platform
 cmake/               the platform selector, warnings, sanitizers, coverage, Tracy, Qt
 tools/               repository checks, commit policy, git hooks
-docs/                architecture, roadmap, CI, coverage of ARINC 665, docs/specs
+docs/                architecture, roadmap, CI, coverage of ARINC 665, the 615A codec, docs/specs
 ```
 
 The operating system is chosen by CMake, never by the source: there is no `#ifdef`
