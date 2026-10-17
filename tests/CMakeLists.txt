@@ -70,7 +70,7 @@ target_link_libraries(adl_fake_platform
 add_executable(adl_engine_tests
     engine/data_loader_test.cpp
     engine/directory_files_test.cpp
-    engine/find_test.cpp
+    engine/find_client_test.cpp
     engine/mini_tftp.cpp
     engine/operations_test.cpp
     engine/sim_target.cpp

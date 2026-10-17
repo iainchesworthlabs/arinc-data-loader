@@ -499,6 +499,43 @@ TEST_CASE("an operator who chooses nothing aborts the operation",
     CHECK(rig.target.log().aborts_seen.size() == 1);
 }
 
+// ---- A load goes in and comes back --------------------------------------------------------
+
+TEST_CASE("a load sent to the target comes back from it unchanged",
+          "[engine][operation][roundtrip]") {
+    const SampleLoad load = make_sample_load(60'000, 11);
+    SimPlan plan = upload_plan(load);
+    plan.request_block_size = 512;
+    Rig rig(plan);
+    rig.source = std::make_unique<MediaSource>(load.files);
+    std::vector<LoadReference> loads;
+    const auto uploaded = rig.run(upload_of(load, loads));
+    REQUIRE(uploaded);
+    REQUIRE(uploaded->code == OutcomeCode::completed);
+    REQUIRE(rig.target.stored().size() == load.item.reads.size());
+
+    // Everything the target now holds is asked for back, in a media defined download.
+    rig.target.reset_operation();
+    plan = SimPlan{};
+    for (const auto& [name, bytes] : rig.target.stored()) {
+        plan.files.push_back(DownloadItem{name, bytes, ""});
+    }
+    rig.target.plan() = plan;
+    std::vector<FileRequest> storage;
+    const auto downloaded =
+        rig.run(MediaDownloadOperation{request_for(rig.target.plan().files, storage)});
+    REQUIRE(downloaded);
+    CHECK(downloaded->code == OutcomeCode::completed);
+    CHECK(downloaded->files_received == load.item.reads.size());
+    // What came back is what the media set holds, byte for byte.
+    for (const ReadItem& item : load.item.reads) {
+        CAPTURE(item.name);
+        REQUIRE(rig.sink.files.contains(item.name));
+        CHECK(rig.sink.files.at(item.name) == item.expected);
+    }
+    CHECK(downloaded->checksum_mismatches == 0);
+}
+
 // ---- The initialization step
 // ---------------------------------------------------------------------------
 
@@ -702,6 +739,7 @@ TEST_CASE("the first status file may carry counter 0 or 1, and a larger one mean
         REQUIRE(outcome);
         CHECK(outcome->code == OutcomeCode::completed);
         CHECK(outcome->statuses_lost == (first > 1 ? first - 1U : 0U));
+        CHECK(rig.recorder.count(Notice::status_counter_gap) == (first > 1 ? 1U : 0U));
     }
 }
 
@@ -837,6 +875,19 @@ TEST_CASE("the operator's abort stops an upload and the target confirms it",
         CHECK(rig.target.log().files_read.size() < load.item.reads.size());
         CHECK(rig.source->open_files() == 0);
         CHECK(rig.loader->idle());
+        // The read that was open was ended with the message on its own transfer (6.3.5), not
+        // only when the target next asked for a status file.
+        std::size_t from_transfers = 0;
+        for (const auto& packet : rig.network.captured()) {
+            const std::string_view bytes{reinterpret_cast<const char*>(packet.payload.data()),
+                                         packet.payload.size()};
+            if (packet.from.address == Rig::loader_address &&
+                packet.from.port != tftp_control_port &&
+                bytes.find("ABORT:") != std::string_view::npos) {
+                ++from_transfers;
+            }
+        }
+        CHECK(from_transfers >= 1);
     }
 }
 

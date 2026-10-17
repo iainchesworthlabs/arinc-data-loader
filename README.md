@@ -34,19 +34,27 @@ This is the data format and the foundation, not a loader yet. What exists:
   that QNX, VxWorks, FreeRTOS and Zephyr can be added.
   [docs/platform-abstraction.md](docs/platform-abstraction.md) has the design and
   says what has been verified.
-- **`adl::arinc615a`**, the codec half of ARINC 615A-3: the TFTP packets with their
-  options (and the WAIT and ABORT messages), the FIND packets and the twelve
-  protocol files (`.LCI`, `.LCL`, `.LCS`, `.LUI`, `.LUR`, `.LUS`, `.LND`, `.LNO`,
-  `.LNR`, `.LNS`, `.LNL`, `.LNA`), written into caller-supplied buffers and read
-  back as checked views, with no allocation and no exceptions, so it can run on
-  an embedded target. It does not yet send or receive anything: the operations
-  and state machines are the next stage.
-  [docs/arinc615a-codec.md](docs/arinc615a-codec.md) has the layouts and the
-  choices made where the standard is unclear.
+- **`adl::arinc615a`**, the data loader's side of ARINC 615A-3. The codec: the TFTP
+  packets with their options (and the WAIT and ABORT messages), the FIND packets and
+  the twelve protocol files (`.LCI`, `.LCL`, `.LCS`, `.LUI`, `.LUR`, `.LUS`, `.LND`,
+  `.LNO`, `.LNR`, `.LNS`, `.LNL`, `.LNA`), written into caller-supplied buffers and
+  read back as checked views. The engine: a TFTP client and server and the
+  Information, Upload and Download operations, with the time-outs and retries of
+  Attachment 4, the abort paths and FIND, as state machines that are told the time
+  and the bytes that arrived and answer with the bytes to send. They hold no socket,
+  thread or clock, allocate nothing and throw nothing, so they can run on an embedded
+  target and be tested without a network. **`adl::arinc615a_runner`** drives them over
+  `adl::platform`. A full load of a media set built with `adl::arinc665` is tested
+  against a simulated target on the fake platform, and files are downloaded back.
+  [docs/arinc615a-codec.md](docs/arinc615a-codec.md) has the layouts,
+  [docs/arinc615a-engine.md](docs/arinc615a-engine.md) the design and
+  [docs/arinc615a-coverage.md](docs/arinc615a-coverage.md) the standard section by
+  section, with the places it is unclear. Nothing has been checked against another
+  implementation or over real sockets yet.
 - The build, the tests, the CI and the repository rules.
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
-against another tool's files, the ARINC 615A operations and state machines, a Qt 6.12 application,
+against another tool's files and ARINC 615A against a real target, a Qt 6.12 application,
 Tracy profiling, and a build of the loader library for an embedded VxWorks
 target.
 
@@ -66,7 +74,8 @@ ctest --preset windows-msvc-debug
 
 ```text
 src/arinc665/        the ARINC 665 library (platform-free, GUI-free)
-src/arinc615a/       the ARINC 615A codec: TFTP, FIND and the protocol files (platform-free)
+src/arinc615a/       the ARINC 615A codec and engine: TFTP, FIND, the operations (platform-free)
+src/arinc615a_runner/ the runner that drives the engine over adl::platform
 src/media_tree/      media sets on a disk: a directory per member
 src/samples/         the sample loads and media sets
 src/write_payloads/  adl_write_payloads, which writes the samples to a directory
@@ -74,7 +83,7 @@ src/platforms/       everything that differs between operating systems
 tests/               Catch2 unit tests, the platform conformance suite and the fake platform
 cmake/               the platform selector, warnings, sanitizers, coverage, Tracy, Qt
 tools/               repository checks, commit policy, git hooks
-docs/                architecture, roadmap, CI, coverage of ARINC 665, the 615A codec, docs/specs
+docs/                architecture, roadmap, CI, coverage of 665 and 615A, the 615A codec and engine, docs/specs
 ```
 
 The operating system is chosen by CMake, never by the source: there is no `#ifdef`

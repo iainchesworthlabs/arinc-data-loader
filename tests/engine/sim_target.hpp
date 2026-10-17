@@ -136,6 +136,13 @@ public:
     // Stops all activity at once, as a target that lost power would.
     void go_silent();
 
+    // The files it has read from the loader, by name: what a load has left in it.
+    [[nodiscard]] const std::map<std::string, Bytes>& stored() const noexcept { return stored_; }
+
+    // Ready for another operation: what it holds is kept, the rest of its state is not (and
+    // neither is the log).
+    void reset_operation();
+
 private:
     enum class Kind { information, upload, download_media, download_operator };
 
@@ -222,6 +229,7 @@ private:
     std::size_t writes_done_ = 0;
     std::size_t writes_total_ = 0;
     std::vector<std::size_t> active_loads_;
+    std::map<std::string, Bytes> stored_;
     std::uint64_t main_generation_ = 0;
     adl::arinc615a::StatusCode last_abort_status_ =
         adl::arinc615a::StatusCode::aborted_by_data_loader;

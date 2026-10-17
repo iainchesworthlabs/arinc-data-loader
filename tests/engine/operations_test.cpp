@@ -450,6 +450,84 @@ TEST_CASE("a status file's end starts the thirteen seconds again", "[engine][loa
     CHECK(harness.loader->outcome().code == OutcomeCode::dlp_timeout);
 }
 
+TEST_CASE("a file that takes longer than the time-out to arrive does not end the operation",
+          "[engine][loader][timeout]") {
+    // A block every 1.5 seconds: each exchange is within the TFTP time-out, the whole is not
+    // within the data load time-out. While a status file, or the list when no status file has
+    // come, is arriving, that time-out is not running.
+    for (const char* name : {"HNPFMS_L.LCS", "HNPFMS_L.LCL"}) {
+        CAPTURE(name);
+        Harness harness;
+        harness.accept();
+        harness.drain();
+        harness.to_control(write_request(name));
+        const std::size_t slot = harness.drain().back().slot;
+        for (std::uint16_t block = 1; block <= 12; ++block) {
+            harness.advance(milliseconds(1500));
+            harness.to_slot(slot, TftpData{block, Bytes(512, std::byte{0})});
+            harness.drain();
+            REQUIRE_FALSE(harness.loader->done());
+        }
+        CHECK(harness.now.since_origin > seconds(13));
+        CHECK_FALSE(harness.loader->done());
+    }
+}
+
+namespace {
+
+Bytes big_configuration_list() {
+    static const std::array<HardwarePart, 1> parts{
+        HardwarePart{"ACM47-1234-5678", "", "FMS 1 OPS"}};
+    static const std::vector<HardwareItem> items(40, HardwareItem{"FMS LEFT", "SN-0001", parts});
+    Bytes bytes(16384);
+    const auto size = encode_configuration_list(ConfigurationList{items}, bytes);
+    bytes.resize(size.value_or(0));
+    return bytes;
+}
+
+}  // namespace
+
+TEST_CASE("a status file that says completed waits for a list still coming",
+          "[engine][loader][status]") {
+    Harness harness;
+    harness.accept();
+    harness.drain();
+    const Bytes list = big_configuration_list();
+    REQUIRE(list.size() > 1024);
+    const Endpoint list_peer{target_tid.address, 4400};
+    harness.to_control(write_request("HNPFMS_L.LCL"), list_peer);
+    const std::size_t list_slot = harness.drain().back().slot;
+    const auto send_block = [&](std::size_t index) {
+        const std::size_t start = index * 512;
+        const std::size_t count =
+            start >= list.size() ? 0 : std::min<std::size_t>(512, list.size() - start);
+        harness.to_slot(list_slot,
+                        TftpData{static_cast<std::uint16_t>(index + 1),
+                                 std::span<const std::byte>{list}.subspan(start, count)},
+                        list_peer);
+        harness.drain();
+    };
+    send_block(0);
+
+    // The last status file, 0x0003, arrives on its own transfer while the list is still coming.
+    const Endpoint status_peer{target_tid.address, 4401};
+    harness.to_control(write_request("HNPFMS_L.LCS"), status_peer);
+    const std::size_t status_slot = harness.drain().back().slot;
+    harness.to_slot(status_slot, TftpData{1, status_file(StatusCode::completed, 0)}, status_peer);
+    harness.drain();
+    CHECK_FALSE(harness.loader->done());
+
+    // The operation is complete when the list is.
+    std::size_t index = 1;
+    while (index * 512 <= list.size()) {
+        CHECK_FALSE(harness.loader->done());
+        send_block(index++);
+    }
+    REQUIRE(harness.loader->done());
+    CHECK(harness.loader->outcome().code == OutcomeCode::completed);
+    CHECK(harness.recorder.configuration_lists == 1);
+}
+
 TEST_CASE("an exception timer longer than thirteen seconds is waited for",
           "[engine][loader][timeout]") {
     Harness harness;

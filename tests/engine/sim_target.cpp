@@ -152,9 +152,9 @@ void SimTarget::handle_request(const Endpoint& from, const TftpRequest& request)
                 break;
         }
     }
-    const bool is_list = matches && !read && (*kind == ProtocolFileKind::lur ||
-                                              *kind == ProtocolFileKind::lnr ||
-                                              *kind == ProtocolFileKind::lna);
+    const bool is_list = matches && !read &&
+                         (*kind == ProtocolFileKind::lur || *kind == ProtocolFileKind::lnr ||
+                          *kind == ProtocolFileKind::lna);
     if (is_list && (!operation_started_ || log_.status_started_at.empty())) {
         // 6.2.7.3: the list is written after the status file that says "accepted"; a loader that
         // writes it sooner has broken the synchronisation the standard asks for.
@@ -694,6 +694,7 @@ void SimTarget::upload_read_next(std::size_t active_index, std::size_t read_inde
             return;
         }
         (bytes == item.expected ? log_.files_read : log_.files_corrupt).push_back(item.name);
+        stored_[item.name] = bytes;
         ++reads_done_;
         upload_read_next(active_index, read_index + 1, generation);
     });
@@ -737,6 +738,27 @@ void SimTarget::download_write_next(std::vector<std::string> names, std::size_t 
             }
             download_write_next(std::move(names), index + 1, generation);
         });
+}
+
+void SimTarget::reset_operation() {
+    log_ = SimLog{};
+    operation_started_ = false;
+    finished_ = false;
+    aborted_ = false;
+    waited_once_ = false;
+    status_queue_.clear();
+    status_busy_ = false;
+    counter_ = 0;
+    status_index_ = 0;
+    ++heartbeat_generation_;
+    heartbeat_on_ = false;
+    quiet_until_set_ = false;
+    reads_done_ = reads_total_ = writes_done_ = writes_total_ = 0;
+    active_loads_.clear();
+    ++main_generation_;
+    final_posted_ = false;
+    work_done_ = false;
+    silent_ = false;
 }
 
 void SimTarget::finish_operation(StatusCode code, const std::string& text) {

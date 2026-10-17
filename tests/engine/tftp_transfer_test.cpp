@@ -644,6 +644,24 @@ TEST_CASE("an OACK that breaks the rules refuses the transfer with error 8",
     }
 }
 
+TEST_CASE("a write request's block size is taken down to what we allow",
+          "[engine][tftp-transfer][options]") {
+    Direct direct(4100);
+    MemorySink sink;
+    OptionBuilder options;
+    REQUIRE(options.add_block_size(4000));
+    const TftpRequest request{TftpRequest::Kind::write, "FILE.BIN", options.list()};
+    direct.transfer.accept_write(direct.now, peer, request, sink, settings_for(1024));
+    const auto packet = direct.take_packet();
+    REQUIRE(packet);
+    const auto* oack = std::get_if<TftpOptionAck>(&*packet);
+    REQUIRE(oack != nullptr);
+    CHECK(find_option(oack->options, "blksize") == "1024");
+    // A block of the size agreed is taken; one more byte is not.
+    direct.feed(TftpData{1, Bytes(1025, std::byte{1})});
+    CHECK(direct.transfer.result().outcome == TransferOutcome::protocol_error);
+}
+
 TEST_CASE("an option we do not know is left out of the answer",
           "[engine][tftp-transfer][options]") {
     Direct direct;
