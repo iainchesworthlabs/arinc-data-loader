@@ -7,6 +7,7 @@
 
 #include <algorithm>
 
+#include "adl/arinc615a/directory_files.hpp"
 #include "rig.hpp"
 
 using namespace adl::arinc615a;
@@ -499,6 +500,88 @@ TEST_CASE("an operator who chooses nothing aborts the operation",
     CHECK(rig.target.log().aborts_seen.size() == 1);
 }
 
+// ---- Corruption, and the platform's files
+// ----------------------------------------------------------
+
+TEST_CASE("a file damaged on the way is shown by its checksum, and never passes for good",
+          "[engine][operation][faults]") {
+    std::size_t damaged = 0;
+    std::size_t good = 0;
+    for (std::uint64_t seed = 1; seed <= 30; ++seed) {
+        CAPTURE(seed);
+        SimPlan plan;
+        plan.files = three_files();
+        plan.request_block_size = 256;
+        Rig rig(plan, seed);
+        adl::fake::LinkProfile profile;
+        profile.corrupt_per_million = 25'000;  // one bit of a datagram in forty
+        rig.network.set_profile(profile);
+        std::vector<FileRequest> storage;
+        const auto outcome = rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
+        REQUIRE(outcome);
+        // A damaged datagram may also damage a protocol file, and that ends the operation; what
+        // matters is what happened to the files that were kept.
+        REQUIRE(rig.recorder.received_names.size() == rig.recorder.received_checksums.size());
+        for (std::size_t i = 0; i < rig.recorder.received_names.size(); ++i) {
+            const std::string& name = rig.recorder.received_names[i];
+            const auto item = std::ranges::find(plan.files, name, &DownloadItem::name);
+            REQUIRE(item != plan.files.end());
+            const bool intact = rig.sink.files.at(name) == item->content;
+            if (intact) {
+                // (Its verdict may still be a mismatch or none: the bit may have been in the
+                // checksum option of the request, and not in the file.)
+                ++good;
+            } else {
+                ++damaged;
+                // The 16-bit CRC the target sent sees every single-bit change, so a file that
+                // is not what was sent is never reported as matching.
+                CHECK(rig.recorder.received_checksums[i] != ChecksumVerdict::matched);
+            }
+        }
+    }
+    CHECK(damaged > 0);     // the link did damage files...
+    CHECK(good > damaged);  // ...but not most of them
+}
+
+TEST_CASE("an upload and a download over the platform's own files", "[engine][operation][files]") {
+    const SampleLoad load = make_sample_load(5'000, 3);
+    SimPlan plan = upload_plan(load);
+    Rig rig(plan);
+    auto& files = rig.loader_host.fake_files();
+    for (const auto& entry : load.files.entries) {
+        files.put("/load/" + entry.name, entry.bytes);
+    }
+    DirectoryFileSource source(files, "/load");
+    rig.source_override = &source;
+    std::vector<LoadReference> loads;
+    const auto uploaded = rig.run(upload_of(load, loads));
+    REQUIRE(uploaded);
+    CHECK(uploaded->code == OutcomeCode::completed);
+    CHECK(rig.target.log().files_corrupt.empty());
+    CHECK(rig.target.log().files_read == names_of(load.item.reads));
+
+    // Files come back into a directory, each there only when whole.
+    rig.target.reset_operation();
+    SimPlan download;
+    download.files = three_files();
+    rig.target.plan() = download;
+    REQUIRE(files.make_directory("/down"));
+    DirectoryFileSink sink(files, "/down");
+    rig.sink_override = &sink;
+    std::vector<FileRequest> storage;
+    const auto downloaded =
+        rig.run(MediaDownloadOperation{request_for(rig.target.plan().files, storage)});
+    REQUIRE(downloaded);
+    CHECK(downloaded->code == OutcomeCode::completed);
+    for (const DownloadItem& item : download.files) {
+        CAPTURE(item.name);
+        const auto stored = files.get("/down/" + item.name);
+        REQUIRE(stored);
+        CHECK(*stored == item.content);
+        CHECK_FALSE(files.get("/down/" + item.name + ".part"));
+    }
+}
+
 // ---- A load goes in and comes back --------------------------------------------------------
 
 TEST_CASE("a load sent to the target comes back from it unchanged",
@@ -878,6 +961,7 @@ TEST_CASE("the operator's abort stops an upload and the target confirms it",
         // The read that was open was ended with the message on its own transfer (6.3.5), not
         // only when the target next asked for a status file.
         std::size_t from_transfers = 0;
+        Duration earliest = Duration::max();
         for (const auto& packet : rig.network.captured()) {
             const std::string_view bytes{reinterpret_cast<const char*>(packet.payload.data()),
                                          packet.payload.size()};
@@ -885,9 +969,12 @@ TEST_CASE("the operator's abort stops an upload and the target confirms it",
                 packet.from.port != tftp_control_port &&
                 bytes.find("ABORT:") != std::string_view::npos) {
                 ++from_transfers;
+                earliest = std::min(earliest, packet.sent.since_origin);
             }
         }
         CHECK(from_transfers >= 1);
+        // ...and at once: the abort was asked for at 8 seconds.
+        CHECK(earliest < seconds(8) + milliseconds(100));
     }
 }
 

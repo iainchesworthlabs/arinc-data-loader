@@ -304,8 +304,8 @@ public:
                                          const RunOptions& options = {}) {
         workspace.assign(DataLoader::workspace_bytes(config), std::byte{0});
         LoaderServices services;
-        services.source = source.get();
-        services.sink = &sink;
+        services.source = source_override != nullptr ? source_override : source.get();
+        services.sink = sink_override != nullptr ? sink_override : &sink;
         services.listener = &recorder;
         loader = std::make_unique<DataLoader>(config, workspace, services);
         Runner runner(loader_host);
@@ -326,6 +326,8 @@ public:
     LoaderConfig config;
     std::vector<std::byte> workspace;
     std::unique_ptr<MediaSource> source;
+    FileSource* source_override = nullptr;
+    FileSink* sink_override = nullptr;
     MemoryFileSink sink;
     Recorder recorder;
     std::unique_ptr<DataLoader> loader;

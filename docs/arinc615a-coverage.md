@@ -20,9 +20,9 @@ files) exists only as the simulated target of the tests.
   runner is the only code that calls `adl::platform`.
 - A full load of a media set built with `adl::arinc665::build_media_set` goes to a simulated target, and
   files come back in both download modes, over a clean network and over one that loses, repeats and reorders
-  datagrams, with deterministic seeds. A third of the tests deliberately break the protocol: a target that
+  datagrams, with deterministic seeds. Many of the tests deliberately break the protocol: a target that
   waits, goes silent, aborts, loses or repeats status files, sends a wrong checksum, announces an exception
-  timer, refuses options, speaks another protocol version or asks for a file that was not offered.
+  timer, refuses options, speaks another protocol version or writes a file that was not asked for.
 - **Nothing has been checked against another implementation**, a loader or a target, and no test runs an
   operation over real sockets (see [Not yet verified](#not-yet-verified)). The simulated target's TFTP is a
   second, independent implementation, but both are my reading of the standard.
@@ -98,8 +98,9 @@ real device. [The engine page](arinc615a-engine.md) says how each is resolved; t
    own `.LUR`, `.LNR` and `.LNA`, and the target's `.LCL` and `.LNL`. After each the same 13 seconds are
    applied. The time-out does not run during a status file's or a list's transfer, and does not stop for a
    data file's.
-3. **5.3.2.3.8.4 and 5.3.2.3.8.5 repeat the Timeout paragraph**, so there is no Part Number option, and the
-   Checksum option's own text is under "Option Purpose" instead (found in the codec's list too).
+3. **5.3.2.3.8.4 (Part Number) and the first paragraph of 5.3.2.3.8.5 repeat the Timeout paragraph**, so
+   there is no Part Number option, and the Checksum option is defined by the text that follows (also in
+   [the codec's list](arinc615a-codec.md#places-the-standard-is-unclear)).
 4. **What "Initial value is 0x0000" and "incremented before sending" mean for the first status file**: 0 or
    1. Both are accepted; a larger number counts as lost files.
 5. **When status 0x0003 is final** relative to the transfer of a list or a file: it is called "the last
@@ -128,7 +129,8 @@ real device. [The engine page](arinc615a-engine.md) says how each is resolved; t
 - **Over real sockets, end to end.** The runner is tested on the fake platform only; the real platforms'
   sockets are covered by `adl::platform`'s conformance suite, but no test runs an operation over loopback or a
   network. macOS has not run any of it.
-- **Under `-fno-exceptions -fno-rtti` in CI.** The library is written for it and was built that way by hand;
-  there is no CI job.
+- **Under `-fno-exceptions -fno-rtti` in CI.** The library sources compile that way under g++ 15 with the
+  repository's warnings as errors, and the objects hold no reference to `typeinfo` or to a throw (checked once by
+  hand); there is no CI job.
 - **Timing on a real-time system.** The time-outs are tested on a clock that moves only when told to; how they
   behave on a desktop that can be late is unmeasured (the loader's 2 and 13 second figures are generous to it).
