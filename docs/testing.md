@@ -1,7 +1,7 @@
 # Testing
 
 The tests are Catch2 unit tests for the libraries and the platform layer, plus
-two checks about the build itself. They run in CI on Windows (MSVC), Linux (GCC)
+checks about the build itself and runs of the `adl_write_payloads` program. They run in CI on Windows (MSVC), Linux (GCC)
 and macOS (AppleClang); locally they have been run on Windows only.
 
 ## Running them
@@ -11,6 +11,7 @@ After a build (see [Building](building.md)):
 ```sh
 ctest --preset windows-msvc-debug              # or linux-gcc-debug, macos-clang-debug
 ctest --preset windows-msvc-debug -R platform  # just the two build checks
+ctest --preset windows-msvc-debug -R tools     # just the payload writer
 ```
 
 Every Catch2 `TEST_CASE` is registered with CTest by name
@@ -25,7 +26,7 @@ build/windows-msvc-debug/bin/adl_unit_tests "[golden]"
 
 The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]`,
 `[naming]`, `[header]`, `[load]`, `[batch]`, `[media-files]`, `[media-set]`,
-`[label]`, `[golden]`, `[compatibility]`, `[limits]`, `[robustness]` and
+`[label]`, `[media-tree]`, `[golden]`, `[compatibility]`, `[limits]`, `[robustness]` and
 `[platform]`.
 
 ## What there is
@@ -42,12 +43,14 @@ The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]
 | `batch_file_test.cpp` | The batch file layout, round trips, damage, the recommendations |
 | `media_files_test.cpp` | The three lists: layout, round trips with and without user data, sequence numbers, damage, the recommendations |
 | `media_set_test.cpp` | Building and reading media sets across members, the lists on each member, FILES.LUM's entries, partial reads, damage of every file, members of different sets, files of one name told apart by directory and CRC (section 3.2.4.2), findings |
+| `media_tree_test.cpp` | Every sample media set through a directory tree and back (and the set read from the disk verifies like the one in memory), the backslash pathnames as native paths, empty files and deep directories, binary content, names that cannot be files on every platform (device names, reserved characters, trailing dots, non-ASCII), sequence numbers outside 1 to 255, duplicate names whatever their case, nothing written when anything is invalid, never writing over a non-empty member, a stray entry or a link in a tree being refused, and damage on the disk being found when the set is read. The temporary directories come from `tests/support/temp_dir.hpp`. The link case is skipped where the account cannot create symbolic links (an ordinary Windows account) |
 | `media_label_test.cpp` | The label text, its date format, the required items |
 | `golden_test.cpp` | The library's header file, batch file and list files against files written independently ([below](#golden-payloads)) |
-| `compatibility_test.cpp` | The ARINC 615 and Boeing 777 layouts of Appendix F |
+| `compatibility_test.cpp` | The ARINC 615 and Boeing 777 layouts of Appendix F (built by `adl::samples`, which `adl_write_payloads` writes out) |
 | `limits_test.cpp` | Each side of the 16-bit field limits, a load of a thousand files, a 3 MB file, a media set of many loads |
 | `robustness_test.cpp` | Every decoder over every truncation, every single-bit change, damage with the CRC put right, and random bytes, under the sanitizers |
 | `paths_test.cpp` | `adl::platform::executable_path` names the running test program |
+| `tools.write_payloads*` (CTest) | `adl_write_payloads` writes every scenario to a fresh directory and verifies it (the setup test `tools.write_payloads.clean` empties the directory first, since the program never overwrites), `--list` works, and an unknown scenario or a missing output directory is refused |
 | `tests/platform/check_fragments.cmake` | `platform.fragments`: each fragment satisfies the platform contract, on whichever host this runs |
 | `tools/checks/check_platform_isolation.ps1` | `platform.isolation`: no preprocessor conditionals or defines, no OS headers outside the platform section, no OS tests in CMake outside the selector |
 
@@ -59,8 +62,8 @@ written from the tables and figures of the standard and sharing no code with the
 library, with the CRC from the sample program in Appendix K and the digests from
 Python's `hashlib`. Its output is `tests/golden/golden_payloads.hpp`, which is
 committed, so building the tests needs no Python. `golden_test.cpp` builds the
-same scenario with the library (`tests/support/fixtures.hpp` mirrors the
-script, input for input) and compares the bytes.
+same scenario with the library (`tests/support/fixtures.hpp` forwards to the
+scenario in `adl::samples`, which mirrors the script, input for input) and compares the bytes.
 
 If the format changes on purpose, change both and regenerate:
 
@@ -99,5 +102,6 @@ A bug fix comes with the test that failed before it.
   tool.
 - Appendix L's random reference files and its Ethernet frame are not in the
   standard.
+- No tool other than this one has read the trees `adl_write_payloads` writes.
 - There are no tests of the Linux and macOS platform sources on their hosts
   until their CI legs have run.

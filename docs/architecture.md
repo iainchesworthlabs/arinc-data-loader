@@ -18,12 +18,27 @@
    | adl::arinc665        |
    | src/arinc665         |
    +----------------------+
+
+   adl::media_tree (src/media_tree): members <-> a directory tree, over adl::arinc665
+   adl::samples (src/samples): the sample sets; adl_write_payloads writes them out
 ```
 
 - **`src/arinc665`** is the ARINC 665 library: loads, batches and media sets
   (written, read and verified), media labels, part numbers, CRCs and check values.
   It is GUI-free and platform-free. It includes no operating
   system header and nothing from Qt.
+- **`src/media_tree`** puts a media set on a disk: the members of a set written to
+  a directory tree, one directory per member, and read back, with the standard's
+  backslash pathnames mapped to native paths. It uses `std::filesystem`, which is
+  the same on every platform, so it holds no platform code and `adl::arinc665`
+  keeps its freedom from file I/O. It refuses names that cannot be files on every
+  platform, so that a tree written on one system reads on another, and never
+  overwrites or follows a link.
+- **`src/samples`** is the sample loads and media sets (the golden scenario of
+  `tests/golden/make_golden.py` and the ARINC 615 and Boeing 777 layouts of
+  Appendix F), as data. The tests build from it, and so does
+  **`src/write_payloads`**, the `adl_write_payloads` program that writes them to a
+  directory so that other loaders can be tried on them.
 - **`src/platforms`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `src/platforms/interfaces/adl/platform/`, with one implementation per platform
@@ -42,6 +57,8 @@ A library never depends on one above it. `adl::arinc665` does not link
 | Directory | Target | Alias | Namespace | Headers |
 | --- | --- | --- | --- | --- |
 | `src/arinc665` | `adl_arinc665` | `adl::arinc665` | `adl::arinc665` | `adl/arinc665/*.hpp` |
+| `src/media_tree` | `adl_media_tree` | `adl::media_tree` | `adl::media_tree` | `adl/media_tree/*.hpp` |
+| `src/samples` | `adl_samples` | `adl::samples` | `adl::samples` | `adl/samples/*.hpp` |
 | `src/platforms` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
@@ -69,10 +86,10 @@ users.
 - **Values, not hierarchies.** The load model is plain types with defaulted
   comparison. There is no virtual `OutputStream`: writing a file is a function
   that returns bytes, not a stream operator on a base class.
-- **No `iostream` in the libraries.** They take and return spans of bytes. Files
-  and sockets belong to the layers above, through `adl::platform`. A media set is
-  read from `MediaMember`s, the files of each in memory; getting them from a
-  directory is that layer's job.
+- **No `iostream` in `adl::arinc665`.** It takes and returns spans of bytes. Files
+  and sockets belong to the layers above: sockets through `adl::platform`, files
+  through `adl::media_tree`. A media set is read from `MediaMember`s, the files of
+  each in memory; getting them from a directory is `adl::media_tree`'s job.
 - **Three layers inside the library.** The bottom is bytes: `WordWriter` and
   `WordReader` (private, `src/wire.hpp`), the CRCs, MD5 and SHA-1. Above it each
   file format is a plain model type with an `encode_*` and a `decode_*` function:
@@ -105,9 +122,8 @@ users.
 
 The earlier code did not do most of this: its header file `OutputStream` did not
 compile and its pointers were placeholders, writing a load to a directory
-returned `false`, and MD5 and SHA-1 were declared and never written. What is
-still not here is writing a media set to a directory and reading one from it
-([the roadmap](roadmap.md)).
+returned `false`, and MD5 and SHA-1 were declared and never written. Writing a
+media set to a directory and reading one from it is `adl::media_tree`.
 
 ## The standards
 

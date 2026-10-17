@@ -35,6 +35,18 @@ C++23 CMake monorepo. Nothing has been released.
   the library's output with it byte for byte; payloads for the ARINC 615 and
   Boeing 777 layouts of Appendix F, for the limits of the field widths, and for
   damaged files.
+- **`adl::media_tree`**: writes the members of a media set to a directory tree
+  (`member_001`, `member_002`, ...), mapping the standard's backslash pathnames to
+  native paths, and reads one back into `MediaMember`s. It refuses names that
+  cannot be files on every platform, writes nothing if anything is invalid, never
+  writes over a member directory that has files in it, and does not follow links.
+  It uses `std::filesystem` only, so `adl::arinc665` stays free of file I/O and
+  nothing platform-specific is needed.
+- **`adl::samples` and `adl_write_payloads`**: the sample loads and media sets
+  (the golden scenario and the ARINC 615 and Boeing 777 layouts of Appendix F),
+  and a command-line program that writes them to a directory, verified after
+  they are written, so that other loaders can be tried on them. The tests build
+  from the same samples.
 - **`adl::platform`**: the platform section, selected in CMake and not in the
   source (`docs/platform-isolation.md`), with the executable's path as its first
   interface.

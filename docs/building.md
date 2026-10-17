@@ -67,6 +67,21 @@ ctest --preset macos-clang-debug
 The build trees are `build/<preset>`, and the programs are in
 `build/<preset>/bin`.
 
+## Writing sample payloads
+
+`adl_write_payloads` writes the sample media sets (the scenario of the golden
+tests and the ARINC 615 and Boeing 777 layouts of Appendix F) to a directory, one
+directory per scenario and one per media set member, for trying other loaders:
+
+```sh
+build/windows-msvc-debug/bin/adl_write_payloads --list
+build/windows-msvc-debug/bin/adl_write_payloads out/payloads
+build/windows-msvc-debug/bin/adl_write_payloads --scenario arinc615 out/payloads
+```
+
+It reads each set back from the disk and verifies it before reporting it, and it
+does not write over a directory that has files in it.
+
 ## Presets
 
 | Preset | Compiler | Notes |
