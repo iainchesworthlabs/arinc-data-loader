@@ -6,17 +6,22 @@ kept as code, in `.github/rulesets/*.json` (the JSON body of the REST API's
 way they reach GitHub. This page records what they say and why, so the settings
 can be rebuilt or audited from the page alone.
 
-## Status: not applied yet
+## Status: applied
 
-The rulesets in `.github/rulesets` have not been applied: the repository has not
-been pushed. They cannot be applied while it is private: on GitHub Free,
-rulesets, branch protection and the merge queue are not available for a private
-repository, and the API answers
+The repository is public, and the rulesets in `.github/rulesets` were applied with
+`tools/repo/apply_rulesets.ps1 -Apply` when the repository was created. They could
+not have been while it was private: on GitHub Free, rulesets, branch protection
+and the merge queue are not available for a private repository, and the API
+answers
 
 ```text
 GET /repos/{owner}/{repo}/rulesets  ->  403
 "Upgrade to GitHub Pro or make this repository public to enable this feature."
 ```
+
+The repository settings that go with them match the other labs projects: merge
+commits only (no squash or rebase), auto-merge allowed, branches deleted after
+merge, and no wiki.
 
 To see what is applied now, or to change a rule, edit the JSON and run
 
