@@ -94,6 +94,10 @@ add_subdirectory(src/platforms)
 # is GUI-free and platform-free.
 add_subdirectory(src/arinc665)
 
+# The ARINC 615A library: the TFTP packets and protocol files, as bytes in and out.
+# Platform-free, and it builds no ARINC 665 model.
+add_subdirectory(src/arinc615a)
+
 # A media set on a disk: a directory tree with one directory per member. Plain
 # std::filesystem, so it needs nothing from the platform section either.
 add_subdirectory(src/media_tree)
