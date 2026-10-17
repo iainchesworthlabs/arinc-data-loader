@@ -1,0 +1,72 @@
+name: CodeQL
+
+# Static analysis (C++). Public-only: code scanning of a private repository
+# needs a paid plan, so the job is skipped - not red - while the repository is
+# private, and starts running the day it is made public (docs/ci.md, "Public-
+# only workflows"). It is not a required check.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "17 3 * * 1"
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  # A push to develop or main finishes; everything else is superseded.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main' }}
+
+permissions: {}
+
+jobs:
+  analyze:
+    name: Analyze (C++)
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      # fetch-depth: 0 for vcpkg's version resolution against the deps/vcpkg
+      # submodule - see ci.yml.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          languages: cpp
+          build-mode: manual
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      # The lean build: the libraries and the platform section, with no tests
+      # (so no vcpkg dependency to build: the manifest's default feature list
+      # is empty). Sanitizers off: CodeQL's build
+      # tracer sets its own LD_PRELOAD for the whole build step, which
+      # collides with ASan needing to be first in the preload chain, and a
+      # static analysis gets nothing from them.
+      - name: Configure (libraries and platform only)
+        run: >
+          cmake --preset linux-gcc-debug
+          -DADL_BUILD_TESTS=OFF
+          -DADL_ENABLE_SANITIZERS=OFF
+
+      - name: Build
+        run: cmake --build --preset linux-gcc-debug
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          category: "/language:cpp"

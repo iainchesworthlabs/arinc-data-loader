@@ -1,0 +1,97 @@
+version: 2
+
+# What Dependabot owns here:
+#
+#   github-actions   weekly. Minor and patch updates are grouped into one PR; a
+#                    major update is its own PR and waits for a human.
+#   pip              weekly. The pinned CI tooling (clang-format, gcovr) in
+#                    .github/requirements.
+#   vcpkg + deps/    monthly, one combined PR: the manifest's builtin-baseline
+#   vcpkg submodule  and the vendored vcpkg checkout have to move together (the
+#                    ports resolved from the baseline are built with the
+#                    submodule's scripts, and a baseline newer than the
+#                    submodule can fail). It rebuilds every dependency, so it
+#                    is reviewed by hand and goes through the same required
+#                    checks as anything else.
+#
+# Dependabot cannot see the runner image labels, the CMake and Ninja versions
+# in the workflows, or the compilers; docs/ci.md lists those pins.
+#
+# Every PR targets develop: gitflow only lets release/hotfix/support branches
+# (or develop itself) open a PR against main. branch-name-check.yml and the
+# branch-names ruleset allow the dependabot/* prefix, which is not
+# configurable.
+#
+# cooldown waits a week after a version is published before proposing it, so
+# the community has time to catch a compromised release before this repository
+# updates to it. (Security updates ignore it.)
+#
+# rebase-strategy is "disabled": develop does not require branches to be up to
+# date (the merge queue makes each entry current), and an automatic rebase of
+# every open PR on every merge would re-run the whole CI matrix. Ask for one
+# with "@dependabot rebase" when a PR actually conflicts.
+
+multi-ecosystem-groups:
+  vcpkg-stack:
+    schedule:
+      interval: "monthly"
+    target-branch: "develop"
+
+updates:
+  - package-ecosystem: "github-actions"
+    # The workflows, and the composite actions in .github/actions (their action
+    # pins must move with the workflows').
+    directories:
+      - "/"
+      - "/.github/actions/vcpkg-cache/restore"
+      - "/.github/actions/vcpkg-cache/save"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    rebase-strategy: "disabled"
+    open-pull-requests-limit: 3
+    groups:
+      # Everything below a major lands in one PR. Majors match no group, so
+      # Dependabot raises each as its own PR.
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # CI tooling that a workflow pip-installs from a pinned requirements file.
+  - package-ecosystem: "pip"
+    directory: "/.github/requirements"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    rebase-strategy: "disabled"
+    groups:
+      ci-tooling:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # vcpkg: the manifest's builtin-baseline, and the vendored vcpkg checkout.
+  - package-ecosystem: "vcpkg"
+    directory: "/"
+    multi-ecosystem-group: "vcpkg-stack"
+    patterns:
+      - "*"
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    multi-ecosystem-group: "vcpkg-stack"
+    patterns:
+      - "*"
+    cooldown:
+      default-days: 7

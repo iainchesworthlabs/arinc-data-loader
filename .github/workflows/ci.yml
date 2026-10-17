@@ -1,0 +1,366 @@
+name: CI
+
+# What each job proves, and which of them are required status checks:
+# docs/ci.md and docs/branch-protection.md. The job DISPLAY NAMES below are the
+# required-check contexts in .github/rulesets/*.json - rename one only together
+# with that file.
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  # develop has a merge queue (.github/rulesets/merge-queue-develop.json) and
+  # this workflow produces required checks, so it has to report on the queue's
+  # temporary gh-readonly-queue/... ref as well: GitHub only runs workflows
+  # that opt in there, and a required check that never reports holds the entry
+  # until its timeout.
+  merge_group:
+    branches: [develop]
+  # Manual runs can name the legs they want, so a fix to one platform does not
+  # pay for all of them (macOS minutes are billed at a multiple):
+  #   gh workflow run ci.yml --ref <branch> -f legs=macos
+  # Jobs of a dispatched run are renamed "dispatch - <name>", so a run that
+  # skips legs can never report a "skipped" (which counts as a pass) under a
+  # required check's name on the branch's head commit.
+  workflow_dispatch:
+    inputs:
+      legs:
+        description: >-
+          Comma-separated legs to run, no spaces: clang-format,
+          platform-isolation, windows, linux, macos, coverage - or "all".
+        type: string
+        default: all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.legs }}
+  # A push to develop or main runs to the end: it is the run that stores the
+  # vcpkg cache that pull requests restore from. Everything else is superseded
+  # by the next push.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main' }}
+
+# No job gets more than it names below.
+permissions: {}
+
+env:
+  VCPKG_DISABLE_METRICS: "1"
+
+jobs:
+  # The repository's .clang-format, one pinned release (the wheel pinned in
+  # .github/requirements/lint.txt, not whatever the runner image ships, so an
+  # image bump cannot change the formatting rules under an unchanged tree).
+  clang-format:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - clang-format' || 'clang-format' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',clang-format,') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Install clang-format (pinned)
+        run: |
+          uv venv "$RUNNER_TEMP/lint-venv"
+          uv pip install --python "$RUNNER_TEMP/lint-venv/bin/python" --requirement .github/requirements/lint.txt
+          echo "$RUNNER_TEMP/lint-venv/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/lint-venv/bin/clang-format" --version
+
+      # Any difference is a failure; --dry-run --Werror reports file:line.
+      - name: Check formatting (src/ and tests/)
+        shell: bash
+        run: |
+          mapfile -d '' files < <(find src tests -type f \( \
+            -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' -o -name '*.hh' \
+            -o -name '*.cxx' -o -name '*.hxx' -o -name '*.inl' -o -name '*.ipp' \) -print0)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::no C++ sources found under src/ and tests/"
+            exit 1
+          fi
+          echo "checking ${#files[@]} file(s) with $(clang-format --version)"
+          if ! clang-format --dry-run --Werror "${files[@]}"; then
+            echo "::error::formatting differs from .clang-format; run: clang-format -i <file>"
+            exit 1
+          fi
+
+  # The no-#ifdef rule (docs/platform-isolation.md): the operating system is a
+  # CMake decision, so no platform code, OS header or runtime OS test may sit
+  # outside src/platforms. Cheap, fast and deliberately not behind the build
+  # legs, so a violation is reported even while a porting leg is red.
+  platform-isolation:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - platform-isolation' || 'platform-isolation' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',platform-isolation,') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # pwsh ships on every hosted image; the check asks git which files are
+      # source, so it runs inside the checkout.
+      - name: Check for platform code outside the platform section
+        shell: pwsh
+        run: ./tools/checks/check_platform_isolation.ps1 -Root $PWD
+
+  # Picks the desktop build legs. A push, pull request or merge_group run
+  # always gets all three; only a manual dispatch can narrow it. The matrix
+  # lives here, as JSON, because a job-level `if` cannot see `matrix`.
+  plan:
+    name: Plan build legs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Select build legs
+        id: plan
+        shell: bash
+        env:
+          LEGS: ${{ github.event_name == 'workflow_dispatch' && inputs.legs || 'all' }}
+        run: |
+          # One leg per desktop platform, each on its own default compiler:
+          # MSVC on the VS 2026 image, the image's g++ on Ubuntu, AppleClang
+          # (Xcode) on the Apple-silicon macOS image. The triplet is the vcpkg
+          # triplet the preset selects; it names the binary cache.
+          all='[
+            {"leg": "windows", "name": "Windows (MSVC)",     "os": "windows-2025-vs2026", "preset": "windows-msvc-debug", "triplet": "x64-windows"},
+            {"leg": "linux",   "name": "Linux (GCC)",        "os": "ubuntu-26.04",        "preset": "linux-gcc-debug",    "triplet": "x64-linux"},
+            {"leg": "macos",   "name": "macOS (AppleClang)", "os": "macos-26",            "preset": "macos-clang-debug",  "triplet": "arm64-osx"}
+          ]'
+          case "$LEGS" in
+            *[[:space:]]*)
+              echo "::error::legs must be comma-separated with no spaces: '$LEGS'"
+              exit 1 ;;
+          esac
+          for leg in ${LEGS//,/ }; do
+            case "$leg" in
+              all|clang-format|platform-isolation|windows|linux|macos|coverage) ;;
+              *) echo "::error::unknown leg '$leg' (clang-format, platform-isolation, windows, linux, macos, coverage, all)"
+                 exit 1 ;;
+            esac
+          done
+          if [ -z "$LEGS" ] || [ "$LEGS" = all ]; then
+            selected=$(jq -c . <<<"$all")
+          else
+            selected=$(jq -c --arg legs ",${LEGS}," '[.[] | select(.leg as $leg | $legs | contains("," + $leg + ","))]' <<<"$all")
+          fi
+          count=$(jq 'length' <<<"$selected")
+          # A dispatch that names only clang-format, platform-isolation or
+          # coverage legitimately selects none.
+          echo "legs: $LEGS -> $count desktop leg(s)"
+          echo "matrix=$selected" >> "$GITHUB_OUTPUT"
+
+  # Configure, build and test one preset per desktop platform. The Debug
+  # presets turn on the sanitizers and every warning is an error, so a green
+  # leg means: the tree compiles warning-free on that compiler, and the unit
+  # tests, platform.fragments and platform.isolation pass under ASan (and
+  # UBSan where the compiler has it).
+  build-and-test:
+    name: ${{ github.event_name == 'workflow_dispatch' && format('dispatch - {0}', matrix.name) || matrix.name }}
+    needs: plan
+    # The matrix is empty when a dispatch names no desktop leg, which would
+    # otherwise be an error rather than a skip.
+    if: ${{ needs.plan.outputs.matrix != '[]' }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+
+    steps:
+      # fetch-depth: 0 is required, not just nice-to-have: with a
+      # builtin-baseline, vcpkg reads historical versions out of the
+      # deps/vcpkg submodule's git history, and checkout's default is a
+      # depth-1 submodule clone that does not have them.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      # vcpkg's `files` binary-cache provider plus actions/cache (its x-gha
+      # provider was removed). Keyed per triplet; see docs/ci.md.
+      - name: Restore vcpkg binaries
+        id: vcpkg-cache
+        uses: ./.github/actions/vcpkg-cache/restore
+        with:
+          triplet: ${{ matrix.triplet }}
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      # Ninja needs cl.exe on PATH; the preset does not set up the VS
+      # environment itself.
+      - name: Set up MSVC environment (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+
+      # What the leg actually built with, in the log: the first thing to read
+      # when a compiler-specific failure shows up.
+      - name: Show the toolchain
+        shell: bash
+        run: |
+          cmake --version | head -n 1
+          ninja --version
+          case "$RUNNER_OS" in
+            Linux) g++ --version | head -n 1 ;;
+            macOS) c++ --version | head -n 1 ;;
+            Windows) cl 2>&1 | head -n 1 || true ;;
+          esac
+
+      # No Qt: there is no application yet, and CI does not install Qt until
+      # one is built here.
+      - name: Configure
+        shell: bash
+        env:
+          CMAKE_PRESET: ${{ matrix.preset }}
+        run: cmake --preset "$CMAKE_PRESET"
+
+      - name: Build
+        shell: bash
+        env:
+          CMAKE_PRESET: ${{ matrix.preset }}
+        run: cmake --build --preset "$CMAKE_PRESET"
+
+      # The test preset errors out when no test is found, so an empty suite
+      # cannot pass.
+      - name: Test
+        shell: bash
+        env:
+          CMAKE_PRESET: ${{ matrix.preset }}
+        run: ctest --preset "$CMAKE_PRESET"
+
+      # Saved even when a later step fails: otherwise a red leg throws away
+      # every package vcpkg had already built. Only saves when packages were
+      # added since the restore - see .github/actions/vcpkg-cache.
+      - name: Save vcpkg binaries
+        if: ${{ always() }}
+        uses: ./.github/actions/vcpkg-cache/save
+        with:
+          triplet: ${{ matrix.triplet }}
+          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+
+  # Line and branch coverage of src/ from the unit tests, as a report. There is
+  # NO threshold: nothing here fails on a number until the figures have been
+  # looked at, and a gate (gcovr --fail-under-line / --fail-under-branch) is a
+  # deliberate later change to this job.
+  coverage:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Coverage (Linux, GCC)' || 'Coverage (Linux, GCC)' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',coverage,') }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      # fetch-depth: 0 for vcpkg's version resolution - see build-and-test.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Same triplet, same archives as the Linux (GCC) leg.
+      - name: Restore vcpkg binaries
+        id: vcpkg-cache
+        uses: ./.github/actions/vcpkg-cache/restore
+        with:
+          triplet: x64-linux
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Install gcovr (pinned)
+        run: |
+          uv venv "$RUNNER_TEMP/cov-venv"
+          uv pip install --python "$RUNNER_TEMP/cov-venv/bin/python" --requirement .github/requirements/coverage.txt
+          echo "$RUNNER_TEMP/cov-venv/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/cov-venv/bin/gcovr" --version | head -n 1
+
+      # gcov has to be the one that goes with the compiler that built the
+      # objects: a mismatch reads as "version mismatch" or an empty report.
+      - name: Pick the matching gcov
+        shell: bash
+        run: |
+          g++ --version | head -n 1
+          major="$(g++ -dumpversion | cut -d. -f1)"
+          if command -v "gcov-$major" >/dev/null 2>&1; then
+            echo "GCOV=gcov-$major" >> "$GITHUB_ENV"
+          else
+            echo "GCOV=gcov" >> "$GITHUB_ENV"
+          fi
+
+      - name: Configure
+        run: cmake --preset linux-gcc-coverage
+
+      - name: Build
+        run: cmake --build --preset linux-gcc-coverage
+
+      - name: Test
+        run: ctest --preset linux-gcc-coverage
+
+      # --gcov-ignore-parse-errors ...warn_once_per_file: a counter gcov reads
+      # back negative (gcc bug 68080) is taken as zero and named once, rather
+      # than aborting a report-only job. The coverage preset already updates
+      # counters atomically, which is what normally prevents it.
+      - name: Coverage report
+        shell: bash
+        run: |
+          mkdir -p build/coverage
+          gcovr --root . --filter 'src/.*' \
+            --gcov-executable "$GCOV" \
+            --object-directory build/linux-gcc-coverage \
+            --exclude-throw-branches --exclude-unreachable-branches \
+            --gcov-ignore-errors=no_working_dir_found \
+            --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+            --print-summary \
+            --html-details build/coverage/index.html \
+            --json-summary build/coverage/summary.json --json-summary-pretty
+
+      - name: Summarise coverage
+        if: ${{ always() && hashFiles('build/coverage/summary.json') != '' }}
+        shell: bash
+        run: |
+          jq -r '"### Coverage of src/ (report only, no threshold)\n\n| | covered | total | percent |\n|---|---|---|---|\n| lines | \(.line_covered // 0) | \(.line_total // 0) | \(.line_percent // 0) |\n| branches | \(.branch_covered // 0) | \(.branch_total // 0) | \(.branch_percent // 0) |"' \
+            build/coverage/summary.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-report
+          path: build/coverage
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Saved even when a later step fails - see build-and-test.
+      - name: Save vcpkg binaries
+        if: ${{ always() }}
+        uses: ./.github/actions/vcpkg-cache/save
+        with:
+          triplet: x64-linux
+          restored: ${{ steps.vcpkg-cache.outputs.listing }}

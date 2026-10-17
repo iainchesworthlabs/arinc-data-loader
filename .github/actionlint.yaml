@@ -1,0 +1,11 @@
+# actionlint configuration (https://github.com/rhysd/actionlint).
+#
+# The hosted runner labels below exist on GitHub but are newer than some
+# actionlint releases, which would report them as unknown. They are listed here
+# so `actionlint` is clean; they are NOT self-hosted runners. Drop an entry once
+# the actionlint release in use knows it.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04
+    - windows-2025-vs2026
+    - macos-26

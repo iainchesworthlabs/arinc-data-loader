@@ -1,0 +1,66 @@
+name: OSSF Scorecard
+
+# Supply-chain health score for the published repository, run against 'main'
+# only. Visible-only: the result is a score and a badge, not a pass/fail check.
+#
+# Public-only: Scorecard publishes to a public API and needs a public
+# repository, so the job is skipped - not red - while the repository is
+# private. The result is published only from a run on the default branch, so
+# the first one comes from the first push to main after the repository is made
+# public. branch_protection_rule re-runs the analysis when the rulesets
+# change, so the score follows them.
+#
+# The restrictions the Scorecard API puts on a workflow that publishes are
+# kept: no top-level write permission, id-token: write only on this job, and
+# only checkout, scorecard-action and upload-sarif steps on a hosted Ubuntu
+# runner. Adding a `run:` step here would make the API reject the result.
+#
+# The branch-protection sub-check needs read access to repository settings to
+# score fully; without a token it degrades gracefully rather than failing. For
+# the fuller score, add a fine-grained token (read-only, "Administration:
+# read") as a repository secret named SCORECARD_READ_TOKEN and uncomment
+# repo_token below.
+
+on:
+  branch_protection_rule:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: scorecard-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  analysis:
+    name: Analyze
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard analysis
+        uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+          # repo_token: ${{ secrets.SCORECARD_READ_TOKEN }}
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          sarif_file: results.sarif
+          category: scorecard
