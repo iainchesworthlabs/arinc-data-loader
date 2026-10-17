@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <string_view>
 
+#include "adl/arinc615a/time.hpp"
+
 namespace adl::arinc615a {
 
 // Section 6.4: the Protocol Version of Supplement 3, two ASCII characters, always the
@@ -46,5 +48,22 @@ inline constexpr std::size_t find_max_manufacturer_code = 3;
 
 // The estimated time field when the target cannot say (sections 6.4.3 to 6.4.7).
 inline constexpr std::uint16_t estimated_time_unknown = 0xFFFF;
+
+// Attachment 4: the time-outs and retry numbers. A TFTP exchange (a packet and its answer) is
+// given tftp_timeout and one retry, so two attempts in all; a whole file transfer that failed
+// is attempted again dlp_retries times; and between the end of one of the listed protocol
+// file transfers and the start of the next the data loader waits dlp_timeout.
+inline constexpr Duration tftp_timeout = whole_seconds(2);
+inline constexpr unsigned tftp_retries = 1;
+inline constexpr Duration dlp_timeout = whole_seconds(13);
+inline constexpr unsigned dlp_retries = 1;
+
+// RFC 1350's optional dally: after the last ACK of a file it received, a receiver stays for
+// this long to answer a repeat of the last block (section 5.4.3.1 of the standard calls it
+// "an optional two second dally time delay").
+inline constexpr Duration tftp_dally = whole_seconds(2);
+
+// Attachment 3, 3-2: how long the data loader collects FIND answers.
+inline constexpr Duration find_window = whole_seconds(3);
 
 }  // namespace adl::arinc615a

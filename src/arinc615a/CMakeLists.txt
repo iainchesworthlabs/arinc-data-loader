@@ -10,9 +10,14 @@
 # not build an ARINC 665 model.
 
 add_library(adl_arinc615a STATIC
+    src/checksum.cpp
+    src/data_loader.cpp
+    src/data_loader_operations.cpp
     src/find.cpp
+    src/find_client.cpp
     src/protocol_files.cpp
     src/tftp.cpp
+    src/tftp_transfer.cpp
     src/wire.cpp)
 add_library(adl::arinc615a ALIAS adl_arinc615a)
 

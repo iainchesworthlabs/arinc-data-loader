@@ -98,6 +98,10 @@ add_subdirectory(src/arinc665)
 # Platform-free, and it builds no ARINC 665 model.
 add_subdirectory(src/arinc615a)
 
+# The 615A runner: opens the sockets the engine asks for and drives its state machines over
+# adl::platform. The only 615A code that calls the platform.
+add_subdirectory(src/arinc615a_runner)
+
 # A media set on a disk: a directory tree with one directory per member. Plain
 # std::filesystem, so it needs nothing from the platform section either.
 add_subdirectory(src/media_tree)
