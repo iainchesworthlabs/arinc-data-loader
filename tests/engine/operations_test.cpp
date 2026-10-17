@@ -428,7 +428,7 @@ TEST_CASE("the time-out of thirteen seconds runs from the end of the initializat
     // ...and at the instant they are, the operation has failed.
     harness.advance_to(accepted + seconds(13));
     REQUIRE(harness.loader->done());
-    CHECK(harness.loader->outcome().code == OutcomeCode::dlp_timeout);
+    CHECK(harness.loader->outcome().code == OutcomeCode::dlp_timed_out);
 }
 
 TEST_CASE("a status file's end starts the thirteen seconds again", "[engine][loader][timeout]") {
@@ -447,7 +447,7 @@ TEST_CASE("a status file's end starts the thirteen seconds again", "[engine][loa
     harness.advance_to(ended + seconds(13) - Duration(1));
     CHECK_FALSE(harness.loader->done());
     harness.advance_to(ended + seconds(13));
-    CHECK(harness.loader->outcome().code == OutcomeCode::dlp_timeout);
+    CHECK(harness.loader->outcome().code == OutcomeCode::dlp_timed_out);
 }
 
 TEST_CASE("a file that takes longer than the time-out to arrive does not end the operation",
@@ -551,7 +551,7 @@ TEST_CASE("an exception timer longer than thirteen seconds is waited for",
     shorter.to_slot(slot2, TftpData{1, status_file(StatusCode::in_progress, 0, 3)});
     const Instant ended2 = shorter.now;
     shorter.advance_to(ended2 + seconds(13));
-    CHECK(shorter.loader->outcome().code == OutcomeCode::dlp_timeout);
+    CHECK(shorter.loader->outcome().code == OutcomeCode::dlp_timed_out);
 }
 
 TEST_CASE("an abort is answered at the first status file request, and confirmed by the next",

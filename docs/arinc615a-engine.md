@@ -167,7 +167,7 @@ resolves what the standard leaves unclear:
 - **The exception timer** (6.3.1, field of the status file, used only with status 2 and 4): the loader waits
   `max(13 s, timer)` for the next status file, and the operation ends with `exception_timer_expired` if
   none comes.
-- **A time-out is fatal**, with no retry (4-4.1): the operation ends with `dlp_timeout`, and whatever is open
+- **A time-out is fatal**, with no retry (4-4.1): the operation ends with `dlp_timed_out`, and whatever is open
   is ended with `ABORT:1004`.
 
 ### Retries (Attachment 4, 4-4.2)

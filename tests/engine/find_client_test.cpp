@@ -82,9 +82,10 @@ TEST_CASE("what is not a valid answer is ignored", "[engine][find]") {
     FindClient client{FindConfig{}};
     client.start(Instant{});
     const Bytes good = answer_bytes(left);
+    REQUIRE(good.size() > 4);
 
     Bytes request(8);
-    request.resize(encode_find_request(request).value());  // our own request, looped back
+    request.resize(encode_find_request(request).value_or(0));  // our own request, looped back
     client.on_datagram(Instant{}, target_a, request);
 
     Bytes cut(good.begin(), good.end() - 1);  // no packet terminator
@@ -93,7 +94,7 @@ TEST_CASE("what is not a valid answer is ignored", "[engine][find]") {
     trailing.push_back(std::byte{0});  // bytes after the terminator
     client.on_datagram(Instant{}, target_a, trailing);
     Bytes opcode = good;
-    opcode[1] = std::byte{9};
+    opcode.at(1) = std::byte{9};
     client.on_datagram(Instant{}, target_a, opcode);
     client.on_datagram(Instant{}, target_a, {});
     // An answer that names no hardware identifier names nothing to load.

@@ -683,7 +683,7 @@ TEST_CASE("a target that ignores the port option is noticed", "[engine][operatio
     const auto outcome = rig.run(InformationOperation{});
     REQUIRE(outcome);
     // Its status files go to port 59, where nobody listens: the time-out ends the operation.
-    CHECK(outcome->code == OutcomeCode::dlp_timeout);
+    CHECK(outcome->code == OutcomeCode::dlp_timed_out);
     CHECK(rig.recorder.count(Notice::port_option_ignored) == 1);
     CHECK(rig.target.log().loader_port_used == 59);
 }
@@ -771,7 +771,7 @@ TEST_CASE("thirteen seconds without a status file ends the operation",
     std::vector<LoadReference> storage;
     const auto outcome = rig.run(upload_of(load, storage));
     REQUIRE(outcome);
-    CHECK(outcome->code == OutcomeCode::dlp_timeout);
+    CHECK(outcome->code == OutcomeCode::dlp_timed_out);
     REQUIRE(rig.target.log().last_status_end);
     // Attachment 4, 4-4.1: 13 seconds from the last packet of the last status file.
     const Duration silent = rig.ended - *rig.target.log().last_status_end;
@@ -790,7 +790,7 @@ TEST_CASE("a target that never sends a first status file times out too",
     std::vector<LoadReference> storage;
     const auto outcome = rig.run(upload_of(load, storage));
     REQUIRE(outcome);
-    CHECK(outcome->code == OutcomeCode::dlp_timeout);
+    CHECK(outcome->code == OutcomeCode::dlp_timed_out);
     CHECK(rig.elapsed >= seconds(13));
     CHECK(rig.elapsed < seconds(13) + milliseconds(50));
 }
@@ -1030,7 +1030,7 @@ TEST_CASE("an upload over a network that loses, repeats and reorders datagrams",
             ++failed;
             // With one retry a run of bad luck can end an operation, and then it says why.
             const bool acceptable = outcome->code == OutcomeCode::transfer_failed ||
-                                    outcome->code == OutcomeCode::dlp_timeout ||
+                                    outcome->code == OutcomeCode::dlp_timed_out ||
                                     outcome->code == OutcomeCode::aborted_by_target;
             CHECK(acceptable);
             CHECK(rig.target.log().files_corrupt.empty());

@@ -187,7 +187,7 @@ enum class OutcomeCode : std::uint8_t {
     aborted_by_target,             // 0x1003
     unsupported_protocol_version,  // the target's files are not version "A4"
     transfer_failed,               // a file could not be transferred, after the DLP retry
-    dlp_timeout,                   // no status file within the DLP time-out (13 s)
+    dlp_timed_out,                 // no status file within the DLP time-out (13 s)
     exception_timer_expired,       // the target stayed silent longer than it said it would
     protocol_error,                // a file of an invalid structure, or one sent out of turn
     local_error,  // the FileSource or FileSink failed, or the request would not fit
@@ -213,7 +213,7 @@ enum class OutcomeCode : std::uint8_t {
             return "unsupported protocol version";
         case OutcomeCode::transfer_failed:
             return "a file transfer failed";
-        case OutcomeCode::dlp_timeout:
+        case OutcomeCode::dlp_timed_out:
             return "data load protocol time-out";
         case OutcomeCode::exception_timer_expired:
             return "the target was silent longer than its exception timer";

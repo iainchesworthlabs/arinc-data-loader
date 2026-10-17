@@ -21,12 +21,6 @@ namespace {
     }
 }
 
-[[nodiscard]] bool is_abort(StatusCode status) noexcept {
-    return status == StatusCode::aborted_by_target ||
-           status == StatusCode::aborted_by_data_loader ||
-           status == StatusCode::aborted_by_operator;
-}
-
 }  // namespace
 
 // ---- Ends of transfers -------------------------------------------------------------------------
@@ -602,7 +596,7 @@ void DataLoader::check_watchdog(Instant now) noexcept {
         return;
     }
     finish_operation(now, watch_from_exception_ ? OutcomeCode::exception_timer_expired
-                                                : OutcomeCode::dlp_timeout);
+                                                : OutcomeCode::dlp_timed_out);
 }
 
 void DataLoader::check_completion(Instant now) noexcept {
