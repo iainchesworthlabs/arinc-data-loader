@@ -36,7 +36,8 @@
           { "context": "Windows (MSVC)" },
           { "context": "Linux (GCC)" },
           { "context": "macOS (AppleClang)" },
-          { "context": "Coverage (Linux, GCC)" }
+          { "context": "Coverage (Linux, GCC)" },
+          { "context": "Scan dependency diff" }
         ]
       }
     }
