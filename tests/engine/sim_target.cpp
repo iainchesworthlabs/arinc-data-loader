@@ -152,9 +152,21 @@ void SimTarget::handle_request(const Endpoint& from, const TftpRequest& request)
                 break;
         }
     }
-    if (matches && !read && operation_started_ &&
-        (*kind == ProtocolFileKind::lur || *kind == ProtocolFileKind::lnr ||
-         *kind == ProtocolFileKind::lna)) {
+    const bool is_list = matches && !read && (*kind == ProtocolFileKind::lur ||
+                                              *kind == ProtocolFileKind::lnr ||
+                                              *kind == ProtocolFileKind::lna);
+    if (is_list && (!operation_started_ || log_.status_started_at.empty())) {
+        // 6.2.7.3: the list is written after the status file that says "accepted"; a loader that
+        // writes it sooner has broken the synchronisation the standard asks for.
+        std::array<std::byte, 64> buffer{};
+        if (const auto size = encode_error(
+                TftpError{TftpErrorCode::illegal_operation, "list before the status"}, buffer)) {
+            send(next_port_++, from, std::span<const std::byte>{buffer}.first(*size));
+        }
+        note("refuses a list that came before the first status file");
+        return;
+    }
+    if (is_list) {
         MiniTransfer& transfer = add_transfer(MiniTransfer::Role::server_write);
         transfer.on_done = [this, name](MiniTransfer& done) {
             if (done.result().kind == MiniResult::Kind::ok) {
