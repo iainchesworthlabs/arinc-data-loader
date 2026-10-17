@@ -1,0 +1,62 @@
+# Build trees, package caches and generated output
+/build/
+build*/
+cmake-build-*/
+/vcpkg_installed/
+compile_commands.json
+.cache/
+.ninja_deps
+.ninja_log
+CMakeUserPresets.json
+
+# The ARINC standards are kept beside the code for reference and are not this
+# project's to publish (docs/licensing.md). docs/specs/README.md names them.
+/docs/specs/*.pdf
+
+# Loads, media sets and captures taken from real equipment are never committed.
+# Test data is made by the tests, or lives outside the tree.
+/tests/data/captures/
+*.luh
+*.lum
+
+# Visual Studio and other IDE state
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.VC.opendb
+ipch/
+*.aps
+*.ncb
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Native build products
+*.obj
+*.o
+*.pdb
+*.ilk
+*.idb
+*.pch
+*.log
+*.tlog
+
+# Coverage output
+coverage*.json
+coverage*.xml
+coverage*.info
+*.gcda
+*.gcno
+
+# Python bytecode (tooling scripts are run in place)
+__pycache__/
+*.pyc
