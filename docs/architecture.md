@@ -12,10 +12,10 @@
    +----------v-----------+          +----------v-----------+
    | adl::arinc615a       |          |  adl::platform       |
    | (not built yet)      |          |  src/platforms       |
-   +----------+-----------+          +----------------------+
-              |
-   +----------v-----------+
-   | adl::arinc665        |
+   +----------+-----------+          |  files, memory,      |
+              |                      |  threads, clock,     |
+   +----------v-----------+          |  UDP, queues         |
+   | adl::arinc665        |          +----------------------+
    | src/arinc665         |
    +----------------------+
 
@@ -42,15 +42,37 @@
 - **`src/platforms`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `src/platforms/interfaces/adl/platform/`, with one implementation per platform
-  beside it. [Platform isolation](platform-isolation.md) has the rules.
+  beside it: files, memory, threads and priorities, a clock, UDP sockets and
+  message queues, gathered in a `Host` that the engine is handed (a real one
+  from `make_host()`, or the fake in `tests/fake`). [Platform
+  isolation](platform-isolation.md) has the rules and
+  [platform abstraction](platform-abstraction.md) the design, how each of seven
+  operating systems provides each service, and what has and has not been
+  verified.
 - **`src/arinc615a`** (planned) is the ARINC 615A protocol engine. It will use
   `adl::arinc665` for what it transfers and ask `adl::platform` for what the
-  system provides, a UDP socket for TFTP being the obvious case.
+  system provides, a UDP socket for TFTP being the obvious case. Its core is
+  sans-I/O: state machines driven by the time and the bytes that arrived, that
+  return the bytes to send and the next time they want to be woken, with no thread,
+  socket or clock inside. A thin runner is the only code that calls the platform.
+  That is what makes it portable to an RTOS and testable without a network.
 - **`src/app`** (planned) is a thin Qt 6.12 layer over the libraries. Qt belongs
   here and nowhere else.
 
 A library never depends on one above it. `adl::arinc665` does not link
 `adl::platform`; only a library that needs the system does.
+
+## The embedded direction
+
+The roadmap includes a build of the loader library for VxWorks 178C. The platform
+layer is shaped for it: a platform is a directory and a branch in the selector;
+interfaces are small enough for an RTOS with a flash file system or none; memory
+comes from caller-supplied buffers, an arena and a block pool; priorities are
+abstract; the engine is driven by time and bytes, not by threads; and nothing
+throws. What is still not true is "no allocation after start-up": the ARINC 665
+model types hold `std::string` and `std::vector`. [Platform
+abstraction](platform-abstraction.md#area-2-memory-memoryhpp) says where, and the
+route to remove it.
 
 ## Targets and names
 
@@ -73,8 +95,9 @@ users.
   errors (`cmake/CompilerWarnings.cmake`), and Debug builds run under
   AddressSanitizer (and UBSan where the compiler has it).
 - **Failures are values.** An operation that can fail returns
-  `std::expected<T, adl::arinc665::Error>`. Nothing in the library throws for an
-  expected failure. (Running out of memory is not an expected failure: the model
+  `std::expected<T, adl::arinc665::Error>` (`adl::platform::Result<T>` in the
+  platform layer, whose interface is `noexcept` throughout). Nothing in the
+  library throws for an expected failure. (Running out of memory is not an expected failure: the model
   types hold `std::string` and `std::vector`, so the library is not yet free of
   the heap.)
 - **Nothing happens before `main`.** The CRC tables are computed by the compiler

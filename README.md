@@ -27,8 +27,13 @@ This is the data format and the foundation, not a loader yet. What exists:
   **`adl_write_payloads`**, a command-line program that writes sample media sets
   (including the ARINC 615 and Boeing 777 layouts of Appendix F) to a directory,
   for trying other loaders.
-- **`adl::platform`**, the one place that knows which operating system this is
-  (today: the path of the running executable).
+- **`adl::platform`**, the one place that knows which operating system this is:
+  files, memory, threads and priorities, a clock, UDP sockets and message queues,
+  as interfaces with an implementation each for Windows, Linux and macOS, and a
+  fake that runs the whole engine without a socket or a real second. Designed so
+  that QNX, VxWorks, FreeRTOS and Zephyr can be added.
+  [docs/platform-abstraction.md](docs/platform-abstraction.md) has the design and
+  says what has been verified.
 - The build, the tests, the CI and the repository rules.
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
@@ -56,7 +61,7 @@ src/media_tree/      media sets on a disk: a directory per member
 src/samples/         the sample loads and media sets
 src/write_payloads/  adl_write_payloads, which writes the samples to a directory
 src/platforms/       everything that differs between operating systems
-tests/               Catch2 unit tests and the build's own checks
+tests/               Catch2 unit tests, the platform conformance suite and the fake platform
 cmake/               the platform selector, warnings, sanitizers, coverage, Tracy, Qt
 tools/               repository checks, commit policy, git hooks
 docs/                architecture, roadmap, CI, coverage of ARINC 665, docs/specs

@@ -44,10 +44,30 @@ What is left:
 ## 3. ARINC 615A
 
 `src/arinc615a`, from `docs/specs/615A-3.pdf`: the protocol engine over TFTP and
-UDP, with the Find, Information, Upload and Download operations. The transport
-is an interface in `src/platforms/interfaces`, so that the engine does not
-include a socket header and can be tested against a fake target. It loads what
-`adl::arinc665` makes.
+UDP, with the Find, Information, Upload and Download operations. It loads what
+`adl::arinc665` makes. Built in three pull requests:
+
+1. **The platform abstraction (done).** Interfaces for files, memory, threads
+   and priorities, a clock, UDP and message queues, implemented for Windows,
+   Linux and macOS, with a fake platform and a conformance suite, and QNX,
+   VxWorks, FreeRTOS and Zephyr designed for ([platform
+   abstraction](platform-abstraction.md)). The transport is an interface, so the
+   engine does not include a socket header and can be tested against a simulated
+   target on the fake network.
+2. **The TFTP codec and the 615A messages (next).** The packets of RFC 1350 with
+   the options of RFC 2347 to 2349 and the 615A ones (the checksum and port
+   options, the WAIT and ABORT error texts), the FIND packets, and the protocol
+   files (`.LCI`, `.LCL`, `.LCS`, `.LUI`, `.LUR`, `.LUS`, `.LND`, `.LNR`, `.LNS`,
+   `.LNO`, `.LNL`, `.LNA`), written and read like the 665 formats and tested the same
+   way.
+3. **The operations and state machines, and the coverage page.** The sans-I/O core
+   (TFTP client and server, the Information, Upload and Download operations, FIND,
+   the time-outs and retries of Attachment 4), a runner over `adl::platform`, a full
+   load of a media set built with `build_media_set` to a simulated target and back,
+   and `docs/arinc615a-coverage.md`.
+
+What is left from stage 1: the macOS leg has not yet run; the embedded ports are
+unbuilt or designs.
 
 ## 4. The application
 
@@ -68,18 +88,26 @@ listener.
 ## 6. An embedded target
 
 A build of the loader library for VxWorks 178C, and possibly other targets
-after it. The structure is meant to make this a new platform and not a new
-codebase:
+after it. The platform layer is shaped for it ([platform
+abstraction](platform-abstraction.md)): a design for VxWorks, FreeRTOS, Zephyr and
+QNX, code for QNX that has never been compiled, and a selector that takes
+`-DADL_TARGET_PLATFORM`. The structure is meant to make this a new platform and not
+a new codebase:
 
-- a platform directory and a branch in `cmake/Platform.cmake` for the target,
-  with a toolchain file for the cross compiler;
+- an implementation of each platform interface in `src/platforms/vxworks` (the
+  fragment and the branch in `cmake/Platform.cmake` already exist), with a
+  toolchain file for the cross compiler. First find out which APIs the 178C
+  profile allows (sockets, a file system, `pthread`, dynamic allocation after
+  start-up) and settle the priority plan; both are open;
 - the libraries built to what that target allows. That probably means no
   exceptions, no RTTI and no heap after start-up, and each of those is a
-  constraint the library does not meet yet (the model types hold `std::string`
+  constraint `adl::arinc665` does not meet yet (the model types hold `std::string`
   and `std::vector`, and the library uses `std::expected` and `std::variant`,
   which need a standard library that has them). It already returns errors as
   values, computes its CRC tables at compile time, has no static initialisation
-  and no `iostream`, which is the direction;
+  and no `iostream`, which is the direction. The platform layer and the 615A
+  engine are written to meet them: no exceptions, no RTTI, caller-supplied
+  buffers, and a sans-I/O core;
 - a CI job that builds the library for the target with those constraints on, so
   that they hold.
 

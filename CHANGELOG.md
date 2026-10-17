@@ -48,8 +48,27 @@ C++23 CMake monorepo. Nothing has been released.
   they are written, so that other loaders can be tried on them. The tests build
   from the same samples.
 - **`adl::platform`**: the platform section, selected in CMake and not in the
-  source (`docs/platform-isolation.md`), with the executable's path as its first
-  interface.
+  source (`docs/platform-isolation.md`).
+- **The platform abstraction for the ARINC 615A loader**
+  ([docs/platform-abstraction.md](docs/platform-abstraction.md)): interfaces for
+  files and storage, memory (an arena, a block pool and a provider, chosen over
+  `std::pmr`), threads with an abstract priority scheme, mutexes and semaphores,
+  a monotonic clock, IPv4 UDP sockets that wait on several at once, and bounded
+  message queues. Windows, Linux and macOS implement them (Winsock and Win32;
+  POSIX, with the differences of Linux and macOS in one small file each). Failure
+  is `std::expected`, nothing throws, and a platform with no heap can serve the
+  handles from fixed slots.
+- **A fake platform** (`tests/fake`): an in-memory clock, network, file system,
+  memory and threads on a clock that moves only when told to, so the engine can be
+  tested without a socket or a real second. The network loses, duplicates,
+  corrupts and reorders datagrams from a seed or by a rule, and a simulated target
+  can answer at an address.
+- **Conformance tests** that run the same checks against the real host of each
+  platform and against the fake, and loopback tests over real UDP.
+- **QNX, VxWorks, FreeRTOS and Zephyr as named targets.** `ADL_TARGET_PLATFORM`
+  names the platform of a cross build. QNX has code that has never been compiled
+  (refused unless `ADL_ACCEPT_UNBUILT_PLATFORM` is on); the other three are
+  designs only, and a build for them says so.
 - **Repository rules as code**: gitflow branch names, no attribution in commit
   messages or pull request text, formatting, platform isolation, CodeQL,
   dependency review, and the rulesets that require them.

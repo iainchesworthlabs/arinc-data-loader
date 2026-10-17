@@ -1,8 +1,9 @@
 # Testing
 
 The tests are Catch2 unit tests for the libraries and the platform layer, plus
-checks about the build itself and runs of the `adl_write_payloads` program. They run in CI on Windows (MSVC), Linux (GCC)
-and macOS (AppleClang); locally they have been run on Windows only.
+checks about the build itself and runs of the `adl_write_payloads` program. They
+run in CI on Windows (MSVC), Linux (GCC) and macOS (AppleClang); locally they have
+been run on Windows, and on Linux in a container.
 
 ## Running them
 
@@ -22,12 +23,20 @@ unit-test program directly, with Catch2's own filters:
 ```sh
 build/windows-msvc-debug/bin/adl_unit_tests --list-tests
 build/windows-msvc-debug/bin/adl_unit_tests "[golden]"
+build/windows-msvc-debug/bin/adl_platform_tests "[conformance]"
 ```
+
+There are two test programs: `adl_unit_tests` (the ARINC 665 library, the media
+tree and the samples) and `adl_platform_tests` (the platform layer: its portable
+types, the fake platform and the conformance suite).
 
 The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]`,
 `[naming]`, `[header]`, `[load]`, `[batch]`, `[media-files]`, `[media-set]`,
 `[label]`, `[media-tree]`, `[golden]`, `[compatibility]`, `[limits]`, `[robustness]` and
-`[platform]`.
+`[platform]`. The platform layer adds `[memory]`, `[error]`, `[time]`, `[network]`,
+`[fake]`, `[conformance]` (with `[clock]`, `[files]`, `[threads]`, `[ipc]`,
+`[network]`), `[integration]` (real UDP over the loopback interface) and `[real]` (runs
+on the real host only).
 
 ## What there is
 
@@ -50,8 +59,13 @@ The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]
 | `limits_test.cpp` | Each side of the 16-bit field limits, a load of a thousand files, a 3 MB file, a media set of many loads |
 | `robustness_test.cpp` | Every decoder over every truncation, every single-bit change, damage with the CRC put right, and random bytes, under the sanitizers |
 | `paths_test.cpp` | `adl::platform::executable_path` names the running test program |
+| `memory_test.cpp` | `Arena`, `BlockPool` and `StaticStorage`: alignment, exhaustion as a null result and never a write past the end, marks and rewinding, blocks that do not overlap and come back in any order, a block that is not the pool's being refused |
+| `platform_types_test.cpp` | Error codes and their names, `Instant` arithmetic that saturates instead of wrapping, the protocol's largest figures fitting a `Duration`, IPv4 addresses read and written (and the bad ones refused) |
+| `fake_platform_test.cpp` | The fake itself: the clock moves only when told, events run in time order, a latency, a loss profile that is the same for the same seed, a filter that drops, duplicates and corrupts chosen datagrams, jitter that reorders and loses none, an agent standing in for a target, two hosts on one network, broadcast, a receive buffer that overflows, the in-memory file system, a memory budget, threads that run when joined |
+| `tests/conformance/*` | The platform contract, each check run against the fake **and** the real host this build selected. Clock: never backwards, sleeps at least what was asked and not wildly more, a wall clock that is plausible or `unsupported`. Memory: zeroed, aligned, writable, independent, refused with the right reason, `resident` granted or refused usefully. Files: a file written in pieces is read back at any offset (a short count only at the end), a file across the largest TFTP block size (65464), exclusive creation, directories, listing (and changing the directory while listing), rename over a file, a file that outlives its removal, paths the interface refuses (empty, backslash, NUL), non-ASCII names, a full disk, a closed file. Threads: join, destroying a thread waits for it, every priority level starts a thread and `normal` is always applied, a mutex, a semaphore's count, ceiling and time-out. Queues: whole messages in order, a full queue, a ring that wraps, bad sizes, caller-supplied storage. Network: a datagram of each TFTP-relevant size arrives whole with its source, order, time-out, a second bind refused, a port shared on request, an address that is not the host's, waiting on several sockets, truncation, the maximum datagram, a send to a closed port not upsetting the sender, broadcast needing permission. Real host only: threads contending on a mutex, a queue between threads under backpressure, a thousand datagrams echoed over real UDP, one thread serving five sockets with `wait_readable`, a datagram arriving from another thread while a receive waits |
 | `tools.write_payloads*` (CTest) | `adl_write_payloads` writes every scenario to a fresh directory and verifies it (the setup test `tools.write_payloads.clean` empties the directory first, since the program never overwrites), `--list` works, and an unknown scenario or a missing output directory is refused |
 | `tests/platform/check_fragments.cmake` | `platform.fragments`: each fragment satisfies the platform contract, on whichever host this runs |
+| `tests/platform/check_selector.cmake` | `platform.selector`: configures the project with `ADL_TARGET_PLATFORM` set, and checks that a platform with no code is refused with its reason, that QNX is refused until `ADL_ACCEPT_UNBUILT_PLATFORM` is on and then configures, and that a name that is not a platform lists the ones that are |
 | `tools/checks/check_platform_isolation.ps1` | `platform.isolation`: no preprocessor conditionals or defines, no OS headers outside the platform section, no OS tests in CMake outside the selector |
 
 ## Golden payloads
@@ -95,6 +109,19 @@ file and putting its CRC right again are in `tests/support`.
 
 A bug fix comes with the test that failed before it.
 
+## The fake and the conformance suite
+
+The platform layer is tested by comparing two implementations of one contract. The
+fake (`tests/fake`, [described here](platform-abstraction.md#the-fake-platform))
+runs in memory on a clock that moves only when told to, so the engine's tests
+need no socket and no real second; the conformance suite then checks that the fake
+and the real host of each platform behave the same way, so that those tests mean
+something about the real one. A conformance check is written with
+`GENERATE(HostKind::fake, HostKind::real)` and `HostUnderTest`
+(`tests/conformance/host_under_test.hpp`), which hands it a host and a scratch
+directory; a check that needs real concurrency is written for the real host only
+and tagged `[real]`. A port runs the suite on its target as its first test.
+
 ## Known gaps
 
 - The golden payloads come from the same reading of the standard as the library.
@@ -103,5 +130,13 @@ A bug fix comes with the test that failed before it.
 - Appendix L's random reference files and its Ethernet frame are not in the
   standard.
 - No tool other than this one has read the trees `adl_write_payloads` writes.
-- There are no tests of the Linux and macOS platform sources on their hosts
-  until their CI legs have run.
+- The macOS platform sources have not yet been run on a Mac: the first CI run of
+  the platform layer is their first test. (The Linux ones have, in a container
+  with GCC 15 under the sanitizers.)
+- QNX's sources have never been compiled, and VxWorks, FreeRTOS and Zephyr have
+  none; the conformance suite is how a port will find out where it differs.
+- The conformance suite cannot show a data race: the fake runs a thread when it is
+  joined, and the real-host checks are a handful of contended runs, not a proof.
+- A real allocator is not asked for an impossible amount of memory under the
+  sanitizers, which abort the process instead of returning null; `resource_exhausted`
+  is tested on the fake.
