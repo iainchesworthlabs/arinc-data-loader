@@ -143,6 +143,28 @@ option names, an oversized DATA block and an empty OACK. Each was caught. (One w
 first: the FIND hardware identifier limit, because the test took its figure from the same
 constant the library did. The test now writes the limits out.)
 
+The engine was checked the same way, with 38 deliberate breaks, one at a time, each rebuilt and run
+(`adl_engine_tests` takes 15 seconds): a sender that answers a duplicate ACK with the block again, a block
+number that wraps to 0, two retries and not one, no dally, a size mismatch ignored, a checksum that always
+matches or that fails the transfer, a repeated block not acknowledged, any block size accepted, a stray
+transfer ID answered, a WAIT in the middle taken as a WAIT, an abort that sends nothing, an OACK with a
+larger block size accepted, the time-outs of the standard changed by a second (TFTP, DLP, FIND), a second DLP
+retry, an exception timer ignored, a repeated status counter shown again, lost status files not counted, a
+first counter of 1 called a gap, the list written before the accepted status, an abort that leaves transfers
+open or does not answer the first status file request, the protocol version not checked, a file nobody asked
+for taken, a checksum mismatch failing the operation, the Information fast path lost, WAIT not waited for, no
+fallback when options are refused, `WAIT` answered with an error, completion that does not wait for a transfer
+still open, a FIND answer accepted late, repeated, or with no identifier, a list transfer that does not
+suspend the time-out, and the port option always sent. The first run left six alive (the block size a server
+accepts, the time-out running while a status file or the list is arriving, a first counter of 1 reported, an
+abort that waits for the status file instead of ending the open transfers, completion that does not wait, the
+list transfer's suspension); each got a test, and each is now caught. One break still survives and is
+equivalent: the guard in `check_watchdog` that skips the check while a transfer suspends the time-out is
+redundant with the deadline being set to `never` at that moment. (The Sorcerer's Apprentice break made the
+test program loop for ever, which is how the bug looks; it counts as caught.) The run did not catch a bug
+in the runner, but the sanitizer did: the first version used a socket that an earlier command of the same
+round had closed.
+
 ## Adding a test
 
 Put a `TEST_CASE` in the file for the thing it tests, or add a file under

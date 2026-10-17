@@ -2,10 +2,16 @@
 
 #include <algorithm>
 #include <array>
+#include <type_traits>
 #include <vector>
 
 namespace adl::arinc615a {
 namespace {
+
+// The engine's types are the platform's, so that converting is copying.
+static_assert(std::is_same_v<Duration, adl::platform::Duration>);
+static_assert(sizeof(Address) == sizeof(adl::platform::Ipv4Address));
+static_assert(sizeof(Endpoint) == sizeof(adl::platform::Endpoint));
 
 using adl::platform::Owned;
 using adl::platform::UdpSocket;

@@ -54,11 +54,11 @@ included, and a test can drive it with no network at all ([Testing](#what-has-be
   calculating a checksum: `adl::arinc665::IntegrityChecker::check_value()` returns the value in a
   `std::vector`, so a file that has a checksum costs one small allocation when it ends. The runner library
   (`adl::arinc615a_runner`) is host code and uses `std::vector` and `std::string`.
-- **The caller gives the loader a workspace** (`DataLoader::workspace_bytes(config)`, 150 to 250 KB with the
+- **The caller gives the loader a workspace** (`DataLoader::workspace_bytes(config)`, about 270 KB with the
   defaults, most of it six protocol file buffers of 32 KB): a datagram buffer and a protocol file buffer for
   each slot, a buffer the outgoing list is encoded into, and a pool for the names a download expects. The
-  `DataLoader` object itself (about 20 KB) holds the slots, the expected files and the commands, so keep it
-  off a small stack.
+  `DataLoader` object itself (about 16 KB on MSVC) holds the slots, the expected files and the commands, so
+  keep it off a small stack. A protocol file larger than `max_protocol_file_bytes` is refused with error 3.
 - **A decoded packet or file views the bytes it was decoded from**, so the loader owns every buffer it
   holds a view into: the protocol file being received lives in the slot's buffer until the file has been
   decoded, shown to the listener and dealt with. What the listener is handed (a status file, a list, a file
