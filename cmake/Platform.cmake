@@ -17,11 +17,35 @@
 # (its implementations plus a platform.cmake that fills in the contract below),
 # and one branch in the selector here.
 #
+# How the selector learns the target
+# ----------------------------------
+# A desktop build needs nothing: WIN32, APPLE and UNIX say which it is. An RTOS
+# build is a cross build, and CMake has no system name for most of them
+# (FreeRTOS, Zephyr and VxWorks toolchains say "Generic", or whatever the
+# toolchain file chose), so the target is named explicitly:
+#
+#     cmake -DADL_TARGET_PLATFORM=freertos --toolchain <toolchain file> ...
+#
+# ADL_TARGET_PLATFORM, when set, wins over detection. It is the one cache
+# variable that names a platform, and this file the one place that reads it.
+# The names it accepts are the branches below; QNX is also recognised from
+# CMAKE_SYSTEM_NAME.
+#
+# A platform whose fragment says ADL_PLATFORM_STATUS "unbuilt" has code nobody has
+# compiled; one that says "design-only" has none. Both are refused unless
+# ADL_ACCEPT_UNBUILT_PLATFORM is ON, and a design-only one is refused even then,
+# because there is nothing to build (docs/platform-abstraction.md says what each
+# platform has).
+#
 # The contract a fragment fills in (checked by cmake/PlatformContract.cmake)
 # ------------------------------------------------------------------------
 # Facts:
 #   ADL_PLATFORM_DISPLAY_NAME     How the platform is written in the version
 #                                 block ("Windows", "macOS", "Linux").
+#   ADL_PLATFORM_STATUS           "supported": built and tested by CI;
+#                                 "unbuilt": code exists that nobody has
+#                                 compiled; "design-only": no code, only the
+#                                 documented design.
 #   ADL_PLATFORM_DESKTOP          ON where installers, the Qt application and
 #                                 the third-party notices exist.
 #   ADL_PLATFORM_QT_SEARCH_ROOTS, ADL_PLATFORM_QT_ARCH_DIRS
@@ -50,26 +74,53 @@
 # ---------------------------------------------------------------------------
 include_guard(GLOBAL)
 
-# Phones and the browser are not targets (docs/roadmap.md), and the embedded
-# target (VxWorks, for the loader library) is not built yet. Saying so here is
+# Phones and the browser are not targets (docs/roadmap.md). Saying so here is
 # clearer than a missing-fragment error further down.
 if(ANDROID OR IOS OR EMSCRIPTEN)
     message(FATAL_ERROR
-        "Only Windows, macOS and Linux desktops are supported targets today. "
-        "An embedded (VxWorks) target is on the roadmap (docs/roadmap.md).")
+        "Only Windows, macOS and Linux desktops are supported targets today, with "
+        "QNX, VxWorks, FreeRTOS and Zephyr designed for (docs/platform-abstraction.md).")
 endif()
 
-if(WIN32)
+set(ADL_TARGET_PLATFORM "" CACHE STRING
+    "The platform to build for when the toolchain does not say (an RTOS cross build): windows, linux, macos, qnx, vxworks, freertos or zephyr")
+set_property(CACHE ADL_TARGET_PLATFORM PROPERTY STRINGS
+    "" windows linux macos qnx vxworks freertos zephyr)
+option(ADL_ACCEPT_UNBUILT_PLATFORM
+    "Allow building for a platform whose code has never been compiled (status unbuilt)" OFF)
+
+if(ADL_TARGET_PLATFORM STREQUAL "windows")
+    set(ADL_PLATFORM windows)
+elseif(ADL_TARGET_PLATFORM STREQUAL "macos")
+    set(ADL_PLATFORM macos)
+elseif(ADL_TARGET_PLATFORM STREQUAL "linux")
+    set(ADL_PLATFORM linux)
+elseif(ADL_TARGET_PLATFORM STREQUAL "qnx")
+    set(ADL_PLATFORM qnx)
+elseif(ADL_TARGET_PLATFORM STREQUAL "vxworks")
+    set(ADL_PLATFORM vxworks)
+elseif(ADL_TARGET_PLATFORM STREQUAL "freertos")
+    set(ADL_PLATFORM freertos)
+elseif(ADL_TARGET_PLATFORM STREQUAL "zephyr")
+    set(ADL_PLATFORM zephyr)
+elseif(NOT ADL_TARGET_PLATFORM STREQUAL "")
+    message(FATAL_ERROR
+        "ADL_TARGET_PLATFORM is '${ADL_TARGET_PLATFORM}', which is not a platform. "
+        "The choices are windows, linux, macos, qnx, vxworks, freertos and zephyr.")
+elseif(WIN32)
     set(ADL_PLATFORM windows)
 elseif(APPLE)
     set(ADL_PLATFORM macos)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "QNX")
+    set(ADL_PLATFORM qnx)
 elseif(UNIX)
     set(ADL_PLATFORM linux)
 else()
     message(FATAL_ERROR
-        "Unsupported target platform. Add src/platforms/<name>/ with a "
-        "platform.cmake (see the contract at the top of cmake/Platform.cmake) "
-        "and a branch for it in this file.")
+        "Cannot tell which platform this is. For an RTOS or other cross build, name it: "
+        "-DADL_TARGET_PLATFORM=<windows|linux|macos|qnx|vxworks|freertos|zephyr>. To add "
+        "a platform, add src/platforms/<name>/ with a platform.cmake (the contract is at the "
+        "top of cmake/Platform.cmake) and a branch for it in this file.")
 endif()
 
 set(ADL_PLATFORM_DIR "${PROJECT_SOURCE_DIR}/src/platforms/${ADL_PLATFORM}")
@@ -80,3 +131,15 @@ include("${ADL_PLATFORM_DIR}/platform.cmake")
 include(PlatformContract)
 adl_platform_check_contract("${ADL_PLATFORM_DIR}/platform.cmake"
     "${PROJECT_SOURCE_DIR}/src/platforms")
+
+# A platform nobody has built is not silently built.
+if(ADL_PLATFORM_STATUS STREQUAL "design-only")
+    message(FATAL_ERROR
+        "The ${ADL_PLATFORM_DISPLAY_NAME} platform is a design only: src/platforms/${ADL_PLATFORM}/ "
+        "has no implementation to build. See docs/platform-abstraction.md for what a port needs.")
+elseif(ADL_PLATFORM_STATUS STREQUAL "unbuilt" AND NOT ADL_ACCEPT_UNBUILT_PLATFORM)
+    message(FATAL_ERROR
+        "The ${ADL_PLATFORM_DISPLAY_NAME} platform has code that has never been compiled or run "
+        "(docs/platform-abstraction.md, 'Status of each platform'). To try it anyway, "
+        "configure with -DADL_ACCEPT_UNBUILT_PLATFORM=ON.")
+endif()

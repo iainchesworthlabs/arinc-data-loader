@@ -3,19 +3,33 @@
 
 set(ADL_PLATFORM_DISPLAY_NAME "Windows")
 set(ADL_PLATFORM_DESKTOP ON)
+set(ADL_PLATFORM_STATUS supported)
 
 set(ADL_PLATFORM_QT_SEARCH_ROOTS "C:/Qt" "$ENV{USERPROFILE}/Qt")
 set(ADL_PLATFORM_QT_ARCH_DIRS msvc2022_64 msvc2019_64)
 
 set(ADL_PLATFORM_SOURCES
-    windows/paths_windows.cpp)
+    windows/paths_windows.cpp
+    windows/windows_common.cpp
+    windows/clock_windows.cpp
+    windows/memory_windows.cpp
+    windows/files_windows.cpp
+    windows/threads_windows.cpp
+    windows/network_windows.cpp
+    windows/host_windows.cpp
+    detail/ring_queue.cpp)
 
-set(ADL_PLATFORM_LINK_LIBRARIES "")
+# Winsock. Everything else the platform uses is in kernel32.
+set(ADL_PLATFORM_LINK_LIBRARIES ws2_32)
 
 # <windows.h> without the parts and macros nobody asked for (min/max, the
 # rarely used APIs) and with the wide-character API as the default. Passed by
 # the build, so no source file declares them.
-set(ADL_PLATFORM_COMPILE_DEFINITIONS WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE)
+#
+# _WIN32_WINNT names the oldest Windows the platform layer runs on, Windows 10
+# (SetThreadDescription, GetSystemTimePreciseAsFileTime, WSAPoll).
+set(ADL_PLATFORM_COMPILE_DEFINITIONS
+    WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE _WIN32_WINNT=0x0A00)
 
 # A graphical program starts without a console window.
 function(adl_platform_configure_app target)
