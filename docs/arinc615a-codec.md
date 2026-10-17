@@ -3,14 +3,14 @@
 `adl::arinc615a` (`src/arinc615a`) turns the packets and files of ARINC 615A-3 into
 bytes and back: the TFTP packets with their options, the FIND packets, and the twelve
 protocol files of section 6.4. It does not send, receive or keep time. The protocol
-engine that uses it (the operations, the state machines, the time-outs) is the next
-stage; this page says what the codec does, where the standard was unclear and what was
-chosen, and what has and has not been checked. Section numbers are 615A-3's, which is
-not in the repository ([docs/specs](specs/README.md)).
+engine that uses it (the operations, the state machines, the time-outs) is
+[the next page](arinc615a-engine.md); this page says what the codec does, where the
+standard was unclear and what was chosen, and what has and has not been checked.
+Section numbers are 615A-3's, which is not in the repository
+([docs/specs](specs/README.md)).
 
-The coverage page for the whole standard (`docs/arinc615a-coverage.md`, in the form of
-[the 665 one](arinc665-coverage.md)) comes with the engine, when there is something to
-map the sections onto.
+[The coverage page](arinc615a-coverage.md), in the form of [the 665
+one](arinc665-coverage.md), maps the whole standard onto the codec and the engine.
 
 ## Shape
 
@@ -200,8 +200,8 @@ reason to check the codec against a real target or loader. The independent write
     for the options (they are in 5.3.2.3.8). The headings 5.3.2.3.8.4 (Part Number) and
     5.3.2.3.8.5 repeat the Timeout Interval paragraph, so there is no part number option and
     nothing was implemented for one. Attachment 4 lists `.LNI` among the files the DLP time-out
-    applies to; there is no such file, and `.LND`/`.LNO` are presumably meant (the engine's
-    concern). Appendix G's packet examples are figures of the exchanges only (the sequence, the
+    applies to; there is no such file, and `.LND`/`.LNO` are meant (the engine reads it so:
+    [the engine page](arinc615a-engine.md#the-data-load-protocol-time-out-attachment-4-4-41)). Appendix G's packet examples are figures of the exchanges only (the sequence, the
     addresses, port 59 and the port option 1615) and contain no packet bytes, so the independent
     check below rests on RFC 1350's and RFC 2347's layouts and on the standard's own WAIT and
     FIND examples.

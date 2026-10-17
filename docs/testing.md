@@ -24,11 +24,13 @@ unit-test program directly, with Catch2's own filters:
 build/windows-msvc-debug/bin/adl_unit_tests --list-tests
 build/windows-msvc-debug/bin/adl_unit_tests "[golden]"
 build/windows-msvc-debug/bin/adl_platform_tests "[conformance]"
+build/windows-msvc-debug/bin/adl_engine_tests "[operation]"
 ```
 
-There are two test programs: `adl_unit_tests` (the ARINC 665 and 615A libraries, the media
-tree and the samples) and `adl_platform_tests` (the platform layer: its portable
-types, the fake platform and the conformance suite).
+There are three test programs: `adl_unit_tests` (the ARINC 665 library, the 615A codec, the media
+tree and the samples), `adl_platform_tests` (the platform layer: its portable
+types, the fake platform and the conformance suite) and `adl_engine_tests` (the 615A engine,
+runner and the whole operations against a simulated target on the fake platform).
 
 The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]`,
 `[naming]`, `[header]`, `[load]`, `[batch]`, `[media-files]`, `[media-set]`,
@@ -38,7 +40,12 @@ The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]
 `[robustness615a]`. The platform layer adds `[memory]`, `[error]`, `[time]`, `[network]`,
 `[fake]`, `[conformance]` (with `[clock]`, `[files]`, `[threads]`, `[ipc]`,
 `[network]`), `[integration]` (real UDP over the loopback interface) and `[real]` (runs
-on the real host only).
+on the real host only). The 615A engine adds `[engine]`, with `[tftp-transfer]` (and
+`[wrap]`, `[sas]`, `[faults]`, `[timeout]`, `[wait]`, `[abort]`, `[options]`, `[tsize]`, `[checksum]`,
+`[receive]`, `[send]`, `[io]`), `[loader]` (the data loader driven by hand, with `[status]`,
+`[version]`), `[operation]` (the whole operations, with `[information]`, `[upload]`, `[download]`,
+`[operator]`, `[init]`, `[port]`, `[status]`, `[timeout]`, `[abort]`, `[version]`, `[faults]`),
+`[runner]`, `[find]` and `[files]`.
 
 ## What there is
 
@@ -66,6 +73,12 @@ on the real host only).
 | `protocol_files_test.cpp` | The twelve protocol files of section 6.4: exact layouts, round trips, the file length and version, the status codes each field may hold, the text length rule and its padding, the ratios, counts, user defined data, nested lists, and a buffer too small for every file |
 | `arinc615a_golden_test.cpp` | The codec's packets and files against the ones written independently ([below](#golden-payloads)) |
 | `arinc615a_robustness_test.cpp` | Every 615A decoder over every truncation, bit and byte change, several changes at once, inserted and removed bytes, random bytes and random bytes behind a valid beginning, under the sanitizers; whatever is accepted must encode back to bytes that decode to the same thing |
+| `tests/engine/tftp_transfer_test.cpp` | `TftpTransfer` on its own: two of them over a link in memory (a file read and written at 12 sizes and several block sizes, the largest block, block numbers across the 65535 to 1 wrap in both directions with 65 541 blocks, every datagram duplicated and the sender's block counted (the Sorcerer's Apprentice fix), 120 runs with loss, duplication and reordering from fixed seeds that either deliver the file exactly or time out, reordering by up to 900 ms, the two second time-out and one retry to the datagram, lost ACKs made up for by the retry and three losses not), and one transfer at a time with every datagram written out (WAIT as an answer to a request and as an ordinary error in the middle, ABORT from the peer with each code and our own, error packets, the options of our request and of the OACK we send and accept, an OACK that breaks the rules refused with error 8, a size that is not what arrives, the checksum verdict for each algorithm and a wrong one that does not fail the transfer, repeated and stray and garbage datagrams, a block too long, the dally, repeated requests, a full disk, a file that cannot be read, a request that does not fit its buffer) |
+| `tests/engine/operations_test.cpp` | `DataLoader` with every datagram written out: the request for each operation's initialization file and its options, requests that cannot be made, the time-outs to the nanosecond (2 s and one retry, the DLP retry, 13 s from the end of the initialization file and from the end of each status file, an exception timer longer and shorter than the time-out), requests refused with the right error (before the operation is under way, another operation's file, no slot, from another host), a repeated request, a newer request replacing an old one, status counters (repeats, out of order, gaps, the wrap), an invalid status file, the abort and its confirmation, a protocol version that is not A4 |
+| `tests/engine/data_loader_test.cpp` | Whole operations through the runner on the fake platform against the simulated target: an Information with and without status files, an Upload of a media set built with `build_media_set` (also 150 000 bytes in 64 byte blocks, a short load, two files of one name told apart by the checksum option, a file not yet available, a file refused), media defined and operator defined Downloads (a wrong checksum, no checksum, a file nobody asked for, a missing file, a sink that fails, the choice made later or not at all), a denied or unsupported operation, WAIT, a silent target, the port option, status files lost and repeated, 13 s of silence, the exception timer, the operator's abort in an upload and a download, a target's abort, a protocol version that is not A4, 24 seeds each of an upload and a download over a network that loses, repeats and reorders, a network that loses 45% (it must end, not hang), and that one seed is one history |
+| `tests/engine/find_client_test.cpp` | `FindClient` (the request bytes, the three second window to the nanosecond, what is ignored, repeats, a concentrator's second identity, 64 targets) and `Runner::find` on the fake network (several targets, one that answers twice, one too late, addresses given for AFDX, a lossy network, a port that is taken) |
+| `tests/engine/directory_files_test.cpp` | `DirectoryFileSource` and `DirectoryFileSink` on the fake file system: names that are safe, reading in blocks, names refused (paths, `..`, separators), the limit on open files, a file that appears only when complete, nothing left for a failed transfer, never overwriting, a full disk |
+| `tests/engine/mini_tftp.cpp`, `sim_target.cpp`, `rig.hpp`, `transfer_pair.hpp` | Not tests: the simulated target, with its own TFTP (`mini_tftp`) that shares no code with the engine, and the helpers the tests above use ([below](#the-simulated-target)) |
 | `paths_test.cpp` | `adl::platform::executable_path` names the running test program |
 | `memory_test.cpp` | `Arena`, `BlockPool` and `StaticStorage`: alignment, exhaustion as a null result and never a write past the end, marks and rewinding, blocks that do not overlap and come back in any order, a block that is not the pool's being refused |
 | `platform_types_test.cpp` | Error codes and their names, `Instant` arithmetic that saturates instead of wrapping, the protocol's largest figures fitting a `Duration`, IPv4 addresses read and written (and the bad ones refused) |
@@ -130,6 +143,28 @@ option names, an oversized DATA block and an empty OACK. Each was caught. (One w
 first: the FIND hardware identifier limit, because the test took its figure from the same
 constant the library did. The test now writes the limits out.)
 
+The engine was checked the same way, with 38 deliberate breaks, one at a time, each rebuilt and run
+(`adl_engine_tests` takes 15 seconds): a sender that answers a duplicate ACK with the block again, a block
+number that wraps to 0, two retries and not one, no dally, a size mismatch ignored, a checksum that always
+matches or that fails the transfer, a repeated block not acknowledged, any block size accepted, a stray
+transfer ID answered, a WAIT in the middle taken as a WAIT, an abort that sends nothing, an OACK with a
+larger block size accepted, the time-outs of the standard changed by a second (TFTP, DLP, FIND), a second DLP
+retry, an exception timer ignored, a repeated status counter shown again, lost status files not counted, a
+first counter of 1 called a gap, the list written before the accepted status, an abort that leaves transfers
+open or does not answer the first status file request, the protocol version not checked, a file nobody asked
+for taken, a checksum mismatch failing the operation, the Information fast path lost, WAIT not waited for, no
+fallback when options are refused, `WAIT` answered with an error, completion that does not wait for a transfer
+still open, a FIND answer accepted late, repeated, or with no identifier, a list transfer that does not
+suspend the time-out, and the port option always sent. The first run left six alive (the block size a server
+accepts, the time-out running while a status file or the list is arriving, a first counter of 1 reported, an
+abort that waits for the status file instead of ending the open transfers, completion that does not wait, the
+list transfer's suspension); each got a test, and each is now caught. One break still survives and is
+equivalent: the guard in `check_watchdog` that skips the check while a transfer suspends the time-out is
+redundant with the deadline being set to `never` at that moment. (The Sorcerer's Apprentice break made the
+test program loop for ever, which is how the bug looks; it counts as caught.) The run did not catch a bug
+in the runner, but the sanitizer did: the first version used a socket that an earlier command of the same
+round had closed.
+
 ## Adding a test
 
 Put a `TEST_CASE` in the file for the thing it tests, or add a file under
@@ -155,13 +190,42 @@ something about the real one. A conformance check is written with
 directory; a check that needs real concurrency is written for the real host only
 and tagged `[real]`. A port runs the suite on its target as its first test.
 
+## The simulated target
+
+The engine's operations are tested against a simulated 615A target (`tests/engine/sim_target.hpp`), an
+`adl::fake::Agent` attached to the fake network at an address of its own, with the loader on another. It
+behaves as sections 5.4 and 6.3 say a target does: it serves the initialization file, writes status files
+as a heartbeat (counters and all), reads the load's files from the loader (an upload), writes the files and
+the lists of a download, writes `.LCL`, and answers FIND. A `SimPlan` makes it slow, silent, denying, aborting,
+waiting, refusing options, speaking another protocol version, losing or repeating a status file, sending a wrong
+checksum, announcing an exception timer, or asking for a file that was not offered. Its TFTP is
+`MiniTransfer` (`tests/engine/mini_tftp.cpp`): lock-step blocks, a two second time-out and one retry, written
+plainly and sharing no code with the engine, so that the engine is run against a second reading of RFC 1350
+and section 5.3.2 and not against itself. It does use the codec for the packets, which the golden tests
+check against a writer of their own.
+
+Everything runs on the fake clock, which moves only when told to, so a transfer of thirteen seconds of
+silence takes a few milliseconds, and the same seed is the same history on every platform (the generator is
+SplitMix64, not a standard library's distribution). The network's `LinkProfile` (latency, jitter, loss,
+duplication, corruption) is how loss, repeats and reordering are made; the target's own faults are in the plan.
+After the runner returns the rig advances the clock a second more, so that the target receives the loader's
+last datagram, and `Rig::ended` is the time the runner stopped.
+
+The media set the Upload loads is built with `adl::arinc665::build_media_set` from the sample load
+(`adl::samples`), and served by a `FileSource` over its members that tells two files of one name apart by
+the CRC in the request, as a header file's entries would. Because the target is told the files to read and
+what to expect of each, it checks every byte it reads.
+
 ## Known gaps
 
-- Nothing in the 615A codec has been checked against another implementation of the
-  protocol, a target or a loader; [the choices it made](arinc615a-codec.md#places-the-standard-is-unclear)
-  are the first things to confirm.
-- The codec is meant for a build without exceptions and RTTI, and nothing yet builds it
-  that way.
+- Nothing in the 615A codec or engine has been checked against another implementation of the
+  protocol, a target or a loader; [the choices the codec made](arinc615a-codec.md#places-the-standard-is-unclear)
+  and [the engine's](arinc615a-coverage.md#places-the-standard-is-unclear) are the first things to confirm.
+  The simulated target has a TFTP of its own, but it is the same reading of the standard.
+- No test runs a 615A operation over real sockets: the runner is tested on the fake platform, and the
+  platforms' sockets by the conformance suite. macOS has not run any of the engine's tests except in CI.
+- The codec and the engine are meant for a build without exceptions and RTTI, and no CI job builds them that
+  way. (They compile that way under g++ 15 with `-fno-exceptions -fno-rtti`, checked once by hand.)
 - The golden payloads come from the same reading of the standard as the library.
   Nothing has yet been checked against a load or a media set written by another
   tool.

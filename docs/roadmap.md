@@ -45,7 +45,7 @@ What is left:
 
 `src/arinc615a`, from `docs/specs/615A-3.pdf`: the protocol engine over TFTP and
 UDP, with the Find, Information, Upload and Download operations. It loads what
-`adl::arinc665` makes. Built in three pull requests:
+`adl::arinc665` makes. Built in three pull requests, all done:
 
 1. **The platform abstraction (done).** Interfaces for files, memory, threads
    and priorities, a clock, UDP and message queues, implemented for Windows,
@@ -63,11 +63,30 @@ UDP, with the Find, Information, Upload and Download operations. It loads what
    way as the 665 formats, against an independent writer ([the
    codec](arinc615a-codec.md) lists the places the standard is unclear and what was
    chosen). Not checked against another implementation yet.
-3. **The operations and state machines, and the coverage page (next).** The sans-I/O core
-   (TFTP client and server, the Information, Upload and Download operations, FIND,
-   the time-outs and retries of Attachment 4), a runner over `adl::platform`, a full
-   load of a media set built with `build_media_set` to a simulated target and back,
-   and `docs/arinc615a-coverage.md`.
+3. **The engine, the runner and the coverage page (done).** The sans-I/O core in `adl::arinc615a`
+   (a TFTP client and server with the options, WAIT and ABORT, the Sorcerer's Apprentice fix and the
+   time-out and retry of Attachment 4; the Information, Upload and Download operations with status
+   files, the 13 second time-out, the exception timer, the abort paths and a protocol version check;
+   FIND as a client), `adl::arinc615a_runner` over `adl::platform`, and an end-to-end test against a
+   simulated target on the fake platform: a full load of a media set built with `build_media_set`
+   and a download back, with loss, duplication, reordering, WAIT, ABORT and silence, from fixed seeds
+   ([the engine](arinc615a-engine.md), [the coverage page](arinc615a-coverage.md)). Not checked
+   against another implementation, a loader or a target, and not run over real sockets.
+
+What is left of the 615A work:
+
+- **Check it against a real target or loader.** Both ends of every test are my reading of the standard.
+  The choices that are most likely to differ are listed in
+  [the coverage page](arinc615a-coverage.md#places-the-standard-is-unclear) and
+  [the codec page](arinc615a-codec.md#places-the-standard-is-unclear), the text length of a protocol file
+  first.
+- **An integration test over loopback with real sockets** (a target on the real host in a second thread),
+  so that the runner is run through the real platforms, on all three desktops, in CI.
+- **A CI job that builds the library with `-fno-exceptions -fno-rtti`**, which it is written for.
+- **A target side** (answering `.LCI`, writing status files), if a target is to be built and not only
+  loaded.
+- Choosing, on the application side, the `DNLD_DATA_<THW_ID_POS>_<number>` directory (5.4.4.3) and
+  when to run FIND (Attachment 3).
 
 What is left from stage 1: the macOS leg has not yet run; the embedded ports are
 unbuilt or designs.

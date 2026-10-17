@@ -65,6 +65,38 @@ target_link_libraries(adl_fake_platform
         adl::sanitizers
         adl::coverage)
 
+# The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
+# fake platform, and the simulated target the whole of an operation is run against.
+add_executable(adl_engine_tests
+    engine/data_loader_test.cpp
+    engine/directory_files_test.cpp
+    engine/find_client_test.cpp
+    engine/mini_tftp.cpp
+    engine/operations_test.cpp
+    engine/sim_target.cpp
+    engine/tftp_transfer_test.cpp)
+
+target_include_directories(adl_engine_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/engine"
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+target_link_libraries(adl_engine_tests
+    PRIVATE
+        adl_fake_platform
+        adl::arinc615a
+        adl::arinc615a_runner
+        adl::arinc665
+        adl::platform
+        adl::samples
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_engine_tests)
+
+catch_discover_tests(adl_engine_tests)
+
 # The platform layer: the portable types, the fake, and the conformance suite that runs
 # the same checks against the fake and against the real host this build selected.
 add_executable(adl_platform_tests

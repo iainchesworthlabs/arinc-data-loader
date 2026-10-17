@@ -7,18 +7,20 @@
             |  application (Qt 6.12, not built yet) |
             +------------------+-------------------+
                                |
-              +----------------+----------------+
-              |                                 |
-   +----------v-----------+          +----------v-----------+
-   | adl::arinc615a       |          |  adl::platform       |
-   | codec built, engine  |          |  src/platforms       |
-   | to come              |          |                      |
-   +----------+-----------+          |  files, memory,      |
-              |                      |  threads, clock,     |
-   +----------v-----------+          |  UDP, queues         |
-   | adl::arinc665        |          +----------------------+
-   | src/arinc665         |
-   +----------------------+
+                    +----------v-----------+
+                    | adl::arinc615a_runner|  drives the engine over the platform
+                    +-----+-----------+----+
+                          |           |
+          +---------------v--+   +----v-----------------+
+          | adl::arinc615a   |   |  adl::platform       |
+          | codec and engine |   |  src/platforms       |
+          | (sans-I/O)       |   |                      |
+          +--------+---------+   |  files, memory,      |
+                   |             |  threads, clock,     |
+          +--------v---------+   |  UDP, queues         |
+          | adl::arinc665    |   +----------------------+
+          | src/arinc665     |
+          +------------------+
 
    adl::media_tree (src/media_tree): members <-> a directory tree, over adl::arinc665
    adl::samples (src/samples): the sample sets; adl_write_payloads writes them out
@@ -50,19 +52,26 @@
   [platform abstraction](platform-abstraction.md) the design, how each of seven
   operating systems provides each service, and what has and has not been
   verified.
-- **`src/arinc615a`** is the ARINC 615A library. What is built is its codec: the TFTP
-  packets with their options (and the WAIT and ABORT messages), the FIND packets and the
-  twelve protocol files of section 6.4, each written into a buffer the caller supplies
-  and read back as views over the bytes, with every length checked. It is platform-free
-  and allocates nothing: no `std::string` or `std::vector`, no exceptions, no `iostream`,
-  and it never builds an `adl::arinc665` model (it uses that library's check value
-  numbers only). [ARINC 615A codec](arinc615a-codec.md) has the layouts and the choices
-  made where the standard is unclear. The engine is to come: it will ask `adl::platform`
-  for what the system provides, a UDP socket for TFTP being the obvious case, and its core
-  is sans-I/O, state machines driven by the time and the bytes that arrived, that return
-  the bytes to send and the next time they want to be woken, with no thread, socket or
-  clock inside. A thin runner is the only code that calls the platform. That is what makes
-  it portable to an RTOS and testable without a network.
+- **`src/arinc615a`** is the ARINC 615A library, the data loader's side of the protocol. Its codec
+  is the TFTP packets with their options (and the WAIT and ABORT messages), the FIND packets and the
+  twelve protocol files of section 6.4, each written into a buffer the caller supplies and read back
+  as views over the bytes, with every length checked. Its engine is **sans-I/O**: state machines
+  driven by the time and the bytes that arrived, that return the bytes to send and the next time they
+  want to be woken, with no thread, socket, clock or file system inside. `TftpTransfer` is one file
+  transfer (client or server, sending or receiving); `DataLoader` runs an Information, Upload or
+  Download operation over a few of them at once, with the time-outs and retries of Attachment 4 and the
+  abort paths; `FindClient` is FIND. The files of an upload and a download are reached through two small
+  interfaces, `FileSource` and `FileSink`. It is platform-free and allocates nothing: no `std::string`
+  or `std::vector`, no exceptions, no `iostream`, and it never builds an `adl::arinc665` model (it uses
+  that library's check value numbers and checksums only). [ARINC 615A codec](arinc615a-codec.md) has the
+  layouts, [ARINC 615A engine](arinc615a-engine.md) the design and the choices made where the standard is
+  unclear, and [ARINC 615A coverage](arinc615a-coverage.md) the standard section by section.
+- **`src/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
+  opens the sockets the engine asks for, waits on all of them from one thread with
+  `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.
+  It also has a `FileSource` and a `FileSink` over a directory of the platform's files. That is what
+  makes the engine portable to an RTOS (a port replaces the runner) and testable without a network (the
+  tests replace the platform with the fake and the target with a simulated one).
 - **`src/app`** (planned) is a thin Qt 6.12 layer over the libraries. Qt belongs
   here and nowhere else.
 
@@ -89,6 +98,7 @@ route to remove it.
 | `src/media_tree` | `adl_media_tree` | `adl::media_tree` | `adl::media_tree` | `adl/media_tree/*.hpp` |
 | `src/samples` | `adl_samples` | `adl::samples` | `adl::samples` | `adl/samples/*.hpp` |
 | `src/arinc615a` | `adl_arinc615a` | `adl::arinc615a` | `adl::arinc615a` | `adl/arinc615a/*.hpp` |
+| `src/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
 | `src/platforms` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
@@ -142,7 +152,7 @@ users.
 | Earlier | Now |
 | --- | --- |
 | `ARINC 665` static library (`ARINC_665::*`) | `adl::arinc665` |
-| `ARINC 615A` static library (empty) | `adl::arinc615a`: the codec so far; the engine is the next stage |
+| `ARINC 615A` static library (empty) | `adl::arinc615a` (the codec and the sans-I/O engine) and `adl::arinc615a_runner` |
 | `IIntegrityChecker`, `IntegrityChecker_CRC<>`, `IntegrityCheckerFactory`, `Singleton` | `Crc<>`, `Md5`, `Sha1` and `IntegrityChecker::make`; the singleton is gone |
 | `LoadCheck` | `CheckValueType` (the type) and `IntegrityChecker` (the calculation) |
 | `GenericFile`, `UserSuppliedFile`, `DataFile`, `SupportFile` | plain structs in `files.hpp` |
