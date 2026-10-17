@@ -40,12 +40,69 @@ adl_deploy_sanitizer_runtime(adl_unit_tests)
 
 catch_discover_tests(adl_unit_tests)
 
+# The fake platform: a clock, network, file system, memory and threads that run in
+# memory and on a clock that only moves when told to (tests/fake). The engine is
+# tested against it; the conformance tests hold it to the real hosts' behaviour.
+add_library(adl_fake_platform STATIC
+    fake/fake_host.cpp
+    fake/fake_network.cpp
+    fake/fake_storage.cpp
+    fake/fake_threading.cpp
+    fake/fake_world.cpp)
+target_include_directories(adl_fake_platform PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/fake")
+target_link_libraries(adl_fake_platform
+    PUBLIC
+        adl::platform
+    PRIVATE
+        adl::warnings
+        adl::sanitizers
+        adl::coverage)
+
+# The platform layer: the portable types, the fake, and the conformance suite that runs
+# the same checks against the fake and against the real host this build selected.
+add_executable(adl_platform_tests
+    conformance/clock_memory_test.cpp
+    conformance/files_test.cpp
+    conformance/network_test.cpp
+    conformance/threads_ipc_test.cpp
+    unit/fake_platform_test.cpp
+    unit/memory_test.cpp
+    unit/platform_types_test.cpp)
+
+target_include_directories(adl_platform_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/support"
+    "${CMAKE_CURRENT_SOURCE_DIR}/conformance")
+
+target_link_libraries(adl_platform_tests
+    PRIVATE
+        adl_fake_platform
+        adl::platform
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_platform_tests)
+
+catch_discover_tests(adl_platform_tests)
+
 # Every platform fragment satisfies the platform contract, on whichever host
 # this runs (a build only includes the one fragment for its own platform).
 add_test(NAME platform.fragments
     COMMAND "${CMAKE_COMMAND}"
         "-DREPO_ROOT=${PROJECT_SOURCE_DIR}"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_fragments.cmake")
+
+# The selector learns the target the way docs/platform-isolation.md says (an explicit
+# ADL_TARGET_PLATFORM for a cross build), and refuses a platform with no code to
+# build. It configures the project several times, so it is not the quickest test.
+add_test(NAME platform.selector
+    COMMAND "${CMAKE_COMMAND}"
+        "-DREPO_ROOT=${PROJECT_SOURCE_DIR}"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/selector"
+        "-DGENERATOR=${CMAKE_GENERATOR}"
+        "-DCOMPILER=${CMAKE_CXX_COMPILER}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_selector.cmake")
 
 # No preprocessor conditionals or defines, no OS headers outside the platform
 # section, no OS tests in CMake outside the selector. CI runs it as its own job

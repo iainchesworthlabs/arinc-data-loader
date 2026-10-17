@@ -3,13 +3,25 @@
 
 set(ADL_PLATFORM_DISPLAY_NAME "macOS")
 set(ADL_PLATFORM_DESKTOP ON)
+set(ADL_PLATFORM_STATUS supported)
 
 set(ADL_PLATFORM_QT_SEARCH_ROOTS
     "$ENV{HOME}/Qt" "/opt/Qt" "/usr/local/opt/qt6" "/opt/homebrew/opt/qt6")
 set(ADL_PLATFORM_QT_ARCH_DIRS macos clang_64)
 
+# The implementations shared with the other POSIX systems are in posix/; what
+# differs on macOS is macos/os_macos.cpp.
 set(ADL_PLATFORM_SOURCES
-    macos/paths_macos.cpp)
+    macos/paths_macos.cpp
+    macos/os_macos.cpp
+    posix/posix_common.cpp
+    posix/clock_posix.cpp
+    posix/memory_posix.cpp
+    posix/files_posix.cpp
+    posix/threads_posix.cpp
+    posix/network_posix.cpp
+    posix/host_posix.cpp
+    detail/ring_queue.cpp)
 
 set(ADL_PLATFORM_LINK_LIBRARIES "")
 set(ADL_PLATFORM_COMPILE_DEFINITIONS "")

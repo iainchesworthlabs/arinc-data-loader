@@ -11,7 +11,11 @@ foreach(_source IN LISTS ADL_PLATFORM_SOURCES)
 endforeach()
 
 target_sources(adl_platform PRIVATE ${_adl_platform_sources})
-target_include_directories(adl_platform PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/interfaces")
+target_include_directories(adl_platform
+    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/interfaces"
+    # The implementations include each other's internal headers (detail/, posix/,
+    # windows/); the public interfaces above are all that users of the library see.
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_features(adl_platform PUBLIC cxx_std_23)
 target_compile_definitions(adl_platform PRIVATE ${ADL_PLATFORM_COMPILE_DEFINITIONS})
 target_link_libraries(adl_platform

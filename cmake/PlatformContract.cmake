@@ -13,6 +13,7 @@ include_guard(GLOBAL)
 
 set(ADL_PLATFORM_CONTRACT_VARIABLES
     ADL_PLATFORM_DISPLAY_NAME
+    ADL_PLATFORM_STATUS
     ADL_PLATFORM_DESKTOP
     ADL_PLATFORM_QT_SEARCH_ROOTS
     ADL_PLATFORM_QT_ARCH_DIRS
@@ -28,6 +29,8 @@ set(ADL_PLATFORM_CONTRACT_HOOKS
 #   - every contract variable is defined (an empty string is a definition);
 #   - every hook exists;
 #   - ADL_PLATFORM_DESKTOP is ON or OFF;
+#   - ADL_PLATFORM_STATUS is supported, unbuilt or design-only, and a platform
+#     that says design-only compiles nothing;
 #   - every file the fragment compiles exists under <platforms_dir>.
 # `fragment` only names it in the message.
 function(adl_platform_check_contract fragment platforms_dir)
@@ -52,6 +55,24 @@ function(adl_platform_check_contract fragment platforms_dir)
         message(FATAL_ERROR
             "${fragment}: ADL_PLATFORM_DESKTOP must be ON or OFF, not "
             "'${ADL_PLATFORM_DESKTOP}'.")
+    endif()
+
+    if(NOT ADL_PLATFORM_STATUS STREQUAL "supported" AND
+       NOT ADL_PLATFORM_STATUS STREQUAL "unbuilt" AND
+       NOT ADL_PLATFORM_STATUS STREQUAL "design-only")
+        message(FATAL_ERROR
+            "${fragment}: ADL_PLATFORM_STATUS must be supported, unbuilt or "
+            "design-only, not '${ADL_PLATFORM_STATUS}'.")
+    endif()
+    if(ADL_PLATFORM_STATUS STREQUAL "design-only" AND NOT "${ADL_PLATFORM_SOURCES}" STREQUAL "")
+        message(FATAL_ERROR
+            "${fragment}: a design-only platform compiles nothing, but ADL_PLATFORM_SOURCES "
+            "is '${ADL_PLATFORM_SOURCES}'. Say unbuilt if there is code.")
+    endif()
+    if(NOT ADL_PLATFORM_STATUS STREQUAL "design-only" AND "${ADL_PLATFORM_SOURCES}" STREQUAL "")
+        message(FATAL_ERROR
+            "${fragment}: ADL_PLATFORM_SOURCES is empty, so the platform is design-only, "
+            "not '${ADL_PLATFORM_STATUS}'.")
     endif()
 
     foreach(_file IN LISTS ADL_PLATFORM_SOURCES)

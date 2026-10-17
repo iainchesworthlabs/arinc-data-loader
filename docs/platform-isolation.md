@@ -21,26 +21,55 @@ This is a rule for every contributor, and it is enforced by a check (see
 ```text
 src/platforms/
   interfaces/adl/platform/   what the program needs from a platform: one header each
-    paths.hpp
+    paths.hpp, host.hpp, files.hpp, memory.hpp, threads.hpp, time.hpp,
+    network.hpp, ipc.hpp, error.hpp, owned.hpp, ring_ipc.hpp
   windows/ linux/ macos/     one implementation per interface, plus platform.cmake
+  qnx/                       code that has never been compiled (status unbuilt)
+  vxworks/ freertos/ zephyr/ a platform.cmake only: designs, no code
+  posix/                     the implementations the POSIX systems share
+  detail/                    portable helpers every platform links
   CMakeLists.txt             builds adl_platform from what the fragment names
-tests/platform/              test cases only one platform can run, and the fragment check
+tests/platform/              the fragment and selector checks, and test cases only one platform can run
+tests/conformance/           the same checks against the real host and the fake
+tests/fake/                  the fake platform
 ```
 
-When two platforms would otherwise copy an implementation, put it in a
-`posix/` directory beside them and let each platform's `platform.cmake` name the
-file. `posix/` is not a platform and needs no `platform.cmake` of its own; there
-is nothing in it today. Reach for a platform's own directory when the
-implementations genuinely differ.
+When two platforms would otherwise copy an implementation, put it in the `posix/`
+directory beside them and let each platform's `platform.cmake` name the file.
+`posix/` is not a platform and needs no `platform.cmake` of its own. The POSIX
+systems differ in a few places (a condition variable's clock, thread priorities,
+flushing a file to disk, a thread's name); those are functions declared in
+`posix/posix_os.hpp` and defined once per system (`linux/os_linux.cpp`,
+`macos/os_macos.cpp`), so the shared code has no `#ifdef`. `detail/` holds code that
+has no operating system in it and that every platform compiles. Reach for a
+platform's own directory when the implementations genuinely differ.
 
 ## How CMake selects
 
 `cmake/Platform.cmake` is the **only** CMake file that tests `WIN32`, `APPLE` or
 `UNIX` (and `ANDROID`, `IOS` and `EMSCRIPTEN`, which it turns into an error
-saying that only the three desktops are targets today). It maps them to a platform
-name, includes `src/platforms/<name>/platform.cmake`, and then checks that the
-fragment filled in the whole contract (`cmake/PlatformContract.cmake`). Every
-other CMake file reads what the fragment declared:
+saying which platforms are targets), or `CMAKE_SYSTEM_NAME`. It maps them to a
+platform name, includes `src/platforms/<name>/platform.cmake`, and then checks that
+the fragment filled in the whole contract (`cmake/PlatformContract.cmake`). Every
+other CMake file reads what the fragment declared.
+
+**How the selector learns the target.** A desktop build needs nothing: `WIN32`,
+`APPLE` and `UNIX` say which it is, and QNX is recognised from `CMAKE_SYSTEM_NAME`.
+An RTOS build is a cross build, and CMake has no system name for FreeRTOS or Zephyr
+(their toolchains say "Generic") or for VxWorks, so the target is named with one
+cache variable that only the selector reads:
+
+```sh
+cmake -DADL_TARGET_PLATFORM=freertos --toolchain <toolchain file> ...
+```
+
+`ADL_TARGET_PLATFORM` wins over detection when it is set. A name it does not know
+is an error that lists the ones it does. The rest of the build never sees it, so
+the isolation check has nothing to find. The selector then reads the fragment's
+`ADL_PLATFORM_STATUS` and refuses a platform that is only a design, and one whose
+code has never been compiled unless `-DADL_ACCEPT_UNBUILT_PLATFORM=ON`.
+
+The contract:
 
 | What | Declared as | Read by |
 | --- | --- | --- |
@@ -49,6 +78,7 @@ other CMake file reads what the fragment declared:
 | Compile definitions, for `adl_platform` only (Windows: `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE`) | `ADL_PLATFORM_COMPILE_DEFINITIONS` | `src/platforms/CMakeLists.txt` |
 | The name in the version block (`Windows`, `Linux`, `macOS`) | `ADL_PLATFORM_DISPLAY_NAME` | The configure summary |
 | Whether this is a desktop (installers, the Qt application and notices exist) | `ADL_PLATFORM_DESKTOP` | Checked by the contract; nothing reads it yet |
+| Whether there is code to build (`supported`), code nobody has compiled (`unbuilt`), or only a design (`design-only`) | `ADL_PLATFORM_STATUS` | `cmake/Platform.cmake`, which refuses a build for the last, and for the second unless `ADL_ACCEPT_UNBUILT_PLATFORM` is on |
 | Where an installed Qt lives | `ADL_PLATFORM_QT_SEARCH_ROOTS`, `ADL_PLATFORM_QT_ARCH_DIRS` | `cmake/FindQt6.cmake` |
 | What makes the Qt application a program of this desktop (no console window on Windows, a bundle on macOS) | `adl_platform_configure_app(<target>)` | `src/app/CMakeLists.txt` |
 | Qt's runtime beside a program, including the QML modules in `<qml_dir>` (`windeployqt` on Windows) | `adl_platform_deploy_qt_runtime(<target> <qml_dir>)` | `src/app/CMakeLists.txt`, `tests/CMakeLists.txt` |
@@ -64,10 +94,13 @@ they stay in `cmake/CompilerWarnings.cmake`, `Sanitizers.cmake` and
 ## Adding a platform
 
 1. Create `src/platforms/<name>/` with one implementation of each interface
-   (`paths_<name>.cpp`; use a `posix/` file where the implementation is the
-   same) and a `platform.cmake` that fills in the
-   contract. Copy the closest existing platform's and change what differs.
-2. Add a branch for it in `cmake/Platform.cmake`.
+   (`paths_<name>.cpp` and the files named in
+   [platform abstraction](platform-abstraction.md); use a `posix/` file where the
+   implementation is the same) and a `platform.cmake` that fills in the
+   contract, with `ADL_PLATFORM_STATUS` `unbuilt` until CI builds and runs it.
+   Copy the closest existing platform's and change what differs.
+2. Add a branch for it in `cmake/Platform.cmake`, and its name to the choices of
+   `ADL_TARGET_PLATFORM` if it is a cross build.
 3. If it can run the tests, add `tests/platform/<name>/` for any test case only
    it can run (optional: a platform with none has no directory).
 
@@ -79,8 +112,10 @@ today) and the legs of the CI workflows. Add the platform to those as you would
 a new build target.
 
 The `platform.isolation` test reports a source file in the new directory that no
-`platform.cmake` names, and `platform.fragments` reports a fragment that does
-not satisfy the contract.
+`platform.cmake` names, `platform.fragments` reports a fragment that does not
+satisfy the contract, and `platform.selector` configures the project for the
+platforms that have no code to check that the selector understands an explicit
+target and refuses the ones it should.
 
 ## What to do instead of an `#ifdef`
 
@@ -91,6 +126,9 @@ The cases already in the tree:
 | --- | --- |
 | `<windows.h>` without the `min`/`max` macros, and with the wide-character API | `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE` are in the Windows `platform.cmake` and passed to `adl_platform`; no source file defines them |
 | The path of the running executable | `interfaces/adl/platform/paths.hpp`; `windows/paths_windows.cpp`, `linux/paths_linux.cpp`, `macos/paths_macos.cpp` |
+| Sockets, files, threads, a clock, memory, queues | The interfaces in `interfaces/adl/platform/`, one implementation per platform ([platform abstraction](platform-abstraction.md)) |
+| `MSG_NOSIGNAL` on one system, a different condition-variable wait on another | A function in `posix/posix_os.hpp`, defined once per system in `linux/os_linux.cpp` or `macos/os_macos.cpp` |
+| An RTOS target that CMake has no name for | `-DADL_TARGET_PLATFORM=<name>`, read only by `cmake/Platform.cmake` |
 | A program with no console window on Windows, a bundle on macOS | The `adl_platform_configure_app` hook in each fragment |
 | Where to find Qt on each system | `ADL_PLATFORM_QT_SEARCH_ROOTS` in each fragment, read by `cmake/FindQt6.cmake` |
 | Copying Qt's DLLs beside the program on Windows | The `adl_platform_deploy_qt_runtime` hook; Linux and macOS define it as a no-op |
@@ -138,7 +176,9 @@ fails, with a `file:line` for each finding, on:
    counts too. The platform directories are not exempt;
 2. an OS header, or an OS-querying API (`QSysInfo`, `Q_OS_*`, `platformName()`,
    `Qt.platform`, ...), outside `src/platforms/` and `tests/platform/`. QML and
-   JavaScript files are scanned for the APIs too;
+   JavaScript files are scanned for the APIs too. (The conformance tests and the
+   fake use only the platform interfaces and the standard library, so they are
+   outside the exemption and pass the check as any shared code does.);
 3. a platform directory without a `platform.cmake`, or a translation unit
    (`.cpp`, `.cc`, `.cxx` or `.mm`) in one that no `platform.cmake` names
    outside a comment. (`interfaces/` and `posix/` are not platforms, and are
