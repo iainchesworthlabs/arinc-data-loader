@@ -158,22 +158,25 @@ produce them:
 | `Linux (GCC)` | `ci.yml` | yes | yes |
 | `macOS (AppleClang)` | `ci.yml` | yes | yes |
 | `Coverage (Linux, GCC)` | `ci.yml` | yes | yes |
-| `Scan dependency diff` | `dependency-review.yml` | **staged** | **staged** |
+| `Scan dependency diff` | `dependency-review.yml` | yes | yes |
 
 ### Staging of `Scan dependency diff`
 
-`dependency-review.yml` is public-only, so it cannot have reported a result
-before the rulesets exist.
+`dependency-review.yml` is public-only, and it needs the dependency graph switched
+on in the repository's security settings (Settings, Advanced Security); without it
+the job fails with "Dependency review is not supported on this repository".
 Requiring a check that has never reported leaves every pull request waiting on
-it, so it is **not** in the JSON files. The sequence is:
+it, so it was added to the JSON files only after it had passed on a pull request:
 
 1. Make the repository public and apply the rulesets (above).
-2. Open the first pull request after that; let `Scan dependency diff` report
-   (it also needs the dependency graph switched on in the repository's
-   security settings).
+2. Switch on the dependency graph, open a pull request, and let `Scan dependency
+   diff` report.
 3. Add `{ "context": "Scan dependency diff" }` to the `required_status_checks`
    list in `develop-protection.json` and `main-protection.json`, commit, and
    run `apply_rulesets.ps1 -Apply` again (it updates by name).
+
+This was done for the first pull request. Do it in this order for any other
+repository set up from this one.
 
 `Analyze (C++)` (CodeQL) is informational and is not required.
 
@@ -223,7 +226,8 @@ First-time setup of a repository, in order:
 2. Make the repository public.
 3. `./tools/repo/apply_rulesets.ps1` (dry run), read it, then `-Apply`.
 4. Set the repository settings below.
-5. After the first pull request, stage in `Scan dependency diff` (above).
+5. Switch on the dependency graph, and after the first pull request stage in
+   `Scan dependency diff` (above).
 
 ## Repository settings
 
