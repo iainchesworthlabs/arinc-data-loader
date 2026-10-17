@@ -100,8 +100,8 @@ void DirectoryFileSource::close(SourceHandle file) noexcept {
 DirectoryFileSink::DirectoryFileSink(adl::platform::FileSystem& files, std::string_view directory)
     : files_(files), directory_(directory) {}
 
-IoResult<SinkHandle> DirectoryFileSink::open(std::string_view name,
-                                             std::optional<std::uint64_t> /*expected_size*/) noexcept {
+IoResult<SinkHandle> DirectoryFileSink::open(
+    std::string_view name, std::optional<std::uint64_t> /*expected_size*/) noexcept {
     if (!is_safe_file_name(name)) {
         return std::unexpected(IoFailure{IoError::access_denied, 0});
     }
@@ -134,7 +134,8 @@ IoResult<void> DirectoryFileSink::write(SinkHandle file, std::span<const std::by
     return {};
 }
 
-IoResult<void> DirectoryFileSink::finish(SinkHandle file, const ReceivedFile& /*received*/) noexcept {
+IoResult<void> DirectoryFileSink::finish(SinkHandle file,
+                                         const ReceivedFile& /*received*/) noexcept {
     if (file >= open_.size() || !open_[file].file) {
         return std::unexpected(IoFailure{IoError::io_error, 0});
     }

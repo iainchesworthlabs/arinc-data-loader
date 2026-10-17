@@ -10,7 +10,8 @@ constexpr std::size_t data_header_bytes = 4;
 
 [[nodiscard]] std::size_t usable_block_size(const TransferSettings& settings,
                                             std::size_t buffer_bytes) noexcept {
-    const std::size_t room = buffer_bytes > data_header_bytes ? buffer_bytes - data_header_bytes : 0;
+    const std::size_t room =
+        buffer_bytes > data_header_bytes ? buffer_bytes - data_header_bytes : 0;
     return std::min(settings.max_block_size, room);
 }
 
@@ -120,8 +121,8 @@ Result<void> TftpTransfer::start_read(Instant now, const Endpoint& server,
     asked_ = options;
     OptionBuilder builder;
     if (options.block_size != 0) {
-        if (auto added = builder.add_block_size(static_cast<std::uint16_t>(
-                std::min(options.block_size, settings_.max_block_size)));
+        if (auto added = builder.add_block_size(
+                static_cast<std::uint16_t>(std::min(options.block_size, settings_.max_block_size)));
             !added) {
             return std::unexpected(added.error());
         }
@@ -137,8 +138,8 @@ Result<void> TftpTransfer::start_read(Instant now, const Endpoint& server,
             return std::unexpected(added.error());
         }
     }
-    const auto size = encode_request(
-        TftpRequest{TftpRequest::Kind::read, file_name, builder.list()}, tx_);
+    const auto size =
+        encode_request(TftpRequest{TftpRequest::Kind::read, file_name, builder.list()}, tx_);
     if (!size) {
         state_ = State::idle;
         return std::unexpected(size.error());
@@ -158,8 +159,8 @@ Result<void> TftpTransfer::start_write(Instant now, const Endpoint& server,
     asked_ = options;
     OptionBuilder builder;
     if (options.block_size != 0) {
-        if (auto added = builder.add_block_size(static_cast<std::uint16_t>(
-                std::min(options.block_size, settings_.max_block_size)));
+        if (auto added = builder.add_block_size(
+                static_cast<std::uint16_t>(std::min(options.block_size, settings_.max_block_size)));
             !added) {
             return std::unexpected(added.error());
         }
@@ -177,8 +178,8 @@ Result<void> TftpTransfer::start_write(Instant now, const Endpoint& server,
             return std::unexpected(added.error());
         }
     }
-    const auto size = encode_request(
-        TftpRequest{TftpRequest::Kind::write, file_name, builder.list()}, tx_);
+    const auto size =
+        encode_request(TftpRequest{TftpRequest::Kind::write, file_name, builder.list()}, tx_);
     if (!size) {
         state_ = State::idle;
         return std::unexpected(size.error());

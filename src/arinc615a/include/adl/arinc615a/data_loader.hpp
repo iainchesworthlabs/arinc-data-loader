@@ -95,19 +95,19 @@ enum class SelectionDecision : std::uint8_t {
 // Things worth telling the operator that are not the end of an operation. Each carries a name
 // (a file, or empty) and a number (what is in the comment).
 enum class Notice : std::uint8_t {
-    status_counter_gap,         // value: status files lost between two that arrived
-    status_duplicate,           // a status file with a counter already seen (a repeat)
-    status_stale,               // a status file older than the last (reordered); ignored
-    status_file_failed,         // a status file transfer ended in failure; the target repeats it
-    checksum_mismatch,          // subject: the file; it is kept all the same (5.3.2.3.8.5)
-    checksum_unsupported,       // subject: the file; value: the algorithm's number
-    file_not_available,         // subject: the file; value: seconds the target was told to wait
-    request_refused,            // subject: the file; the target asked for what is not allowed
-    transfer_failed,            // subject: the file; value: a TransferOutcome
-    waiting,                    // the target said WAIT:x; value: x
-    option_fallback,            // the target refused our options; we asked again without any
-    port_option_ignored,        // the target did not take the "port" option
-    files_missing,              // value: how many requested files never arrived
+    status_counter_gap,    // value: status files lost between two that arrived
+    status_duplicate,      // a status file with a counter already seen (a repeat)
+    status_stale,          // a status file older than the last (reordered); ignored
+    status_file_failed,    // a status file transfer ended in failure; the target repeats it
+    checksum_mismatch,     // subject: the file; it is kept all the same (5.3.2.3.8.5)
+    checksum_unsupported,  // subject: the file; value: the algorithm's number
+    file_not_available,    // subject: the file; value: seconds the target was told to wait
+    request_refused,       // subject: the file; the target asked for what is not allowed
+    transfer_failed,       // subject: the file; value: a TransferOutcome
+    waiting,               // the target said WAIT:x; value: x
+    option_fallback,       // the target refused our options; we asked again without any
+    port_option_ignored,   // the target did not take the "port" option
+    files_missing,         // value: how many requested files never arrived
 };
 
 [[nodiscard]] constexpr const char* to_string(Notice notice) noexcept {
@@ -179,18 +179,18 @@ public:
 
 enum class OutcomeCode : std::uint8_t {
     running,
-    completed,                    // the target said so (status 0x0003)
-    denied,                       // the target refused the operation (0x1000)
-    not_supported,                // the target does not do it (0x1002)
-    aborted_by_operator,          // 0x1005
-    aborted_by_data_loader,       // 0x1004
-    aborted_by_target,            // 0x1003
-    unsupported_protocol_version, // the target's files are not version "A4"
-    transfer_failed,              // a file could not be transferred, after the DLP retry
-    dlp_timeout,                  // no status file within the DLP time-out (13 s)
-    exception_timer_expired,      // the target stayed silent longer than it said it would
-    protocol_error,               // a file of an invalid structure, or one sent out of turn
-    local_error,                  // the FileSource or FileSink failed, or the request would not fit
+    completed,                     // the target said so (status 0x0003)
+    denied,                        // the target refused the operation (0x1000)
+    not_supported,                 // the target does not do it (0x1002)
+    aborted_by_operator,           // 0x1005
+    aborted_by_data_loader,        // 0x1004
+    aborted_by_target,             // 0x1003
+    unsupported_protocol_version,  // the target's files are not version "A4"
+    transfer_failed,               // a file could not be transferred, after the DLP retry
+    dlp_timeout,                   // no status file within the DLP time-out (13 s)
+    exception_timer_expired,       // the target stayed silent longer than it said it would
+    protocol_error,                // a file of an invalid structure, or one sent out of turn
+    local_error,  // the FileSource or FileSink failed, or the request would not fit
 };
 
 [[nodiscard]] constexpr const char* to_string(OutcomeCode code) noexcept {
@@ -235,12 +235,12 @@ struct Outcome {
     bool abort_confirmed = false;
 
     std::uint32_t statuses_received = 0;
-    std::uint32_t statuses_lost = 0;        // by the counter
-    std::uint32_t statuses_repeated = 0;    // duplicates and out of order, ignored
-    std::uint32_t files_requested = 0;      // a download: the files asked for
+    std::uint32_t statuses_lost = 0;      // by the counter
+    std::uint32_t statuses_repeated = 0;  // duplicates and out of order, ignored
+    std::uint32_t files_requested = 0;    // a download: the files asked for
     std::uint32_t files_received = 0;
-    std::uint32_t files_served = 0;         // an upload: files the target read from us
-    std::uint32_t items_failed = 0;         // loads (or files) the last status listed as failed
+    std::uint32_t files_served = 0;  // an upload: files the target read from us
+    std::uint32_t items_failed = 0;  // loads (or files) the last status listed as failed
     std::uint32_t checksum_mismatches = 0;
 };
 
@@ -390,12 +390,13 @@ private:
 
         IoResult<void> write(std::span<const std::byte> data) noexcept override;
         std::uint64_t size() const noexcept override;
-        IoResult<std::size_t> read(std::uint64_t offset, std::span<std::byte> out) noexcept override;
+        IoResult<std::size_t> read(std::uint64_t offset,
+                                   std::span<std::byte> out) noexcept override;
 
         Mode mode = Mode::none;
-        std::span<std::byte> buffer;       // memory_sink: where it is collected
-        std::size_t length = 0;            // memory_sink: bytes so far
-        std::span<const std::byte> data;   // memory_source
+        std::span<std::byte> buffer;      // memory_sink: where it is collected
+        std::size_t length = 0;           // memory_sink: bytes so far
+        std::span<const std::byte> data;  // memory_source
         FileSink* sink = nullptr;
         SinkHandle sink_handle = 0;
         FileSource* source = nullptr;
@@ -418,9 +419,11 @@ private:
         std::size_t expected_index = no_index;
         std::array<char, 256> name{};
         std::size_t name_length = 0;
-        std::span<std::byte> file;   // the buffer a protocol file is collected in
+        std::span<std::byte> file;  // the buffer a protocol file is collected in
 
-        [[nodiscard]] std::string_view name_view() const noexcept { return {name.data(), name_length}; }
+        [[nodiscard]] std::string_view name_view() const noexcept {
+            return {name.data(), name_length};
+        }
     };
 
     struct Expected {
@@ -483,16 +486,16 @@ private:
 
     std::array<Slot, max_slots> slots_{};
     std::size_t slot_count_ = 0;
-    std::span<std::byte> outbound_;     // the encoded .LUR, .LNR or .LNA
+    std::span<std::byte> outbound_;  // the encoded .LUR, .LNR or .LNA
     std::size_t outbound_length_ = 0;
-    std::span<char> names_;             // the pool the expected names are copied into
+    std::span<char> names_;  // the pool the expected names are copied into
     std::size_t names_used_ = 0;
     std::array<Expected, max_expected_files> expected_{};
     std::size_t expected_count_ = 0;
 
     std::array<Command, max_commands> commands_{};
     std::size_t command_count_ = 0;
-    std::array<std::byte, 128> reply_{};   // control socket replies (errors, WAIT, ABORT)
+    std::array<std::byte, 128> reply_{};  // control socket replies (errors, WAIT, ABORT)
 
     char init_name_[260]{};
 
@@ -500,12 +503,12 @@ private:
     Outcome outcome_;
     bool started_ = false;
     OperationKind kind_ = OperationKind::information;
-    bool accepted_ = false;           // the initialization file said "accepted"
-    bool list_sent_ = false;          // .LUR/.LNR/.LNA has gone
+    bool accepted_ = false;   // the initialization file said "accepted"
+    bool list_sent_ = false;  // .LUR/.LNR/.LNA has gone
     bool list_started_ = false;
-    bool list_received_ = false;      // .LCL or .LNL has arrived
+    bool list_received_ = false;  // .LCL or .LNL has arrived
     bool selection_pending_ = false;
-    bool completing_ = false;         // the target said 0x0003; waiting for its last transfers
+    bool completing_ = false;  // the target said 0x0003; waiting for its last transfers
 
     // The abort path.
     std::optional<StatusCode> abort_status_;

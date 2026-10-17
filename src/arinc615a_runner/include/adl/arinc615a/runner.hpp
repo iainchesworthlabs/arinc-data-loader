@@ -64,9 +64,9 @@ public:
     // for the window and copies up to out.size() of the targets that answered into `out`.
     // Returns how many. The socket is bound to port 1001, which the standard has the answer
     // come back to.
-    [[nodiscard]] adl::platform::Result<std::size_t> find(
-        const FindConfig& config, std::span<FindTarget> out,
-        std::uint16_t port = find_port) noexcept;
+    [[nodiscard]] adl::platform::Result<std::size_t> find(const FindConfig& config,
+                                                          std::span<FindTarget> out,
+                                                          std::uint16_t port = find_port) noexcept;
 
 private:
     adl::platform::Host& host_;

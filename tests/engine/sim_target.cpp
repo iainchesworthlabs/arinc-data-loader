@@ -57,7 +57,8 @@ void SimTarget::go_silent() {
     note("goes silent");
 }
 
-void SimTarget::send(std::uint16_t from_port, const Endpoint& to, std::span<const std::byte> payload) {
+void SimTarget::send(std::uint16_t from_port, const Endpoint& to,
+                     std::span<const std::byte> payload) {
     if (silent_) {
         return;
     }
@@ -65,12 +66,13 @@ void SimTarget::send(std::uint16_t from_port, const Endpoint& to, std::span<cons
 }
 
 void SimTarget::after(Duration delay, std::function<void()> action) {
-    world_.schedule_after(delay, [alive = std::weak_ptr<bool>(alive_), this, action = std::move(action)] {
-        const auto live = alive.lock();
-        if (live && *live && !silent_) {
-            action();
-        }
-    });
+    world_.schedule_after(delay,
+                          [alive = std::weak_ptr<bool>(alive_), this, action = std::move(action)] {
+                              const auto live = alive.lock();
+                              if (live && *live && !silent_) {
+                                  action();
+                              }
+                          });
 }
 
 MiniTransfer& SimTarget::add_transfer(MiniTransfer::Role role) {
@@ -191,8 +193,8 @@ void SimTarget::serve_init(const Endpoint& from, const TftpRequest& request, Kin
     if (request.options.size() != 0) {
         ++log_.init_options_seen;
         if (plan_.init_refuses_options) {
-            if (const auto size = encode_error(
-                    TftpError{TftpErrorCode::option_refused, "no options"}, small)) {
+            if (const auto size =
+                    encode_error(TftpError{TftpErrorCode::option_refused, "no options"}, small)) {
                 send(next_port_++, from, std::span<const std::byte>{small}.first(*size));
             }
             return;
@@ -208,8 +210,8 @@ void SimTarget::serve_init(const Endpoint& from, const TftpRequest& request, Kin
     log_.loader_port_used = loader_.port;
 
     Bytes file(512);
-    const auto size = encode_initialization_file(
-        InitializationFile{plan_.init_status, plan_.init_text}, file);
+    const auto size =
+        encode_initialization_file(InitializationFile{plan_.init_status, plan_.init_text}, file);
     file.resize(size.value_or(0));
     if (file.size() >= 6) {
         file[4] = static_cast<std::byte>(plan_.init_version[0]);
@@ -238,13 +240,15 @@ void SimTarget::on_init_served() {
     after(plan_.think_time, [this] { start_work(); });
 }
 
-// ---- Client side: writes and reads ---------------------------------------------------------------
+// ---- Client side: writes and reads
+// ---------------------------------------------------------------
 
 std::optional<ChecksumOption> SimTarget::checksum_for(const Bytes& content) const {
     if (plan_.checksum == ChecksumMode::none) {
         return std::nullopt;
     }
-    const auto value = adl::arinc665::compute_check_value(adl::arinc665::CheckValueType::crc16, content);
+    const auto value =
+        adl::arinc665::compute_check_value(adl::arinc665::CheckValueType::crc16, content);
     if (!value) {
         return std::nullopt;
     }
@@ -262,7 +266,8 @@ void SimTarget::write_file(const std::string& name, Bytes content, std::size_t b
                            std::optional<ChecksumOption> checksum,
                            std::function<void(MiniResult::Kind)> then, unsigned attempt) {
     MiniTransfer& transfer = add_transfer(MiniTransfer::Role::client_write);
-    transfer.on_done = [this, name, content, block_size, checksum, then, attempt](MiniTransfer& done) {
+    transfer.on_done = [this, name, content, block_size, checksum, then,
+                        attempt](MiniTransfer& done) {
         const MiniResult result = done.result();
         log_.checksum_acknowledged = log_.checksum_acknowledged || done.checksum_acknowledged();
         remove_later(done.port());
@@ -390,16 +395,15 @@ void SimTarget::pump_status() {
         bytes.resize(bytes.size() - 3);
     }
     const ProtocolFileKind status_kind = kind_ == Kind::information ? ProtocolFileKind::lcs
-                                         : kind_ == Kind::upload     ? ProtocolFileKind::lus
-                                                                     : ProtocolFileKind::lns;
+                                         : kind_ == Kind::upload    ? ProtocolFileKind::lus
+                                                                    : ProtocolFileKind::lns;
     const std::string name = plan_.thw + std::string{extension(status_kind)};
     log_.status_started_at.push_back(now());
     const bool final_status = spec.code == StatusCode::completed ||
                               spec.code == StatusCode::aborted_by_target ||
                               spec.code == StatusCode::aborted_by_data_loader ||
                               spec.code == StatusCode::aborted_by_operator;
-    const bool sets_quiet = plan_.exception_silence > Duration::zero() &&
-                            spec.exception_timer != 0;
+    const bool sets_quiet = plan_.exception_silence > Duration::zero() && spec.exception_timer != 0;
     const bool repeat = plan_.repeat_status_index && *plan_.repeat_status_index == index;
     const Bytes again = repeat ? bytes : Bytes{};
     write_file(name, std::move(bytes), plan_.request_block_size, std::nullopt,
@@ -446,8 +450,8 @@ void SimTarget::pump_status() {
 }
 
 Bytes SimTarget::build_status(const StatusSpec& spec, std::uint16_t counter) {
-    const bool progressing = spec.code == StatusCode::in_progress ||
-                             spec.code == StatusCode::in_progress_with_text;
+    const bool progressing =
+        spec.code == StatusCode::in_progress || spec.code == StatusCode::in_progress_with_text;
     const std::uint16_t estimated = progressing ? estimated_time_unknown : std::uint16_t{0};
     const std::uint16_t exception = progressing ? spec.exception_timer : std::uint16_t{0};
     Bytes bytes(16384);
@@ -461,16 +465,15 @@ Bytes SimTarget::build_status(const StatusSpec& spec, std::uint16_t counter) {
             std::vector<LoadProgress> loads;
             for (const UploadItem& load : plan_.loads) {
                 const bool done = spec.code == StatusCode::completed;
-                loads.push_back(LoadProgress{
-                    load.header_name, load.load_part_number,
-                    static_cast<std::uint8_t>(done ? 100 : progress_percent()),
-                    done ? StatusCode::completed : StatusCode::in_progress, ""});
+                loads.push_back(
+                    LoadProgress{load.header_name, load.load_part_number,
+                                 static_cast<std::uint8_t>(done ? 100 : progress_percent()),
+                                 done ? StatusCode::completed : StatusCode::in_progress, ""});
             }
             size = encode_upload_status(
                 UploadStatus{spec.code, spec.text, counter, exception, estimated,
-                             static_cast<std::uint8_t>(spec.code == StatusCode::accepted
-                                                           ? 0
-                                                           : progress_percent()),
+                             static_cast<std::uint8_t>(
+                                 spec.code == StatusCode::accepted ? 0 : progress_percent()),
                              loads},
                 bytes);
             break;
@@ -665,7 +668,7 @@ void SimTarget::upload_read_next(std::size_t active_index, std::size_t read_inde
     }
     const ReadItem item = plan_.loads[active_loads_[active_index]].reads[read_index];
     read_file(item, [this, item, active_index, read_index, generation](MiniResult::Kind kind,
-                                                                      const Bytes& bytes) {
+                                                                       const Bytes& bytes) {
         if (generation != main_generation_) {
             return;
         }
@@ -706,21 +709,22 @@ void SimTarget::download_write_next(std::vector<std::string> names, std::size_t 
         finish_operation(StatusCode::completed, "");
         return;
     }
-    write_file(name, content, plan_.request_block_size, checksum_for(content),
-               [this, name, names = std::move(names), index, generation](MiniResult::Kind kind) mutable {
-                   if (generation != main_generation_) {
-                       return;
-                   }
-                   if (kind == MiniResult::Kind::aborted) {
-                       on_abort_seen(last_abort_status_);
-                       return;
-                   }
-                   if (kind == MiniResult::Kind::ok) {
-                       log_.files_written.push_back(name);
-                       ++writes_done_;
-                   }
-                   download_write_next(std::move(names), index + 1, generation);
-               });
+    write_file(
+        name, content, plan_.request_block_size, checksum_for(content),
+        [this, name, names = std::move(names), index, generation](MiniResult::Kind kind) mutable {
+            if (generation != main_generation_) {
+                return;
+            }
+            if (kind == MiniResult::Kind::aborted) {
+                on_abort_seen(last_abort_status_);
+                return;
+            }
+            if (kind == MiniResult::Kind::ok) {
+                log_.files_written.push_back(name);
+                ++writes_done_;
+            }
+            download_write_next(std::move(names), index + 1, generation);
+        });
 }
 
 void SimTarget::finish_operation(StatusCode code, const std::string& text) {

@@ -95,18 +95,18 @@ std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation
     auto& clock = host_.clock();
 
     adl::platform::UdpOptions control_options;
-    control_options.local = adl::platform::Endpoint{adl::platform::Ipv4Address::any(),
-                                                    loader.control_port()};
+    control_options.local =
+        adl::platform::Endpoint{adl::platform::Ipv4Address::any(), loader.control_port()};
     auto control = network.open_udp(control_options);
     if (!control) {
-        return std::unexpected(RunError{RunError::Stage::control_socket, Error::invalid_value,
-                                        control.error().code});
+        return std::unexpected(
+            RunError{RunError::Stage::control_socket, Error::invalid_value, control.error().code});
     }
     Sockets sockets(network, std::move(*control));
 
     if (const auto started = loader.start(to_instant(clock.now()), operation); !started) {
-        return std::unexpected(RunError{RunError::Stage::start, started.error(),
-                                        adl::platform::ErrorCode::other});
+        return std::unexpected(
+            RunError{RunError::Stage::start, started.error(), adl::platform::ErrorCode::other});
     }
     sockets.execute(loader.commands());
 
@@ -126,15 +126,15 @@ std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation
         }
 
         const std::size_t count = sockets.gather(waiting, owners);
-        const auto waited = network.wait_readable(
-            std::span<UdpSocket* const>{waiting}.first(count), to_platform(timeout),
-            std::span<bool>{ready}.first(count));
+        const auto waited =
+            network.wait_readable(std::span<UdpSocket* const>{waiting}.first(count),
+                                  to_platform(timeout), std::span<bool>{ready}.first(count));
         if (!waited) {
             if (waited.error().code == adl::platform::ErrorCode::interrupted) {
                 continue;
             }
-            return std::unexpected(RunError{RunError::Stage::wait, Error::invalid_value,
-                                            waited.error().code});
+            return std::unexpected(
+                RunError{RunError::Stage::wait, Error::invalid_value, waited.error().code});
         }
         now = to_instant(clock.now());
 
@@ -148,8 +148,7 @@ std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation
                 if (socket == nullptr) {
                     continue;
                 }
-                const auto datagram =
-                    socket->receive_from(buffer, adl::platform::Duration::zero());
+                const auto datagram = socket->receive_from(buffer, adl::platform::Duration::zero());
                 if (!datagram || datagram->truncated) {
                     continue;  // a datagram larger than any block is not ours to read
                 }

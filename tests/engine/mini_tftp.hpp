@@ -48,12 +48,13 @@ public:
 
     struct Request {
         std::string file_name;
-        Bytes content;                 // client_write: the file to send
-        std::size_t block_size = 0;    // 0: ask for none
+        Bytes content;                                           // client_write: the file to send
+        std::size_t block_size = 0;                              // 0: ask for none
         std::optional<adl::arinc615a::ChecksumOption> checksum;  // sent with a write
     };
 
-    MiniTransfer(MiniHost& host, std::uint16_t port, Role role) : host_(host), port_(port), role_(role) {}
+    MiniTransfer(MiniHost& host, std::uint16_t port, Role role)
+        : host_(host), port_(port), role_(role) {}
 
     // A client sends its request to `server`.
     void start_client(const adl::arinc615a::Endpoint& server, Request request);
@@ -69,12 +70,16 @@ public:
     [[nodiscard]] std::uint16_t port() const noexcept { return port_; }
     [[nodiscard]] Role role() const noexcept { return role_; }
     [[nodiscard]] const MiniResult& result() const noexcept { return result_; }
-    [[nodiscard]] bool running() const noexcept { return result_.kind == MiniResult::Kind::running; }
+    [[nodiscard]] bool running() const noexcept {
+        return result_.kind == MiniResult::Kind::running;
+    }
     [[nodiscard]] const Bytes& received() const noexcept { return received_; }
     [[nodiscard]] const std::string& file_name() const noexcept { return name_; }
     [[nodiscard]] std::size_t block_size() const noexcept { return block_size_; }
     [[nodiscard]] bool checksum_acknowledged() const noexcept { return checksum_acknowledged_; }
-    [[nodiscard]] std::optional<std::uint64_t> announced_size() const noexcept { return announced_; }
+    [[nodiscard]] std::optional<std::uint64_t> announced_size() const noexcept {
+        return announced_;
+    }
     [[nodiscard]] std::uint64_t datagrams_sent() const noexcept { return sent_; }
 
     // Called once, when the transfer ends (successfully or not).
@@ -95,12 +100,12 @@ private:
     bool peer_known_ = false;
     std::string name_;
 
-    Bytes content_;        // to send
+    Bytes content_;  // to send
     Bytes received_;
     std::size_t block_size_ = 512;
     std::size_t asked_block_size_ = 0;
     std::uint64_t offset_ = 0;
-    std::uint16_t block_ = 0;      // sender: the block in flight; receiver: the last acknowledged
+    std::uint16_t block_ = 0;  // sender: the block in flight; receiver: the last acknowledged
     bool last_sent_ = false;
     bool awaiting_first_ = false;  // a client before the first reply; a server before block 1
     std::optional<std::uint64_t> announced_;

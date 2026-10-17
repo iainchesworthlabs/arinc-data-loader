@@ -71,7 +71,8 @@ std::vector<DownloadItem> three_files() {
 }
 
 // The request for all of `files`, as .LNR carries it. `storage` holds what the list views.
-DownloadRequest request_for(const std::vector<DownloadItem>& files, std::vector<FileRequest>& storage) {
+DownloadRequest request_for(const std::vector<DownloadItem>& files,
+                            std::vector<FileRequest>& storage) {
     storage.clear();
     for (const DownloadItem& file : files) {
         storage.push_back(FileRequest{file.name, {}});
@@ -100,7 +101,8 @@ private:
 
 // ---- Information ----------------------------------------------------------------------------
 
-TEST_CASE("an Information operation with no status files ends with the list", "[engine][operation][information]") {
+TEST_CASE("an Information operation with no status files ends with the list",
+          "[engine][operation][information]") {
     SimPlan plan;
     plan.fast_information = true;
     Rig rig(plan);
@@ -120,7 +122,8 @@ TEST_CASE("an Information operation with no status files ends with the list", "[
     CHECK(rig.loader->outcome().files_received == 0);
 }
 
-TEST_CASE("an Information operation with status files ends with the last of them", "[engine][operation][information]") {
+TEST_CASE("an Information operation with status files ends with the last of them",
+          "[engine][operation][information]") {
     Rig rig;
     const auto outcome = rig.run(InformationOperation{});
     REQUIRE(outcome);
@@ -135,7 +138,8 @@ TEST_CASE("an Information operation with status files ends with the last of them
     CHECK(rig.target.finished());
 }
 
-// ---- Upload -----------------------------------------------------------------------------------------
+// ---- Upload
+// -----------------------------------------------------------------------------------------
 
 TEST_CASE("a load of a media set is uploaded to the target", "[engine][operation][upload]") {
     const SampleLoad load = make_sample_load();
@@ -196,7 +200,8 @@ TEST_CASE("a short load is the target asking for fewer files", "[engine][operati
     CHECK(outcome->files_served == 2);
 }
 
-TEST_CASE("two files of one name are told apart by the checksum option", "[engine][operation][upload]") {
+TEST_CASE("two files of one name are told apart by the checksum option",
+          "[engine][operation][upload]") {
     auto spec = adl::samples::arinc615_media_set_spec();
     REQUIRE(spec);
     SampleLoad load;
@@ -231,7 +236,8 @@ TEST_CASE("two files of one name are told apart by the checksum option", "[engin
     CHECK(std::ranges::count(rig.target.log().files_read, "LOAD.BIN") == 2);
 }
 
-TEST_CASE("a file that is not there yet is answered with WAIT and read again", "[engine][operation][upload][wait]") {
+TEST_CASE("a file that is not there yet is answered with WAIT and read again",
+          "[engine][operation][upload][wait]") {
     const SampleLoad load = make_sample_load();
     Rig rig(upload_plan(load));
     rig.source = std::make_unique<MediaSource>(load.files);
@@ -245,12 +251,13 @@ TEST_CASE("a file that is not there yet is answered with WAIT and read again", "
     CHECK(rig.target.log().files_read == names_of(load.item.reads));
     REQUIRE(rig.recorder.count(Notice::file_not_available) == 1);
     CHECK(rig.recorder.notices[0].value == 3);
-    const auto header_requests = std::ranges::count(
-        rig.source->requests, load.item.header_name, &MediaSource::Request::name);
+    const auto header_requests = std::ranges::count(rig.source->requests, load.item.header_name,
+                                                    &MediaSource::Request::name);
     CHECK(header_requests == 2);
 }
 
-TEST_CASE("a file the source will not give is refused with an error", "[engine][operation][upload]") {
+TEST_CASE("a file the source will not give is refused with an error",
+          "[engine][operation][upload]") {
     const SampleLoad load = make_sample_load();
     Rig rig(upload_plan(load));
     rig.source = std::make_unique<MediaSource>(load.files);
@@ -277,15 +284,16 @@ TEST_CASE("a file that does not exist is error 1", "[engine][operation][upload]"
     CHECK(rig.target.log().read_failures == std::vector<std::string>{"MISSING.BIN"});
 }
 
-// ---- Downloads ------------------------------------------------------------------------------------------
+// ---- Downloads
+// ------------------------------------------------------------------------------------------
 
-TEST_CASE("a media defined download brings back the files asked for", "[engine][operation][download]") {
+TEST_CASE("a media defined download brings back the files asked for",
+          "[engine][operation][download]") {
     SimPlan plan;
     plan.files = three_files();
     Rig rig(plan);
     std::vector<FileRequest> storage;
-    const auto outcome =
-        rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
+    const auto outcome = rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::completed);
     CHECK(outcome->files_requested == 3);
@@ -306,14 +314,14 @@ TEST_CASE("a media defined download brings back the files asked for", "[engine][
     CHECK(rig.recorder.count(Notice::files_missing) == 0);
 }
 
-TEST_CASE("a wrong checksum is reported and the file is kept all the same", "[engine][operation][download][checksum]") {
+TEST_CASE("a wrong checksum is reported and the file is kept all the same",
+          "[engine][operation][download][checksum]") {
     SimPlan plan;
     plan.files = three_files();
     plan.checksum = ChecksumMode::wrong;
     Rig rig(plan);
     std::vector<FileRequest> storage;
-    const auto outcome =
-        rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
+    const auto outcome = rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
     REQUIRE(outcome);
     // 5.3.2.3.8.5: the data loader does not fail the transfer, nor the operation, and handles the
     // file as it does one that matched.
@@ -336,8 +344,7 @@ TEST_CASE("a file with no checksum has none to check", "[engine][operation][down
     plan.checksum = ChecksumMode::none;
     Rig rig(plan);
     std::vector<FileRequest> storage;
-    const auto outcome =
-        rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
+    const auto outcome = rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::completed);
     CHECK(std::ranges::all_of(rig.recorder.received_checksums,
@@ -351,8 +358,7 @@ TEST_CASE("a file nobody asked for is refused", "[engine][operation][download]")
     plan.list_unrequested_file = true;
     Rig rig(plan);
     std::vector<FileRequest> storage;
-    const auto outcome =
-        rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
+    const auto outcome = rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::completed);
     CHECK_FALSE(rig.sink.files.contains("ROGUE.BIN"));
@@ -387,28 +393,28 @@ TEST_CASE("a file that cannot be stored ends the operation", "[engine][operation
     Rig rig(plan);
     rig.sink.fail_finish = true;
     std::vector<FileRequest> storage;
-    const auto outcome =
-        rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
+    const auto outcome = rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::local_error);
     CHECK(rig.sink.open_files() == 0);
 }
 
-TEST_CASE("a sink that refuses a file is told so by an error to the target", "[engine][operation][download]") {
+TEST_CASE("a sink that refuses a file is told so by an error to the target",
+          "[engine][operation][download]") {
     SimPlan plan;
     plan.files = three_files();
     Rig rig(plan);
     rig.sink.refuse_open = true;
     std::vector<FileRequest> storage;
-    const auto outcome =
-        rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
+    const auto outcome = rig.run(MediaDownloadOperation{request_for(plan.files, storage)});
     REQUIRE(outcome);
     // Nothing arrived; the target went on to its final status anyway.
     CHECK(outcome->files_received == 0);
     CHECK(rig.recorder.count(Notice::request_refused) >= 3);
 }
 
-TEST_CASE("an operator defined download brings back the files the operator chose", "[engine][operation][download][operator]") {
+TEST_CASE("an operator defined download brings back the files the operator chose",
+          "[engine][operation][download][operator]") {
     SimPlan plan;
     plan.files = three_files();
     Rig rig(plan);
@@ -425,7 +431,8 @@ TEST_CASE("an operator defined download brings back the files the operator chose
     CHECK(outcome->files_received == 2);
 }
 
-TEST_CASE("an operator defined download whose choice is made later", "[engine][operation][download][operator]") {
+TEST_CASE("an operator defined download whose choice is made later",
+          "[engine][operation][download][operator]") {
     SimPlan plan;
     plan.files = three_files();
     Rig rig(plan);
@@ -464,7 +471,8 @@ TEST_CASE("an operator defined download whose choice is made later", "[engine][o
     CHECK(rig.sink.files.at("A.BIN") == plan.files[0].content);
 }
 
-TEST_CASE("a selection given when none is awaited is refused", "[engine][operation][download][operator]") {
+TEST_CASE("a selection given when none is awaited is refused",
+          "[engine][operation][download][operator]") {
     SimPlan plan;
     plan.files = three_files();
     Rig rig(plan);
@@ -476,7 +484,8 @@ TEST_CASE("a selection given when none is awaited is refused", "[engine][operati
     CHECK(late.error() == Error::invalid_value);
 }
 
-TEST_CASE("an operator who chooses nothing aborts the operation", "[engine][operation][download][operator]") {
+TEST_CASE("an operator who chooses nothing aborts the operation",
+          "[engine][operation][download][operator]") {
     SimPlan plan;
     plan.files = three_files();
     Rig rig(plan);
@@ -490,15 +499,18 @@ TEST_CASE("an operator who chooses nothing aborts the operation", "[engine][oper
     CHECK(rig.target.log().aborts_seen.size() == 1);
 }
 
-// ---- The initialization step ---------------------------------------------------------------------------
+// ---- The initialization step
+// ---------------------------------------------------------------------------
 
-TEST_CASE("a target that denies or does not support an operation ends it at once", "[engine][operation][init]") {
+TEST_CASE("a target that denies or does not support an operation ends it at once",
+          "[engine][operation][init]") {
     struct Case {
         StatusCode status;
         OutcomeCode code;
     };
-    for (const Case& scenario : {Case{StatusCode::operation_denied, OutcomeCode::denied},
-                                 Case{StatusCode::operation_not_supported, OutcomeCode::not_supported}}) {
+    for (const Case& scenario :
+         {Case{StatusCode::operation_denied, OutcomeCode::denied},
+          Case{StatusCode::operation_not_supported, OutcomeCode::not_supported}}) {
         for (int kind = 0; kind < 4; ++kind) {
             CAPTURE(static_cast<int>(scenario.status), kind);
             SimPlan plan;
@@ -532,7 +544,8 @@ TEST_CASE("a target that denies or does not support an operation ends it at once
     }
 }
 
-TEST_CASE("a WAIT answer to the first request makes the loader ask again after the wait", "[engine][operation][init][wait]") {
+TEST_CASE("a WAIT answer to the first request makes the loader ask again after the wait",
+          "[engine][operation][init][wait]") {
     SimPlan plan;
     plan.init_wait_seconds = 5;
     plan.fast_information = true;
@@ -562,7 +575,8 @@ TEST_CASE("a target that keeps saying WAIT is given up on", "[engine][operation]
     CHECK(rig.target.log().init_requests_at.size() == 3);
 }
 
-TEST_CASE("a target that never answers the first request fails the operation after the retries", "[engine][operation][init]") {
+TEST_CASE("a target that never answers the first request fails the operation after the retries",
+          "[engine][operation][init]") {
     SimPlan plan;
     plan.init_silent = true;
     Rig rig(plan);
@@ -576,7 +590,8 @@ TEST_CASE("a target that never answers the first request fails the operation aft
     CHECK(rig.elapsed < seconds(8) + milliseconds(100));
 }
 
-TEST_CASE("a target that refuses options is asked again without them", "[engine][operation][init][options]") {
+TEST_CASE("a target that refuses options is asked again without them",
+          "[engine][operation][init][options]") {
     SimPlan plan;
     plan.init_refuses_options = true;
     plan.fast_information = true;
@@ -598,7 +613,8 @@ TEST_CASE("a file that is not a valid structure is a fatal error", "[engine][ope
     CHECK(rig.target.log().init_requests_at.size() == 1);  // not a transfer failure: no retry
 }
 
-TEST_CASE("the port option moves the control port the target writes to", "[engine][operation][port]") {
+TEST_CASE("the port option moves the control port the target writes to",
+          "[engine][operation][port]") {
     SimPlan plan;
     plan.fast_information = true;
     Rig rig(plan);
@@ -635,7 +651,8 @@ TEST_CASE("a target that ignores the port option is noticed", "[engine][operatio
     CHECK(rig.target.log().loader_port_used == 59);
 }
 
-// ---- Status files -----------------------------------------------------------------------------------------
+// ---- Status files
+// -----------------------------------------------------------------------------------------
 
 TEST_CASE("a lost status file is seen in the counter", "[engine][operation][status]") {
     const SampleLoad load = make_sample_load();
@@ -688,7 +705,8 @@ TEST_CASE("the first status file may carry counter 0 or 1, and a larger one mean
     }
 }
 
-TEST_CASE("a status file that is not a valid structure is a fatal error", "[engine][operation][status]") {
+TEST_CASE("a status file that is not a valid structure is a fatal error",
+          "[engine][operation][status]") {
     const SampleLoad load = make_sample_load();
     SimPlan plan = upload_plan(load);
     plan.work_time = seconds(20);
@@ -701,9 +719,11 @@ TEST_CASE("a status file that is not a valid structure is a fatal error", "[engi
     CHECK(outcome->code == OutcomeCode::protocol_error);
 }
 
-// ---- Time-outs ----------------------------------------------------------------------------------------------
+// ---- Time-outs
+// ----------------------------------------------------------------------------------------------
 
-TEST_CASE("thirteen seconds without a status file ends the operation", "[engine][operation][timeout]") {
+TEST_CASE("thirteen seconds without a status file ends the operation",
+          "[engine][operation][timeout]") {
     const SampleLoad load = make_sample_load();
     SimPlan plan = upload_plan(load);
     plan.work_time = seconds(60);
@@ -722,7 +742,8 @@ TEST_CASE("thirteen seconds without a status file ends the operation", "[engine]
     CHECK(outcome->statuses_received == 2);
 }
 
-TEST_CASE("a target that never sends a first status file times out too", "[engine][operation][timeout]") {
+TEST_CASE("a target that never sends a first status file times out too",
+          "[engine][operation][timeout]") {
     const SampleLoad load = make_sample_load();
     SimPlan plan = upload_plan(load);
     plan.silent_after_statuses = 0;
@@ -736,12 +757,13 @@ TEST_CASE("a target that never sends a first status file times out too", "[engin
     CHECK(rig.elapsed < seconds(13) + milliseconds(50));
 }
 
-TEST_CASE("the exception timer lets the target stay silent for longer", "[engine][operation][timeout]") {
+TEST_CASE("the exception timer lets the target stay silent for longer",
+          "[engine][operation][timeout]") {
     const SampleLoad load = make_sample_load();
     SimPlan plan = upload_plan(load);
     plan.work_time = seconds(40);
-    plan.exception_timer = 20;                 // in the third status file...
-    plan.exception_silence = seconds(18);      // ...and it is silent for 18 seconds
+    plan.exception_timer = 20;             // in the third status file...
+    plan.exception_silence = seconds(18);  // ...and it is silent for 18 seconds
     Rig rig(plan);
     rig.source = std::make_unique<MediaSource>(load.files);
     std::vector<LoadReference> storage;
@@ -749,7 +771,8 @@ TEST_CASE("the exception timer lets the target stay silent for longer", "[engine
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::completed);
     // The announced silence is on the record, and the gap really was longer than 13 s.
-    CHECK(std::ranges::find(rig.recorder.exception_timers, 20) != rig.recorder.exception_timers.end());
+    CHECK(std::ranges::find(rig.recorder.exception_timers, 20) !=
+          rig.recorder.exception_timers.end());
     const auto& starts = rig.target.log().status_started_at;
     Duration longest{};
     for (std::size_t i = 1; i < starts.size(); ++i) {
@@ -758,7 +781,8 @@ TEST_CASE("the exception timer lets the target stay silent for longer", "[engine
     CHECK(longest > seconds(13));
 }
 
-TEST_CASE("a target that is silent for longer than its exception timer is timed out", "[engine][operation][timeout]") {
+TEST_CASE("a target that is silent for longer than its exception timer is timed out",
+          "[engine][operation][timeout]") {
     const SampleLoad load = make_sample_load();
     SimPlan plan = upload_plan(load);
     plan.work_time = seconds(60);
@@ -776,14 +800,18 @@ TEST_CASE("a target that is silent for longer than its exception timer is timed 
     CHECK(silent <= seconds(20) + milliseconds(5));
 }
 
-// ---- Aborts ---------------------------------------------------------------------------------------------------
+// ---- Aborts
+// ---------------------------------------------------------------------------------------------------
 
-TEST_CASE("the operator's abort stops an upload and the target confirms it", "[engine][operation][abort]") {
-    for (const StatusCode status : {StatusCode::aborted_by_operator, StatusCode::aborted_by_data_loader}) {
+TEST_CASE("the operator's abort stops an upload and the target confirms it",
+          "[engine][operation][abort]") {
+    for (const StatusCode status :
+         {StatusCode::aborted_by_operator, StatusCode::aborted_by_data_loader}) {
         CAPTURE(static_cast<int>(status));
         const SampleLoad load = make_sample_load(60'000);
         SimPlan plan = upload_plan(load);
-        plan.request_block_size = 32;  // 1900 blocks at 10 ms each: still at it when the abort comes
+        plan.request_block_size =
+            32;  // 1900 blocks at 10 ms each: still at it when the abort comes
         Rig rig(plan);
         rig.network.set_profile(slow_link());
         rig.source = std::make_unique<MediaSource>(load.files);
@@ -812,7 +840,8 @@ TEST_CASE("the operator's abort stops an upload and the target confirms it", "[e
     }
 }
 
-TEST_CASE("an abort before the target has accepted needs nothing from it", "[engine][operation][abort]") {
+TEST_CASE("an abort before the target has accepted needs nothing from it",
+          "[engine][operation][abort]") {
     SimPlan plan;
     plan.init_wait_seconds = 20;  // the loader is waiting to ask again
     Rig rig(plan);
@@ -827,7 +856,8 @@ TEST_CASE("an abort before the target has accepted needs nothing from it", "[eng
     CHECK(rig.target.log().init_requests_at.size() == 1);
 }
 
-TEST_CASE("an abort the target never confirms ends after the data load protocol time-out", "[engine][operation][abort]") {
+TEST_CASE("an abort the target never confirms ends after the data load protocol time-out",
+          "[engine][operation][abort]") {
     const SampleLoad load = make_sample_load();
     SimPlan plan = upload_plan(load);
     plan.work_time = seconds(60);
@@ -846,7 +876,8 @@ TEST_CASE("an abort the target never confirms ends after the data load protocol 
     CHECK(rig.elapsed < seconds(19) + milliseconds(500));
 }
 
-TEST_CASE("a target's own abort ends the operation and the other transfers with ABORT 1003", "[engine][operation][abort]") {
+TEST_CASE("a target's own abort ends the operation and the other transfers with ABORT 1003",
+          "[engine][operation][abort]") {
     const SampleLoad load = make_sample_load(60'000);
     SimPlan plan = upload_plan(load);
     plan.request_block_size = 32;
@@ -865,7 +896,8 @@ TEST_CASE("a target's own abort ends the operation and the other transfers with 
     CHECK(rig.loader->idle());
 }
 
-TEST_CASE("a download is aborted by the operator and the file in flight is thrown away", "[engine][operation][abort]") {
+TEST_CASE("a download is aborted by the operator and the file in flight is thrown away",
+          "[engine][operation][abort]") {
     SimPlan plan;
     plan.files = {DownloadItem{"BIG.BIN", pattern(40'000, 3), "big"}};
     plan.request_block_size = 32;
@@ -884,9 +916,11 @@ TEST_CASE("a download is aborted by the operator and the file in flight is throw
     CHECK(rig.sink.open_files() == 0);
 }
 
-// ---- Protocol version -----------------------------------------------------------------------------------------
+// ---- Protocol version
+// -----------------------------------------------------------------------------------------
 
-TEST_CASE("a protocol version that is not A4 is aborted at the first status file request", "[engine][operation][version]") {
+TEST_CASE("a protocol version that is not A4 is aborted at the first status file request",
+          "[engine][operation][version]") {
     SimPlan plan;
     plan.init_version[0] = 'B';
     plan.init_version[1] = '5';
@@ -900,7 +934,8 @@ TEST_CASE("a protocol version that is not A4 is aborted at the first status file
     CHECK(rig.elapsed < seconds(5));
 }
 
-TEST_CASE("a target on another version that sends no status file is waited for", "[engine][operation][version]") {
+TEST_CASE("a target on another version that sends no status file is waited for",
+          "[engine][operation][version]") {
     SimPlan plan;
     plan.init_version[0] = 'B';
     plan.init_version[1] = '5';
@@ -912,9 +947,11 @@ TEST_CASE("a target on another version that sends no status file is waited for",
     CHECK(rig.elapsed >= seconds(13));
 }
 
-// ---- A network that loses, repeats and reorders ------------------------------------------------------------
+// ---- A network that loses, repeats and reorders
+// ------------------------------------------------------------
 
-TEST_CASE("an upload over a network that loses, repeats and reorders datagrams", "[engine][operation][faults]") {
+TEST_CASE("an upload over a network that loses, repeats and reorders datagrams",
+          "[engine][operation][faults]") {
     const SampleLoad load = make_sample_load(20'000);
     unsigned completed = 0;
     unsigned failed = 0;
@@ -954,7 +991,8 @@ TEST_CASE("an upload over a network that loses, repeats and reorders datagrams",
     CHECK(completed + failed == 24);
 }
 
-TEST_CASE("a download over a network that loses, repeats and reorders datagrams", "[engine][operation][faults]") {
+TEST_CASE("a download over a network that loses, repeats and reorders datagrams",
+          "[engine][operation][faults]") {
     unsigned completed = 0;
     for (std::uint64_t seed = 1; seed <= 24; ++seed) {
         CAPTURE(seed);
@@ -981,13 +1019,15 @@ TEST_CASE("a download over a network that loses, repeats and reorders datagrams"
         CHECK(rig.loader->idle());
         if (outcome->code == OutcomeCode::completed) {
             ++completed;
-            CHECK(outcome->files_received + (outcome->files_requested - outcome->files_received) == 3);
+            CHECK(outcome->files_received + (outcome->files_requested - outcome->files_received) ==
+                  3);
         }
     }
     CHECK(completed >= 18);
 }
 
-TEST_CASE("a network that loses most datagrams ends the operation instead of hanging", "[engine][operation][faults]") {
+TEST_CASE("a network that loses most datagrams ends the operation instead of hanging",
+          "[engine][operation][faults]") {
     const SampleLoad load = make_sample_load();
     for (std::uint64_t seed = 1; seed <= 6; ++seed) {
         CAPTURE(seed);
@@ -1030,7 +1070,8 @@ TEST_CASE("the same seed gives the same history", "[engine][operation][faults]")
     CHECK(times[0] == times[1]);
 }
 
-// ---- The runner ------------------------------------------------------------------------------------------------------
+// ---- The runner
+// ------------------------------------------------------------------------------------------------------
 
 TEST_CASE("the runner reports a control port that is taken", "[engine][runner]") {
     SimPlan plan;

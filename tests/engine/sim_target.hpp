@@ -60,8 +60,8 @@ struct SimPlan {
     adl::arinc615a::StatusCode init_status = adl::arinc615a::StatusCode::accepted;
     std::string init_text;
     char init_version[3] = {'A', '4', 0};
-    bool init_garbage = false;            // a file that is not a valid structure
-    bool init_refuses_options = false;    // error 8 for a request that carries options
+    bool init_garbage = false;          // a file that is not a valid structure
+    bool init_refuses_options = false;  // error 8 for a request that carries options
     bool honor_port_option = true;
 
     // ---- how it works ----
@@ -78,17 +78,17 @@ struct SimPlan {
     std::uint16_t first_counter = 0;
     std::uint16_t skip_counter_at = 0xFFFF;  // lose the status file with this index (counter bump)
     std::uint16_t exception_timer = 0;       // seconds, sent in the second in-progress status
-    adl::arinc615a::Duration exception_silence{};  // then stay silent this long
+    adl::arinc615a::Duration exception_silence{};      // then stay silent this long
     std::optional<std::size_t> silent_after_statuses;  // goes quiet after this many are sent
     std::optional<std::size_t> abort_after_statuses;   // sends 0x1003 after this many
-    bool truncate_status = false;            // the second status file is cut short
-    std::optional<std::size_t> repeat_status_index;  // writes this status file twice
+    bool truncate_status = false;                      // the second status file is cut short
+    std::optional<std::size_t> repeat_status_index;    // writes this status file twice
     bool keep_heartbeat = true;
 
     // ---- the data ----
     std::vector<UploadItem> loads;
     std::vector<DownloadItem> files;
-    bool list_unrequested_file = false;      // a download: also writes a file nobody asked for
+    bool list_unrequested_file = false;  // a download: also writes a file nobody asked for
 
     // ---- FIND ----
     std::optional<adl::arinc615a::FindAnswer> find_answer;
@@ -100,9 +100,9 @@ struct SimLog {
     std::vector<std::string> events;
     std::vector<adl::arinc615a::Instant> init_requests_at;
     std::vector<adl::arinc615a::Instant> status_started_at;
-    std::vector<std::string> files_read;      // read from the loader and as expected
-    std::vector<std::string> files_corrupt;   // read, but not what was expected
-    std::vector<std::string> files_written;   // written to the loader
+    std::vector<std::string> files_read;     // read from the loader and as expected
+    std::vector<std::string> files_corrupt;  // read, but not what was expected
+    std::vector<std::string> files_written;  // written to the loader
     std::vector<std::string> read_failures;
     std::vector<std::uint16_t> statuses_sent;  // counters of status files the loader acknowledged
     unsigned statuses_failed = 0;
@@ -126,7 +126,8 @@ public:
     ~SimTarget() override;
 
     void on_datagram(adl::platform::Instant at, const adl::platform::Endpoint& from,
-                     const adl::platform::Endpoint& to, std::span<const std::byte> payload) override;
+                     const adl::platform::Endpoint& to,
+                     std::span<const std::byte> payload) override;
 
     [[nodiscard]] SimPlan& plan() noexcept { return plan_; }
     [[nodiscard]] const SimLog& log() const noexcept { return log_; }
@@ -154,9 +155,10 @@ private:
     MiniTransfer& add_transfer(MiniTransfer::Role role);
     void remove_later(std::uint16_t port);
 
-    void handle_request(const adl::arinc615a::Endpoint& from, const adl::arinc615a::TftpRequest& request);
-    void serve_init(const adl::arinc615a::Endpoint& from, const adl::arinc615a::TftpRequest& request,
-                    Kind kind);
+    void handle_request(const adl::arinc615a::Endpoint& from,
+                        const adl::arinc615a::TftpRequest& request);
+    void serve_init(const adl::arinc615a::Endpoint& from,
+                    const adl::arinc615a::TftpRequest& request, Kind kind);
     void on_init_served();
     void on_list_received(const std::string& name, const Bytes& bytes);
 
@@ -166,7 +168,8 @@ private:
                     std::function<void(MiniResult::Kind)> then, unsigned attempt = 0);
     void read_file(const ReadItem& item, std::function<void(MiniResult::Kind, const Bytes&)> then,
                    unsigned attempt = 0);
-    [[nodiscard]] std::optional<adl::arinc615a::ChecksumOption> checksum_for(const Bytes& content) const;
+    [[nodiscard]] std::optional<adl::arinc615a::ChecksumOption> checksum_for(
+        const Bytes& content) const;
 
     // Status files.
     void post_status(StatusSpec spec);
@@ -177,7 +180,8 @@ private:
 
     // The operations.
     void start_work();
-    void upload_read_next(std::size_t active_index, std::size_t read_index, std::uint64_t generation);
+    void upload_read_next(std::size_t active_index, std::size_t read_index,
+                          std::uint64_t generation);
     void download_write_next(std::vector<std::string> names, std::size_t index,
                              std::uint64_t generation);
     void handle_find(const adl::arinc615a::Endpoint& from, std::span<const std::byte> payload);
@@ -219,7 +223,8 @@ private:
     std::size_t writes_total_ = 0;
     std::vector<std::size_t> active_loads_;
     std::uint64_t main_generation_ = 0;
-    adl::arinc615a::StatusCode last_abort_status_ = adl::arinc615a::StatusCode::aborted_by_data_loader;
+    adl::arinc615a::StatusCode last_abort_status_ =
+        adl::arinc615a::StatusCode::aborted_by_data_loader;
     bool final_posted_ = false;
     bool work_done_ = false;
     std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);

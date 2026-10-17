@@ -181,7 +181,8 @@ void DataLoader::on_server_finished(Instant now, Slot& slot) noexcept {
     end_suspension(now, slot);
 }
 
-// ---- The initialization file ---------------------------------------------------------------------
+// ---- The initialization file
+// ---------------------------------------------------------------------
 
 void DataLoader::on_init_file(Instant now, Slot& slot) noexcept {
     const std::span<const std::byte> bytes =
@@ -232,7 +233,8 @@ void DataLoader::on_init_file(Instant now, Slot& slot) noexcept {
 // ---- Lists --------------------------------------------------------------------------------------
 
 void DataLoader::send_list(Instant now) noexcept {
-    if (list_started_ || (kind_ != OperationKind::upload && kind_ != OperationKind::download_media)) {
+    if (list_started_ ||
+        (kind_ != OperationKind::upload && kind_ != OperationKind::download_media)) {
         return;
     }
     list_started_ = true;
@@ -263,7 +265,8 @@ void DataLoader::send_selection(Instant now, std::span<const std::string_view> n
         }
     }
     outcome_.files_requested = static_cast<std::uint32_t>(expected_count_);
-    const auto size = encode_download_answer(DownloadAnswer{List<std::string_view>{names}}, outbound_);
+    const auto size =
+        encode_download_answer(DownloadAnswer{List<std::string_view>{names}}, outbound_);
     if (!size) {
         finish_operation(now, OutcomeCode::local_error);
         return;
@@ -305,8 +308,8 @@ void DataLoader::on_list_written(Instant /*now*/) noexcept {
 }
 
 void DataLoader::on_configuration_list(Instant now, Slot& slot) noexcept {
-    const auto list = decode_configuration_list(
-        std::span<const std::byte>{slot.file}.first(slot.io.length));
+    const auto list =
+        decode_configuration_list(std::span<const std::byte>{slot.file}.first(slot.io.length));
     if (!list) {
         finish_operation(now, OutcomeCode::protocol_error);
         return;
@@ -324,8 +327,8 @@ void DataLoader::on_configuration_list(Instant now, Slot& slot) noexcept {
 }
 
 void DataLoader::on_download_list(Instant now, Slot& slot) noexcept {
-    const auto list = decode_download_list(
-        std::span<const std::byte>{slot.file}.first(slot.io.length));
+    const auto list =
+        decode_download_list(std::span<const std::byte>{slot.file}.first(slot.io.length));
     if (!list) {
         finish_operation(now, OutcomeCode::protocol_error);
         return;
@@ -349,7 +352,8 @@ void DataLoader::on_download_list(Instant now, Slot& slot) noexcept {
     }
 }
 
-// ---- Files of a download -------------------------------------------------------------------------
+// ---- Files of a download
+// -------------------------------------------------------------------------
 
 Result<void> DataLoader::expect_file(std::string_view name) noexcept {
     if (find_expected(name) != no_index) {
@@ -418,7 +422,8 @@ std::size_t DataLoader::active_data_transfers() const noexcept {
     return count;
 }
 
-// ---- Status files --------------------------------------------------------------------------------
+// ---- Status files
+// --------------------------------------------------------------------------------
 
 // Section 6.4.3: the counter starts at 0, goes up by one with each status file the target sends
 // and wraps from 0xFFFF to 0, "to detect the duplication of status files or the loss of status
@@ -522,7 +527,8 @@ void DataLoader::on_status_file(Instant now, Slot& slot) noexcept {
     }
 }
 
-void DataLoader::apply_status(Instant now, StatusCode status, std::uint16_t exception_timer) noexcept {
+void DataLoader::apply_status(Instant now, StatusCode status,
+                              std::uint16_t exception_timer) noexcept {
     last_status_ = status;
     outcome_.last_status = status;
     switch (status) {
@@ -576,7 +582,8 @@ void DataLoader::apply_status(Instant now, StatusCode status, std::uint16_t exce
     }
 }
 
-// ---- The data load protocol time-out, completion, abort ------------------------------------------
+// ---- The data load protocol time-out, completion, abort
+// ------------------------------------------
 
 void DataLoader::arm_watchdog(Instant now, Duration window, bool from_exception) noexcept {
     watching_ = true;

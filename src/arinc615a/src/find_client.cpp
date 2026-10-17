@@ -40,9 +40,9 @@ void FindClient::on_datagram(Instant now, const Endpoint& from,
     // A concentrator may answer more than once with different identities (3-5), so only a
     // repeat of the same answer from the same place is a duplicate.
     for (const FindTarget& known : targets()) {
-        if (known.from.address == target.from.address &&
-            known.hardware_id == target.hardware_id && known.type_name == target.type_name &&
-            known.position == target.position && known.literal_name == target.literal_name &&
+        if (known.from.address == target.from.address && known.hardware_id == target.hardware_id &&
+            known.type_name == target.type_name && known.position == target.position &&
+            known.literal_name == target.literal_name &&
             known.manufacturer_code == target.manufacturer_code) {
             ++ignored_;
             return;

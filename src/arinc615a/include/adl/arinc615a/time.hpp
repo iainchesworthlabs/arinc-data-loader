@@ -33,6 +33,16 @@ inline constexpr Instant never{Duration::max()};
     return Instant{at.since_origin + by};
 }
 
+[[nodiscard]] constexpr Instant operator-(Instant at, Duration by) noexcept {
+    if (by > Duration::zero() && at.since_origin < Duration::min() + by) {
+        return Instant{Duration::min()};
+    }
+    if (by < Duration::zero() && at.since_origin > Duration::max() + by) {
+        return never;
+    }
+    return Instant{at.since_origin - by};
+}
+
 [[nodiscard]] constexpr Duration operator-(Instant later, Instant earlier) noexcept {
     return later.since_origin - earlier.since_origin;
 }

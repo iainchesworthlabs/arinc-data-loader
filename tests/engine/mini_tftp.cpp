@@ -73,9 +73,9 @@ void MiniTransfer::start_client(const Endpoint& server, Request request) {
         checksum_asked_ = true;
         static_cast<void>(options.add_checksum(*request.checksum));
     }
-    transmit(mini_encode(TftpRequest{role_ == Role::client_write ? TftpRequest::Kind::write
-                                                                  : TftpRequest::Kind::read,
-                                      name_, options.list()}));
+    transmit(mini_encode(TftpRequest{
+        role_ == Role::client_write ? TftpRequest::Kind::write : TftpRequest::Kind::read, name_,
+        options.list()}));
 }
 
 void MiniTransfer::serve(const Endpoint& client, const TftpRequest& request, Bytes content,
@@ -125,8 +125,8 @@ void MiniTransfer::send_data() {
     block_ = block;
     offset_ += count;
     last_sent_ = count < block_size_;
-    transmit(mini_encode(
-        TftpData{block, std::span<const std::byte>{content_}.subspan(start, count)}));
+    transmit(
+        mini_encode(TftpData{block, std::span<const std::byte>{content_}.subspan(start, count)}));
 }
 
 void MiniTransfer::accept_error(const TftpError& error) {
@@ -205,7 +205,8 @@ void MiniTransfer::on_datagram(const Endpoint& from, std::span<const std::byte> 
                         block_size_ = *options->block_size;
                     }
                     checksum_acknowledged_ = options && options->checksum.has_value();
-                } else if (const auto* ack = std::get_if<TftpAck>(&*packet); ack && ack->block == 0) {
+                } else if (const auto* ack = std::get_if<TftpAck>(&*packet);
+                           ack && ack->block == 0) {
                     peer_ = from;
                     peer_known_ = true;
                     block_size_ = tftp_default_block_size;

@@ -185,8 +185,8 @@ private:
                 delay += Duration(static_cast<std::int64_t>(
                     random_.below(static_cast<std::uint64_t>(profile_.jitter.count()) + 1)));
             }
-            in_flight_.push_back(InFlight{now_ + delay, sequence_++, from_client, from, to,
-                                          {bytes.begin(), bytes.end()}});
+            in_flight_.push_back(InFlight{
+                now_ + delay, sequence_++, from_client, from, to, {bytes.begin(), bytes.end()}});
         }
     }
 

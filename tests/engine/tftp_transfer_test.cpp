@@ -78,7 +78,8 @@ struct Direct {
 // ---- Whole transfers across the link --------------------------------------------------------
 
 TEST_CASE("a file is read whatever its size and block size", "[engine][tftp-transfer]") {
-    for (const std::size_t size : {0U, 1U, 7U, 8U, 511U, 512U, 513U, 1023U, 1024U, 1025U, 5000U, 10240U}) {
+    for (const std::size_t size :
+         {0U, 1U, 7U, 8U, 511U, 512U, 513U, 1023U, 1024U, 1025U, 5000U, 10240U}) {
         for (const std::size_t block : {0U, 8U, 100U, 512U, 1024U, 4000U}) {
             CAPTURE(size, block);
             TransferPair pair;
@@ -222,7 +223,8 @@ TEST_CASE("a file is written across the wrap too", "[engine][tftp-transfer][wrap
 
 // ---- Faults on the link -----------------------------------------------------------------------
 
-TEST_CASE("duplicated datagrams never make a sender resend a block", "[engine][tftp-transfer][sas]") {
+TEST_CASE("duplicated datagrams never make a sender resend a block",
+          "[engine][tftp-transfer][sas]") {
     // Attachment 4, 4-3.3: every datagram arrives twice, so every ACK does. A sender that
     // answered a duplicate ACK with the block again would send each block twice or more.
     TransferPair pair;
@@ -232,8 +234,8 @@ TEST_CASE("duplicated datagrams never make a sender resend a block", "[engine][t
     pair.server_mode = TransferPair::ServerMode::read;
     pair.server_source = &source;
     pair.server_settings = settings_for(1024);
-    REQUIRE(pair.client().start_read(Instant{}, pair.server_control, "FILE.BIN", ClientOptions{}, sink,
-                                     settings_for(1024)));
+    REQUIRE(pair.client().start_read(Instant{}, pair.server_control, "FILE.BIN", ClientOptions{},
+                                     sink, settings_for(1024)));
     REQUIRE(pair.run());
     CHECK(sink.bytes == source.bytes);
     CHECK(sink.writes == 21);  // each block written once, though each arrived twice
@@ -326,14 +328,15 @@ TEST_CASE("reordered datagrams do not corrupt a transfer", "[engine][tftp-transf
         CAPTURE(seed);
         TransferPair pair(1024 + 4, seed);
         pair.profile().latency = std::chrono::milliseconds(1);
-        pair.profile().jitter = std::chrono::milliseconds(900);  // under the time-out, so reordering
+        pair.profile().jitter =
+            std::chrono::milliseconds(900);  // under the time-out, so reordering
         MemorySource source(pattern(40 * 512 + 5, seed));
         MemorySink sink;
         pair.server_mode = TransferPair::ServerMode::read;
         pair.server_source = &source;
         pair.server_settings = settings_for(1024);
-        REQUIRE(pair.client().start_read(Instant{}, pair.server_control, "FILE.BIN", ClientOptions{},
-                                         sink, settings_for(1024)));
+        REQUIRE(pair.client().start_read(Instant{}, pair.server_control, "FILE.BIN",
+                                         ClientOptions{}, sink, settings_for(1024)));
         REQUIRE(pair.run());
         CHECK(pair.client().result().outcome == TransferOutcome::succeeded);
         CHECK(sink.bytes == source.bytes);
@@ -347,8 +350,8 @@ TEST_CASE("a request nobody answers is sent twice and then fails after four seco
     TransferPair pair;
     MemorySink sink;
     pair.server_mode = TransferPair::ServerMode::ignore;
-    REQUIRE(pair.client().start_read(Instant{}, pair.server_control, "FILE.BIN", ClientOptions{}, sink,
-                                     settings_for(1024)));
+    REQUIRE(pair.client().start_read(Instant{}, pair.server_control, "FILE.BIN", ClientOptions{},
+                                     sink, settings_for(1024)));
     REQUIRE(pair.run());
     CHECK(pair.client().result().outcome == TransferOutcome::timed_out);
     REQUIRE(pair.seen().size() == 2);  // Attachment 4: one try and one retry
@@ -380,12 +383,13 @@ TEST_CASE("lost ACKs are covered by the retry, and enough of them fail the trans
             }
             return false;
         };
-        REQUIRE(pair.client().start_write(Instant{}, pair.server_control, "FILE.BIN", ClientOptions{},
-                                          source, settings_for(1024)));
+        REQUIRE(pair.client().start_write(Instant{}, pair.server_control, "FILE.BIN",
+                                          ClientOptions{}, source, settings_for(1024)));
         REQUIRE(pair.run());
         std::size_t block3 = 0;
         for (const Seen& seen : pair.seen()) {
-            if (seen.from_client && is_opcode(seen.bytes, Opcode::data) && block_of(seen.bytes) == 3) {
+            if (seen.from_client && is_opcode(seen.bytes, Opcode::data) &&
+                block_of(seen.bytes) == 3) {
                 ++block3;
             }
         }
@@ -400,7 +404,8 @@ TEST_CASE("lost ACKs are covered by the retry, and enough of them fail the trans
     }
 }
 
-TEST_CASE("the timeout option the peer asks for sets our time-out", "[engine][tftp-transfer][timeout]") {
+TEST_CASE("the timeout option the peer asks for sets our time-out",
+          "[engine][tftp-transfer][timeout]") {
     Direct direct;
     MemorySink sink;
     OptionBuilder options;
@@ -414,20 +419,23 @@ TEST_CASE("the timeout option the peer asks for sets our time-out", "[engine][tf
     CHECK(direct.transfer.next_wake().since_origin == std::chrono::seconds(5));
 }
 
-// ---- WAIT, ABORT, errors ------------------------------------------------------------------------------
+// ---- WAIT, ABORT, errors
+// ------------------------------------------------------------------------------
 
-TEST_CASE("a WAIT answer to a request ends the transfer and says how long", "[engine][tftp-transfer][wait]") {
+TEST_CASE("a WAIT answer to a request ends the transfer and says how long",
+          "[engine][tftp-transfer][wait]") {
     for (const bool reading : {true, false}) {
         TransferPair pair;
         std::array<std::byte, 64> packet{};
         const auto size = encode_wait(WaitMessage{50}, packet);
         REQUIRE(size);
-        pair.canned_reply.assign(packet.begin(), packet.begin() + static_cast<std::ptrdiff_t>(*size));
+        pair.canned_reply.assign(packet.begin(),
+                                 packet.begin() + static_cast<std::ptrdiff_t>(*size));
         MemorySink sink;
         MemorySource source(pattern(100));
         if (reading) {
-            REQUIRE(pair.client().start_read(Instant{}, pair.server_control, "FILE.BIN", ClientOptions{},
-                                             sink, settings_for(1024)));
+            REQUIRE(pair.client().start_read(Instant{}, pair.server_control, "FILE.BIN",
+                                             ClientOptions{}, sink, settings_for(1024)));
         } else {
             REQUIRE(pair.client().start_write(Instant{}, pair.server_control, "FILE.BIN",
                                               ClientOptions{}, source, settings_for(1024)));
@@ -441,7 +449,8 @@ TEST_CASE("a WAIT answer to a request ends the transfer and says how long", "[en
     }
 }
 
-TEST_CASE("a WAIT in the middle of a transfer is an ordinary error", "[engine][tftp-transfer][wait]") {
+TEST_CASE("a WAIT in the middle of a transfer is an ordinary error",
+          "[engine][tftp-transfer][wait]") {
     Direct direct;
     MemorySink sink;
     REQUIRE(direct.transfer.start_read(direct.now, server, "FILE.BIN", ClientOptions{}, sink,
@@ -456,9 +465,11 @@ TEST_CASE("a WAIT in the middle of a transfer is an ordinary error", "[engine][t
     CHECK(direct.transfer.result().outcome == TransferOutcome::peer_error);
 }
 
-TEST_CASE("an ABORT from the peer ends the transfer and carries its status", "[engine][tftp-transfer][abort]") {
-    for (const StatusCode status : {StatusCode::aborted_by_target, StatusCode::aborted_by_data_loader,
-                                    StatusCode::aborted_by_operator}) {
+TEST_CASE("an ABORT from the peer ends the transfer and carries its status",
+          "[engine][tftp-transfer][abort]") {
+    for (const StatusCode status :
+         {StatusCode::aborted_by_target, StatusCode::aborted_by_data_loader,
+          StatusCode::aborted_by_operator}) {
         Direct direct;
         MemorySink sink;
         REQUIRE(direct.transfer.start_read(direct.now, server, "FILE.BIN", ClientOptions{}, sink,
@@ -476,7 +487,8 @@ TEST_CASE("an ABORT from the peer ends the transfer and carries its status", "[e
     }
 }
 
-TEST_CASE("our own abort sends the ABORT message, and only to a peer we know", "[engine][tftp-transfer][abort]") {
+TEST_CASE("our own abort sends the ABORT message, and only to a peer we know",
+          "[engine][tftp-transfer][abort]") {
     Direct direct;
     MemorySource source(pattern(2000));
     const TftpRequest request{TftpRequest::Kind::read, "FILE.BIN", {}};
@@ -564,7 +576,8 @@ TEST_CASE("our request carries the options we ask for", "[engine][tftp-transfer]
     CHECK_FALSE(write_options->block_size);
 }
 
-TEST_CASE("the block size we ask for is held to what we can take", "[engine][tftp-transfer][options]") {
+TEST_CASE("the block size we ask for is held to what we can take",
+          "[engine][tftp-transfer][options]") {
     Direct direct(1024 + 4);
     MemorySink sink;
     ClientOptions options;
@@ -578,7 +591,8 @@ TEST_CASE("the block size we ask for is held to what we can take", "[engine][tft
     CHECK(read->block_size == 1024);
 }
 
-TEST_CASE("an OACK that breaks the rules refuses the transfer with error 8", "[engine][tftp-transfer][options]") {
+TEST_CASE("an OACK that breaks the rules refuses the transfer with error 8",
+          "[engine][tftp-transfer][options]") {
     const auto start = [](Direct& direct, MemorySink& sink) {
         ClientOptions options;
         options.block_size = 512;
@@ -630,7 +644,8 @@ TEST_CASE("an OACK that breaks the rules refuses the transfer with error 8", "[e
     }
 }
 
-TEST_CASE("an option we do not know is left out of the answer", "[engine][tftp-transfer][options]") {
+TEST_CASE("an option we do not know is left out of the answer",
+          "[engine][tftp-transfer][options]") {
     Direct direct;
     MemorySink sink;
     OptionBuilder options;
@@ -647,7 +662,8 @@ TEST_CASE("an option we do not know is left out of the answer", "[engine][tftp-t
     CHECK(oack->options.size() == 1);
 }
 
-TEST_CASE("a request with malformed options is refused with error 8", "[engine][tftp-transfer][options]") {
+TEST_CASE("a request with malformed options is refused with error 8",
+          "[engine][tftp-transfer][options]") {
     Direct direct;
     MemorySink sink;
     OptionBuilder options;
@@ -661,7 +677,8 @@ TEST_CASE("a request with malformed options is refused with error 8", "[engine][
     CHECK(std::get<TftpError>(*packet).code == TftpErrorCode::option_refused);
 }
 
-TEST_CASE("a write request with no options is answered with ACK 0", "[engine][tftp-transfer][options]") {
+TEST_CASE("a write request with no options is answered with ACK 0",
+          "[engine][tftp-transfer][options]") {
     Direct direct;
     MemorySink sink;
     const TftpRequest request{TftpRequest::Kind::write, "FILE.BIN", {}};
@@ -672,7 +689,8 @@ TEST_CASE("a write request with no options is answered with ACK 0", "[engine][tf
     CHECK(std::get<TftpAck>(*packet).block == 0);
 }
 
-TEST_CASE("a read request's size is answered with the file's size", "[engine][tftp-transfer][options]") {
+TEST_CASE("a read request's size is answered with the file's size",
+          "[engine][tftp-transfer][options]") {
     Direct direct;
     MemorySource source(pattern(1234));
     OptionBuilder options;
@@ -692,9 +710,11 @@ TEST_CASE("a read request's size is answered with the file's size", "[engine][tf
     CHECK(block_of(*data) == 1);
 }
 
-// ---- The size and the checksum of what arrives ----------------------------------------------------
+// ---- The size and the checksum of what arrives
+// ----------------------------------------------------
 
-TEST_CASE("a transfer size that is not what arrives fails the transfer", "[engine][tftp-transfer][tsize]") {
+TEST_CASE("a transfer size that is not what arrives fails the transfer",
+          "[engine][tftp-transfer][tsize]") {
     for (const std::uint64_t announced : {std::uint64_t{600}, std::uint64_t{1400}}) {
         Direct direct;
         MemorySink sink;
@@ -727,7 +747,8 @@ TEST_CASE("a transfer size that is not what arrives fails the transfer", "[engin
 namespace {
 
 ChecksumOption crc16_of(std::span<const std::byte> data, bool damage) {
-    const auto value = adl::arinc665::compute_check_value(adl::arinc665::CheckValueType::crc16, data);
+    const auto value =
+        adl::arinc665::compute_check_value(adl::arinc665::CheckValueType::crc16, data);
     ChecksumOption option;
     option.type = adl::arinc665::CheckValueType::crc16;
     option.length = static_cast<std::uint8_t>(value->bytes.size());
@@ -740,7 +761,8 @@ ChecksumOption crc16_of(std::span<const std::byte> data, bool damage) {
 
 }  // namespace
 
-TEST_CASE("a checksum is verified and never fails the transfer", "[engine][tftp-transfer][checksum]") {
+TEST_CASE("a checksum is verified and never fails the transfer",
+          "[engine][tftp-transfer][checksum]") {
     for (const bool damage : {false, true}) {
         CAPTURE(damage);
         const Bytes content = pattern(1500, 9);
@@ -767,11 +789,13 @@ TEST_CASE("a checksum is verified and never fails the transfer", "[engine][tftp-
     }
 }
 
-TEST_CASE("every algorithm the library can calculate is checked", "[engine][tftp-transfer][checksum]") {
+TEST_CASE("every algorithm the library can calculate is checked",
+          "[engine][tftp-transfer][checksum]") {
     using adl::arinc665::CheckValueType;
     const Bytes content = pattern(333, 4);
-    for (const CheckValueType type : {CheckValueType::crc8, CheckValueType::crc16, CheckValueType::crc32,
-                                      CheckValueType::md5, CheckValueType::sha1}) {
+    for (const CheckValueType type :
+         {CheckValueType::crc8, CheckValueType::crc16, CheckValueType::crc32, CheckValueType::md5,
+          CheckValueType::sha1}) {
         CAPTURE(static_cast<int>(type));
         const auto value = adl::arinc665::compute_check_value(type, content);
         REQUIRE(value);
@@ -802,8 +826,10 @@ TEST_CASE("a file with no checksum option has no verdict", "[engine][tftp-transf
     CHECK(direct.transfer.result().checksum == ChecksumVerdict::not_given);
 }
 
-TEST_CASE("a read request's 16-bit CRC is acknowledged and nothing else is", "[engine][tftp-transfer][checksum]") {
-    for (const auto type : {adl::arinc665::CheckValueType::crc16, adl::arinc665::CheckValueType::crc32}) {
+TEST_CASE("a read request's 16-bit CRC is acknowledged and nothing else is",
+          "[engine][tftp-transfer][checksum]") {
+    for (const auto type :
+         {adl::arinc665::CheckValueType::crc16, adl::arinc665::CheckValueType::crc32}) {
         Direct direct;
         MemorySource source(pattern(100));
         ChecksumOption option;
@@ -818,15 +844,18 @@ TEST_CASE("a read request's 16-bit CRC is acknowledged and nothing else is", "[e
         REQUIRE(packet);
         const auto* oack = std::get_if<TftpOptionAck>(&*packet);
         REQUIRE(oack != nullptr);
-        CHECK(find_option(oack->options, type == adl::arinc665::CheckValueType::crc16 ? "checksum_2"
-                                                                                       : "checksum_3")
+        CHECK(find_option(oack->options, type == adl::arinc665::CheckValueType::crc16
+                                             ? "checksum_2"
+                                             : "checksum_3")
                   .has_value() == (type == adl::arinc665::CheckValueType::crc16));
     }
 }
 
-// ---- Receiving: duplicates, strays, lingering -----------------------------------------------------
+// ---- Receiving: duplicates, strays, lingering
+// -----------------------------------------------------
 
-TEST_CASE("a block that arrives again is acknowledged again and written once", "[engine][tftp-transfer][receive]") {
+TEST_CASE("a block that arrives again is acknowledged again and written once",
+          "[engine][tftp-transfer][receive]") {
     Direct direct;
     MemorySink sink;
     REQUIRE(direct.transfer.start_read(direct.now, server, "FILE.BIN", ClientOptions{}, sink,
@@ -850,7 +879,8 @@ TEST_CASE("a block that arrives again is acknowledged again and written once", "
     CHECK(sink.writes == 1);
 }
 
-TEST_CASE("datagrams from anyone else, or that are garbage, are ignored", "[engine][tftp-transfer][receive]") {
+TEST_CASE("datagrams from anyone else, or that are garbage, are ignored",
+          "[engine][tftp-transfer][receive]") {
     Direct direct;
     MemorySink sink;
     REQUIRE(direct.transfer.start_read(direct.now, server, "FILE.BIN", ClientOptions{}, sink,
@@ -875,7 +905,8 @@ TEST_CASE("datagrams from anyone else, or that are garbage, are ignored", "[engi
     CHECK(sink.writes == 1);
 }
 
-TEST_CASE("a block longer than the block size is an illegal operation", "[engine][tftp-transfer][receive]") {
+TEST_CASE("a block longer than the block size is an illegal operation",
+          "[engine][tftp-transfer][receive]") {
     Direct direct;
     MemorySink sink;
     REQUIRE(direct.transfer.start_read(direct.now, server, "FILE.BIN", ClientOptions{}, sink,
@@ -890,7 +921,8 @@ TEST_CASE("a block longer than the block size is an illegal operation", "[engine
     CHECK(sink.writes == 0);
 }
 
-TEST_CASE("the last block is acknowledged again for as long as the dally", "[engine][tftp-transfer][receive]") {
+TEST_CASE("the last block is acknowledged again for as long as the dally",
+          "[engine][tftp-transfer][receive]") {
     Direct direct;
     MemorySink sink;
     REQUIRE(direct.transfer.start_read(direct.now, server, "FILE.BIN", ClientOptions{}, sink,
@@ -921,7 +953,8 @@ TEST_CASE("the last block is acknowledged again for as long as the dally", "[eng
     CHECK_FALSE(direct.take());
 }
 
-TEST_CASE("a receiver that waits for a block repeats its ACK once", "[engine][tftp-transfer][timeout]") {
+TEST_CASE("a receiver that waits for a block repeats its ACK once",
+          "[engine][tftp-transfer][timeout]") {
     Direct direct;
     MemorySink sink;
     REQUIRE(direct.transfer.start_read(direct.now, server, "FILE.BIN", ClientOptions{}, sink,
@@ -939,7 +972,8 @@ TEST_CASE("a receiver that waits for a block repeats its ACK once", "[engine][tf
     CHECK_FALSE(direct.take());
 }
 
-TEST_CASE("a repeated request is answered with the first answer again", "[engine][tftp-transfer][receive]") {
+TEST_CASE("a repeated request is answered with the first answer again",
+          "[engine][tftp-transfer][receive]") {
     Direct direct;
     MemorySink sink;
     const TftpRequest request{TftpRequest::Kind::write, "FILE.BIN", {}};
@@ -957,7 +991,8 @@ TEST_CASE("a repeated request is answered with the first answer again", "[engine
     CHECK_FALSE(direct.take());
 }
 
-// ---- Sending: what the data looks like ------------------------------------------------------------
+// ---- Sending: what the data looks like
+// ------------------------------------------------------------
 
 TEST_CASE("the blocks sent are what the codec writes", "[engine][tftp-transfer][send]") {
     Direct direct;
@@ -991,7 +1026,8 @@ TEST_CASE("the blocks sent are what the codec writes", "[engine][tftp-transfer][
     CHECK_FALSE(direct.transfer.active());
 }
 
-TEST_CASE("a file of a whole number of blocks ends with an empty one", "[engine][tftp-transfer][send]") {
+TEST_CASE("a file of a whole number of blocks ends with an empty one",
+          "[engine][tftp-transfer][send]") {
     Direct direct;
     MemorySource source(pattern(1024));
     const TftpRequest request{TftpRequest::Kind::read, "FILE.BIN", {}};
@@ -1008,7 +1044,8 @@ TEST_CASE("a file of a whole number of blocks ends with an empty one", "[engine]
     CHECK(direct.transfer.result().outcome == TransferOutcome::succeeded);
 }
 
-// ---- The files the transfer touches fail --------------------------------------------------------------
+// ---- The files the transfer touches fail
+// --------------------------------------------------------------
 
 TEST_CASE("a full disk fails the transfer with error 3", "[engine][tftp-transfer][io]") {
     Direct direct;
@@ -1044,8 +1081,8 @@ TEST_CASE("a request that does not fit the buffer is reported", "[engine][tftp-t
     std::vector<std::byte> tiny(16);
     TftpTransfer transfer(tiny);
     MemorySink sink;
-    const auto started = transfer.start_read(Instant{}, server, "A_LONG_FILE_NAME.BIN", ClientOptions{},
-                                             sink, settings_for(1024));
+    const auto started = transfer.start_read(Instant{}, server, "A_LONG_FILE_NAME.BIN",
+                                             ClientOptions{}, sink, settings_for(1024));
     CHECK_FALSE(started);
     CHECK(started.error() == Error::buffer_too_small);
     CHECK_FALSE(transfer.active());

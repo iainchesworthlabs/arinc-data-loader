@@ -99,10 +99,10 @@ enum class TransferOutcome : std::uint8_t {
 
 struct TransferResult {
     TransferOutcome outcome = TransferOutcome::running;
-    std::uint16_t wait_seconds = 0;                                 // wait_requested
-    StatusCode abort_status = StatusCode::aborted_by_data_loader;   // peer_abort
-    TftpErrorCode error_code = TftpErrorCode::not_defined;          // peer_error
-    IoError io_error = IoError::io_error;                           // local_error
+    std::uint16_t wait_seconds = 0;                                // wait_requested
+    StatusCode abort_status = StatusCode::aborted_by_data_loader;  // peer_abort
+    TftpErrorCode error_code = TftpErrorCode::not_defined;         // peer_error
+    IoError io_error = IoError::io_error;                          // local_error
     std::uint64_t bytes = 0;  // bytes received, or sent (and acknowledged, once succeeded)
     ChecksumVerdict checksum = ChecksumVerdict::not_given;
     // The peer took the "port" option we sent. A peer that leaves it out of its OACK has
@@ -121,9 +121,9 @@ struct TransferSettings {
 
 // The options our own request carries.
 struct ClientOptions {
-    std::size_t block_size = 0;                    // 0: do not ask
-    std::optional<std::uint64_t> transfer_size;    // a write: the size; a read: 0 asks for it
-    std::optional<std::uint16_t> port;             // the "port" option (initialization requests)
+    std::size_t block_size = 0;                  // 0: do not ask
+    std::optional<std::uint64_t> transfer_size;  // a write: the size; a read: 0 asks for it
+    std::optional<std::uint16_t> port;           // the "port" option (initialization requests)
 };
 
 struct Outgoing {
@@ -148,7 +148,8 @@ public:
     // Error::buffer_too_small if the request does not fit the buffer.
     [[nodiscard]] Result<void> start_read(Instant now, const Endpoint& server,
                                           std::string_view file_name, const ClientOptions& options,
-                                          BlockSink& sink, const TransferSettings& settings) noexcept;
+                                          BlockSink& sink,
+                                          const TransferSettings& settings) noexcept;
     [[nodiscard]] Result<void> start_write(Instant now, const Endpoint& server,
                                            std::string_view file_name, const ClientOptions& options,
                                            BlockSource& source,
@@ -193,7 +194,9 @@ public:
         return state_ != State::idle && state_ != State::done;
     }
     // The outcome is known (succeeded or not). A receiver that succeeded may still linger.
-    [[nodiscard]] bool finished() const noexcept { return result_.outcome != TransferOutcome::running; }
+    [[nodiscard]] bool finished() const noexcept {
+        return result_.outcome != TransferOutcome::running;
+    }
     [[nodiscard]] bool lingering() const noexcept { return state_ == State::lingering; }
     [[nodiscard]] const TransferResult& result() const noexcept { return result_; }
     [[nodiscard]] const Endpoint& peer() const noexcept { return peer_; }
@@ -254,7 +257,7 @@ private:
     unsigned attempts_ = 0;
 
     std::size_t block_size_ = tftp_default_block_size;
-    std::uint16_t block_ = 0;  // receiving: the last block acknowledged; sending: the last sent
+    std::uint16_t block_ = 0;   // receiving: the last block acknowledged; sending: the last sent
     std::uint64_t offset_ = 0;  // bytes received so far, or the offset of the next block to send
     std::optional<std::uint64_t> expected_size_;
 

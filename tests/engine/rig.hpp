@@ -25,7 +25,8 @@ namespace adl::test {
 using namespace adl::arinc615a;
 
 [[nodiscard]] inline std::uint16_t crc16_value(const Bytes& bytes) {
-    const auto value = adl::arinc665::compute_check_value(adl::arinc665::CheckValueType::crc16, bytes);
+    const auto value =
+        adl::arinc665::compute_check_value(adl::arinc665::CheckValueType::crc16, bytes);
     return static_cast<std::uint16_t>((std::to_integer<unsigned>(value->bytes[0]) << 8) |
                                       std::to_integer<unsigned>(value->bytes[1]));
 }
@@ -235,7 +236,8 @@ public:
             }
         }
     }
-    SelectionDecision on_download_list(const DownloadList& list, FileSelection& selection) noexcept override {
+    SelectionDecision on_download_list(const DownloadList& list,
+                                       FileSelection& selection) noexcept override {
         for (const FileListing& file : list.files) {
             listed_names.emplace_back(file.file_name);
         }
@@ -270,8 +272,8 @@ public:
     std::vector<std::string> deferred_names;
 
 private:
-    void record(std::uint16_t counter, StatusCode code, std::uint16_t exception,
-                std::uint8_t ratio, std::string_view text) {
+    void record(std::uint16_t counter, StatusCode code, std::uint16_t exception, std::uint8_t ratio,
+                std::string_view text) {
         status_counters.push_back(counter);
         status_codes.push_back(code);
         exception_timers.push_back(exception);
@@ -298,7 +300,8 @@ public:
     [[nodiscard]] Instant now() const { return Instant{world.now().since_origin}; }
 
     // Runs an operation to its end and returns how it ended.
-    std::expected<Outcome, RunError> run(const Operation& operation, const RunOptions& options = {}) {
+    std::expected<Outcome, RunError> run(const Operation& operation,
+                                         const RunOptions& options = {}) {
         workspace.assign(DataLoader::workspace_bytes(config), std::byte{0});
         LoaderServices services;
         services.source = source.get();
@@ -338,7 +341,8 @@ struct SampleLoad {
     adl::arinc665::Load load;
 };
 
-[[nodiscard]] inline SampleLoad make_sample_load(std::size_t data_bytes = 0, std::uint64_t seed = 5) {
+[[nodiscard]] inline SampleLoad make_sample_load(std::size_t data_bytes = 0,
+                                                 std::uint64_t seed = 5) {
     SampleLoad result;
     auto spec_value = adl::samples::sample_media_set_spec();
     adl::arinc665::MediaSetSpec spec = std::move(*spec_value);

@@ -292,8 +292,8 @@ void DataLoader::start_client(Instant now, std::size_t index) noexcept {
                 options.port = config_.control_port;
             }
         }
-        started = slot.transfer.start_read(now, config_.target, slot.name_view(), options,
-                                           slot.io, transfer_settings());
+        started = slot.transfer.start_read(now, config_.target, slot.name_view(), options, slot.io,
+                                           transfer_settings());
     } else {
         slot.io = SlotIo{};
         slot.io.mode = SlotIo::Mode::memory_source;
@@ -301,8 +301,8 @@ void DataLoader::start_client(Instant now, std::size_t index) noexcept {
         if (!slot.plain) {
             options.block_size = config_.preferred_block_size;
         }
-        started = slot.transfer.start_write(now, config_.target, slot.name_view(), options,
-                                            slot.io, transfer_settings());
+        started = slot.transfer.start_write(now, config_.target, slot.name_view(), options, slot.io,
+                                            transfer_settings());
     }
     if (!started) {
         finish_operation(now, OutcomeCode::local_error);
@@ -468,8 +468,7 @@ void DataLoader::handle_request(Instant now, const Endpoint& from,
     const std::string_view name = request.file_name;
     const bool is_write = request.kind == TftpRequest::Kind::write;
     const auto kind = kind_of_file_name(name);
-    const bool protocol_name =
-        kind.has_value() && name_matches(name.substr(0, name.size() - 4));
+    const bool protocol_name = kind.has_value() && name_matches(name.substr(0, name.size() - 4));
     const bool status_name = protocol_name && is_write &&
                              (*kind == ProtocolFileKind::lcs || *kind == ProtocolFileKind::lus ||
                               *kind == ProtocolFileKind::lns);
@@ -501,10 +500,9 @@ void DataLoader::handle_request(Instant now, const Endpoint& from,
     const auto settings = transfer_settings();
 
     if (status_name) {
-        const ProtocolFileKind wanted =
-            kind_ == OperationKind::information ? ProtocolFileKind::lcs
-            : kind_ == OperationKind::upload    ? ProtocolFileKind::lus
-                                                : ProtocolFileKind::lns;
+        const ProtocolFileKind wanted = kind_ == OperationKind::information ? ProtocolFileKind::lcs
+                                        : kind_ == OperationKind::upload    ? ProtocolFileKind::lus
+                                                                            : ProtocolFileKind::lns;
         if (*kind != wanted) {
             refuse(from, TftpErrorCode::access_violation, "not the status file of this operation");
             notice(Notice::request_refused, name, 0);
@@ -540,8 +538,9 @@ void DataLoader::handle_request(Instant now, const Endpoint& from,
 
     if (is_write && protocol_name &&
         (*kind == ProtocolFileKind::lcl || *kind == ProtocolFileKind::lnl)) {
-        const bool right_one = (*kind == ProtocolFileKind::lcl && kind_ == OperationKind::information) ||
-                               (*kind == ProtocolFileKind::lnl && kind_ == OperationKind::download_operator);
+        const bool right_one =
+            (*kind == ProtocolFileKind::lcl && kind_ == OperationKind::information) ||
+            (*kind == ProtocolFileKind::lnl && kind_ == OperationKind::download_operator);
         if (!right_one) {
             refuse(from, TftpErrorCode::access_violation, "not a file of this operation");
             notice(Notice::request_refused, name, 0);
@@ -554,8 +553,9 @@ void DataLoader::handle_request(Instant now, const Endpoint& from,
         }
         for (std::size_t i = 0; i < slot_count_; ++i) {
             Slot& other = slots_[i];
-            if (other.used && (other.purpose == Purpose::config_list ||
-                               other.purpose == Purpose::download_list) &&
+            if (other.used &&
+                (other.purpose == Purpose::config_list ||
+                 other.purpose == Purpose::download_list) &&
                 other.transfer.active()) {
                 other.transfer.drop();
                 pump(now, i);
@@ -618,8 +618,8 @@ void DataLoader::handle_request(Instant now, const Endpoint& from,
         // The same file again while an earlier try is still open: the newer one wins.
         for (std::size_t i = 0; i < slot_count_; ++i) {
             Slot& other = slots_[i];
-            if (other.used && other.purpose == Purpose::data_in &&
-                other.expected_index == wanted && other.transfer.active()) {
+            if (other.used && other.purpose == Purpose::data_in && other.expected_index == wanted &&
+                other.transfer.active()) {
                 other.transfer.drop();
                 pump(now, i);
             }
@@ -676,10 +676,9 @@ void DataLoader::handle_request(Instant now, const Endpoint& from,
                 refuse_wait(from, failure.wait_seconds);
             } else {
                 refuse(from,
-                       failure.error == IoError::not_found ? TftpErrorCode::file_not_found
-                       : failure.error == IoError::access_denied
-                           ? TftpErrorCode::access_violation
-                           : TftpErrorCode::not_defined,
+                       failure.error == IoError::not_found       ? TftpErrorCode::file_not_found
+                       : failure.error == IoError::access_denied ? TftpErrorCode::access_violation
+                                                                 : TftpErrorCode::not_defined,
                        to_string(failure.error));
                 notice(Notice::request_refused, name, 0);
             }
