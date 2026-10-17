@@ -46,8 +46,9 @@ interpolating `${{ }}` into a shell.
 repository (or a paid plan). Each of their jobs carries
 `if: ${{ !github.event.repository.private }}`, so they are **skipped, not red**,
 while the repository is private and run once it is public. `Scan dependency
-diff` is staged into the required checks after its first report (see the
-staging table in [Branch protection](branch-protection.md)).
+diff` needs the repository's dependency graph switched on, and was added to the
+required checks after its first report (see the staging section in
+[Branch protection](branch-protection.md)).
 
 ## The jobs in `ci.yml`
 
@@ -128,7 +129,7 @@ contexts equal the job display names above and in the two policy workflows.
 | `Linux (GCC)` | `ci.yml` | yes |
 | `macOS (AppleClang)` | `ci.yml` | yes |
 | `Coverage (Linux, GCC)` | `ci.yml` | yes |
-| `Scan dependency diff` | `dependency-review.yml` | **no - staged**: added after it has reported on a pull request on the public repository (see below) |
+| `Scan dependency diff` | `dependency-review.yml` | yes - added after it reported on a pull request on the public repository |
 | `Analyze (C++)` | `codeql.yml` | no - informational |
 
 Every workflow that produces a required check also triggers on `merge_group`,
