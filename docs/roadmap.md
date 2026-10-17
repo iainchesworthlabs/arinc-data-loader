@@ -54,13 +54,16 @@ UDP, with the Find, Information, Upload and Download operations. It loads what
    abstraction](platform-abstraction.md)). The transport is an interface, so the
    engine does not include a socket header and can be tested against a simulated
    target on the fake network.
-2. **The TFTP codec and the 615A messages (next).** The packets of RFC 1350 with
-   the options of RFC 2347 to 2349 and the 615A ones (the checksum and port
-   options, the WAIT and ABORT error texts), the FIND packets, and the protocol
-   files (`.LCI`, `.LCL`, `.LCS`, `.LUI`, `.LUR`, `.LUS`, `.LND`, `.LNR`, `.LNS`,
-   `.LNO`, `.LNL`, `.LNA`), written and read like the 665 formats and tested the same
-   way.
-3. **The operations and state machines, and the coverage page.** The sans-I/O core
+2. **The TFTP codec and the 615A messages (done).** `adl::arinc615a`: the packets
+   of RFC 1350 with the options of RFC 2347 to 2349 and the 615A ones (the checksum
+   and port options, the WAIT and ABORT error texts), the FIND packets, and the
+   protocol files (`.LCI`, `.LCL`, `.LCS`, `.LUI`, `.LUR`, `.LUS`, `.LND`, `.LNR`,
+   `.LNS`, `.LNO`, `.LNL`, `.LNA`), written into caller-supplied buffers and read
+   back as checked views, with no allocation, exceptions or RTTI, and tested the same
+   way as the 665 formats, against an independent writer ([the
+   codec](arinc615a-codec.md) lists the places the standard is unclear and what was
+   chosen). Not checked against another implementation yet.
+3. **The operations and state machines, and the coverage page (next).** The sans-I/O core
    (TFTP client and server, the Information, Upload and Download operations, FIND,
    the time-outs and retries of Attachment 4), a runner over `adl::platform`, a full
    load of a media set built with `build_media_set` to a simulated target and back,
@@ -107,7 +110,8 @@ a new codebase:
   values, computes its CRC tables at compile time, has no static initialisation
   and no `iostream`, which is the direction. The platform layer and the 615A
   engine are written to meet them: no exceptions, no RTTI, caller-supplied
-  buffers, and a sans-I/O core;
+  buffers, and a sans-I/O core (the 615A codec already is: it allocates nothing and
+  throws nothing, though building it with exceptions and RTTI off is not yet a CI job);
 - a CI job that builds the library for the target with those constraints on, so
   that they hold.
 

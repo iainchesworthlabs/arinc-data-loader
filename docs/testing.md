@@ -26,14 +26,16 @@ build/windows-msvc-debug/bin/adl_unit_tests "[golden]"
 build/windows-msvc-debug/bin/adl_platform_tests "[conformance]"
 ```
 
-There are two test programs: `adl_unit_tests` (the ARINC 665 library, the media
+There are two test programs: `adl_unit_tests` (the ARINC 665 and 615A libraries, the media
 tree and the samples) and `adl_platform_tests` (the platform layer: its portable
 types, the fake platform and the conformance suite).
 
 The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]`,
 `[naming]`, `[header]`, `[load]`, `[batch]`, `[media-files]`, `[media-set]`,
 `[label]`, `[media-tree]`, `[golden]`, `[compatibility]`, `[limits]`, `[robustness]` and
-`[platform]`. The platform layer adds `[memory]`, `[error]`, `[time]`, `[network]`,
+`[platform]`. The 615A codec adds `[tftp]` (with `[options]`, `[wait]` and `[abort]`),
+`[find]`, `[protocol-files]` (with `[status]`, `[text]` and `[names]`), `[golden615a]` and
+`[robustness615a]`. The platform layer adds `[memory]`, `[error]`, `[time]`, `[network]`,
 `[fake]`, `[conformance]` (with `[clock]`, `[files]`, `[threads]`, `[ipc]`,
 `[network]`), `[integration]` (real UDP over the loopback interface) and `[real]` (runs
 on the real host only).
@@ -58,6 +60,12 @@ on the real host only).
 | `compatibility_test.cpp` | The ARINC 615 and Boeing 777 layouts of Appendix F (built by `adl::samples`, which `adl_write_payloads` writes out) |
 | `limits_test.cpp` | Each side of the 16-bit field limits, a load of a thousand files, a 3 MB file, a media set of many loads |
 | `robustness_test.cpp` | Every decoder over every truncation, every single-bit change, damage with the CRC put right, and random bytes, under the sanitizers |
+| `tftp_test.cpp` | The TFTP packets of ARINC 615A-3 section 5.3.2: the layout of each, octet mode in any case and nothing else, block numbers that wrap 65535 to 1, a WRQ acknowledged with block 0, the largest block (65464), error and option-acknowledgement packets, an encoder that never writes past a buffer too small for it |
+| `tftp_options_test.cpp` | `blksize`, `tsize`, `timeout`, `port` and `checksum_<n>` with each side of their limits and every malformed value, names in any case, unknown options ignored, repeats refused, the option builder, and the WAIT and ABORT messages: the standard's own `WAIT:50`, all 65536 wait times and all 65536 status codes round-tripped |
+| `find_test.cpp` | The FIND request and answer of Attachment 3 (the example's layout, 0x10 and NUL terminators, each field at its limit and one over, empty fields, the manufacturer code of three) |
+| `protocol_files_test.cpp` | The twelve protocol files of section 6.4: exact layouts, round trips, the file length and version, the status codes each field may hold, the text length rule and its padding, the ratios, counts, user defined data, nested lists, and a buffer too small for every file |
+| `arinc615a_golden_test.cpp` | The codec's packets and files against the ones written independently ([below](#golden-payloads)) |
+| `arinc615a_robustness_test.cpp` | Every 615A decoder over every truncation, bit and byte change, several changes at once, inserted and removed bytes, random bytes and random bytes behind a valid beginning, under the sanitizers; whatever is accepted must encode back to bytes that decode to the same thing |
 | `paths_test.cpp` | `adl::platform::executable_path` names the running test program |
 | `memory_test.cpp` | `Arena`, `BlockPool` and `StaticStorage`: alignment, exhaustion as a null result and never a write past the end, marks and rewinding, blocks that do not overlap and come back in any order, a block that is not the pool's being refused |
 | `platform_types_test.cpp` | Error codes and their names, `Instant` arithmetic that saturates instead of wrapping, the protocol's largest figures fitting a `Duration`, IPv4 addresses read and written (and the bad ones refused) |
@@ -89,6 +97,20 @@ This catches a mistake in the C++. It does not catch a misreading of the standar
 that the script shares; [the coverage page](arinc665-coverage.md#places-the-standard-is-unclear)
 lists where the standard is unclear.
 
+`tests/golden/make_golden_615a.py` does the same for ARINC 615A-3: the TFTP requests,
+option acknowledgement, ACK, DATA and error packets (including `WAIT:50` and
+`ABORT:1004`), the FIND request and answer, and every protocol file, written from the
+tables of section 6.4, Attachment 3 and the layouts of RFCs 1350 and 2347, sharing no code
+with the library. Its output is `tests/golden/golden_615a.hpp`, committed, and
+`arinc615a_golden_test.cpp` builds the same packets and files with the library (through
+`tests/support/sample_615a.hpp`, which mirrors the script input for input) and compares
+bytes, and reads the independent bytes back. If the format changes on purpose, change both
+and run `python tests/golden/make_golden_615a.py`. It shares the choices
+[the codec page](arinc615a-codec.md#places-the-standard-is-unclear) lists, so it cannot show
+that they match another implementation. Appendix G's packet examples are figures with no
+bytes in them, so there is nothing from the standard to check the TFTP layouts against beyond
+the `WAIT` and FIND examples and the RFCs.
+
 ## Does the suite fail when the code is wrong?
 
 It was checked by breaking the library on purpose and running it: a wrong pointer
@@ -96,6 +118,17 @@ in the header, file resolution that ignores the CRC, check characters added wher
 they are exclusive-ored, a Load CRC over the wrong part of the header, a Load
 Check Value that starts early, and text fields not padded to a word. Each was
 caught, the last by 53 test cases.
+
+The 615A codec was checked the same way, with 25 deliberate breaks, one at a time: a block
+number that wraps to 0, another transfer mode, a WAIT text without its colon, lower-case
+ABORT digits, block size limits one off, a FIND terminator, the FIND field limits, a
+different version, a text length without its terminator, a left-adjusted ratio, a file
+length that leaves out its own four bytes, the fields of `.LUS`, `.LCS` and `.LNR` swapped
+or off by one, a status code allowed in the wrong field, a decoder that ignores the file
+length or the version, an empty required text, a checksum of any length, case-sensitive
+option names, an oversized DATA block and an empty OACK. Each was caught. (One was not at
+first: the FIND hardware identifier limit, because the test took its figure from the same
+constant the library did. The test now writes the limits out.)
 
 ## Adding a test
 
@@ -124,6 +157,11 @@ and tagged `[real]`. A port runs the suite on its target as its first test.
 
 ## Known gaps
 
+- Nothing in the 615A codec has been checked against another implementation of the
+  protocol, a target or a loader; [the choices it made](arinc615a-codec.md#places-the-standard-is-unclear)
+  are the first things to confirm.
+- The codec is meant for a build without exceptions and RTTI, and nothing yet builds it
+  that way.
 - The golden payloads come from the same reading of the standard as the library.
   Nothing has yet been checked against a load or a media set written by another
   tool.
