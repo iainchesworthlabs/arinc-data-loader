@@ -15,6 +15,7 @@ add_executable(adl_unit_tests
     unit/media_files_test.cpp
     unit/media_label_test.cpp
     unit/media_set_test.cpp
+    unit/media_tree_test.cpp
     unit/naming_test.cpp
     unit/part_number_test.cpp
     unit/paths_test.cpp
@@ -27,7 +28,9 @@ target_include_directories(adl_unit_tests PRIVATE
 target_link_libraries(adl_unit_tests
     PRIVATE
         adl::arinc665
+        adl::media_tree
         adl::platform
+        adl::samples
         adl::warnings
         adl::sanitizers
         adl::coverage
@@ -54,3 +57,22 @@ if(ADL_PWSH)
             "${PROJECT_SOURCE_DIR}/tools/checks/check_platform_isolation.ps1"
             -Root "${PROJECT_SOURCE_DIR}")
 endif()
+
+# The program that writes the sample media sets: it runs on a directory of its
+# own (emptied first, since it never overwrites), and refuses what it cannot use.
+add_test(NAME tools.write_payloads.clean
+    COMMAND "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/payloads")
+set_tests_properties(tools.write_payloads.clean PROPERTIES FIXTURES_SETUP write_payloads_output)
+
+add_test(NAME tools.write_payloads
+    COMMAND adl_write_payloads "${CMAKE_CURRENT_BINARY_DIR}/payloads")
+set_tests_properties(tools.write_payloads PROPERTIES FIXTURES_REQUIRED write_payloads_output)
+
+add_test(NAME tools.write_payloads.unknown_scenario
+    COMMAND adl_write_payloads --scenario no-such-scenario "${CMAKE_CURRENT_BINARY_DIR}/payloads")
+set_tests_properties(tools.write_payloads.unknown_scenario PROPERTIES WILL_FAIL TRUE)
+
+add_test(NAME tools.write_payloads.no_output_directory COMMAND adl_write_payloads)
+set_tests_properties(tools.write_payloads.no_output_directory PROPERTIES WILL_FAIL TRUE)
+
+add_test(NAME tools.write_payloads.list COMMAND adl_write_payloads --list)

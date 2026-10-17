@@ -22,6 +22,11 @@ This is the data format and the foundation, not a loader yet. What exists:
   [docs/arinc665-coverage.md](docs/arinc665-coverage.md) goes through the
   standard section by section, with the tests that hold each part down and the
   places where the standard is unclear.
+- **`adl::media_tree`**, which writes the members of a media set to a directory
+  tree (one directory per member) and reads one back, and
+  **`adl_write_payloads`**, a command-line program that writes sample media sets
+  (including the ARINC 615 and Boeing 777 layouts of Appendix F) to a directory,
+  for trying other loaders.
 - **`adl::platform`**, the one place that knows which operating system this is
   (today: the path of the running executable).
 - The build, the tests, the CI and the repository rules.
@@ -46,12 +51,15 @@ ctest --preset windows-msvc-debug
 ## Layout
 
 ```text
-src/arinc665/     the ARINC 665 library (platform-free, GUI-free)
-src/platforms/    everything that differs between operating systems
-tests/            Catch2 unit tests and the build's own checks
-cmake/            the platform selector, warnings, sanitizers, coverage, Tracy, Qt
-tools/            repository checks, commit policy, git hooks
-docs/             architecture, roadmap, CI, coverage of ARINC 665, docs/specs
+src/arinc665/        the ARINC 665 library (platform-free, GUI-free)
+src/media_tree/      media sets on a disk: a directory per member
+src/samples/         the sample loads and media sets
+src/write_payloads/  adl_write_payloads, which writes the samples to a directory
+src/platforms/       everything that differs between operating systems
+tests/               Catch2 unit tests and the build's own checks
+cmake/               the platform selector, warnings, sanitizers, coverage, Tracy, Qt
+tools/               repository checks, commit policy, git hooks
+docs/                architecture, roadmap, CI, coverage of ARINC 665, docs/specs
 ```
 
 The operating system is chosen by CMake, never by the source: there is no `#ifdef`

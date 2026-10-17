@@ -22,6 +22,15 @@ sets and their lists, labels, part numbers, CRCs and check values. It is written
 read and verified, and compared byte for byte with a second implementation
 written from the standard's tables. See [ARINC 665 coverage](arinc665-coverage.md).
 
+Media sets can be put on a disk: `adl::media_tree` (`src/media_tree`) writes the
+members of a set to a directory tree, one directory per member, and reads one
+back, mapping the standard's backslash pathnames to native paths. It uses
+`std::filesystem` only, so it is not platform code, and `adl::arinc665` stays free
+of file I/O. `adl_write_payloads` (`src/write_payloads`) writes the sample media
+sets of `adl::samples` to a directory (the golden scenario and the ARINC 615 and
+Boeing 777 layouts of Appendix F), for trying other loaders and for the 615A work
+to load.
+
 What is left:
 
 - **Check it against another tool.** The second implementation shares my reading
@@ -30,12 +39,6 @@ What is left:
   and a media set from an established tool, read here, and ours read there. The
   order the Load CRC takes the files in (header, data, support) is settled as a
   decision, and is still the first to confirm against a real tool.
-- **Media sets on a disk.** `build_media_set` and `read_media_set` work on the
-  files of each member in memory. Writing a directory tree and reading one back is
-  a small layer over them that wants `std::filesystem` and the platform section.
-- **A tool that writes payloads.** A command-line program that writes sample
-  loads and media sets to a directory, for trying other loaders and for the 615A
-  work to load.
 - The Appendix L reference files that are not described exactly (T05 to T10).
 
 ## 3. ARINC 615A

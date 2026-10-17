@@ -25,8 +25,10 @@ standard says "should"). Section numbers are those of the 665-3 edition in
   That catches a mistake in the C++; it cannot catch a misreading that both share.
   Nothing here has yet been checked against a load written by someone else's
   tool, which is the next thing to do (see [Not yet verified](#not-yet-verified)).
-- The three files of a media set are read from memory. Reading and writing a
-  directory on a disk is not part of the library; it needs the platform section.
+- The files of a media set are written and read in memory. Putting them on a disk
+  is not part of this library: `adl::media_tree` (`src/media_tree`) writes the
+  members to a directory tree and reads one back, mapping the standard's backslash
+  pathnames to native paths (`media_tree_test`).
 
 ## Section by section
 
@@ -174,7 +176,9 @@ not checked).
   CRCs are not tested. The files the appendix describes exactly (T01-T04, T11-T13)
   are, for every CRC width the appendix gives a result for.
 - **Manufacturer's codes** are checked for form, not against Attachment 1.
-- **Reading a media set from a disk**, as opposed to from `MediaMember`s in
-  memory, does not exist yet. It belongs with the platform section and the 615A
-  work (docs/roadmap.md).
+- **The layout of a tree on a disk** is this project's own: one directory per
+  member, `member_001` to `member_255`, with the pathnames of section 3.2.3.2.18
+  below it. The standard describes media (3.4), not a directory of members, so a
+  tool that expects its media in another form needs the members copied to it. The
+  members written by `adl_write_payloads` have not yet been read by another loader.
 - **Linux and macOS** have not run the tests (docs/building.md).

@@ -94,6 +94,17 @@ add_subdirectory(src/platforms)
 # is GUI-free and platform-free.
 add_subdirectory(src/arinc665)
 
+# A media set on a disk: a directory tree with one directory per member. Plain
+# std::filesystem, so it needs nothing from the platform section either.
+add_subdirectory(src/media_tree)
+
+# Sample loads and media sets, for the tests and for the program below.
+add_subdirectory(src/samples)
+
+# adl_write_payloads: writes the sample media sets to a directory, for trying
+# other loaders on them.
+add_subdirectory(src/write_payloads)
+
 if(ADL_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)

@@ -7,6 +7,7 @@
 
 #include "adl/arinc665/media_set.hpp"
 #include "adl/arinc665/naming.hpp"
+#include "adl/samples/scenarios.hpp"
 #include "bytes.hpp"
 
 using namespace adl::arinc665;
@@ -25,29 +26,10 @@ bool lists_name(const FilesList& list, std::string_view name) {
 // CONFIG.LDR and EXCONFIG.LDR go in the header file's support files; every other file
 // is a data file. The 615 media has a directory for each disk (section 3.2.4.1.1).
 TEST_CASE("a load that ARINC 615 loaders can load too (Appendix F-1)", "[compatibility]") {
-    LoadSpec spec;
-    spec.header_file_name = "ACM60.LUH";
-    spec.part_number = PartNumber{"ACM60-1234-5678"};
-    spec.target_hardware_ids = {"ACME"};
-    // The two disks of a 615 part have files of the same names.
-    spec.data_files.push_back(
-        {"LOAD.BIN", PartNumber{}, bytes_of("DISK ONE DATA!"), CheckValueType::none});
-    spec.data_files.push_back(
-        {"LOAD.BIN", PartNumber{}, bytes_of("DISK TWO DATA!"), CheckValueType::none});
-    spec.support_files.push_back({std::string{config_ldr_file_name}, PartNumber{},
-                                  bytes_of("CONFIG ONE"), CheckValueType::none});
-    spec.support_files.push_back({std::string{exconfig_ldr_file_name}, PartNumber{},
-                                  bytes_of("EXCONFIG!!"), CheckValueType::none});
+    const auto set_spec = adl::samples::arinc615_media_set_spec();
+    REQUIRE(set_spec.has_value());
 
-    MediaSetSpec set_spec;
-    set_spec.media_set_part_number = PartNumber{"ACM-615-SET"};
-    PlacedLoad placed;
-    placed.load = build_load(spec).value();
-    placed.data_placements = {FilePlacement{0, "disk001\\"}, FilePlacement{0, "disk002\\"}};
-    placed.support_placements = {FilePlacement{0, "disk001\\"}, FilePlacement{0, "disk001\\"}};
-    set_spec.loads.push_back(std::move(placed));
-
-    const auto members = build_media_set(set_spec);
+    const auto members = build_media_set(*set_spec);
     REQUIRE(members.has_value());
     const auto set = read_media_set(*members);
 
@@ -76,30 +58,10 @@ TEST_CASE("a load that ARINC 615 loaders can load too (Appendix F-1)", "[compati
 // 665 part, its data files are data files, and DISK.DIR and NON_LOAD.CRC are in
 // FILES.LUM but in no header file.
 TEST_CASE("a load that Boeing 777 loaders can load too (Appendix F-2)", "[compatibility]") {
-    LoadSpec spec;
-    spec.header_file_name = "ACM61.LUH";
-    spec.part_number = PartNumber{"ACM61-1234-5678"};
-    spec.target_hardware_ids = {"ACME"};
-    spec.data_files.push_back(
-        {"ACM12345.001", PartNumber{}, bytes_of("LEGACY DATA 01"), CheckValueType::none});
-    spec.data_files.push_back(
-        {"ACM12345.002", PartNumber{}, bytes_of("LEGACY DATA 02"), CheckValueType::none});
-    spec.support_files.push_back(
-        {"ACM12345.HDR", PartNumber{}, bytes_of("D6-55562-5 HEADER"), CheckValueType::none});
-    spec.support_files.push_back(
-        {"CONFIG.LDR", PartNumber{}, bytes_of("CONFIG"), CheckValueType::none});
+    const auto set_spec = adl::samples::boeing777_media_set_spec();
+    REQUIRE(set_spec.has_value());
 
-    MediaSetSpec set_spec;
-    set_spec.media_set_part_number = PartNumber{"ACM-777-SET"};
-    PlacedLoad placed;
-    placed.load = build_load(spec).value();
-    set_spec.loads.push_back(std::move(placed));
-    set_spec.other_files.push_back(
-        PlacedFile{MediaFile{"\\", "DISK.DIR", bytes_of("DIRECTORY")}, 1});
-    set_spec.other_files.push_back(
-        PlacedFile{MediaFile{"\\", "NON_LOAD.CRC", bytes_of("CRCS")}, 1});
-
-    const auto members = build_media_set(set_spec);
+    const auto members = build_media_set(*set_spec);
     REQUIRE(members.has_value());
     const auto set = read_media_set(*members);
 
@@ -125,24 +87,10 @@ TEST_CASE("a load that Boeing 777 loaders can load too (Appendix F-2)", "[compat
 
 // F-3: both at once.
 TEST_CASE("a load for 615 loaders and Boeing 777 together (Appendix F-3)", "[compatibility]") {
-    LoadSpec spec;
-    spec.header_file_name = "ACM62.LUH";
-    spec.part_number = PartNumber{"ACM62-1234-5678"};
-    spec.target_hardware_ids = {"ACME"};
-    spec.data_files.push_back(
-        {"ACM12345.001", PartNumber{}, bytes_of("DATA"), CheckValueType::none});
-    spec.support_files.push_back(
-        {"ACM12345.HDR", PartNumber{}, bytes_of("HEADER"), CheckValueType::none});
-    spec.support_files.push_back(
-        {"CONFIG.LDR", PartNumber{}, bytes_of("CONFIG"), CheckValueType::none});
-    spec.support_files.push_back(
-        {"EXCONFIG.LDR", PartNumber{}, bytes_of("EXCONFIG"), CheckValueType::none});
+    const auto set_spec = adl::samples::combined_media_set_spec();
+    REQUIRE(set_spec.has_value());
 
-    MediaSetSpec set_spec;
-    set_spec.media_set_part_number = PartNumber{"ACM-ALL-SET"};
-    set_spec.loads.push_back(PlacedLoad{build_load(spec).value(), "", 1, {}, {}});
-
-    const auto members = build_media_set(set_spec);
+    const auto members = build_media_set(*set_spec);
     REQUIRE(members.has_value());
     CHECK(read_media_set(*members).has_value());
 }
