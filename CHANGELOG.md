@@ -15,6 +15,18 @@ C++23 CMake monorepo. Nothing has been released.
 
 ### Added
 
+- **The two Green Hills INTEGRITY platforms, `ghs508` and `ghs178b`**
+  (unbuilt): a port of the platform layer to INTEGRITY 5.0.8 on the shared
+  POSIX sources, and a native port to INTEGRITY-178B (semaphores, the
+  virtual-clock time-out pattern, ipflite UDP, a static memory provider), with
+  `cmake/FindIntegrity.cmake`, `cmake/FindIntegrity178.cmake`, the GHS
+  toolchain files and presets. The interfaces stay C++23; a GHS standard
+  library that is short one of the C++20/23 headers the interfaces include
+  gets a shim from `src/platforms/ghs/std/`, selected automatically per header
+  by `cmake/GhsStdShims.cmake`.
+  [docs/platform-ghs.md](docs/platform-ghs.md) is the review that shaped them,
+  and names what is still open (the 178B application task and file-system
+  model).
 - **A CMake build for Windows, macOS and Linux**, with presets for MSVC, GCC and
   AppleClang, warnings as errors, AddressSanitizer in Debug, an optional
   coverage build, and vcpkg (a submodule) for dependencies.
@@ -61,6 +73,17 @@ C++23 CMake monorepo. Nothing has been released.
   the abort button. The files are read from the media set's directory tree (`MediaSetIndex` from `FILES.LUM`
   and a `FileSource` over it, which tells two files of one name apart by the CRC in the target's request).
   Not run against a real target.
+- **The application: the whole job, Download, and two more applications**
+  ([docs/app.md](docs/app.md), [docs/media-gen.md](docs/media-gen.md),
+  [docs/mock-target.md](docs/mock-target.md)): the loader gains preferences that persist, properties for the
+  media set and the target, a validation gate (reading the set is checking it) and failure dialogs that say
+  what to do, and the Download operation in both modes into a fresh `DNLD_DATA_<THW_ID_POS>_<number>`
+  directory, with a dark scheme and a keyboard pass over all three windows. `adl_media_gen` generates a
+  media set as the directory tree the loader opens and reads it back to verify it. `adl_mock_target` is a 615A
+  target over real sockets (FIND, Information, Upload, both Downloads, and failure injections), on
+  `adl::arinc615a_mini`, the second TFTP implementation extracted from the tests so that the two ends of a
+  dialogue share no transfer code. `loopback.integration` runs the loader's runner against the mock target's
+  engine over 127.0.0.1. Not run against a real target.
 - **The 615A engine and runner** (`adl::arinc615a`, `adl::arinc615a_runner`,
   [docs/arinc615a-engine.md](docs/arinc615a-engine.md),
   [docs/arinc615a-coverage.md](docs/arinc615a-coverage.md)): the data loader's side of ARINC

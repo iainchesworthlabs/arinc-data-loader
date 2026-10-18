@@ -89,7 +89,7 @@ QHash<int, QByteArray> EventModel::roleNames() const {
 }
 
 void EventModel::append(const EventEntry& entry) {
-    if (lines_.size() >= capacity) {
+    if (lines_.size() >= capacity_) {
         beginRemoveRows({}, 0, 0);
         lines_.removeFirst();
         endRemoveRows();
@@ -103,6 +103,43 @@ void EventModel::append(const EventEntry& entry) {
 void EventModel::clear() {
     beginResetModel();
     lines_.clear();
+    endResetModel();
+}
+
+// ---- FileModel ---------------------------------------------------------------------------
+
+int FileModel::rowCount(const QModelIndex& parent) const {
+    return parent.isValid() ? 0 : static_cast<int>(files_.size());
+}
+
+QVariant FileModel::data(const QModelIndex& index, int role) const {
+    if (!index.isValid() || index.row() < 0 || index.row() >= files_.size()) {
+        return {};
+    }
+    const MediaFileSummary& file = files_[index.row()];
+    switch (role) {
+        case Qt::DisplayRole:
+        case NameRole:
+            return file.name;
+        case MemberRole:
+            return file.member;
+        case PathnameRole:
+            return file.pathname;
+        case CrcRole:
+            return file.crc16;
+        default:
+            return {};
+    }
+}
+
+QHash<int, QByteArray> FileModel::roleNames() const {
+    return {
+        {NameRole, "name"}, {MemberRole, "member"}, {PathnameRole, "pathname"}, {CrcRole, "crc"}};
+}
+
+void FileModel::reset(QList<MediaFileSummary> files) {
+    beginResetModel();
+    files_ = std::move(files);
     endResetModel();
 }
 
@@ -213,11 +250,22 @@ bool LoadModel::setData(const QModelIndex& index, const QVariant& value, int rol
 
 void LoadModel::reset(QList<LoadSummary> loads) {
     beginResetModel();
-    rows_.clear();
-    rows_.reserve(loads.size());
+    QList<Row> rows;
+    rows.reserve(loads.size());
     for (LoadSummary& load : loads) {
-        rows_.append(Row{std::move(load), false, -1, {}, {}, false});
+        // The operator's tick follows a load that is still there (same header file and part
+        // number); everything else starts unticked.
+        bool checked = false;
+        for (const Row& old : rows_) {
+            if (old.load.header_file == load.header_file &&
+                old.load.part_number == load.part_number) {
+                checked = old.checked;
+                break;
+            }
+        }
+        rows.append(Row{std::move(load), checked, -1, {}, {}, false});
     }
+    rows_ = std::move(rows);
     endResetModel();
     Q_EMIT selection_changed();
 }
@@ -285,6 +333,201 @@ void LoadModel::apply_progress(const QList<LoadProgressRow>& progress) {
             break;
         }
     }
+}
+
+// ---- DownloadModel -----------------------------------------------------------------------
+
+int DownloadModel::rowCount(const QModelIndex& parent) const {
+    return parent.isValid() ? 0 : static_cast<int>(rows_.size());
+}
+
+QVariant DownloadModel::data(const QModelIndex& index, int role) const {
+    if (!index.isValid() || index.row() < 0 || index.row() >= rows_.size()) {
+        return {};
+    }
+    const Row& row = rows_[index.row()];
+    switch (role) {
+        case Qt::DisplayRole:
+        case NameRole:
+            return row.name;
+        case DescriptionRole:
+            return row.description;
+        case CheckedRole:
+            return row.checked;
+        case RatioRole:
+            return row.ratio;
+        case FileStatusRole:
+            return row.status;
+        case FailedRole:
+            return row.failed;
+        case ProblemRole:
+            return row.problem;
+        default:
+            return {};
+    }
+}
+
+QHash<int, QByteArray> DownloadModel::roleNames() const {
+    return {{NameRole, "name"},      {DescriptionRole, "description"}, {CheckedRole, "checked"},
+            {RatioRole, "ratio"},    {FileStatusRole, "fileStatus"},   {FailedRole, "failed"},
+            {ProblemRole, "problem"}};
+}
+
+Qt::ItemFlags DownloadModel::flags(const QModelIndex& index) const {
+    Qt::ItemFlags result = QAbstractListModel::flags(index);
+    // Only the ticks of the target's list are writable, and not while the model is locked.
+    if (index.isValid() && choice_mode_ && !locked_) {
+        result |= Qt::ItemIsEditable;
+    }
+    return result;
+}
+
+bool DownloadModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+    if (role != CheckedRole || locked_ || !choice_mode_ || !index.isValid() || index.row() < 0 ||
+        index.row() >= rows_.size()) {
+        return false;
+    }
+    const bool checked = value.toBool();
+    if (rows_[index.row()].checked != checked) {
+        rows_[index.row()].checked = checked;
+        changed(index.row(), index.row(), {CheckedRole});
+        Q_EMIT selection_changed();
+    }
+    return true;
+}
+
+void DownloadModel::reset_media(const QStringList& names) {
+    beginResetModel();
+    QList<Row> rows;
+    rows.reserve(names.size());
+    for (const QString& name : names) {
+        rows.append(Row{name, {}, false, -1, {}, {}, false});
+    }
+    rows_ = std::move(rows);
+    choice_mode_ = false;
+    endResetModel();
+    Q_EMIT selection_changed();
+}
+
+bool DownloadModel::add_name(const QString& name) {
+    const QString trimmed = name.trimmed();
+    if (locked_ || choice_mode_ || trimmed.isEmpty()) {
+        return false;
+    }
+    for (const Row& row : rows_) {
+        if (row.name == trimmed) {
+            return false;
+        }
+    }
+    const int row = static_cast<int>(rows_.size());
+    beginInsertRows({}, row, row);
+    rows_.append(Row{trimmed, {}, false, -1, {}, {}, false});
+    endInsertRows();
+    Q_EMIT selection_changed();
+    return true;
+}
+
+void DownloadModel::remove_row(int row) {
+    if (locked_ || choice_mode_ || row < 0 || row >= rows_.size()) {
+        return;
+    }
+    beginRemoveRows({}, row, row);
+    rows_.removeAt(row);
+    endRemoveRows();
+    Q_EMIT selection_changed();
+}
+
+QStringList DownloadModel::names() const {
+    QStringList names;
+    names.reserve(rows_.size());
+    for (const Row& row : rows_) {
+        names.append(row.name);
+    }
+    return names;
+}
+
+void DownloadModel::reset_operator(const QList<DownloadFileRow>& files) {
+    beginResetModel();
+    QList<Row> rows;
+    rows.reserve(files.size());
+    for (const DownloadFileRow& file : files) {
+        // All ticked: the target offered the files, and the operator untickks what they do
+        // not want.
+        rows.append(Row{file.name, file.description, true, -1, {}, {}, false});
+    }
+    rows_ = std::move(rows);
+    choice_mode_ = true;
+    endResetModel();
+    Q_EMIT selection_changed();
+}
+
+void DownloadModel::check_all(bool checked) {
+    if (locked_ || !choice_mode_ || rows_.isEmpty()) {
+        return;
+    }
+    bool any = false;
+    for (Row& row : rows_) {
+        any = any || row.checked != checked;
+        row.checked = checked;
+    }
+    if (any) {
+        changed(0, static_cast<int>(rows_.size()) - 1, {CheckedRole});
+        Q_EMIT selection_changed();
+    }
+}
+
+int DownloadModel::checked_count() const noexcept {
+    return static_cast<int>(
+        std::count_if(rows_.cbegin(), rows_.cend(), [](const Row& row) { return row.checked; }));
+}
+
+QStringList DownloadModel::checked_names() const {
+    QStringList names;
+    for (const Row& row : rows_) {
+        if (row.checked) {
+            names.append(row.name);
+        }
+    }
+    return names;
+}
+
+void DownloadModel::begin_download() {
+    beginResetModel();
+    for (Row& row : rows_) {
+        if (!choice_mode_ || row.checked) {
+            row.ratio = 0;
+            row.status = tr("waiting");
+            row.problem.clear();
+            row.failed = false;
+        }
+    }
+    if (choice_mode_) {
+        // The operator's choice is what was sent: the untickked files are not part of it.
+        rows_.removeIf([](const Row& row) { return !row.checked; });
+    }
+    endResetModel();
+    Q_EMIT selection_changed();  // the list itself may have shrunk to the chosen files
+}
+
+void DownloadModel::apply_progress(const QList<FileProgressRow>& progress) {
+    for (const FileProgressRow& update : progress) {
+        for (int i = 0; i < rows_.size(); ++i) {
+            Row& row = rows_[i];
+            if (row.name != update.name) {
+                continue;
+            }
+            row.ratio = update.ratio;
+            row.status = update.status;
+            row.problem = update.description;
+            row.failed = update.failed;
+            changed(i, i, {RatioRole, FileStatusRole, FailedRole, ProblemRole});
+            break;
+        }
+    }
+}
+
+void DownloadModel::changed(int first, int last, const QList<int>& roles) {
+    Q_EMIT dataChanged(index(first), index(last), roles);
 }
 
 }  // namespace adl::app

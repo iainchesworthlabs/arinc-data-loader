@@ -25,8 +25,10 @@ src/platforms/
     network.hpp, ipc.hpp, error.hpp, owned.hpp, ring_ipc.hpp
   windows/ linux/ macos/     one implementation per interface, plus platform.cmake
   qnx/                       code that has never been compiled (status unbuilt)
+  ghs508/ ghs178b/           Green Hills INTEGRITY 5.0.8 and INTEGRITY-178B (unbuilt)
   vxworks/ freertos/ zephyr/ a platform.cmake only: designs, no code
   posix/                     the implementations the POSIX systems share
+  ghs/                       the implementations the INTEGRITY platforms share
   detail/                    portable helpers every platform links
   CMakeLists.txt             builds adl_platform from what the fragment names
 tests/platform/              the fragment and selector checks, and test cases only one platform can run
@@ -35,8 +37,9 @@ tests/fake/                  the fake platform
 ```
 
 When two platforms would otherwise copy an implementation, put it in the `posix/`
-directory beside them and let each platform's `platform.cmake` name the file.
-`posix/` is not a platform and needs no `platform.cmake` of its own. The POSIX
+directory (or `ghs/` for the INTEGRITY ones) beside them and let each platform's
+`platform.cmake` name the file. Neither `posix/` nor `ghs/` is a platform, and
+neither needs a `platform.cmake` of its own. The POSIX
 systems differ in a few places (a condition variable's clock, thread priorities,
 flushing a file to disk, a thread's name); those are functions declared in
 `posix/posix_os.hpp` and defined once per system (`linux/os_linux.cpp`,

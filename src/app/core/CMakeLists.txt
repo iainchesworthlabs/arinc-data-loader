@@ -15,6 +15,7 @@ add_library(adl_app_core STATIC
     include/adl/app/media_source.hpp
     include/adl/app/models.hpp
     include/adl/app/notice_text.hpp
+    include/adl/app/settings.hpp
     include/adl/app/text.hpp
     src/address.cpp
     src/engine_worker.cpp
@@ -24,7 +25,8 @@ add_library(adl_app_core STATIC
     src/media_set_summary.cpp
     src/media_source.cpp
     src/models.cpp
-    src/notice_text.cpp)
+    src/notice_text.cpp
+    src/settings.cpp)
 add_library(adl::app_core ALIAS adl_app_core)
 
 target_include_directories(adl_app_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")

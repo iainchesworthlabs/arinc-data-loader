@@ -17,6 +17,10 @@ const char* host_name() noexcept {
     return "linux";
 }
 
+bool is_real_time() noexcept {
+    return false;
+}
+
 int init_condition(pthread_cond_t& condition) noexcept {
     pthread_condattr_t attributes;
     if (const int error = ::pthread_condattr_init(&attributes); error != 0) {

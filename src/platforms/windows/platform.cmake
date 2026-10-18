@@ -61,6 +61,15 @@ function(adl_platform_deploy_qt_runtime target qml_dir)
     if(NOT "${qml_dir}" STREQUAL "")
         list(APPEND _arguments --qmldir "${qml_dir}")
     endif()
+    # The applications deploy into one bin directory, and two windeployqt runs at once
+    # write the same QML modules and plugins over each other (the likely cause of a clean
+    # build failing on CI). Their link steps, which carry this command, share a pool of one.
+    get_property(_pools GLOBAL PROPERTY JOB_POOLS)
+    if(NOT "adl_qt_deploy=1" IN_LIST _pools)
+        set_property(GLOBAL APPEND PROPERTY JOB_POOLS adl_qt_deploy=1)
+    endif()
+    set_property(TARGET ${target} PROPERTY JOB_POOL_LINK adl_qt_deploy)
+
     add_custom_command(TARGET ${target} POST_BUILD
         COMMAND "${ADL_WINDEPLOYQT_EXECUTABLE}" ${_arguments} "$<TARGET_FILE:${target}>"
         COMMENT "Deploying the Qt runtime beside ${target}")

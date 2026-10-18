@@ -22,7 +22,12 @@ qt_add_qml_module(adl_app
     QML_FILES
         qml/Main.qml
         qml/Panel.qml
-        qml/LogView.qml)
+        qml/LogView.qml
+        qml/DownloadPanel.qml
+        qml/PreferencesDialog.qml
+        qml/MediaSetPropertiesDialog.qml
+        qml/TargetPropertiesDialog.qml
+        qml/AboutDialog.qml)
 
 target_compile_features(adl_app PRIVATE cxx_std_23)
 target_link_libraries(adl_app

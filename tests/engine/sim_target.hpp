@@ -5,7 +5,8 @@
 // itself. It answers the data loader's request for the initialization file, writes its status
 // files (the heartbeat) while it works, reads the load's files from the loader (an upload),
 // writes the files of a download to it, and writes the lists of an Information or an operator
-// defined Download operation. Its TFTP is MiniTransfer, which shares no code with the engine.
+// defined Download operation. Its TFTP is adl::arinc615a_mini's MiniTransfer, which shares no
+// code with the engine.
 //
 // What it does is steered by a SimPlan, so that a test can make it slow, silent, refuse, abort,
 // lose a status file, send a wrong checksum or a file that is not valid; and by the network's
@@ -21,10 +22,15 @@
 #include "adl/arinc615a/endpoint.hpp"
 #include "adl/arinc615a/find.hpp"
 #include "adl/arinc615a/protocol_files.hpp"
+#include "adl/arinc615a_mini/mini_tftp.hpp"
 #include "fake_host.hpp"
-#include "mini_tftp.hpp"
 
 namespace adl::test {
+
+using adl::arinc615a_mini::Bytes;
+using adl::arinc615a_mini::MiniHost;
+using adl::arinc615a_mini::MiniResult;
+using adl::arinc615a_mini::MiniTransfer;
 
 // A file the target reads from the loader, with what it expects to get.
 struct ReadItem {

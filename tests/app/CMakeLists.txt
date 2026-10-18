@@ -9,11 +9,13 @@ set(CMAKE_AUTOMOC ON)
 # The logic: addresses, models, and whole jobs through LoaderModel on the engine's thread.
 add_executable(adl_app_tests
     address_test.cpp
+    controls_test.cpp
     loader_model_test.cpp
     main.cpp
     media_source_test.cpp
     models_test.cpp
     notice_text_test.cpp
+    settings_test.cpp
     test_classes.hpp
     upload_fixture.hpp)
 

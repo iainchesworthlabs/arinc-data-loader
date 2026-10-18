@@ -65,17 +65,17 @@ target_link_libraries(adl_fake_platform
         adl::sanitizers
         adl::coverage)
 
-# The simulated target (a target of 615A on the fake network, with a TFTP of its own that shares
-# no code with the engine). The engine tests run whole operations against it, and so do the
-# application's.
+# The simulated target (a target of 615A on the fake network, with the second TFTP
+# implementation of src/arinc615a_mini, which shares no code with the engine). The engine tests
+# run whole operations against it, and so do the application's.
 add_library(adl_sim_target STATIC
-    engine/mini_tftp.cpp
     engine/sim_target.cpp)
 target_include_directories(adl_sim_target PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/engine")
 target_link_libraries(adl_sim_target
     PUBLIC
         adl_fake_platform
         adl::arinc615a
+        adl::arinc615a_mini
     PRIVATE
         adl::arinc665
         adl::warnings
@@ -192,4 +192,11 @@ add_test(NAME tools.write_payloads.list COMMAND adl_write_payloads --list)
 # The application's tests (src/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)
     add_subdirectory(app)
+    # The mock target's tests (src/mock_target).
+    add_subdirectory(mock_target)
+    # The media set generator's tests (src/media_gen).
+    add_subdirectory(media_gen)
+    # The loopback integration test: the loader's runner over real sockets against the mock
+    # target's engine on 127.0.0.1 (needs adl::mock_core, so it is behind ADL_BUILD_APP too).
+    add_subdirectory(loopback)
 endif()

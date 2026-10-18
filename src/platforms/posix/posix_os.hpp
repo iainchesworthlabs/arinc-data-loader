@@ -23,6 +23,11 @@ namespace adl::platform::posix_os {
 
 [[nodiscard]] const char* host_name() noexcept;
 
+// Whether this system has real-time scheduling worth the name, for
+// HostInfo::real_time. A desktop is not: it can be late, and the loader's
+// time-outs are written to tolerate that. An RTOS is.
+[[nodiscard]] bool is_real_time() noexcept;
+
 // A condition variable that waits on the monotonic clock, so that a wall-clock
 // step (an NTP correction, someone setting the date) cannot make a time-out
 // early or endless. Linux sets the clock on the condition's attributes; macOS

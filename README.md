@@ -30,10 +30,12 @@ This is the data format and the foundation, not a loader yet. What exists:
 - **`adl::platform`**, the one place that knows which operating system this is:
   files, memory, threads and priorities, a clock, UDP sockets and message queues,
   as interfaces with an implementation each for Windows, Linux and macOS, and a
-  fake that runs the whole engine without a socket or a real second. Designed so
-  that QNX, VxWorks, FreeRTOS and Zephyr can be added.
+  fake that runs the whole engine without a socket or a real second. QNX and the
+  two Green Hills INTEGRITY ports (5.0.8 and 178B) have code that has never been
+  compiled; VxWorks, FreeRTOS and Zephyr are designs.
   [docs/platform-abstraction.md](docs/platform-abstraction.md) has the design and
-  says what has been verified.
+  says what has been verified; [docs/platform-ghs.md](docs/platform-ghs.md) is the
+  review behind the INTEGRITY ports.
 - **`adl::arinc615a`**, the data loader's side of ARINC 615A-3. The codec: the TFTP
   packets with their options (and the WAIT and ABORT messages), the FIND packets and
   the twelve protocol files (`.LCI`, `.LCL`, `.LCS`, `.LUI`, `.LUR`, `.LUS`, `.LND`,
@@ -51,12 +53,30 @@ This is the data format and the foundation, not a loader yet. What exists:
   [docs/arinc615a-coverage.md](docs/arinc615a-coverage.md) the standard section by
   section, with the places it is unclear. Nothing has been checked against another
   implementation or over real sockets yet.
+- **The three Qt 6.12 applications** (Windows, macOS and Linux, behind `ADL_BUILD_APP`):
+  - **`adl_app`**, the data loader ([docs/app.md](docs/app.md)): a media set chosen as a
+    directory and checked before anything is uploaded (reading it is the check; an
+    unreadable set cannot be uploaded, and the standard's findings are shown as
+    warnings), FIND, the Information, Upload and Download operations with progress and an abort,
+    preferences that persist, properties for the media set and the target, and failures
+    that say what went wrong and, where it is known, what to do about it.
+  - **`adl_media_gen`**, the media set generator ([docs/media-gen.md](docs/media-gen.md)):
+    files chosen from disk are turned into a valid ARINC 665 load and media set, written
+    as the directory tree the loader opens, and verified by reading it back.
+  - **`adl_mock_target`**, a 615A target over real sockets
+    ([docs/mock-target.md](docs/mock-target.md)): it answers FIND, runs the Information,
+    Upload and Download dialogues and stores what an upload left in it, so the loader can
+    be demonstrated end to end without an embedded box — and it can be made to misbehave
+    (WAIT, refuse, drop status files, a wrong checksum, an abort, silence) to watch the
+    loader cope. Its TFTP is `adl::arinc615a_mini` (`src/arinc615a_mini`), the second,
+    independent TFTP implementation the tests were written around, shared now with the
+    mock target so the two ends of a dialogue share no transfer code.
 - The build, the tests, the CI and the repository rules.
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
-against another tool's files and ARINC 615A against a real target, the rest of the Qt 6.12
-application (FIND, a target, the Information operation and Upload are built; Download is next), Tracy profiling, and a build of the loader library for an embedded VxWorks
-target.
+against another tool's files and ARINC 615A against a real target, packaging, translations, Tracy profiling,
+and a build of the loader library for an embedded target (the Green
+Hills INTEGRITY ports are written and unbuilt; VxWorks is a design).
 
 ## Build
 
@@ -75,15 +95,22 @@ ctest --preset windows-msvc-debug
 ```text
 src/arinc665/        the ARINC 665 library (platform-free, GUI-free)
 src/arinc615a/       the ARINC 615A codec and engine: TFTP, FIND, the operations (platform-free)
+src/arinc615a_mini/  the second, independent TFTP implementation, shared by the tests' simulated
+                     target and the mock target application
 src/arinc615a_runner/ the runner that drives the engine over adl::platform
 src/media_tree/      media sets on a disk: a directory per member
 src/samples/         the sample loads and media sets
 src/write_payloads/  adl_write_payloads, which writes the samples to a directory
+src/app/             adl_app: the data loader window (Qt Quick), preferences, validation, FIND,
+                     Information, Upload and Download
+src/media_gen/       adl_media_gen: the media set generator window (Qt Quick)
+src/mock_target/     adl_mock_target: a 615A target over real sockets, for demonstrations
 src/platforms/       everything that differs between operating systems
 tests/               Catch2 unit tests, the platform conformance suite and the fake platform
 cmake/               the platform selector, warnings, sanitizers, coverage, Tracy, Qt
 tools/               repository checks, commit policy, git hooks
-docs/                architecture, roadmap, CI, coverage of 665 and 615A, the 615A codec and engine, docs/specs
+docs/                architecture, roadmap, CI, coverage of 665 and 615A, the application, the
+                     generator, the mock target, the 615A codec and engine, docs/specs
 ```
 
 The operating system is chosen by CMake, never by the source: there is no `#ifdef`

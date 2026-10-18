@@ -101,6 +101,11 @@ add_subdirectory(src/arinc665)
 # Platform-free, and it builds no ARINC 665 model.
 add_subdirectory(src/arinc615a)
 
+# A second, independent TFTP implementation (shared by the simulated target of the tests and
+# the mock target application), so the engine is checked against a second reading of the
+# standard and not against itself. Platform-free: it uses only the codec.
+add_subdirectory(src/arinc615a_mini)
+
 # The 615A runner: opens the sockets the engine asks for and drives its state machines over
 # adl::platform. The only 615A code that calls the platform.
 add_subdirectory(src/arinc615a_runner)
@@ -119,6 +124,12 @@ add_subdirectory(src/write_payloads)
 # The Qt application: a thin layer over the libraries above, and the only place Qt is used.
 if(ADL_BUILD_APP)
     add_subdirectory(src/app)
+    # The mock target: a Qt application that behaves as an ARINC 615A target over real
+    # sockets, for demonstrating the loader's dialogues end to end.
+    add_subdirectory(src/mock_target)
+    # The media set generator: a second Qt application that turns files chosen by the
+    # operator into a valid ARINC 665 media set the loader can open.
+    add_subdirectory(src/media_gen)
 endif()
 
 if(ADL_BUILD_TESTS)

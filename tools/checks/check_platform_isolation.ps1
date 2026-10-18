@@ -36,14 +36,15 @@
 #      src/platforms/interfaces/ and gets one implementation per platform.
 #
 #   3. EVERY PLATFORM TRANSLATION UNIT IS WIRED. Each src/platforms/<name>/
-#      directory (other than detail/ and posix/, which are not platforms) has
-#      a platform.cmake, and every .cpp/.mm in the section is named, outside a
-#      comment, by one of them - a file nothing compiles is a platform that
+#      directory (other than detail/, posix/ and ghs/, which are not platforms)
+#      has a platform.cmake, and every .cpp/.mm in the section is named, outside
+#      a comment, by one of them - a file nothing compiles is a platform that
 #      was "added" in the source tree and never in CMake.
 #
 #   4. NO OS TESTS IN CMAKE outside cmake/Platform.cmake, the platform
-#      fragments and the vcpkg triplets in cmake/triplets/ (a triplet is a
-#      platform's name and flags): no WIN32, APPLE, ANDROID, IOS, UNIX, LINUX, MINGW, CYGWIN,
+#      fragments, the vcpkg triplets in cmake/triplets/ and the toolchain files
+#      in cmake/toolchains/ (a triplet and a toolchain file are a platform's
+#      name and flags): no WIN32, APPLE, ANDROID, IOS, UNIX, LINUX, MINGW, CYGWIN,
 #      EMSCRIPTEN, CMAKE_SYSTEM_NAME or $<PLATFORM_ID:...>. (Compiler tests - MSVC,
 #      CXX_COMPILER_ID - are a different axis and are not matched, nor are
 #      property names such as WIN32_EXECUTABLE.)
@@ -237,12 +238,14 @@ foreach ($file in $candidates) {
     }
     $isCpp = Test-IsCppSource $file
     $isCMake = Test-IsCMake $file
-    # A vcpkg triplet is a platform's name and flags, in a format that cannot
-    # read a CMake variable (the same reason the presets and vcpkg.json carry
-    # platform names), so cmake/triplets/ is as exempt as the fragments.
+    # A vcpkg triplet and a toolchain file are a platform's name and flags, in
+    # a format that cannot read a CMake variable (the same reason the presets
+    # and vcpkg.json carry platform names), so cmake/triplets/ and
+    # cmake/toolchains/ are as exempt as the fragments.
     $isSelectorOrFragment = $relative -ieq 'cmake/Platform.cmake' -or
         $relative -match '^src/platforms/[^/]+/platform\.cmake$' -or
-        $relative -match '^cmake/triplets/[^/]+\.cmake$'
+        $relative -match '^cmake/triplets/[^/]+\.cmake$' -or
+        $relative -match '^cmake/toolchains/[^/]+\.cmake$'
 
     $state = [pscustomobject]@{ InBlock = $false }
     $lineNumber = 0
@@ -296,9 +299,9 @@ foreach ($dir in $platformDirs) {
 }
 foreach ($dir in $platformDirs) {
     # detail/ is the shared helpers every platform links (src/app/CMakeLists.txt
-    # lists them itself); posix/ is the shared Unix implementations the
-    # fragments name, and is not a platform of its own.
-    if ($dir.Name -in @('detail', 'interfaces', 'posix')) { continue }
+    # lists them itself); posix/ and ghs/ are the shared implementations the
+    # fragments name, and are not platforms of their own.
+    if ($dir.Name -in @('detail', 'interfaces', 'posix', 'ghs')) { continue }
     $fragment = Join-Path $dir.FullName 'platform.cmake'
     if (-not (Test-Path -LiteralPath $fragment)) {
         Add-Violation 'unwired' (Get-RelativePath $dir.FullName) 1 "$($dir.Name)/ has no platform.cmake" `

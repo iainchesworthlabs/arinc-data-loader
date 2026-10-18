@@ -1,11 +1,11 @@
-#include "mini_tftp.hpp"
+#include "adl/arinc615a_mini/mini_tftp.hpp"
 
 #include <algorithm>
 #include <variant>
 
 #include "adl/arinc615a/limits.hpp"
 
-namespace adl::test {
+namespace adl::arinc615a_mini {
 
 using namespace adl::arinc615a;
 
@@ -282,4 +282,4 @@ void MiniTransfer::on_datagram(const Endpoint& from, std::span<const std::byte> 
     }
 }
 
-}  // namespace adl::test
+}  // namespace adl::arinc615a_mini

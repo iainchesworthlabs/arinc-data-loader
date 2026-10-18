@@ -114,14 +114,40 @@ slices; [the application](app.md) says what each does.
    loads, progress for the list and per load from the upload status files, the abort button, and the
    outcome (a load the target failed makes the operation a failure). Tested through `LoaderModel` and the
    window against the simulated target. Not run against a real target.
+3. **The operator's whole job (done).** The window around the two operations: preferences that persist
+   (the last media set restored at start-up, a default target, the loader's control port, whether FIND
+   runs before an operation with no chosen target, whether a chosen set is checked at once, the log
+   capacity), properties for the media set (identity, loads, every file of `FILES.LUM`, the findings) and
+   for the chosen target (its FIND answer), a validation gate — reading the set is checking it, an
+   unreadable set cannot be uploaded, findings are warnings, files changed on disk are caught by a
+   re-check — and error handling that says what failed and, where it is known, what to do about it.
+   Tested through `LoaderModel` and the window ([the application](app.md)).
+4. **The media set generator (done).** `src/media_gen`, a second Qt application: pick files from disk,
+   describe the load and the media set, and generate the directory tree the loader opens — built with
+   `adl::arinc665` and `adl::media_tree`, verified by reading it back, and read in the tests through the
+   loader's own summary ([the generator](media-gen.md)).
+5. **The mock target (done).** `src/mock_target`, a third Qt application: a 615A target over real
+   sockets, so the dialogues can be demonstrated end to end without an embedded box — FIND, Information,
+   Upload (with checksums checked and the files stored to disk), both Download modes, aborts, and the
+   failure injections that show the loader coping ([the mock target](mock-target.md)). Its engine runs in
+   the tests against the loader's real engine on the fake platform; the loader's TFTP and the mock
+   target's (`adl::arinc615a_mini`, extracted from the tests) share no code.
+6. **Download in the window, the loopback test, and the dark/keyboard pass (done).** The Download
+   operation in both modes (media defined, and operator defined through the engine's deferred choice,
+   "Choose none" cancelling the way the standard says), the files written to a fresh
+   `DNLD_DATA_<THW_ID_POS>_<number>` directory ([the application](app.md)); an integration test that runs
+   the loader's runner over real sockets against the mock target's engine on 127.0.0.1 — Information,
+   Upload byte for byte, both Download modes and an abort, as `loopback.integration`
+   ([the mock target](mock-target.md)); and a dark-scheme, keyboard and accessibility pass over all three
+   windows (menus and shortcuts, initial focus, the keyboard highlight of the generator's file list, both
+   schemes rendered in the offscreen tests).
 
 What is left of the application:
 
-- **Download**: media defined (the files the operator names) and operator defined (the target's list
-  shown, the choice taken through `RunController`), into the `DNLD_DATA_<THW_ID_POS>_<number>` directory
-  of 5.4.4.3 through a `FileSink`.
-- Running FIND before an operation when the target is not known (Attachment 3); remembering the last
-  media set, target and download directory; a dark-theme and keyboard pass; translations.
+- Remembering the last target and download directory; translations.
+- FIND over real sockets in the loopback test: the standard fixes FIND to port 1001 on both ends, and two
+  sockets sharing a port on one machine is not reliable on every platform, so the loopback test covers the
+  operations and names the target by hand; a FIND case may join it if the reuse behaviour proves portable.
 - Packaging (section 7 below), which is where `macdeployqt` comes in.
 
 ## 5. Profiling
@@ -133,12 +159,16 @@ listener.
 
 ## 6. An embedded target
 
-A build of the loader library for VxWorks 178C, and possibly other targets
-after it. The platform layer is shaped for it ([platform
-abstraction](platform-abstraction.md)): a design for VxWorks, FreeRTOS, Zephyr and
-QNX, code for QNX that has never been compiled, and a selector that takes
-`-DADL_TARGET_PLATFORM`. The structure is meant to make this a new platform and not
-a new codebase:
+A build of the loader library for an embedded RTOS. The first concrete attempt
+is the **Green Hills INTEGRITY support** ([the GHS review](platform-ghs.md)):
+`ghs508` (INTEGRITY 5.0.8, on the shared POSIX sources) and `ghs178b`
+(INTEGRITY-178B, a native port), both unbuilt, with `cmake/FindIntegrity.cmake`,
+`cmake/FindIntegrity178.cmake`, the GHS toolchain files and presets. VxWorks
+178C remains the design target it was. The platform layer is shaped for all of
+them ([platform abstraction](platform-abstraction.md)): a design for VxWorks,
+FreeRTOS and Zephyr, code for QNX and INTEGRITY that has never been compiled,
+and a selector that takes `-DADL_TARGET_PLATFORM`. The structure is meant to
+make each a new platform and not a new codebase:
 
 - an implementation of each platform interface in `src/platforms/vxworks` (the
   fragment and the branch in `cmake/Platform.cmake` already exist), with a
