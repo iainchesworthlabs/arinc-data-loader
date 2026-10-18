@@ -69,8 +69,11 @@ The build trees are `build/<preset>`, and the programs are in
 
 ## Building the application
 
-The Qt application (`src/app`, [described here](app.md)) is off by default, so that the libraries build
-on a machine with no Qt. It needs the prebuilt Qt 6.12 kit, not vcpkg: `cmake/FindQt6.cmake` looks in
+`ADL_BUILD_APP` builds all three Qt applications, not only the loader: **`adl_app`** (the data
+loader, [described here](app.md)), **`adl_media_gen`** (the media set generator,
+[described here](media-gen.md)) and **`adl_mock_target`** (a 615A target over real sockets,
+[described here](mock-target.md)). They are off by default, so that the libraries build on a
+machine with no Qt. They need the prebuilt Qt 6.12 kit, not vcpkg: `cmake/FindQt6.cmake` looks in
 `QT_ROOT_DIR` first (on a labs machine `. C:\Repos\common\env.ps1` sets it to
 `C:\Repos\common\qt\6.12.0\msvc2022_64`), then in the places the platform's fragment lists for an
 aqtinstall layout (`C:/Qt`, `~/Qt`, `/opt/Qt`), and an explicit `-DCMAKE_PREFIX_PATH=...` always wins.
@@ -80,15 +83,39 @@ cmake --preset windows-msvc-debug -DADL_BUILD_APP=ON
 cmake --build --preset windows-msvc-debug
 ctest --preset windows-msvc-debug
 build/windows-msvc-debug/bin/adl_app
+build/windows-msvc-debug/bin/adl_media_gen
+build/windows-msvc-debug/bin/adl_mock_target
 ```
 
-On Windows the build runs windeployqt after linking, so `adl_app.exe` starts from anywhere (Qt's DLLs,
-its plugins and the QML modules the window imports are copied beside it). On Linux it finds Qt the way
-the build did; on macOS the program is a bundle, and packaging it (`macdeployqt`) is not done yet.
+On Windows the build runs windeployqt after linking, so the programs start from anywhere (Qt's DLLs,
+its plugins and the QML modules the windows import are copied beside them). On Linux they find Qt the
+way the build did; on macOS the programs are bundles, and packaging them (`macdeployqt`) is not done yet.
 
-The tests that need Qt are `app.tests` (QtTest, headless) and `app.qml` (the window loaded offscreen);
-they run in the same `ctest` as the rest when `ADL_BUILD_APP` is on, and look for the offscreen platform
-plugin in the kit's own `plugins` directory.
+The tests that need Qt are `app.tests` and `app.qml`, `media_gen.tests` and `media_gen.qml`, and
+`mock.engine`, `mock.model` and `mock.qml`; they run in the same `ctest` as the rest when
+`ADL_BUILD_APP` is on, and look for the offscreen platform plugin in the kit's own `plugins`
+directory.
+
+### The demonstration
+
+The mock target and the loader are two programs, so they can run on one machine (the target's
+transfer ports start at 40000 and grow, and it honors the loader's `port` option) or on two.
+On one machine:
+
+1. Start `adl_mock_target`, set the identity and the storage directory as you like, press **Start**.
+2. Start `adl_app`. In **File > Preferences…**, set the control port to anything but 59
+   (say 5900) so the loader and the target do not fight over port 59, and type the target's address
+   (`127.0.0.1`) and `<THW_ID_POS>` (`HNPFMS_L` for the default identity). FIND on one machine is
+   not reliable (two sockets sharing port 1001), so name the target by hand.
+3. Generate a media set with `adl_media_gen`, or use `adl_write_payloads` to write the sample sets,
+   open its directory in the loader (**Media set > Choose directory…**), wait for the check, tick a
+   load and **Upload**. The mock target's window shows each file arrive, and stores them under its
+   storage directory.
+4. To watch the loader cope, set an injection in the mock target (say "answer WAIT", or "go
+   silent"), run the operation again, and watch the loader's log and the failure dialog.
+
+On Linux and macOS binding ports 59 and 1001 may need privileges; the mock target's ports are
+editable, and the loader takes the target's port from the address you type.
 
 ## Writing sample payloads
 

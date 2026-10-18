@@ -114,14 +114,35 @@ slices; [the application](app.md) says what each does.
    loads, progress for the list and per load from the upload status files, the abort button, and the
    outcome (a load the target failed makes the operation a failure). Tested through `LoaderModel` and the
    window against the simulated target. Not run against a real target.
+3. **The operator's whole job (done).** The window around the two operations: preferences that persist
+   (the last media set restored at start-up, a default target, the loader's control port, whether FIND
+   runs before an operation with no chosen target, whether a chosen set is checked at once, the log
+   capacity), properties for the media set (identity, loads, every file of `FILES.LUM`, the findings) and
+   for the chosen target (its FIND answer), a validation gate — reading the set is checking it, an
+   unreadable set cannot be uploaded, findings are warnings, files changed on disk are caught by a
+   re-check — and error handling that says what failed and, where it is known, what to do about it.
+   Tested through `LoaderModel` and the window ([the application](app.md)).
+4. **The media set generator (done).** `src/media_gen`, a second Qt application: pick files from disk,
+   describe the load and the media set, and generate the directory tree the loader opens — built with
+   `adl::arinc665` and `adl::media_tree`, verified by reading it back, and read in the tests through the
+   loader's own summary ([the generator](media-gen.md)).
+5. **The mock target (done).** `src/mock_target`, a third Qt application: a 615A target over real
+   sockets, so the dialogues can be demonstrated end to end without an embedded box — FIND, Information,
+   Upload (with checksums checked and the files stored to disk), both Download modes, aborts, and the
+   failure injections that show the loader coping ([the mock target](mock-target.md)). Its engine runs in
+   the tests against the loader's real engine on the fake platform; the loader's TFTP and the mock
+   target's (`adl::arinc615a_mini`, extracted from the tests) share no code.
 
 What is left of the application:
 
-- **Download**: media defined (the files the operator names) and operator defined (the target's list
-  shown, the choice taken through `RunController`), into the `DNLD_DATA_<THW_ID_POS>_<number>` directory
-  of 5.4.4.3 through a `FileSink`.
-- Running FIND before an operation when the target is not known (Attachment 3); remembering the last
-  media set, target and download directory; a dark-theme and keyboard pass; translations.
+- **Download** in the loader's window: media defined (the files the operator names) and operator defined
+  (the target's list shown, the choice taken through `RunController`), into the
+  `DNLD_DATA_<THW_ID_POS>_<number>` directory of 5.4.4.3 through a `FileSink`. The mock target already
+  does its side of both modes, so the loader's slice is all that is missing.
+- Remembering the last target and download directory; a dark-theme and keyboard pass; translations.
+- An integration test of the loader and the mock target over real sockets on loopback (their
+  fake-platform tests prove the protocol; the real-socket links use the conformance-tested platform
+  sockets).
 - Packaging (section 7 below), which is where `macdeployqt` comes in.
 
 ## 5. Profiling
