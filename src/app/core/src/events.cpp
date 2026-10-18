@@ -14,6 +14,9 @@ void register_metatypes() {
     qRegisterMetaType<QList<HardwareRow>>();
     qRegisterMetaType<OperationSummary>();
     qRegisterMetaType<LoadSummary>();
+    qRegisterMetaType<QList<LoadSummary>>();
+    qRegisterMetaType<LoadProgressRow>();
+    qRegisterMetaType<QList<LoadProgressRow>>();
     qRegisterMetaType<MediaSetSummary>();
 }
 

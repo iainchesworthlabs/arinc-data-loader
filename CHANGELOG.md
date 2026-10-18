@@ -53,8 +53,14 @@ C++23 CMake monorepo. Nothing has been released.
   abort button, the target's status files and the engine's notices in an activity log, and the hardware and
   parts it reports. The engine runs on a thread of its own, reporting through queued signals and aborted
   through an atomic flag the runner polls. Built with `-DADL_BUILD_APP=ON` (Qt is the prebuilt kit, found
-  through `QT_ROOT_DIR`); CI installs it on the three desktop legs. Not run against a real target. Upload and
-  Download are not in the window yet.
+  through `QT_ROOT_DIR`); CI installs it on the three desktop legs. Not run against a real target. Download is
+  not in the window yet.
+- **The application: Upload** ([docs/app.md](docs/app.md)): tick loads of the media set that was read and
+  load them to the target with an `UploadOperation`, with a progress bar and a figure for the list, the
+  percentage and status of each load from the upload status files, the files the target reads in the log, and
+  the abort button. The files are read from the media set's directory tree (`MediaSetIndex` from `FILES.LUM`
+  and a `FileSource` over it, which tells two files of one name apart by the CRC in the target's request).
+  Not run against a real target.
 - **The 615A engine and runner** (`adl::arinc615a`, `adl::arinc615a_runner`,
   [docs/arinc615a-engine.md](docs/arinc615a-engine.md),
   [docs/arinc615a-coverage.md](docs/arinc615a-coverage.md)): the data loader's side of ARINC

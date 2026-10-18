@@ -11,9 +11,11 @@ add_executable(adl_app_tests
     address_test.cpp
     loader_model_test.cpp
     main.cpp
+    media_source_test.cpp
     models_test.cpp
     notice_text_test.cpp
-    test_classes.hpp)
+    test_classes.hpp
+    upload_fixture.hpp)
 
 target_include_directories(adl_app_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -51,6 +53,8 @@ target_link_libraries(adl_app_qml_test
     PRIVATE
         adl::app_core
         adl_sim_target
+        adl::arinc665
+        adl::media_tree
         adl::samples
         Qt6::Gui
         Qt6::Qml

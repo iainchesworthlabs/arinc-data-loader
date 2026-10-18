@@ -1,5 +1,6 @@
 #include "adl/app/models.hpp"
 
+#include <algorithm>
 #include <utility>
 
 namespace adl::app {
@@ -145,14 +146,15 @@ void ConfigurationModel::reset(QList<HardwareRow> rows) {
 // ---- LoadModel ---------------------------------------------------------------------------
 
 int LoadModel::rowCount(const QModelIndex& parent) const {
-    return parent.isValid() ? 0 : static_cast<int>(loads_.size());
+    return parent.isValid() ? 0 : static_cast<int>(rows_.size());
 }
 
 QVariant LoadModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid() || index.row() < 0 || index.row() >= loads_.size()) {
+    if (!index.isValid() || index.row() < 0 || index.row() >= rows_.size()) {
         return {};
     }
-    const LoadSummary& load = loads_[index.row()];
+    const Row& row = rows_[index.row()];
+    const LoadSummary& load = row.load;
     switch (role) {
         case Qt::DisplayRole:
         case PartNumberRole:
@@ -164,22 +166,125 @@ QVariant LoadModel::data(const QModelIndex& index, int role) const {
                 .arg(load.header_file)
                 .arg(load.support_files)
                 .arg(load.target_hardware_ids.join(QStringLiteral(", ")));
+        case CheckedRole:
+            return row.checked;
+        case RatioRole:
+            return row.ratio;
+        case LoadStatusRole:
+            return row.status;
+        case FailedRole:
+            return row.failed;
+        case ProblemRole:
+            return row.problem;
         default:
             return {};
     }
 }
 
 QHash<int, QByteArray> LoadModel::roleNames() const {
-    return {{Qt::DisplayRole, "display"},
-            {PartNumberRole, "partNumber"},
-            {HeaderFileRole, "headerFile"},
-            {DetailRole, "detail"}};
+    return {{Qt::DisplayRole, "display"},   {PartNumberRole, "partNumber"},
+            {HeaderFileRole, "headerFile"}, {DetailRole, "detail"},
+            {CheckedRole, "checked"},       {RatioRole, "ratio"},
+            {LoadStatusRole, "loadStatus"}, {FailedRole, "failed"},
+            {ProblemRole, "problem"}};
+}
+
+Qt::ItemFlags LoadModel::flags(const QModelIndex& index) const {
+    Qt::ItemFlags result = QAbstractListModel::flags(index);
+    if (index.isValid() && !locked_) {
+        result |= Qt::ItemIsEditable;
+    }
+    return result;
+}
+
+bool LoadModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+    if (role != CheckedRole || locked_ || !index.isValid() || index.row() < 0 ||
+        index.row() >= rows_.size()) {
+        return false;
+    }
+    const bool checked = value.toBool();
+    if (rows_[index.row()].checked != checked) {
+        rows_[index.row()].checked = checked;
+        changed(index.row(), index.row(), {CheckedRole});
+        Q_EMIT selection_changed();
+    }
+    return true;
 }
 
 void LoadModel::reset(QList<LoadSummary> loads) {
     beginResetModel();
-    loads_ = std::move(loads);
+    rows_.clear();
+    rows_.reserve(loads.size());
+    for (LoadSummary& load : loads) {
+        rows_.append(Row{std::move(load), false, -1, {}, {}, false});
+    }
     endResetModel();
+    Q_EMIT selection_changed();
+}
+
+void LoadModel::changed(int first, int last, const QList<int>& roles) {
+    Q_EMIT dataChanged(index(first), index(last), roles);
+}
+
+void LoadModel::check_all(bool checked) {
+    if (locked_ || rows_.isEmpty()) {
+        return;
+    }
+    bool any = false;
+    for (Row& row : rows_) {
+        any = any || row.checked != checked;
+        row.checked = checked;
+    }
+    if (any) {
+        changed(0, static_cast<int>(rows_.size()) - 1, {CheckedRole});
+        Q_EMIT selection_changed();
+    }
+}
+
+int LoadModel::checked_count() const noexcept {
+    return static_cast<int>(
+        std::count_if(rows_.cbegin(), rows_.cend(), [](const Row& row) { return row.checked; }));
+}
+
+QList<LoadSummary> LoadModel::checked_loads() const {
+    QList<LoadSummary> loads;
+    for (const Row& row : rows_) {
+        if (row.checked) {
+            loads.append(row.load);
+        }
+    }
+    return loads;
+}
+
+void LoadModel::begin_upload() {
+    for (Row& row : rows_) {
+        row.ratio = row.checked ? 0 : -1;
+        row.status = row.checked ? tr("waiting") : QString();
+        row.problem.clear();
+        row.failed = false;
+    }
+    if (!rows_.isEmpty()) {
+        changed(0, static_cast<int>(rows_.size()) - 1,
+                {RatioRole, LoadStatusRole, FailedRole, ProblemRole});
+    }
+}
+
+void LoadModel::apply_progress(const QList<LoadProgressRow>& progress) {
+    for (const LoadProgressRow& update : progress) {
+        for (int i = 0; i < rows_.size(); ++i) {
+            Row& row = rows_[i];
+            if (row.load.header_file != update.header_file ||
+                row.load.part_number != update.part_number) {
+                continue;
+            }
+            row.ratio = update.ratio;
+            row.status = update.status;
+            row.problem = update.description;
+            row.failed = update.failed;
+            changed(i, i, {RatioRole, LoadStatusRole, FailedRole, ProblemRole});
+            break;
+        }
+    }
 }
 
 }  // namespace adl::app

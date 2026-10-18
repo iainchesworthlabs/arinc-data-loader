@@ -8,6 +8,7 @@
 // is an atomic flag the runner reads between its waits, through the RunController.
 
 #include <atomic>
+#include <memory>
 
 #include <QList>
 #include <QObject>
@@ -15,6 +16,7 @@
 
 #include "adl/app/events.hpp"
 #include "adl/app/host_access.hpp"
+#include "adl/app/media_source.hpp"
 #include "adl/arinc615a/runner.hpp"
 
 namespace adl::app {
@@ -55,7 +57,12 @@ public Q_SLOTS:
     // An Information operation (6.3.1) against the target at `address`, whose protocol files are
     // named by `thw_id_pos`.
     void read_information(const QString& address, const QString& thw_id_pos);
+    // Reads the media set in the directory and keeps what an upload needs to find its files.
     void read_media_set(const QString& path);
+    // An Upload operation (6.3.2) of `loads`, which have to be loads of the media set read last,
+    // to the target at `address`.
+    void upload(const QString& address, const QString& thw_id_pos,
+                QList<adl::app::LoadSummary> loads);
 
 Q_SIGNALS:
     // A line for the activity log.
@@ -63,13 +70,23 @@ Q_SIGNALS:
     void targets_found(QList<adl::app::FoundTarget> targets);
     void configuration_read(QList<adl::app::HardwareRow> rows);
     void media_set_read(adl::app::MediaSetSummary summary);
+    // An upload status file arrived: how far the list is (percent) and how each load is going.
+    void upload_progress(int list_ratio, QList<adl::app::LoadProgressRow> loads);
     // Every job ends with exactly one of these, whatever happened.
     void finished(adl::app::OperationSummary summary);
 
 private:
     void fail(const QString& text);
+    // Runs `operation` against the target and reports how it ended; the part the Information and
+    // Upload operations share. `listener` and `source` live for the call.
+    void run_operation(adl::platform::Host& host, const adl::arinc615a::Address& target,
+                       const QString& thw_id_pos, const adl::arinc615a::Operation& operation,
+                       adl::arinc615a::OperationListener& listener,
+                       adl::arinc615a::FileSource* source);
 
     HostFactory host_factory_;
+    // The files of the media set that was read last; used on this worker's thread only.
+    std::shared_ptr<const MediaSetIndex> index_;
     AbortGate gate_;
 };
 

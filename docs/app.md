@@ -5,20 +5,21 @@ logic and no file format. Everything it knows about ARINC 615A and 665 it asks o
 `adl::arinc615a_runner`, `adl::arinc665` and `adl::media_tree`, and everything it knows about the system
 it asks of `adl::platform`. Qt is used here and nowhere else.
 
-This is the first slice. What the window does today:
+Two slices are built: the skeleton with Information, and Upload. What the window does today:
 
 | What | How |
 | --- | --- |
-| Choose a media set | A directory with one directory per member (what `adl::media_tree` writes and `adl_write_payloads` makes). It is read with `read_media_set_tree` and `read_media_set`, and shown: the part number, the number of members, each load with its header file and the number of its data and support files, and every finding (where the set differs from what the standard says it should be). It is **shown, not yet used**: the Upload operation will load from it. |
+| Choose a media set | A directory with one directory per member (what `adl::media_tree` writes and `adl_write_payloads` makes). It is read with `read_media_set_tree` and `read_media_set`, and shown: the part number, the number of members, each load with its header file and the number of its data and support files, and every finding (where the set differs from what the standard says it should be). Each load has a check box; the ticked loads are what an Upload sends. |
 | Find targets | FIND (Attachment 3): broadcast, three seconds. The targets that answered are listed; choosing one fills in its address and its `<THW_ID_POS>`. |
 | Name a target by hand | An IPv4 address and a `<THW_ID_POS>` can be typed, for a target that does not answer FIND (or over AFDX, which has no broadcast). |
 | Read information | The Information operation (5.4.2): the target's status files and its list of hardware and parts, with an abort button. |
+| Upload | The Upload operation (5.4.3): the ticked loads of the media set are loaded to the target. The target reads their header, data and support files from the media set on disk; the window shows how far the target's list has got and, beside each ticked load, its own percentage and status (and why, for one the target gave up on), from the upload status files. With the abort button. See [what the Upload operation needs](#what-the-upload-operation-needs-from-the-application). |
 | The activity log | What the target said (its answer, each status file) and the engine's notices (a lost or repeated status file, a refused request, a checksum that did not match, a WAIT), with the time, oldest first. |
 | The outcome | How the operation ended (the engine's `OutcomeCode`), and for an abort whether the target confirmed that it had stopped. |
 
-Upload, Download (media and operator defined), the choice of the `DNLD_DATA_<THW_ID_POS>_<number>`
-directory (5.4.4.3), a progress bar with a figure, and running FIND automatically before an operation are
-the next slices (the [roadmap](roadmap.md)).
+Download (media and operator defined), the choice of the `DNLD_DATA_<THW_ID_POS>_<number>` directory
+(5.4.4.3) and running FIND automatically before an operation are the next slices (the
+[roadmap](roadmap.md)).
 
 ## Layout
 
@@ -29,8 +30,9 @@ src/app/
   core/               adl_app_core: everything but the window, Qt Core only
     engine_worker     the engine on its own thread, and the abort
     loader_model      what the QML talks to: properties and a few invokable functions
-    models            the four list models
+    models            the four list models (the loads carry the operator's ticks and the progress)
     media_set_summary reading a media set from a directory, as plain values
+    media_source      the files of an upload: an index of the media set's files, and a FileSource over it
     notice_text       an engine notice as a line for the operator
     events, address   plain values, and the IPv4 parser
     host_access       where the worker gets the platform from
@@ -62,7 +64,7 @@ over, and `Runner::find` not until the window of three seconds has passed. So th
 - **A job is one queued call and ends with exactly one `finished` signal**, whatever happened (the engine
   refused the request, the host could not be started, the address was not an address). While one runs
   `busy` is true and `LoaderModel` refuses another: there is one engine thread, and the operation owns the
-  loader's control port.
+  loader's control port. While one runs the ticks beside the loads cannot be changed.
 - **Everything the engine reports is copied at once.** An `OperationListener` is handed views that are
   valid during the call only, so `InformationListener` turns each into `QString`s and emits a signal.
   Qt delivers the signals to the window's thread in the order they were emitted, so the log reads in the
@@ -70,7 +72,7 @@ over, and `Runner::find` not until the window of three seconds has passed. So th
 - **The abort cannot be a queued call**, because the worker's thread is inside the runner, not in its
   event loop. It is an atomic flag (`AbortGate`), which is also the runner's `RunController`: the runner
   polls it (every 100 ms by default) and the first poll that sees it calls `DataLoader::abort` once, with
-  `aborted_by_operator`. The flag is cleared by `LoaderModel` before it queues a job, so an abort left
+  `aborted_by_operator`. Both operations (Information and Upload) use it. The flag is cleared by `LoaderModel` before it queues a job, so an abort left
   over from an earlier job cannot stop the next. The target is told by the engine (an `ABORT` on every open
   transfer and in answer to the next status request); the operation ends when the target confirms or after
   the 13 second data load protocol time-out.
@@ -93,6 +95,54 @@ nothing, so the worker gives it a `std::vector<std::byte>` of `DataLoader::works
 the position (`HNPFMS` at `L` is `HNPFMS_L`), or the identifier alone for a target that gave no position.
 That reading is from the way the standard's examples are written, and **has not been checked against a
 real target**; the field can be edited, which is the way round it.
+
+## What the Upload operation needs from the application
+
+The Upload operation (`UploadOperation`) names the loads to send by `LoadReference`: the header file's
+name and the load's part number, which is what `LoadSummary` carries for each load of the set. The
+operator ticks loads in the window (`LoadModel`'s writable `checked` role); `LoaderModel::uploadSelected`
+hands the ticked ones to the worker, which builds the request, runs it through the same runner as
+Information, and reports through the same `JobListener`: each upload status file becomes a line in the
+log (the counter, the status, the percentage of the list, the time left if the target says) and a
+progress report (the list's percentage, and per load its percentage, status and description), which
+`LoaderModel` turns into the `progress` property and the loads' `ratio`, `loadStatus`, `failed` and
+`problem` roles. Each file the target reads is a line in the log (`on_file_sent`). The operation is
+refused before it starts, and the button disabled, unless there is a media set that was read, a load
+ticked, and a valid address and `<THW_ID_POS>` (`canUpload`).
+
+**The files come from the media set on disk through `adl::platform`'s file system, not from memory.**
+While the media set is read (to show it), `MediaSetIndex` is made from its `FILES.LUM`: every file's name,
+member, directory and 16-bit CRC, mapped to a path below the directory the operator chose (member
+directory, then the file's own directory: `adl::media_tree`'s layout). Nothing but the index is kept;
+the bytes are read at the offsets the target asks for, when it asks (a media set can be larger than
+memory). `MediaTreeSource` is the `FileSource` over it, and reads through the host's `FileSystem`, which
+is what lets the tests run an upload against files in memory.
+
+**Finding the file the target means.** A media set can hold several files of one name (in different
+directories of a load, or on different members), and the target tells them apart by the checksum option
+of its request (5.3.2.3.8.5), the CRC the load header gives that file. `MediaSetIndex::find` takes the
+file of that name whose `FILES.LUM` CRC is the one asked for. Two decisions, both mine and unchecked
+against a target:
+
+- With **one** file of the name, it is served whatever CRC the request carries (and whatever kind of
+  checksum). The header file's CRC as a target knows it may not be the one `FILES.LUM` records (the header
+  ends in its own CRC), and the target checks what it received against what it asked for anyway.
+- With **several** files of the name and a CRC none of them has, there is no such file (`not_found`, the
+  target ends the operation); with several and no CRC in the request, the first one listed.
+
+The engine's `DirectoryFileSource` (one flat directory) was not used because a media set is not one:
+it has a directory per member and directories inside them.
+
+**What was read is what is uploaded, until the operator reads again.** The index is made when the media
+set is read, and kept by the worker; the files themselves are opened when the target asks. A file
+changed or removed on disk after the set was read is not noticed by the application: a changed one
+arrives as it now is and the target's checksum check says so; a removed one is `not_found` for the
+target, which ends the operation. A media set that cannot be read leaves no index, and nothing to upload.
+
+**How the operation is judged.** `success` is the engine's `completed` with no load the target reported
+as failed (`items_failed`); a completed operation with a failed load is shown as a failure ("completed,
+1 load(s) failed"), and the detail says how many files the target read. A load that failed is named in
+the log once, with the target's reason.
 
 ## Qt in this repository
 
@@ -117,12 +167,20 @@ real target**; the field can be edited, which is the way round it.
 ## What has and has not been checked
 
 Checked: the logic through `LoaderModel` on its engine thread against the simulated target on the fake
-platform (Information, FIND, an abort, a second job refused, a host that cannot start, a media set read
-from a directory and one that is not there, the model destroyed while a job is queued), the models, the
-address parser and the notice texts; and the window itself, loaded offscreen with every QML warning an
-error, driven through a FIND and an Information operation against the simulated target.
+platform (Information, FIND, an Upload of a media set written to a directory and read back through the
+index, its progress and its end, a load the target cannot read, an abort of an Upload, a second job refused,
+a host that cannot start, a media set read from a directory and one that is not there, the model destroyed
+while a job is queued), `MediaTreeSource` and the index (two files of one name told apart by the CRC, the
+fall-backs above, offsets, the limit on open files), the models (ticks, locking, progress), the address
+parser and the notice texts; and the window itself, loaded offscreen with every QML warning an error,
+driven through a FIND, an Information operation and an Upload (the load ticked and the button pressed
+through the window's own items).
 
-Not checked: the window against a real target or a real network (the runner over real sockets has not been
+Not checked: an Upload against a real target (and so which checksum a real target sends for each file,
+see above), an Upload whose files are in two directories of one name end to end (the source is tested
+on that, the operation is not), a media set of many gigabytes (files are read by block, not held, and the
+test sets are a few kilobytes), an abort in the middle of a transfer through the window (the engine's
+tests cover it; the application's abort test holds the engine at the start of the job); the window against a real target or a real network (the runner over real sockets has not been
 run either, [engine](arinc615a-engine.md#what-has-been-checked-and-what-has-not)); the window on a real
 screen at other scales and in a dark theme (the colours take the palette's lightness, and have been looked
 at in the light one only); keyboard use and a screen reader beyond the accessible names the controls carry;

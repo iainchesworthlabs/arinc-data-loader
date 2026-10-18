@@ -74,6 +74,16 @@ struct MediaSetSummary {
     QStringList findings;  // where the set differs from what the standard says it should be
 };
 
+// How one load of an upload is going, from an upload status file (6.4.5).
+struct LoadProgressRow {
+    QString header_file;
+    QString part_number;
+    int ratio = 0;  // percent, 0 to 100
+    QString status;
+    QString description;
+    bool failed = false;  // the target gave up on this load
+};
+
 // Qt needs to know these to carry them in a queued signal. Safe to call more than once.
 void register_metatypes();
 
@@ -85,3 +95,4 @@ Q_DECLARE_METATYPE(adl::app::HardwareRow)
 Q_DECLARE_METATYPE(adl::app::OperationSummary)
 Q_DECLARE_METATYPE(adl::app::LoadSummary)
 Q_DECLARE_METATYPE(adl::app::MediaSetSummary)
+Q_DECLARE_METATYPE(adl::app::LoadProgressRow)

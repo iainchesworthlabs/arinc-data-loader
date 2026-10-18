@@ -3,8 +3,8 @@
 // What the window talks to: the state of the data loader as properties, and the few things the
 // operator can do as invokable functions. It lives on the window's thread, owns the thread the
 // engine runs on, and turns the worker's signals into model changes. One job runs at a time
-// (FIND, an Information operation or the reading of a media set); while one runs, `busy` is true
-// and the others are refused.
+// (FIND, an Information operation, an Upload or the reading of a media set); while one runs,
+// `busy` is true and the others are refused.
 
 #include <QObject>
 #include <QStringList>
@@ -30,6 +30,12 @@ class LoaderModel : public QObject {
     Q_PROPERTY(QString thwIdPos READ thwIdPos WRITE setThwIdPos NOTIFY targetChanged)
     Q_PROPERTY(bool targetValid READ targetValid NOTIFY targetChanged)
     Q_PROPERTY(bool canReadInformation READ canReadInformation NOTIFY canReadInformationChanged)
+    // An upload needs a media set that was read, at least one of its loads ticked and a target.
+    Q_PROPERTY(bool canUpload READ canUpload NOTIFY canUploadChanged)
+    Q_PROPERTY(int selectedLoadCount READ selectedLoadCount NOTIFY canUploadChanged)
+    // How far the target's list has got in the upload that runs (percent), or -1 while nothing is
+    // known: before its first status file, and for jobs that report no progress.
+    Q_PROPERTY(int progress READ progress NOTIFY progressChanged)
 
     // The outcome of the last job: 0 none yet, 1 it succeeded, 2 it did not.
     Q_PROPERTY(int resultState READ resultState NOTIFY resultChanged)
@@ -57,7 +63,7 @@ public:
     [[nodiscard]] bool busy() const noexcept { return job_ != Job::none; }
     [[nodiscard]] QString activity() const;
     [[nodiscard]] bool canAbort() const noexcept {
-        return job_ == Job::information && !abort_requested_;
+        return (job_ == Job::information || job_ == Job::upload) && !abort_requested_;
     }
 
     [[nodiscard]] QString targetAddress() const { return target_address_; }
@@ -66,6 +72,9 @@ public:
     void setThwIdPos(const QString& thw_id_pos);
     [[nodiscard]] bool targetValid() const;
     [[nodiscard]] bool canReadInformation() const { return !busy() && targetValid(); }
+    [[nodiscard]] bool canUpload() const;
+    [[nodiscard]] int selectedLoadCount() const noexcept { return loads_.checked_count(); }
+    [[nodiscard]] int progress() const noexcept { return progress_; }
 
     [[nodiscard]] int resultState() const noexcept { return result_state_; }
     [[nodiscard]] QString resultText() const { return result_text_; }
@@ -82,14 +91,18 @@ public:
     [[nodiscard]] QObject* loads() { return &loads_; }
 
 public Q_SLOTS:
-    // Reads the media set in the directory (one directory per member). The result is shown, not
-    // yet used: the Upload operation will load from it.
+    // Reads the media set in the directory (one directory per member), and shows its loads, which
+    // the operator can tick for an upload.
     void chooseMediaSet(const QUrl& directory);
+    // Ticks (or unticks) every load.
+    void selectAllLoads(bool selected);
     // FIND on the network; with an address, on that one host only.
     void findTargets(const QString& address = {});
     // Takes the address and <THW_ID_POS> of row `row` of the targets FIND found.
     void selectTarget(int row);
     void readInformation();
+    // The Upload operation: the ticked loads of the media set, to the target.
+    void uploadSelected();
     // Asks the operation that is running to stop. The target is told, and the operation ends when
     // it confirms (or after the 13 second time-out).
     void abort();
@@ -100,21 +113,30 @@ Q_SIGNALS:
     void canAbortChanged();
     void targetChanged();
     void canReadInformationChanged();
+    void canUploadChanged();
+    void progressChanged();
     void resultChanged();
     void mediaSetChanged();
 
 private:
-    enum class Job { none, find, information, media_set };
+    enum class Job { none, find, information, upload, media_set };
 
     bool begin(Job job);
     void on_finished(const OperationSummary& summary);
     void set_result(int state, const QString& text, const QString& detail);
     void set_job(Job job);
+    // Tells the window when what it may start has changed.
+    void refresh_availability();
+    void set_progress(int percent);
 
     EngineWorker* worker_ = nullptr;
     QThread thread_;
     Job job_ = Job::none;
     bool abort_requested_ = false;
+    bool could_read_information_ = false;
+    bool could_upload_ = false;
+    int selected_loads_ = 0;
+    int progress_ = -1;
 
     TargetModel targets_;
     EventModel events_;
