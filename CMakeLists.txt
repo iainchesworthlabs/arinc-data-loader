@@ -84,11 +84,21 @@ option(ADL_BUILD_TESTS "Build the unit test suite" ON)
 # The three Qt applications (src/app, src/media_gen, src/mock_target) are the source side's
 # programs, so they build by default on a desktop - the only place Qt exists. A target build
 # (ADL_TARGET_PLATFORM names an RTOS, or an embedded toolchain sets it) has no Qt and no use for
-# them and leaves them off; -DADL_BUILD_APP=OFF on a desktop builds the libraries alone, which is
-# what a machine without Qt needs. Qt is the prebuilt kit found through QT_ROOT_DIR
-# (cmake/FindQt6.cmake).
-option(ADL_BUILD_APP "Build the Qt applications (default: on a desktop, off for a target)"
-    ${ADL_PLATFORM_DESKTOP})
+# them and leaves them off. The default also needs a kit that can actually be found: a desktop
+# without Qt configures the libraries alone rather than failing, and an explicit
+# -DADL_BUILD_APP=ON still fails loudly in src/app. Qt is the prebuilt kit found through
+# QT_ROOT_DIR or the search roots each platform's fragment lists (cmake/FindQt6.cmake).
+if(ADL_PLATFORM_DESKTOP)
+    find_package(Qt6 6.12 QUIET COMPONENTS Core Gui Qml Quick QuickControls2 LinguistTools)
+endif()
+if(ADL_PLATFORM_DESKTOP AND Qt6_FOUND)
+    set(_adl_app_default ON)
+else()
+    set(_adl_app_default OFF)
+endif()
+option(ADL_BUILD_APP "Build the Qt applications (default: on a desktop with Qt, off otherwise)"
+    ${_adl_app_default})
+unset(_adl_app_default)
 
 # ---------------------------------------------------------------------------
 # Targets

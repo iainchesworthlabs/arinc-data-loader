@@ -5,7 +5,10 @@ set(ADL_PLATFORM_DISPLAY_NAME "Windows")
 set(ADL_PLATFORM_DESKTOP ON)
 set(ADL_PLATFORM_STATUS supported)
 
-set(ADL_PLATFORM_QT_SEARCH_ROOTS "C:/Qt" "$ENV{USERPROFILE}/Qt")
+# C:/Repos/common/qt is the labs' shared toolchain tree (the same kit the sibling projects'
+# env.ps1 points QT_ROOT_DIR at); it lets an IDE that does not run that script - Visual Studio's
+# CMake integration, for one - find the kit without the environment variable.
+set(ADL_PLATFORM_QT_SEARCH_ROOTS "C:/Qt" "$ENV{USERPROFILE}/Qt" "C:/Repos/common/qt")
 set(ADL_PLATFORM_QT_ARCH_DIRS msvc2022_64 msvc2019_64)
 
 set(ADL_PLATFORM_SOURCES

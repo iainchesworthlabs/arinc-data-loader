@@ -92,13 +92,18 @@ selected the way the applications are.
 loader, [described here](app.md)), **`adl_media_gen`** (the media set generator,
 [described here](media-gen.md)) and **`adl_mock_target`** (a 615A target over real sockets,
 [described here](mock-target.md)). They are the source side's programs, so they build **by default
-on Windows, Linux and macOS** — the desktops are the only place Qt exists. A target build
-(`ADL_TARGET_PLATFORM` names an RTOS) has no Qt and leaves them off. On a desktop without Qt,
-configure with `-DADL_BUILD_APP=OFF` for the libraries alone. They need the prebuilt Qt 6.12 kit,
-not vcpkg: `cmake/FindQt6.cmake` looks in `QT_ROOT_DIR` first (on a labs machine
-`. C:\Repos\common\env.ps1` sets it to `C:\Repos\common\qt\6.12.0\msvc2022_64`), then in the places
-the platform's fragment lists for an aqtinstall layout (`C:/Qt`, `~/Qt`, `/opt/Qt`), and an explicit
-`-DCMAKE_PREFIX_PATH=...` always wins.
+on Windows, Linux and macOS** — the desktops are the only place Qt exists — provided the Qt 6.12
+kit can be found. A target build (`ADL_TARGET_PLATFORM` names an RTOS) has no Qt and leaves them
+off; a desktop where the kit is not found configures the libraries alone, says so in the status
+block, and `-DADL_BUILD_APP=ON` turns that absence into an error, while `-DADL_BUILD_APP=OFF` is
+the deliberate libraries-only build.
+
+They need the prebuilt kit, not vcpkg: `cmake/FindQt6.cmake` looks in `QT_ROOT_DIR` first (on a
+labs machine `. C:\Repos\common\env.ps1` sets it to
+`C:\Repos\common\qt\6.12.0\msvc2022_64`), then in the places the platform's fragment lists for an
+aqtinstall layout — `C:/Qt`, `~/Qt`, and on Windows also the labs' shared tree `C:/Repos/common/qt`,
+so an IDE that does not run `env.ps1` (Visual Studio's CMake integration, for one) still finds the
+kit. An explicit `-DCMAKE_PREFIX_PATH=...` always wins.
 
 So the ordinary desktop presets contain the applications and their tests, and an IDE that reads
 `CMakePresets.json` (Visual Studio, VS Code, CLion) lists them:
@@ -186,7 +191,7 @@ every first-party target is built with warnings as errors.
 | Option | Default | Does |
 | --- | --- | --- |
 | `ADL_BUILD_TESTS` | `ON` | Builds the unit tests and pulls Catch2 from vcpkg |
-| `ADL_BUILD_APP` | ON on a desktop, OFF for a target | Builds the three Qt applications and their tests; needs the prebuilt Qt kit (`-DADL_BUILD_APP=OFF` on a desktop is the libraries-only build) |
+| `ADL_BUILD_APP` | ON on a desktop when Qt is found, OFF otherwise | Builds the three Qt applications and their tests (`-DADL_BUILD_APP=OFF` on a desktop is the libraries-only build; `ON` with no kit is an error) |
 | `ADL_ENABLE_SANITIZERS` | `ON` | ASan (and UBSan) in Debug |
 | `ADL_ENABLE_COVERAGE` | `OFF` | gcov-style instrumentation (the coverage preset sets it) |
 | `ADL_ENABLE_TRACY` | `OFF` | Links Tracy and pulls it from vcpkg; use a Release build for numbers worth reading |
