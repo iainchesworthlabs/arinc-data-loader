@@ -16,7 +16,7 @@ pattern and run in CI, and have not been tried by hand.
 | Git | any recent | The vendored vcpkg is a submodule |
 | PowerShell 7 (`pwsh`) | 7.0 or newer | For the [platform-isolation check](platform-isolation.md#enforcement). Optional: without it the `platform.isolation` test is not registered |
 | Network access | | The first configure bootstraps vcpkg and builds Catch2 |
-| Qt | 6.12 | Not used yet; for the application on the [roadmap](roadmap.md) |
+| Qt | 6.12 | Only for the application (`-DADL_BUILD_APP=ON`): the prebuilt kit, found through `QT_ROOT_DIR`. See [Building the application](#building-the-application) |
 
 ## Clone
 
@@ -66,6 +66,29 @@ ctest --preset macos-clang-debug
 
 The build trees are `build/<preset>`, and the programs are in
 `build/<preset>/bin`.
+
+## Building the application
+
+The Qt application (`src/app`, [described here](app.md)) is off by default, so that the libraries build
+on a machine with no Qt. It needs the prebuilt Qt 6.12 kit, not vcpkg: `cmake/FindQt6.cmake` looks in
+`QT_ROOT_DIR` first (on a labs machine `. C:\Repos\common\env.ps1` sets it to
+`C:\Repos\common\qt\6.12.0\msvc2022_64`), then in the places the platform's fragment lists for an
+aqtinstall layout (`C:/Qt`, `~/Qt`, `/opt/Qt`), and an explicit `-DCMAKE_PREFIX_PATH=...` always wins.
+
+```sh
+cmake --preset windows-msvc-debug -DADL_BUILD_APP=ON
+cmake --build --preset windows-msvc-debug
+ctest --preset windows-msvc-debug
+build/windows-msvc-debug/bin/adl_app
+```
+
+On Windows the build runs windeployqt after linking, so `adl_app.exe` starts from anywhere (Qt's DLLs,
+its plugins and the QML modules the window imports are copied beside it). On Linux it finds Qt the way
+the build did; on macOS the program is a bundle, and packaging it (`macdeployqt`) is not done yet.
+
+The tests that need Qt are `app.tests` (QtTest, headless) and `app.qml` (the window loaded offscreen);
+they run in the same `ctest` as the rest when `ADL_BUILD_APP` is on, and look for the offscreen platform
+plugin in the kit's own `plugins` directory.
 
 ## Writing sample payloads
 

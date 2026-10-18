@@ -93,12 +93,33 @@ unbuilt or designs.
 
 ## 4. The application
 
-A Qt 6.12 application in `src/app`, a thin layer over the libraries. Qt is not
+A Qt 6.12 application in `src/app` (Qt Quick), a thin layer over the libraries. Qt is not
 from vcpkg: it is the prebuilt kit found through `QT_ROOT_DIR` (the shared
-toolchain at `C:\Repos\common\qt\6.12.0`), by `cmake/FindQt6.cmake`. The platform
-fragments already declare where each system keeps Qt and the two hooks the
-application needs (`adl_platform_configure_app`, `adl_platform_deploy_qt_runtime`).
-CI needs a Qt install step when this arrives.
+toolchain at `C:\Repos\common\qt\6.12.0`), by `cmake/FindQt6.cmake`; the platform
+fragments declare where each system keeps Qt and the two hooks the application needs
+(`adl_platform_configure_app`, `adl_platform_deploy_qt_runtime`). CI installs the kit with a pinned
+aqtinstall on the three desktop legs, and builds the application with `-DADL_BUILD_APP=ON`. Built in
+slices; [the application](app.md) says what each does.
+
+1. **The skeleton and the engine bridge (done).** The engine on a thread of its own with a queued
+   signal route to the window and an atomic abort, tested headless against the simulated target; a
+   window that reads a media set from a directory (shown, not yet used), runs FIND, takes a target from
+   the list or by hand, and runs an Information operation with an abort button, the target's status
+   files and notices in an activity log, and its hardware and parts. The window is loaded offscreen in
+   the tests. Not run against a real target, and the Linux and macOS legs had not run it when this was
+   written.
+
+What is left of the application:
+
+- **Upload**: load the chosen media set to the target (a `FileSource` over the media set's directory
+  tree, an `UploadOperation` from the loads the operator ticks), with progress per load from the status
+  files.
+- **Download**: media defined (the files the operator names) and operator defined (the target's list
+  shown, the choice taken through `RunController`), into the `DNLD_DATA_<THW_ID_POS>_<number>` directory
+  of 5.4.4.3 through a `FileSink`.
+- Running FIND before an operation when the target is not known (Attachment 3); remembering the last
+  media set, target and download directory; a dark-theme and keyboard pass; translations.
+- Packaging (section 7 below), which is where `macdeployqt` comes in.
 
 ## 5. Profiling
 
