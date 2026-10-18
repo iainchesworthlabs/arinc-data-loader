@@ -196,4 +196,7 @@ if(ADL_BUILD_APP)
     add_subdirectory(mock_target)
     # The media set generator's tests (src/media_gen).
     add_subdirectory(media_gen)
+    # The loopback integration test: the loader's runner over real sockets against the mock
+    # target's engine on 127.0.0.1 (needs adl::mock_core, so it is behind ADL_BUILD_APP too).
+    add_subdirectory(loopback)
 endif()
