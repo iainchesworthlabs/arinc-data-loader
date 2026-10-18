@@ -26,7 +26,14 @@ LoaderModel::LoaderModel(HostFactory host_factory, QObject* parent) : QObject(pa
         media_set_ = summary;
         loads_.reset(summary.loads);
         Q_EMIT mediaSetChanged();
+        refresh_availability();
     });
+    connect(worker_, &EngineWorker::upload_progress, this,
+            [this](int list_ratio, const QList<LoadProgressRow>& rows) {
+                loads_.apply_progress(rows);
+                set_progress(list_ratio);
+            });
+    connect(&loads_, &LoadModel::selection_changed, this, [this] { refresh_availability(); });
     connect(worker_, &EngineWorker::finished, this,
             [this](const OperationSummary& summary) { on_finished(summary); });
 
@@ -49,6 +56,9 @@ QString LoaderModel::activity() const {
         case Job::information:
             return abort_requested_ ? tr("Stopping the operation...")
                                     : tr("Reading the target's configuration...");
+        case Job::upload:
+            return abort_requested_ ? tr("Stopping the operation...")
+                                    : tr("Uploading to the target...");
         case Job::media_set:
             return tr("Reading the media set...");
     }
@@ -62,7 +72,7 @@ void LoaderModel::setTargetAddress(const QString& address) {
     }
     target_address_ = trimmed;
     Q_EMIT targetChanged();
-    Q_EMIT canReadInformationChanged();
+    refresh_availability();
 }
 
 void LoaderModel::setThwIdPos(const QString& thw_id_pos) {
@@ -72,7 +82,7 @@ void LoaderModel::setThwIdPos(const QString& thw_id_pos) {
     }
     thw_id_pos_ = trimmed;
     Q_EMIT targetChanged();
-    Q_EMIT canReadInformationChanged();
+    refresh_availability();
 }
 
 bool LoaderModel::targetValid() const {
@@ -88,21 +98,45 @@ QString LoaderModel::mediaSetTitle() const {
         .arg(media_set_.loads.size());
 }
 
+bool LoaderModel::canUpload() const {
+    return !busy() && targetValid() && media_set_.error.isEmpty() && selectedLoadCount() > 0;
+}
+
+void LoaderModel::refresh_availability() {
+    const bool can_read = canReadInformation();
+    if (can_read != could_read_information_) {
+        could_read_information_ = can_read;
+        Q_EMIT canReadInformationChanged();
+    }
+    const bool can_upload = canUpload();
+    const int selected = selectedLoadCount();
+    if (can_upload != could_upload_ || selected != selected_loads_) {
+        could_upload_ = can_upload;
+        selected_loads_ = selected;
+        Q_EMIT canUploadChanged();
+    }
+}
+
+void LoaderModel::set_progress(int percent) {
+    if (percent != progress_) {
+        progress_ = percent;
+        Q_EMIT progressChanged();
+    }
+}
+
 void LoaderModel::set_job(Job job) {
     const bool was_busy = busy();
     const bool could_abort = canAbort();
-    const bool could_read = canReadInformation();
     job_ = job;
     abort_requested_ = false;
+    loads_.set_locked(busy());
     if (was_busy != busy()) {
         Q_EMIT busyChanged();
     }
     if (could_abort != canAbort()) {
         Q_EMIT canAbortChanged();
     }
-    if (could_read != canReadInformation()) {
-        Q_EMIT canReadInformationChanged();
-    }
+    refresh_availability();
 }
 
 bool LoaderModel::begin(Job job) {
@@ -112,6 +146,7 @@ bool LoaderModel::begin(Job job) {
     // A request left over from an earlier job must not abort this one.
     worker_->clear_abort();
     set_result(0, {}, {});
+    set_progress(-1);
     set_job(job);
     return true;
 }
@@ -135,6 +170,10 @@ void LoaderModel::chooseMediaSet(const QUrl& directory) {
     const QString path = directory.isLocalFile() ? directory.toLocalFile() : directory.toString();
     QMetaObject::invokeMethod(worker_, &EngineWorker::read_media_set, Qt::QueuedConnection,
                               QDir::toNativeSeparators(path));
+}
+
+void LoaderModel::selectAllLoads(bool selected) {
+    loads_.check_all(selected);
 }
 
 void LoaderModel::findTargets(const QString& address) {
@@ -161,6 +200,15 @@ void LoaderModel::readInformation() {
     configuration_.reset({});
     QMetaObject::invokeMethod(worker_, &EngineWorker::read_information, Qt::QueuedConnection,
                               target_address_, thw_id_pos_);
+}
+
+void LoaderModel::uploadSelected() {
+    if (!canUpload() || !begin(Job::upload)) {
+        return;
+    }
+    loads_.begin_upload();
+    QMetaObject::invokeMethod(worker_, &EngineWorker::upload, Qt::QueuedConnection, target_address_,
+                              thw_id_pos_, loads_.checked_loads());
 }
 
 void LoaderModel::abort() {

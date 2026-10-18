@@ -84,19 +84,76 @@ ApplicationWindow {
                             font.bold: true
                             wrapMode: Text.Wrap
                         }
+                        RowLayout {
+                            visible: loadList.count > 0
+                            Button {
+                                text: qsTr("Tick all")
+                                enabled: !window.app.busy
+                                onClicked: window.app.selectAllLoads(true)
+                            }
+                            Button {
+                                text: qsTr("Tick none")
+                                enabled: !window.app.busy
+                                onClicked: window.app.selectAllLoads(false)
+                            }
+                            Label {
+                                Layout.fillWidth: true
+                                text: qsTr("%n load(s) ticked for upload", "", window.app.selectedLoadCount)
+                                opacity: 0.7
+                                elide: Text.ElideRight
+                            }
+                        }
                         Repeater {
+                            id: loadList
+
                             model: window.app.loads
                             delegate: ColumnLayout {
+                                id: loadRow
+
+                                required property var model
                                 required property string partNumber
                                 required property string detail
+                                required property bool checked
+                                required property int ratio
+                                required property string loadStatus
+                                required property bool failed
+                                required property string problem
 
                                 Layout.fillWidth: true
-                                spacing: 0
-                                Label { text: partNumber }
+                                spacing: 2
+
+                                CheckBox {
+                                    objectName: "loadCheck"
+                                    Layout.fillWidth: true
+                                    text: loadRow.partNumber
+                                    checked: loadRow.checked
+                                    enabled: !window.app.busy
+                                    onToggled: loadRow.model.checked = checked
+                                    Accessible.name: qsTr("Upload load %1").arg(loadRow.partNumber)
+                                }
                                 Label {
                                     Layout.fillWidth: true
-                                    text: detail
+                                    Layout.leftMargin: 28
+                                    text: loadRow.detail
                                     opacity: 0.7
+                                    wrapMode: Text.Wrap
+                                }
+                                ProgressBar {
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 28
+                                    visible: loadRow.ratio >= 0
+                                    from: 0
+                                    to: 100
+                                    value: loadRow.ratio
+                                    Accessible.name: qsTr("Upload progress of %1").arg(loadRow.partNumber)
+                                }
+                                Label {
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 28
+                                    visible: loadRow.ratio >= 0
+                                    text: loadRow.ratio + "% " + loadRow.loadStatus
+                                          + (loadRow.problem.length > 0 ? ": " + loadRow.problem : "")
+                                    color: loadRow.failed ? window.failColour : window.palette.windowText
                                     wrapMode: Text.Wrap
                                 }
                             }
@@ -210,6 +267,14 @@ ApplicationWindow {
                                 ToolTip.text: qsTr("Asks the target for its configuration (ARINC 615A Information)")
                             }
                             Button {
+                                objectName: "uploadButton"
+                                text: qsTr("Upload")
+                                enabled: window.app.canUpload
+                                onClicked: window.app.uploadSelected()
+                                ToolTip.visible: hovered
+                                ToolTip.text: qsTr("Loads the ticked loads of the media set to the target (ARINC 615A Upload)")
+                            }
+                            Button {
                                 text: qsTr("Abort")
                                 enabled: window.app.canAbort
                                 onClicked: window.app.abort()
@@ -218,12 +283,20 @@ ApplicationWindow {
                         ProgressBar {
                             Layout.fillWidth: true
                             visible: window.app.busy
-                            indeterminate: true
+                            from: 0
+                            to: 100
+                            // The target reports a figure for an upload only; for the rest, and
+                            // before its first status file, the bar only shows that it is busy.
+                            indeterminate: window.app.progress < 0
+                            value: Math.max(window.app.progress, 0)
+                            Accessible.name: qsTr("Progress of the operation")
                         }
                         Label {
                             Layout.fillWidth: true
                             visible: window.app.busy
-                            text: window.app.activity
+                            text: window.app.progress < 0
+                                  ? window.app.activity
+                                  : window.app.activity + " " + window.app.progress + "%"
                         }
                         Label {
                             Layout.fillWidth: true

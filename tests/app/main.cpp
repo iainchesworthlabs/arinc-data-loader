@@ -21,6 +21,10 @@ int main(int argc, char* argv[]) {
         failed += QTest::qExec(&test, argc, argv);
     }
     {
+        MediaSourceTest test;
+        failed += QTest::qExec(&test, argc, argv);
+    }
+    {
         LoaderModelTest test;
         failed += QTest::qExec(&test, argc, argv);
     }

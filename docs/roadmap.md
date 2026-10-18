@@ -108,12 +108,15 @@ slices; [the application](app.md) says what each does.
    files and notices in an activity log, and its hardware and parts. The window is loaded offscreen in
    the tests. Not run against a real target, and the Linux and macOS legs had not run it when this was
    written.
+2. **Upload (done).** The loads of the media set are ticked in the window and loaded to the target: a
+   `FileSource` over the media set's directory tree (an index made from `FILES.LUM`, files told apart by
+   the CRC in the request, read through the platform's file system), an `UploadOperation` from the ticked
+   loads, progress for the list and per load from the upload status files, the abort button, and the
+   outcome (a load the target failed makes the operation a failure). Tested through `LoaderModel` and the
+   window against the simulated target. Not run against a real target.
 
 What is left of the application:
 
-- **Upload**: load the chosen media set to the target (a `FileSource` over the media set's directory
-  tree, an `UploadOperation` from the loads the operator ticks), with progress per load from the status
-  files.
 - **Download**: media defined (the files the operator names) and operator defined (the target's list
   shown, the choice taken through `RunController`), into the `DNLD_DATA_<THW_ID_POS>_<number>` directory
   of 5.4.4.3 through a `FileSink`.

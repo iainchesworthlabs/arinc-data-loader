@@ -1,9 +1,10 @@
 // Loads the application's window (argv[1], the path of Main.qml) with the real model, offscreen,
 // runs a FIND and an Information operation through the model against a simulated target on the
-// fake platform while the window is showing, and fails if the window does not load or the QML
-// engine has a single complaint. With a second argument it saves what the window looks like
-// there. The platform's graphics are not used: the test's environment asks for the offscreen
-// platform and the software renderer.
+// fake platform while the window is showing, then reads a media set, ticks its load and starts the
+// upload through the window's own check box and button, and fails if the window does not load,
+// the operations do not end as they should or the QML engine has a single complaint. With a second
+// argument it saves what the window looks like there. The platform's graphics are not used: the
+// test's environment asks for the offscreen platform and the software renderer.
 
 #include <cstdio>
 #include <expected>
@@ -13,6 +14,7 @@
 #include <QImage>
 #include <QQmlApplicationEngine>
 #include <QQmlError>
+#include <QQuickItem>
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QTimer>
@@ -21,6 +23,7 @@
 
 #include "adl/app/loader_model.hpp"
 #include "rig.hpp"
+#include "upload_fixture.hpp"
 
 namespace {
 
@@ -46,6 +49,20 @@ bool wait_until_idle(adl::app::LoaderModel& model) {
     return !timed_out;
 }
 
+// The item called `name` in the visual tree below `root` (a delegate's items are not always
+// children of anything a QObject search would find).
+QQuickItem* find_item(QQuickItem* root, const QString& name) {
+    if (root->objectName() == name) {
+        return root;
+    }
+    for (QQuickItem* child : root->childItems()) {
+        if (QQuickItem* found = find_item(child, name)) {
+            return found;
+        }
+    }
+    return nullptr;
+}
+
 }  // namespace
 
 int main(int argc, char* argv[]) {
@@ -56,9 +73,14 @@ int main(int argc, char* argv[]) {
     }
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
 
-    adl::test::SimPlan plan;
+    adl::test::UploadFixture fixture;
+    adl::test::SimPlan plan = fixture.plan();
     plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
     adl::test::Rig rig(plan);
+    if (!fixture.write(rig)) {
+        std::fprintf(stderr, "the media set could not be written\n");
+        return 1;
+    }
     adl::app::LoaderModel model([&rig]() -> std::expected<adl::app::HostLease, QString> {
         adl::app::HostLease lease;
         lease.host = &rig.loader_host;
@@ -104,6 +126,44 @@ int main(int argc, char* argv[]) {
     if (model.resultState() != 1 || model.thwIdPos() != QStringLiteral("HNPFMS_L")) {
         std::fprintf(stderr, "the operation did not complete: %s\n",
                      qPrintable(model.resultText()));
+        return 1;
+    }
+
+    // Then a media set, its load ticked in the window, and the upload started from its button.
+    // (The simulated target does one operation at a time: it starts again from nothing.)
+    rig.target.reset_operation();
+    model.chooseMediaSet(fixture.url());
+    if (!wait_until_idle(model) || !model.mediaSetError().isEmpty()) {
+        std::fprintf(stderr, "the media set was not read: %s\n", qPrintable(model.mediaSetError()));
+        return 1;
+    }
+    QCoreApplication::processEvents();
+    QQuickItem* content = window->contentItem();
+    QQuickItem* check = find_item(content, QStringLiteral("loadCheck"));
+    QQuickItem* upload = find_item(content, QStringLiteral("uploadButton"));
+    if (check == nullptr || upload == nullptr) {
+        std::fprintf(stderr, "the load's check box or the Upload button is not in the window\n");
+        return 1;
+    }
+    if (upload->isEnabled() || model.canUpload()) {
+        std::fprintf(stderr, "Upload is enabled with no load ticked\n");
+        return 1;
+    }
+    QMetaObject::invokeMethod(check, "click");
+    QCoreApplication::processEvents();
+    if (model.selectedLoadCount() != 1 || !upload->isEnabled()) {
+        std::fprintf(stderr, "ticking the load in the window did not enable Upload\n");
+        return 1;
+    }
+    QMetaObject::invokeMethod(upload, "click");
+    if (!model.busy() || !wait_until_idle(model)) {
+        std::fprintf(stderr, "the upload did not start or did not end\n");
+        return 1;
+    }
+    QCoreApplication::processEvents();
+    if (model.resultState() != 1 || model.progress() != 100 ||
+        rig.target.log().files_read.size() != fixture.load.item.reads.size()) {
+        std::fprintf(stderr, "the upload did not complete: %s\n", qPrintable(model.resultText()));
         return 1;
     }
 
