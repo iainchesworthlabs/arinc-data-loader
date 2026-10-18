@@ -132,11 +132,12 @@ jobs:
           # One leg per desktop platform, each on its own default compiler:
           # MSVC on the VS 2026 image, the image's g++ on Ubuntu, AppleClang
           # (Xcode) on the Apple-silicon macOS image. The triplet is the vcpkg
-          # triplet the preset selects; it names the binary cache.
+          # triplet the preset selects; it names the binary cache. qt_host and qt_arch
+          # name the prebuilt Qt kit the application is built with (aqtinstall).
           all='[
-            {"leg": "windows", "name": "Windows (MSVC)",     "os": "windows-2025-vs2026", "preset": "windows-msvc-debug", "triplet": "x64-windows"},
-            {"leg": "linux",   "name": "Linux (GCC)",        "os": "ubuntu-26.04",        "preset": "linux-gcc-debug",    "triplet": "x64-linux"},
-            {"leg": "macos",   "name": "macOS (AppleClang)", "os": "macos-26",            "preset": "macos-clang-debug",  "triplet": "arm64-osx"}
+            {"leg": "windows", "name": "Windows (MSVC)",     "os": "windows-2025-vs2026", "preset": "windows-msvc-debug", "triplet": "x64-windows", "qt_host": "windows", "qt_arch": "win64_msvc2022_64"},
+            {"leg": "linux",   "name": "Linux (GCC)",        "os": "ubuntu-26.04",        "preset": "linux-gcc-debug",    "triplet": "x64-linux",   "qt_host": "linux",   "qt_arch": "linux_gcc_64"},
+            {"leg": "macos",   "name": "macOS (AppleClang)", "os": "macos-26",            "preset": "macos-clang-debug",  "triplet": "arm64-osx",   "qt_host": "mac",     "qt_arch": "clang_64"}
           ]'
           case "$LEGS" in
             *[[:space:]]*)
@@ -225,13 +226,22 @@ jobs:
             Windows) cl 2>&1 | head -n 1 || true ;;
           esac
 
-      # No Qt: there is no application yet, and CI does not install Qt until
-      # one is built here.
+      # The prebuilt Qt kit (not vcpkg), found through QT_ROOT_DIR by
+      # cmake/FindQt6.cmake. Version pinned here, installer pinned in
+      # .github/requirements/qt.txt.
+      - name: Install Qt
+        uses: ./.github/actions/install-qt
+        with:
+          version: "6.12.0"
+          host: ${{ matrix.qt_host }}
+          arch: ${{ matrix.qt_arch }}
+
+      # ADL_BUILD_APP builds the Qt application and its tests (src/app, tests/app).
       - name: Configure
         shell: bash
         env:
           CMAKE_PRESET: ${{ matrix.preset }}
-        run: cmake --preset "$CMAKE_PRESET"
+        run: cmake --preset "$CMAKE_PRESET" -DADL_BUILD_APP=ON
 
       - name: Build
         shell: bash
