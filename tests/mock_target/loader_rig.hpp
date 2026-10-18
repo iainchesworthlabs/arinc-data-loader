@@ -191,12 +191,11 @@ struct MockRig {
         const LoaderConfig config = loader_config();
         pending->workspace.assign(DataLoader::workspace_bytes(config), std::byte{0});
         pending->loader = std::make_unique<DataLoader>(config, pending->workspace, services);
-        world.schedule_after(
-            adl::platform::Duration::zero(), [this, pending, operation, services, options] {
-                Runner runner(loader_host);
-                pending->outcome = runner.run(*pending->loader, operation, options);
-                pending->finished.store(true, std::memory_order_release);
-            });
+        world.schedule_after(adl::platform::Duration::zero(), [this, pending, operation, options] {
+            Runner runner(loader_host);
+            pending->outcome = runner.run(*pending->loader, operation, options);
+            pending->finished.store(true, std::memory_order_release);
+        });
         return pending;
     }
 
