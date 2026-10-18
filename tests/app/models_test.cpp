@@ -38,19 +38,38 @@ void ModelsTest::target_model_exposes_what_find_found() {
 
 void ModelsTest::event_model_keeps_the_newest_lines() {
     EventModel model;
-    for (int i = 0; i < EventModel::capacity + 5; ++i) {
+    QCOMPARE(model.capacity(), EventModel::default_capacity);
+    for (int i = 0; i < model.capacity() + 5; ++i) {
         model.append({Severity::notice, QString::number(i)});
     }
-    QCOMPARE(model.rowCount(), EventModel::capacity);
+    QCOMPARE(model.rowCount(), model.capacity());
     QCOMPARE(model.data(model.index(0), EventModel::TextRole).toString(), QStringLiteral("5"));
-    QCOMPARE(model.data(model.index(EventModel::capacity - 1), EventModel::TextRole).toString(),
-             QString::number(EventModel::capacity + 4));
+    QCOMPARE(model.data(model.index(model.capacity() - 1), EventModel::TextRole).toString(),
+             QString::number(model.capacity() + 4));
     QCOMPARE(model.data(model.index(0), EventModel::SeverityRole).toInt(),
              static_cast<int>(Severity::notice));
     QVERIFY(model.data(model.index(0), EventModel::TimeRole).toString().size() == 8);
 
     model.clear();
     QCOMPARE(model.rowCount(), 0);
+}
+
+void ModelsTest::event_model_capacity_is_per_instance() {
+    EventModel model;
+    model.set_capacity(4);
+    QCOMPARE(model.capacity(), 4);
+    for (int i = 0; i < 6; ++i) {
+        model.append({Severity::info, QString::number(i)});
+    }
+    QCOMPARE(model.rowCount(), 4);
+    QCOMPARE(model.data(model.index(0), EventModel::TextRole).toString(), QStringLiteral("2"));
+    QCOMPARE(model.data(model.index(3), EventModel::TextRole).toString(), QStringLiteral("5"));
+
+    // Another instance keeps the default; a capacity below one is refused.
+    EventModel other;
+    QCOMPARE(other.capacity(), EventModel::default_capacity);
+    model.set_capacity(0);
+    QCOMPARE(model.capacity(), 1);
 }
 
 void ModelsTest::configuration_model_replaces_its_rows() {
@@ -134,6 +153,43 @@ void ModelsTest::load_model_keeps_the_operators_ticks() {
     model.check_all(true);
     model.reset({load_of("ACM47-0003-0003", "C.LUH")});
     QCOMPARE(model.checked_count(), 0);
+}
+
+void ModelsTest::load_model_keeps_ticks_for_loads_that_are_still_there() {
+    LoadModel model;
+    model.reset({load_of("ACM47-0001-0001", "A.LUH"), load_of("ACM47-0002-0002", "B.LUH")});
+    QVERIFY(model.setData(model.index(1), true, LoadModel::CheckedRole));
+
+    // The same set read again (or re-checked) keeps the tick on the load that is still there,
+    // whatever the order; a load that is gone is not ticked, and neither is a new one.
+    model.reset({load_of("ACM47-0002-0002", "B.LUH"), load_of("ACM47-0003-0003", "C.LUH")});
+    QCOMPARE(model.checked_count(), 1);
+    QVERIFY(model.data(model.index(0), LoadModel::CheckedRole).toBool());   // B.LUH, kept
+    QVERIFY(!model.data(model.index(1), LoadModel::CheckedRole).toBool());  // C.LUH, new
+    QVERIFY(!model.checked_loads().isEmpty());
+    QCOMPARE(model.checked_loads().front().header_file, QStringLiteral("B.LUH"));
+}
+
+void ModelsTest::file_model_lists_the_files_of_the_set() {
+    FileModel model;
+    QCOMPARE(model.rowCount(), 0);
+    MediaFileSummary file;
+    file.name = QStringLiteral("DATA.LUP");
+    file.pathname = QStringLiteral("\\disk001\\");
+    file.member = 2;
+    file.crc16 = QStringLiteral("1A2B");
+    model.reset({file});
+    QCOMPARE(model.rowCount(), 1);
+    const QModelIndex row = model.index(0);
+    QCOMPARE(model.data(row, FileModel::NameRole).toString(), QStringLiteral("DATA.LUP"));
+    QCOMPARE(model.data(row, FileModel::PathnameRole).toString(), QStringLiteral("\\disk001\\"));
+    QCOMPARE(model.data(row, FileModel::MemberRole).toInt(), 2);
+    QCOMPARE(model.data(row, FileModel::CrcRole).toString(), QStringLiteral("1A2B"));
+    QCOMPARE(model.data(row, Qt::DisplayRole).toString(), QStringLiteral("DATA.LUP"));
+    QVERIFY(model.data(model.index(4), FileModel::NameRole).isNull());
+    QVERIFY(model.roleNames().values().contains("crc"));
+    model.reset({});
+    QCOMPARE(model.rowCount(), 0);
 }
 
 void ModelsTest::load_model_shows_the_progress_of_the_ticked_loads() {

@@ -45,6 +45,14 @@ MediaSetSummary read_media_set_summary(const QString& path,
     summary.part_number = to_qstring(identity.media_set_part_number.view());
     summary.members = identity.number_of_media_set_members;
     summary.batches = static_cast<int>(set->batches.size());
+    for (const auto& file : set->files_list.files) {
+        MediaFileSummary entry;
+        entry.name = to_qstring(file.file_name);
+        entry.pathname = to_qstring(file.pathname);
+        entry.member = file.member_sequence_number;
+        entry.crc16 = QStringLiteral("%1").arg(file.crc, 4, 16, QLatin1Char('0')).toUpper();
+        summary.files.append(entry);
+    }
     for (const auto& load : set->loads) {
         LoadSummary entry;
         entry.part_number = to_qstring(load.header.load_part_number.view());

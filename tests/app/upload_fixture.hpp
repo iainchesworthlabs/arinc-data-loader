@@ -17,6 +17,7 @@
 
 #include "adl/arinc665/media_set.hpp"
 #include "adl/media_tree/media_tree.hpp"
+#include "adl/samples/scenarios.hpp"
 #include "rig.hpp"
 #include "temp_dir.hpp"
 
@@ -24,6 +25,10 @@ namespace adl::test {
 
 struct UploadFixture {
     SampleLoad load = make_sample_load(5'000, 3);
+    // Empty: the sample's own media set part number. Anything else rebuilds the set with that
+    // part number, which is how a set with a finding is made (one the standard recommends
+    // against, an I, Q or Z in the part number).
+    std::string media_set_part_number;
     TempDir directory;
 
     [[nodiscard]] SimPlan plan() const {
@@ -35,7 +40,19 @@ struct UploadFixture {
     // Writes the tree, and mirrors every file into `rig`'s host. False if the tree could not be
     // written.
     [[nodiscard]] bool write(Rig& rig) const {
-        if (!adl::media_tree::write_media_set_tree(directory.path(), load.members)) {
+        std::vector<adl::arinc665::MediaMember> members = load.members;
+        if (!media_set_part_number.empty()) {
+            auto spec_value = adl::samples::sample_media_set_spec();
+            auto spec = std::move(*spec_value);
+            spec.media_set_part_number = adl::arinc665::PartNumber{media_set_part_number};
+            spec.loads[0].load = load.load;
+            auto made = adl::arinc665::build_media_set(spec);
+            if (!made) {
+                return false;
+            }
+            members = std::move(*made);
+        }
+        if (!adl::media_tree::write_media_set_tree(directory.path(), members)) {
             return false;
         }
         auto& files = rig.loader_host.fake_files();

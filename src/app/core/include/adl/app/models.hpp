@@ -46,14 +46,18 @@ class EventModel : public QAbstractListModel {
 public:
     enum Role { SeverityRole = Qt::UserRole + 1, TextRole, TimeRole };
 
-    // The most lines kept; older ones are dropped.
-    static constexpr int capacity = 2000;
+    // The most lines kept when nothing else is asked; older ones are dropped. The operator's
+    // preference (logCapacity) can change it per instance.
+    static constexpr int default_capacity = 2000;
 
     explicit EventModel(QObject* parent = nullptr) : QAbstractListModel(parent) {}
 
     [[nodiscard]] int rowCount(const QModelIndex& parent = {}) const override;
     [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override;
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] int capacity() const noexcept { return capacity_; }
+    void set_capacity(int capacity) noexcept { capacity_ = capacity < 1 ? 1 : capacity; }
 
     void append(const EventEntry& entry);
     void clear();
@@ -64,6 +68,26 @@ private:
         QDateTime time;
     };
     QList<Line> lines_;
+    int capacity_ = default_capacity;
+};
+
+// The files of the media set that was read, one row per file, from FILES.LUM.
+class FileModel : public QAbstractListModel {
+    Q_OBJECT
+
+public:
+    enum Role { NameRole = Qt::UserRole + 1, MemberRole, PathnameRole, CrcRole };
+
+    explicit FileModel(QObject* parent = nullptr) : QAbstractListModel(parent) {}
+
+    [[nodiscard]] int rowCount(const QModelIndex& parent = {}) const override;
+    [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override;
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    void reset(QList<MediaFileSummary> files);
+
+private:
+    QList<MediaFileSummary> files_;
 };
 
 // What an Information operation found: hardware, each followed by its parts.
@@ -111,7 +135,9 @@ public:
     // Only CheckedRole can be set, and not while the model is locked.
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
-    // Replaces the loads; nothing is ticked, nothing is in progress.
+    // Replaces the loads; nothing is ticked, nothing is in progress. A load that was there
+    // before, under the same header file and part number, keeps its tick (so re-reading or
+    // re-checking a set does not throw the operator's choice away); a new set starts unticked.
     void reset(QList<LoadSummary> loads);
 
     // While locked (a job runs) the ticks cannot be changed.

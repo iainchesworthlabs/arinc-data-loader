@@ -10,27 +10,33 @@ Two slices are built: the skeleton with Information, and Upload. What the window
 | What | How |
 | --- | --- |
 | Choose a media set | A directory with one directory per member (what `adl::media_tree` writes and `adl_write_payloads` makes). It is read with `read_media_set_tree` and `read_media_set`, and shown: the part number, the number of members, each load with its header file and the number of its data and support files, and every finding (where the set differs from what the standard says it should be). Each load has a check box; the ticked loads are what an Upload sends. |
-| Find targets | FIND (Attachment 3): broadcast, three seconds. The targets that answered are listed; choosing one fills in its address and its `<THW_ID_POS>`. |
+| Check a media set | The validation gate: reading the set **is** checking it (the read verifies every file and its check values), so a set that reads is structurally valid and may be uploaded; a set that does not read is refused with the named reason, and Upload stays disabled. The check runs when the set is chosen (a preference can turn that off) and again on demand, rebuilding the index, so files changed on disk after the first read are caught. Findings are deviations from the standard's recommendations: they are listed as warnings and do not block an upload. |
+| Media set properties | A dialog with the set's identity (part number, members, batches), its loads, every file of `FILES.LUM` (name, member, pathname, CRC) and the findings. |
+| Find targets | FIND (Attachment 3): broadcast, three seconds. The targets that answered are listed; choosing one fills in its address and its `<THW_ID_POS>`. Target properties shows the answer's fields (hardware identifier, type name, position, literal name, manufacturer code). |
 | Name a target by hand | An IPv4 address and a `<THW_ID_POS>` can be typed, for a target that does not answer FIND (or over AFDX, which has no broadcast). |
 | Read information | The Information operation (5.4.2): the target's status files and its list of hardware and parts, with an abort button. |
 | Upload | The Upload operation (5.4.3): the ticked loads of the media set are loaded to the target. The target reads their header, data and support files from the media set on disk; the window shows how far the target's list has got and, beside each ticked load, its own percentage and status (and why, for one the target gave up on), from the upload status files. With the abort button. See [what the Upload operation needs](#what-the-upload-operation-needs-from-the-application). |
+| Preferences | Persistent settings, in a dialog from the File menu: the last media set directory (restored quietly at start-up), a default target address and `<THW_ID_POS>` (prefilled), the loader's control port (anything but 59 is sent to the target as the `port` option, which is what lets the loader and a target share one machine), the download directory, whether FIND runs by itself before an operation with no chosen target (one answer is taken automatically; none or several leaves the choice to the operator), whether a chosen media set is checked at once, and the activity log's capacity. |
 | The activity log | What the target said (its answer, each status file) and the engine's notices (a lost or repeated status file, a refused request, a checksum that did not match, a WAIT), with the time, oldest first. |
-| The outcome | How the operation ended (the engine's `OutcomeCode`), and for an abort whether the target confirmed that it had stopped. |
+| The outcome | How the operation ended (the engine's `OutcomeCode`), and for an abort whether the target confirmed that it had stopped. Failures also open a dialog once, with the outcome, the detail and, where the application knows one, a hint (a host that could not start, an address that is not an address, a media set that could not be read, an abort the target did not confirm); a status bar carries the current state, the target and the media set. |
 
 Download (media and operator defined), the choice of the `DNLD_DATA_<THW_ID_POS>_<number>` directory
 (5.4.4.3) and running FIND automatically before an operation are the next slices (the
-[roadmap](roadmap.md)).
+[roadmap](roadmap.md)); of those, FIND-before-an-operation is now a preference (above), and the
+rest remain.
 
 ## Layout
 
 ```text
 src/app/
   main.cpp            creates the QGuiApplication, one LoaderModel and the QML engine
-  qml/                Main.qml (the window), Panel.qml, LogView.qml
+  qml/                Main.qml (the window), Panel.qml, LogView.qml, the preferences,
+                      properties and about dialogs
   core/               adl_app_core: everything but the window, Qt Core only
     engine_worker     the engine on its own thread, and the abort
     loader_model      what the QML talks to: properties and a few invokable functions
-    models            the four list models (the loads carry the operator's ticks and the progress)
+    settings          the persistent preferences (QSettings), read at start-up
+    models            the five list models (the loads carry the operator's ticks and the progress)
     media_set_summary reading a media set from a directory, as plain values
     media_source      the files of an upload: an index of the media set's files, and a FileSource over it
     notice_text       an engine notice as a line for the operator
@@ -171,10 +177,15 @@ platform (Information, FIND, an Upload of a media set written to a directory and
 index, its progress and its end, a load the target cannot read, an abort of an Upload, a second job refused,
 a host that cannot start, a media set read from a directory and one that is not there, the model destroyed
 while a job is queued), `MediaTreeSource` and the index (two files of one name told apart by the CRC, the
-fall-backs above, offsets, the limit on open files), the models (ticks, locking, progress), the address
-parser and the notice texts; and the window itself, loaded offscreen with every QML warning an error,
-driven through a FIND, an Information operation and an Upload (the load ticked and the button pressed
-through the window's own items).
+fall-backs above, offsets, the limit on open files), the models (ticks, locking, progress, and the files of
+`FILES.LUM`), the address parser and the notice texts; the preferences (round-trip through `QSettings`, the
+control port reaching the engine as the `port` option, FIND before an operation with none, several or one
+target answering, the quiet start-up restore); the validation gate (an unreadable set — a corrupted byte, a
+removed file — leaves the upload refused with the reason, a set that reads is uploadable, findings warn but
+do not block, a re-check catches files changed on disk, the operator's ticks survive a re-read); the failure
+hints; and the window itself, loaded offscreen with every QML warning an error, driven through a FIND, an
+Information operation, a media set check and an Upload (the load ticked and the button pressed through the
+window's own items).
 
 Not checked: an Upload against a real target (and so which checksum a real target sends for each file,
 see above), an Upload whose files are in two directories of one name end to end (the source is tested

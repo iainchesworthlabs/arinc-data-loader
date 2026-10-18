@@ -21,6 +21,27 @@ using adl::arinc615a::Address;
 using adl::arinc615a::Notice;
 using adl::arinc615a::OutcomeCode;
 
+// What the operator can do about a failure the application can recognise. The set is small and
+// honest: only these are known well enough to point anywhere.
+QString media_set_hint() {
+    return QObject::tr(
+        "Choose the directory the media set was written to, and make sure every "
+        "file of the set is still in it.");
+}
+
+QString host_hint() {
+    return QObject::tr(
+        "The loader could not use the network or its port. Check that no other "
+        "copy of the loader is running, and that no other program holds the "
+        "control port (Preferences).");
+}
+
+QString address_hint() {
+    return QObject::tr(
+        "Enter the target's IPv4 address as four numbers of 0 to 255 separated "
+        "by dots, for example 10.0.0.2.");
+}
+
 // Turns what the engine reports into lines for the log, rows for the result and the progress of
 // an upload. It runs on the worker's thread, inside the runner, and everything it is handed is
 // valid only during the call: all of it is copied into Qt strings at once.
@@ -140,10 +161,11 @@ EngineWorker::EngineWorker(HostFactory host_factory, QObject* parent)
     register_metatypes();
 }
 
-void EngineWorker::fail(const QString& text) {
+void EngineWorker::fail(const QString& text, const QString& hint) {
     Q_EMIT log_line({Severity::error, text});
     OperationSummary summary;
     summary.outcome = text;
+    summary.hint = hint;
     Q_EMIT finished(summary);
 }
 
@@ -152,7 +174,7 @@ void EngineWorker::find(const QString& destination) {
     if (!destination.isEmpty()) {
         const auto octets = parse_ipv4(destination);
         if (!octets) {
-            fail(tr("\"%1\" is not an IPv4 address.").arg(destination));
+            fail(tr("\"%1\" is not an IPv4 address.").arg(destination), address_hint());
             return;
         }
         destinations.push_back(Address{*octets});
@@ -160,7 +182,7 @@ void EngineWorker::find(const QString& destination) {
 
     auto lease = host_factory_();
     if (!lease) {
-        fail(lease.error());
+        fail(lease.error(), host_hint());
         return;
     }
 
@@ -201,29 +223,30 @@ void EngineWorker::find(const QString& destination) {
     Q_EMIT finished(summary);
 }
 
-void EngineWorker::read_information(const QString& address, const QString& thw_id_pos) {
+void EngineWorker::read_information(const QString& address, const QString& thw_id_pos,
+                                    quint16 control_port) {
     const auto octets = parse_ipv4(address);
     if (!octets) {
-        fail(tr("\"%1\" is not an IPv4 address.").arg(address));
+        fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
         return;
     }
     auto lease = host_factory_();
     if (!lease) {
-        fail(lease.error());
+        fail(lease.error(), host_hint());
         return;
     }
     Q_EMIT log_line(
         {Severity::info, tr("Asking %1 (%2) for its configuration...").arg(address, thw_id_pos)});
     JobListener listener(*this);
     run_operation(*lease->host, Address{*octets}, thw_id_pos,
-                  adl::arinc615a::InformationOperation{}, listener, nullptr);
+                  adl::arinc615a::InformationOperation{}, listener, nullptr, control_port);
 }
 
 void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
-                          QList<LoadSummary> loads) {
+                          QList<LoadSummary> loads, quint16 control_port) {
     const auto octets = parse_ipv4(address);
     if (!octets) {
-        fail(tr("\"%1\" is not an IPv4 address.").arg(address));
+        fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
         return;
     }
     if (!index_) {
@@ -250,7 +273,7 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
 
     auto lease = host_factory_();
     if (!lease) {
-        fail(lease.error());
+        fail(lease.error(), host_hint());
         return;
     }
     MediaTreeSource source(lease->host->files(), *index_);
@@ -260,18 +283,21 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
                          .arg(address, thw_id_pos)});
     run_operation(*lease->host, Address{*octets}, thw_id_pos,
                   adl::arinc615a::UploadOperation{adl::arinc615a::UploadRequest{references}},
-                  listener, &source);
+                  listener, &source, control_port);
 }
 
 void EngineWorker::run_operation(adl::platform::Host& host, const Address& target,
                                  const QString& thw_id_pos,
                                  const adl::arinc615a::Operation& operation,
                                  adl::arinc615a::OperationListener& listener,
-                                 adl::arinc615a::FileSource* source) {
+                                 adl::arinc615a::FileSource* source, quint16 control_port) {
     const std::string thw = thw_id_pos.toStdString();
     adl::arinc615a::LoaderConfig config;
     config.target = adl::arinc615a::Endpoint{target, adl::arinc615a::tftp_control_port};
     config.thw_id_pos = thw;
+    // The operator's preference: anything but 59 is offered to the target in the port option of
+    // the initialization request, which matters when the target runs on the same machine.
+    config.control_port = control_port;
 
     // The engine allocates nothing: it works in a block of memory we give it, and the loader
     // object itself is too big for a thread's stack to be a good place for it.
@@ -288,6 +314,7 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     if (!outcome) {
         const auto& error = outcome.error();
         QString why;
+        QString hint;
         switch (error.stage) {
             case adl::arinc615a::RunError::Stage::start:
                 why = tr("the request was refused (%1)")
@@ -296,13 +323,14 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
             case adl::arinc615a::RunError::Stage::control_socket:
                 why = tr("the loader's port could not be opened (%1)")
                           .arg(QString::fromLatin1(adl::platform::to_string(error.platform)));
+                hint = host_hint();
                 break;
             case adl::arinc615a::RunError::Stage::wait:
                 why = tr("waiting for the network failed (%1)")
                           .arg(QString::fromLatin1(adl::platform::to_string(error.platform)));
                 break;
         }
-        fail(tr("The operation could not run: %1.").arg(why));
+        fail(tr("The operation could not run: %1.").arg(why), hint);
         return;
     }
 
@@ -319,6 +347,11 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
         summary.detail = outcome->abort_confirmed
                              ? tr("The target confirmed that it stopped.")
                              : tr("The target did not confirm that it stopped.");
+        if (!outcome->abort_confirmed) {
+            summary.hint =
+                tr("The target may still be loading; ask it what it is doing before trying "
+                   "again.");
+        }
     }
     if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation)) {
         const QString served =
@@ -345,8 +378,45 @@ void EngineWorker::read_media_set(const QString& path) {
                                              .arg(summary.part_number)});
     } else {
         result.outcome = summary.error;
+        result.hint = media_set_hint();
         Q_EMIT log_line(
             {Severity::error, tr("The media set could not be read: %1.").arg(summary.error)});
+    }
+    Q_EMIT finished(result);
+}
+
+void EngineWorker::validate_media_set(const QString& path) {
+    Q_EMIT log_line({Severity::info, tr("Checking the media set in %1...").arg(path)});
+    // Read afresh, with a new index: files changed on disk since the set was read are what the
+    // check (and the next upload) see.
+    const MediaSetSummary summary = read_media_set_summary(path, &index_);
+    Q_EMIT media_set_read(summary);
+
+    ValidationReport report;
+    report.path = path;
+    report.error = summary.error;
+    report.loads = static_cast<int>(summary.loads.size());
+    report.files = static_cast<int>(summary.files.size());
+    report.findings = summary.findings;
+    Q_EMIT validation_finished(report);
+
+    // The read verifies every file and its check values, so a set that reads is structurally
+    // valid; its findings are deviations from recommendations, which are reported as warnings
+    // and do not stop an upload. A read error makes the set invalid, and uploads stay refused
+    // with the reason shown.
+    OperationSummary result;
+    result.success = report.error.isEmpty();
+    if (result.success) {
+        result.outcome = tr("media set checked");
+        Q_EMIT log_line({Severity::info, tr("Checked media set %1: %2 load(s), %3 file(s).")
+                                             .arg(summary.part_number)
+                                             .arg(report.loads)
+                                             .arg(report.files)});
+    } else {
+        result.outcome = summary.error;
+        result.hint = media_set_hint();
+        Q_EMIT log_line(
+            {Severity::error, tr("The media set could not be checked: %1.").arg(summary.error)});
     }
     Q_EMIT finished(result);
 }

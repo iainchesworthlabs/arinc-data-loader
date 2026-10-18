@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <expected>
 
+#include <QDir>
 #include <QEventLoop>
 #include <QGuiApplication>
 #include <QImage>
@@ -17,6 +18,8 @@
 #include <QQuickItem>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QSettings>
+#include <QTemporaryDir>
 #include <QTimer>
 #include <QUrl>
 #include <QVariant>
@@ -72,6 +75,12 @@ int main(int argc, char* argv[]) {
         return 2;
     }
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
+
+    // The model reads QSettings without arguments; the test keeps that out of the operator's
+    // real settings.
+    QSettings::setDefaultFormat(QSettings::IniFormat);
+    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope,
+                       QDir::tempPath() + QStringLiteral("/adl_test_qsettings"));
 
     adl::test::UploadFixture fixture;
     adl::test::SimPlan plan = fixture.plan();
@@ -130,11 +139,17 @@ int main(int argc, char* argv[]) {
     }
 
     // Then a media set, its load ticked in the window, and the upload started from its button.
+    // Choosing the set checks it (validateOnOpen is on), and the Upload button stays disabled
+    // until the check has passed.
     // (The simulated target does one operation at a time: it starts again from nothing.)
     rig.target.reset_operation();
     model.chooseMediaSet(fixture.url());
     if (!wait_until_idle(model) || !model.mediaSetError().isEmpty()) {
         std::fprintf(stderr, "the media set was not read: %s\n", qPrintable(model.mediaSetError()));
+        return 1;
+    }
+    if (model.validationState() != 2) {
+        std::fprintf(stderr, "the media set check did not pass\n");
         return 1;
     }
     QCoreApplication::processEvents();

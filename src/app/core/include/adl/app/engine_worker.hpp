@@ -55,14 +55,19 @@ public Q_SLOTS:
     // answers of the next three seconds.
     void find(const QString& destination);
     // An Information operation (6.3.1) against the target at `address`, whose protocol files are
-    // named by `thw_id_pos`.
-    void read_information(const QString& address, const QString& thw_id_pos);
+    // named by `thw_id_pos`. `control_port` is the port the loader listens on (59 unless the
+    // operator's preferences moved it, sent to the target as the port option).
+    void read_information(const QString& address, const QString& thw_id_pos, quint16 control_port);
     // Reads the media set in the directory and keeps what an upload needs to find its files.
     void read_media_set(const QString& path);
+    // Checks the media set in the directory: reads it afresh (the index is rebuilt, so files
+    // changed on disk since it was read are what the check and the next upload see) and reports
+    // a ValidationReport.
+    void validate_media_set(const QString& path);
     // An Upload operation (6.3.2) of `loads`, which have to be loads of the media set read last,
     // to the target at `address`.
     void upload(const QString& address, const QString& thw_id_pos,
-                QList<adl::app::LoadSummary> loads);
+                QList<adl::app::LoadSummary> loads, quint16 control_port);
 
 Q_SIGNALS:
     // A line for the activity log.
@@ -70,19 +75,23 @@ Q_SIGNALS:
     void targets_found(QList<adl::app::FoundTarget> targets);
     void configuration_read(QList<adl::app::HardwareRow> rows);
     void media_set_read(adl::app::MediaSetSummary summary);
+    // A media set check ended: whether it is valid (it could be read), and what it holds.
+    void validation_finished(adl::app::ValidationReport report);
     // An upload status file arrived: how far the list is (percent) and how each load is going.
     void upload_progress(int list_ratio, QList<adl::app::LoadProgressRow> loads);
     // Every job ends with exactly one of these, whatever happened.
     void finished(adl::app::OperationSummary summary);
 
 private:
-    void fail(const QString& text);
+    // Ends the job with `text` as the outcome, and `hint` (when known) as what the operator can
+    // do about it.
+    void fail(const QString& text, const QString& hint = {});
     // Runs `operation` against the target and reports how it ended; the part the Information and
     // Upload operations share. `listener` and `source` live for the call.
     void run_operation(adl::platform::Host& host, const adl::arinc615a::Address& target,
                        const QString& thw_id_pos, const adl::arinc615a::Operation& operation,
                        adl::arinc615a::OperationListener& listener,
-                       adl::arinc615a::FileSource* source);
+                       adl::arinc615a::FileSource* source, quint16 control_port);
 
     HostFactory host_factory_;
     // The files of the media set that was read last; used on this worker's thread only.

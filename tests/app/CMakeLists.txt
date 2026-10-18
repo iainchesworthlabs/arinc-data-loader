@@ -14,6 +14,7 @@ add_executable(adl_app_tests
     media_source_test.cpp
     models_test.cpp
     notice_text_test.cpp
+    settings_test.cpp
     test_classes.hpp
     upload_fixture.hpp)
 

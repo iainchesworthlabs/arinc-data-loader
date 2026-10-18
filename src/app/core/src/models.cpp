@@ -89,7 +89,7 @@ QHash<int, QByteArray> EventModel::roleNames() const {
 }
 
 void EventModel::append(const EventEntry& entry) {
-    if (lines_.size() >= capacity) {
+    if (lines_.size() >= capacity_) {
         beginRemoveRows({}, 0, 0);
         lines_.removeFirst();
         endRemoveRows();
@@ -103,6 +103,43 @@ void EventModel::append(const EventEntry& entry) {
 void EventModel::clear() {
     beginResetModel();
     lines_.clear();
+    endResetModel();
+}
+
+// ---- FileModel ---------------------------------------------------------------------------
+
+int FileModel::rowCount(const QModelIndex& parent) const {
+    return parent.isValid() ? 0 : static_cast<int>(files_.size());
+}
+
+QVariant FileModel::data(const QModelIndex& index, int role) const {
+    if (!index.isValid() || index.row() < 0 || index.row() >= files_.size()) {
+        return {};
+    }
+    const MediaFileSummary& file = files_[index.row()];
+    switch (role) {
+        case Qt::DisplayRole:
+        case NameRole:
+            return file.name;
+        case MemberRole:
+            return file.member;
+        case PathnameRole:
+            return file.pathname;
+        case CrcRole:
+            return file.crc16;
+        default:
+            return {};
+    }
+}
+
+QHash<int, QByteArray> FileModel::roleNames() const {
+    return {
+        {NameRole, "name"}, {MemberRole, "member"}, {PathnameRole, "pathname"}, {CrcRole, "crc"}};
+}
+
+void FileModel::reset(QList<MediaFileSummary> files) {
+    beginResetModel();
+    files_ = std::move(files);
     endResetModel();
 }
 
@@ -213,11 +250,22 @@ bool LoadModel::setData(const QModelIndex& index, const QVariant& value, int rol
 
 void LoadModel::reset(QList<LoadSummary> loads) {
     beginResetModel();
-    rows_.clear();
-    rows_.reserve(loads.size());
+    QList<Row> rows;
+    rows.reserve(loads.size());
     for (LoadSummary& load : loads) {
-        rows_.append(Row{std::move(load), false, -1, {}, {}, false});
+        // The operator's tick follows a load that is still there (same header file and part
+        // number); everything else starts unticked.
+        bool checked = false;
+        for (const Row& old : rows_) {
+            if (old.load.header_file == load.header_file &&
+                old.load.part_number == load.part_number) {
+                checked = old.checked;
+                break;
+            }
+        }
+        rows.append(Row{std::move(load), checked, -1, {}, {}, false});
     }
+    rows_ = std::move(rows);
     endResetModel();
     Q_EMIT selection_changed();
 }
