@@ -67,11 +67,11 @@ public:
         // between the loader's `high` (60) and `normal` (127), in the vendor
         // module's style of a constant per activity; `false` is the Interrupt
         // flag (a task activity, not an interrupt handler).
-        const Error created = CreateActivity(CurrentTask(), 100, false,
-                                             sleep_activity_id, &sleep_activity_);
+        const Error created =
+            CreateActivity(CurrentTask(), 100, false, sleep_activity_id, &sleep_activity_);
         if (created != Success ||
-            AsynchronousReceive(sleep_activity_, reinterpret_cast<Object>(virtual_),
-                                NULL) != Success) {
+            AsynchronousReceive(sleep_activity_, reinterpret_cast<Object>(virtual_), NULL) !=
+                Success) {
             virtual_ = NULLClock;
             sleep_activity_ = NULLActivity;
             return;
@@ -116,8 +116,8 @@ public:
         // Make sure the receive is pending before the first WaitForActivity:
         // a previous sleep may have left it un-armed (its own re-arm failed
         // and it finished in busy_wait).
-        if (!receive_armed(AsynchronousReceive(sleep_activity_,
-                                               reinterpret_cast<Object>(virtual_), NULL))) {
+        if (!receive_armed(
+                AsynchronousReceive(sleep_activity_, reinterpret_cast<Object>(virtual_), NULL))) {
             busy_wait(deadline);
             return;
         }

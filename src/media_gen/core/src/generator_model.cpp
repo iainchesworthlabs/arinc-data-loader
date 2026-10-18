@@ -22,8 +22,8 @@ QString to_qstring(std::string_view text) {
 QString findings_text(const adl::arinc665::Findings& findings) {
     QStringList pieces;
     for (const adl::arinc665::Finding& finding : findings) {
-        pieces.append(QStringLiteral("%1: %2").arg(to_qstring(finding.clause),
-                                                   to_qstring(finding.message)));
+        pieces.append(
+            QStringLiteral("%1: %2").arg(to_qstring(finding.clause), to_qstring(finding.message)));
     }
     return pieces.join(QStringLiteral("; "));
 }
@@ -53,8 +53,7 @@ GeneratorModel::GeneratorModel(QObject* parent) : QObject(parent) {
     connect(worker_, &GeneratorWorker::finished, this, &GeneratorModel::on_finished);
     connect(worker_, &GeneratorWorker::progress, this,
             [this](int percent) { set_progress(percent); });
-    connect(&files_, &SourceFileModel::filesChanged, this,
-            [this] { refresh_validation(); });
+    connect(&files_, &SourceFileModel::filesChanged, this, [this] { refresh_validation(); });
 
     thread_.setObjectName(QStringLiteral("generator"));
     thread_.start();
@@ -123,8 +122,7 @@ void GeneratorModel::setHeaderFileName(const QString& name) {
 }
 
 void GeneratorModel::setLoadTypeIndex(int index) {
-    const int clamped =
-        std::clamp(index, -1, static_cast<int>(load_type_options().size()) - 1);
+    const int clamped = std::clamp(index, -1, static_cast<int>(load_type_options().size()) - 1);
     if (clamped == load_type_index_) {
         return;
     }
@@ -203,8 +201,8 @@ QStringList GeneratorModel::loadTypeOptions() const {
 QStringList GeneratorModel::checkValueOptions() const {
     QStringList options;
     for (int i = 0; i <= 5; ++i) {
-        options.append(to_qstring(
-            adl::arinc665::to_string(static_cast<adl::arinc665::CheckValueType>(i))));
+        options.append(
+            to_qstring(adl::arinc665::to_string(static_cast<adl::arinc665::CheckValueType>(i))));
     }
     return options;
 }
@@ -305,18 +303,16 @@ void GeneratorModel::removeTargetHardwareId(int row) {
 }
 
 void GeneratorModel::refresh_validation() {
-    const QString load_error =
-        check_text(load_part_number_,
-                   adl::arinc665::check_load_part_number(load_part_number_.toStdString()),
-                   tr("Enter the load part number, for example ACM47-1234-5678."));
+    const QString load_error = check_text(
+        load_part_number_, adl::arinc665::check_load_part_number(load_part_number_.toStdString()),
+        tr("Enter the load part number, for example ACM47-1234-5678."));
     const QString media_set_error =
         check_text(media_set_part_number_,
                    adl::arinc665::check_media_set_part_number(media_set_part_number_.toStdString()),
                    tr("Enter the media set part number, for example ACM-SET-0001."));
-    const QString header_error =
-        check_text(header_file_name_,
-                   adl::arinc665::check_header_file_name(header_file_name_.toStdString()),
-                   tr("Enter the header file name, for example ACM47.LUH."));
+    const QString header_error = check_text(
+        header_file_name_, adl::arinc665::check_header_file_name(header_file_name_.toStdString()),
+        tr("Enter the header file name, for example ACM47.LUH."));
 
     QString batch_error;
     if (include_batch_) {

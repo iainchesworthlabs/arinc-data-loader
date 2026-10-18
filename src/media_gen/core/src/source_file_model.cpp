@@ -33,11 +33,10 @@ QString human_size(qint64 bytes) {
 QString findings_text(const adl::arinc665::Findings& findings) {
     QStringList pieces;
     for (const adl::arinc665::Finding& finding : findings) {
-        pieces.append(QStringLiteral("%1: %2")
-                          .arg(QString::fromUtf8(finding.clause.data(),
-                                                 static_cast<qsizetype>(finding.clause.size())),
-                               QString::fromUtf8(finding.message.data(),
-                                                 static_cast<qsizetype>(finding.message.size()))));
+        pieces.append(QStringLiteral("%1: %2").arg(
+            QString::fromUtf8(finding.clause.data(), static_cast<qsizetype>(finding.clause.size())),
+            QString::fromUtf8(finding.message.data(),
+                              static_cast<qsizetype>(finding.message.size()))));
     }
     return pieces.join(QStringLiteral("; "));
 }
@@ -74,12 +73,8 @@ QVariant SourceFileModel::data(const QModelIndex& index, int role) const {
 }
 
 QHash<int, QByteArray> SourceFileModel::roleNames() const {
-    return {{SourcePathRole, "sourcePath"},
-            {FileNameRole, "fileName"},
-            {KindRole, "kind"},
-            {CheckTypeRole, "checkType"},
-            {SizeRole, "size"},
-            {MessageRole, "message"}};
+    return {{SourcePathRole, "sourcePath"}, {FileNameRole, "fileName"}, {KindRole, "kind"},
+            {CheckTypeRole, "checkType"},   {SizeRole, "size"},         {MessageRole, "message"}};
 }
 
 Qt::ItemFlags SourceFileModel::flags(const QModelIndex& index) const {
@@ -153,8 +148,8 @@ void SourceFileModel::addFiles(const QList<QUrl>& urls) {
         row.source_path = path;
         row.file_name = QFileInfo(path).fileName();
         std::error_code error;
-        const auto size = std::filesystem::file_size(
-            std::filesystem::path{path.toStdU16String()}, error);
+        const auto size =
+            std::filesystem::file_size(std::filesystem::path{path.toStdU16String()}, error);
         row.size = error ? tr("unknown") : human_size(static_cast<qint64>(size));
         beginInsertRows({}, rowCount(), rowCount());
         rows_.append(std::move(row));
@@ -275,9 +270,9 @@ void SourceFileModel::revalidate() {
             }
         }
     }
-    Q_EMIT dataChanged(index(0), index(count - 1),
-                       {SourcePathRole, FileNameRole, KindRole, CheckTypeRole, SizeRole,
-                        MessageRole});
+    Q_EMIT dataChanged(
+        index(0), index(count - 1),
+        {SourcePathRole, FileNameRole, KindRole, CheckTypeRole, SizeRole, MessageRole});
 }
 
 }  // namespace adl::gen

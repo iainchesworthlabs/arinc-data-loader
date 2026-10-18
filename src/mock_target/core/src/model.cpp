@@ -145,7 +145,7 @@ void StoredFilesModel::append(const QList<StoredFileRow>& rows) {
     if (rows.isEmpty()) {
         return;
     }
-    beginInsertRows({}, rowCount(), rowCount() + rows.size() - 1);
+    beginInsertRows({}, rowCount(), rowCount() + static_cast<int>(rows.size()) - 1);
     for (const StoredFileRow& row : rows) {
         rows_.push_back(row);
     }

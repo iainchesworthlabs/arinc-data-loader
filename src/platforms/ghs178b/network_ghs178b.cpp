@@ -135,9 +135,9 @@ public:
         for (;;) {
             // flags 0 and tolen sizeof(struct sockaddr_in): the server
             // refuses anything else with EINVAL.
-            const ssize_t sent = sendto(fd_, data.data(), data.size(), 0,
-                                        reinterpret_cast<const sockaddr*>(&address),
-                                        sizeof address);
+            const ssize_t sent =
+                sendto(fd_, data.data(), data.size(), 0,
+                       reinterpret_cast<const sockaddr*>(&address), sizeof address);
             if (sent >= 0) {
                 return {};
             }

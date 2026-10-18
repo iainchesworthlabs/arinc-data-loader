@@ -103,8 +103,8 @@ Duration to_duration(const Time& time) noexcept {
     }
     // Round to the nearest nanosecond: add half a nanosecond's worth of
     // fraction units before dividing.
-    const std::uint64_t nanos = (time.Fraction * nanoseconds_per_second + fraction_scale / 2) /
-                                fraction_scale;
+    const std::uint64_t nanos =
+        (time.Fraction * nanoseconds_per_second + fraction_scale / 2) / fraction_scale;
     if (whole > static_cast<std::uint64_t>(Duration::max().count()) - nanos) {
         return forever;
     }
@@ -125,9 +125,9 @@ Time to_time(Duration duration) noexcept {
     constexpr std::uint64_t seconds_ceiling = 0xFFFFFFFFu;
     const std::uint64_t seconds = total / nanoseconds_per_second;
     time.Seconds = static_cast<time_t>(seconds > seconds_ceiling ? seconds_ceiling : seconds);
-    time.Fraction = static_cast<UINT4>(((total % nanoseconds_per_second) * fraction_scale +
-                                        nanoseconds_per_second / 2) /
-                                       nanoseconds_per_second);
+    time.Fraction = static_cast<UINT4>(
+        ((total % nanoseconds_per_second) * fraction_scale + nanoseconds_per_second / 2) /
+        nanoseconds_per_second);
     return time;
 }
 

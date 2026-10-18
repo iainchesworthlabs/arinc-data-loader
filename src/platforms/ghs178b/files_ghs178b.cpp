@@ -36,9 +36,7 @@ public:
         return fail(ErrorCode::unsupported);
     }
 
-    Result<void> remove(std::string_view) noexcept override {
-        return fail(ErrorCode::unsupported);
-    }
+    Result<void> remove(std::string_view) noexcept override { return fail(ErrorCode::unsupported); }
 
     Result<void> rename(std::string_view, std::string_view) noexcept override {
         return fail(ErrorCode::unsupported);

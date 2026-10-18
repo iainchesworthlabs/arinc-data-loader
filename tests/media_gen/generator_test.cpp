@@ -66,10 +66,10 @@ bool has_file(const arinc665::MediaMember& member, std::string_view pathname,
 
 const arinc665::MediaMember* member_of(const std::vector<arinc665::MediaMember>& members,
                                        std::uint16_t sequence_number) {
-    const auto found = std::find_if(members.begin(), members.end(),
-                                    [&](const arinc665::MediaMember& member) {
-                                        return member.sequence_number == sequence_number;
-                                    });
+    const auto found =
+        std::find_if(members.begin(), members.end(), [&](const arinc665::MediaMember& member) {
+            return member.sequence_number == sequence_number;
+        });
     return found == members.end() ? nullptr : &*found;
 }
 
@@ -120,22 +120,20 @@ void GeneratorTest::generates_a_verified_media_set() {
     QVERIFY(set.has_value());
     QVERIFY(set->findings.empty());
     QCOMPARE(set->loads.size(), std::size_t{1});
-    QCOMPARE(QString::fromStdString(set->loads[0].header_file_name),
-             QStringLiteral("ACM.LUH"));
-    QCOMPARE(QString::fromStdString(
-                 std::string{set->loads[0].header.load_part_number.view()}),
+    QCOMPARE(QString::fromStdString(set->loads[0].header_file_name), QStringLiteral("ACM.LUH"));
+    QCOMPARE(QString::fromStdString(std::string{set->loads[0].header.load_part_number.view()}),
              QStringLiteral("ACM47-1234-5678"));
-    QCOMPARE(QString::fromStdString(
-                 std::string{set->loads_list.identity.media_set_part_number.view()}),
-             set_part_number);
+    QCOMPARE(
+        QString::fromStdString(std::string{set->loads_list.identity.media_set_part_number.view()}),
+        set_part_number);
     QCOMPARE(set->loads_list.identity.number_of_media_set_members, std::uint8_t{1});
     // The load the set holds verifies end to end (read_media_set already does, checked twice
     // here because it is the point of the generator).
     QVERIFY(arinc665::verify_load(set->loads[0]).has_value());
 
     // The data loader reads what the generator made, exactly as an operator hands it over.
-    const adl::app::MediaSetSummary summary = adl::app::read_media_set_summary(
-        QString::fromStdU16String(root.u16string()));
+    const adl::app::MediaSetSummary summary =
+        adl::app::read_media_set_summary(QString::fromStdU16String(root.u16string()));
     QVERIFY2(summary.error.isEmpty(), qPrintable(summary.error));
     QCOMPARE(summary.part_number, set_part_number);
     QCOMPARE(summary.members, 1);
@@ -172,9 +170,8 @@ void GeneratorTest::refuses_an_invalid_form() {
                            adl::gen::SourceFileModel::FileNameRole));
     QVERIFY(!model.canGenerate());
     QVERIFY(!model.filesError().isEmpty());
-    QVERIFY(!files->data(files->index(0), adl::gen::SourceFileModel::MessageRole)
-                 .toString()
-                 .isEmpty());
+    QVERIFY(
+        !files->data(files->index(0), adl::gen::SourceFileModel::MessageRole).toString().isEmpty());
     model.generate();
     QCOMPARE(model.resultState(), 2);
     QVERIFY(!directory_exists(expected_root(output.path())));
@@ -197,13 +194,12 @@ void GeneratorTest::refuses_duplicate_file_names() {
 
     adl::gen::GeneratorModel model;
     fill_form(model, output.path());
-    model.addFiles({url_of(sources.path() / "DATA.LUP"),
-                    url_of(sources.path() / "other" / "DATA.LUP")});
+    model.addFiles(
+        {url_of(sources.path() / "DATA.LUP"), url_of(sources.path() / "other" / "DATA.LUP")});
     auto* files = static_cast<adl::gen::SourceFileModel*>(model.files());
     QCOMPARE(files->rowCount(), 2);
-    QVERIFY(!files->data(files->index(1), adl::gen::SourceFileModel::MessageRole)
-                 .toString()
-                 .isEmpty());
+    QVERIFY(
+        !files->data(files->index(1), adl::gen::SourceFileModel::MessageRole).toString().isEmpty());
     QVERIFY(!model.canGenerate());
     model.generate();
     QCOMPARE(model.resultState(), 2);
@@ -282,8 +278,7 @@ void GeneratorTest::cancel_writes_nothing() {
     const std::vector<std::byte> bytes(file_bytes, std::byte{0xAB});
     QList<QUrl> urls;
     for (int i = 0; i < file_count; ++i) {
-        const std::string name = "BULK" + std::to_string(i / 10) + std::to_string(i % 10) +
-                                 ".LUP";
+        const std::string name = "BULK" + std::to_string(i / 10) + std::to_string(i % 10) + ".LUP";
         std::filesystem::path path = sources.path() / name;
         std::ofstream out(path, std::ios::binary);
         out.write(reinterpret_cast<const char*>(bytes.data()),
@@ -335,17 +330,13 @@ void GeneratorTest::writes_the_batch_when_asked() {
     QVERIFY(set->findings.empty());
     QVERIFY(set->batches_list.has_value());
     QCOMPARE(set->batches.size(), std::size_t{1});
-    QCOMPARE(QString::fromStdString(set->batches[0].file_name),
-             QStringLiteral("ACM.LUB"));
-    QCOMPARE(QString::fromStdString(
-                 std::string{set->batches[0].batch.batch_part_number.view()}),
+    QCOMPARE(QString::fromStdString(set->batches[0].file_name), QStringLiteral("ACM.LUB"));
+    QCOMPARE(QString::fromStdString(std::string{set->batches[0].batch.batch_part_number.view()}),
              QStringLiteral("ACM4C-0100-0200"));
     QCOMPARE(set->batches[0].batch.targets.size(), std::size_t{1});
-    QCOMPARE(QString::fromStdString(
-                 set->batches[0].batch.targets[0].target_hardware_id_position),
+    QCOMPARE(QString::fromStdString(set->batches[0].batch.targets[0].target_hardware_id_position),
              QStringLiteral("ACME"));
     QCOMPARE(set->batches[0].batch.targets[0].loads.size(), std::size_t{1});
-    QCOMPARE(QString::fromStdString(
-                 set->batches[0].batch.targets[0].loads[0].header_file_name),
+    QCOMPARE(QString::fromStdString(set->batches[0].batch.targets[0].loads[0].header_file_name),
              QStringLiteral("ACM.LUH"));
 }

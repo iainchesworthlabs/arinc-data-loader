@@ -23,15 +23,15 @@ class GeneratorModel : public QObject {
     // The form.
     Q_PROPERTY(QString loadPartNumber READ loadPartNumber WRITE setLoadPartNumber NOTIFY
                    loadPartNumberChanged)
-    Q_PROPERTY(QString mediaSetPartNumber READ mediaSetPartNumber WRITE setMediaSetPartNumber
-                   NOTIFY mediaSetPartNumberChanged)
+    Q_PROPERTY(QString mediaSetPartNumber READ mediaSetPartNumber WRITE setMediaSetPartNumber NOTIFY
+                   mediaSetPartNumberChanged)
     Q_PROPERTY(QString batchPartNumber READ batchPartNumber WRITE setBatchPartNumber NOTIFY
                    batchPartNumberChanged)
     Q_PROPERTY(bool includeBatch READ includeBatch WRITE setIncludeBatch NOTIFY includeBatchChanged)
     Q_PROPERTY(QString headerFileName READ headerFileName WRITE setHeaderFileName NOTIFY
                    headerFileNameChanged)
-    Q_PROPERTY(int loadTypeIndex READ loadTypeIndex WRITE setLoadTypeIndex NOTIFY
-                   loadTypeIndexChanged)
+    Q_PROPERTY(
+        int loadTypeIndex READ loadTypeIndex WRITE setLoadTypeIndex NOTIFY loadTypeIndexChanged)
     Q_PROPERTY(QStringList targetHardwareIds READ targetHardwareIds WRITE setTargetHardwareIds
                    NOTIFY targetHardwareIdsChanged)
     Q_PROPERTY(int memberCount READ memberCount WRITE setMemberCount NOTIFY memberCountChanged)
@@ -44,18 +44,18 @@ class GeneratorModel : public QObject {
     Q_PROPERTY(QString outputDirectory READ outputDirectory NOTIFY outputDirectoryChanged)
 
     // What is wrong with the form, empty field by field when nothing is.
-    Q_PROPERTY(QString loadPartNumberError READ loadPartNumberError NOTIFY
-                   loadPartNumberErrorChanged)
+    Q_PROPERTY(
+        QString loadPartNumberError READ loadPartNumberError NOTIFY loadPartNumberErrorChanged)
     Q_PROPERTY(QString mediaSetPartNumberError READ mediaSetPartNumberError NOTIFY
                    mediaSetPartNumberErrorChanged)
-    Q_PROPERTY(QString batchPartNumberError READ batchPartNumberError NOTIFY
-                   batchPartNumberErrorChanged)
-    Q_PROPERTY(QString headerFileNameError READ headerFileNameError NOTIFY
-                   headerFileNameErrorChanged)
+    Q_PROPERTY(
+        QString batchPartNumberError READ batchPartNumberError NOTIFY batchPartNumberErrorChanged)
+    Q_PROPERTY(
+        QString headerFileNameError READ headerFileNameError NOTIFY headerFileNameErrorChanged)
     Q_PROPERTY(QString targetHardwareIdsError READ targetHardwareIdsError NOTIFY
                    targetHardwareIdsErrorChanged)
-    Q_PROPERTY(QString outputDirectoryError READ outputDirectoryError NOTIFY
-                   outputDirectoryErrorChanged)
+    Q_PROPERTY(
+        QString outputDirectoryError READ outputDirectoryError NOTIFY outputDirectoryErrorChanged)
     Q_PROPERTY(QString filesError READ filesError NOTIFY filesErrorChanged)
 
     // A generation may start: the form is valid, there is at least one data file and an output

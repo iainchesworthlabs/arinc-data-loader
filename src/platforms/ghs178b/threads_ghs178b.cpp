@@ -161,8 +161,8 @@ public:
         } else {
             (void)SetClockAlarm(alarm_clock_, false, NULL, NULL);  // disarm, defensively
         }
-        if (!receive_armed(AsynchronousReceive(sem_activity_,
-                                               reinterpret_cast<Object>(semaphore_), NULL))) {
+        if (!receive_armed(
+                AsynchronousReceive(sem_activity_, reinterpret_cast<Object>(semaphore_), NULL))) {
             // Without the armed receive a release lands in the kernel count,
             // where polling can still see it.
             return poll_until(finite ? deadline : Instant{Duration::max()});
@@ -314,8 +314,8 @@ public:
         const Value clock_id = next_id_++;
         const Value sem_id = next_id_++;
         Activity clock_activity = NULLActivity;
-        const Error created_clock_activity = CreateActivity(
-            CurrentTask(), activity_priority, false, clock_id, &clock_activity);
+        const Error created_clock_activity =
+            CreateActivity(CurrentTask(), activity_priority, false, clock_id, &clock_activity);
         if (created_clock_activity != Success) {
             return ghs::fail_native(created_clock_activity);
         }
@@ -325,8 +325,8 @@ public:
             return ghs::fail_native(armed_clock);
         }
         Activity sem_activity = NULLActivity;
-        const Error created_sem_activity = CreateActivity(
-            CurrentTask(), activity_priority, false, sem_id, &sem_activity);
+        const Error created_sem_activity =
+            CreateActivity(CurrentTask(), activity_priority, false, sem_id, &sem_activity);
         if (created_sem_activity != Success) {
             return ghs::fail_native(created_sem_activity);
         }

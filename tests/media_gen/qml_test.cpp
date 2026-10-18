@@ -102,8 +102,7 @@ int main(int argc, char* argv[]) {
     model.addFiles({url_of(data_path), url_of(support_path)});
     // CONFIG.LDR is the classic support file, not a data file.
     auto* files = static_cast<adl::gen::SourceFileModel*>(model.files());
-    files->setData(files->index(1), QStringLiteral("support"),
-                   adl::gen::SourceFileModel::KindRole);
+    files->setData(files->index(1), QStringLiteral("support"), adl::gen::SourceFileModel::KindRole);
 
     QQmlApplicationEngine engine;
     int complaints = 0;
@@ -134,8 +133,7 @@ int main(int argc, char* argv[]) {
 
     // The form the model holds should be enough for a generation.
     if (!model.canGenerate()) {
-        std::fprintf(stderr, "the form is not ready: %s\n",
-                     qPrintable(model.filesError()));
+        std::fprintf(stderr, "the form is not ready: %s\n", qPrintable(model.filesError()));
         return 1;
     }
     QQuickItem* button = find_item(window->contentItem(), QStringLiteral("generateButton"));

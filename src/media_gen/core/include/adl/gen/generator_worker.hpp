@@ -38,8 +38,8 @@ struct GenerateJob {
     QString header_file_name;
     int load_type_index = -1;  // -1: no load type
     QStringList target_hardware_ids;
-    int member_count = 1;  // 1 to 255
-    int file_check_type = 0;        // CheckValueType indices
+    int member_count = 1;     // 1 to 255
+    int file_check_type = 0;  // CheckValueType indices
     int files_list_check_type = 0;
     int load_check_type = 0;
     QString output_directory;  // the generated set is written below it
@@ -53,8 +53,8 @@ struct GenerateOutcome {
     int state = 0;
     QString text;
     QString detail;
-    QString output_path;  // where the set was written, when it was
-    QStringList findings; // "clause: message"
+    QString output_path;   // where the set was written, when it was
+    QStringList findings;  // "clause: message"
     int members = 0;
     int data_files = 0;
     int support_files = 0;

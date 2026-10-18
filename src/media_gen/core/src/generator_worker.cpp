@@ -141,14 +141,15 @@ void GeneratorWorker::generate(const GenerateJob& job) {
         }
         PendingFile entry;
         entry.meta = meta;
-        entry.bytes.resize(static_cast<std::size_t>(sizes.at(i)));
+        const qint64 size = sizes[static_cast<std::size_t>(i)];
+        entry.bytes.resize(static_cast<std::size_t>(size));
         stream.read(reinterpret_cast<char*>(entry.bytes.data()),
-                    static_cast<std::streamsize>(sizes.at(i)));
+                    static_cast<std::streamsize>(size));
         if (!stream) {
             fail(outcome, tr("Cannot read %1.").arg(meta.source_path));
             return;
         }
-        bytes_read += sizes.at(i);
+        bytes_read += size;
         pending.push_back(std::move(entry));
         const int percent =
             total_bytes == 0 ? 100 : static_cast<int>(bytes_read * 100 / total_bytes);
@@ -292,9 +293,9 @@ void GeneratorWorker::generate(const GenerateJob& job) {
         if (written.error().error == adl::media_tree::TreeError::already_exists) {
             continue;  // appeared while we looked: take the next name
         }
-        write_error = tr("%1 (%2)").arg(
-            path_to_qstring(written.error().path),
-            to_qstring(adl::media_tree::to_string(written.error().error)));
+        write_error =
+            tr("%1 (%2)").arg(path_to_qstring(written.error().path),
+                              to_qstring(adl::media_tree::to_string(written.error().error)));
         break;
     }
     if (root.empty()) {
@@ -332,17 +333,16 @@ void GeneratorWorker::generate(const GenerateJob& job) {
         outcome.findings.append(findings_line(finding));
     }
     outcome.text = tr("Media set %1 written and verified.").arg(job.media_set_part_number);
-    outcome.detail =
-        tr("%1 data file(s), %2 support file(s), %3 bytes in %4 member(s), in %5.")
-            .arg(outcome.data_files)
-            .arg(outcome.support_files)
-            .arg(outcome.total_bytes)
-            .arg(outcome.members)
-            .arg(outcome.output_path);
+    outcome.detail = tr("%1 data file(s), %2 support file(s), %3 bytes in %4 member(s), in %5.")
+                         .arg(outcome.data_files)
+                         .arg(outcome.support_files)
+                         .arg(outcome.total_bytes)
+                         .arg(outcome.members)
+                         .arg(outcome.output_path);
     if (!outcome.findings.isEmpty()) {
-        outcome.detail += QStringLiteral(" ") +
-                          tr("%n difference(s) from the standard's recommendations.", "",
-                             outcome.findings.size());
+        outcome.detail +=
+            QStringLiteral(" ") + tr("%n difference(s) from the standard's recommendations.", "",
+                                     static_cast<int>(outcome.findings.size()));
     }
     Q_EMIT progress(100);
     Q_EMIT finished(outcome);

@@ -598,7 +598,7 @@ Bytes MockEngine::build_status(const StatusSpec& spec, std::uint16_t counter) {
             for (const UploadLoad& load : loads_) {
                 const bool done = spec.code == StatusCode::completed;
                 const std::uint8_t ratio =
-                    done ? 100
+                    done ? std::uint8_t{100}
                          : static_cast<std::uint8_t>(
                                load.files.empty() ? 0 : load.files_done * 100 / load.files.size());
                 loads.push_back(LoadProgress{load.header_name, load.part_number, ratio,

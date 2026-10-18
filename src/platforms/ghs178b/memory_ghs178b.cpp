@@ -74,12 +74,11 @@ public:
         // resident is the same memory: an application partition does not
         // page, and there is nothing to lock.
         (void)use;
-        for (Free** previous = &free_; *previous != nullptr;
-             previous = &link(*previous)->next) {
+        for (Free** previous = &free_; *previous != nullptr; previous = &link(*previous)->next) {
             std::byte* const block = reinterpret_cast<std::byte*>(*previous);
             const std::size_t block_size = header(block)->size;
-            std::byte* const user = reinterpret_cast<std::byte*>(align_up(
-                reinterpret_cast<std::uintptr_t>(block + sizeof(Header)), alignment));
+            std::byte* const user = reinterpret_cast<std::byte*>(
+                align_up(reinterpret_cast<std::uintptr_t>(block + sizeof(Header)), alignment));
             if (user == nullptr) {
                 continue;  // align_up overflowed; no block can hold this
             }
@@ -164,9 +163,7 @@ public:
     }
 
 private:
-    static Header* header(void* block) noexcept {
-        return reinterpret_cast<Header*>(block);
-    }
+    static Header* header(void* block) noexcept { return reinterpret_cast<Header*>(block); }
     static Free* link(void* block) noexcept {
         return reinterpret_cast<Free*>(static_cast<std::byte*>(block) + sizeof(Header));
     }
