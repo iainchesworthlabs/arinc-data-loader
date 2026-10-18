@@ -32,6 +32,19 @@ tree and the samples), `adl_platform_tests` (the platform layer: its portable
 types, the fake platform and the conformance suite) and `adl_engine_tests` (the 615A engine,
 runner and the whole operations against a simulated target on the fake platform).
 
+Two things a confined shell (a container where only the source tree is writable, or Windows'
+sandbox) trips over, neither of them a test failure:
+
+- Catch2 discovers every test by running the test program as it links, writing the listing to
+  `%TEMP%` (or `$TMPDIR`). If writes outside the tree are refused, point TMP and TEMP at a
+  directory inside the build tree before configuring; otherwise the build stops with "Error
+  listing tests from executable" and no output.
+- `platform.selector` configures and builds a probe with the MSVC toolchain, which needs
+  `rc.exe` on PATH: run `ctest` from a Visual Studio developer shell.
+
+The window's tests run offscreen (no desktop needed): the test's environment sets
+`QT_QPA_PLATFORM=offscreen` and points at the Qt kit's plugin directory.
+
 The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]`,
 `[naming]`, `[header]`, `[load]`, `[batch]`, `[media-files]`, `[media-set]`,
 `[label]`, `[media-tree]`, `[golden]`, `[compatibility]`, `[limits]`, `[robustness]` and
