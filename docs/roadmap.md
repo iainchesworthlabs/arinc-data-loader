@@ -133,12 +133,16 @@ listener.
 
 ## 6. An embedded target
 
-A build of the loader library for VxWorks 178C, and possibly other targets
-after it. The platform layer is shaped for it ([platform
-abstraction](platform-abstraction.md)): a design for VxWorks, FreeRTOS, Zephyr and
-QNX, code for QNX that has never been compiled, and a selector that takes
-`-DADL_TARGET_PLATFORM`. The structure is meant to make this a new platform and not
-a new codebase:
+A build of the loader library for an embedded RTOS. The first concrete attempt
+is the **Green Hills INTEGRITY support** ([the GHS review](platform-ghs.md)):
+`ghs508` (INTEGRITY 5.0.8, on the shared POSIX sources) and `ghs178b`
+(INTEGRITY-178B, a native port), both unbuilt, with `cmake/FindIntegrity.cmake`,
+`cmake/FindIntegrity178.cmake`, the GHS toolchain files and presets. VxWorks
+178C remains the design target it was. The platform layer is shaped for all of
+them ([platform abstraction](platform-abstraction.md)): a design for VxWorks,
+FreeRTOS and Zephyr, code for QNX and INTEGRITY that has never been compiled,
+and a selector that takes `-DADL_TARGET_PLATFORM`. The structure is meant to
+make each a new platform and not a new codebase:
 
 - an implementation of each platform interface in `src/platforms/vxworks` (the
   fragment and the branch in `cmake/Platform.cmake` already exist), with a

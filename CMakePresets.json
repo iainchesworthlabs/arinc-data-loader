@@ -135,6 +135,73 @@
         "macos-clang-base",
         "release"
       ]
+    },
+    {
+      "name": "ghs-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADL_BUILD_TESTS": "OFF",
+        "ADL_BUILD_APP": "OFF",
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ADL_ACCEPT_UNBUILT_PLATFORM": "ON"
+      }
+    },
+    {
+      "name": "ghs508-ghs-base",
+      "hidden": true,
+      "inherits": [
+        "ghs-base"
+      ],
+      "toolchainFile": "${sourceDir}/cmake/toolchains/ghs-integrity508.cmake",
+      "cacheVariables": {
+        "ADL_TARGET_PLATFORM": "ghs508"
+      }
+    },
+    {
+      "name": "ghs508-ghs-debug",
+      "displayName": "INTEGRITY 5.0.8 (GHS, Debug)",
+      "inherits": [
+        "ghs508-ghs-base",
+        "debug"
+      ]
+    },
+    {
+      "name": "ghs508-ghs-release",
+      "displayName": "INTEGRITY 5.0.8 (GHS, Release)",
+      "inherits": [
+        "ghs508-ghs-base",
+        "release"
+      ]
+    },
+    {
+      "name": "ghs178b-ghs-base",
+      "hidden": true,
+      "inherits": [
+        "ghs-base"
+      ],
+      "toolchainFile": "${sourceDir}/cmake/toolchains/ghs-integrity178b.cmake",
+      "cacheVariables": {
+        "ADL_TARGET_PLATFORM": "ghs178b"
+      }
+    },
+    {
+      "name": "ghs178b-ghs-debug",
+      "displayName": "INTEGRITY-178B (GHS, Debug)",
+      "inherits": [
+        "ghs178b-ghs-base",
+        "debug"
+      ]
+    },
+    {
+      "name": "ghs178b-ghs-release",
+      "displayName": "INTEGRITY-178B (GHS, Release)",
+      "inherits": [
+        "ghs178b-ghs-base",
+        "release"
+      ]
     }
   ],
   "buildPresets": [
@@ -144,7 +211,11 @@
     { "name": "linux-gcc-release", "configurePreset": "linux-gcc-release" },
     { "name": "linux-gcc-coverage", "configurePreset": "linux-gcc-coverage" },
     { "name": "macos-clang-debug", "configurePreset": "macos-clang-debug" },
-    { "name": "macos-clang-release", "configurePreset": "macos-clang-release" }
+    { "name": "macos-clang-release", "configurePreset": "macos-clang-release" },
+    { "name": "ghs508-ghs-debug", "configurePreset": "ghs508-ghs-debug" },
+    { "name": "ghs508-ghs-release", "configurePreset": "ghs508-ghs-release" },
+    { "name": "ghs178b-ghs-debug", "configurePreset": "ghs178b-ghs-debug" },
+    { "name": "ghs178b-ghs-release", "configurePreset": "ghs178b-ghs-release" }
   ],
   "testPresets": [
     {

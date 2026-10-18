@@ -17,6 +17,10 @@ const char* host_name() noexcept {
     return "macos";
 }
 
+bool is_real_time() noexcept {
+    return false;
+}
+
 int init_condition(pthread_cond_t& condition) noexcept {
     // macOS cannot choose the clock of a condition variable, so waits are made
     // relative (below), which a wall-clock step does not disturb.

@@ -1,0 +1,36 @@
+// std::filesystem::path shim for GHS builds whose standard library predates
+// <filesystem> (C++17). The interfaces declare adl::platform::executable_path()
+// as returning std::filesystem::path (paths.hpp), and the INTEGRITY
+// implementations return the empty path - an application partition has no
+// program file. This shim is therefore the smallest honest path: a type that
+// constructs from anything, compares, and reports itself empty. Any code that
+// needs real path behaviour will not compile against it, which is the point:
+// on a GHS target the loader takes its data locations from configuration, not
+// from where it was loaded from.
+
+#pragma once
+
+namespace std::filesystem {
+
+class path {
+public:
+    path() = default;
+    path(const path&) = default;
+    path(path&&) = default;
+    path& operator=(const path&) = default;
+    path& operator=(path&&) = default;
+
+    // Every source is accepted and discarded: the INTEGRITY platforms build
+    // no path from one (paths_ghs508.cpp, paths_ghs178b.cpp return {}).
+    template <class Source>
+    path(const Source&) noexcept {}
+    template <class Source>
+    path(Source&&) noexcept {}
+
+    constexpr bool empty() const noexcept { return true; }
+
+    friend constexpr bool operator==(const path&, const path&) noexcept { return true; }
+    friend constexpr bool operator!=(const path&, const path&) noexcept { return false; }
+};
+
+}  // namespace std::filesystem

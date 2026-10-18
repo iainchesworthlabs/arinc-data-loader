@@ -30,10 +30,12 @@ This is the data format and the foundation, not a loader yet. What exists:
 - **`adl::platform`**, the one place that knows which operating system this is:
   files, memory, threads and priorities, a clock, UDP sockets and message queues,
   as interfaces with an implementation each for Windows, Linux and macOS, and a
-  fake that runs the whole engine without a socket or a real second. Designed so
-  that QNX, VxWorks, FreeRTOS and Zephyr can be added.
+  fake that runs the whole engine without a socket or a real second. QNX and the
+  two Green Hills INTEGRITY ports (5.0.8 and 178B) have code that has never been
+  compiled; VxWorks, FreeRTOS and Zephyr are designs.
   [docs/platform-abstraction.md](docs/platform-abstraction.md) has the design and
-  says what has been verified.
+  says what has been verified; [docs/platform-ghs.md](docs/platform-ghs.md) is the
+  review behind the INTEGRITY ports.
 - **`adl::arinc615a`**, the data loader's side of ARINC 615A-3. The codec: the TFTP
   packets with their options (and the WAIT and ABORT messages), the FIND packets and
   the twelve protocol files (`.LCI`, `.LCL`, `.LCS`, `.LUI`, `.LUR`, `.LUS`, `.LND`,
@@ -55,8 +57,8 @@ This is the data format and the foundation, not a loader yet. What exists:
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
 against another tool's files and ARINC 615A against a real target, the rest of the Qt 6.12
-application (FIND, a target, the Information operation and Upload are built; Download is next), Tracy profiling, and a build of the loader library for an embedded VxWorks
-target.
+application (FIND, a target, the Information operation and Upload are built; Download is next), Tracy profiling, and a build of the loader library for an embedded target (the Green
+Hills INTEGRITY ports are written and unbuilt; VxWorks is a design).
 
 ## Build
 

@@ -57,6 +57,13 @@ configure_case(qnx_refused OFF "ADL_ACCEPT_UNBUILT_PLATFORM" -DADL_TARGET_PLATFO
 configure_case(qnx_accepted ON "for QNX Neutrino" -DADL_TARGET_PLATFORM=qnx
     -DADL_ACCEPT_UNBUILT_PLATFORM=ON)
 
+# The two INTEGRITY platforms carry code that has never been compiled, so they
+# are refused the same way. (Whether they configure once accepted depends on a
+# GHS toolchain and an INTEGRITY installation this host may or may not have,
+# so acceptance is not asserted here.)
+configure_case(ghs508_refused OFF "ADL_ACCEPT_UNBUILT_PLATFORM" -DADL_TARGET_PLATFORM=ghs508)
+configure_case(ghs178b_refused OFF "ADL_ACCEPT_UNBUILT_PLATFORM" -DADL_TARGET_PLATFORM=ghs178b)
+
 # A name that is not a platform is an error that lists the ones that are.
 configure_case(nonsense OFF "which is not a platform" -DADL_TARGET_PLATFORM=nonsense)
 

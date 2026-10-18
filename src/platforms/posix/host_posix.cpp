@@ -31,7 +31,9 @@ public:
         return {};
     }
 
-    HostInfo info() const noexcept override { return HostInfo{posix_os::host_name(), false}; }
+    HostInfo info() const noexcept override {
+        return HostInfo{posix_os::host_name(), posix_os::is_real_time()};
+    }
     Clock& clock() noexcept override { return *clock_; }
     MemoryProvider& memory() noexcept override { return *memory_; }
     FileSystem& files() noexcept override { return *files_; }

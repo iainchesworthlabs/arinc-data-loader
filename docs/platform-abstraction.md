@@ -4,8 +4,10 @@ What the loader needs from the system it runs on, as interfaces in
 `src/platforms/interfaces/adl/platform/`, with one implementation per
 operating system beside them. This page is the design: the four areas
 (files, memory, threads and time, networking and message passing), why each is
-shaped as it is, how each of seven operating systems provides it, and what is
-and is not known to work.
+shaped as it is, how each of the operating systems provides it, and what is
+and is not known to work. The two Green Hills INTEGRITY ports have their own
+review, [the GHS review](platform-ghs.md), because they were built against the
+vendor's source trees rather than its documentation.
 
 [Platform isolation](platform-isolation.md) is the rule that keeps the operating
 system out of the rest of the source, and how to add a platform. This page is
@@ -21,23 +23,30 @@ Be clear about this before reading further.
 | Linux | **supported** | Built and tested by CI (GCC), and in a container by the author (GCC 15, Debug under AddressSanitizer and UBSan, and Release) |
 | macOS | **supported, not yet seen to run** | Written to the same pattern and built by CI (AppleClang); nobody had run it when this was written. The first CI run is its first test. The places most likely to need a fix are listed under [Risks](#gaps-and-risks) |
 | QNX Neutrino | **unbuilt** | Code exists (`src/platforms/qnx`, on top of the shared `posix/` sources) and has never been compiled against the QNX headers or run. The selector refuses it unless asked (`-DADL_ACCEPT_UNBUILT_PLATFORM=ON`) |
+| INTEGRITY 5.0.8 (GHS) | **unbuilt** | Code exists (`src/platforms/ghs508`, on top of `posix/`) and has never been compiled against the INTEGRITY headers or run; no GHS toolchain exists on this project's machines. [The GHS review](platform-ghs.md) lists the places INTEGRITY's POSIX may differ |
+| INTEGRITY-178B (GHS) | **unbuilt** | Code exists (`src/platforms/ghs178b`, a native port: semaphores, the virtual-clock time-out pattern, ipflite) and has never been compiled. `Threading::spawn` and the `FileSystem` are `unsupported` on purpose; [the GHS review](platform-ghs.md) says why |
 | VxWorks | **design only** | No code. The fragment exists so the name is known and a build is refused with an explanation |
 | FreeRTOS | **design only** | As VxWorks |
 | Zephyr | **design only** | As VxWorks |
 
-Only the three desktops can be built and tested here. For the four others
-this page says what the operating system offers as the author understands it
-from its documentation, without having built against it. Every such statement
-is a claim to check against the vendor's headers when a port is started, and
-the tables mark where the author is unsure.
+Only the three desktops can be built and tested here. For the others this
+page says what the operating system offers as the author understands it from
+its documentation, without having built against it (the two INTEGRITY ports
+are reviewed against the supplied source trees in [the GHS
+review](platform-ghs.md)). Every such statement is a claim to check against the
+vendor's headers when a port is compiled, and the tables mark where the author
+is unsure.
 
 The choice to ship QNX as unbuilt code and the other three as designs was the
 author's, not the owner's: QNX is POSIX, so a port is a few hundred lines on
 top of what the desktops already share, while a VxWorks, FreeRTOS or Zephyr
 port is written against a particular configuration (VxWorks 178C's permitted
-API subset, FreeRTOS's choice of network stack and file system, Zephyr's Kconfig)
-that nobody here has. If the owner would rather have QNX as a design only, or a
-real attempt at one of the others, that is a change to a fragment and one file.
+API subset, FreeRTOS's choice of network stack and file system, Zephyr's
+Kconfig) that nobody here has. The Green Hills INTEGRITY ports (5.0.8 on the
+POSIX sources, 178B native) followed when their source trees became available;
+[the GHS review](platform-ghs.md) is where they are described. If the owner
+would rather have QNX as a design only, or a real attempt at one of the
+designs, that is a change to a fragment and one file.
 
 ## What 615A asks of a platform
 
@@ -509,8 +518,10 @@ cmake -DADL_TARGET_PLATFORM=freertos --toolchain <toolchain file> ...
 `ADL_TARGET_PLATFORM` is a cache variable read in one place, `cmake/Platform.cmake`,
 which is exempt from the rule against testing the operating system; every other
 file reads what the platform's fragment declared. It accepts `windows`, `linux`,
-`macos`, `qnx`, `vxworks`, `freertos` and `zephyr`. QNX is also recognised from
-`CMAKE_SYSTEM_NAME`, the one RTOS that CMake names. A platform's fragment declares
+`macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos` and `zephyr`. QNX is
+also recognised from `CMAKE_SYSTEM_NAME`, the one RTOS that CMake names (the two
+INTEGRITY targets are named through the GHS toolchain files, which set it as
+`Generic`). A platform's fragment declares
 `ADL_PLATFORM_STATUS` (`supported`, `unbuilt` or `design-only`); the selector
 refuses a design-only platform outright and an unbuilt one unless
 `-DADL_ACCEPT_UNBUILT_PLATFORM=ON`. Two tests hold this:

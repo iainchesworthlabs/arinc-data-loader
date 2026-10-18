@@ -113,6 +113,8 @@ does not write over a directory that has files in it.
 | `linux-gcc-debug`, `linux-gcc-release` | GCC | triplet `x64-linux` |
 | `linux-gcc-coverage` | GCC | Debug with `--coverage`; sanitizers off |
 | `macos-clang-debug`, `macos-clang-release` | AppleClang | triplet `arm64-osx` |
+| `ghs508-ghs-debug`, `ghs508-ghs-release` | GHS `cxppc` | INTEGRITY 5.0.8 cross build; `ADL_ACCEPT_UNBUILT_PLATFORM=ON`, tests and the app off; needs `INTEGRITY_ROOT`/`INTEGRITY_BSP_ROOT`/`INTEGRITY_TOOLCHAIN_ROOT` (or the compilers on PATH) |
+| `ghs178b-ghs-debug`, `ghs178b-ghs-release` | GHS `cxppc` | INTEGRITY-178B cross build; as above, with `INTEGRITY178_ROOT` |
 
 Each preset is available only on its own host. Debug presets turn on
 AddressSanitizer (and UndefinedBehaviorSanitizer where the compiler has it);
@@ -126,8 +128,14 @@ every first-party target is built with warnings as errors.
 | `ADL_ENABLE_SANITIZERS` | `ON` | ASan (and UBSan) in Debug |
 | `ADL_ENABLE_COVERAGE` | `OFF` | gcov-style instrumentation (the coverage preset sets it) |
 | `ADL_ENABLE_TRACY` | `OFF` | Links Tracy and pulls it from vcpkg; use a Release build for numbers worth reading |
-| `ADL_TARGET_PLATFORM` | empty | Names the platform for a cross build, where the toolchain does not (`windows`, `linux`, `macos`, `qnx`, `vxworks`, `freertos`, `zephyr`). A desktop build leaves it empty. See [platform isolation](platform-isolation.md#how-cmake-selects) |
-| `ADL_ACCEPT_UNBUILT_PLATFORM` | `OFF` | Allows building a platform whose code has never been compiled (today only QNX). A platform with no code at all is refused whatever this says |
+| `ADL_TARGET_PLATFORM` | empty | Names the platform for a cross build, where the toolchain does not (`windows`, `linux`, `macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos`, `zephyr`). A desktop build leaves it empty. See [platform isolation](platform-isolation.md#how-cmake-selects) |
+| `ADL_ACCEPT_UNBUILT_PLATFORM` | `OFF` | Allows building a platform whose code has never been compiled (QNX and the two INTEGRITY ports). A platform with no code at all is refused whatever this says |
+
+The Green Hills INTEGRITY platforms are [reviewed in
+docs/platform-ghs.md](platform-ghs.md): what the two source trees provide, how
+`cmake/FindIntegrity.cmake` and `cmake/FindIntegrity178.cmake` find them, and
+what is still open before a first compile. They have never been compiled and
+their code says so.
 
 ## Formatting
 

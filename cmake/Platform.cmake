@@ -79,13 +79,14 @@ include_guard(GLOBAL)
 if(ANDROID OR IOS OR EMSCRIPTEN)
     message(FATAL_ERROR
         "Only Windows, macOS and Linux desktops are supported targets today, with "
-        "QNX, VxWorks, FreeRTOS and Zephyr designed for (docs/platform-abstraction.md).")
+        "QNX, INTEGRITY, VxWorks, FreeRTOS and Zephyr designed for "
+        "(docs/platform-abstraction.md, docs/platform-ghs.md).")
 endif()
 
 set(ADL_TARGET_PLATFORM "" CACHE STRING
-    "The platform to build for when the toolchain does not say (an RTOS cross build): windows, linux, macos, qnx, vxworks, freertos or zephyr")
+    "The platform to build for when the toolchain does not say (an RTOS cross build): windows, linux, macos, qnx, ghs508, ghs178b, vxworks, freertos or zephyr")
 set_property(CACHE ADL_TARGET_PLATFORM PROPERTY STRINGS
-    "" windows linux macos qnx vxworks freertos zephyr)
+    "" windows linux macos qnx ghs508 ghs178b vxworks freertos zephyr)
 option(ADL_ACCEPT_UNBUILT_PLATFORM
     "Allow building for a platform whose code has never been compiled (status unbuilt)" OFF)
 
@@ -97,6 +98,10 @@ elseif(ADL_TARGET_PLATFORM STREQUAL "linux")
     set(ADL_PLATFORM linux)
 elseif(ADL_TARGET_PLATFORM STREQUAL "qnx")
     set(ADL_PLATFORM qnx)
+elseif(ADL_TARGET_PLATFORM STREQUAL "ghs508")
+    set(ADL_PLATFORM ghs508)
+elseif(ADL_TARGET_PLATFORM STREQUAL "ghs178b")
+    set(ADL_PLATFORM ghs178b)
 elseif(ADL_TARGET_PLATFORM STREQUAL "vxworks")
     set(ADL_PLATFORM vxworks)
 elseif(ADL_TARGET_PLATFORM STREQUAL "freertos")
@@ -106,7 +111,8 @@ elseif(ADL_TARGET_PLATFORM STREQUAL "zephyr")
 elseif(NOT ADL_TARGET_PLATFORM STREQUAL "")
     message(FATAL_ERROR
         "ADL_TARGET_PLATFORM is '${ADL_TARGET_PLATFORM}', which is not a platform. "
-        "The choices are windows, linux, macos, qnx, vxworks, freertos and zephyr.")
+        "The choices are windows, linux, macos, qnx, ghs508, ghs178b, vxworks, "
+        "freertos and zephyr.")
 elseif(WIN32)
     set(ADL_PLATFORM windows)
 elseif(APPLE)
@@ -118,9 +124,9 @@ elseif(UNIX)
 else()
     message(FATAL_ERROR
         "Cannot tell which platform this is. For an RTOS or other cross build, name it: "
-        "-DADL_TARGET_PLATFORM=<windows|linux|macos|qnx|vxworks|freertos|zephyr>. To add "
-        "a platform, add src/platforms/<name>/ with a platform.cmake (the contract is at the "
-        "top of cmake/Platform.cmake) and a branch for it in this file.")
+        "-DADL_TARGET_PLATFORM=<windows|linux|macos|qnx|ghs508|ghs178b|vxworks|freertos|zephyr>. "
+        "To add a platform, add src/platforms/<name>/ with a platform.cmake (the contract is at "
+        "the top of cmake/Platform.cmake) and a branch for it in this file.")
 endif()
 
 set(ADL_PLATFORM_DIR "${PROJECT_SOURCE_DIR}/src/platforms/${ADL_PLATFORM}")
@@ -136,10 +142,23 @@ adl_platform_check_contract("${ADL_PLATFORM_DIR}/platform.cmake"
 if(ADL_PLATFORM_STATUS STREQUAL "design-only")
     message(FATAL_ERROR
         "The ${ADL_PLATFORM_DISPLAY_NAME} platform is a design only: src/platforms/${ADL_PLATFORM}/ "
-        "has no implementation to build. See docs/platform-abstraction.md for what a port needs.")
+        "has no implementation to build. See docs/platform-abstraction.md and "
+        "docs/platform-ghs.md for what a port needs.")
 elseif(ADL_PLATFORM_STATUS STREQUAL "unbuilt" AND NOT ADL_ACCEPT_UNBUILT_PLATFORM)
     message(FATAL_ERROR
         "The ${ADL_PLATFORM_DISPLAY_NAME} platform has code that has never been compiled or run "
         "(docs/platform-abstraction.md, 'Status of each platform'). To try it anyway, "
         "configure with -DADL_ACCEPT_UNBUILT_PLATFORM=ON.")
+endif()
+
+# A platform that needs a vendor package says whether it found it, so a build
+# without the INTEGRITY installation fails here by name rather than in the
+# first source file that includes a header which is not there. A fragment in a
+# bare cmake -P process (tests/platform/check_fragments.cmake) must not fail
+# for a package that only a real build needs.
+if(DEFINED ADL_PLATFORM_PACKAGE_FOUND AND NOT ADL_PLATFORM_PACKAGE_FOUND
+   AND NOT CMAKE_SCRIPT_MODE_FILE)
+    message(FATAL_ERROR
+        "The ${ADL_PLATFORM_DISPLAY_NAME} platform needs ${ADL_PLATFORM_PACKAGE_NAME}, "
+        "which was not found. ${ADL_PLATFORM_PACKAGE_HINT}")
 endif()
