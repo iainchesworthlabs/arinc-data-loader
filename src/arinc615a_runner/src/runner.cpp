@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <adl/profiling.hpp>
+
 namespace adl::arinc615a {
 namespace {
 
@@ -97,6 +99,7 @@ Instant to_instant(adl::platform::Instant at) noexcept {
 
 std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation& operation,
                                              const RunOptions& options) noexcept {
+    const adl::profiling::Zone zone{"615a: run operation"};
     auto& network = host_.network();
     auto& clock = host_.clock();
 
@@ -180,6 +183,7 @@ std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation
 
 adl::platform::Result<std::size_t> Runner::find(const FindConfig& config, std::span<FindTarget> out,
                                                 std::uint16_t port) noexcept {
+    const adl::profiling::Zone zone{"615a: find"};
     auto& network = host_.network();
     auto& clock = host_.clock();
 

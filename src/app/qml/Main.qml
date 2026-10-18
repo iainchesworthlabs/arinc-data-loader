@@ -41,6 +41,12 @@ ApplicationWindow {
     minimumHeight: 520
     visible: true
 
+    // A right-to-left script mirrors the whole window, not only its text: the anchors and the
+    // layouts flip, and the language manager sets the application's layout direction before it
+    // retranslates. Every dialog inherits this.
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
+
     // The design tokens follow the palette Qt's Fusion style draws the standard controls from:
     // the dark scheme is the desktop's, not a second opinion. Set once, after the palette is.
     Component.onCompleted: {

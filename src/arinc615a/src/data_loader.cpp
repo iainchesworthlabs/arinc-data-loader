@@ -4,6 +4,8 @@
 #include <cstring>
 #include <variant>
 
+#include <adl/profiling.hpp>
+
 namespace adl::arinc615a {
 namespace {
 
@@ -109,6 +111,7 @@ DataLoader::DataLoader(const LoaderConfig& config, std::span<std::byte> workspac
     : config_(config), services_(services), workspace_(workspace) {}
 
 Result<void> DataLoader::start(Instant now, const Operation& operation) noexcept {
+    const adl::profiling::Zone zone{"615a: start operation"};
     if (started_) {
         return std::unexpected(Error::invalid_value);
     }

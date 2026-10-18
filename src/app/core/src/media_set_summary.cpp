@@ -8,10 +8,13 @@
 #include "adl/arinc665/media_set.hpp"
 #include "adl/media_tree/media_tree.hpp"
 
+#include <adl/profiling.hpp>
+
 namespace adl::app {
 
 MediaSetSummary read_media_set_summary(const QString& path,
                                        std::shared_ptr<const MediaSetIndex>* index) {
+    const adl::profiling::Zone zone{"app: read and validate media set"};
     if (index != nullptr) {
         index->reset();
     }

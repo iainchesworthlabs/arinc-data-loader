@@ -51,6 +51,8 @@ target_link_libraries(adl_app_qml
 
 qt_add_executable(adl_app
     main.cpp
+    frame_profiler.cpp
+    frame_profiler.hpp
     language_manager.cpp
     language_manager.hpp)
 
@@ -63,6 +65,13 @@ qt_add_translations(adl_app_qml
     IMMEDIATE_CALL
     TS_FILES
         translations/adl_app_en.ts
+        translations/adl_app_de.ts
+        translations/adl_app_es.ts
+        translations/adl_app_fr.ts
+        translations/adl_app_he.ts
+        translations/adl_app_ja.ts
+        translations/adl_app_yi.ts
+        translations/adl_app_zh.ts
     SOURCES
         ${ADL_APP_QML_FILES}
         core/src/engine_worker.cpp
@@ -77,6 +86,7 @@ target_link_libraries(adl_app
     PRIVATE
         $<LINK_LIBRARY:WHOLE_ARCHIVE,adl_app_qml>
         adl::app_core
+        adl::tracy
         Qt6::Gui
         Qt6::Qml
         Qt6::Quick

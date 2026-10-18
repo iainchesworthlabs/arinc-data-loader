@@ -42,6 +42,7 @@ target_link_libraries(adl_app_core
         adl::arinc665
         adl::platform
     PRIVATE
+        adl::tracy
         adl::media_tree
         adl::warnings
         adl::sanitizers

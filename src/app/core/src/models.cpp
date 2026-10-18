@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <utility>
 
+#include <adl/profiling.hpp>
+
 namespace adl::app {
 
 // ---- TargetModel -------------------------------------------------------------------------
@@ -318,6 +320,7 @@ void LoadModel::begin_upload() {
 }
 
 void LoadModel::apply_progress(const QList<LoadProgressRow>& progress) {
+    const adl::profiling::Zone zone{"app: load progress to model"};
     for (const LoadProgressRow& update : progress) {
         for (int i = 0; i < rows_.size(); ++i) {
             Row& row = rows_[i];
@@ -510,6 +513,7 @@ void DownloadModel::begin_download() {
 }
 
 void DownloadModel::apply_progress(const QList<FileProgressRow>& progress) {
+    const adl::profiling::Zone zone{"app: download progress to model"};
     for (const FileProgressRow& update : progress) {
         for (int i = 0; i < rows_.size(); ++i) {
             Row& row = rows_[i];

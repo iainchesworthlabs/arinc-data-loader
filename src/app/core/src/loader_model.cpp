@@ -6,6 +6,8 @@
 
 #include "adl/app/address.hpp"
 
+#include <adl/profiling.hpp>
+
 namespace adl::app {
 
 LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> settings,
@@ -98,6 +100,7 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
             [this](const OperationSummary& summary) { on_finished(summary); });
 
     thread_.setObjectName(QStringLiteral("engine"));
+    connect(&thread_, &QThread::started, worker_, [] { adl::profiling::thread_name("engine"); });
     thread_.start();
 
     // The media set of the last session is read again once the window is up, quietly: it does
@@ -477,6 +480,7 @@ void LoaderModel::run_pending_after_find(bool found) {
 }
 
 void LoaderModel::chooseMediaSet(const QUrl& directory) {
+    const adl::profiling::Zone zone{"app: choose media set"};
     if (!begin(Job::media_set)) {
         return;
     }
@@ -491,6 +495,7 @@ void LoaderModel::chooseMediaSet(const QUrl& directory) {
 }
 
 void LoaderModel::checkMediaSet() {
+    const adl::profiling::Zone zone{"app: check media set"};
     if (media_set_.path.isEmpty() || !begin(Job::validate)) {
         return;
     }
@@ -513,6 +518,7 @@ void LoaderModel::selectAllLoads(bool selected) {
 }
 
 void LoaderModel::findTargets(const QString& address) {
+    const adl::profiling::Zone zone{"app: find targets"};
     if (!begin(Job::find)) {
         return;
     }
@@ -534,6 +540,7 @@ void LoaderModel::selectTarget(int row) {
 }
 
 void LoaderModel::readInformation() {
+    const adl::profiling::Zone zone{"app: read information"};
     if (!targetValid()) {
         // The operator's preference: look for the target first, and go on only when exactly one
         // answers.
@@ -555,6 +562,7 @@ void LoaderModel::readInformation() {
 }
 
 void LoaderModel::uploadSelected() {
+    const adl::profiling::Zone zone{"app: upload selected"};
     if (!canUpload()) {
         return;
     }
@@ -577,6 +585,7 @@ void LoaderModel::uploadSelected() {
 }
 
 void LoaderModel::downloadSelected() {
+    const adl::profiling::Zone zone{"app: download selected"};
     if (!canDownload()) {
         return;
     }

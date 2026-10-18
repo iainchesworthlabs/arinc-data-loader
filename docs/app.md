@@ -20,7 +20,7 @@ FIND, the Information, Upload and Download operations are built. What the window
 | Preferences | Persistent settings, in a dialog from the File menu: the last media set directory (restored quietly at start-up), a default target address and `<THW_ID_POS>` (prefilled), the loader's control port (anything but 59 is sent to the target as the `port` option, which is what lets the loader and a target share one machine), the download directory, whether FIND runs by itself before an operation with no chosen target (one answer is taken automatically; none or several leaves the choice to the operator), whether a chosen media set is checked at once, the activity log's capacity, and the language. |
 | The first launch | A first-run screen before the workbench: what the window is for, a default target address and `<THW_ID_POS>`, and the download directory. Passing it once is stored (its fields are the preferences), so every later launch goes straight to the workbench. |
 | The window's look | One design-token file, `qml/Theme.qml`, is the single source of truth for colour (light and dark), type and geometry; `Panel`, `AppButton`, `SegmentedControl` and `FocusRing` draw from it, and the standard controls stay Fusion, following the desktop's palette. The window reads `dark` from that palette, so the tokens and the style never disagree. |
-| The language | Every string goes through `qsTr`/`tr` and there is a catalogue (`src/app/translations/adl_app_en.ts`, compiled by `qt_add_translations`). `LanguageManager` installs the catalogue for the persisted language (the system locale, then English, on a first run), sets the layout direction for scripts that read right to left, and retranslates the running window when Preferences switches it. English is the catalogue that exists; another language is a `.ts` beside it and its line in the manager's table — nothing else. |
+| The language | Every string goes through `qsTr`/`tr` and there is a catalogue per language: English (the source), French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese (`src/app/translations/adl_app_<code>.ts`, compiled by `qt_add_translations`). `LanguageManager` installs the catalogue for the persisted language (the system locale, then English, on a first run), sets the layout direction — the window mirrors itself for the right-to-left scripts — and retranslates the running window when Preferences switches it. The translations are a first, mechanical draft, to be reviewed by speakers. |
 | The target that was used | The address and `<THW_ID_POS>` an operation last started against are stored, and put back into the window at start-up, so a session starts where the last one left off. The Preferences defaults fill the fields on a first run, and again whenever the operator clears one. |
 | The activity log | What the target said (its answer, each status file) and the engine's notices (a lost or repeated status file, a refused request, a checksum that did not match, a WAIT), with the time, oldest first. |
 | The outcome | How the operation ended (the engine's `OutcomeCode`), and for an abort whether the target confirmed that it had stopped. Failures also open a dialog once, with the outcome, the detail and, where the application knows one, a hint (a host that could not start, an address that is not an address, a media set that could not be read, an abort the target did not confirm); a status bar carries the current state, the target and the media set. |
@@ -231,7 +231,8 @@ QML warning an error, driven through a FIND, an Information operation, a media s
 media defined Download (the load ticked and the buttons pressed through the window's own items), in the
 light and the dark scheme. Also checked: the first-run screen hands over to the workbench only once (a
 stored preference); the last operation's target comes back in a new model over the same settings; and the
-language manager starts in English, with the language preference persisted.
+language manager starts in English, then installs each of the eight catalogues in turn, retranslates the
+running window, and sets the layout direction the script asks for.
 
 Not checked: an Upload against a real target (and so which checksum a real target sends for each file,
 see above), an Upload whose files are in two directories of one name end to end (the source is tested
@@ -241,6 +242,7 @@ tests cover it; the application's abort test holds the engine at the start of th
 against a real target over a real network (the runner over real sockets is run by the loopback
 integration test against the mock target, [mock target](mock-target.md), not by the window); the window
 on a real screen at other scales (both schemes have been looked at offscreen); keyboard use and a screen
-reader beyond the accessible names the controls carry; translations into a language other than English (the
-machinery and the English catalogue are there, and there is no translated catalogue yet); and the first-run
-screen's download-directory picker (it is a Qt `FolderDialog`, the media set's own picker is the tested one).
+reader beyond the accessible names the controls carry; the translations' wording (the eight catalogues are
+a first, mechanical draft: the tests prove a catalogue is installed, the window retranslated and the layout
+mirrored, not that a speaker would accept the text); and the first-run screen's download-directory picker
+(it is a Qt `FolderDialog`, the media set's own picker is the tested one).

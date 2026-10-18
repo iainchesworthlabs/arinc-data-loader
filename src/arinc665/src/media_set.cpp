@@ -9,6 +9,8 @@
 #include "adl/arinc665/naming.hpp"
 #include "wire.hpp"
 
+#include <adl/profiling.hpp>
+
 namespace adl::arinc665 {
 
 namespace {
@@ -94,6 +96,7 @@ bool starts_with(std::string_view text, std::string_view prefix) {
 }  // namespace
 
 Result<std::vector<MediaMember>> build_media_set(const MediaSetSpec& spec) {
+    const adl::profiling::Zone zone{"arinc665: build media set"};
     const std::size_t member_count = spec.number_of_members;
     if (member_count == 0) {
         return std::unexpected{Error::invalid_value};

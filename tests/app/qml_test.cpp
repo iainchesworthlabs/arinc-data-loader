@@ -18,6 +18,7 @@
 #include <QEventLoop>
 #include <QGuiApplication>
 #include <QImage>
+#include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQmlError>
@@ -33,9 +34,12 @@
 #include "adl/app/loader_model.hpp"
 #include "adl/app/models.hpp"
 #include "bytes.hpp"
+#include "frame_profiler.hpp"
 #include "language_manager.hpp"
 #include "rig.hpp"
 #include "upload_fixture.hpp"
+
+#include <adl/profiling.hpp>
 
 namespace {
 
@@ -79,11 +83,16 @@ QQuickItem* find_item(QQuickItem* root, const QString& name) {
 
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
-    if (argc > 3) {
-        std::fprintf(stderr, "usage: adl_app_qml_test [picture.png [first-run.png]]\n");
+    if (argc > 4) {
+        std::fprintf(stderr, "usage: adl_app_qml_test [picture.png [first-run.png [rtl.png]]]\n");
         return 2;
     }
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
+
+    // The workload a profiling build captures: this process's GUI thread draws the window and
+    // runs the operations the application's operator would.
+    adl::profiling::thread_name("gui");
+    adl::profiling::app_info("ARINC Data Loader (window test)");
 
     // The model reads QSettings without arguments; the test keeps that out of the operator's
     // real settings, and out of the run before this one: the first-run screen is passed by this
@@ -117,6 +126,9 @@ int main(int argc, char* argv[]) {
     // test registers a real one, so a binding that reads it cannot be the difference.
     adl::app::LanguageManager language_manager(application, *engine);
     language_manager.applyInitialLanguage();
+    // The window under test starts in English whatever this machine's locale is; the languages
+    // it ships are switched through at the end, and English is put back.
+    language_manager.setLanguage(QStringLiteral("en"));
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
 
     int complaints = 0;
@@ -133,7 +145,10 @@ int main(int argc, char* argv[]) {
          // a dark desktop theme supplies), so both schemes can be checked and pictured.
          {QStringLiteral("renderDark"),
           QVariant::fromValue(qEnvironmentVariable("ADL_DARK") == QStringLiteral("1"))}});
-    engine->loadFromModule("ArincDataLoader", "Main");
+    {
+        const adl::profiling::Zone zone{"app: load QML"};
+        engine->loadFromModule("ArincDataLoader", "Main");
+    }
 
     if (engine->rootObjects().size() != 1) {
         std::fprintf(stderr, "the window did not load\n");
@@ -144,6 +159,8 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "the root object is not the application window\n");
         return 1;
     }
+    // The frame loop of the workload, for the trace; destroyed after the engine below.
+    std::optional<adl::app::FrameProfiler> frame_profiler{std::in_place, window};
 
     // A window that has never been used opens on the first-run screen; passing it is what makes
     // the workbench appear, and it is the operator's first act, so it is the test's.
@@ -294,11 +311,56 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Every catalogue the window ships: the running window is retranslated, the layout direction
+    // follows the script (right to left for Hebrew and Yiddish), and the text really changes -
+    // which also proves the .qm resource was found and installed.
+    for (const QString& code :
+         {QStringLiteral("fr"), QStringLiteral("es"), QStringLiteral("de"), QStringLiteral("yi"),
+          QStringLiteral("he"), QStringLiteral("zh"), QStringLiteral("ja")}) {
+        if (!language_manager.setLanguage(code)) {
+            std::fprintf(stderr, "the language %s is not accepted\n", qPrintable(code));
+            return 1;
+        }
+        QCoreApplication::processEvents();
+        if (language_manager.currentLanguage() != code) {
+            std::fprintf(stderr, "the language did not change to %s\n", qPrintable(code));
+            return 1;
+        }
+        const bool right_to_left = QLocale(code).textDirection() == Qt::RightToLeft;
+        if ((QGuiApplication::layoutDirection() == Qt::RightToLeft) != right_to_left) {
+            std::fprintf(stderr, "the layout direction did not follow %s\n", qPrintable(code));
+            return 1;
+        }
+        if (QCoreApplication::translate("PreferencesDialog", "Preferences") ==
+            QStringLiteral("Preferences")) {
+            std::fprintf(stderr, "the %s catalogue was not loaded\n", qPrintable(code));
+            return 1;
+        }
+        // With a third argument, what the window looks like right to left is kept too: Hebrew
+        // mirrors the whole layout, not only its text.
+        if (code == QStringLiteral("he") && argc > 3) {
+            const QImage right_to_left_picture = window->grabWindow();
+            if (right_to_left_picture.isNull() ||
+                !right_to_left_picture.save(QString::fromLocal8Bit(argv[3]))) {
+                std::fprintf(stderr, "the right-to-left picture could not be saved\n");
+                return 1;
+            }
+        }
+    }
+    language_manager.setLanguage(QStringLiteral("en"));
+    QCoreApplication::processEvents();
+    if (QGuiApplication::layoutDirection() == Qt::RightToLeft) {
+        std::fprintf(stderr, "English did not put the layout back to left to right\n");
+        return 1;
+    }
+
     if (complaints != 0) {
         std::fprintf(stderr, "%d QML complaint(s)\n", complaints);
         return 1;
     }
-    // The engine first, while the language manager is still alive for the teardown's bindings.
+    // The engine first, while the language manager is still alive for the teardown's bindings;
+    // the profiler that listened to the window after it.
     engine.reset();
+    frame_profiler.reset();
     return 0;
 }

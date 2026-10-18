@@ -59,7 +59,10 @@ This is the data format and the foundation, not a loader yet. What exists:
     unreadable set cannot be uploaded, and the standard's findings are shown as
     warnings), FIND, the Information, Upload and Download operations with progress and an abort,
     preferences that persist, properties for the media set and the target, and failures
-    that say what went wrong and, where it is known, what to do about it.
+    that say what went wrong and, where it is known, what to do about it. The window is in
+    eight languages (right-to-left mirroring for the Hebrew-script ones), and a profiling
+    build instruments the libraries, the engine and the window's frame loop with Tracy
+    0.14.1 ([docs/profiling.md](docs/profiling.md)).
   - **`adl_media_gen`**, the media set generator ([docs/media-gen.md](docs/media-gen.md)):
     files chosen from disk are turned into a valid ARINC 665 load and media set, written
     as the directory tree the loader opens, and verified by reading it back.

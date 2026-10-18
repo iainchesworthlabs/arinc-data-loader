@@ -8,6 +8,8 @@
 #include "adl/arinc665/naming.hpp"
 #include "wire.hpp"
 
+#include <adl/profiling.hpp>
+
 namespace adl::arinc665 {
 
 namespace {
@@ -123,6 +125,7 @@ Result<void> verify_files(const std::vector<Listed>& listed,
 }  // namespace
 
 Result<Load> build_load(const LoadSpec& spec) {
+    const adl::profiling::Zone zone{"arinc665: build load"};
     HeaderFile header;
     header.part_flags = spec.part_flags;
     header.load_part_number = spec.part_number;
@@ -186,6 +189,7 @@ Result<Load> build_load(const LoadSpec& spec) {
 }
 
 Result<void> verify_load(const Load& load) {
+    const adl::profiling::Zone zone{"arinc665: verify load"};
     const auto header = decode_header_file(load.header_bytes);
     if (!header) {
         return std::unexpected{header.error()};
@@ -212,6 +216,7 @@ Result<void> verify_load(const Load& load) {
 }
 
 Findings check_load(const Load& load) {
+    const adl::profiling::Zone zone{"arinc665: check load"};
     Findings findings = check_header_file(load.header);
     Findings name = check_header_file_name(load.header_file_name);
     findings.insert(findings.end(), name.begin(), name.end());

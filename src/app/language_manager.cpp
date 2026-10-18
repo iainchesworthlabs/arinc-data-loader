@@ -16,11 +16,18 @@ struct LanguageInfo {
 };
 
 // "en" first (no .qm - the source strings are already English), then every language this
-// application has a catalogue for. A language is added by putting its .ts beside the others and
-// adding its line here; until one is, the window is English-only and says so by offering one
-// choice, rather than pretending to be translated.
-constexpr std::array<LanguageInfo, 1> kLanguages{{
+// application has a catalogue for. A language is added by putting its .ts beside the others,
+// adding it to the TS_FILES list in src/app/CMakeLists.txt and adding its line here. The
+// translation text itself is a first, mechanical draft, to be reviewed by a speaker.
+constexpr std::array<LanguageInfo, 8> kLanguages{{
     {"en", "English"},
+    {"fr", "Français"},
+    {"es", "Español"},
+    {"de", "Deutsch"},
+    {"yi", "ייִדיש"},
+    {"he", "עברית"},
+    {"zh", "中文"},
+    {"ja", "日本語"},
 }};
 
 constexpr auto kSettingsKey = "language/code";

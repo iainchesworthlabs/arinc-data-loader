@@ -152,9 +152,10 @@ slices; [the application](app.md) says what each does.
 
 What is left of the application:
 
-- Catalogues for languages beyond English: the machinery (`LanguageManager`, the `qt_add_translations`
-  pipeline, the language menu in Preferences) and the English catalogue are in place; each further
-  language is a `.ts` beside it and a line in the manager's table.
+- Reviewing the draft translations with speakers. The eight catalogues (English, French, Spanish,
+  German, Yiddish, Hebrew, Simplified Chinese and Japanese), the `qt_add_translations` pipeline, the
+  language menu, right-to-left mirroring and the retranslation of the running window are in place; the
+  text is a first, mechanical draft.
 - FIND over real sockets in the loopback test: the standard fixes FIND to port 1001 on both ends, and two
   sockets sharing a port on one machine is not reliable on every platform, so the loopback test covers the
   operations and names the target by hand; a FIND case may join it if the reuse behaviour proves portable.
@@ -162,10 +163,15 @@ What is left of the application:
 
 ## 5. Profiling
 
-Tracy, as an opt-in build: `cmake/Tracy.cmake` and the `profiling` vcpkg feature
-are in place, behind `ADL_ENABLE_TRACY`. What is missing is the zones, which
-come with the first code worth profiling. Nothing that ships opens Tracy's
-listener.
+Tracy 0.14.1, as an opt-in build: `cmake/Tracy.cmake`, the `profiling` vcpkg feature
+and `-DADL_ENABLE_TRACY=ON` are the switch, and the zones are in the libraries, the
+application's engine and window, and its frame loop (frame marks, the frame interval
+and the render thread's time as plots). What is left is the trace work itself: an
+I/O-bound upload of a many-gigabyte media set, the target's transfer timing over a
+real network, and the GPU zones that would need the graphics API's own
+instrumentation. [Profiling](profiling.md) says what is instrumented and how a trace
+is taken, with the CLI tools and without the GUI profiler. Nothing that ships opens
+Tracy's listener.
 
 ## 6. An embedded target
 

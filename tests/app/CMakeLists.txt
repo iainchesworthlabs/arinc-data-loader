@@ -52,6 +52,8 @@ set_tests_properties(app.tests PROPERTIES TIMEOUT 120)
 # media set check, an Upload and a media defined Download - with every QML warning an error.
 add_executable(adl_app_qml_test
     qml_test.cpp
+    "${PROJECT_SOURCE_DIR}/src/app/frame_profiler.cpp"
+    "${PROJECT_SOURCE_DIR}/src/app/frame_profiler.hpp"
     "${PROJECT_SOURCE_DIR}/src/app/language_manager.cpp"
     "${PROJECT_SOURCE_DIR}/src/app/language_manager.hpp")
 target_include_directories(adl_app_qml_test PRIVATE
@@ -61,6 +63,7 @@ target_link_libraries(adl_app_qml_test
     PRIVATE
         $<LINK_LIBRARY:WHOLE_ARCHIVE,adl_app_qml>
         adl::app_core
+        adl::tracy
         adl_sim_target
         adl::arinc665
         adl::media_tree

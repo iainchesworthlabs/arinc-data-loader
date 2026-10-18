@@ -16,6 +16,8 @@
 #include "adl/app/notice_text.hpp"
 #include "adl/app/text.hpp"
 #include "adl/arinc615a/data_loader.hpp"
+
+#include <adl/profiling.hpp>
 #include "adl/arinc615a/directory_files.hpp"
 #include "adl/arinc615a/find_client.hpp"
 #include "adl/arinc615a/limits.hpp"
@@ -389,6 +391,7 @@ void EngineWorker::fail(const QString& text, const QString& hint,
 }
 
 void EngineWorker::find(const QString& destination) {
+    const adl::profiling::Zone zone{"app: find job"};
     std::vector<Address> destinations;
     if (!destination.isEmpty()) {
         const auto octets = parse_ipv4(destination);
@@ -444,6 +447,7 @@ void EngineWorker::find(const QString& destination) {
 
 void EngineWorker::read_information(const QString& address, const QString& thw_id_pos,
                                     quint16 control_port) {
+    const adl::profiling::Zone zone{"app: information job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
         fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
@@ -463,6 +467,7 @@ void EngineWorker::read_information(const QString& address, const QString& thw_i
 
 void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
                           QList<LoadSummary> loads, quint16 control_port) {
+    const adl::profiling::Zone zone{"app: upload job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
         fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
@@ -508,6 +513,7 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
 void EngineWorker::download_media(const QString& address, const QString& thw_id_pos,
                                   QStringList names, const QString& download_directory,
                                   quint16 control_port) {
+    const adl::profiling::Zone zone{"app: download job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
         fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
@@ -543,6 +549,7 @@ void EngineWorker::download_media(const QString& address, const QString& thw_id_
 
 void EngineWorker::download_operator(const QString& address, const QString& thw_id_pos,
                                      const QString& download_directory, quint16 control_port) {
+    const adl::profiling::Zone zone{"app: download operator job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
         fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
@@ -686,6 +693,7 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
 }
 
 void EngineWorker::read_media_set(const QString& path) {
+    const adl::profiling::Zone zone{"app: read media set job"};
     Q_EMIT log_line({Severity::info, tr("Reading the media set in %1...").arg(path)});
     const MediaSetSummary summary = read_media_set_summary(path, &index_);
     Q_EMIT media_set_read(summary);
@@ -707,6 +715,7 @@ void EngineWorker::read_media_set(const QString& path) {
 }
 
 void EngineWorker::validate_media_set(const QString& path) {
+    const adl::profiling::Zone zone{"app: check media set job"};
     Q_EMIT log_line({Severity::info, tr("Checking the media set in %1...").arg(path)});
     // Read afresh, with a new index: files changed on disk since the set was read are what the
     // check (and the next upload) see.

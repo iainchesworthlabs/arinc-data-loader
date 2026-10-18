@@ -9,6 +9,8 @@
 #include <tuple>
 #include <utility>
 
+#include <adl/profiling.hpp>
+
 namespace adl::media_tree {
 
 namespace {
@@ -252,6 +254,7 @@ TreeResult<fs::path> native_directory(const fs::path& base, std::string_view pat
 
 TreeResult<void> write_media_set_tree(const fs::path& root,
                                       std::span<const arinc665::MediaMember> members) {
+    const adl::profiling::Zone zone{"media_tree: write set"};
     if (auto valid = validate(members); !valid) {
         return valid;
     }
@@ -293,6 +296,7 @@ TreeResult<void> write_media_set_tree(const fs::path& root,
 }
 
 TreeResult<std::vector<arinc665::MediaMember>> read_media_set_tree(const fs::path& root) {
+    const adl::profiling::Zone zone{"media_tree: read set"};
     std::error_code ec;
     if (!fs::is_directory(root, ec)) {
         return fail(TreeError::not_a_directory, root);

@@ -94,6 +94,20 @@ C++23 CMake monorepo. Nothing has been released.
   language, follows the system locale and retranslates the running window. The QML is a module
   library of its own, so the window's offscreen test loads the same compiled QML the application
   does.
+- **The window in eight languages** ([docs/app.md](docs/app.md)): catalogues for French, Spanish,
+  German, Yiddish, Hebrew, Simplified Chinese and Japanese beside the English source, built by
+  `qt_add_translations` into the window's resources and installed by `LanguageManager`; the
+  right-to-left scripts mirror the whole window (`LayoutMirroring`) and the language preference is
+  persisted. The text is a first, mechanical draft, to be reviewed by speakers; the window test
+  installs each catalogue in turn and checks the retranslation and the layout direction.
+- **Tracy 0.14.1 profiling** ([docs/profiling.md](docs/profiling.md)): an opt-in build
+  (`-DADL_ENABLE_TRACY=ON`, vcpkg's `profiling` feature) instruments ARINC 665 and the media tree,
+  the 615A engine and runner, the application's engine jobs and media-set reads, the operator's
+  actions, and the window's frame loop — frame marks, the frame interval and the render thread's
+  time as plots, with the GUI, engine and render threads named. The `adl::profiling` names come
+  from a header CMake generates, so no first-party file carries `#if` or `#define` and the same
+  sources compile to nothing when the switch is off. The feature also installs Tracy's CLI tools,
+  so a trace can be recorded and exported without the GUI profiler.
 - **The 615A engine and runner** (`adl::arinc615a`, `adl::arinc615a_runner`,
   [docs/arinc615a-engine.md](docs/arinc615a-engine.md),
   [docs/arinc615a-coverage.md](docs/arinc615a-coverage.md)): the data loader's side of ARINC
