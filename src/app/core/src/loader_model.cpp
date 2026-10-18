@@ -66,7 +66,27 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
                 loads_.apply_progress(rows);
                 set_progress(list_ratio);
             });
+    connect(worker_, &EngineWorker::download_progress, this,
+            [this](int list_ratio, const QList<FileProgressRow>& rows) {
+                downloads_.apply_progress(rows);
+                set_progress(list_ratio);
+            });
+    connect(worker_, &EngineWorker::download_list, this,
+            [this](const QList<DownloadFileRow>& rows) {
+                downloads_.set_locked(false);
+                downloads_.reset_operator(rows);
+                download_choice_pending_ = true;
+                Q_EMIT downloadChoicePendingChanged();
+            });
     connect(&loads_, &LoadModel::selection_changed, this, [this] { refresh_availability(); });
+    connect(&downloads_, &DownloadModel::selection_changed, this, [this] {
+        const int selected = downloads_.checked_count();
+        if (selected != download_selected_count_) {
+            download_selected_count_ = selected;
+            Q_EMIT downloadSelectionChanged();
+        }
+        refresh_availability();
+    });
     connect(worker_, &EngineWorker::finished, this,
             [this](const OperationSummary& summary) { on_finished(summary); });
 
@@ -97,6 +117,10 @@ QString LoaderModel::activity() const {
         case Job::upload:
             return abort_requested_ ? tr("Stopping the operation...")
                                     : tr("Uploading to the target...");
+        case Job::download_media:
+        case Job::download_operator:
+            return abort_requested_ ? tr("Stopping the operation...")
+                                    : tr("Downloading from the target...");
         case Job::media_set:
             return tr("Reading the media set...");
         case Job::validate:
@@ -150,6 +174,37 @@ bool LoaderModel::canUpload() const {
     // valid until the check has run and passed; findings do not count against it.
     return !busy() && (targetValid() || settings_->autoFindBeforeOperation()) &&
            media_set_.error.isEmpty() && selectedLoadCount() > 0 && validation_state_ == 2;
+}
+
+bool LoaderModel::canDownload() const {
+    if (busy() || !(targetValid() || settings_->autoFindBeforeOperation())) {
+        return false;
+    }
+    if (settings_->downloadDirectory().trimmed().isEmpty()) {
+        return false;
+    }
+    // The media defined mode needs at least one name; the operator defined mode needs nothing
+    // more than the target and the directory (the target's list comes while it runs).
+    return download_mode_ == 1 || downloads_.rowCount() > 0;
+}
+
+void LoaderModel::setDownloadMode(int mode) {
+    if (mode != 0 && mode != 1) {
+        return;
+    }
+    if (mode == download_mode_) {
+        return;
+    }
+    download_mode_ = mode;
+    // The two modes are different lists (the operator's own names, or the target's list to
+    // choose from): switching starts the new mode with an empty one.
+    if (mode == 0) {
+        downloads_.reset_media({});
+    } else {
+        downloads_.reset_operator({});
+    }
+    Q_EMIT downloadChanged();
+    refresh_availability();
 }
 
 const FoundTarget* LoaderModel::selected_target() const {
@@ -269,6 +324,11 @@ void LoaderModel::refresh_availability() {
         selected_loads_ = selected;
         Q_EMIT canUploadChanged();
     }
+    const bool can_download = canDownload();
+    if (can_download != could_download_) {
+        could_download_ = can_download;
+        Q_EMIT canDownloadChanged();
+    }
 }
 
 void LoaderModel::set_progress(int percent) {
@@ -297,10 +357,20 @@ bool LoaderModel::begin(Job job) {
     if (busy()) {
         return false;
     }
-    // A request left over from an earlier job must not abort this one.
-    worker_->clear_abort();
+    // A request or a choice left over from an earlier job must not abort or answer this one.
+    worker_->clear_controls();
     set_result(0, {}, {});
     set_progress(-1);
+    if (download_choice_pending_) {
+        download_choice_pending_ = false;
+        Q_EMIT downloadChoicePendingChanged();
+    }
+    if ((job == Job::download_media || job == Job::download_operator) &&
+        !last_download_directory_.isEmpty()) {
+        // The directory shown is the last download's; a new one is its own.
+        last_download_directory_.clear();
+        Q_EMIT downloadDirectoryChanged();
+    }
     set_job(job);
     return true;
 }
@@ -326,6 +396,17 @@ void LoaderModel::on_finished(const OperationSummary& summary) {
         quiet_job_ = false;
     } else if (ended == Job::find && pending_ != Pending::none) {
         run_pending_after_find(summary.success);
+    }
+    if (ended == Job::download_media || ended == Job::download_operator) {
+        downloads_.set_locked(false);
+        if (download_choice_pending_) {
+            download_choice_pending_ = false;
+            Q_EMIT downloadChoicePendingChanged();
+        }
+        if (!summary.download_directory.isEmpty()) {
+            last_download_directory_ = summary.download_directory;
+            Q_EMIT downloadDirectoryChanged();
+        }
     }
 }
 
@@ -366,10 +447,18 @@ void LoaderModel::run_pending_after_find(bool found) {
         return;
     }
     selectTarget(0);
-    if (pending == Pending::information) {
-        readInformation();
-    } else {
-        uploadSelected();
+    switch (pending) {
+        case Pending::information:
+            readInformation();
+            break;
+        case Pending::upload:
+            uploadSelected();
+            break;
+        case Pending::download:
+            downloadSelected();
+            break;
+        case Pending::none:
+            break;
     }
 }
 
@@ -471,6 +560,88 @@ void LoaderModel::uploadSelected() {
     QMetaObject::invokeMethod(worker_, &EngineWorker::upload, Qt::QueuedConnection, target_address_,
                               thw_id_pos_, loads_.checked_loads(),
                               static_cast<quint16>(settings_->controlPort()));
+}
+
+void LoaderModel::downloadSelected() {
+    if (!canDownload()) {
+        return;
+    }
+    if (!targetValid()) {
+        if (!begin(Job::find)) {
+            return;
+        }
+        pending_ = Pending::download;
+        events_.append({Severity::info, tr("No target is selected; looking for one first.")});
+        QMetaObject::invokeMethod(worker_, &EngineWorker::find, Qt::QueuedConnection, QString{});
+        return;
+    }
+    const Job job = download_mode_ == 0 ? Job::download_media : Job::download_operator;
+    if (!begin(job)) {
+        return;
+    }
+    downloads_.set_locked(true);
+    if (job == Job::download_operator) {
+        // The target's list comes while the operation runs; until it has arrived, the rows of
+        // the last list (if any) are gone and the window says it is waiting.
+        downloads_.reset_operator({});
+    } else {
+        downloads_.begin_download();
+    }
+    const quint16 port = static_cast<quint16>(settings_->controlPort());
+    if (job == Job::download_media) {
+        QMetaObject::invokeMethod(worker_, &EngineWorker::download_media, Qt::QueuedConnection,
+                                  target_address_, thw_id_pos_, downloads_.names(),
+                                  settings_->downloadDirectory(), port);
+    } else {
+        QMetaObject::invokeMethod(worker_, &EngineWorker::download_operator, Qt::QueuedConnection,
+                                  target_address_, thw_id_pos_, settings_->downloadDirectory(),
+                                  port);
+    }
+}
+
+void LoaderModel::addDownloadFile(const QString& name) {
+    if (busy()) {
+        return;
+    }
+    const QString trimmed = name.trimmed();
+    if (trimmed.isEmpty()) {
+        return;
+    }
+    if (downloads_.rowCount() >= static_cast<int>(adl::arinc615a::DataLoader::max_expected_files)) {
+        return;
+    }
+    static_cast<void>(downloads_.add_name(trimmed));
+}
+
+void LoaderModel::removeDownloadFile(int row) {
+    if (busy()) {
+        return;
+    }
+    downloads_.remove_row(row);
+}
+
+void LoaderModel::confirmDownloadSelection() {
+    if (!download_choice_pending_) {
+        return;
+    }
+    download_choice_pending_ = false;
+    const QStringList chosen = downloads_.checked_names();
+    // An empty choice is "none": the gate turns it into the cancellation of the operation (what
+    // a listener answering SelectionDecision::cancelled would do).
+    downloads_.set_locked(true);
+    downloads_.begin_download();
+    worker_->post_selection(chosen);
+    Q_EMIT downloadChoicePendingChanged();
+}
+
+void LoaderModel::chooseNoDownloadFiles() {
+    if (!download_choice_pending_) {
+        return;
+    }
+    download_choice_pending_ = false;
+    downloads_.set_locked(true);
+    worker_->post_selection({});
+    Q_EMIT downloadChoicePendingChanged();
 }
 
 void LoaderModel::abort() {

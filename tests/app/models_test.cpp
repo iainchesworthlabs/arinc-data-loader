@@ -235,3 +235,88 @@ void ModelsTest::load_model_shows_the_progress_of_the_ticked_loads() {
     QVERIFY(!model.data(model.index(1), LoadModel::FailedRole).toBool());
     QVERIFY(model.data(model.index(1), LoadModel::ProblemRole).toString().isEmpty());
 }
+
+void ModelsTest::download_model_holds_the_operators_names() {
+    DownloadModel model;
+    QSignalSpy selection(&model, &DownloadModel::selection_changed);
+    QCOMPARE(model.rowCount(), 0);
+    QVERIFY(model.names().isEmpty());
+
+    QVERIFY(model.add_name(QStringLiteral("A.BIN")));
+    QVERIFY(model.add_name(QStringLiteral("  B.BIN  ")));  // trimmed
+    QVERIFY(!model.add_name(QStringLiteral("A.BIN")));     // there already
+    QVERIFY(!model.add_name(QStringLiteral("   ")));       // empty
+    QCOMPARE(model.rowCount(), 2);
+    QCOMPARE(model.names(), QStringList({QStringLiteral("A.BIN"), QStringLiteral("B.BIN")}));
+    QCOMPARE(selection.count(), 2);
+    QCOMPARE(model.data(model.index(0), DownloadModel::NameRole).toString(),
+             QStringLiteral("A.BIN"));
+    QCOMPARE(model.data(model.index(0), DownloadModel::RatioRole).toInt(), -1);
+    // The operator's own names are not a choice: the ticks are not writable.
+    QVERIFY(!model.setData(model.index(0), true, DownloadModel::CheckedRole));
+
+    model.remove_row(0);
+    QCOMPARE(model.rowCount(), 1);
+    QCOMPARE(model.names(), QStringList{QStringLiteral("B.BIN")});
+    model.remove_row(7);  // no such row
+    QCOMPARE(model.rowCount(), 1);
+
+    model.reset_media({QStringLiteral("C.BIN")});
+    QCOMPARE(model.rowCount(), 1);
+    QCOMPARE(model.names(), QStringList{QStringLiteral("C.BIN")});
+}
+
+void ModelsTest::download_model_ticks_the_targets_list_and_keeps_the_choice() {
+    DownloadModel model;
+    model.reset_operator(
+        {{QStringLiteral("A.BIN"), QStringLiteral("first")}, {QStringLiteral("B.BIN"), QString()}});
+    QCOMPARE(model.rowCount(), 2);
+    QCOMPARE(model.checked_count(), 2);  // all ticked to start with
+    QCOMPARE(model.data(model.index(0), DownloadModel::DescriptionRole).toString(),
+             QStringLiteral("first"));
+    QVERIFY(model.data(model.index(0), DownloadModel::CheckedRole).toBool());
+    QVERIFY(model.flags(model.index(0)).testFlag(Qt::ItemIsEditable));
+
+    // The operator untickks one file: the choice is the rest.
+    QVERIFY(model.setData(model.index(0), false, DownloadModel::CheckedRole));
+    QCOMPARE(model.checked_count(), 1);
+    QCOMPARE(model.checked_names(), QStringList{QStringLiteral("B.BIN")});
+    model.check_all(true);
+    QCOMPARE(model.checked_count(), 2);
+    QVERIFY(model.setData(model.index(1), false, DownloadModel::CheckedRole));
+    QCOMPARE(model.checked_names(), QStringList{QStringLiteral("A.BIN")});
+
+    // The download starts with the choice made: the unchosen row is dropped, the chosen one
+    // waits, and the ticks are locked.
+    model.begin_download();
+    model.set_locked(true);
+    QCOMPARE(model.rowCount(), 1);
+    QCOMPARE(model.data(model.index(0), DownloadModel::NameRole).toString(),
+             QStringLiteral("A.BIN"));
+    QCOMPARE(model.data(model.index(0), DownloadModel::RatioRole).toInt(), 0);
+    QCOMPARE(model.data(model.index(0), DownloadModel::FileStatusRole).toString(),
+             QStringLiteral("waiting"));
+    QVERIFY(!model.setData(model.index(0), false, DownloadModel::CheckedRole));
+
+    // A status file updates the row by name; a stranger is ignored.
+    FileProgressRow row;
+    row.name = QStringLiteral("A.BIN");
+    row.ratio = 100;
+    row.status = QStringLiteral("in progress");
+    FileProgressRow stranger = row;
+    stranger.name = QStringLiteral("Z.BIN");
+    model.apply_progress({stranger, row});
+    QCOMPARE(model.data(model.index(0), DownloadModel::RatioRole).toInt(), 100);
+    QCOMPARE(model.data(model.index(0), DownloadModel::FileStatusRole).toString(),
+             QStringLiteral("in progress"));
+    QVERIFY(!model.data(model.index(0), DownloadModel::FailedRole).toBool());
+
+    row.ratio = 0;
+    row.status = QStringLiteral("failed");
+    row.description = QStringLiteral("no room");
+    row.failed = true;
+    model.apply_progress({row});
+    QVERIFY(model.data(model.index(0), DownloadModel::FailedRole).toBool());
+    QCOMPARE(model.data(model.index(0), DownloadModel::ProblemRole).toString(),
+             QStringLiteral("no room"));
+}

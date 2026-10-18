@@ -55,6 +55,11 @@ struct OperationSummary {
     QString hint;
     quint32 statuses_received = 0;
     quint32 statuses_lost = 0;
+    // A download: the files the operation asked for, the files that arrived, and the directory
+    // they were written into (the DNLD_DATA_<THW_ID_POS>_<number> directory of 5.4.4.3).
+    quint32 files_requested = 0;
+    quint32 files_received = 0;
+    QString download_directory;
 };
 
 // One load of a media set.
@@ -110,6 +115,23 @@ struct LoadProgressRow {
     bool failed = false;  // the target gave up on this load
 };
 
+// How one file of a download is going, from a download status file (6.4.7) and from which
+// files have arrived. The protocol gives no figure per file, so the ratio is 100 once the
+// file has arrived and 0 while it has not; the status is the target's word for it.
+struct FileProgressRow {
+    QString name;
+    int ratio = 0;  // percent: 100 when the file has arrived, 0 while the target is at it
+    QString status;
+    QString description;
+    bool failed = false;  // the target gave up on this file
+};
+
+// One file of the target's list of an operator defined download (.LNL, 6.4.8).
+struct DownloadFileRow {
+    QString name;
+    QString description;  // empty when the target gave none
+};
+
 // Qt needs to know these to carry them in a queued signal. Safe to call more than once.
 void register_metatypes();
 
@@ -124,3 +146,5 @@ Q_DECLARE_METATYPE(adl::app::MediaFileSummary)
 Q_DECLARE_METATYPE(adl::app::MediaSetSummary)
 Q_DECLARE_METATYPE(adl::app::ValidationReport)
 Q_DECLARE_METATYPE(adl::app::LoadProgressRow)
+Q_DECLARE_METATYPE(adl::app::FileProgressRow)
+Q_DECLARE_METATYPE(adl::app::DownloadFileRow)

@@ -9,6 +9,31 @@ ApplicationWindow {
     // The LoaderModel (src/app/core), handed over by main.cpp.
     required property var app
 
+    // The tests render the window in the dark scheme (ADL_DARK=1): the offscreen platform
+    // theme does not follow the color scheme hint, so the palette is set by hand, exactly as a
+    // dark desktop theme supplies it.
+    property bool renderDark: false
+
+    function applyDarkPalette() {
+        palette.window = "#2d2d30"
+        palette.windowText = "#f0f0f0"
+        palette.base = "#1e1e1e"
+        palette.alternateBase = "#2d2d30"
+        palette.text = "#f0f0f0"
+        palette.placeholderText = "#999999"
+        palette.button = "#3c3c3c"
+        palette.buttonText = "#f0f0f0"
+        palette.brightText = "#ff7070"
+        palette.highlight = "#3574f0"
+        palette.highlightedText = "#ffffff"
+        palette.mid = "#555555"
+        palette.dark = "#1e1e1e"
+        palette.light = "#4a4a4a"
+        palette.toolTipBase = "#2d2d30"
+        palette.toolTipText = "#f0f0f0"
+        palette.link = "#70b0ff"
+    }
+
     readonly property bool dark: palette.window.hslLightness < 0.5
     readonly property color okColour: dark ? "#70d090" : "#1b6e3a"
     readonly property color failColour: dark ? "#ff7070" : "#b00020"
@@ -21,6 +46,8 @@ ApplicationWindow {
     minimumHeight: 520
     visible: true
 
+    Component.onCompleted: if (renderDark) applyDarkPalette()
+
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
@@ -31,6 +58,7 @@ ApplicationWindow {
             MenuSeparator {}
             Action {
                 text: qsTr("&Quit")
+                shortcut: StandardKey.Quit
                 onTriggered: window.close()
             }
         }
@@ -378,6 +406,7 @@ ApplicationWindow {
                                     enabled: !window.app.busy
                                     onTextEdited: window.app.targetAddress = text
                                     Accessible.name: qsTr("Target address")
+                                    Component.onCompleted: forceActiveFocus()
                                 }
                                 Label { text: qsTr("THW_ID_POS") }
                                 TextField {
@@ -403,6 +432,12 @@ ApplicationWindow {
                                 opacity: 0.7
                             }
                         }
+                    }
+
+                    DownloadPanel {
+                        title: qsTr("Download")
+                        app: window.app
+                        failColour: window.failColour
                     }
 
                     Panel {
@@ -452,8 +487,9 @@ ApplicationWindow {
                                 visible: window.app.busy
                                 from: 0
                                 to: 100
-                                // The target reports a figure for an upload only; for the rest, and
-                                // before its first status file, the bar only shows that it is busy.
+                                // The target reports a figure for an upload or a download only;
+                                // for the rest, and before the first status file, the bar only
+                                // shows that it is busy.
                                 indeterminate: window.app.progress < 0
                                 value: Math.max(window.app.progress, 0)
                                 Accessible.name: qsTr("Progress of the operation")

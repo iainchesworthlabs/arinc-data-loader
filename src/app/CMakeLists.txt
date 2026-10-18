@@ -23,6 +23,7 @@ qt_add_qml_module(adl_app
         qml/Main.qml
         qml/Panel.qml
         qml/LogView.qml
+        qml/DownloadPanel.qml
         qml/PreferencesDialog.qml
         qml/MediaSetPropertiesDialog.qml
         qml/TargetPropertiesDialog.qml

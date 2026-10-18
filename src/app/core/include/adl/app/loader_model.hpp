@@ -51,9 +51,24 @@ class LoaderModel : public QObject {
     // checked valid and a target (typed, or one the automatic FIND will find).
     Q_PROPERTY(bool canUpload READ canUpload NOTIFY canUploadChanged)
     Q_PROPERTY(int selectedLoadCount READ selectedLoadCount NOTIFY canUploadChanged)
-    // How far the target's list has got in the upload that runs (percent), or -1 while nothing is
-    // known: before its first status file, and for jobs that report no progress.
+    // How far the target's list has got in the operation that runs (percent), or -1 while
+    // nothing is known: before its first status file, and for jobs that report no progress.
     Q_PROPERTY(int progress READ progress NOTIFY progressChanged)
+
+    // A download: which mode (0 media defined, the operator names the files; 1 operator
+    // defined, the target's list is chosen from), the files as the window shows them, and
+    // whether the choice of an operator defined download is the operator's to make now.
+    // A download needs a target, a download directory (Preferences) and, in the media defined
+    // mode, at least one named file.
+    Q_PROPERTY(bool canDownload READ canDownload NOTIFY canDownloadChanged)
+    Q_PROPERTY(int downloadMode READ downloadMode WRITE setDownloadMode NOTIFY downloadChanged)
+    Q_PROPERTY(
+        bool downloadChoicePending READ downloadChoicePending NOTIFY downloadChoicePendingChanged)
+    Q_PROPERTY(int downloadSelectedCount READ downloadSelectedCount NOTIFY downloadSelectionChanged)
+    // The DNLD_DATA_<THW_ID_POS>_<number> directory the last download was written into, or
+    // empty while none has run.
+    Q_PROPERTY(
+        QString lastDownloadDirectory READ lastDownloadDirectory NOTIFY downloadDirectoryChanged)
 
     // The outcome of the last job: 0 none yet, 1 it succeeded, 2 it did not.
     Q_PROPERTY(int resultState READ resultState NOTIFY resultChanged)
@@ -91,6 +106,7 @@ class LoaderModel : public QObject {
     Q_PROPERTY(QObject* configuration READ configuration CONSTANT)
     Q_PROPERTY(QObject* loads READ loads CONSTANT)
     Q_PROPERTY(QObject* files READ files CONSTANT)
+    Q_PROPERTY(QObject* downloads READ downloads CONSTANT)
 
     // The operator's preferences, saved as they are changed. lastMediaSetDirectory is set by
     // choosing a media set, not typed.
@@ -118,7 +134,9 @@ public:
     [[nodiscard]] bool busy() const noexcept { return job_ != Job::none; }
     [[nodiscard]] QString activity() const;
     [[nodiscard]] bool canAbort() const noexcept {
-        return (job_ == Job::information || job_ == Job::upload) && !abort_requested_;
+        return (job_ == Job::information || job_ == Job::upload || job_ == Job::download_media ||
+                job_ == Job::download_operator) &&
+               !abort_requested_;
     }
 
     [[nodiscard]] QString targetAddress() const { return target_address_; }
@@ -139,6 +157,13 @@ public:
     [[nodiscard]] bool canUpload() const;
     [[nodiscard]] int selectedLoadCount() const noexcept { return loads_.checked_count(); }
     [[nodiscard]] int progress() const noexcept { return progress_; }
+
+    [[nodiscard]] bool canDownload() const;
+    [[nodiscard]] int downloadMode() const noexcept { return download_mode_; }
+    void setDownloadMode(int mode);
+    [[nodiscard]] bool downloadChoicePending() const noexcept { return download_choice_pending_; }
+    [[nodiscard]] int downloadSelectedCount() const noexcept { return download_selected_count_; }
+    [[nodiscard]] QString lastDownloadDirectory() const { return last_download_directory_; }
 
     [[nodiscard]] int resultState() const noexcept { return result_state_; }
     [[nodiscard]] QString resultText() const { return result_text_; }
@@ -165,6 +190,7 @@ public:
     [[nodiscard]] QObject* configuration() { return &configuration_; }
     [[nodiscard]] QObject* loads() { return &loads_; }
     [[nodiscard]] QObject* files() { return &files_; }
+    [[nodiscard]] QObject* downloads() { return &downloads_; }
 
     [[nodiscard]] QString lastMediaSetDirectory() const {
         return settings_->lastMediaSetDirectory();
@@ -203,6 +229,21 @@ public Q_SLOTS:
     void readInformation();
     // The Upload operation: the ticked loads of the media set, to the target.
     void uploadSelected();
+    // The Download operation (5.4.4): in the media defined mode the named files, in the
+    // operator defined mode the target's list (the choice is made when it arrives, with
+    // confirmDownloadSelection or chooseNoDownloadFiles). The files land in a new
+    // DNLD_DATA_<THW_ID_POS>_<number> directory under the download directory (Preferences).
+    void downloadSelected();
+    // Adds (or removes) a file name of a media defined download. Empty names and names that
+    // are already listed are refused; a name that is not a safe file name is refused when the
+    // download starts.
+    void addDownloadFile(const QString& name);
+    void removeDownloadFile(int row);
+    // The choice of an operator defined download: sends the ticked files to the target. With
+    // no file ticked the choice is "none", which cancels the download.
+    void confirmDownloadSelection();
+    // "Choose none" of an operator defined download: cancels the operation.
+    void chooseNoDownloadFiles();
     // Asks the operation that is running to stop. The target is told, and the operation ends when
     // it confirms (or after the 13 second time-out).
     void abort();
@@ -217,6 +258,11 @@ Q_SIGNALS:
     void selectedTargetChanged();
     void canReadInformationChanged();
     void canUploadChanged();
+    void canDownloadChanged();
+    void downloadChanged();
+    void downloadChoicePendingChanged();
+    void downloadSelectionChanged();
+    void downloadDirectoryChanged();
     void progressChanged();
     void resultChanged();
     void errorChanged();
@@ -225,10 +271,19 @@ Q_SIGNALS:
     void preferencesChanged();
 
 private:
-    enum class Job { none, find, information, upload, media_set, validate };
+    enum class Job {
+        none,
+        find,
+        information,
+        upload,
+        media_set,
+        validate,
+        download_media,
+        download_operator
+    };
     // What the automatic FIND was run for, so the operation follows it when exactly one target
     // answered.
-    enum class Pending { none, information, upload };
+    enum class Pending { none, information, upload, download };
 
     bool begin(Job job);
     void on_finished(const OperationSummary& summary);
@@ -255,15 +310,21 @@ private:
     bool abort_requested_ = false;
     bool could_read_information_ = false;
     bool could_upload_ = false;
+    bool could_download_ = false;
     int selected_loads_ = 0;
     int progress_ = -1;
     int selected_target_row_ = -1;
+    int download_mode_ = 0;
+    bool download_choice_pending_ = false;
+    int download_selected_count_ = 0;
+    QString last_download_directory_;
 
     TargetModel targets_;
     EventModel events_;
     ConfigurationModel configuration_;
     LoadModel loads_;
     FileModel files_;
+    DownloadModel downloads_;
 
     QString target_address_;
     QString thw_id_pos_;

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
@@ -25,6 +26,7 @@
 #include "adl/arinc665/media_set.hpp"
 #include "adl/media_tree/media_tree.hpp"
 #include "adl/samples/scenarios.hpp"
+#include "bytes.hpp"
 #include "rig.hpp"
 #include "test_classes.hpp"
 #include "upload_fixture.hpp"
@@ -123,6 +125,40 @@ QString crc16_hex_of(std::span<const std::byte> bytes) {
         static_cast<std::uint16_t>((std::to_integer<unsigned>(value->bytes[0]) << 8) |
                                    std::to_integer<unsigned>(value->bytes[1]));
     return QStringLiteral("%1").arg(crc, 4, 16, QLatin1Char('0')).toUpper();
+}
+
+// The plan of a download: three files the simulated target can give.
+adl::test::SimPlan download_plan() {
+    adl::test::SimPlan plan;
+    plan.files = {
+        adl::test::DownloadItem{"A.BIN", adl::test::bytes_of("aaa"), "first file"},
+        adl::test::DownloadItem{"B.BIN", adl::test::bytes_of("bbbb"), "second file"},
+        adl::test::DownloadItem{"C.BIN", adl::test::repeated(std::byte{0x2A}, 6), ""},
+    };
+    return plan;
+}
+
+// The directory the downloads go to, as the operator's preference holds it.
+QString download_dir_of(const adl::test::TempDir& directory) {
+    return QString::fromStdU16String(directory.path().u16string());
+}
+
+// The bytes of `name` in the DNLD_DATA_HNPFMS_L_<number> directory under `directory`, as the
+// fake host's file system holds them (nothing, when there is no such file).
+std::optional<std::vector<std::byte>> downloaded(adl::test::Rig& rig,
+                                                 const std::filesystem::path& directory,
+                                                 const std::string& name, unsigned number = 1) {
+    const std::u8string generic = directory.generic_u8string();
+    const std::string path =
+        std::string{reinterpret_cast<const char*>(generic.data()), generic.size()} +
+        "/DNLD_DATA_HNPFMS_L_" + std::to_string(number) + "/" + name;
+    return rig.loader_host.fake_files().get(path);
+}
+
+bool holds(adl::test::Rig& rig, const std::filesystem::path& directory, const std::string& name,
+           const std::vector<std::byte>& bytes, unsigned number = 1) {
+    const std::optional<std::vector<std::byte>> found = downloaded(rig, directory, name, number);
+    return found.has_value() && *found == bytes;
 }
 
 }  // namespace
@@ -1010,4 +1046,344 @@ void LoaderModelTest::the_log_capacity_preference_is_applied() {
     // And the new length is stored for the next session.
     const auto read_back = settings_in(settings_dir);
     QCOMPARE(read_back->logCapacity(), 200);
+}
+
+void LoaderModelTest::a_media_defined_download_writes_the_files_into_the_numbered_directory() {
+    const adl::test::SimPlan plan = download_plan();
+    adl::test::Rig rig(plan);
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+    // The download directory itself is a directory that does not exist yet: it is made on
+    // demand.
+    model.setDownloadDirectory(
+        QString::fromStdU16String((downloads.path() / "not there yet").u16string()));
+    point_at_the_target(model);
+    QVERIFY(!model.canDownload());  // no file named
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+    model.addDownloadFile(QStringLiteral("C.BIN"));
+    model.addDownloadFile(QStringLiteral("A.BIN"));  // there already: refused
+    model.addDownloadFile(QStringLiteral("   "));    // empty: refused
+    QCOMPARE(qobject_cast<DownloadModel*>(model.downloads())->rowCount(), 2);
+    QVERIFY(model.canDownload());
+
+    std::vector<int> progress;
+    QObject::connect(&model, &LoaderModel::progressChanged, &model,
+                     [&] { progress.push_back(model.progress()); });
+    model.downloadSelected();
+    QVERIFY(model.busy());
+    QVERIFY(model.canAbort());
+    QVERIFY(!model.canDownload());
+    QVERIFY(model.activity().contains(QStringLiteral("Downloading")));
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    QCOMPARE(model.resultState(), 1);
+    QCOMPARE(model.resultText(), QStringLiteral("completed"));
+    QVERIFY2(model.resultDetail().contains(QStringLiteral("Files received: 2 of 2 requested.")),
+             qPrintable(model.resultDetail()));
+
+    // The files landed in DNLD_DATA_HNPFMS_L_1, under the directory that was made for them, and
+    // nowhere else; the target was asked for exactly the two names.
+    QVERIFY2(holds(rig, downloads.path() / "not there yet", "A.BIN", plan.files[0].content),
+             "A.BIN is not in the download directory");
+    QVERIFY2(holds(rig, downloads.path() / "not there yet", "C.BIN", plan.files[2].content),
+             "C.BIN is not in the download directory");
+    QVERIFY(!downloaded(rig, downloads.path() / "not there yet", "B.BIN").has_value());
+    QCOMPARE(rig.target.log().requested_files, (std::vector<std::string>{"A.BIN", "C.BIN"}));
+    QCOMPARE(rig.target.log().files_written, (std::vector<std::string>{"A.BIN", "C.BIN"}));
+
+    // The directory is exposed for the window, and the per-file progress rows made it through
+    // the model, both files received.
+    QVERIFY2(model.lastDownloadDirectory().contains(QStringLiteral("DNLD_DATA_HNPFMS_L_1")),
+             qPrintable(model.lastDownloadDirectory()));
+    const auto* files = qobject_cast<DownloadModel*>(model.downloads());
+    QCOMPARE(files->rowCount(), 2);
+    QCOMPARE(files->data(files->index(0), DownloadModel::RatioRole).toInt(), 100);
+    QCOMPARE(files->data(files->index(1), DownloadModel::RatioRole).toInt(), 100);
+    QCOMPARE(files->data(files->index(0), DownloadModel::FileStatusRole).toString(),
+             QStringLiteral("in progress"));
+    QVERIFY(!files->data(files->index(0), DownloadModel::FailedRole).toBool());
+    QVERIFY(!progress.empty());
+    QCOMPARE(progress.back(), 100);
+    QVERIFY(std::is_sorted(progress.begin(), progress.end()));
+
+    QVERIFY(log_contains(model, QStringLiteral("Downloading 2 file(s) from 10.0.0.2 (HNPFMS_L)")));
+    QVERIFY(log_contains(model, QStringLiteral("Received A.BIN")));
+    QVERIFY(log_contains(model, QStringLiteral("% of the list")));
+    QVERIFY(log_contains(model, QStringLiteral("Finished: completed")));
+}
+
+void LoaderModelTest::each_download_gets_the_next_numbered_directory() {
+    const adl::test::SimPlan plan = download_plan();
+    adl::test::Rig rig(plan);
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+    model.setDownloadDirectory(download_dir_of(downloads));
+    point_at_the_target(model);
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+
+    model.downloadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 1));
+
+    // The next download does not reuse DNLD_DATA_HNPFMS_L_1: the number moves on, and the first
+    // directory keeps its file.
+    rig.target.reset_operation();
+    model.downloadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 1));
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 2));
+    QVERIFY(!downloaded(rig, downloads.path(), "A.BIN", 3).has_value());
+    QVERIFY(model.lastDownloadDirectory().contains(QStringLiteral("DNLD_DATA_HNPFMS_L_2")));
+}
+
+void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_gate() {
+    const adl::test::SimPlan plan = download_plan();
+    adl::test::Rig rig(plan);
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+    model.setDownloadDirectory(download_dir_of(downloads));
+    point_at_the_target(model);
+    model.setDownloadMode(1);
+    QVERIFY(model.canDownload());  // a target and a directory are all it needs
+
+    QStringList listed;
+    QObject::connect(&model, &LoaderModel::downloadChoicePendingChanged, &model, [&] {
+        if (!model.downloadChoicePending()) {
+            return;
+        }
+        auto* files = qobject_cast<DownloadModel*>(model.downloads());
+        listed = files->names();
+        // Take B.BIN and C.BIN only: the choice is what the gate hands to the loader.
+        QVERIFY(files->setData(files->index(0), false, DownloadModel::CheckedRole));
+        model.confirmDownloadSelection();
+        // The choice is made once: the window is not asking again, and the ticks are locked
+        // for the rest of the operation.
+        QVERIFY(!model.downloadChoicePending());
+        QVERIFY(!files->setData(files->index(0), false, DownloadModel::CheckedRole));
+    });
+    model.downloadSelected();
+    QVERIFY(model.busy());
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    QCOMPARE(model.resultState(), 1);
+    QCOMPARE(model.resultText(), QStringLiteral("completed"));
+    QVERIFY(model.resultDetail().contains(QStringLiteral("Files received: 2 of 2 requested.")));
+    // The target's list reached the model, all three files, with the description the target gave.
+    QCOMPARE(listed, QStringList({QStringLiteral("A.BIN"), QStringLiteral("B.BIN"),
+                                  QStringLiteral("C.BIN")}));
+    // Only the chosen files were sent back (.LNA) and written; the choice went through the gate.
+    QCOMPARE(rig.target.log().selected_files, (std::vector<std::string>{"B.BIN", "C.BIN"}));
+    QCOMPARE(rig.target.log().files_written, (std::vector<std::string>{"B.BIN", "C.BIN"}));
+    QVERIFY2(holds(rig, downloads.path(), "B.BIN", plan.files[1].content),
+             "B.BIN is not in the download directory");
+    QVERIFY2(holds(rig, downloads.path(), "C.BIN", plan.files[2].content),
+             "C.BIN is not in the download directory");
+    QVERIFY(!downloaded(rig, downloads.path(), "A.BIN").has_value());
+    // The window keeps the chosen files, with their progress.
+    QCOMPARE(qobject_cast<DownloadModel*>(model.downloads())->rowCount(), 2);
+    QVERIFY(log_contains(model, QStringLiteral("The target listed 3 file(s) it can download.")));
+}
+
+void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() {
+    const adl::test::SimPlan plan = download_plan();
+    adl::test::Rig rig(plan);
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+    model.setDownloadDirectory(download_dir_of(downloads));
+    point_at_the_target(model);
+    model.setDownloadMode(1);
+
+    QObject::connect(&model, &LoaderModel::downloadChoicePendingChanged, &model, [&] {
+        if (model.downloadChoicePending()) {
+            model.chooseNoDownloadFiles();
+        }
+    });
+    model.downloadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    // "None" is what a listener answering SelectionDecision::cancelled would do: the operation
+    // is aborted, and the target was told.
+    QCOMPARE(model.resultState(), 2);
+    QCOMPARE(model.resultText(), QStringLiteral("aborted by the operator"));
+    QVERIFY(model.resultDetail().contains(QStringLiteral("Files received: 0 of 0 requested.")));
+    QVERIFY(rig.target.log().selected_files.empty());
+    QCOMPARE(rig.target.log().aborts_seen.size(), std::size_t{1});
+    QVERIFY(log_contains(model, QStringLiteral("Finished: aborted by the operator")));
+
+    // The cancellation of one job is not carried into the next: a media defined download runs
+    // to its end. (The cancelled download made DNLD_DATA_HNPFMS_L_1 when it started, so the
+    // next one is numbered 2: every download reserves its directory.)
+    rig.target.reset_operation();
+    model.setDownloadMode(0);
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+    model.downloadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 2));
+}
+
+void LoaderModelTest::a_download_with_a_missing_file_ends_as_a_failure() {
+    const adl::test::SimPlan plan = download_plan();
+    adl::test::Rig rig(plan);
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+    model.setDownloadDirectory(download_dir_of(downloads));
+    point_at_the_target(model);
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+    model.addDownloadFile(QStringLiteral("MISSING.BIN"));
+
+    model.downloadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    // The target completed, but a file the operator asked for never arrived: the application
+    // reports the download as failed, with the numbers and a hint.
+    QCOMPARE(model.resultState(), 2);
+    QCOMPARE(model.resultText(), QStringLiteral("completed, 1 file(s) missing"));
+    QVERIFY(model.resultDetail().contains(QStringLiteral("Files received: 1 of 2 requested.")));
+    QCOMPARE(model.lastErrorText(), QStringLiteral("completed, 1 file(s) missing"));
+    QVERIFY(model.lastErrorHint().contains(QStringLiteral("did not give back every file")));
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content));
+    QVERIFY(log_contains(model, QStringLiteral("requested files missing")));
+}
+
+void LoaderModelTest::abort_of_a_download_stops_it() {
+    const adl::test::SimPlan plan = download_plan();
+    adl::test::Rig rig(plan);
+    QSemaphore hold;
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig, &hold));
+    model.setDownloadDirectory(download_dir_of(downloads));
+    point_at_the_target(model);
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+
+    model.downloadSelected();
+    QVERIFY(model.canAbort());
+    model.abort();
+    QVERIFY(!model.canAbort());
+    QVERIFY(model.activity().contains(QStringLiteral("Stopping")));
+    hold.release();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    QCOMPARE(model.resultState(), 2);
+    QCOMPARE(model.resultText(), QStringLiteral("aborted by the operator"));
+    QVERIFY(model.resultDetail().contains(QStringLiteral("Files received: 0 of 1 requested.")));
+    QVERIFY(log_contains(model, QStringLiteral("Finished: aborted by the operator")));
+
+    // The next download is not aborted by the last one's request.
+    rig.target.reset_operation();
+    model.downloadSelected();
+    hold.release();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 2));
+}
+
+void LoaderModelTest::a_download_needs_a_target_a_directory_and_files() {
+    adl::test::Rig rig(download_plan());
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+
+    // Nothing set up: refused, and asking for it changes nothing.
+    QVERIFY(!model.canDownload());
+    model.downloadSelected();
+    QVERIFY(!model.busy());
+    QCOMPARE(model.resultState(), 0);
+
+    point_at_the_target(model);
+    QVERIFY(!model.canDownload());  // no file named, and the directory was cleared
+    model.setDownloadDirectory(QStringLiteral("   "));
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+    QVERIFY(!model.canDownload());  // no directory
+    model.setDownloadDirectory(download_dir_of(downloads));
+    QVERIFY(model.canDownload());
+
+    // The operator defined mode needs no names: a target and a directory are all it takes.
+    model.setDownloadMode(1);
+    QVERIFY(model.canDownload());
+    // Switching back starts the media defined list afresh; the name is added again and the
+    // target is what the download still needs.
+    model.setDownloadMode(0);
+    QVERIFY(!model.canDownload());
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+    QVERIFY(model.canDownload());
+    model.setTargetAddress(QStringLiteral("10.0.0"));
+    QVERIFY(!model.canDownload());  // not an address
+    model.setTargetAddress(QStringLiteral("10.0.0.2"));
+    model.removeDownloadFile(0);
+    QVERIFY(!model.canDownload());  // the name was removed
+
+    QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
+}
+
+void LoaderModelTest::a_download_refuses_a_name_that_is_not_a_safe_file_name() {
+    adl::test::Rig rig(download_plan());
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+    model.setDownloadDirectory(download_dir_of(downloads));
+    point_at_the_target(model);
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+    model.addDownloadFile(QStringLiteral("../UP.BIN"));
+
+    model.downloadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    // Refused before the operation started: the target never saw a request.
+    QCOMPARE(model.resultState(), 2);
+    QVERIFY(model.resultText().contains(QStringLiteral("not a safe file name")));
+    QVERIFY(model.lastErrorHint().contains(QStringLiteral("without a path")));
+    QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
+}
+
+void LoaderModelTest::a_second_job_is_refused_while_a_download_runs() {
+    adl::test::Rig rig(download_plan());
+    QSemaphore hold;
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig, &hold));
+    model.setDownloadDirectory(download_dir_of(downloads));
+    point_at_the_target(model);
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+
+    model.downloadSelected();
+    QVERIFY(model.busy());
+    model.findTargets();
+    model.readInformation();
+    model.uploadSelected();
+    model.downloadSelected();
+    model.addDownloadFile(QStringLiteral("B.BIN"));
+    QCOMPARE(qobject_cast<DownloadModel*>(model.downloads())->rowCount(), 1);
+    hold.release();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    QCOMPARE(model.resultText(), QStringLiteral("completed"));
+    QVERIFY(!log_contains(model, QStringLiteral("Looking for")));
+    QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{1});
+}
+
+void LoaderModelTest::auto_find_runs_before_a_download_when_no_target_is_selected() {
+    QTemporaryDir settings_dir;
+    auto settings = settings_in(settings_dir);
+    settings->setAutoFindBeforeOperation(true);
+    adl::test::SimPlan plan = download_plan();
+    plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
+    adl::test::Rig rig(plan);
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig), std::move(settings));
+    model.setDownloadDirectory(download_dir_of(downloads));
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+
+    // No target chosen: the download may still be started, and the FIND runs first.
+    QVERIFY(!model.targetValid());
+    QVERIFY(model.canDownload());
+    model.downloadSelected();
+    QVERIFY(model.busy());
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    // Exactly one target answered: it was taken, and the download went ahead on its own.
+    QCOMPARE(model.resultState(), 1);
+    QCOMPARE(model.resultText(), QStringLiteral("completed"));
+    QCOMPARE(model.targetAddress(), QStringLiteral("10.0.0.2"));
+    QVERIFY(log_contains(model, QStringLiteral("No target is selected")));
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content));
 }

@@ -5,7 +5,7 @@ logic and no file format. Everything it knows about ARINC 615A and 665 it asks o
 `adl::arinc615a_runner`, `adl::arinc665` and `adl::media_tree`, and everything it knows about the system
 it asks of `adl::platform`. Qt is used here and nowhere else.
 
-Two slices are built: the skeleton with Information, and Upload. What the window does today:
+FIND, the Information, Upload and Download operations are built. What the window does today:
 
 | What | How |
 | --- | --- |
@@ -16,14 +16,10 @@ Two slices are built: the skeleton with Information, and Upload. What the window
 | Name a target by hand | An IPv4 address and a `<THW_ID_POS>` can be typed, for a target that does not answer FIND (or over AFDX, which has no broadcast). |
 | Read information | The Information operation (5.4.2): the target's status files and its list of hardware and parts, with an abort button. |
 | Upload | The Upload operation (5.4.3): the ticked loads of the media set are loaded to the target. The target reads their header, data and support files from the media set on disk; the window shows how far the target's list has got and, beside each ticked load, its own percentage and status (and why, for one the target gave up on), from the upload status files. With the abort button. See [what the Upload operation needs](#what-the-upload-operation-needs-from-the-application). |
+| Download | The Download operation (5.4.4), in both modes. Media defined: the operator names the files the target is to send. Operator defined: the target's list of files is shown to be ticked, the choice goes back through the engine's deferred-selection route, and "Choose none" cancels the operation the way the standard says. The files land in a fresh `DNLD_DATA_<THW_ID_POS>_<number>` directory under the download directory (Preferences): the number is the lowest free one, and even an aborted download consumes its directory. Each file's row carries its own status and progress; the abort button covers downloads. See [what the Download operation needs](#what-the-download-operation-needs-from-the-application). |
 | Preferences | Persistent settings, in a dialog from the File menu: the last media set directory (restored quietly at start-up), a default target address and `<THW_ID_POS>` (prefilled), the loader's control port (anything but 59 is sent to the target as the `port` option, which is what lets the loader and a target share one machine), the download directory, whether FIND runs by itself before an operation with no chosen target (one answer is taken automatically; none or several leaves the choice to the operator), whether a chosen media set is checked at once, and the activity log's capacity. |
 | The activity log | What the target said (its answer, each status file) and the engine's notices (a lost or repeated status file, a refused request, a checksum that did not match, a WAIT), with the time, oldest first. |
 | The outcome | How the operation ended (the engine's `OutcomeCode`), and for an abort whether the target confirmed that it had stopped. Failures also open a dialog once, with the outcome, the detail and, where the application knows one, a hint (a host that could not start, an address that is not an address, a media set that could not be read, an abort the target did not confirm); a status bar carries the current state, the target and the media set. |
-
-Download (media and operator defined), the choice of the `DNLD_DATA_<THW_ID_POS>_<number>` directory
-(5.4.4.3) and running FIND automatically before an operation are the next slices (the
-[roadmap](roadmap.md)); of those, FIND-before-an-operation is now a preference (above), and the
-rest remain.
 
 ## Layout
 
@@ -33,10 +29,10 @@ src/app/
   qml/                Main.qml (the window), Panel.qml, LogView.qml, the preferences,
                       properties and about dialogs
   core/               adl_app_core: everything but the window, Qt Core only
-    engine_worker     the engine on its own thread, and the abort
+    engine_worker     the engine on its own thread, the abort and the deferred download choice
     loader_model      what the QML talks to: properties and a few invokable functions
     settings          the persistent preferences (QSettings), read at start-up
-    models            the five list models (the loads carry the operator's ticks and the progress)
+    models            the list models (the loads carry the operator's ticks and the progress)
     media_set_summary reading a media set from a directory, as plain values
     media_source      the files of an upload: an index of the media set's files, and a FileSource over it
     notice_text       an engine notice as a line for the operator
@@ -150,6 +146,38 @@ as failed (`items_failed`); a completed operation with a failed load is shown as
 1 load(s) failed"), and the detail says how many files the target read. A load that failed is named in
 the log once, with the target's reason.
 
+## What the Download operation needs from the application
+
+A Download has no `FileSource`; it has a **`FileSink`** instead: `DirectoryFileSink`
+(`adl::arinc615a_runner`) writes the target's files into one directory, under a temporary name
+until the whole file has arrived, and never overwrites, which is exactly what 5.4.4.3 asks of
+the `DNLD_DATA_<THW_ID_POS>_<number>` directory. The application makes that directory when the
+download starts, under the download directory of the preferences: the number is the lowest free
+one from 1, the directory is reserved even if the operation is refused or aborted, and the
+parents are created on demand, through the platform's `FileSystem` (so the tests' fake storage
+receives the bytes).
+
+**The operator's choice is a deferred engine call.** For an operator defined download the
+target writes its list of files (`<THW_ID_POS>.LNL`), and the standard leaves when the choice is
+made to the loader. The listener copies the list into Qt values at once and defers; the window
+shows the files all ticked; the operator ticks what to take and presses "Download selected"
+(which the engine carries back as `.LNA`), or "Choose none" (which cancels the operation as
+`SelectionDecision::cancelled` does: an abort with the target's confirmation). The choice
+reaches the engine the same way the abort does: `OperationGate`, the one `RunController` the
+runner polls, checks the abort first and then a posted selection, issues each at most once per
+job, and is cleared before the next.
+
+**In the media defined mode** the operator names the files, and each name is checked with the
+same `is_safe_file_name` the sink uses before the operation starts, so a name that could reach
+outside the download directory is refused before anything is sent.
+
+**Progress and judgment.** The overall progress is the target's list ratio from the download
+status files; each row's ratio is 100 once its file has arrived and 0 until then (the protocol
+carries no per-file figure), with the target's status word and description. `success` is
+`completed` with nothing failed and every requested file received; otherwise the failure names
+the failed or missing files, with a hint. The detail says how many files arrived of how many
+requested, and where.
+
 ## Qt in this repository
 
 - **Qt is the prebuilt kit, not vcpkg.** `cmake/FindQt6.cmake` finds it through `QT_ROOT_DIR` (set by
@@ -176,23 +204,29 @@ Checked: the logic through `LoaderModel` on its engine thread against the simula
 platform (Information, FIND, an Upload of a media set written to a directory and read back through the
 index, its progress and its end, a load the target cannot read, an abort of an Upload, a second job refused,
 a host that cannot start, a media set read from a directory and one that is not there, the model destroyed
-while a job is queued), `MediaTreeSource` and the index (two files of one name told apart by the CRC, the
-fall-backs above, offsets, the limit on open files), the models (ticks, locking, progress, and the files of
-`FILES.LUM`), the address parser and the notice texts; the preferences (round-trip through `QSettings`, the
-control port reaching the engine as the `port` option, FIND before an operation with none, several or one
-target answering, the quiet start-up restore); the validation gate (an unreadable set — a corrupted byte, a
-removed file — leaves the upload refused with the reason, a set that reads is uploadable, findings warn but
-do not block, a re-check catches files changed on disk, the operator's ticks survive a re-read); the failure
-hints; and the window itself, loaded offscreen with every QML warning an error, driven through a FIND, an
-Information operation, a media set check and an Upload (the load ticked and the button pressed through the
-window's own items).
+while a job is queued), a media defined Download whose files land byte for byte in the
+`DNLD_DATA_<THW_ID_POS>_<number>` directory of the fake storage, an operator defined Download with a
+ticked subset and with "Choose none" (the abort with the target's confirmation), a download with a failed
+item, an unsafe file name refused before anything is sent, and the gate (a choice posted once, cleared
+per job, the abort winning over a choice), `MediaTreeSource` and the index (two files of one name told
+apart by the CRC, the fall-backs above, offsets, the limit on open files), the models (ticks, locking,
+progress, and the files of `FILES.LUM`), the address parser and the notice texts; the preferences
+(round-trip through `QSettings`, the control port reaching the engine as the `port` option, FIND before an
+operation with none, several or one target answering, the quiet start-up restore); the validation gate (an
+unreadable set — a corrupted byte, a removed file — leaves the upload refused with the reason, a set that
+reads is uploadable, findings warn but do not block, a re-check catches files changed on disk, the
+operator's ticks survive a re-read); the failure hints; and the window itself, loaded offscreen with every
+QML warning an error, driven through a FIND, an Information operation, a media set check, an Upload and a
+media defined Download (the load ticked and the buttons pressed through the window's own items), in the
+light and the dark scheme.
 
 Not checked: an Upload against a real target (and so which checksum a real target sends for each file,
 see above), an Upload whose files are in two directories of one name end to end (the source is tested
 on that, the operation is not), a media set of many gigabytes (files are read by block, not held, and the
 test sets are a few kilobytes), an abort in the middle of a transfer through the window (the engine's
-tests cover it; the application's abort test holds the engine at the start of the job); the window against a real target or a real network (the runner over real sockets has not been
-run either, [engine](arinc615a-engine.md#what-has-been-checked-and-what-has-not)); the window on a real
-screen at other scales and in a dark theme (the colours take the palette's lightness, and have been looked
-at in the light one only); keyboard use and a screen reader beyond the accessible names the controls carry;
-translations (the strings go through `tr`/`qsTr`, and there is no catalogue).
+tests cover it; the application's abort test holds the engine at the start of the job); the window
+against a real target over a real network (the runner over real sockets is run by the loopback
+integration test against the mock target, [mock target](mock-target.md), not by the window); the window
+on a real screen at other scales (both schemes have been looked at offscreen); keyboard use and a screen
+reader beyond the accessible names the controls carry; translations (the strings go through `tr`/`qsTr`,
+and there is no catalogue).

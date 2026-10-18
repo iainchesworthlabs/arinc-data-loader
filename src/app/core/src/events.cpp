@@ -20,6 +20,10 @@ void register_metatypes() {
     qRegisterMetaType<ValidationReport>();
     qRegisterMetaType<LoadProgressRow>();
     qRegisterMetaType<QList<LoadProgressRow>>();
+    qRegisterMetaType<FileProgressRow>();
+    qRegisterMetaType<QList<FileProgressRow>>();
+    qRegisterMetaType<DownloadFileRow>();
+    qRegisterMetaType<QList<DownloadFileRow>>();
     qRegisterMetaType<MediaSetSummary>();
 }
 

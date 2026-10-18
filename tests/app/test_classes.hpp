@@ -37,6 +37,17 @@ private Q_SLOTS:
     void load_model_keeps_ticks_for_loads_that_are_still_there();
     void load_model_shows_the_progress_of_the_ticked_loads();
     void file_model_lists_the_files_of_the_set();
+    void download_model_holds_the_operators_names();
+    void download_model_ticks_the_targets_list_and_keeps_the_choice();
+};
+
+// The operator's controls of a running job (the runner's controller): the abort and the
+// deferred choice of files.
+class ControlsTest : public QObject {
+    Q_OBJECT
+
+private Q_SLOTS:
+    void a_request_and_a_choice_are_posted_and_forgotten();
 };
 
 // The operator's preferences in QSettings.
@@ -97,4 +108,14 @@ private Q_SLOTS:
     void the_last_media_set_is_restored_after_startup();
     void a_missing_last_media_set_is_skipped_quietly();
     void the_log_capacity_preference_is_applied();
+    void a_media_defined_download_writes_the_files_into_the_numbered_directory();
+    void each_download_gets_the_next_numbered_directory();
+    void an_operator_defined_download_takes_the_choice_through_the_gate();
+    void choosing_none_of_the_targets_files_cancels_the_download();
+    void a_download_with_a_missing_file_ends_as_a_failure();
+    void abort_of_a_download_stops_it();
+    void a_download_needs_a_target_a_directory_and_files();
+    void a_download_refuses_a_name_that_is_not_a_safe_file_name();
+    void a_second_job_is_refused_while_a_download_runs();
+    void auto_find_runs_before_a_download_when_no_target_is_selected();
 };

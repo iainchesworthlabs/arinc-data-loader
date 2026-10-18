@@ -122,7 +122,7 @@ Dialog {
                         onTextEdited: dialog.app.downloadDirectory = text
                         Accessible.name: qsTr("Download directory")
                         ToolTip.visible: hovered
-                        ToolTip.text: qsTr("Where a download is to be written; reserved for the Download operation")
+                        ToolTip.text: qsTr("Where a download is written: each download makes its own DNLD_DATA_<THW_ID_POS>_<number> directory under this one (created when it is not there)")
                     }
                 }
             }
