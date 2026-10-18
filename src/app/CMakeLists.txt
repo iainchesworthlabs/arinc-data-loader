@@ -36,6 +36,16 @@ target_link_libraries(adl_app
         adl::sanitizers
         adl::coverage)
 
+# The QML compiler writes a C++ loader into this target, and in an optimised build GCC reports a
+# possible null dereference inside Qt's own QHash in it (a header we cannot change, in a file we do
+# not write). It is the one warning turned off, for this target only. It is a target of its own,
+# linked after adl::warnings, because the flags of linked targets are given in link order and a
+# -Wno- before -Wnull-dereference would turn it back on.
+add_library(adl_app_generated_code INTERFACE)
+target_compile_options(adl_app_generated_code INTERFACE
+    "$<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-null-dereference>")
+target_link_libraries(adl_app PRIVATE adl_app_generated_code)
+
 adl_platform_configure_app(adl_app)
 adl_platform_deploy_qt_runtime(adl_app "${CMAKE_CURRENT_SOURCE_DIR}/qml")
 adl_deploy_sanitizer_runtime(adl_app)
