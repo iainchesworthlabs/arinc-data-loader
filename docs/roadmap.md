@@ -141,10 +141,20 @@ slices; [the application](app.md) says what each does.
    ([the mock target](mock-target.md)); and a dark-scheme, keyboard and accessibility pass over all three
    windows (menus and shortcuts, initial focus, the keyboard highlight of the generator's file list, both
    schemes rendered in the offscreen tests).
+7. **The window's minimum set (done).** The design layer the sibling applications have, brought to the
+   loader: one design-token file (`qml/Theme.qml`) and a small component library over it
+   (`Panel`, `AppButton`, `SegmentedControl`, `FocusRing`); a first-run screen that sets the essentials
+   once; the address and `<THW_ID_POS>` of the last operation remembered across sessions; and the
+   language machinery — `qt_add_translations` over an English catalogue, a `LanguageManager` that
+   persists the choice, follows the system locale, sets the layout direction and retranslates the
+   running window. The QML is a static module library the application and the window's test both link,
+   so the test runs what ships ([the application](app.md)).
 
 What is left of the application:
 
-- Remembering the last target and download directory; translations.
+- Catalogues for languages beyond English: the machinery (`LanguageManager`, the `qt_add_translations`
+  pipeline, the language menu in Preferences) and the English catalogue are in place; each further
+  language is a `.ts` beside it and a line in the manager's table.
 - FIND over real sockets in the loopback test: the standard fixes FIND to port 1001 on both ends, and two
   sockets sharing a port on one machine is not reliable on every platform, so the loopback test covers the
   operations and names the target by hand; a FIND case may join it if the reuse behaviour proves portable.

@@ -84,6 +84,16 @@ C++23 CMake monorepo. Nothing has been released.
   `adl::arinc615a_mini`, the second TFTP implementation extracted from the tests so that the two ends of a
   dialogue share no transfer code. `loopback.integration` runs the loader's runner against the mock target's
   engine over 127.0.0.1. Not run against a real target.
+- **The window's minimum set** ([docs/app.md](docs/app.md)): one design-token file (`qml/Theme.qml`)
+  is the single source of truth for colour, type and geometry, and the window is built from a small
+  component library over it (`Panel`, `AppButton`, `SegmentedControl`, `FocusRing`), as the sibling
+  applications' windows are. A first launch opens on a first-run screen (a default target, the
+  download directory, and what the window is for) that is stored once passed; the address and
+  `<THW_ID_POS>` of the last operation are remembered and put back at start-up; and the strings are
+  in a catalogue (`qt_add_translations`, an English `.ts`) with a `LanguageManager` that persists the
+  language, follows the system locale and retranslates the running window. The QML is a module
+  library of its own, so the window's offscreen test loads the same compiled QML the application
+  does.
 - **The 615A engine and runner** (`adl::arinc615a`, `adl::arinc615a_runner`,
   [docs/arinc615a-engine.md](docs/arinc615a-engine.md),
   [docs/arinc615a-coverage.md](docs/arinc615a-coverage.md)): the data loader's side of ARINC

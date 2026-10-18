@@ -9,18 +9,19 @@ Frame {
 
     required property var events
 
-    readonly property bool dark: palette.window.hslLightness < 0.5
-
     function colourOf(severity) {
         switch (severity) {
-        case 1: return dark ? "#e0c060" : "#7a5c00"   // notice
-        case 2: return dark ? "#ffb060" : "#a04000"   // warning
-        case 3: return dark ? "#ff7070" : "#b00020"   // error
-        default: return palette.text
+        case 1: return Theme.warn;  // notice
+        case 2: return Theme.warn;  // warning
+        case 3: return Theme.fail;  // error
+        default: return Theme.ink;
         }
     }
 
     padding: 0
+    background: Rectangle {
+        color: "transparent"
+    }
 
     ListView {
         id: list
@@ -43,14 +44,14 @@ Frame {
             required property int severity
 
             width: ListView.view.width
-            leftPadding: 8
-            rightPadding: 8
+            leftPadding: Theme.space2
+            rightPadding: Theme.space2
             topPadding: 2
             bottomPadding: 2
             wrapMode: Text.Wrap
             textFormat: Text.PlainText
             color: root.colourOf(severity)
-            font.pixelSize: 12
+            font.pixelSize: Theme.fontSmall
             text: time + "  " + message
         }
 

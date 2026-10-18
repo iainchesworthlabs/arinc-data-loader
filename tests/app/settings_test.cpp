@@ -31,6 +31,9 @@ void SettingsTest::the_defaults_hold_without_a_stored_value() {
     QVERIFY(settings->defaultTargetAddress().isEmpty());
     QVERIFY(settings->defaultThwIdPos().isEmpty());
     QVERIFY(settings->downloadDirectory().endsWith(QStringLiteral("ArincDownloads")));
+    QCOMPARE(settings->firstRunComplete(), false);
+    QVERIFY(settings->lastTargetAddress().isEmpty());
+    QVERIFY(settings->lastThwIdPos().isEmpty());
 }
 
 void SettingsTest::what_is_written_is_read_back() {
@@ -82,4 +85,38 @@ void SettingsTest::numbers_out_of_range_are_kept_as_they_were() {
     settings->setLogCapacity(500);
     settings->setLogCapacity(2'000'000);
     QCOMPARE(settings->logCapacity(), 500);
+}
+
+void SettingsTest::the_first_run_is_complete_only_once() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const QString path = directory.filePath(QStringLiteral("settings.ini"));
+
+    {
+        auto settings = settings_at(path);
+        QCOMPARE(settings->firstRunComplete(), false);
+        settings->setFirstRunComplete(true);
+    }
+
+    // The next launch is not a first run.
+    auto read_back = settings_at(path);
+    QCOMPARE(read_back->firstRunComplete(), true);
+}
+
+void SettingsTest::the_target_of_the_last_operation_is_remembered() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const QString path = directory.filePath(QStringLiteral("settings.ini"));
+
+    {
+        auto settings = settings_at(path);
+        settings->setLastTargetAddress(QStringLiteral("10.0.0.7"));
+        settings->setLastThwIdPos(QStringLiteral("HNPFMS_R"));
+    }
+
+    auto read_back = settings_at(path);
+    QCOMPARE(read_back->lastTargetAddress(), QStringLiteral("10.0.0.7"));
+    QCOMPARE(read_back->lastThwIdPos(), QStringLiteral("HNPFMS_R"));
+    // The defaults the operator set are a separate thing: the last target does not overwrite them.
+    QVERIFY(read_back->defaultTargetAddress().isEmpty());
 }

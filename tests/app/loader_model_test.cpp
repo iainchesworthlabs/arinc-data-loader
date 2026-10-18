@@ -242,7 +242,10 @@ void LoaderModelTest::selecting_a_target_fills_the_address() {
     adl::test::SimPlan plan;
     plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "R", "FMS RIGHT", "HNP"};
     adl::test::Rig rig(plan);
-    LoaderModel model(rig_host(rig));
+    // A file of its own: the target of a last operation is restored from the settings, and this
+    // test is about a window with no target yet.
+    QTemporaryDir settings_dir;
+    LoaderModel model(rig_host(rig), settings_in(settings_dir));
     QVERIFY(!model.canReadInformation());
 
     model.findTargets();
@@ -260,7 +263,9 @@ void LoaderModelTest::selecting_a_target_fills_the_address() {
 
 void LoaderModelTest::a_target_needs_an_address_and_a_name() {
     adl::test::Rig rig;
-    LoaderModel model(rig_host(rig));
+    // As above: no stored last target, so the window starts with the fields empty.
+    QTemporaryDir settings_dir;
+    LoaderModel model(rig_host(rig), settings_in(settings_dir));
     QVERIFY(!model.targetValid());
 
     model.setTargetAddress(QStringLiteral("10.0.0.2"));
@@ -665,6 +670,51 @@ void LoaderModelTest::clearing_a_target_field_restores_its_default() {
     QVERIFY(model2.targetAddress().isEmpty());
     model2.setDefaultTargetAddress(QStringLiteral("10.1.1.1"));
     QCOMPARE(model2.targetAddress(), QStringLiteral("10.1.1.1"));
+}
+
+void LoaderModelTest::the_first_run_screen_is_shown_until_it_is_passed() {
+    QTemporaryDir settings_dir;
+    {
+        adl::test::Rig rig;
+        LoaderModel model(rig_host(rig), settings_in(settings_dir));
+        QVERIFY(model.firstRun());
+        model.setDefaultTargetAddress(QStringLiteral("10.0.0.2"));
+        model.setDefaultThwIdPos(QStringLiteral("HNPFMS_L"));
+        model.completeFirstRun();
+        QVERIFY(!model.firstRun());
+        // What the first run set is what the window starts with, so the first operation does not
+        // retype it.
+        QCOMPARE(model.targetAddress(), QStringLiteral("10.0.0.2"));
+        QCOMPARE(model.thwIdPos(), QStringLiteral("HNPFMS_L"));
+        QVERIFY(model.targetValid());
+    }
+
+    // The next launch goes straight to the workbench.
+    adl::test::Rig rig;
+    LoaderModel again(rig_host(rig), settings_in(settings_dir));
+    QVERIFY(!again.firstRun());
+    QCOMPARE(again.targetAddress(), QStringLiteral("10.0.0.2"));
+}
+
+void LoaderModelTest::the_target_of_the_last_operation_comes_back() {
+    QTemporaryDir settings_dir;
+    {
+        adl::test::Rig rig;
+        LoaderModel model(rig_host(rig), settings_in(settings_dir));
+        // The defaults are one thing; the target an operation actually used is another.
+        model.setDefaultTargetAddress(QStringLiteral("10.0.0.1"));
+        model.setDefaultThwIdPos(QStringLiteral("DEFAULT_L"));
+        point_at_the_target(model);
+        model.readInformation();
+        QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+        QCOMPARE(model.resultState(), 1);
+    }
+
+    // A new window starts against the last operation's target, not a default.
+    adl::test::Rig rig;
+    LoaderModel again(rig_host(rig), settings_in(settings_dir));
+    QCOMPARE(again.targetAddress(), QStringLiteral("10.0.0.2"));
+    QCOMPARE(again.thwIdPos(), QStringLiteral("HNPFMS_L"));
 }
 
 void LoaderModelTest::a_failure_surfaces_for_the_dialog() {

@@ -2,12 +2,12 @@
 # aqtinstall layout each platform fragment lists), found by cmake/FindQt6.cmake - not vcpkg.
 #
 #   core/   the logic without a window: the engine's worker thread, the models, LoaderModel
-#   qml/    the window
-#   main.cpp
+#   qml/    the window, its design tokens (Theme.qml) and the components they draw
+#   main.cpp, language_manager   the process: the window, and the language it is in
 #
 # Qt code lives here and nowhere else.
 
-find_package(Qt6 6.12 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2)
+find_package(Qt6 6.12 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 LinguistTools)
 
 # AUTOMOC and the policies of Qt 6.12 (QML modules get their resource prefix and their qmldir the
 # current way), for this directory only.
@@ -15,23 +15,67 @@ qt_standard_project_setup(REQUIRES 6.12)
 
 add_subdirectory(core)
 
-qt_add_executable(adl_app main.cpp)
-qt_add_qml_module(adl_app
+set(ADL_APP_QML_FILES
+    qml/Main.qml
+    qml/Theme.qml
+    qml/Panel.qml
+    qml/LogView.qml
+    qml/DownloadPanel.qml
+    qml/FirstRunScreen.qml
+    qml/AppButton.qml
+    qml/SegmentedControl.qml
+    qml/FocusRing.qml
+    qml/PreferencesDialog.qml
+    qml/MediaSetPropertiesDialog.qml
+    qml/TargetPropertiesDialog.qml
+    qml/AboutDialog.qml)
+
+# Theme is a QML singleton: this must be set before qt_add_qml_module reads it, or the generated
+# qmldir registers it as an ordinary type and every Theme.* binding resolves to undefined.
+set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+
+# The window is a static library of its own, as the Countdown Solver's module is, for one reason:
+# a QML module is registered by static initialisers that nothing calls, so the application links
+# this with the whole archive - and so does the window's test, which therefore loads the same
+# compiled module the application does rather than a second copy of the files.
+qt_add_library(adl_app_qml STATIC)
+qt_add_qml_module(adl_app_qml
     URI ArincDataLoader
     VERSION 1.0
-    QML_FILES
-        qml/Main.qml
-        qml/Panel.qml
-        qml/LogView.qml
-        qml/DownloadPanel.qml
-        qml/PreferencesDialog.qml
-        qml/MediaSetPropertiesDialog.qml
-        qml/TargetPropertiesDialog.qml
-        qml/AboutDialog.qml)
+    QML_FILES ${ADL_APP_QML_FILES})
+target_link_libraries(adl_app_qml
+    PUBLIC
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::QuickControls2)
+
+qt_add_executable(adl_app
+    main.cpp
+    language_manager.cpp
+    language_manager.hpp)
+
+# The catalogue: lrelease compiles the .ts into a .qm and embeds it under :/i18n, which is where
+# LanguageManager loads it from. IMMEDIATE_CALL keeps the resource attachment in this directory
+# (a deferred call attaches it from the repo root, which CMake then has to wrap in a target of its
+# own). Adding a language is a .ts file here and its line in language_manager.cpp's table.
+# SOURCES names the QML and the C++ that carry translatable strings: lupdate scans exactly these.
+qt_add_translations(adl_app_qml
+    IMMEDIATE_CALL
+    TS_FILES
+        translations/adl_app_en.ts
+    SOURCES
+        ${ADL_APP_QML_FILES}
+        core/src/engine_worker.cpp
+        core/src/host_access.cpp
+        core/src/loader_model.cpp
+        core/src/media_set_summary.cpp
+        core/src/models.cpp
+        core/src/notice_text.cpp)
 
 target_compile_features(adl_app PRIVATE cxx_std_23)
 target_link_libraries(adl_app
     PRIVATE
+        $<LINK_LIBRARY:WHOLE_ARCHIVE,adl_app_qml>
         adl::app_core
         Qt6::Gui
         Qt6::Qml

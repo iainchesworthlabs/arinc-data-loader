@@ -14,50 +14,44 @@ Panel {
     id: panel
 
     required property var app
-    required property color failColour
 
     // Adds what the operator typed as a file of a media defined download.
     function addName() {
-        const name = downloadNameField.text.trim()
+        const name = downloadNameField.text.trim();
         if (name.length > 0) {
-            panel.app.addDownloadFile(name)
-            downloadNameField.text = ""
+            panel.app.addDownloadFile(name);
+            downloadNameField.text = "";
         }
     }
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 8
+        spacing: Theme.space2
 
-        RowLayout {
-            RadioButton {
-                objectName: "downloadModeMedia"
-
-                text: qsTr("Media defined")
-                checked: panel.app.downloadMode === 0
-                enabled: !panel.app.busy
-                onToggled: if (checked) panel.app.downloadMode = 0
-                Accessible.name: qsTr("Media defined download")
-                ToolTip.visible: hovered
-                ToolTip.text: qsTr("The operator names the files the target is to send (ARINC 615A 5.4.4, media defined)")
-            }
-            RadioButton {
-                objectName: "downloadModeOperator"
-
-                text: qsTr("Operator defined")
-                checked: panel.app.downloadMode === 1
-                enabled: !panel.app.busy
-                onToggled: if (checked) panel.app.downloadMode = 1
-                Accessible.name: qsTr("Operator defined download")
-                ToolTip.visible: hovered
-                ToolTip.text: qsTr("The target sends its list of files, the operator chooses, and the choice goes back (ARINC 615A 5.4.4, operator defined)")
-            }
+        SegmentedControl {
+            objectName: "downloadMode"
+            segments: [
+                {
+                    value: 0,
+                    label: qsTr("Media defined"),
+                    name: "downloadModeMedia"
+                },
+                {
+                    value: 1,
+                    label: qsTr("Operator defined"),
+                    name: "downloadModeOperator"
+                }
+            ]
+            selectedValue: panel.app.downloadMode
+            onSegmentClicked: (value) => panel.app.downloadMode = value
+            enabled: !panel.app.busy
+            Accessible.name: qsTr("Download mode")
         }
 
         // Media defined: the operator's own list of file names.
         ColumnLayout {
             visible: panel.app.downloadMode === 0
-            spacing: 6
+            spacing: Theme.space1
 
             RowLayout {
                 TextField {
@@ -70,7 +64,7 @@ Panel {
                     onAccepted: panel.addName()
                     Accessible.name: qsTr("Download file name")
                 }
-                Button {
+                AppButton {
                     objectName: "addDownloadButton"
 
                     text: qsTr("Add")
@@ -84,14 +78,14 @@ Panel {
                 visible: panel.app.downloadMode === 0 && downloadList.count === 0
                 text: qsTr("No file named. Name each file the target is to send.")
                 wrapMode: Text.Wrap
-                opacity: 0.7
+                color: Theme.muted
             }
         }
 
         // Operator defined: waiting for the target's list, then the choice.
         ColumnLayout {
             visible: panel.app.downloadMode === 1
-            spacing: 6
+            spacing: Theme.space1
 
             Label {
                 objectName: "downloadWaiting"
@@ -103,12 +97,12 @@ Panel {
                       ? qsTr("Waiting for the target's list of files...")
                       : qsTr("Nothing to choose from yet. Start the download: the target sends its list of files, the operator ticks what to take, and the choice goes back.")
                 wrapMode: Text.Wrap
-                opacity: 0.7
+                color: Theme.muted
             }
             RowLayout {
                 visible: panel.app.downloadChoicePending
 
-                Button {
+                AppButton {
                     objectName: "chooseNoneButton"
 
                     text: qsTr("Choose none")
@@ -117,9 +111,10 @@ Panel {
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Nothing is downloaded: the operation is cancelled")
                 }
-                Button {
+                AppButton {
                     objectName: "confirmDownloadButton"
 
+                    primary: true
                     text: qsTr("Download selected")
                     enabled: panel.app.downloadSelectedCount > 0
                     onClicked: panel.app.confirmDownloadSelection()
@@ -128,7 +123,7 @@ Panel {
                 Label {
                     Layout.fillWidth: true
                     text: qsTr("%n file(s) ticked", "", panel.app.downloadSelectedCount)
-                    opacity: 0.7
+                    color: Theme.muted
                     elide: Text.ElideRight
                 }
             }
@@ -171,7 +166,7 @@ Panel {
                         Layout.fillWidth: true
                         text: downloadRow.name
                     }
-                    Button {
+                    AppButton {
                         visible: panel.app.downloadMode === 0 && !panel.app.busy
                         text: qsTr("Remove")
                         onClicked: panel.app.removeDownloadFile(downloadRow.index)
@@ -183,7 +178,7 @@ Panel {
                     Layout.leftMargin: 28
                     visible: downloadRow.description.length > 0
                     text: downloadRow.description
-                    opacity: 0.7
+                    color: Theme.muted
                     wrapMode: Text.Wrap
                 }
                 ProgressBar {
@@ -201,19 +196,21 @@ Panel {
                     visible: downloadRow.ratio >= 0
                     text: downloadRow.ratio + "% " + downloadRow.fileStatus
                           + (downloadRow.problem.length > 0 ? ": " + downloadRow.problem : "")
-                    color: downloadRow.failed ? panel.failColour : panel.palette.windowText
+                    color: downloadRow.failed ? Theme.fail : Theme.ink
                     wrapMode: Text.Wrap
                 }
             }
         }
 
         RowLayout {
-            Button {
+            AppButton {
                 objectName: "downloadButton"
 
+                primary: true
                 text: qsTr("Download")
                 enabled: panel.app.canDownload
                 onClicked: panel.app.downloadSelected()
+                Accessible.name: qsTr("Download from the target")
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Downloads into a new DNLD_DATA directory under the download directory (Preferences)")
             }
@@ -223,7 +220,7 @@ Panel {
             visible: text.length > 0
             text: qsTr("Download directory: %1").arg(panel.app.lastDownloadDirectory)
             elide: Text.ElideMiddle
-            opacity: 0.7
+            color: Theme.muted
         }
     }
 }

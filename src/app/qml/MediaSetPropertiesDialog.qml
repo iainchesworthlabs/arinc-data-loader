@@ -12,21 +12,21 @@ Dialog {
     title: qsTr("Media set properties")
     modal: true
     standardButtons: Dialog.Close
-    width: 680
-    height: 560
+    width: 720
+    height: 600
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 8
+        spacing: Theme.space2
 
         GridLayout {
             columns: 2
-            columnSpacing: 12
-            rowSpacing: 4
+            columnSpacing: Theme.space3
+            rowSpacing: Theme.space1
 
             Label {
                 text: qsTr("Part number")
-                opacity: 0.7
+                color: Theme.muted
             }
             Label {
                 text: dialog.app.mediaSetPartNumber.length > 0
@@ -35,23 +35,23 @@ Dialog {
             }
             Label {
                 text: qsTr("Members")
-                opacity: 0.7
+                color: Theme.muted
             }
             Label { text: dialog.app.mediaSetMemberCount }
             Label {
                 text: qsTr("Batches")
-                opacity: 0.7
+                color: Theme.muted
             }
             Label { text: dialog.app.mediaSetBatchCount }
             Label {
                 text: qsTr("Directory")
-                opacity: 0.7
+                color: Theme.muted
             }
             Label {
                 text: dialog.app.mediaSetPath.length > 0
                       ? dialog.app.mediaSetPath : qsTr("not chosen")
                 elide: Text.ElideMiddle
-                Layout.maximumWidth: 480
+                Layout.maximumWidth: 520
             }
         }
 
@@ -73,7 +73,7 @@ Dialog {
                 required property string detail
 
                 width: ListView.view.width
-                spacing: 8
+                spacing: Theme.space2
 
                 Label {
                     Layout.preferredWidth: 180
@@ -84,7 +84,7 @@ Dialog {
                 Label {
                     Layout.fillWidth: true
                     text: detail
-                    opacity: 0.7
+                    color: Theme.muted
                     elide: Text.ElideRight
                 }
             }
@@ -110,7 +110,7 @@ Dialog {
                 required property string crc
 
                 width: ListView.view.width
-                spacing: 8
+                spacing: Theme.space2
 
                 Label {
                     Layout.preferredWidth: 220
@@ -118,22 +118,23 @@ Dialog {
                     elide: Text.ElideRight
                 }
                 Label {
-                    Layout.preferredWidth: 72
+                    Layout.preferredWidth: 80
                     text: qsTr("member %1").arg(member)
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label {
                     Layout.fillWidth: true
                     text: pathname
                     elide: Text.ElideMiddle
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label {
                     Layout.preferredWidth: 44
                     horizontalAlignment: Text.AlignRight
                     text: crc
-                    font.family: "Consolas"
-                    opacity: 0.85
+                    font.family: Theme.mono
+                    font.pixelSize: Theme.fontSmall
+                    color: Theme.muted
                 }
             }
         }
@@ -143,6 +144,7 @@ Dialog {
             text: qsTr("%n warning(s) against the standard's recommendations", "",
                        dialog.app.mediaSetFindings.length)
             font.bold: true
+            color: Theme.warn
         }
         Repeater {
             model: dialog.app.mediaSetFindings
@@ -152,7 +154,7 @@ Dialog {
                 Layout.fillWidth: true
                 text: modelData
                 wrapMode: Text.Wrap
-                opacity: 0.8
+                color: Theme.muted
             }
         }
     }

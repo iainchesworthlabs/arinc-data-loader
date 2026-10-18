@@ -27,6 +27,9 @@ class LoaderModel : public QObject {
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(QString activity READ activity NOTIFY busyChanged)
     Q_PROPERTY(bool canAbort READ canAbort NOTIFY canAbortChanged)
+    // A window that has never been through the first-run screen shows it before the workbench;
+    // completing it stores the preferences it was given and hands over.
+    Q_PROPERTY(bool firstRun READ firstRun NOTIFY firstRunChanged)
 
     // The target: chosen from what FIND found, or typed.
     Q_PROPERTY(QString targetAddress READ targetAddress WRITE setTargetAddress NOTIFY targetChanged)
@@ -132,6 +135,7 @@ public:
     ~LoaderModel() override;
 
     [[nodiscard]] bool busy() const noexcept { return job_ != Job::none; }
+    [[nodiscard]] bool firstRun() const { return !settings_->firstRunComplete(); }
     [[nodiscard]] QString activity() const;
     [[nodiscard]] bool canAbort() const noexcept {
         return (job_ == Job::information || job_ == Job::upload || job_ == Job::download_media ||
@@ -213,6 +217,9 @@ public:
     void setLogCapacity(int capacity);
 
 public Q_SLOTS:
+    // The first-run screen has been passed: the preferences it set are the defaults, and the
+    // next launch goes straight to the workbench.
+    void completeFirstRun();
     // Reads the media set in the directory (one directory per member), and shows its loads,
     // which the operator can tick for an upload. Unless validateOnOpen is off, the set is
     // checked right after it is read; until the check says it is valid, no upload.
@@ -253,6 +260,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void busyChanged();
+    void firstRunChanged();
     void canAbortChanged();
     void targetChanged();
     void selectedTargetChanged();

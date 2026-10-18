@@ -58,6 +58,8 @@ private Q_SLOTS:
     void the_defaults_hold_without_a_stored_value();
     void what_is_written_is_read_back();
     void numbers_out_of_range_are_kept_as_they_were();
+    void the_first_run_is_complete_only_once();
+    void the_target_of_the_last_operation_is_remembered();
 };
 
 // Finding the file the target asks for in a media set on disk.
@@ -85,6 +87,8 @@ private Q_SLOTS:
     void selecting_a_target_exposes_its_properties();
     void a_target_needs_an_address_and_a_name();
     void clearing_a_target_field_restores_its_default();
+    void the_first_run_screen_is_shown_until_it_is_passed();
+    void the_target_of_the_last_operation_comes_back();
     void abort_before_the_target_accepts_ends_the_operation();
     void a_second_job_is_refused_while_one_runs();
     void a_failing_host_ends_the_job_with_the_reason();

@@ -6,9 +6,12 @@ namespace adl::app {
 
 namespace {
 
+const auto key_first_run_complete = QStringLiteral("app/firstRunComplete");
 const auto key_last_media_set = QStringLiteral("mediaSet/lastDirectory");
 const auto key_default_address = QStringLiteral("target/defaultAddress");
 const auto key_default_thw_id_pos = QStringLiteral("target/defaultThwIdPos");
+const auto key_last_target_address = QStringLiteral("target/lastAddress");
+const auto key_last_target_thw_id_pos = QStringLiteral("target/lastThwIdPos");
 const auto key_control_port = QStringLiteral("loader/controlPort");
 const auto key_download_directory = QStringLiteral("download/directory");
 const auto key_auto_find = QStringLiteral("target/autoFindBeforeOperation");
@@ -26,12 +29,36 @@ AppSettings::AppSettings(std::unique_ptr<QSettings> storage)
         QStringLiteral("/ArincDownloads");
 }
 
+bool AppSettings::firstRunComplete() const {
+    return flag(key_first_run_complete, false);
+}
+
+void AppSettings::setFirstRunComplete(bool complete) {
+    save(key_first_run_complete, complete);
+}
+
 QString AppSettings::lastMediaSetDirectory() const {
     return text(key_last_media_set, {});
 }
 
 void AppSettings::setLastMediaSetDirectory(const QString& path) {
     save(key_last_media_set, path);
+}
+
+QString AppSettings::lastTargetAddress() const {
+    return text(key_last_target_address, {});
+}
+
+void AppSettings::setLastTargetAddress(const QString& address) {
+    save(key_last_target_address, address.trimmed());
+}
+
+QString AppSettings::lastThwIdPos() const {
+    return text(key_last_target_thw_id_pos, {});
+}
+
+void AppSettings::setLastThwIdPos(const QString& thw_id_pos) {
+    save(key_last_target_thw_id_pos, thw_id_pos.trimmed());
 }
 
 QString AppSettings::defaultTargetAddress() const {

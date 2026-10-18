@@ -9,14 +9,14 @@ Dialog {
     title: qsTr("About ARINC Data Loader")
     modal: true
     standardButtons: Dialog.Close
-    width: 420
+    width: 460
 
     ColumnLayout {
-        spacing: 10
+        spacing: Theme.space2
 
         Label {
             text: qsTr("ARINC Data Loader")
-            font.pixelSize: 18
+            font.pixelSize: Theme.fontTitle
             font.bold: true
         }
         Label {
@@ -27,7 +27,7 @@ Dialog {
         Label {
             text: qsTr("Version %1").arg(Qt.application.version.length > 0
                                          ? Qt.application.version : qsTr("1.0"))
-            opacity: 0.7
+            color: Theme.muted
         }
     }
 }

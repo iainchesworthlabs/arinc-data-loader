@@ -14,11 +14,18 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
       settings_(settings != nullptr ? std::move(settings) : std::make_unique<AppSettings>()) {
     register_metatypes();
 
-    // The operator's preferences: the log's length now, and the target fields pre-filled (they
-    // are filled again whenever the operator clears them).
+    // The operator's preferences: the log's length now, and the target fields filled in - the
+    // target of the last session where there was one (so a session starts where the last left
+    // off), the defaults otherwise (and again whenever the operator clears a field).
     events_.set_capacity(settings_->logCapacity());
-    target_address_ = settings_->defaultTargetAddress();
-    thw_id_pos_ = settings_->defaultThwIdPos();
+    target_address_ = settings_->lastTargetAddress();
+    if (target_address_.isEmpty()) {
+        target_address_ = settings_->defaultTargetAddress();
+    }
+    thw_id_pos_ = settings_->lastThwIdPos();
+    if (thw_id_pos_.isEmpty()) {
+        thw_id_pos_ = settings_->defaultThwIdPos();
+    }
 
     worker_ = new EngineWorker(std::move(host_factory));
     worker_->moveToThread(&thread_);
@@ -371,6 +378,13 @@ bool LoaderModel::begin(Job job) {
         last_download_directory_.clear();
         Q_EMIT downloadDirectoryChanged();
     }
+    // The target an operation starts against is the one the next session starts against. Only
+    // an operation has a target: a media set read or a check does not.
+    if (job == Job::information || job == Job::upload || job == Job::download_media ||
+        job == Job::download_operator) {
+        settings_->setLastTargetAddress(target_address_);
+        settings_->setLastThwIdPos(thw_id_pos_);
+    }
     set_job(job);
     return true;
 }
@@ -652,6 +666,18 @@ void LoaderModel::abort() {
     worker_->request_abort();
     Q_EMIT busyChanged();  // the activity text changes
     Q_EMIT canAbortChanged();
+}
+
+void LoaderModel::completeFirstRun() {
+    if (settings_->firstRunComplete()) {
+        return;
+    }
+    settings_->setFirstRunComplete(true);
+    // The first-run fields are the preferences; the window starts with them, so the operator's
+    // first operation does not need to retype what was just entered.
+    setTargetAddress(settings_->defaultTargetAddress());
+    setThwIdPos(settings_->defaultThwIdPos());
+    Q_EMIT firstRunChanged();
 }
 
 void LoaderModel::clearLog() {

@@ -24,6 +24,11 @@ public:
     // default QSettings of the application.
     explicit AppSettings(std::unique_ptr<QSettings> storage = {});
 
+    // The first launch opens on the first-run screen; passing it once is what is stored, so a
+    // window that has been used before goes straight to the workbench.
+    [[nodiscard]] bool firstRunComplete() const;
+    void setFirstRunComplete(bool complete);
+
     [[nodiscard]] QString lastMediaSetDirectory() const;
     void setLastMediaSetDirectory(const QString& path);
 
@@ -32,6 +37,13 @@ public:
     void setDefaultTargetAddress(const QString& address);
     [[nodiscard]] QString defaultThwIdPos() const;
     void setDefaultThwIdPos(const QString& thw_id_pos);
+
+    // The target of the last operation that was started, put back into the window at start-up so
+    // the operator does not retype it every session. Empty until an operation has run.
+    [[nodiscard]] QString lastTargetAddress() const;
+    void setLastTargetAddress(const QString& address);
+    [[nodiscard]] QString lastThwIdPos() const;
+    void setLastThwIdPos(const QString& thw_id_pos);
 
     // The port the loader listens on (1 to 65535; 59 unless it has to move, on a machine
     // where another program, or the target itself, holds 59).

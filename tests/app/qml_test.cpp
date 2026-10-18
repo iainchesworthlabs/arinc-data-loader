@@ -1,10 +1,11 @@
-// Loads the application's window (argv[1], the path of Main.qml) with the real model, offscreen,
-// runs a FIND and an Information operation through the model against a simulated target on the
-// fake platform while the window is showing, then reads a media set, ticks its load and starts the
-// upload through the window's own check box and button, and fails if the window does not load,
-// the operations do not end as they should or the QML engine has a single complaint. With a second
-// argument it saves what the window looks like there. The platform's graphics are not used: the
-// test's environment asks for the offscreen platform and the software renderer.
+// Loads the application's window (the compiled ArincDataLoader QML module) with the real model,
+// offscreen, drives the first-run screen, then runs a FIND and an Information operation through
+// the model against a simulated target on the fake platform while the window is showing, then
+// reads a media set, ticks its load and starts the upload through the window's own check box and
+// button, and fails if the window does not load, the operations do not end as they should or the
+// QML engine has a single complaint. With an argument it saves what the window looks like there.
+// The platform's graphics are not used: the test's environment asks for the offscreen platform and
+// the software renderer.
 
 #include <cstdio>
 #include <expected>
@@ -18,6 +19,7 @@
 #include <QGuiApplication>
 #include <QImage>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QQmlError>
 #include <QQuickItem>
 #include <QQuickStyle>
@@ -31,6 +33,7 @@
 #include "adl/app/loader_model.hpp"
 #include "adl/app/models.hpp"
 #include "bytes.hpp"
+#include "language_manager.hpp"
 #include "rig.hpp"
 #include "upload_fixture.hpp"
 
@@ -76,17 +79,20 @@ QQuickItem* find_item(QQuickItem* root, const QString& name) {
 
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
-    if (argc < 2) {
-        std::fprintf(stderr, "usage: adl_app_qml_test <path to Main.qml> [picture.png]\n");
+    if (argc > 3) {
+        std::fprintf(stderr, "usage: adl_app_qml_test [picture.png [first-run.png]]\n");
         return 2;
     }
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
 
     // The model reads QSettings without arguments; the test keeps that out of the operator's
-    // real settings.
+    // real settings, and out of the run before this one: the first-run screen is passed by this
+    // test, so a shared file would make the next run's window think it had been used before.
     QSettings::setDefaultFormat(QSettings::IniFormat);
-    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope,
-                       QDir::tempPath() + QStringLiteral("/adl_test_qsettings"));
+    const QString settings_root = QDir::tempPath() + QStringLiteral("/adl_test_qsettings_") +
+                                  QString::number(QCoreApplication::applicationPid());
+    QDir().mkpath(settings_root);
+    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settings_root);
 
     adl::test::UploadFixture fixture;
     adl::test::SimPlan plan = fixture.plan();
@@ -104,34 +110,69 @@ int main(int argc, char* argv[]) {
         return lease;
     });
 
-    QQmlApplicationEngine engine;
+    // Held in an optional so the engine can be destroyed explicitly at the end, before the
+    // language manager (the window's bindings read it; the application's main.cpp does the same).
+    std::optional<QQmlApplicationEngine> engine{std::in_place};
+    // The window's Preferences read the language manager, exactly as the application's do: the
+    // test registers a real one, so a binding that reads it cannot be the difference.
+    adl::app::LanguageManager language_manager(application, *engine);
+    language_manager.applyInitialLanguage();
+    engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+
     int complaints = 0;
-    QObject::connect(&engine, &QQmlApplicationEngine::warnings,
+    QObject::connect(&*engine, &QQmlApplicationEngine::warnings,
                      [&complaints](const QList<QQmlError>& warnings) {
                          for (const QQmlError& warning : warnings) {
                              std::fprintf(stderr, "QML: %s\n", qPrintable(warning.toString()));
                              ++complaints;
                          }
                      });
-    engine.setInitialProperties(
+    engine->setInitialProperties(
         {{QStringLiteral("app"), QVariant::fromValue(&model)},
          // ADL_DARK=1 renders in the dark scheme (the window sets a dark palette, which is what
          // a dark desktop theme supplies), so both schemes can be checked and pictured.
          {QStringLiteral("renderDark"),
           QVariant::fromValue(qEnvironmentVariable("ADL_DARK") == QStringLiteral("1"))}});
-    engine.load(QUrl::fromLocalFile(QString::fromLocal8Bit(argv[1])));
+    engine->loadFromModule("ArincDataLoader", "Main");
 
-    if (engine.rootObjects().size() != 1) {
+    if (engine->rootObjects().size() != 1) {
         std::fprintf(stderr, "the window did not load\n");
         return 1;
     }
-    auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst());
+    auto* window = qobject_cast<QQuickWindow*>(engine->rootObjects().constFirst());
     if (window == nullptr || window->title() != QStringLiteral("ARINC Data Loader")) {
         std::fprintf(stderr, "the root object is not the application window\n");
         return 1;
     }
 
-    // What the operator does: find the target, take it from the list, read its configuration.
+    // A window that has never been used opens on the first-run screen; passing it is what makes
+    // the workbench appear, and it is the operator's first act, so it is the test's.
+    QCoreApplication::processEvents();
+    if (!model.firstRun()) {
+        std::fprintf(stderr, "a fresh settings file still reports the first run as done\n");
+        return 1;
+    }
+    // With a second argument, what the first launch looks like is kept too: the same window
+    // before the first-run screen has been passed.
+    if (argc > 2) {
+        const QImage first_run = window->grabWindow();
+        if (first_run.isNull() || !first_run.save(QString::fromLocal8Bit(argv[2]))) {
+            std::fprintf(stderr, "the first-run picture could not be saved\n");
+            return 1;
+        }
+    }
+    QQuickItem* content = window->contentItem();
+    QQuickItem* start = find_item(content, QStringLiteral("firstRunStart"));
+    if (start == nullptr) {
+        std::fprintf(stderr, "the first-run screen's Start button is not in the window\n");
+        return 1;
+    }
+    QMetaObject::invokeMethod(start, "click");
+    QCoreApplication::processEvents();
+    if (model.firstRun()) {
+        std::fprintf(stderr, "passing the first-run screen did not let the workbench through\n");
+        return 1;
+    }
 
     // What the operator does: find the target, take it from the list, read its configuration.
     model.findTargets();
@@ -168,7 +209,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     QCoreApplication::processEvents();
-    QQuickItem* content = window->contentItem();
     QQuickItem* check = find_item(content, QStringLiteral("loadCheck"));
     QQuickItem* upload = find_item(content, QStringLiteral("uploadButton"));
     if (check == nullptr || upload == nullptr) {
@@ -249,7 +289,7 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "the window could not be drawn\n");
         return 1;
     }
-    if (argc > 2 && !picture.save(QString::fromLocal8Bit(argv[2]))) {
+    if (argc > 1 && !picture.save(QString::fromLocal8Bit(argv[1]))) {
         std::fprintf(stderr, "the picture could not be saved\n");
         return 1;
     }
@@ -258,5 +298,7 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "%d QML complaint(s)\n", complaints);
         return 1;
     }
+    // The engine first, while the language manager is still alive for the teardown's bindings.
+    engine.reset();
     return 0;
 }

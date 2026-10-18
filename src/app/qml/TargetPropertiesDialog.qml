@@ -12,24 +12,24 @@ Dialog {
     title: qsTr("Target properties")
     modal: true
     standardButtons: Dialog.Close
-    width: 460
+    width: 480
 
     ColumnLayout {
-        spacing: 10
+        spacing: Theme.space2
 
-        GroupBox {
+        Panel {
             title: qsTr("Target (typed)")
             Layout.fillWidth: true
 
             GridLayout {
                 Layout.fillWidth: true
                 columns: 2
-                columnSpacing: 12
-                rowSpacing: 4
+                columnSpacing: Theme.space3
+                rowSpacing: Theme.space1
 
                 Label {
                     text: qsTr("Address")
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label {
                     text: dialog.app.targetAddress.length > 0
@@ -37,7 +37,7 @@ Dialog {
                 }
                 Label {
                     text: qsTr("THW_ID_POS")
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label {
                     text: dialog.app.thwIdPos.length > 0
@@ -46,7 +46,7 @@ Dialog {
             }
         }
 
-        GroupBox {
+        Panel {
             title: qsTr("FIND answer")
             Layout.fillWidth: true
             visible: dialog.app.selectedTargetIndex >= 0
@@ -54,37 +54,37 @@ Dialog {
             GridLayout {
                 Layout.fillWidth: true
                 columns: 2
-                columnSpacing: 12
-                rowSpacing: 4
+                columnSpacing: Theme.space3
+                rowSpacing: Theme.space1
 
                 Label {
                     text: qsTr("Address")
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label { text: dialog.app.selectedTargetAddress }
                 Label {
                     text: qsTr("Hardware identifier")
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label { text: dialog.app.selectedTargetHardwareId }
                 Label {
                     text: qsTr("Type")
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label { text: dialog.app.selectedTargetTypeName }
                 Label {
                     text: qsTr("Position")
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label { text: dialog.app.selectedTargetPosition }
                 Label {
                     text: qsTr("Name")
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label { text: dialog.app.selectedTargetLiteralName }
                 Label {
                     text: qsTr("Manufacturer code")
-                    opacity: 0.7
+                    color: Theme.muted
                 }
                 Label { text: dialog.app.selectedTargetManufacturer }
             }
@@ -95,7 +95,7 @@ Dialog {
             visible: dialog.app.selectedTargetIndex < 0
             text: qsTr("No target has been chosen from the FIND list.")
             wrapMode: Text.Wrap
-            opacity: 0.7
+            color: Theme.muted
         }
     }
 }
