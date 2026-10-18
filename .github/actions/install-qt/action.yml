@@ -1,7 +1,7 @@
 name: Install Qt
 description: >-
   Installs the prebuilt Qt kit (not from vcpkg) with the pinned aqtinstall of
-  .github/requirements/qt.txt, caches it, and points QT_ROOT_DIR at it, which is
+  .github/requirements/qt.txt (on Windows with install_qt_msvc.py beside this file), caches it, and points QT_ROOT_DIR at it, which is
   where cmake/FindQt6.cmake looks first. The job must have checked the
   repository out.
 
@@ -36,7 +36,7 @@ runs:
 
     # download.qt.io is a mirror network and now and then refuses one request, so a
     # failed install is tried again twice before the job is failed.
-    - name: Install Qt (aqtinstall)
+    - name: Install Qt (aqtinstall, or install_qt_msvc.py on Windows)
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       env:
@@ -51,8 +51,16 @@ runs:
           py="$RUNNER_TEMP/qt-venv/bin/python"
         fi
         uv pip install --python "$py" --requirement .github/requirements/qt.txt
+        # aqtinstall 3.3.0 cannot read the layout Qt's repository has for Windows from Qt 6.11 on
+        # (one directory per architecture), so Windows has a small installer of its own that does
+        # what aqtinstall does for one package. See install_qt_msvc.py.
         for attempt in 1 2 3; do
-          if "$py" -m aqt install-qt "$QT_HOST" desktop "$QT_VERSION" "$QT_ARCH" --outputdir "$RUNNER_TEMP/qt"; then
+          if [ "$QT_HOST" = windows ]; then
+            install=("$py" "$GITHUB_ACTION_PATH/install_qt_msvc.py" "$QT_VERSION" "$RUNNER_TEMP/qt")
+          else
+            install=("$py" -m aqt install-qt "$QT_HOST" desktop "$QT_VERSION" "$QT_ARCH" --outputdir "$RUNNER_TEMP/qt")
+          fi
+          if "${install[@]}"; then
             exit 0
           fi
           echo "aqtinstall failed (attempt $attempt of 3)"

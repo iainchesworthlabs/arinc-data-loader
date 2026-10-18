@@ -84,14 +84,18 @@ hosted image has).
   sanitizers. The Release presets are not built in CI yet; a Release-only
   warning (`-Wnull-dereference`, for one) would first show up locally.
 - **Qt, on the three build legs.** The Qt 6.12 application is built and tested (`-DADL_BUILD_APP=ON`).
-  Qt is the prebuilt kit, not vcpkg: the composite action `.github/actions/install-qt` installs it with the
-  aqtinstall pinned in `.github/requirements/qt.txt` (`win64_msvc2022_64`, `linux_gcc_64`, `clang_64`;
-  retried twice, since download.qt.io is a mirror network), caches it under an exact key (version,
-  architecture and the installer's pin), installs the few system libraries a prebuilt Qt needs on Linux,
-  and sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The Qt version is the action's
-  `version` input in `ci.yml` (the same 6.12.0 as the labs' shared toolchain); the matrix has the host and
-  architecture names. The coverage job does not build the application, so it needs no Qt, and its
-  figures are of the libraries only.
+  Qt is the prebuilt kit, not vcpkg, and the composite action `.github/actions/install-qt` installs it:
+  with the aqtinstall pinned in `.github/requirements/qt.txt` on Linux (`linux_gcc_64`) and macOS
+  (`clang_64`), and on Windows with `install_qt_msvc.py`, a short script that does what aqtinstall does for
+  one package (the `win64_msvc2022_64` kit, each archive checked against its published SHA-1). aqtinstall
+  3.3.0 does not know the layout Qt's repository has for Windows from Qt 6.11 on (one directory per
+  architecture) and fails with "Failed to locate XML data"; drop the script when a release of it does. The
+  install is retried twice, since download.qt.io is a mirror network, and the kit is cached under an exact
+  key (version, architecture and the installer's pin). On Linux the action installs the few system
+  libraries a prebuilt Qt needs, and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The
+  Qt version is the action's `version` input in `ci.yml` (the same 6.12.0 as the labs' shared toolchain);
+  the matrix has the host and architecture names. The coverage job does not build the application, so it
+  needs no Qt, and its figures are of the libraries only.
 - **CMake 4.4.2 and Ninja 1.13.2** from `lukka/get-cmake`; the same pins the
   sibling projects use.
 - **Local composite actions are referenced as `./.github/actions/...`.** The
