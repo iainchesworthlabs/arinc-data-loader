@@ -1,0 +1,5 @@
+# Pinned installer for the prebuilt Qt kit the application is built with (.github/actions/install-qt):
+#   pip install -r .github/requirements/qt.txt
+# Dependabot's pip ecosystem for /.github/requirements keeps this current. The Qt version itself is
+# the `version` input of the action, the same 6.12.0 the labs' shared toolchain uses.
+aqtinstall==3.3.0

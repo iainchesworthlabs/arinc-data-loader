@@ -1,0 +1,98 @@
+name: Install Qt
+description: >-
+  Installs the prebuilt Qt kit (not from vcpkg) with the pinned aqtinstall of
+  .github/requirements/qt.txt (on Windows with install_qt_msvc.py beside this file), caches it, and points QT_ROOT_DIR at it, which is
+  where cmake/FindQt6.cmake looks first. The job must have checked the
+  repository out.
+
+inputs:
+  version:
+    description: Qt version, as the labs' shared toolchain pins it.
+    required: true
+  host:
+    description: aqtinstall host (windows, linux or mac).
+    required: true
+  arch:
+    description: aqtinstall architecture (win64_msvc2022_64, linux_gcc_64 or clang_64).
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # An exact key: the kit changes only when the version, the architecture or the
+    # installer's pin does.
+    - name: Restore the Qt kit
+      id: cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ runner.temp }}/qt
+        key: qt-${{ inputs.version }}-${{ inputs.arch }}-${{ hashFiles('.github/requirements/qt.txt') }}
+
+    - name: Install uv
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      with:
+        enable-cache: false
+
+    # download.qt.io is a mirror network and now and then refuses one request, so a
+    # failed install is tried again twice before the job is failed.
+    - name: Install Qt (aqtinstall, or install_qt_msvc.py on Windows)
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        QT_VERSION: ${{ inputs.version }}
+        QT_HOST: ${{ inputs.host }}
+        QT_ARCH: ${{ inputs.arch }}
+      run: |
+        uv venv "$RUNNER_TEMP/qt-venv"
+        if [ "$RUNNER_OS" = Windows ]; then
+          py="$RUNNER_TEMP/qt-venv/Scripts/python.exe"
+        else
+          py="$RUNNER_TEMP/qt-venv/bin/python"
+        fi
+        uv pip install --python "$py" --requirement .github/requirements/qt.txt
+        # aqtinstall 3.3.0 cannot read the layout Qt's repository has for Windows from Qt 6.11 on
+        # (one directory per architecture), so Windows has a small installer of its own that does
+        # what aqtinstall does for one package. See install_qt_msvc.py.
+        for attempt in 1 2 3; do
+          if [ "$QT_HOST" = windows ]; then
+            install=("$py" "$GITHUB_ACTION_PATH/install_qt_msvc.py" "$QT_VERSION" "$RUNNER_TEMP/qt")
+          else
+            install=("$py" -m aqt install-qt "$QT_HOST" desktop "$QT_VERSION" "$QT_ARCH" --outputdir "$RUNNER_TEMP/qt")
+          fi
+          if "${install[@]}"; then
+            exit 0
+          fi
+          echo "aqtinstall failed (attempt $attempt of 3)"
+          sleep $((attempt * 15))
+        done
+        exit 1
+
+    # What a prebuilt Qt needs from the system. Configuring against it asks for OpenGL's headers and
+    # libGL.so (Qt Gui and Qt Quick depend on them), and the xkbcommon, EGL and fontconfig
+    # development packages bring the libraries it is linked to. A hosted image has some already.
+    - name: Install what Qt needs from the system (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes --no-install-recommends           libgl-dev libegl-dev libxkbcommon-dev libfontconfig-dev libdbus-1-3 libglib2.0-0t64
+
+    # The kit's own directory is named after its architecture (gcc_64, msvc2022_64, macos), so it
+    # is found, not spelled out. The value is a path under RUNNER_TEMP, not anything a pull
+    # request can set.
+    - name: Point QT_ROOT_DIR at the kit
+      shell: bash
+      env:
+        QT_VERSION: ${{ inputs.version }}
+      run: | # zizmor: ignore[github-env] RUNNER_TEMP-derived, not attacker-influenced - see above
+        config="$(find "$RUNNER_TEMP/qt/$QT_VERSION" -path '*/lib/cmake/Qt6/Qt6Config.cmake' | head -n 1)"
+        if [ -z "$config" ]; then
+          echo "::error::no Qt $QT_VERSION kit under $RUNNER_TEMP/qt"
+          exit 1
+        fi
+        root="${config%/lib/cmake/Qt6/Qt6Config.cmake}"
+        # A Windows path with forward slashes, which CMake reads without a second look.
+        if command -v cygpath >/dev/null 2>&1; then root="$(cygpath -m "$root")"; fi
+        echo "QT_ROOT_DIR=$root" >> "$GITHUB_ENV"
+        echo "Qt kit: $root"

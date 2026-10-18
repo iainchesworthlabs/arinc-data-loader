@@ -66,7 +66,9 @@ with the rulesets.
 | `macOS (AppleClang)` | macos-26 (Apple silicon) | Preset `macos-clang-debug`: AppleClang from Xcode builds warning-free with ASan and UBSan, and all of ctest passes. |
 | `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-gcc-coverage` builds and passes its tests, and a gcovr report of `src/` is produced as the `coverage-report` artifact (HTML, plus `summary.json` and a table in the job summary). **Report only: there is no threshold.** |
 
-What a build-and-test leg's ctest contains: the Catch2 unit suite, and the two
+What a build-and-test leg's ctest contains: the Catch2 suites, the application's `app.tests` (QtTest) and
+`app.qml` (the window loaded offscreen, with the offscreen platform and the software renderer, so no GPU
+or display is needed; both have a two minute time-out so that a hung test cannot hold the job), and the two
 repository checks `platform.fragments` (every platform fragment satisfies the
 platform contract, on whichever host this is) and `platform.isolation` (the
 same script as the `platform-isolation` job; it needs `pwsh`, which every
@@ -81,9 +83,19 @@ hosted image has).
 - **Debug presets.** CI builds the Debug presets because they carry the
   sanitizers. The Release presets are not built in CI yet; a Release-only
   warning (`-Wnull-dereference`, for one) would first show up locally.
-- **No Qt.** There is no application yet. When the Qt 6.12 application arrives
-  (`cmake/FindQt6.cmake` is ready for it), add a Qt install step (a prebuilt
-  kit, not vcpkg) to the build legs and an option to build it.
+- **Qt, on the three build legs.** The Qt 6.12 application is built and tested (`-DADL_BUILD_APP=ON`).
+  Qt is the prebuilt kit, not vcpkg, and the composite action `.github/actions/install-qt` installs it:
+  with the aqtinstall pinned in `.github/requirements/qt.txt` on Linux (`linux_gcc_64`) and macOS
+  (`clang_64`), and on Windows with `install_qt_msvc.py`, a short script that does what aqtinstall does for
+  one package (the `win64_msvc2022_64` kit, each archive checked against its published SHA-1). aqtinstall
+  3.3.0 does not know the layout Qt's repository has for Windows from Qt 6.11 on (one directory per
+  architecture) and fails with "Failed to locate XML data"; drop the script when a release of it does. The
+  install is retried twice, since download.qt.io is a mirror network, and the kit is cached under an exact
+  key (version, architecture and the installer's pin). On Linux the action installs the few system
+  libraries a prebuilt Qt needs, and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The
+  Qt version is the action's `version` input in `ci.yml` (the same 6.12.0 as the labs' shared toolchain);
+  the matrix has the host and architecture names. The coverage job does not build the application, so it
+  needs no Qt, and its figures are of the libraries only.
 - **CMake 4.4.2 and Ninja 1.13.2** from `lukka/get-cmake`; the same pins the
   sibling projects use.
 - **Local composite actions are referenced as `./.github/actions/...`.** The
@@ -178,6 +190,8 @@ submodule clone does not have them.
 | --- | --- | --- |
 | Every GitHub Action, and the composite actions in `.github/actions` | A full commit SHA, version in a trailing comment | Dependabot, weekly, grouped, 7-day cooldown |
 | clang-format, gcovr | `==` in `.github/requirements/*.txt` | Dependabot (`pip`), weekly |
+| aqtinstall (installs Qt) | `==` in `.github/requirements/qt.txt` | Dependabot (`pip`), weekly |
+| Qt | `version` input of the `install-qt` step in `ci.yml` (6.12.0) | By hand, with the labs' shared toolchain |
 | CMake and Ninja (`lukka/get-cmake`) | `cmakeVersion` / `ninjaVersion`, exact, and one the pinned action's catalog lists | By hand, with the action |
 | vcpkg and the ports | The submodule commit and `builtin-baseline` | Dependabot (`vcpkg` + `gitsubmodule`, one monthly PR); by hand |
 | Runner images | The label (`ubuntu-24.04`, `ubuntu-26.04`, `windows-2025-vs2026`, `macos-26`) | By hand |
@@ -265,5 +279,5 @@ suspects, in order of likelihood:
 ## Not here yet
 
 clang-tidy (the `.clang-tidy` file exists; there is no job), the Release
-presets, packaging and the Qt application, a coverage threshold, and the
+presets, packaging the Qt application, a coverage threshold (and coverage of the application), and the
 embedded (VxWorks) target. Each is a new job or a flag flip, not a redesign.

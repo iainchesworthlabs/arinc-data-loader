@@ -54,8 +54,9 @@ This is the data format and the foundation, not a loader yet. What exists:
 - The build, the tests, the CI and the repository rules.
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
-against another tool's files and ARINC 615A against a real target, a Qt 6.12 application,
-Tracy profiling, and a build of the loader library for an embedded VxWorks
+against another tool's files and ARINC 615A against a real target, the rest of the Qt 6.12
+application (its first slice is built: FIND, a target, the Information operation; Upload and Download
+are next), Tracy profiling, and a build of the loader library for an embedded VxWorks
 target.
 
 ## Build

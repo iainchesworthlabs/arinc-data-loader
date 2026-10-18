@@ -4,7 +4,7 @@
 
 ```text
             +--------------------------------------+
-            |  application (Qt 6.12, not built yet) |
+            |  application (Qt 6.12, src/app)      |
             +------------------+-------------------+
                                |
                     +----------v-----------+
@@ -72,8 +72,13 @@
   It also has a `FileSource` and a `FileSink` over a directory of the platform's files. That is what
   makes the engine portable to an RTOS (a port replaces the runner) and testable without a network (the
   tests replace the platform with the fake and the target with a simulated one).
-- **`src/app`** (planned) is a thin Qt 6.12 layer over the libraries. Qt belongs
-  here and nowhere else.
+- **`src/app`** is the Qt 6.12 application, a thin layer over the libraries: a window to choose a media
+  set, run FIND, pick a target and read its configuration with an Information operation. The engine runs
+  on a thread of its own (the runner blocks), reports to the window through queued signals, and is
+  aborted through an atomic flag the runner polls. `core/` (`adl::app_core`) is the logic without a
+  window and is tested headless; `qml/` is the view. Qt belongs here and nowhere else, and it is built
+  only with `-DADL_BUILD_APP=ON`. [The application](app.md) has the threading, what it shows and what it
+  does not do yet.
 
 A library never depends on one above it. `adl::arinc665` does not link
 `adl::platform`; only a library that needs the system does.
@@ -99,6 +104,7 @@ route to remove it.
 | `src/samples` | `adl_samples` | `adl::samples` | `adl::samples` | `adl/samples/*.hpp` |
 | `src/arinc615a` | `adl_arinc615a` | `adl::arinc615a` | `adl::arinc615a` | `adl/arinc615a/*.hpp` |
 | `src/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
+| `src/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `src/platforms` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
