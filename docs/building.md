@@ -94,7 +94,9 @@ way the build did; on macOS the programs are bundles, and packaging them (`macde
 The tests that need Qt are `app.tests` and `app.qml`, `media_gen.tests` and `media_gen.qml`, and
 `mock.engine`, `mock.model` and `mock.qml`; they run in the same `ctest` as the rest when
 `ADL_BUILD_APP` is on, and look for the offscreen platform plugin in the kit's own `plugins`
-directory.
+directory. The `loopback.integration` test runs the loader's runner over real sockets on
+127.0.0.1 against the mock target's engine (nothing below port 1024, a few seconds per
+operation); it is labelled `integration` and needs `ADL_BUILD_APP` too.
 
 ### The demonstration
 

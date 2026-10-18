@@ -63,5 +63,5 @@ behind; a batch, when asked for, is on the set. The window loads offscreen with 
 complaints and generates through the model.
 
 Not checked: media sets of many gigabytes (files are read whole; demo sizes were the target);
-the window on a real screen at other scales and in a dark theme; keyboard use and screen
-readers beyond the accessible names.
+the window on a real screen at other scales; keyboard use and screen readers beyond the
+accessible names.

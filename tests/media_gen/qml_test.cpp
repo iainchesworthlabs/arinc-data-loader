@@ -114,7 +114,12 @@ int main(int argc, char* argv[]) {
                              ++complaints;
                          }
                      });
-    engine.setInitialProperties({{QStringLiteral("app"), QVariant::fromValue(&model)}});
+    engine.setInitialProperties(
+        {{QStringLiteral("app"), QVariant::fromValue(&model)},
+         // ADL_DARK=1 renders in the dark scheme (the window sets a dark palette, which is what
+         // a dark desktop theme supplies), so both schemes can be checked and pictured.
+         {QStringLiteral("renderDark"),
+          QVariant::fromValue(qEnvironmentVariable("ADL_DARK") == QStringLiteral("1"))}});
     engine.load(QUrl::fromLocalFile(QString::fromLocal8Bit(argv[1])));
 
     if (engine.rootObjects().size() != 1) {

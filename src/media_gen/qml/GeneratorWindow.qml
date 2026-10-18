@@ -11,6 +11,31 @@ ApplicationWindow {
     // The GeneratorModel (src/media_gen/core), handed over by main.cpp.
     required property var app
 
+    // The tests render the window in the dark scheme (ADL_DARK=1): the offscreen platform
+    // theme does not follow the color scheme hint, so the palette is set by hand, exactly as a
+    // dark desktop theme supplies it.
+    property bool renderDark: false
+
+    function applyDarkPalette() {
+        palette.window = "#2d2d30"
+        palette.windowText = "#f0f0f0"
+        palette.base = "#1e1e1e"
+        palette.alternateBase = "#2d2d30"
+        palette.text = "#f0f0f0"
+        palette.placeholderText = "#999999"
+        palette.button = "#3c3c3c"
+        palette.buttonText = "#f0f0f0"
+        palette.brightText = "#ff7070"
+        palette.highlight = "#3574f0"
+        palette.highlightedText = "#ffffff"
+        palette.mid = "#555555"
+        palette.dark = "#1e1e1e"
+        palette.light = "#4a4a4a"
+        palette.toolTipBase = "#2d2d30"
+        palette.toolTipText = "#f0f0f0"
+        palette.link = "#70b0ff"
+    }
+
     readonly property bool dark: palette.window.hslLightness < 0.5
     readonly property color okColour: dark ? "#70d090" : "#1b6e3a"
     readonly property color failColour: dark ? "#ff7070" : "#b00020"
@@ -22,6 +47,8 @@ ApplicationWindow {
     minimumWidth: 900
     minimumHeight: 600
     visible: true
+
+    Component.onCompleted: if (renderDark) applyDarkPalette()
 
     // A validation message of the form, or nothing (and then the label is not shown).
     component ErrorLabel: Label {
@@ -112,6 +139,7 @@ ApplicationWindow {
                             enabled: !window.app.busy
                             onTextEdited: window.app.mediaSetPartNumber = text
                             Accessible.name: qsTr("Media set part number")
+                            Component.onCompleted: forceActiveFocus()
                         }
                         ErrorLabel {
                             message: window.app.mediaSetPartNumberError
@@ -508,8 +536,15 @@ ApplicationWindow {
                         clip: true
                         model: window.app.files
                         currentIndex: -1
+                        keyNavigationEnabled: true
                         Accessible.role: Accessible.List
                         Accessible.name: qsTr("Files of the media set")
+
+                        // Which row Move up/Move down act on, shown for the keyboard too.
+                        highlight: Rectangle {
+                            color: window.dark ? "#33ffffff" : "#22000000"
+                        }
+                        highlightMoveDuration: 0
 
                         delegate: Item {
                             id: fileRow

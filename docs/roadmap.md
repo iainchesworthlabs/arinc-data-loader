@@ -132,17 +132,22 @@ slices; [the application](app.md) says what each does.
    failure injections that show the loader coping ([the mock target](mock-target.md)). Its engine runs in
    the tests against the loader's real engine on the fake platform; the loader's TFTP and the mock
    target's (`adl::arinc615a_mini`, extracted from the tests) share no code.
+6. **Download in the window, the loopback test, and the dark/keyboard pass (done).** The Download
+   operation in both modes (media defined, and operator defined through the engine's deferred choice,
+   "Choose none" cancelling the way the standard says), the files written to a fresh
+   `DNLD_DATA_<THW_ID_POS>_<number>` directory ([the application](app.md)); an integration test that runs
+   the loader's runner over real sockets against the mock target's engine on 127.0.0.1 — Information,
+   Upload byte for byte, both Download modes and an abort, as `loopback.integration`
+   ([the mock target](mock-target.md)); and a dark-scheme, keyboard and accessibility pass over all three
+   windows (menus and shortcuts, initial focus, the keyboard highlight of the generator's file list, both
+   schemes rendered in the offscreen tests).
 
 What is left of the application:
 
-- **Download** in the loader's window: media defined (the files the operator names) and operator defined
-  (the target's list shown, the choice taken through `RunController`), into the
-  `DNLD_DATA_<THW_ID_POS>_<number>` directory of 5.4.4.3 through a `FileSink`. The mock target already
-  does its side of both modes, so the loader's slice is all that is missing.
-- Remembering the last target and download directory; a dark-theme and keyboard pass; translations.
-- An integration test of the loader and the mock target over real sockets on loopback (their
-  fake-platform tests prove the protocol; the real-socket links use the conformance-tested platform
-  sockets).
+- Remembering the last target and download directory; translations.
+- FIND over real sockets in the loopback test: the standard fixes FIND to port 1001 on both ends, and two
+  sockets sharing a port on one machine is not reliable on every platform, so the loopback test covers the
+  operations and names the target by hand; a FIND case may join it if the reuse behaviour proves portable.
 - Packaging (section 7 below), which is where `macdeployqt` comes in.
 
 ## 5. Profiling

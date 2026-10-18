@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs
@@ -9,6 +11,31 @@ ApplicationWindow {
     // The MockTargetModel (src/mock_target/core), handed over by main.cpp.
     required property var app
 
+    // The tests render the window in the dark scheme (ADL_DARK=1): the offscreen platform
+    // theme does not follow the color scheme hint, so the palette is set by hand, exactly as a
+    // dark desktop theme supplies it.
+    property bool renderDark: false
+
+    function applyDarkPalette() {
+        palette.window = "#2d2d30"
+        palette.windowText = "#f0f0f0"
+        palette.base = "#1e1e1e"
+        palette.alternateBase = "#2d2d30"
+        palette.text = "#f0f0f0"
+        palette.placeholderText = "#999999"
+        palette.button = "#3c3c3c"
+        palette.buttonText = "#f0f0f0"
+        palette.brightText = "#ff7070"
+        palette.highlight = "#3574f0"
+        palette.highlightedText = "#ffffff"
+        palette.mid = "#555555"
+        palette.dark = "#1e1e1e"
+        palette.light = "#4a4a4a"
+        palette.toolTipBase = "#2d2d30"
+        palette.toolTipText = "#f0f0f0"
+        palette.link = "#70b0ff"
+    }
+
     readonly property bool dark: palette.window.hslLightness < 0.5
     readonly property color okColour: dark ? "#70d090" : "#1b6e3a"
     readonly property color failColour: dark ? "#ff7070" : "#b00020"
@@ -19,6 +46,20 @@ ApplicationWindow {
     minimumWidth: 1000
     minimumHeight: 640
     visible: true
+
+    Component.onCompleted: if (renderDark) applyDarkPalette()
+
+    menuBar: MenuBar {
+        Menu {
+            title: qsTr("&File")
+
+            Action {
+                text: qsTr("&Quit")
+                shortcut: StandardKey.Quit
+                onTriggered: Qt.quit()
+            }
+        }
+    }
 
     FolderDialog {
         id: storageDialog
@@ -75,6 +116,7 @@ ApplicationWindow {
                                 enabled: !window.app.running
                                 onTextEdited: window.app.hardwareId = text
                                 Accessible.name: qsTr("Target hardware identifier")
+                                Component.onCompleted: forceActiveFocus()
                             }
                             Label { text: qsTr("Type name") }
                             TextField {

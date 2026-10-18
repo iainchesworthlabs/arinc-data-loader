@@ -77,14 +77,16 @@ Checked: the engine against the loader's real engine (`DataLoader` and `Runner` 
 platform, both ends on one fake network): FIND, a full Information operation, an Upload in which
 every file arrives byte for byte, both Download modes, an operator abort with the target's
 confirmation, and every injection the loader has a path for (denied, DLP time-out, protocol
-error, checksum mismatch, a lost status file, a target-side abort, WAIT). The model on its
-worker thread, storage written to disk, and the window loaded offscreen with no QML complaints.
-The platform-isolation check covers the new sources.
+error, checksum mismatch, a lost status file, a target-side abort, WAIT). The same dialogues
+over **real sockets**, through the loopback integration test (`loopback.integration`): the
+loader's runner over the real platform against the engine over `RealTargetLink` on 127.0.0.1 —
+Information, an Upload stored byte for byte, both Download modes and an abort. The model on its
+worker thread, storage written to disk, and the window loaded offscreen with no QML complaints,
+in the light and the dark scheme. The platform-isolation check covers the new sources.
 
-Not checked: a dialogue over real sockets (the loader's runner over real sockets has not been
-run either; the fake-network tests prove the protocol, and `RealTargetLink` uses the same
-platform sockets the conformance suite holds to the real hosts' behaviour); FIND between the two
-applications on one machine, which on Windows needs two sockets on port 1001 to share a
-broadcast and is not guaranteed there (typing the target's address is the reliable single-host
-path; on Linux and macOS binding ports 59 and 1001 may need privileges). The window at other
-scales, keyboard use and screen readers beyond the accessible names.
+Not checked: FIND between the two applications on one machine (the loopback test covers the
+operations; FIND is fixed to port 1001 on both ends by the standard, and two sockets sharing a
+port on one machine is not reliable on every platform — typing the target's address is the
+reliable single-host path; on Linux and macOS binding ports 59 and 1001 may need privileges). The
+window on a real screen at other scales; keyboard use and screen readers beyond the accessible
+names.
