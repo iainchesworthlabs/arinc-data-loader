@@ -57,7 +57,7 @@ This is the data format and the foundation, not a loader yet. What exists:
   - **`adl_app`**, the data loader ([docs/app.md](docs/app.md)): a media set chosen as a
     directory and checked before anything is uploaded (reading it is the check; an
     unreadable set cannot be uploaded, and the standard's findings are shown as
-    warnings), FIND, the Information and Upload operations with progress and an abort,
+    warnings), FIND, the Information, Upload and Download operations with progress and an abort,
     preferences that persist, properties for the media set and the target, and failures
     that say what went wrong and, where it is known, what to do about it.
   - **`adl_media_gen`**, the media set generator ([docs/media-gen.md](docs/media-gen.md)):
@@ -74,8 +74,7 @@ This is the data format and the foundation, not a loader yet. What exists:
 - The build, the tests, the CI and the repository rules.
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
-against another tool's files and ARINC 615A against a real target, the Download slice of the
-loader's window (the engine and the mock target already do both download modes), Tracy profiling,
+against another tool's files and ARINC 615A against a real target, packaging, translations, Tracy profiling,
 and a build of the loader library for an embedded target (the Green
 Hills INTEGRITY ports are written and unbuilt; VxWorks is a design).
 
@@ -103,7 +102,7 @@ src/media_tree/      media sets on a disk: a directory per member
 src/samples/         the sample loads and media sets
 src/write_payloads/  adl_write_payloads, which writes the samples to a directory
 src/app/             adl_app: the data loader window (Qt Quick), preferences, validation, FIND,
-                     Information and Upload
+                     Information, Upload and Download
 src/media_gen/       adl_media_gen: the media set generator window (Qt Quick)
 src/mock_target/     adl_mock_target: a 615A target over real sockets, for demonstrations
 src/platforms/       everything that differs between operating systems
