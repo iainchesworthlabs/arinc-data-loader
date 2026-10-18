@@ -1,4 +1,3 @@
-#include <cstring>
 #include <string>
 #include <vector>
 
@@ -31,12 +30,6 @@ ChecksumOption crc16_option(std::uint16_t crc) {
     option.value[1] = static_cast<std::byte>(crc & 0xFF);
     option.length = 2;
     return option;
-}
-
-std::vector<std::byte> bytes_of(const std::string& text) {
-    std::vector<std::byte> bytes(text.size());
-    std::memcpy(bytes.data(), text.data(), text.size());
-    return bytes;
 }
 
 // Two files called DATA.BIN in two directories of member 1, one on member 2, and a header.
