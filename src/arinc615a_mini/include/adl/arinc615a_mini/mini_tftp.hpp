@@ -1,11 +1,11 @@
 #pragma once
 
-// A small TFTP endpoint for the simulated target, written for the tests and sharing no code
-// with the engine: lock-step blocks, a two second time-out and one retry, the options the
-// loader uses (blksize, tsize, checksum_<n>), and WAIT and ABORT. It is deliberately plain, so
-// that the engine is checked against a second, independent reading of RFC 1350 and section 5.3.2
-// and not against itself. It speaks in the engine's Endpoint but uses only the codec for the
-// packets.
+// A small TFTP endpoint, written for the simulated target (tests/engine) and used by the mock
+// target (src/mock_target): lock-step blocks, a two second time-out and one retry, the options
+// the loader uses (blksize, tsize, checksum_<n>), and WAIT and ABORT. It is deliberately plain,
+// so that the engine is checked against a second, independent reading of RFC 1350 and section
+// 5.3.2 and not against itself. It speaks in the engine's Endpoint but uses only the codec for
+// the packets.
 
 #include <cstddef>
 #include <cstdint>
@@ -20,7 +20,7 @@
 #include "adl/arinc615a/tftp.hpp"
 #include "adl/arinc615a/time.hpp"
 
-namespace adl::test {
+namespace adl::arinc615a_mini {
 
 using Bytes = std::vector<std::byte>;
 
@@ -122,4 +122,4 @@ private:
 
 [[nodiscard]] Bytes mini_encode(const adl::arinc615a::TftpPacket& packet);
 
-}  // namespace adl::test
+}  // namespace adl::arinc615a_mini

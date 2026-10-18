@@ -7,10 +7,11 @@
 #include <map>
 #include <set>
 
-#include "mini_tftp.hpp"
+#include "adl/arinc615a_mini/mini_tftp.hpp"
 #include "transfer_pair.hpp"
 
 using namespace adl::arinc615a;
+using namespace adl::arinc615a_mini;
 using namespace adl::test;
 
 namespace {

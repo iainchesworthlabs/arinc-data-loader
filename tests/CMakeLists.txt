@@ -65,17 +65,17 @@ target_link_libraries(adl_fake_platform
         adl::sanitizers
         adl::coverage)
 
-# The simulated target (a target of 615A on the fake network, with a TFTP of its own that shares
-# no code with the engine). The engine tests run whole operations against it, and so do the
-# application's.
+# The simulated target (a target of 615A on the fake network, with the second TFTP
+# implementation of src/arinc615a_mini, which shares no code with the engine). The engine tests
+# run whole operations against it, and so do the application's.
 add_library(adl_sim_target STATIC
-    engine/mini_tftp.cpp
     engine/sim_target.cpp)
 target_include_directories(adl_sim_target PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/engine")
 target_link_libraries(adl_sim_target
     PUBLIC
         adl_fake_platform
         adl::arinc615a
+        adl::arinc615a_mini
     PRIVATE
         adl::arinc665
         adl::warnings

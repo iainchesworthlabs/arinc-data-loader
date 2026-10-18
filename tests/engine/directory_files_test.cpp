@@ -3,11 +3,12 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "adl/arinc615a/directory_files.hpp"
+#include "adl/arinc615a_mini/mini_tftp.hpp"
 #include "fake_storage.hpp"
-#include "mini_tftp.hpp"
 #include "transfer_pair.hpp"
 
 using namespace adl::arinc615a;
+using namespace adl::arinc615a_mini;
 using namespace adl::test;
 
 namespace {

@@ -6,6 +6,7 @@
 #include "rig.hpp"
 
 using namespace adl::arinc615a;
+using namespace adl::arinc615a_mini;
 using namespace adl::test;
 
 namespace {
