@@ -31,6 +31,13 @@
       }
     },
     {
+      "name": "app",
+      "hidden": true,
+      "cacheVariables": {
+        "ADL_BUILD_APP": "ON"
+      }
+    },
+    {
       "name": "windows-msvc-base",
       "hidden": true,
       "inherits": [
@@ -59,6 +66,24 @@
       "inherits": [
         "windows-msvc-base",
         "release"
+      ]
+    },
+    {
+      "name": "windows-msvc-debug-app",
+      "displayName": "Windows (MSVC, Debug, applications)",
+      "inherits": [
+        "windows-msvc-base",
+        "debug",
+        "app"
+      ]
+    },
+    {
+      "name": "windows-msvc-release-app",
+      "displayName": "Windows (MSVC, Release, applications)",
+      "inherits": [
+        "windows-msvc-base",
+        "release",
+        "app"
       ]
     },
     {
@@ -91,6 +116,24 @@
       "inherits": [
         "linux-gcc-base",
         "release"
+      ]
+    },
+    {
+      "name": "linux-gcc-debug-app",
+      "displayName": "Linux (GCC, Debug, applications)",
+      "inherits": [
+        "linux-gcc-base",
+        "debug",
+        "app"
+      ]
+    },
+    {
+      "name": "linux-gcc-release-app",
+      "displayName": "Linux (GCC, Release, applications)",
+      "inherits": [
+        "linux-gcc-base",
+        "release",
+        "app"
       ]
     },
     {
@@ -134,6 +177,24 @@
       "inherits": [
         "macos-clang-base",
         "release"
+      ]
+    },
+    {
+      "name": "macos-clang-debug-app",
+      "displayName": "macOS (Clang, Debug, applications)",
+      "inherits": [
+        "macos-clang-base",
+        "debug",
+        "app"
+      ]
+    },
+    {
+      "name": "macos-clang-release-app",
+      "displayName": "macOS (Clang, Release, applications)",
+      "inherits": [
+        "macos-clang-base",
+        "release",
+        "app"
       ]
     },
     {
@@ -207,11 +268,17 @@
   "buildPresets": [
     { "name": "windows-msvc-debug", "configurePreset": "windows-msvc-debug" },
     { "name": "windows-msvc-release", "configurePreset": "windows-msvc-release" },
+    { "name": "windows-msvc-debug-app", "configurePreset": "windows-msvc-debug-app" },
+    { "name": "windows-msvc-release-app", "configurePreset": "windows-msvc-release-app" },
     { "name": "linux-gcc-debug", "configurePreset": "linux-gcc-debug" },
     { "name": "linux-gcc-release", "configurePreset": "linux-gcc-release" },
+    { "name": "linux-gcc-debug-app", "configurePreset": "linux-gcc-debug-app" },
+    { "name": "linux-gcc-release-app", "configurePreset": "linux-gcc-release-app" },
     { "name": "linux-gcc-coverage", "configurePreset": "linux-gcc-coverage" },
     { "name": "macos-clang-debug", "configurePreset": "macos-clang-debug" },
     { "name": "macos-clang-release", "configurePreset": "macos-clang-release" },
+    { "name": "macos-clang-debug-app", "configurePreset": "macos-clang-debug-app" },
+    { "name": "macos-clang-release-app", "configurePreset": "macos-clang-release-app" },
     { "name": "ghs508-ghs-debug", "configurePreset": "ghs508-ghs-debug" },
     { "name": "ghs508-ghs-release", "configurePreset": "ghs508-ghs-release" },
     { "name": "ghs178b-ghs-debug", "configurePreset": "ghs178b-ghs-debug" },
@@ -230,10 +297,16 @@
     },
     { "name": "windows-msvc-debug", "configurePreset": "windows-msvc-debug", "inherits": ["base"] },
     { "name": "windows-msvc-release", "configurePreset": "windows-msvc-release", "inherits": ["base"] },
+    { "name": "windows-msvc-debug-app", "configurePreset": "windows-msvc-debug-app", "inherits": ["base"] },
+    { "name": "windows-msvc-release-app", "configurePreset": "windows-msvc-release-app", "inherits": ["base"] },
     { "name": "linux-gcc-debug", "configurePreset": "linux-gcc-debug", "inherits": ["base"] },
     { "name": "linux-gcc-release", "configurePreset": "linux-gcc-release", "inherits": ["base"] },
+    { "name": "linux-gcc-debug-app", "configurePreset": "linux-gcc-debug-app", "inherits": ["base"] },
+    { "name": "linux-gcc-release-app", "configurePreset": "linux-gcc-release-app", "inherits": ["base"] },
     { "name": "linux-gcc-coverage", "configurePreset": "linux-gcc-coverage", "inherits": ["base"] },
     { "name": "macos-clang-debug", "configurePreset": "macos-clang-debug", "inherits": ["base"] },
-    { "name": "macos-clang-release", "configurePreset": "macos-clang-release", "inherits": ["base"] }
+    { "name": "macos-clang-release", "configurePreset": "macos-clang-release", "inherits": ["base"] },
+    { "name": "macos-clang-debug-app", "configurePreset": "macos-clang-debug-app", "inherits": ["base"] },
+    { "name": "macos-clang-release-app", "configurePreset": "macos-clang-release-app", "inherits": ["base"] }
   ]
 }

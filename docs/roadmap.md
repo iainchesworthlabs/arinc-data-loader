@@ -83,8 +83,13 @@ What is left of the 615A work:
 - **An integration test over loopback with real sockets** (a target on the real host in a second thread),
   so that the runner is run through the real platforms, on all three desktops, in CI.
 - **A CI job that builds the library with `-fno-exceptions -fno-rtti`**, which it is written for.
-- **A target side** (answering `.LCI`, writing status files), if a target is to be built and not only
-  loaded.
+- **A target-side application.** The libraries build for the target's platform — the 615A engine is
+  sans-I/O and the platform layer has a fragment per platform — but there is no program that answers
+  `.LCI` and writes the status files: `adl_mock_target` does that only as a desktop demonstration
+  ([docs/mock-target.md](mock-target.md)). The shape is a fourth build output beside the source-side
+  tools: an `ADL_BUILD_TARGET` option, a `src/target_app` built the way `src/app` is, presets for the
+  embedded platforms that select it, sharing the codec and the protocol-file writers in
+  `adl::arinc615a`. [Building](building.md#what-cmake-builds) lists what exists today.
 - Choosing, on the application side, the `DNLD_DATA_<THW_ID_POS>_<number>` directory (5.4.4.3) and
   when to run FIND (Attachment 3).
 

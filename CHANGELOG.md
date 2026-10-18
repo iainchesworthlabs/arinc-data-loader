@@ -100,6 +100,13 @@ C++23 CMake monorepo. Nothing has been released.
   right-to-left scripts mirror the whole window (`LayoutMirroring`) and the language preference is
   persisted. The text is a first, mechanical draft, to be reviewed by speakers; the window test
   installs each catalogue in turn and checks the retranslation and the layout direction.
+- **The applications in the presets** ([docs/building.md](docs/building.md)): the desktop `-app`
+  presets (`windows-msvc-debug-app`, `linux-gcc-release-app`, `macos-clang-debug-app`, …) turn on
+  `ADL_BUILD_APP`, so an IDE that reads `CMakePresets.json` offers a configuration containing
+  `adl_app`, `adl_media_gen`, `adl_mock_target` and their tests instead of the libraries only. The
+  configure output names the three programs when the switch is off, and the building page now has
+  the source-side/target-side matrix: the libraries, the host tools, the source-side applications
+  and the (still planned) target-side application.
 - **Tracy 0.14.1 profiling** ([docs/profiling.md](docs/profiling.md)): an opt-in build
   (`-DADL_ENABLE_TRACY=ON`, vcpkg's `profiling` feature) instruments ARINC 665 and the media tree,
   the 615A engine and runner, the application's engine jobs and media-set reads, the operator's
