@@ -127,6 +127,9 @@ if(ADL_BUILD_APP)
     # The mock target: a Qt application that behaves as an ARINC 615A target over real
     # sockets, for demonstrating the loader's dialogues end to end.
     add_subdirectory(src/mock_target)
+    # The media set generator: a second Qt application that turns files chosen by the
+    # operator into a valid ARINC 665 media set the loader can open.
+    add_subdirectory(src/media_gen)
 endif()
 
 if(ADL_BUILD_TESTS)

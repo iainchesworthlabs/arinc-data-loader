@@ -194,4 +194,6 @@ if(ADL_BUILD_APP)
     add_subdirectory(app)
     # The mock target's tests (src/mock_target).
     add_subdirectory(mock_target)
+    # The media set generator's tests (src/media_gen).
+    add_subdirectory(media_gen)
 endif()
