@@ -81,9 +81,14 @@ include(Tracy)
 # Options
 # ---------------------------------------------------------------------------
 option(ADL_BUILD_TESTS "Build the unit test suite" ON)
-# The Qt application (src/app). Off by default so that the libraries build on a machine without Qt;
-# CI turns it on. Qt is the prebuilt kit found through QT_ROOT_DIR (cmake/FindQt6.cmake).
-option(ADL_BUILD_APP "Build the Qt application" OFF)
+# The three Qt applications (src/app, src/media_gen, src/mock_target) are the source side's
+# programs, so they build by default on a desktop - the only place Qt exists. A target build
+# (ADL_TARGET_PLATFORM names an RTOS, or an embedded toolchain sets it) has no Qt and no use for
+# them and leaves them off; -DADL_BUILD_APP=OFF on a desktop builds the libraries alone, which is
+# what a machine without Qt needs. Qt is the prebuilt kit found through QT_ROOT_DIR
+# (cmake/FindQt6.cmake).
+option(ADL_BUILD_APP "Build the Qt applications (default: on a desktop, off for a target)"
+    ${ADL_PLATFORM_DESKTOP})
 
 # ---------------------------------------------------------------------------
 # Targets
@@ -142,7 +147,9 @@ message(STATUS "  Build tests : ${ADL_BUILD_TESTS}")
 message(STATUS "  Build app   : ${ADL_BUILD_APP}")
 if(ADL_BUILD_APP)
     message(STATUS "  Applications: adl_app, adl_media_gen, adl_mock_target")
+elseif(ADL_PLATFORM_DESKTOP)
+    message(STATUS "  Applications: off on this desktop (-DADL_BUILD_APP=ON builds adl_app, adl_media_gen, adl_mock_target)")
 else()
-    message(STATUS "  Applications: off (adl_app, adl_media_gen, adl_mock_target need -DADL_BUILD_APP=ON or a -app preset)")
+    message(STATUS "  Applications: off for a target build (the source side's programs need a desktop and Qt)")
 endif()
 message(STATUS "  Tracy       : ${ADL_ENABLE_TRACY}")

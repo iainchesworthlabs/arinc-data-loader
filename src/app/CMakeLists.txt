@@ -7,7 +7,16 @@
 #
 # Qt code lives here and nowhere else.
 
-find_package(Qt6 6.12 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 LinguistTools)
+# The applications build by default on the desktops (ADL_BUILD_APP defaults to
+# ADL_PLATFORM_DESKTOP), so a machine without Qt needs to be told: say what to do rather than let
+# Qt's own "could not find" error stand alone.
+find_package(Qt6 6.12 QUIET COMPONENTS Core Gui Qml Quick QuickControls2 LinguistTools)
+if(NOT Qt6_FOUND)
+    message(FATAL_ERROR
+        "The Qt applications are on by default on this desktop, and Qt 6.12 was not found.\n"
+        "  - install the kit and point QT_ROOT_DIR at it (see docs/building.md), or\n"
+        "  - configure with -DADL_BUILD_APP=OFF to build the libraries alone.")
+endif()
 
 # AUTOMOC and the policies of Qt 6.12 (QML modules get their resource prefix and their qmldir the
 # current way), for this directory only.
