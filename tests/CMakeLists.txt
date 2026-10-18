@@ -65,15 +65,30 @@ target_link_libraries(adl_fake_platform
         adl::sanitizers
         adl::coverage)
 
+# The simulated target (a target of 615A on the fake network, with a TFTP of its own that shares
+# no code with the engine). The engine tests run whole operations against it, and so do the
+# application's.
+add_library(adl_sim_target STATIC
+    engine/mini_tftp.cpp
+    engine/sim_target.cpp)
+target_include_directories(adl_sim_target PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/engine")
+target_link_libraries(adl_sim_target
+    PUBLIC
+        adl_fake_platform
+        adl::arinc615a
+    PRIVATE
+        adl::arinc665
+        adl::warnings
+        adl::sanitizers
+        adl::coverage)
+
 # The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
 # fake platform, and the simulated target the whole of an operation is run against.
 add_executable(adl_engine_tests
     engine/data_loader_test.cpp
     engine/directory_files_test.cpp
     engine/find_client_test.cpp
-    engine/mini_tftp.cpp
     engine/operations_test.cpp
-    engine/sim_target.cpp
     engine/tftp_transfer_test.cpp)
 
 target_include_directories(adl_engine_tests PRIVATE
@@ -83,6 +98,7 @@ target_include_directories(adl_engine_tests PRIVATE
 target_link_libraries(adl_engine_tests
     PRIVATE
         adl_fake_platform
+        adl_sim_target
         adl::arinc615a
         adl::arinc615a_runner
         adl::arinc665
@@ -172,3 +188,8 @@ add_test(NAME tools.write_payloads.no_output_directory COMMAND adl_write_payload
 set_tests_properties(tools.write_payloads.no_output_directory PROPERTIES WILL_FAIL TRUE)
 
 add_test(NAME tools.write_payloads.list COMMAND adl_write_payloads --list)
+
+# The application's tests (src/app), when it is built: they need Qt.
+if(ADL_BUILD_APP)
+    add_subdirectory(app)
+endif()

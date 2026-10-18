@@ -81,6 +81,9 @@ include(Tracy)
 # Options
 # ---------------------------------------------------------------------------
 option(ADL_BUILD_TESTS "Build the unit test suite" ON)
+# The Qt application (src/app). Off by default so that the libraries build on a machine without Qt;
+# CI turns it on. Qt is the prebuilt kit found through QT_ROOT_DIR (cmake/FindQt6.cmake).
+option(ADL_BUILD_APP "Build the Qt application" OFF)
 
 # ---------------------------------------------------------------------------
 # Targets
@@ -113,6 +116,11 @@ add_subdirectory(src/samples)
 # other loaders on them.
 add_subdirectory(src/write_payloads)
 
+# The Qt application: a thin layer over the libraries above, and the only place Qt is used.
+if(ADL_BUILD_APP)
+    add_subdirectory(src/app)
+endif()
+
 if(ADL_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
@@ -120,4 +128,5 @@ endif()
 
 message(STATUS "ARINC Data Loader ${PROJECT_VERSION} for ${ADL_PLATFORM_DISPLAY_NAME}")
 message(STATUS "  Build tests : ${ADL_BUILD_TESTS}")
+message(STATUS "  Build app   : ${ADL_BUILD_APP}")
 message(STATUS "  Tracy       : ${ADL_ENABLE_TRACY}")
