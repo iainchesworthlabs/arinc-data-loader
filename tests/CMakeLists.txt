@@ -192,4 +192,6 @@ add_test(NAME tools.write_payloads.list COMMAND adl_write_payloads --list)
 # The application's tests (src/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)
     add_subdirectory(app)
+    # The mock target's tests (src/mock_target).
+    add_subdirectory(mock_target)
 endif()

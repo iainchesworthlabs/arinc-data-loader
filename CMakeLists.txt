@@ -124,6 +124,9 @@ add_subdirectory(src/write_payloads)
 # The Qt application: a thin layer over the libraries above, and the only place Qt is used.
 if(ADL_BUILD_APP)
     add_subdirectory(src/app)
+    # The mock target: a Qt application that behaves as an ARINC 615A target over real
+    # sockets, for demonstrating the loader's dialogues end to end.
+    add_subdirectory(src/mock_target)
 endif()
 
 if(ADL_BUILD_TESTS)
