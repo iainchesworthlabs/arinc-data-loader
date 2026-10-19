@@ -79,6 +79,36 @@ foreach ($file in 'LICENSE.txt', 'NOTICES.txt') {
 
 if ($Settle -gt 0) { Start-Sleep -Seconds $Settle }
 
+# --- a development package: its files, and a program built against it ---------------------------------
+if ((Split-Path $Package -Leaf) -match '-dev-') {
+    foreach ($expected in 'include/adl/arinc665/crc.hpp', 'include/adl/platform/host.hpp', 'lib/cmake/adl/adlConfig.cmake',
+                          'lib/cmake/adl/adlTargets.cmake', 'lib/cmake/adl/adlConfigVersion.cmake') {
+        if (Test-Path -LiteralPath (Join-Path $root $expected)) { Add-Ok "$expected is in the package" } else { Add-Problem "$expected is not in the package" }
+    }
+    # Built the way a user builds: find_package(adl) against the unpacked package, in an empty directory.
+    $consumerSource = (Resolve-Path (Join-Path $PSScriptRoot '../../tests/packaging/consumer')).Path
+    $consumerBuild = Join-Path $Work 'consumer'
+    cmake -S $consumerSource -B $consumerBuild -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_PREFIX_PATH=$root" 2>&1 | Out-Host
+    if ($LASTEXITCODE -ne 0) { Add-Problem 'a program could not be configured against the package' }
+    else {
+        cmake --build $consumerBuild 2>&1 | Out-Host
+        if ($LASTEXITCODE -ne 0) { Add-Problem 'a program could not be built against the package' }
+        else {
+            $consumer = @("$consumerBuild/consumer.exe", "$consumerBuild/consumer") | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+            & $consumer | Out-Host
+            if ($LASTEXITCODE -eq 0) { Add-Ok 'a program built against the package runs' } else { Add-Problem "the program built against the package failed ($LASTEXITCODE)" }
+        }
+    }
+    Write-Host ''
+    if ($problems.Count -gt 0) {
+        Write-Host "$($problems.Count) problem(s) in $(Split-Path $Package -Leaf)" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "$(Split-Path $Package -Leaf): good"
+    exit 0
+}
+
+
 # --- the programs ----------------------------------------------------------------------
 function Find-Program([string]$Name) {
     $candidates = @(
