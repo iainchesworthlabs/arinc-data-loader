@@ -29,8 +29,8 @@ set(ADL_PLATFORM_CONTRACT_HOOKS
 #   - every contract variable is defined (an empty string is a definition);
 #   - every hook exists;
 #   - ADL_PLATFORM_DESKTOP is ON or OFF;
-#   - ADL_PLATFORM_STATUS is supported, unbuilt or design-only, and a platform
-#     that says design-only compiles nothing;
+#   - ADL_PLATFORM_STATUS is supported, experimental, unbuilt or design-only,
+#     and a platform that says design-only compiles nothing;
 #   - every file the fragment compiles exists under <platforms_dir>.
 # `fragment` only names it in the message.
 function(adl_platform_check_contract fragment platforms_dir)
@@ -58,10 +58,11 @@ function(adl_platform_check_contract fragment platforms_dir)
     endif()
 
     if(NOT ADL_PLATFORM_STATUS STREQUAL "supported" AND
+       NOT ADL_PLATFORM_STATUS STREQUAL "experimental" AND
        NOT ADL_PLATFORM_STATUS STREQUAL "unbuilt" AND
        NOT ADL_PLATFORM_STATUS STREQUAL "design-only")
         message(FATAL_ERROR
-            "${fragment}: ADL_PLATFORM_STATUS must be supported, unbuilt or "
+            "${fragment}: ADL_PLATFORM_STATUS must be supported, experimental, unbuilt or "
             "design-only, not '${ADL_PLATFORM_STATUS}'.")
     endif()
     if(ADL_PLATFORM_STATUS STREQUAL "design-only" AND NOT "${ADL_PLATFORM_SOURCES}" STREQUAL "")

@@ -43,6 +43,8 @@
 #   ADL_PLATFORM_DISPLAY_NAME     How the platform is written in the version
 #                                 block ("Windows", "macOS", "Linux").
 #   ADL_PLATFORM_STATUS           "supported": built and tested by CI;
+#                                 "experimental": built, and its tests run, in
+#                                 CI on a simulator only (no target hardware);
 #                                 "unbuilt": code exists that nobody has
 #                                 compiled; "design-only": no code, only the
 #                                 documented design.
@@ -52,6 +54,13 @@
 #                                 Where cmake/FindQt6.cmake looks for an
 #                                 aqtinstall-style Qt when none is on
 #                                 CMAKE_PREFIX_PATH.
+#
+# Optional fact:
+#   ADL_PLATFORM_PROJECT          Set by a platform whose image is built by a
+#                                 project of its own (Zephyr's find_package,
+#                                 an RTOS simulator's main) and not by this
+#                                 one: where that project is. This project
+#                                 refuses to configure for it and says so.
 #
 # Build inputs (paths are relative to src/platforms):
 #   ADL_PLATFORM_SOURCES          Compiled into adl_platform: one
@@ -137,6 +146,13 @@ include("${ADL_PLATFORM_DIR}/platform.cmake")
 include(PlatformContract)
 adl_platform_check_contract("${ADL_PLATFORM_DIR}/platform.cmake"
     "${PROJECT_SOURCE_DIR}/src/platforms")
+
+# A platform whose program is built by a project of its own is not built by this one.
+if(ADL_PLATFORM_PROJECT)
+    message(FATAL_ERROR
+        "The ${ADL_PLATFORM_DISPLAY_NAME} platform is built by a project of its own, not by "
+        "this one: ${ADL_PLATFORM_PROJECT}. docs/building.md says how.")
+endif()
 
 # A platform nobody has built is not silently built.
 if(ADL_PLATFORM_STATUS STREQUAL "design-only")

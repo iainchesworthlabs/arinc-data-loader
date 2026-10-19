@@ -50,7 +50,11 @@ endfunction()
 # The platforms with a design and no code are refused, and say why.
 configure_case(freertos OFF "FreeRTOS platform is a design only" -DADL_TARGET_PLATFORM=freertos)
 configure_case(vxworks OFF "VxWorks platform is a design only" -DADL_TARGET_PLATFORM=vxworks)
-configure_case(zephyr OFF "Zephyr platform is a design only" -DADL_TARGET_PLATFORM=zephyr)
+
+# A platform whose program is built by a project of its own (Zephyr's image) is refused by
+# this one, and says where to go instead.
+configure_case(zephyr OFF "Zephyr platform is built by a project of its own"
+    -DADL_TARGET_PLATFORM=zephyr)
 
 # The platform with code nobody has compiled is refused until it is asked for.
 configure_case(qnx_refused OFF "ADL_ACCEPT_UNBUILT_PLATFORM" -DADL_TARGET_PLATFORM=qnx)
