@@ -39,45 +39,14 @@ foreach(_lib IN ITEMS adl_samples adl_arinc615a_mini)
     target_link_libraries(${_lib} PRIVATE zephyr_interface)
 endforeach()
 
-set(ADL_TESTS "${ADL_REPO_ROOT}/tests")
-
-# The platform layer: the portable types, the fake, and the conformance suite.
-set(ADL_PLATFORM_TEST_SOURCES
-    ${ADL_TESTS}/conformance/clock_memory_test.cpp
-    ${ADL_TESTS}/conformance/files_test.cpp
-    ${ADL_TESTS}/conformance/network_test.cpp
-    ${ADL_TESTS}/conformance/threads_ipc_test.cpp
-    ${ADL_TESTS}/unit/fake_platform_test.cpp
-    ${ADL_TESTS}/unit/memory_test.cpp
-    ${ADL_TESTS}/unit/platform_types_test.cpp
-    ${ADL_TESTS}/fake/fake_host.cpp
-    ${ADL_TESTS}/fake/fake_network.cpp
-    ${ADL_TESTS}/fake/fake_storage.cpp
-    ${ADL_TESTS}/fake/fake_threading.cpp
-    ${ADL_TESTS}/fake/fake_world.cpp)
-
-# The 615A engine, runner and whole operations against a simulated target on the fake platform.
-set(ADL_ENGINE_TEST_SOURCES
-    ${ADL_TESTS}/engine/data_loader_test.cpp
-    ${ADL_TESTS}/engine/directory_files_test.cpp
-    ${ADL_TESTS}/engine/find_client_test.cpp
-    ${ADL_TESTS}/engine/operations_test.cpp
-    ${ADL_TESTS}/engine/tftp_transfer_test.cpp
-    ${ADL_TESTS}/engine/sim_target.cpp)
+# The sources and include directories the RTOS test programs share.
+include("${ADL_REPO_ROOT}/tests/platform/rtos_support/test_sources.cmake")
 
 target_sources(app PRIVATE
     src/main.cpp
-    ${ADL_PLATFORM_TEST_SOURCES}
-    ${ADL_ENGINE_TEST_SOURCES})
-
-# tests/platform/rtos_support/temp_dir.hpp stands in for tests/support/temp_dir.hpp, so it is
-# first.
-target_include_directories(app PRIVATE
-    "${ADL_TESTS}/platform/rtos_support"
-    "${ADL_TESTS}/support"
-    "${ADL_TESTS}/conformance"
-    "${ADL_TESTS}/fake"
-    "${ADL_TESTS}/engine")
+    ${ADL_RTOS_PLATFORM_TEST_SOURCES}
+    ${ADL_RTOS_ENGINE_TEST_SOURCES})
+target_include_directories(app PRIVATE ${ADL_RTOS_TEST_INCLUDES})
 target_compile_definitions(app PRIVATE "ADL_TEST_SCRATCH_ROOT=\"/lfs\"")
 
 target_link_libraries(app PRIVATE
