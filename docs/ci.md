@@ -32,6 +32,7 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
 | `changelog.yml` | a PR into `develop` adds a changelog fragment, or carries the `no-changelog` label | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
+| `release.yml` | the Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on `release/*` branches and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | the nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
 | `dependency-review.yml` | fails a PR that adds a moderate-or-worse vulnerable dependency | no - skipped |
 | `scorecard.yml` | OpenSSF Scorecard score and badge, from `main` | no - skipped |
@@ -71,6 +72,37 @@ and an optional SonarQube scan that is skipped until it is configured. The
 reason for each, the local presets and the suppression rules are in
 [Nightly static and dynamic analysis](static-analysis.md).
 
+## The release workflow
+
+`release.yml` is described in [Releasing](releasing.md) and checked from the outside by
+[Verifying a release](verifying-releases.md). Where it sits among the others:
+
+- It is not a required check and carries no `merge_group` trigger. On a pull request it runs only
+  when the change touches the packaging (`cmake/`, `packaging/`, `src/platforms/*/platform.cmake`,
+  `tools/release/`, the Qt installer, the presets or the workflow itself), builds, tests, packages and
+  writes the SBOM on the three systems, and has no secrets. It is the only place the Release
+  configuration is compiled, and the only place `system.install_consumer` runs, before a release.
+- On a push to `release/*` or a version tag it also signs, attests and verifies. The job that signs runs
+  in the environment `release-signing`, which GitHub gives to those refs only; the job that drafts the
+  release runs in `release`, which waits for the maintainer.
+- Every action in it is pinned like the others, `permissions: {}` is the workflow's default and each job
+  names what it needs (`id-token` and `attestations` for *Attest*, `contents: write` for *Draft the
+  release*), and nothing in it runs on `pull_request_target`.
+
+### The release signing key
+
+The public key is [`release-signing-key.asc`](release-signing-key.asc). Its fingerprint, also in
+[SECURITY.md](../SECURITY.md) and [Verifying a release](verifying-releases.md), is
+
+```text
+C6B4 AD93 067E B501 F450  5BCF 3FF3 6825 5329 8A53    (Ed25519, expires 2028-10-18)
+```
+
+The private key and its passphrase are the secrets `RELEASE_GPG_PRIVATE_KEY` and
+`RELEASE_GPG_PASSPHRASE` of the environment `release-signing`. `tools/release/sign_release.sh`
+refuses to sign unless the secret holds the key with this fingerprint, and verifies every signature
+against the public key in the repository before the step passes.
+
 ## The jobs in `ci.yml`
 
 The job *display names* are the required-check contexts in
@@ -103,8 +135,9 @@ a time-out, so it cannot hold the job.
   leg uses the compiler its image ships. The `Show the toolchain` step puts
   the exact version in the log.
 - **Debug presets.** CI builds the Debug presets because they carry the
-  sanitizers. The Release presets are not built in CI yet; a Release-only
-  warning (`-Wnull-dereference`, for one) would first show up locally.
+  sanitizers. The Release presets are built by `release.yml` (on every
+  packaging pull request and every release branch), so a Release-only warning
+  (`-Wnull-dereference`, for one) shows up there rather than on release day.
 - **Qt, on the three build legs.** The Qt 6.12 application is built and tested (`-DADL_BUILD_APP=ON`).
   Qt is the prebuilt kit, not vcpkg, and the composite action `.github/actions/install-qt` installs it
   with `install_qt.py`, a short script that reads the kit's package list from download.qt.io

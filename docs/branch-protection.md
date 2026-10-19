@@ -242,6 +242,22 @@ Set by hand in the repository's settings (not expressible as a ruleset):
 - **Actions → Fork pull request workflows**: require approval for first-time
   contributors.
 
+## Environments and tags
+
+Releases add two repository **environments**, which are settings and not rulesets
+(`tools/repo/apply_rulesets.ps1` does not touch them; [Releasing](releasing.md) has the table):
+
+| Environment | Holds | Who can reach it | Waits for |
+| --- | --- | --- | --- |
+| `release-signing` | the release key and its passphrase | jobs on `release/*` branches and `v*` tags only | nothing |
+| `release` | nothing | jobs on `v*` tags only | the maintainer's approval |
+
+No ruleset protects tags yet: a `v*` tag can be created and moved by anyone with write access, and a
+tag run publishes only a **draft** release after the maintainer approves it, which is the safeguard
+today. A tag ruleset (creation by the maintainer only, no deletion or update of `v*`) is the next
+hardening, and is a decision for the maintainer: it changes who can release. The changelog check
+(`Changelog fragment`) is a visible check and not yet a required one.
+
 ## Dependabot pull requests
 
 Dependabot opens its pull requests against `develop` from `dependabot/*`
