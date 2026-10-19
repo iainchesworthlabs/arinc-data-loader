@@ -21,12 +21,13 @@ AppDialog {
 
         GridLayout {
             Layout.fillWidth: true
-            columns: 4
+            columns: 5
             columnSpacing: Theme.space2
             rowSpacing: Theme.space2
 
             StatTile {
                 label: qsTr("Part number")
+                valueObjectName: "mediaSetPartNumberLabel"
                 value: dialog.app.mediaSetPartNumber.length > 0
                        ? dialog.app.mediaSetPartNumber : qsTr("not read")
             }
@@ -36,7 +37,13 @@ AppDialog {
             }
             StatTile {
                 label: qsTr("Loads")
+                valueObjectName: "mediaSetLoadCountLabel"
                 value: String(dialog.app.loads.rowCount())
+            }
+            StatTile {
+                label: qsTr("Files")
+                valueObjectName: "mediaSetFileCountLabel"
+                value: String(dialog.app.files.rowCount())
             }
             StatTile {
                 label: qsTr("Batches")

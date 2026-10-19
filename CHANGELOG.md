@@ -15,6 +15,29 @@ C++23 CMake monorepo. Nothing has been released.
 
 ### Added
 
+- **The test suite is now three labelled tiers, with a UI suite and a coverage
+  minimum.** Every CTest test is `unit`, `integration` or `system` (`ctest -L
+  unit`, and the `check-unit` / `check-integration` / `check-system` targets),
+  and the system tier includes smoke tests that start the three application
+  programs as processes. `tests/ui` is a Qt Quick Test suite that loads the real
+  `Main.qml` and drives its buttons, fields, check boxes and dialogs with Qt
+  Quick Test's mouse and key events against the real model and the simulated
+  target; it runs as `ui.tst_main_window` and `ui.tst_dialogs`. Coverage is
+  gated at **90% of lines and 80% of branches of the portable code** by
+  `cmake/CoverageReport.cmake` (the `coverage` target and the CI coverage job).
+  [docs/testing.md](docs/testing.md) describes the tiers, the UI suite and the
+  report.
+- **A nightly static-analysis suite** ([docs/static-analysis.md](docs/static-analysis.md)):
+  `static-analysis.yml` runs the pinned clang-tidy (with the Clang Static
+  Analyzer, warnings as errors) over `src/`, MSVC Code
+  Analysis (`/analyze /WX`) over the libraries, tests and the three Qt
+  applications, a Clang ASan/UBSan build and test run, and an optional
+  SonarQube scan; CodeQL moves to the same nightly schedule. The analyzers are
+  not required checks and do not run on every commit. New presets
+  `linux-gcc-tidy`, `windows-msvc-analyze`, `linux-clang-debug` and
+  `linux-gcc-sonar` run the same work locally, and `ADL_ENABLE_CLANG_TIDY` /
+  `ADL_ENABLE_MSVC_ANALYSIS` switch the analyzers in a build. `.clang-tidy` is
+  now the gate CI holds, with each disabled check carrying its reason.
 - **The two Green Hills INTEGRITY platforms, `ghs508` and `ghs178b`**
   (unbuilt): a port of the platform layer to INTEGRITY 5.0.8 on the shared
   POSIX sources, and a native port to INTEGRITY-178B (semaphores, the
@@ -186,6 +209,10 @@ C++23 CMake monorepo. Nothing has been released.
 
 ### Changed
 
+- CodeQL runs nightly, and not on every push or pull request: a full CodeQL
+  build costs more than the rest of the per-commit matrix, and its alerts are
+  triaged in Security -> Code scanning. The rest of the static analysis follows
+  the same schedule ([docs/static-analysis.md](docs/static-analysis.md)).
 - The CRC-32 follows the standard: input and output are not reflected, and the
   check value is `0xB6B5EE95`. The earlier code described it as reflected with
   the check value `0xCBF43926` (a different CRC).

@@ -98,7 +98,7 @@ void MiniTransfer::serve(const Endpoint& client, const TftpRequest& request, Byt
             static_cast<void>(reply.add_transfer_size(content_.size()));
         }
     } else if (options && options->transfer_size) {
-        announced_ = *options->transfer_size;
+        announced_ = options->transfer_size;
         static_cast<void>(reply.add_transfer_size(*options->transfer_size));
     }
     if (reply.count() != 0) {
@@ -236,7 +236,7 @@ void MiniTransfer::on_datagram(const Endpoint& from, std::span<const std::byte> 
                         block_size_ = *options->block_size;
                     }
                     if (options && options->transfer_size) {
-                        announced_ = *options->transfer_size;
+                        announced_ = options->transfer_size;
                     }
                     block_ = 0;
                     awaiting_first_ = false;

@@ -679,8 +679,10 @@ void DataLoader::do_abort(Instant now, StatusCode status) noexcept {
     if (!started_ || done() || abort_status_) {
         return;
     }
-    abort_status_ = status == StatusCode::aborted_by_operator ? StatusCode::aborted_by_operator
-                                                              : StatusCode::aborted_by_data_loader;
+    const StatusCode abort_status = status == StatusCode::aborted_by_operator
+                                        ? StatusCode::aborted_by_operator
+                                        : StatusCode::aborted_by_data_loader;
+    abort_status_ = abort_status;
     if (!accepted_) {
         // The target has not started anything yet, so it has nothing to confirm.
         finish_aborted(now, false);
@@ -697,7 +699,7 @@ void DataLoader::do_abort(Instant now, StatusCode status) noexcept {
         }
         slot.retry_pending = false;
         if (slot.transfer.active() && !slot.transfer.lingering() &&
-            slot.transfer.abort(*abort_status_)) {
+            slot.transfer.abort(abort_status)) {
             abort_answered_ = true;
         }
         pump(now, i);

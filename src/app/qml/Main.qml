@@ -134,6 +134,8 @@ ApplicationWindow {
         }
 
         Text {
+            objectName: "statusState"
+
             text: window.app.busy ? window.app.activity
                                   : window.app.resultIsTransfer && window.app.resultState === 1
                                     ? qsTr("Complete")
@@ -154,7 +156,12 @@ ApplicationWindow {
         }
 
         Text {
-            text: window.app.targetValid ? window.app.thwIdPos : qsTr("no target")
+            objectName: "statusTarget"
+
+            text: window.app.targetValid
+                  ? window.app.thwIdPos
+                  : window.app.targetAddress.length > 0
+                    ? window.app.targetAddress : qsTr("no target")
             color: Theme.textMuted
             font.pixelSize: Theme.fontMono
             font.family: Theme.monoFamily
@@ -223,12 +230,13 @@ ApplicationWindow {
         id: aboutDialog
         objectName: "aboutDialog"
 
-        title: qsTr("About")
+        title: qsTr("About ARINC Data Loader")
     }
 
     AppDialog {
         id: closeDialog
 
+        objectName: "closeDialog"
         heading: qsTr("An operation is running")
         primaryText: qsTr("Stop and close")
         secondaryText: qsTr("Keep working")
@@ -258,8 +266,12 @@ ApplicationWindow {
     AppDialog {
         id: errorDialog
 
+        objectName: "errorDialog"
         heading: qsTr("The operation failed")
         primaryText: qsTr("OK")
+
+        // The UI suite reads the whole failure as text; the body below lays the same failure out.
+        property string text: window.app.lastErrorText
 
         content: ColumnLayout {
             Layout.fillWidth: true
@@ -370,6 +382,8 @@ ApplicationWindow {
                         }
 
                         AppButton {
+                            objectName: "findTargetsButton"
+
                             text: qsTr("Find")
                             enabled: !window.app.busy
                             onClicked: window.app.findTargets()
@@ -390,6 +404,8 @@ ApplicationWindow {
                         }
 
                         AppTextField {
+                            objectName: "targetAddressField"
+
                             Layout.fillWidth: true
                             placeholderText: qsTr("10.0.0.2")
                             text: window.app.targetAddress
@@ -407,6 +423,8 @@ ApplicationWindow {
                         }
 
                         AppTextField {
+                            objectName: "thwIdPosField"
+
                             Layout.fillWidth: true
                             placeholderText: qsTr("HNPFMS_L")
                             text: window.app.thwIdPos
@@ -432,10 +450,13 @@ ApplicationWindow {
                         Repeater {
                             id: targetRepeater
 
+                            objectName: "targetList"
                             model: window.app.targets
 
                             delegate: Rectangle {
                                 id: targetRow
+
+                                objectName: "targetDelegate"
 
                                 required property int index
                                 required property string thwIdPos
@@ -501,6 +522,8 @@ ApplicationWindow {
                         spacing: Theme.space2
 
                         AppButton {
+                            objectName: "targetPropertiesButton"
+
                             text: qsTr("Properties...")
                             enabled: window.app.selectedTargetIndex >= 0
                                      || window.app.targetAddress.length > 0
@@ -561,6 +584,8 @@ ApplicationWindow {
                         }
 
                         AppButton {
+                            objectName: "mediaSetChooseButton"
+
                             text: window.app.mediaSetPath.length === 0
                                   ? qsTr("Choose...") : qsTr("Change...")
                             enabled: !window.app.busy
@@ -617,6 +642,8 @@ ApplicationWindow {
                             spacing: Theme.space2
 
                             AppButton {
+                                objectName: "mediaSetCheckButton"
+
                                 text: qsTr("Re-check")
                                 enabled: !window.app.busy && window.app.mediaSetPath.length > 0
                                 onClicked: window.app.checkMediaSet()
@@ -624,6 +651,8 @@ ApplicationWindow {
                             }
 
                             AppButton {
+                                objectName: "mediaSetPropertiesButton"
+
                                 text: qsTr("Properties...")
                                 enabled: window.app.mediaSetPath.length > 0
                                 onClicked: mediaSetPropertiesDialog.open()
@@ -649,6 +678,8 @@ ApplicationWindow {
                             }
 
                             AppButton {
+                                objectName: "tickAllLoadsButton"
+
                                 text: qsTr("All")
                                 enabled: !window.app.busy && loadRepeater.count > 0
                                 onClicked: window.app.selectAllLoads(true)
@@ -656,6 +687,8 @@ ApplicationWindow {
                             }
 
                             AppButton {
+                                objectName: "tickNoLoadsButton"
+
                                 text: qsTr("None")
                                 enabled: !window.app.busy && loadRepeater.count > 0
                                 onClicked: window.app.selectAllLoads(false)
@@ -849,8 +882,8 @@ ApplicationWindow {
 
                     SegmentedControl {
                         segments: [
-                            { value: 0, label: qsTr("Upload") },
-                            { value: 1, label: qsTr("Download") }
+                            { value: 0, label: qsTr("Upload"), name: "transferUpload" },
+                            { value: 1, label: qsTr("Download"), name: "transferDownload" }
                         ]
                         selectedValue: window.mode
                         onSegmentClicked: (value) => window.mode = value
@@ -963,6 +996,8 @@ ApplicationWindow {
                             spacing: Theme.space2
 
                             TaskProgress {
+                                objectName: "operationProgress"
+
                                 Layout.fillWidth: true
                                 value: Math.max(0, window.app.progress)
                                 indeterminate: window.app.progress < 0
@@ -979,6 +1014,8 @@ ApplicationWindow {
                     }
 
                     AppButton {
+                        objectName: "readInformationButton"
+
                         visible: window.mode === 0
                         text: qsTr("Read information")
                         enabled: window.app.canReadInformation
@@ -1007,6 +1044,8 @@ ApplicationWindow {
                     }
 
                     AppButton {
+                        objectName: "abortButton"
+
                         visible: window.app.busy
                         text: qsTr("Abort")
                         enabled: window.app.canAbort

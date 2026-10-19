@@ -73,6 +73,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # CMake file reads what the platform's fragment declared.
 include(Platform)
 include(CompilerWarnings)
+include(StaticAnalysis)
 include(Sanitizers)
 include(Coverage)
 include(Tracy)
@@ -81,7 +82,7 @@ include(AdlUi)
 # ---------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------
-option(ADL_BUILD_TESTS "Build the unit test suite" ON)
+option(ADL_BUILD_TESTS "Build the unit, integration and system test suites" ON)
 # The three Qt applications (src/app, src/media_gen, src/mock_target) are the source side's
 # programs, so they build by default on a desktop - the only place Qt exists. A target build
 # (ADL_TARGET_PLATFORM names an RTOS, or an embedded toolchain sets it) has no Qt and no use for

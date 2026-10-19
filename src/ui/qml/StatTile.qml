@@ -7,6 +7,7 @@ Rectangle {
 
     property alias label: labelText.text
     property alias value: valueText.text
+    property string valueObjectName: ""
 
     Layout.fillWidth: true
     implicitHeight: content.implicitHeight + Theme.space4
@@ -35,6 +36,7 @@ Rectangle {
         Text {
             id: valueText
 
+            objectName: root.valueObjectName
             color: Theme.text
             font.pixelSize: Theme.fontNormal
             font.family: Theme.monoFamily

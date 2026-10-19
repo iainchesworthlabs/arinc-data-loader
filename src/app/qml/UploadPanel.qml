@@ -428,6 +428,8 @@ Item {
                             }
 
                             Text {
+                                objectName: "resultLabel"
+
                                 Layout.fillWidth: true
                                 text: root.app.resultText
                                 color: Theme.text

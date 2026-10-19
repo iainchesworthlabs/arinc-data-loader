@@ -16,6 +16,18 @@ Dialog {
     signal primaryClicked()
     signal secondaryClicked()
 
+    // The standard-button roles a Qt Quick Test or a keyboard user may look for. The dialog has
+    // two buttons, not a QDialogButtonBox, so the mapping is explicit: the affirmative roles are
+    // the primary (Save / Close / OK) and Cancel is the secondary.
+    function standardButton(role) {
+        if (role === Dialog.Ok || role === Dialog.Save || role === Dialog.Apply
+                || role === Dialog.Close || role === Dialog.Yes)
+            return primaryButton;
+        if (role === Dialog.Cancel || role === Dialog.No)
+            return secondaryButton;
+        return null;
+    }
+
     modal: true
     closePolicy: Popup.CloseOnEscape
     anchors.centerIn: Overlay.overlay
@@ -75,12 +87,16 @@ Dialog {
             }
 
             AppButton {
+                id: secondaryButton
+
                 visible: root.secondaryText.length > 0
                 text: root.secondaryText
                 onClicked: root.secondaryClicked()
             }
 
             AppButton {
+                id: primaryButton
+
                 primary: true
                 text: root.primaryText
                 onClicked: root.primaryClicked()

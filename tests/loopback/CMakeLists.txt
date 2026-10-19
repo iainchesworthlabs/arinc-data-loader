@@ -40,4 +40,4 @@ adl_deploy_sanitizer_runtime(adl_loopback_test)
 add_test(NAME loopback.integration COMMAND adl_loopback_test)
 set_tests_properties(loopback.integration PROPERTIES
     TIMEOUT 300
-    LABELS "integration")
+    LABELS "integration;system")

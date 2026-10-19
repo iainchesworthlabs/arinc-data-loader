@@ -15,7 +15,7 @@ namespace adl::arinc665 {
 
 namespace {
 
-const std::string root_pathname = "\\";
+constexpr std::string_view root_pathname = "\\";
 
 // A file with the member it is on.
 struct Placed {
@@ -178,23 +178,25 @@ Result<std::vector<MediaMember>> build_media_set(const MediaSetSpec& spec) {
     const bool has_batches = !spec.batches.empty();
     std::vector<MediaFile> loads_files;
     std::vector<MediaFile> batches_files;
-    for (std::uint16_t member = 1; member <= member_count; ++member) {
-        loads_list.identity = identity_of(spec, member);
+    for (std::size_t member = 1; member <= member_count; ++member) {
+        const auto member_number = static_cast<std::uint16_t>(member);
+        loads_list.identity = identity_of(spec, member_number);
         auto loads_bytes = encode_loads_list(loads_list);
         if (!loads_bytes) {
             return std::unexpected{loads_bytes.error()};
         }
-        loads_files.push_back(
-            {root_pathname, std::string{loads_list_file_name}, std::move(*loads_bytes)});
+        loads_files.push_back({std::string{root_pathname}, std::string{loads_list_file_name},
+                               std::move(*loads_bytes)});
 
         if (has_batches) {
-            batches_list.identity = identity_of(spec, member);
+            batches_list.identity = identity_of(spec, member_number);
             auto batches_bytes = encode_batches_list(batches_list);
             if (!batches_bytes) {
                 return std::unexpected{batches_bytes.error()};
             }
-            batches_files.push_back(
-                {root_pathname, std::string{batches_list_file_name}, std::move(*batches_bytes)});
+            batches_files.push_back({std::string{root_pathname},
+                                     std::string{batches_list_file_name},
+                                     std::move(*batches_bytes)});
         }
     }
 
@@ -216,13 +218,13 @@ Result<std::vector<MediaMember>> build_media_set(const MediaSetSpec& spec) {
         entries.push_back(std::move(entry));
         return true;
     };
-    for (std::uint16_t member = 1; member <= member_count; ++member) {
-        if (!list(loads_files[member - 1U], member)) {
+    for (std::size_t member = 1; member <= member_count; ++member) {
+        if (!list(loads_files[member - 1U], static_cast<std::uint16_t>(member))) {
             return std::unexpected{error};
         }
     }
-    for (std::uint16_t member = 1; has_batches && member <= member_count; ++member) {
-        if (!list(batches_files[member - 1U], member)) {
+    for (std::size_t member = 1; has_batches && member <= member_count; ++member) {
+        if (!list(batches_files[member - 1U], static_cast<std::uint16_t>(member))) {
             return std::unexpected{error};
         }
     }
@@ -238,9 +240,10 @@ Result<std::vector<MediaMember>> build_media_set(const MediaSetSpec& spec) {
     }
 
     std::vector<MediaMember> members(member_count);
-    for (std::uint16_t member = 1; member <= member_count; ++member) {
+    for (std::size_t member = 1; member <= member_count; ++member) {
+        const auto member_number = static_cast<std::uint16_t>(member);
         FilesList files_list;
-        files_list.identity = identity_of(spec, member);
+        files_list.identity = identity_of(spec, member_number);
         files_list.files = entries;
         // The check value of FILES.LUM sits inside it, so it is written first with
         // a value of the right size, then worked out and written again.
@@ -271,15 +274,15 @@ Result<std::vector<MediaMember>> build_media_set(const MediaSetSpec& spec) {
         }
 
         MediaMember& result = members[member - 1U];
-        result.sequence_number = member;
+        result.sequence_number = member_number;
         result.files.push_back(
-            {root_pathname, std::string{files_list_file_name}, std::move(*bytes)});
+            {std::string{root_pathname}, std::string{files_list_file_name}, std::move(*bytes)});
         result.files.push_back(loads_files[member - 1U]);
         if (has_batches) {
             result.files.push_back(batches_files[member - 1U]);
         }
         for (const Placed& entry : placed) {
-            if (entry.member == member) {
+            if (entry.member == member_number) {
                 result.files.push_back(entry.file);
             }
         }

@@ -44,6 +44,10 @@ public:
     WindowsUdpSocket(SOCKET handle, Endpoint local, Clock& clock) noexcept
         : handle_(handle), local_(local), clock_(clock) {}
     ~WindowsUdpSocket() override { ::closesocket(handle_); }
+    WindowsUdpSocket(const WindowsUdpSocket&) = delete;
+    WindowsUdpSocket& operator=(const WindowsUdpSocket&) = delete;
+    WindowsUdpSocket(WindowsUdpSocket&&) = delete;
+    WindowsUdpSocket& operator=(WindowsUdpSocket&&) = delete;
 
     [[nodiscard]] SOCKET handle() const noexcept { return handle_; }
 
@@ -128,6 +132,10 @@ public:
             ::WSACleanup();
         }
     }
+    WindowsNetwork(const WindowsNetwork&) = delete;
+    WindowsNetwork& operator=(const WindowsNetwork&) = delete;
+    WindowsNetwork(WindowsNetwork&&) = delete;
+    WindowsNetwork& operator=(WindowsNetwork&&) = delete;
 
     [[nodiscard]] Result<void> start() noexcept {
         WSADATA data{};
@@ -148,6 +156,9 @@ public:
             return fail_winsock(error);
         };
         u_long nonblocking = 1;
+        // FIONBIO's _IOW expansion casts the size of u_long to a signed long;
+        // the warning is the SDK macro's, not this call's.
+        // NOLINTNEXTLINE(clang-diagnostic-sign-conversion)
         if (::ioctlsocket(handle, FIONBIO, &nonblocking) != 0) {
             return close_and_fail(::WSAGetLastError());
         }

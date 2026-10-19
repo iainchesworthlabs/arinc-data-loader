@@ -81,6 +81,8 @@ Item {
                 }
 
                 AppButton {
+                    objectName: "clearLogButton"
+
                     visible: root.tab === 0
                     text: qsTr("Clear")
                     onClicked: root.app.clearLog()
@@ -128,6 +130,7 @@ Item {
                 ListView {
                     id: configurationList
 
+                    objectName: "configurationList"
                     anchors.fill: parent
                     anchors.margins: Theme.space2
                     clip: true

@@ -157,6 +157,8 @@ AppDialog {
                 }
 
                 AppTextField {
+                    objectName: "defaultTargetAddressField"
+
                     Layout.fillWidth: true
                     text: dialog.draftAddress
                     placeholderText: qsTr("10.0.0.2")
@@ -171,6 +173,8 @@ AppDialog {
                 }
 
                 AppTextField {
+                    objectName: "defaultThwIdPosField"
+
                     Layout.fillWidth: true
                     text: dialog.draftThwIdPos
                     placeholderText: qsTr("HNPFMS_L")
@@ -180,6 +184,8 @@ AppDialog {
             }
 
             AppCheckBox {
+                objectName: "autoFindSwitch"
+
                 Layout.fillWidth: true
                 text: qsTr("Find the target automatically")
                 note: qsTr("Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.")
@@ -198,6 +204,8 @@ AppDialog {
             }
 
             AppCheckBox {
+                objectName: "validateOnOpenSwitch"
+
                 Layout.fillWidth: true
                 text: qsTr("Check the media set as soon as it is chosen")
                 note: qsTr("A set has to pass the check before an upload. With this off, use 'Re-check' in the media set rail.")
@@ -249,6 +257,8 @@ AppDialog {
                 }
 
                 AppSpinBox {
+                    objectName: "controlPortSpin"
+
                     Layout.preferredWidth: 120
                     from: 1
                     to: 65535
@@ -269,6 +279,8 @@ AppDialog {
                 spacing: Theme.space2
 
                 AppTextField {
+                    objectName: "downloadDirectoryField"
+
                     Layout.fillWidth: true
                     text: dialog.draftDownloadDirectory
                     onTextEdited: dialog.draftDownloadDirectory = text

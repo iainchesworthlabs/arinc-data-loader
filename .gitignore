@@ -5,6 +5,7 @@ cmake-build-*/
 /vcpkg_installed/
 compile_commands.json
 .cache/
+.sonar/
 .ninja_deps
 .ninja_log
 CMakeUserPresets.json

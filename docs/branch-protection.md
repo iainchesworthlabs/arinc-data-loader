@@ -256,5 +256,8 @@ and titles Dependabot writes carry no attribution, so
 `scorecard.yml` publishes a score and a badge from `main` and re-runs when the
 rulesets change; it scores more completely with a read-only fine-grained token
 in the `SCORECARD_READ_TOKEN` secret (see the comments in the workflow). It is
-not a check. CodeQL results appear under **Security → Code scanning** and are
-triaged there.
+not a check. CodeQL results appear under **Security -> Code scanning** and are
+triaged there; CodeQL runs nightly, with clang-tidy, MSVC Code Analysis, a
+Clang ASan/UBSan build and the optional SonarQube scan
+([Nightly static and dynamic analysis](static-analysis.md)). None of those is a
+required check, so none of them carries `merge_group`.

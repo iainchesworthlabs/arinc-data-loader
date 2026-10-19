@@ -462,6 +462,11 @@ true:
   dialog does not open, so the modal page and the provenance block are covered.
 - The application test drives the real model through first run, FIND, Information, a media set
   read and check, an Upload and a media-defined Download, and asserts the outcomes. It passes.
+- The Qt Quick Test UI suite added by `feature/test-suite-coverage-ui` now drives this window
+  rather than the earlier one: `ui.tst_main_window` clicks the real Find, Read information,
+  Re-check, All/None, Upload, Abort and Download controls, and `ui.tst_dialogs` opens
+  Preferences, the media set and target properties and About and drives their fields and
+  standard buttons. Both pass, and Preferences is asserted to be transactional.
 - The generator test fills the form, starts a generation through the window's own button, and
   asserts a verified set; it passes.
 - The mock target test starts and stops the target through the window's own buttons; it passes.
