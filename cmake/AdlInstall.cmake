@@ -118,14 +118,20 @@ endfunction()
 # uses on Linux), and puts its path in <out-var> for `install(SCRIPT ...)`. The platform fragments
 # call it from adl_platform_install_app. The Qt translations are left out (the programs carry their
 # own catalogues), and so are the QML debugging plugins: a released program has no use for a plugin
-# that opens a debugging connection when it is asked to.
+# that opens a debugging connection when it is asked to. The offscreen platform plugin is added to
+# the one the system uses: it is a few kilobytes, and it lets the packages be started and tested on a
+# machine with no display, which is how a person runs a program in a container or over ssh too.
+# On Linux, what the system itself provides (libc, libstdc++, X11, OpenGL, fontconfig, ...) is left to
+# the system: Qt's script copies only libraries from outside the system directories, which is Qt and its
+# ICU.
 function(adl_qt_deploy_script target out_var)
     qt_generate_deploy_qml_app_script(
         TARGET ${target}
         OUTPUT_SCRIPT script
         NO_TRANSLATIONS
         NO_UNSUPPORTED_PLATFORM_ERROR
-        EXCLUDE_PLUGIN_TYPES qmltooling)
+        EXCLUDE_PLUGIN_TYPES qmltooling
+        INCLUDE_PLUGINS qoffscreen)
     set(${out_var} "${script}" PARENT_SCOPE)
 endfunction()
 
