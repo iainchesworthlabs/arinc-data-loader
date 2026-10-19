@@ -472,7 +472,7 @@ true:
 
 The tests run in a Debug build; **the release build is the one to judge by feel**, and the
 difference is measurable. A scripted 240-step resize at 1200×900 on the RTX 4090 machine cost
-about **0.63 s of CPU in Release** and **1.9 s in Debug** over the same 6 s wall time, both with
+about **0.6–0.7 s of CPU in Release** and **1.9 s in Debug** over the same 6 s wall time, both with
 0 ms CPU idle over 2 s. The renderer is D3D11, threaded render loop, max frame latency 2.
 
 Two QML costs were removed in this pass: a checkbox whose label width fed its own implicit width
