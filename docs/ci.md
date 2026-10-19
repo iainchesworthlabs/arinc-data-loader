@@ -106,18 +106,34 @@ a time-out, so it cannot hold the job.
   sanitizers. The Release presets are not built in CI yet; a Release-only
   warning (`-Wnull-dereference`, for one) would first show up locally.
 - **Qt, on the three build legs.** The Qt 6.12 application is built and tested (`-DADL_BUILD_APP=ON`).
-  Qt is the prebuilt kit, not vcpkg, and the composite action `.github/actions/install-qt` installs it:
-  with the aqtinstall pinned in `.github/requirements/qt.txt` on Linux (`linux_gcc_64`) and macOS
-  (`clang_64`), and on Windows with `install_qt_msvc.py`, a short script that does what aqtinstall does for
-  one package (the `win64_msvc2022_64` kit, each archive checked against its published SHA-1). aqtinstall
-  3.3.0 does not know the layout Qt's repository has for Windows from Qt 6.11 on (one directory per
-  architecture) and fails with "Failed to locate XML data"; drop the script when a release of it does. The
-  install is retried twice, since download.qt.io is a mirror network, and the kit is cached under an exact
-  key (version, architecture and the installer's pin). On Linux the action installs the few system
-  libraries a prebuilt Qt needs, and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The
-  Qt version is the action's `version` input in `ci.yml` (the same 6.12.0 as the labs' shared toolchain);
-  the matrix has the host and architecture names. The coverage job does not build the application, so it
-  needs no Qt, and its figures are of the portable code; the UI suite runs on the three build legs.
+  Qt is the prebuilt kit, not vcpkg, and the composite action `.github/actions/install-qt` installs it
+  with `install_qt.py`, a short script that reads the kit's package list from download.qt.io
+  (`win64_msvc2022_64`, `linux_gcc_64`, `clang_64`), downloads each archive, **refuses any archive whose
+  SHA-256 is not the one pinned in `.github/requirements/qt-archives.sha256`** and only then unpacks it.
+  (aqtinstall, which did this before, cannot read the repository's layout for Windows from Qt 6.11 on, and
+  like Qt's own installer checks an archive only against a hash fetched from the same server, so whoever
+  could replace an archive could replace its hash.) The one Python package the script needs, `py7zr`, is
+  installed with `uv pip install --require-hashes --no-build` from the hash-locked
+  `.github/requirements/qt.txt`, so each wheel is the one that was reviewed and nothing is built from a
+  source distribution. The install is retried twice, since download.qt.io is a mirror network, but a hash
+  mismatch is not retried; the kit is cached under an exact key (version, architecture, and the hashes of
+  the lock files and the script). On Linux the action installs the few system libraries a prebuilt Qt needs,
+  and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The Qt version is the action's
+  `version` input in `ci.yml` and `release.yml` (the same 6.12.0 as the labs' shared toolchain); the matrix
+  has the host and architecture names. The coverage job does not build the application, so it needs no Qt,
+  and its figures are of the portable code; the UI suite runs on the three build legs.
+
+  **Moving to another Qt version** is deliberate and reviewed: change the `version` inputs, then, with the
+  network and Python 3.10 or newer,
+
+  ```sh
+  uv venv /tmp/qt-venv && uv pip install --python /tmp/qt-venv/bin/python --require-hashes -r .github/requirements/qt.txt
+  /tmp/qt-venv/bin/python .github/actions/install-qt/install_qt.py lock 6.12.1 windows linux mac --pins .github/requirements/qt-archives.sha256
+  ```
+
+  which downloads every archive, checks each against the SHA-256 the repository publishes beside it, and
+  rewrites the pins. Read the diff of the pins file like a dependency update, and commit it with the version
+  bump. Until then CI fails with "do not cover the archives", on purpose.
 - **CMake 4.4.2 and Ninja 1.13.2** from `lukka/get-cmake`; the same pins the
   sibling projects use.
 - **Local composite actions are referenced as `./.github/actions/...`.** The
@@ -231,8 +247,9 @@ submodule clone does not have them.
 | Every GitHub Action, and the composite actions in `.github/actions` | A full commit SHA, version in a trailing comment | Dependabot, weekly, grouped, 7-day cooldown |
 | clang-format, gcovr | `==` in `.github/requirements/*.txt` | Dependabot (`pip`), weekly |
 | clang-tidy (nightly analysis) | `==` in `.github/requirements/static-analysis.txt` | Dependabot (`pip`), weekly |
-| aqtinstall (installs Qt) | `==` in `.github/requirements/qt.txt` | Dependabot (`pip`), weekly |
-| Qt | `version` input of the `install-qt` step in `ci.yml` (6.12.0) | By hand, with the labs' shared toolchain |
+| py7zr and its dependencies (unpack Qt) | `==` with every wheel's SHA-256 in `.github/requirements/qt.txt`, compiled from `qt.in`, installed with `--require-hashes --no-build` | Dependabot (`pip`), weekly |
+| The Qt archives | The SHA-256 of each, in `.github/requirements/qt-archives.sha256` | By hand: `install_qt.py lock` |
+| Qt | `version` input of the `install-qt` step in `ci.yml` and `release.yml` (6.12.0) | By hand, with the labs' shared toolchain |
 | CMake and Ninja (`lukka/get-cmake`) | `cmakeVersion` / `ninjaVersion`, exact, and one the pinned action's catalog lists | By hand, with the action |
 | vcpkg and the ports | The submodule commit and `builtin-baseline` | Dependabot (`vcpkg` + `gitsubmodule`, one monthly PR); by hand |
 | Runner images | The label (`ubuntu-24.04`, `ubuntu-26.04`, `windows-2025-vs2026`, `macos-26`) | By hand |

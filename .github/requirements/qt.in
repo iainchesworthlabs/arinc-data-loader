@@ -1,0 +1,6 @@
+# Input of qt.txt, the hash-locked tool the install-qt action unpacks the Qt kit with:
+#   uv pip compile --universal --generate-hashes --python-version 3.10 qt.in --output-file qt.txt
+# The kit's archives are pinned separately (qt-archives.sha256). Dependabot's pip ecosystem for
+# /.github/requirements keeps both files current. The Qt version itself is the `version` input of the
+# action, the same 6.12.0 the labs' shared toolchain uses.
+py7zr==1.1.0
