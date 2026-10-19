@@ -1,0 +1,6 @@
+# Input of sbom.txt, the hash-locked validators the release workflow checks the SBOM with:
+#   uv pip compile --universal --generate-hashes --python-version 3.10 sbom.in --output-file sbom.txt
+# spdx-tools checks the SPDX 2.3 document; cyclonedx-python-lib checks the CycloneDX 1.6 document
+# against the formal JSON schema it ships. Dependabot's pip ecosystem keeps both files current.
+spdx-tools
+cyclonedx-python-lib[json-validation]
