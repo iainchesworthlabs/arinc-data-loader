@@ -17,7 +17,7 @@ Item {
         case 1:
             return Theme.accentInk;
         case 3:
-            return Theme.accent;
+            return Theme.accentInk;
         default:
             return Theme.text;
         }

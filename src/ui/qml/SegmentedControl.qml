@@ -18,9 +18,25 @@ Item {
     Accessible.role: Accessible.Grouping
     Accessible.name: ""
 
+    // The segment that is the group's one tab stop: the chosen one (the first when none is).
+    readonly property int currentIndex: {
+        for (let i = 0; i < root.segments.length; ++i) {
+            if (root.segments[i].value === root.selectedValue)
+                return i;
+        }
+        return 0;
+    }
+
     function choose(value) {
         if (value !== root.selectedValue)
             root.segmentClicked(value);
+    }
+
+    // Chooses the segment at `position` and moves the keyboard focus onto it, so the next arrow
+    // key continues from there.
+    function moveTo(position) {
+        root.choose(root.segments[position].value);
+        repeater.itemAt(position).forceActiveFocus();
     }
 
     Row {
@@ -30,6 +46,8 @@ Item {
         spacing: 0
 
         Repeater {
+            id: repeater
+
             model: root.segments
 
             delegate: QQC.Button {
@@ -40,13 +58,13 @@ Item {
 
                 objectName: modelData.name || ""
                 text: modelData.label
-                checkable: true
+                // Not checkable: a click on the chosen segment must not clear it.
                 checked: root.selectedValue === modelData.value
                 enabled: root.enabled
                 padding: Theme.space2
                 implicitHeight: Math.max(30, contentItem.implicitHeight + 12)
                 implicitWidth: Math.max(90, contentItem.implicitWidth + 24)
-                activeFocusOnTab: index === 0
+                activeFocusOnTab: index === root.currentIndex
                 Accessible.role: Accessible.RadioButton
                 Accessible.name: modelData.label
                 Accessible.checked: checked
@@ -75,19 +93,21 @@ Item {
                 onClicked: root.choose(modelData.value)
 
                 Keys.onPressed: function(event) {
-                    if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) {
-                        const next = (index - 1 + root.segments.length) % root.segments.length;
-                        root.choose(root.segments[next].value);
+                    const count = root.segments.length;
+                    // Left and Right swap in a right-to-left layout; Up and Down never do.
+                    const previousKey = segment.mirrored ? Qt.Key_Right : Qt.Key_Left;
+                    const nextKey = segment.mirrored ? Qt.Key_Left : Qt.Key_Right;
+                    if (event.key === previousKey || event.key === Qt.Key_Up) {
+                        root.moveTo((index - 1 + count) % count);
                         event.accepted = true;
-                    } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) {
-                        const next = (index + 1) % root.segments.length;
-                        root.choose(root.segments[next].value);
+                    } else if (event.key === nextKey || event.key === Qt.Key_Down) {
+                        root.moveTo((index + 1) % count);
                         event.accepted = true;
                     } else if (event.key === Qt.Key_Home) {
-                        root.choose(root.segments[0].value);
+                        root.moveTo(0);
                         event.accepted = true;
                     } else if (event.key === Qt.Key_End) {
-                        root.choose(root.segments[root.segments.length - 1].value);
+                        root.moveTo(count - 1);
                         event.accepted = true;
                     }
                 }

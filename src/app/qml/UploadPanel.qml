@@ -150,7 +150,7 @@ Item {
                                     + Theme.quantity(root.app.mediaSetMemberCount,
                                                      qsTr("member"), qsTr("members"))
                                     + " · "
-                                    + Theme.quantity(root.app.loads.rowCount(),
+                                    + Theme.quantity(root.app.loadCount,
                                                      qsTr("load"), qsTr("loads"))
                                   : qsTr("No media set selected")
                             color: Theme.textMuted
@@ -202,7 +202,7 @@ Item {
                     CheckTile {
                         label: qsTr("Loads")
                         value: qsTr("%1 of %2 ticked").arg(root.app.selectedLoadCount)
-                               .arg(root.app.loads.rowCount())
+                               .arg(root.app.loadCount)
                         detail: Theme.quantity(root.app.mediaSetFindings.length,
                                                qsTr("warning from the check"),
                                                qsTr("warnings from the check"))

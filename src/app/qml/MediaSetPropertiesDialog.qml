@@ -38,12 +38,12 @@ AppDialog {
             StatTile {
                 label: qsTr("Loads")
                 valueObjectName: "mediaSetLoadCountLabel"
-                value: String(dialog.app.loads.rowCount())
+                value: String(dialog.app.loadCount)
             }
             StatTile {
                 label: qsTr("Files")
                 valueObjectName: "mediaSetFileCountLabel"
-                value: String(dialog.app.files.rowCount())
+                value: String(dialog.app.fileCount)
             }
             StatTile {
                 label: qsTr("Batches")
@@ -69,7 +69,7 @@ AppDialog {
 
         SectionHeader {
             label: qsTr("Loads")
-            summary: Theme.quantity(dialog.app.loads.rowCount(), qsTr("load"), qsTr("loads"))
+            summary: Theme.quantity(dialog.app.loadCount, qsTr("load"), qsTr("loads"))
         }
 
         ListView {
@@ -110,7 +110,7 @@ AppDialog {
 
         SectionHeader {
             label: qsTr("Files")
-            summary: Theme.quantity(dialog.app.files.rowCount(),
+            summary: Theme.quantity(dialog.app.fileCount,
                                     qsTr("file from FILES.LUM"), qsTr("files from FILES.LUM"))
         }
 

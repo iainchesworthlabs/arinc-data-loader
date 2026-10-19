@@ -94,6 +94,8 @@ class LoaderModel : public QObject {
     Q_PROPERTY(QString mediaSetPartNumber READ mediaSetPartNumber NOTIFY mediaSetChanged)
     Q_PROPERTY(int mediaSetMemberCount READ mediaSetMemberCount NOTIFY mediaSetChanged)
     Q_PROPERTY(int mediaSetBatchCount READ mediaSetBatchCount NOTIFY mediaSetChanged)
+    Q_PROPERTY(int loadCount READ loadCount NOTIFY mediaSetChanged)
+    Q_PROPERTY(int fileCount READ fileCount NOTIFY mediaSetChanged)
     Q_PROPERTY(QString mediaSetError READ mediaSetError NOTIFY mediaSetChanged)
     Q_PROPERTY(QStringList mediaSetFindings READ mediaSetFindings NOTIFY mediaSetChanged)
 
@@ -187,6 +189,10 @@ public:
     [[nodiscard]] QString mediaSetPartNumber() const { return media_set_.part_number; }
     [[nodiscard]] int mediaSetMemberCount() const noexcept { return media_set_.members; }
     [[nodiscard]] int mediaSetBatchCount() const noexcept { return media_set_.batches; }
+    // The rows of the loads and files lists, as properties a binding can follow: the models are
+    // CONSTANT objects, so a binding that calls their rowCount() is evaluated once and never again.
+    [[nodiscard]] int loadCount() const { return loads_.rowCount(); }
+    [[nodiscard]] int fileCount() const { return files_.rowCount(); }
     [[nodiscard]] QString mediaSetError() const { return media_set_.error; }
     [[nodiscard]] QStringList mediaSetFindings() const { return media_set_.findings; }
 

@@ -309,7 +309,12 @@ void LoaderModel::setControlPort(int port) {
     Q_EMIT preferencesChanged();
 }
 
-void LoaderModel::setDownloadDirectory(const QString& directory) {
+void LoaderModel::setDownloadDirectory(const QString& chosen) {
+    // A FolderDialog's selectedFolder is a QUrl, and QML hands it over as "file:///...": the
+    // engine is given a path.
+    const QString directory = chosen.startsWith(QStringLiteral("file:"), Qt::CaseInsensitive)
+                                  ? QUrl(chosen).toLocalFile()
+                                  : chosen;
     if (directory == settings_->downloadDirectory()) {
         return;
     }

@@ -16,6 +16,11 @@ QQC.Button {
     opacity: enabled ? 1.0 : 0.45
     Accessible.name: text
 
+    // Enter and Return press the focused button, as Space does (the standard Button handles only
+    // Space).
+    Keys.onReturnPressed: if (control.enabled) control.click()
+    Keys.onEnterPressed: if (control.enabled) control.click()
+
     background: Rectangle {
         radius: Theme.radiusControl
         color: {

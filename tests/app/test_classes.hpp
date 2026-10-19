@@ -119,6 +119,7 @@ private Q_SLOTS:
     void a_download_with_a_missing_file_ends_as_a_failure();
     void abort_of_a_download_stops_it();
     void a_download_needs_a_target_a_directory_and_files();
+    void a_directory_from_a_folder_dialog_is_stored_as_a_path();
     void a_download_refuses_a_name_that_is_not_a_safe_file_name();
     void a_second_job_is_refused_while_a_download_runs();
     void auto_find_runs_before_a_download_when_no_target_is_selected();

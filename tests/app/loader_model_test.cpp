@@ -1331,6 +1331,23 @@ void LoaderModelTest::abort_of_a_download_stops_it() {
     QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 2));
 }
 
+// A FolderDialog's selectedFolder is a QUrl; assigned to the string property it arrives as
+// "file:///...", which the engine would take for a relative path.
+void LoaderModelTest::a_directory_from_a_folder_dialog_is_stored_as_a_path() {
+    adl::test::Rig rig(download_plan());
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+
+    const QString path = download_dir_of(downloads);
+    model.setDownloadDirectory(QUrl::fromLocalFile(path).toString());
+    QCOMPARE(QDir::fromNativeSeparators(model.downloadDirectory()),
+             QDir::fromNativeSeparators(path));
+
+    // A plain path is stored as it is.
+    model.setDownloadDirectory(path);
+    QCOMPARE(model.downloadDirectory(), path);
+}
+
 void LoaderModelTest::a_download_needs_a_target_a_directory_and_files() {
     adl::test::Rig rig(download_plan());
     adl::test::TempDir downloads;

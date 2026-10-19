@@ -10,6 +10,8 @@ QQC.SpinBox {
     font.pixelSize: Theme.fontBody
     font.family: Theme.monoFamily
     editable: true
+    // Plain digits: the default formats with the locale's grouping, which shows a port as "1,001".
+    textFromValue: function(value) { return String(value) }
     background: Rectangle {
         color: Theme.neutral100
         border.color: control.activeFocus ? Theme.focusRing : Theme.divider
@@ -30,7 +32,7 @@ QQC.SpinBox {
         Text {
             anchors.centerIn: parent
             text: "+"
-            color: control.enabled ? Theme.textMuted : Theme.textMuted
+            color: Theme.textMuted
             font.pixelSize: Theme.fontSmall
         }
     }
@@ -48,7 +50,7 @@ QQC.SpinBox {
         Text {
             anchors.centerIn: parent
             text: "\u2212"
-            color: control.enabled ? Theme.textMuted : Theme.textMuted
+            color: Theme.textMuted
             font.pixelSize: Theme.fontSmall
         }
     }
