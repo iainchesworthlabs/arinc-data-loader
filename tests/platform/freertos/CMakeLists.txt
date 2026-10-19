@@ -135,6 +135,7 @@ include("${ADL_REPO_ROOT}/tests/platform/rtos_support/test_sources.cmake")
 add_executable(adl_freertos_tests
     sim/main.cpp
     sim/ram_file_system.cpp
+    sim/stack_storage_test.cpp
     sim/sys_arch_freertos.cpp
     ${ADL_RTOS_PLATFORM_TEST_SOURCES}
     ${ADL_RTOS_ENGINE_TEST_SOURCES})

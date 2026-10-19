@@ -13,9 +13,9 @@
 # lwIP's sockets API for UDP and littlefs for files (the design in docs/platform-abstraction.md
 # lists FreeRTOS+TCP and FAT as the alternatives; either would be another port of network_ and
 # files_freertos.cpp, not a change to the rest). The product builds the kernel, lwIP and
-# littlefs itself, with its own configuration, and names them in ADL_PLATFORM_LINK_LIBRARIES'
-# place: the project that builds this platform (tests/platform/freertos is the simulator's)
-# adds them to adl_platform with target_link_libraries. The project's top-level CMake refuses
+# littlefs itself, with its own configuration, so this fragment links none of them: the project
+# that builds the platform (tests/platform/freertos is the simulator's) adds them to
+# adl_platform with target_link_libraries. The top-level project refuses
 # -DADL_TARGET_PLATFORM=freertos and says where a FreeRTOS build starts (ADL_PLATFORM_PROJECT).
 
 set(ADL_PLATFORM_DISPLAY_NAME "FreeRTOS")

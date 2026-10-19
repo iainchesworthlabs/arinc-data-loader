@@ -44,6 +44,7 @@ include("${ADL_REPO_ROOT}/tests/platform/rtos_support/test_sources.cmake")
 
 target_sources(app PRIVATE
     src/main.cpp
+    src/stack_storage_test.cpp
     ${ADL_RTOS_PLATFORM_TEST_SOURCES}
     ${ADL_RTOS_ENGINE_TEST_SOURCES})
 target_include_directories(app PRIVATE ${ADL_RTOS_TEST_INCLUDES})
