@@ -192,5 +192,7 @@ What the target's certification needs from the code is not decided here.
 
 ## 7. Around the edges
 
-clang-tidy as a CI job, the Release presets in CI, a coverage threshold once the
-figures have been looked at, packaging, and a `docs/` site.
+The Release presets in CI, a coverage threshold once the figures have been
+looked at, packaging, and a `docs/` site. clang-tidy is no longer here: it runs
+nightly with MSVC Code Analysis, CodeQL and Clang's sanitizers
+([static-analysis.md](static-analysis.md)).

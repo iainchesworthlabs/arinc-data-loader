@@ -62,6 +62,21 @@
       ]
     },
     {
+      "name": "windows-msvc-analyze",
+      "displayName": "Windows (MSVC, Code Analysis)",
+      "description": "Debug build with MSVC /analyze; static-analysis.yml builds it nightly",
+      "inherits": [
+        "windows-msvc-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_ENABLE_MSVC_ANALYSIS": "ON",
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ADL_BUILD_APP": "ON",
+        "ADL_BUILD_TESTS": "ON"
+      }
+    },
+    {
       "name": "linux-gcc-base",
       "hidden": true,
       "inherits": [
@@ -103,6 +118,65 @@
       "cacheVariables": {
         "ADL_ENABLE_COVERAGE": "ON",
         "ADL_ENABLE_SANITIZERS": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-tidy",
+      "displayName": "Linux (GCC, clang-tidy)",
+      "description": "clang-tidy runs as the compiler launcher; static-analysis.yml builds it nightly",
+      "inherits": [
+        "linux-gcc-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_ENABLE_CLANG_TIDY": "ON",
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ADL_BUILD_APP": "OFF",
+        "ADL_BUILD_TESTS": "OFF",
+        "CMAKE_CXX_SCAN_FOR_MODULES": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-sonar",
+      "displayName": "Linux (GCC, Sonar compile commands)",
+      "description": "Configure only: writes the compile_commands.json the SonarQube job scans",
+      "inherits": [
+        "linux-gcc-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ADL_BUILD_APP": "OFF",
+        "ADL_BUILD_TESTS": "OFF",
+        "CMAKE_CXX_SCAN_FOR_MODULES": "OFF"
+      }
+    },
+    {
+      "name": "linux-clang-base",
+      "hidden": true,
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
+      }
+    },
+    {
+      "name": "linux-clang-debug",
+      "displayName": "Linux (Clang, Debug)",
+      "description": "Clang's ASan and UBSan over the libraries and tests; static-analysis.yml builds it nightly",
+      "inherits": [
+        "linux-clang-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_BUILD_APP": "OFF"
       }
     },
     {
@@ -207,9 +281,12 @@
   "buildPresets": [
     { "name": "windows-msvc-debug", "configurePreset": "windows-msvc-debug" },
     { "name": "windows-msvc-release", "configurePreset": "windows-msvc-release" },
+    { "name": "windows-msvc-analyze", "configurePreset": "windows-msvc-analyze" },
     { "name": "linux-gcc-debug", "configurePreset": "linux-gcc-debug" },
     { "name": "linux-gcc-release", "configurePreset": "linux-gcc-release" },
     { "name": "linux-gcc-coverage", "configurePreset": "linux-gcc-coverage" },
+    { "name": "linux-gcc-tidy", "configurePreset": "linux-gcc-tidy" },
+    { "name": "linux-clang-debug", "configurePreset": "linux-clang-debug" },
     { "name": "macos-clang-debug", "configurePreset": "macos-clang-debug" },
     { "name": "macos-clang-release", "configurePreset": "macos-clang-release" },
     { "name": "ghs508-ghs-debug", "configurePreset": "ghs508-ghs-debug" },
@@ -233,6 +310,7 @@
     { "name": "linux-gcc-debug", "configurePreset": "linux-gcc-debug", "inherits": ["base"] },
     { "name": "linux-gcc-release", "configurePreset": "linux-gcc-release", "inherits": ["base"] },
     { "name": "linux-gcc-coverage", "configurePreset": "linux-gcc-coverage", "inherits": ["base"] },
+    { "name": "linux-clang-debug", "configurePreset": "linux-clang-debug", "inherits": ["base"] },
     { "name": "macos-clang-debug", "configurePreset": "macos-clang-debug", "inherits": ["base"] },
     { "name": "macos-clang-release", "configurePreset": "macos-clang-release", "inherits": ["base"] }
   ]

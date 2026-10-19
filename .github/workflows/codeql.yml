@@ -1,22 +1,28 @@
 name: CodeQL
 
-# Static analysis (C++). Public-only: code scanning of a private repository
-# needs a paid plan, so the job is skipped - not red - while the repository is
-# private, and starts running the day it is made public (docs/ci.md, "Public-
-# only workflows"). It is not a required check.
+# Static analysis (C++) with GitHub's CodeQL, on the nightly static-analysis
+# schedule rather than on every commit: a full CodeQL build takes longer than
+# the whole per-commit matrix, and its alerts are triaged in Security > Code
+# scanning, not read off a pull request. The rest of the nightly suite is
+# static-analysis.yml; docs/static-analysis.md explains how the two fit.
+#
+# Public-only: code scanning of a private repository needs a paid plan, so the
+# job is skipped - not red - while the repository is private, and starts running
+# the day it is made public (docs/ci.md, "Public-only workflows"). It is not a
+# required check: an alert is something to triage, not a blocked merge.
+#
+# No merge_group: this workflow produces no required check, and a queue entry
+# would burn a full CodeQL build for nothing (docs/branch-protection.md).
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
   schedule:
-    - cron: "17 3 * * 1"
+    # 13:17 UTC, the same night as static-analysis.yml. GitHub's cron is UTC.
+    - cron: "17 13 * * *"
+  workflow_dispatch:
 
 concurrency:
   group: codeql-${{ github.workflow }}-${{ github.ref }}
-  # A push to develop or main finishes; everything else is superseded.
-  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main' }}
+  cancel-in-progress: true
 
 permissions: {}
 
@@ -25,7 +31,7 @@ jobs:
     name: Analyze (C++)
     if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-26.04
-    timeout-minutes: 45
+    timeout-minutes: 60
     permissions:
       security-events: write
       contents: read
@@ -53,15 +59,18 @@ jobs:
 
       # The lean build: the libraries and the platform section, with no tests
       # (so no vcpkg dependency to build: the manifest's default feature list
-      # is empty). Sanitizers off: CodeQL's build
-      # tracer sets its own LD_PRELOAD for the whole build step, which
-      # collides with ASan needing to be first in the preload chain, and a
-      # static analysis gets nothing from them.
+      # is empty). Sanitizers off: CodeQL's build tracer sets its own LD_PRELOAD
+      # for the whole build step, which collides with ASan needing to be first
+      # in the preload chain, and a static analysis gets nothing from them.
+      # clang-tidy is off too: CodeQL traces the compiler, it does not need a
+      # second analyzer in the build. Module scanning is off because this tree
+      # has no C++ modules and the tracer does not need the -fdeps arguments.
       - name: Configure (libraries and platform only)
         run: >
           cmake --preset linux-gcc-debug
           -DADL_BUILD_TESTS=OFF
           -DADL_ENABLE_SANITIZERS=OFF
+          -DCMAKE_CXX_SCAN_FOR_MODULES=OFF
 
       - name: Build
         run: cmake --build --preset linux-gcc-debug

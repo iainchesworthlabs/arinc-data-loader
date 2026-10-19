@@ -15,6 +15,7 @@ pattern and run in CI, and have not been tried by hand.
 | A C++23 compiler | MSVC from Visual Studio 2022 17.x or Visual Studio 2026; GCC 14 or newer; AppleClang 16 or newer | The code uses `std::expected` and `<span>` |
 | Git | any recent | The vendored vcpkg is a submodule |
 | PowerShell 7 (`pwsh`) | 7.0 or newer | For the [platform-isolation check](platform-isolation.md#enforcement). Optional: without it the `platform.isolation` test is not registered |
+| clang-tidy | 23.1.3 | Only for the `linux-gcc-tidy` preset: the PyPI wheel pinned in `.github/requirements/static-analysis.txt` ([nightly analysis](static-analysis.md)) |
 | Network access | | The first configure bootstraps vcpkg and builds Catch2 |
 | Qt | 6.12 | Only for the application (`-DADL_BUILD_APP=ON`): the prebuilt kit, found through `QT_ROOT_DIR`. See [Building the application](#building-the-application) |
 
@@ -139,15 +140,21 @@ does not write over a directory that has files in it.
 | Preset | Compiler | Notes |
 | --- | --- | --- |
 | `windows-msvc-debug`, `windows-msvc-release` | MSVC | triplet `x64-windows` |
+| `windows-msvc-analyze` | MSVC | Debug with `/analyze` (MSVC Code Analysis); tests and applications on; nightly |
 | `linux-gcc-debug`, `linux-gcc-release` | GCC | triplet `x64-linux` |
 | `linux-gcc-coverage` | GCC | Debug with `--coverage`; sanitizers off |
+| `linux-gcc-tidy` | GCC + clang-tidy | clang-tidy is the compiler launcher, warnings are errors; tests and applications off; nightly |
+| `linux-gcc-sonar` | GCC | Configure only, to write the `compile_commands.json` the optional SonarQube scan reads |
+| `linux-clang-debug` | Clang | Debug ASan/UBSan; tests on, applications off; nightly |
 | `macos-clang-debug`, `macos-clang-release` | AppleClang | triplet `arm64-osx` |
 | `ghs508-ghs-debug`, `ghs508-ghs-release` | GHS `cxppc` | INTEGRITY 5.0.8 cross build; `ADL_ACCEPT_UNBUILT_PLATFORM=ON`, tests and the app off; needs `INTEGRITY_ROOT`/`INTEGRITY_BSP_ROOT`/`INTEGRITY_TOOLCHAIN_ROOT` (or the compilers on PATH) |
 | `ghs178b-ghs-debug`, `ghs178b-ghs-release` | GHS `cxppc` | INTEGRITY-178B cross build; as above, with `INTEGRITY178_ROOT` |
 
 Each preset is available only on its own host. Debug presets turn on
-AddressSanitizer (and UndefinedBehaviorSanitizer where the compiler has it);
-every first-party target is built with warnings as errors.
+AddressSanitizer (and UndefinedBehaviorSanitizer where the compiler has it),
+except the analysis presets (`windows-msvc-analyze`, `linux-gcc-tidy`,
+`linux-gcc-sonar`), which turn the sanitizers off on purpose; every first-party
+target is built with warnings as errors.
 
 ## Options
 
@@ -156,6 +163,8 @@ every first-party target is built with warnings as errors.
 | `ADL_BUILD_TESTS` | `ON` | Builds the unit tests and pulls Catch2 from vcpkg |
 | `ADL_ENABLE_SANITIZERS` | `ON` | ASan (and UBSan) in Debug |
 | `ADL_ENABLE_COVERAGE` | `OFF` | gcov-style instrumentation (the coverage preset sets it) |
+| `ADL_ENABLE_CLANG_TIDY` | `OFF` | Runs clang-tidy as the compiler launcher for the first-party targets under `src/`, with `.clang-tidy` and warnings as errors (the tests clear the launcher; the `linux-gcc-tidy` preset sets it) |
+| `ADL_ENABLE_MSVC_ANALYSIS` | `OFF` | Adds MSVC Code Analysis (`/analyze /analyze:external-`) to every first-party target; MSVC only (the `windows-msvc-analyze` preset sets it) |
 | `ADL_ENABLE_TRACY` | `OFF` | Links Tracy and pulls it from vcpkg; use a Release build for numbers worth reading |
 | `ADL_TARGET_PLATFORM` | empty | Names the platform for a cross build, where the toolchain does not (`windows`, `linux`, `macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos`, `zephyr`). A desktop build leaves it empty. See [platform isolation](platform-isolation.md#how-cmake-selects) |
 | `ADL_ACCEPT_UNBUILT_PLATFORM` | `OFF` | Allows building a platform whose code has never been compiled (QNX and the two INTEGRITY ports). A platform with no code at all is refused whatever this says |
@@ -174,3 +183,29 @@ The repository's `.clang-format` is applied with one pinned release:
 pip install -r .github/requirements/lint.txt
 clang-format -i $(git ls-files 'src/*.cpp' 'src/*.hpp' 'tests/*.cpp')
 ```
+
+## Static analysis
+
+The same presets CI's nightly analysers use run locally; the pinned clang-tidy
+is the one from `.github/requirements/static-analysis.txt`:
+
+```sh
+pip install -r .github/requirements/static-analysis.txt
+cmake --preset linux-gcc-tidy
+cmake --build --preset linux-gcc-tidy
+
+cmake --preset linux-clang-debug
+cmake --build --preset linux-clang-debug
+ctest --preset linux-clang-debug
+```
+
+On Windows, from a Developer PowerShell:
+
+```sh
+cmake --preset windows-msvc-analyze
+cmake --build --preset windows-msvc-analyze
+```
+
+[Nightly static and dynamic analysis](static-analysis.md) has the jobs, the
+suppression rules and the SonarQube setup. Compiler warnings are errors in every
+build regardless of these switches.

@@ -1,6 +1,14 @@
 find_package(Catch2 3 CONFIG REQUIRED)
 include(Catch)
 
+# clang-tidy analyzes the shipped code (src/). The tests are not tidied:
+# Catch2's REQUIRE/CHECK macros expand to code the checks cannot see through
+# (a REQUIRE(has_value()) followed by *value is the house style), and the
+# sanitizer legs run them. Clear the launcher before any test target exists.
+if(ADL_ENABLE_CLANG_TIDY)
+    set(CMAKE_CXX_CLANG_TIDY "")
+endif()
+
 add_executable(adl_unit_tests
     unit/arinc615a_golden_test.cpp
     unit/arinc615a_robustness_test.cpp

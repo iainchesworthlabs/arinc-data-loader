@@ -71,7 +71,10 @@ This is the data format and the foundation, not a loader yet. What exists:
     loader cope. Its TFTP is `adl::arinc615a_mini` (`src/arinc615a_mini`), the second,
     independent TFTP implementation the tests were written around, shared now with the
     mock target so the two ends of a dialogue share no transfer code.
-- The build, the tests, the CI and the repository rules.
+- The build, the tests, the CI and the repository rules, including a nightly
+  static-analysis suite (clang-tidy, MSVC Code Analysis, CodeQL and Clang's
+  sanitizers) that is described in
+  [docs/static-analysis.md](docs/static-analysis.md).
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
 against another tool's files and ARINC 615A against a real target, packaging, translations, Tracy profiling,
@@ -107,9 +110,9 @@ src/media_gen/       adl_media_gen: the media set generator window (Qt Quick)
 src/mock_target/     adl_mock_target: a 615A target over real sockets, for demonstrations
 src/platforms/       everything that differs between operating systems
 tests/               Catch2 unit tests, the platform conformance suite and the fake platform
-cmake/               the platform selector, warnings, sanitizers, coverage, Tracy, Qt
+cmake/               the platform selector, warnings, static analysis, sanitizers, coverage, Tracy, Qt
 tools/               repository checks, commit policy, git hooks
-docs/                architecture, roadmap, CI, coverage of 665 and 615A, the application, the
+docs/                architecture, roadmap, CI, static analysis, coverage of 665 and 615A, the application, the
                      generator, the mock target, the 615A codec and engine, docs/specs
 ```
 

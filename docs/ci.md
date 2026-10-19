@@ -29,7 +29,8 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 | `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs and a coverage report | yes |
 | `branch-name-check.yml` | gitflow branch naming; the source/target pairing | yes |
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
-| `codeql.yml` | CodeQL static analysis of the C++ | no - skipped |
+| `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
+| `static-analysis.yml` | the nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
 | `dependency-review.yml` | fails a PR that adds a moderate-or-worse vulnerable dependency | no - skipped |
 | `scorecard.yml` | OpenSSF Scorecard score and badge, from `main` | no - skipped |
 | Dependabot (`.github/dependabot.yml`) | Actions pins, the pinned CI tooling, the vcpkg baseline plus its submodule | yes |
@@ -49,6 +50,17 @@ while the repository is private and run once it is public. `Scan dependency
 diff` needs the repository's dependency graph switched on, and was added to the
 required checks after its first report (see the staging section in
 [Branch protection](branch-protection.md)).
+
+## Nightly static analysis
+
+`static-analysis.yml` and `codeql.yml` run on a nightly schedule, not on a
+push or a pull request. They are not required checks: a red night is read in
+the morning, and a merge is not held for an analyzer. The jobs are clang-tidy
+over the libraries (`src/`), MSVC Code Analysis over the libraries, tests and
+Qt applications, a Clang ASan/UBSan build and test run, CodeQL's C++ queries,
+and an optional SonarQube scan that is skipped until it is configured. The
+reason for each, the local presets and the suppression rules are in
+[Nightly static and dynamic analysis](static-analysis.md).
 
 ## The jobs in `ci.yml`
 
@@ -151,7 +163,7 @@ because the merge queue evaluates the required checks on its temporary
 (there is no head branch name, title or body of its own; a skipped job counts
 as a pass for a required check). A workflow that produces **no** required
 check must not carry `merge_group`, or every queue entry burns a run of it for
-nothing: that is why `codeql.yml` does not have it.
+nothing: that is why `codeql.yml` and `static-analysis.yml` do not have it.
 
 ## The vcpkg binary cache
 
@@ -190,6 +202,7 @@ submodule clone does not have them.
 | --- | --- | --- |
 | Every GitHub Action, and the composite actions in `.github/actions` | A full commit SHA, version in a trailing comment | Dependabot, weekly, grouped, 7-day cooldown |
 | clang-format, gcovr | `==` in `.github/requirements/*.txt` | Dependabot (`pip`), weekly |
+| clang-tidy (nightly analysis) | `==` in `.github/requirements/static-analysis.txt` | Dependabot (`pip`), weekly |
 | aqtinstall (installs Qt) | `==` in `.github/requirements/qt.txt` | Dependabot (`pip`), weekly |
 | Qt | `version` input of the `install-qt` step in `ci.yml` (6.12.0) | By hand, with the labs' shared toolchain |
 | CMake and Ninja (`lukka/get-cmake`) | `cmakeVersion` / `ninjaVersion`, exact, and one the pinned action's catalog lists | By hand, with the action |
@@ -278,6 +291,9 @@ suspects, in order of likelihood:
 
 ## Not here yet
 
-clang-tidy (the `.clang-tidy` file exists; there is no job), the Release
-presets, packaging the Qt application, a coverage threshold (and coverage of the application), and the
-embedded (VxWorks) target. Each is a new job or a flag flip, not a redesign.
+The Release presets, packaging the Qt application, a coverage threshold (and
+coverage of the application), and the embedded (VxWorks) target. Each is a new
+job or a flag flip, not a redesign. clang-tidy is no longer on this list: it is
+a nightly job, with the rest of the static analysis, in
+[static-analysis.md](static-analysis.md). A Release-only warning
+(`-Wnull-dereference`, for one) still first shows up locally.
