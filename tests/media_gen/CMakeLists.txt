@@ -40,7 +40,9 @@ add_dependencies(adl_gen_tests adl_media_gen)
 
 # A test that hangs (a job that never ends) fails after two minutes instead of holding the run.
 add_test(NAME media_gen.tests COMMAND adl_gen_tests)
-set_tests_properties(media_gen.tests PROPERTIES TIMEOUT 120)
+set_tests_properties(media_gen.tests PROPERTIES
+    TIMEOUT 120
+    LABELS "unit")
 
 # The window: GeneratorWindow.qml with the real model, offscreen, a generation started from the
 # window's own Generate button, and every QML warning an error.
@@ -70,4 +72,5 @@ add_test(NAME media_gen.qml
 # looked for in the Qt kit's own plugin directory.
 set_tests_properties(media_gen.qml PROPERTIES
     TIMEOUT 120
+    LABELS "system;ui"
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Fusion;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")

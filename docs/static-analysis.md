@@ -201,7 +201,8 @@ job's log.
 - **CodeQL on the applications.** The lean CodeQL build has no Qt. The C++ that
   carries the protocol and the formats is the libraries and platform section,
   which it does build.
-- **Release-only warnings and a coverage threshold.** They are listed in
-  [CI, "Not here yet"](ci.md#not-here-yet), not here.
+- **Release-only warnings.** They are listed in
+  [CI, "Not here yet"](ci.md#not-here-yet), not here. The coverage minimum is
+  enforced by the coverage job, not by a nightly analyzer.
 - **The Qt application under ASan on Linux.** The per-commit Linux leg builds it
   in Debug with GCC's sanitizers; the nightly Clang leg does not install Qt.

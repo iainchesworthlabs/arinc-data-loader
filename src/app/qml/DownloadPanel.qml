@@ -172,6 +172,8 @@ Panel {
                         text: downloadRow.name
                     }
                     Button {
+                        objectName: "removeDownloadButton"
+
                         visible: panel.app.downloadMode === 0 && !panel.app.busy
                         text: qsTr("Remove")
                         onClicked: panel.app.removeDownloadFile(downloadRow.index)

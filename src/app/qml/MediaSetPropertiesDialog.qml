@@ -29,6 +29,8 @@ Dialog {
                 opacity: 0.7
             }
             Label {
+                objectName: "mediaSetPartNumberLabel"
+
                 text: dialog.app.mediaSetPartNumber.length > 0
                       ? dialog.app.mediaSetPartNumber : qsTr("not read")
                 font.bold: true
@@ -56,6 +58,8 @@ Dialog {
         }
 
         Label {
+            objectName: "mediaSetLoadCountLabel"
+
             text: qsTr("%n load(s)", "", dialog.app.loads.rowCount())
             font.bold: true
         }
@@ -91,6 +95,8 @@ Dialog {
         }
 
         Label {
+            objectName: "mediaSetFileCountLabel"
+
             text: qsTr("%n file(s), from FILES.LUM", "", dialog.app.files.rowCount())
             font.bold: true
         }

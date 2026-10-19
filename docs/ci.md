@@ -26,7 +26,7 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 
 | Workflow | Purpose | Runs on a private copy? |
 | --- | --- | --- |
-| `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs and a coverage report | yes |
+| `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs and a coverage gate | yes |
 | `branch-name-check.yml` | gitflow branch naming; the source/target pairing | yes |
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
@@ -76,15 +76,16 @@ with the rulesets.
 | `Windows (MSVC)` | windows-2025-vs2026 | Preset `windows-msvc-debug` configures, builds warning-free (`/W4 /WX`) with ASan, and all of ctest passes. |
 | `Linux (GCC)` | ubuntu-26.04 | Preset `linux-gcc-debug`: the image's default `g++` builds warning-free (`-Wall -Wextra -Wpedantic -Werror ...`) with ASan and UBSan, and all of ctest passes. |
 | `macOS (AppleClang)` | macos-26 (Apple silicon) | Preset `macos-clang-debug`: AppleClang from Xcode builds warning-free with ASan and UBSan, and all of ctest passes. |
-| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-gcc-coverage` builds and passes its tests, and a gcovr report of `src/` is produced as the `coverage-report` artifact (HTML, plus `summary.json` and a table in the job summary). **Report only: there is no threshold.** |
+| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-gcc-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the libraries, the engine, the media tree, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. The preset does not build the Qt applications; their windows are covered by the UI suite on the build legs. |
 
-What a build-and-test leg's ctest contains: the Catch2 suites, the application's `app.tests` (QtTest) and
+What a build-and-test leg's ctest contains: the Catch2 suites, the application's `app.tests` (QtTest),
 `app.qml` (the window loaded offscreen, with the offscreen platform and the software renderer, so no GPU
-or display is needed; both have a two minute time-out so that a hung test cannot hold the job), and the two
-repository checks `platform.fragments` (every platform fragment satisfies the
-platform contract, on whichever host this is) and `platform.isolation` (the
-same script as the `platform-isolation` job; it needs `pwsh`, which every
-hosted image has).
+or display is needed), the Qt Quick Test suites `ui.tst_main_window` and `ui.tst_dialogs` (the window
+and its dialogs driven by mouse and key events on the real `Main.qml`), the system smoke tests that start
+the three application programs, and the two repository checks `platform.fragments` (every platform
+fragment satisfies the platform contract, on whichever host this is) and `platform.isolation` (the same
+script as the `platform-isolation` job; it needs `pwsh`, which every hosted image has). A hung test has
+a time-out, so it cannot hold the job.
 
 ### Toolchain choices
 
@@ -107,7 +108,7 @@ hosted image has).
   libraries a prebuilt Qt needs, and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The
   Qt version is the action's `version` input in `ci.yml` (the same 6.12.0 as the labs' shared toolchain);
   the matrix has the host and architecture names. The coverage job does not build the application, so it
-  needs no Qt, and its figures are of the libraries only.
+  needs no Qt, and its figures are of the portable code; the UI suite runs on the three build legs.
 - **CMake 4.4.2 and Ninja 1.13.2** from `lukka/get-cmake`; the same pins the
   sibling projects use.
 - **Local composite actions are referenced as `./.github/actions/...`.** The
@@ -285,15 +286,16 @@ suspects, in order of likelihood:
    tests, found next to the compiler).
 4. **The vcpkg submodule**: a clone without enough history for the baseline
    (`fetch-depth: 0` is set for that reason).
-5. **Coverage**: gcovr refusing a counter; the report step passes
-   `--gcov-ignore-parse-errors negative_hits.warn_once_per_file` for the known
-   gcov bug, and the coverage preset updates counters atomically.
+5. **Coverage**: gcovr refusing a counter, or a figure below the minimum. The
+   report step passes `--gcov-ignore-parse-errors negative_hits.warn_once_per_file`
+   for the known gcov bug, and the coverage preset updates counters atomically.
+   The artifact names the file and line under the minimum; add the test that
+   covers it, or remove the dead code.
 
 ## Not here yet
 
-The Release presets, packaging the Qt application, a coverage threshold (and
-coverage of the application), and the embedded (VxWorks) target. Each is a new
-job or a flag flip, not a redesign. clang-tidy is no longer on this list: it is
+The Release presets, packaging the Qt application, and the embedded (VxWorks)
+target. Each is a new job or a flag flip, not a redesign. clang-tidy is no longer on this list: it is
 a nightly job, with the rest of the static analysis, in
 [static-analysis.md](static-analysis.md). A Release-only warning
 (`-Wnull-dereference`, for one) still first shows up locally.

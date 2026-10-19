@@ -303,6 +303,11 @@
       },
       "execution": {
         "noTestsAction": "error"
+      },
+      "environment": {
+        "TEMP": "${sourceDir}/build/${presetName}",
+        "TMP": "${sourceDir}/build/${presetName}",
+        "TMPDIR": "${sourceDir}/build/${presetName}"
       }
     },
     { "name": "windows-msvc-debug", "configurePreset": "windows-msvc-debug", "inherits": ["base"] },

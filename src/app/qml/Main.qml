@@ -117,33 +117,54 @@ ApplicationWindow {
     PreferencesDialog {
         id: preferencesDialog
 
+        objectName: "preferencesDialog"
         app: window.app
     }
 
     MediaSetPropertiesDialog {
         id: mediaSetPropertiesDialog
 
+        objectName: "mediaSetPropertiesDialog"
         app: window.app
     }
 
     TargetPropertiesDialog {
         id: targetPropertiesDialog
 
+        objectName: "targetPropertiesDialog"
         app: window.app
     }
 
     AboutDialog {
         id: aboutDialog
+
+        objectName: "aboutDialog"
     }
 
     // One dialog per failed job: what happened, what it means, and what to do when the
     // application knows. `dismissError` acknowledges it, and the next failure opens it again.
-    MessageDialog {
+    // A Qt Quick dialog rather than a native message box, like the rest of the window, so it can
+    // be read and dismissed by the UI suite (a native modal runs its own event loop).
+    Dialog {
         id: errorDialog
 
+        objectName: "errorDialog"
         title: qsTr("The operation failed")
-        buttons: MessageDialog.Ok
-        onButtonClicked: window.app.dismissError()
+        modal: true
+        standardButtons: Dialog.Ok
+        width: 560
+
+        property alias text: errorText.text
+
+        contentItem: Label {
+            id: errorText
+
+            width: errorDialog.availableWidth
+            wrapMode: Text.Wrap
+        }
+
+        onAccepted: window.app.dismissError()
+        onRejected: window.app.dismissError()
     }
 
     Connections {
@@ -190,6 +211,8 @@ ApplicationWindow {
 
                             RowLayout {
                                 Button {
+                                    objectName: "mediaSetChooseButton"
+
                                     text: qsTr("Choose directory...")
                                     enabled: !window.app.busy
                                     onClicked: {
@@ -200,6 +223,8 @@ ApplicationWindow {
                                     }
                                 }
                                 Button {
+                                    objectName: "mediaSetCheckButton"
+
                                     text: qsTr("Check media set")
                                     enabled: !window.app.busy
                                              && window.app.mediaSetPath.length > 0
@@ -208,6 +233,8 @@ ApplicationWindow {
                                     ToolTip.text: qsTr("Reads the set again and checks it; an upload needs a set that has been checked valid")
                                 }
                                 Button {
+                                    objectName: "mediaSetPropertiesButton"
+
                                     text: qsTr("Properties...")
                                     enabled: window.app.mediaSetPath.length > 0
                                     onClicked: mediaSetPropertiesDialog.open()
@@ -263,11 +290,15 @@ ApplicationWindow {
                             RowLayout {
                                 visible: loadList.count > 0
                                 Button {
+                                    objectName: "tickAllLoadsButton"
+
                                     text: qsTr("Tick all")
                                     enabled: !window.app.busy
                                     onClicked: window.app.selectAllLoads(true)
                                 }
                                 Button {
+                                    objectName: "tickNoLoadsButton"
+
                                     text: qsTr("Tick none")
                                     enabled: !window.app.busy
                                     onClicked: window.app.selectAllLoads(false)
@@ -282,6 +313,7 @@ ApplicationWindow {
                             Repeater {
                                 id: loadList
 
+                                objectName: "loadList"
                                 model: window.app.loads
                                 delegate: ColumnLayout {
                                     id: loadRow
@@ -363,6 +395,8 @@ ApplicationWindow {
                             spacing: 8
 
                             Button {
+                                objectName: "findTargetsButton"
+
                                 text: qsTr("Find targets")
                                 enabled: !window.app.busy
                                 onClicked: window.app.findTargets()
@@ -372,6 +406,7 @@ ApplicationWindow {
                             ListView {
                                 id: targetList
 
+                                objectName: "targetList"
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: Math.min(contentHeight, 140)
                                 visible: count > 0
@@ -383,6 +418,7 @@ ApplicationWindow {
                                     required property int index
                                     required property string summary
 
+                                    objectName: "targetDelegate"
                                     width: ListView.view.width
                                     text: summary
                                     highlighted: ListView.isCurrentItem
@@ -400,6 +436,8 @@ ApplicationWindow {
 
                                 Label { text: qsTr("Address") }
                                 TextField {
+                                    objectName: "targetAddressField"
+
                                     Layout.fillWidth: true
                                     placeholderText: qsTr("10.0.0.2")
                                     text: window.app.targetAddress
@@ -410,6 +448,8 @@ ApplicationWindow {
                                 }
                                 Label { text: qsTr("THW_ID_POS") }
                                 TextField {
+                                    objectName: "thwIdPosField"
+
                                     Layout.fillWidth: true
                                     placeholderText: qsTr("HNPFMS_L")
                                     text: window.app.thwIdPos
@@ -419,6 +459,8 @@ ApplicationWindow {
                                 }
                             }
                             Button {
+                                objectName: "targetPropertiesButton"
+
                                 text: qsTr("Properties...")
                                 enabled: window.app.selectedTargetIndex >= 0
                                          || window.app.targetAddress.length > 0
@@ -449,6 +491,8 @@ ApplicationWindow {
 
                             RowLayout {
                                 Button {
+                                    objectName: "readInformationButton"
+
                                     text: qsTr("Read information")
                                     enabled: window.app.canReadInformation
                                     onClicked: window.app.readInformation()
@@ -464,6 +508,8 @@ ApplicationWindow {
                                     ToolTip.text: qsTr("Loads the ticked loads of the media set to the target (ARINC 615A Upload)")
                                 }
                                 Button {
+                                    objectName: "abortButton"
+
                                     text: qsTr("Abort")
                                     enabled: window.app.canAbort
                                     onClicked: window.app.abort()
@@ -483,6 +529,8 @@ ApplicationWindow {
                                 opacity: 0.7
                             }
                             ProgressBar {
+                                objectName: "operationProgress"
+
                                 Layout.fillWidth: true
                                 visible: window.app.busy
                                 from: 0
@@ -502,6 +550,8 @@ ApplicationWindow {
                                       : window.app.activity + " " + window.app.progress + "%"
                             }
                             Label {
+                                objectName: "resultLabel"
+
                                 Layout.fillWidth: true
                                 visible: window.app.resultState !== 0
                                 text: window.app.resultText
@@ -536,6 +586,7 @@ ApplicationWindow {
                     ListView {
                         id: configurationList
 
+                        objectName: "configurationList"
                         anchors.fill: parent
                         clip: true
                         model: window.app.configuration
@@ -586,6 +637,8 @@ ApplicationWindow {
                             events: window.app.events
                         }
                         Button {
+                            objectName: "clearLogButton"
+
                             text: qsTr("Clear")
                             onClicked: window.app.clearLog()
                         }
@@ -611,6 +664,7 @@ ApplicationWindow {
             Label {
                 id: statusState
 
+                objectName: "statusState"
                 text: window.app.busy ? window.app.activity : qsTr("Idle")
                 font.bold: window.app.busy
             }
@@ -621,6 +675,7 @@ ApplicationWindow {
             Label {
                 id: statusTarget
 
+                objectName: "statusTarget"
                 text: window.app.targetAddress.length > 0
                       ? window.app.targetAddress : qsTr("no target")
                 opacity: 0.8

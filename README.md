@@ -51,8 +51,9 @@ This is the data format and the foundation, not a loader yet. What exists:
   [docs/arinc615a-codec.md](docs/arinc615a-codec.md) has the layouts,
   [docs/arinc615a-engine.md](docs/arinc615a-engine.md) the design and
   [docs/arinc615a-coverage.md](docs/arinc615a-coverage.md) the standard section by
-  section, with the places it is unclear. Nothing has been checked against another
-  implementation or over real sockets yet.
+  section, with the places it is unclear. The loopback integration test runs whole
+  operations over real sockets; nothing has been checked against another
+  implementation yet.
 - **The three Qt 6.12 applications** (Windows, macOS and Linux, behind `ADL_BUILD_APP`):
   - **`adl_app`**, the data loader ([docs/app.md](docs/app.md)): a media set chosen as a
     directory and checked before anything is uploaded (reading it is the check; an
@@ -71,9 +72,13 @@ This is the data format and the foundation, not a loader yet. What exists:
     loader cope. Its TFTP is `adl::arinc615a_mini` (`src/arinc615a_mini`), the second,
     independent TFTP implementation the tests were written around, shared now with the
     mock target so the two ends of a dialogue share no transfer code.
-- The build, the tests, the CI and the repository rules, including a nightly
+- The build, the tests, the CI and the repository rules. The tests are labelled
+  `unit`, `integration` and `system`; a Qt Quick Test suite drives the loader
+  window through its real buttons and fields, and coverage of the portable code
+  is gated at 90% of lines and 80% of branches
+  ([docs/testing.md](docs/testing.md)). A nightly
   static-analysis suite (clang-tidy, MSVC Code Analysis, CodeQL and Clang's
-  sanitizers) that is described in
+  sanitizers) is described in
   [docs/static-analysis.md](docs/static-analysis.md).
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
@@ -109,7 +114,7 @@ src/app/             adl_app: the data loader window (Qt Quick), preferences, va
 src/media_gen/       adl_media_gen: the media set generator window (Qt Quick)
 src/mock_target/     adl_mock_target: a 615A target over real sockets, for demonstrations
 src/platforms/       everything that differs between operating systems
-tests/               Catch2 unit tests, the platform conformance suite and the fake platform
+tests/               unit, integration and system tests; the fake platform; the Qt Quick Test UI suite
 cmake/               the platform selector, warnings, static analysis, sanitizers, coverage, Tracy, Qt
 tools/               repository checks, commit policy, git hooks
 docs/                architecture, roadmap, CI, static analysis, coverage of 665 and 615A, the application, the

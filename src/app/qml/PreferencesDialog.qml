@@ -32,6 +32,8 @@ Dialog {
 
                     Label { text: qsTr("Default address") }
                     TextField {
+                        objectName: "defaultTargetAddressField"
+
                         Layout.preferredWidth: 260
                         text: dialog.app.defaultTargetAddress
                         placeholderText: qsTr("10.0.0.2")
@@ -42,6 +44,8 @@ Dialog {
                     }
                     Label { text: qsTr("Default THW_ID_POS") }
                     TextField {
+                        objectName: "defaultThwIdPosField"
+
                         Layout.preferredWidth: 260
                         text: dialog.app.defaultThwIdPos
                         placeholderText: qsTr("HNPFMS_L")
@@ -52,6 +56,8 @@ Dialog {
                     }
                 }
                 Switch {
+                    objectName: "autoFindSwitch"
+
                     text: qsTr("Find the target automatically")
                     checked: dialog.app.autoFindBeforeOperation
                     onToggled: dialog.app.autoFindBeforeOperation = checked
@@ -71,6 +77,8 @@ Dialog {
                 spacing: 6
 
                 Switch {
+                    objectName: "validateOnOpenSwitch"
+
                     text: qsTr("Check the media set as soon as it is chosen")
                     checked: dialog.app.validateOnOpen
                     onToggled: dialog.app.validateOnOpen = checked
@@ -106,6 +114,8 @@ Dialog {
 
                     Label { text: qsTr("Control port") }
                     SpinBox {
+                        objectName: "controlPortSpin"
+
                         from: 1
                         to: 65535
                         value: dialog.app.controlPort
@@ -117,6 +127,8 @@ Dialog {
                     }
                     Label { text: qsTr("Download directory") }
                     TextField {
+                        objectName: "downloadDirectoryField"
+
                         Layout.preferredWidth: 320
                         text: dialog.app.downloadDirectory
                         onTextEdited: dialog.app.downloadDirectory = text
@@ -143,6 +155,8 @@ Dialog {
 
                     Label { text: qsTr("Lines kept") }
                     SpinBox {
+                        objectName: "logCapacitySpin"
+
                         from: 100
                         to: 1000000
                         value: dialog.app.logCapacity

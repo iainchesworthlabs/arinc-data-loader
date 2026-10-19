@@ -142,7 +142,7 @@ does not write over a directory that has files in it.
 | `windows-msvc-debug`, `windows-msvc-release` | MSVC | triplet `x64-windows` |
 | `windows-msvc-analyze` | MSVC | Debug with `/analyze` (MSVC Code Analysis); tests and applications on; nightly |
 | `linux-gcc-debug`, `linux-gcc-release` | GCC | triplet `x64-linux` |
-| `linux-gcc-coverage` | GCC | Debug with `--coverage`; sanitizers off |
+| `linux-gcc-coverage` | GCC | Debug with `--coverage`; sanitizers off; the `coverage` target runs the tests and enforces 90% lines / 80% branches ([Testing](testing.md#coverage)) |
 | `linux-gcc-tidy` | GCC + clang-tidy | clang-tidy is the compiler launcher, warnings are errors; tests and applications off; nightly |
 | `linux-gcc-sonar` | GCC | Configure only, to write the `compile_commands.json` the optional SonarQube scan reads |
 | `linux-clang-debug` | Clang | Debug ASan/UBSan; tests on, applications off; nightly |
@@ -162,7 +162,9 @@ target is built with warnings as errors.
 | --- | --- | --- |
 | `ADL_BUILD_TESTS` | `ON` | Builds the unit tests and pulls Catch2 from vcpkg |
 | `ADL_ENABLE_SANITIZERS` | `ON` | ASan (and UBSan) in Debug |
-| `ADL_ENABLE_COVERAGE` | `OFF` | gcov-style instrumentation (the coverage preset sets it) |
+| `ADL_ENABLE_COVERAGE` | `OFF` | gcov-style instrumentation and the `coverage` target (the coverage preset sets it) |
+| `ADL_COVERAGE_LINE_THRESHOLD` | `90` | The line coverage the `coverage` target requires (percent) |
+| `ADL_COVERAGE_BRANCH_THRESHOLD` | `80` | The branch coverage the `coverage` target requires (percent) |
 | `ADL_ENABLE_CLANG_TIDY` | `OFF` | Runs clang-tidy as the compiler launcher for the first-party targets under `src/`, with `.clang-tidy` and warnings as errors (the tests clear the launcher; the `linux-gcc-tidy` preset sets it) |
 | `ADL_ENABLE_MSVC_ANALYSIS` | `OFF` | Adds MSVC Code Analysis (`/analyze /analyze:external-`) to every first-party target; MSVC only (the `windows-msvc-analyze` preset sets it) |
 | `ADL_ENABLE_TRACY` | `OFF` | Links Tracy and pulls it from vcpkg; use a Release build for numbers worth reading |

@@ -192,7 +192,8 @@ What the target's certification needs from the code is not decided here.
 
 ## 7. Around the edges
 
-The Release presets in CI, a coverage threshold once the figures have been
-looked at, packaging, and a `docs/` site. clang-tidy is no longer here: it runs
-nightly with MSVC Code Analysis, CodeQL and Clang's sanitizers
+The Release presets in CI, packaging, and a `docs/` site. The coverage minimum
+(90% lines, 80% branches) is enforced now, as are the UI and system suites, so
+they are no longer on this list. clang-tidy is not here either: it runs nightly
+with MSVC Code Analysis, CodeQL and Clang's sanitizers
 ([static-analysis.md](static-analysis.md)).

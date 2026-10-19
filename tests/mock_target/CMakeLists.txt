@@ -38,7 +38,9 @@ adl_deploy_sanitizer_runtime(adl_mock_tests)
 add_dependencies(adl_mock_tests adl_mock_target)
 
 add_test(NAME mock.engine COMMAND adl_mock_tests)
-set_tests_properties(mock.engine PROPERTIES TIMEOUT 120)
+set_tests_properties(mock.engine PROPERTIES
+    TIMEOUT 120
+    LABELS "integration")
 
 # The model: MockTargetModel on its worker thread, against the loader's engine over the fake
 # platform, headless.
@@ -72,7 +74,9 @@ add_dependencies(adl_mock_model_test adl_mock_target)
 
 # A test that hangs fails after two minutes instead of holding the run.
 add_test(NAME mock.model COMMAND adl_mock_model_test)
-set_tests_properties(mock.model PROPERTIES TIMEOUT 120)
+set_tests_properties(mock.model PROPERTIES
+    TIMEOUT 120
+    LABELS "unit")
 
 # The window: TargetWindow.qml with the real model, offscreen, started and stopped through the
 # window's own buttons, and every QML warning an error.
@@ -104,4 +108,5 @@ add_test(NAME mock.qml
 # looked for in the Qt kit's own plugin directory.
 set_tests_properties(mock.qml PROPERTIES
     TIMEOUT 120
+    LABELS "system;ui"
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Fusion;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")

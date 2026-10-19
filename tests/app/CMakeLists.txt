@@ -45,7 +45,9 @@ add_dependencies(adl_app_tests adl_app)
 # A test that hangs (a debug runtime's dialog waiting for an answer on a machine with a desktop,
 # a job that never ends) fails after two minutes instead of holding the run.
 add_test(NAME app.tests COMMAND adl_app_tests)
-set_tests_properties(app.tests PROPERTIES TIMEOUT 120)
+set_tests_properties(app.tests PROPERTIES
+    TIMEOUT 120
+    LABELS "unit")
 
 # The window: Main.qml with the real model, offscreen, a FIND and an Information operation run
 # while it shows, and every QML warning an error.
@@ -76,4 +78,5 @@ add_test(NAME app.qml
 # looked for in the Qt kit's own plugin directory.
 set_tests_properties(app.qml PROPERTIES
     TIMEOUT 120
+    LABELS "system;ui"
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Fusion;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")

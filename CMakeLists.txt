@@ -81,7 +81,7 @@ include(Tracy)
 # ---------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------
-option(ADL_BUILD_TESTS "Build the unit test suite" ON)
+option(ADL_BUILD_TESTS "Build the unit, integration and system test suites" ON)
 # The Qt application (src/app). Off by default so that the libraries build on a machine without Qt;
 # CI turns it on. Qt is the prebuilt kit found through QT_ROOT_DIR (cmake/FindQt6.cmake).
 option(ADL_BUILD_APP "Build the Qt application" OFF)

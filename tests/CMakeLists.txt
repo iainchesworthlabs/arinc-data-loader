@@ -31,6 +31,7 @@ add_executable(adl_unit_tests
     unit/part_number_test.cpp
     unit/paths_test.cpp
     unit/protocol_files_test.cpp
+    unit/public_api_test.cpp
     unit/robustness_test.cpp
     unit/tftp_options_test.cpp
     unit/tftp_test.cpp)
@@ -53,7 +54,7 @@ target_link_libraries(adl_unit_tests
 
 adl_deploy_sanitizer_runtime(adl_unit_tests)
 
-catch_discover_tests(adl_unit_tests)
+catch_discover_tests(adl_unit_tests PROPERTIES LABELS "unit")
 
 # The fake platform: a clock, network, file system, memory and threads that run in
 # memory and on a clock that only moves when told to (tests/fake). The engine is
@@ -119,7 +120,7 @@ target_link_libraries(adl_engine_tests
 
 adl_deploy_sanitizer_runtime(adl_engine_tests)
 
-catch_discover_tests(adl_engine_tests)
+catch_discover_tests(adl_engine_tests PROPERTIES LABELS "integration")
 
 # The platform layer: the portable types, the fake, and the conformance suite that runs
 # the same checks against the fake and against the real host this build selected.
@@ -147,7 +148,9 @@ target_link_libraries(adl_platform_tests
 
 adl_deploy_sanitizer_runtime(adl_platform_tests)
 
-catch_discover_tests(adl_platform_tests)
+# The contract checks run against the real host as well as the fake, so the program is both a
+# unit suite (the fake and the portable types) and an integration suite (the real host).
+catch_discover_tests(adl_platform_tests PROPERTIES LABELS "unit;integration")
 
 # Every platform fragment satisfies the platform contract, on whichever host
 # this runs (a build only includes the one fragment for its own platform).
@@ -155,6 +158,7 @@ add_test(NAME platform.fragments
     COMMAND "${CMAKE_COMMAND}"
         "-DREPO_ROOT=${PROJECT_SOURCE_DIR}"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_fragments.cmake")
+set_tests_properties(platform.fragments PROPERTIES LABELS "system")
 
 # The selector learns the target the way docs/platform-isolation.md says (an explicit
 # ADL_TARGET_PLATFORM for a cross build), and refuses a platform with no code to
@@ -166,6 +170,7 @@ add_test(NAME platform.selector
         "-DGENERATOR=${CMAKE_GENERATOR}"
         "-DCOMPILER=${CMAKE_CXX_COMPILER}"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_selector.cmake")
+set_tests_properties(platform.selector PROPERTIES LABELS "system")
 
 # No preprocessor conditionals or defines, no OS headers outside the platform
 # section, no OS tests in CMake outside the selector. CI runs it as its own job
@@ -176,26 +181,36 @@ if(ADL_PWSH)
         COMMAND "${ADL_PWSH}" -NoProfile -File
             "${PROJECT_SOURCE_DIR}/tools/checks/check_platform_isolation.ps1"
             -Root "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(platform.isolation PROPERTIES LABELS "system")
 endif()
 
 # The program that writes the sample media sets: it runs on a directory of its
 # own (emptied first, since it never overwrites), and refuses what it cannot use.
 add_test(NAME tools.write_payloads.clean
     COMMAND "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/payloads")
-set_tests_properties(tools.write_payloads.clean PROPERTIES FIXTURES_SETUP write_payloads_output)
+set_tests_properties(tools.write_payloads.clean PROPERTIES
+    FIXTURES_SETUP write_payloads_output
+    LABELS "system")
 
 add_test(NAME tools.write_payloads
     COMMAND adl_write_payloads "${CMAKE_CURRENT_BINARY_DIR}/payloads")
-set_tests_properties(tools.write_payloads PROPERTIES FIXTURES_REQUIRED write_payloads_output)
+set_tests_properties(tools.write_payloads PROPERTIES
+    FIXTURES_REQUIRED write_payloads_output
+    LABELS "system")
 
 add_test(NAME tools.write_payloads.unknown_scenario
     COMMAND adl_write_payloads --scenario no-such-scenario "${CMAKE_CURRENT_BINARY_DIR}/payloads")
-set_tests_properties(tools.write_payloads.unknown_scenario PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(tools.write_payloads.unknown_scenario PROPERTIES
+    WILL_FAIL TRUE
+    LABELS "system")
 
 add_test(NAME tools.write_payloads.no_output_directory COMMAND adl_write_payloads)
-set_tests_properties(tools.write_payloads.no_output_directory PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(tools.write_payloads.no_output_directory PROPERTIES
+    WILL_FAIL TRUE
+    LABELS "system")
 
 add_test(NAME tools.write_payloads.list COMMAND adl_write_payloads --list)
+set_tests_properties(tools.write_payloads.list PROPERTIES LABELS "system")
 
 # The application's tests (src/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)
@@ -207,4 +222,28 @@ if(ADL_BUILD_APP)
     # The loopback integration test: the loader's runner over real sockets against the mock
     # target's engine on 127.0.0.1 (needs adl::mock_core, so it is behind ADL_BUILD_APP too).
     add_subdirectory(loopback)
+    # The window's UI suite, with Qt Quick Test (tests/ui).
+    add_subdirectory(ui)
+    # The system smoke tests: the built application programs started as processes (tests/system).
+    add_subdirectory(system)
 endif()
+
+# The three tiers by label, so a developer can run one of them without remembering which
+# executables hold which tests:
+#
+#   cmake --build <build dir> --target check-unit
+#   cmake --build <build dir> --target check-integration
+#   cmake --build <build dir> --target check-system
+foreach(tier unit integration system)
+    add_custom_target(check-${tier}
+        # The scratch space is under the build tree, as it is for `ctest --preset`: a test that
+        # makes a temporary directory must not depend on the account's %TEMP% being writable.
+        COMMAND "${CMAKE_COMMAND}" -E env
+            "TEMP=${CMAKE_BINARY_DIR}"
+            "TMP=${CMAKE_BINARY_DIR}"
+            "TMPDIR=${CMAKE_BINARY_DIR}"
+            "${CMAKE_CTEST_COMMAND}" --output-on-failure -L "${tier}"
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+        COMMENT "Running the ${tier} tests"
+        USES_TERMINAL)
+endforeach()
