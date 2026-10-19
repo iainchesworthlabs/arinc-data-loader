@@ -2,225 +2,493 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
 import QtQuick.Layouts
 
-// The Download operation (5.4.4): the mode, the files, and the start button. In the media
-// defined mode the operator names the files the target is to send; in the operator defined mode
-// the target's list of files is shown to be ticked, and the choice goes back to it. The files
-// land in a new DNLD_DATA_<THW_ID_POS>_<number> directory under the download directory
-// (Preferences). The overall progress, the result and the Abort button are the Operation
-// panel's; each row's own progress is here.
-Panel {
-    id: panel
+// The download plan: the mode, the files and, before anything starts, where the result will be
+// written. The action itself is the window's fixed bar.
+Item {
+    id: root
 
     required property var app
 
-    // Adds what the operator typed as a file of a media defined download.
+    readonly property string targetName: root.app.thwIdPos.length > 0
+                                         ? root.app.thwIdPos
+                                         : (root.app.targetAddress.length > 0
+                                            ? root.app.targetAddress : qsTr("no target"))
+
     function addName() {
         const name = downloadNameField.text.trim();
         if (name.length > 0) {
-            panel.app.addDownloadFile(name);
+            root.app.addDownloadFile(name);
             downloadNameField.text = "";
         }
     }
 
-    ColumnLayout {
+    FolderDialog {
+        id: destinationDialog
+
+        title: qsTr("Choose the download directory")
+        onAccepted: root.app.downloadDirectory = selectedFolder
+    }
+
+    ScrollView {
+        id: scroll
+
         anchors.fill: parent
-        spacing: Theme.space2
+        contentWidth: availableWidth
+        clip: true
 
-        SegmentedControl {
-            objectName: "downloadMode"
-            segments: [
-                {
-                    value: 0,
-                    label: qsTr("Media defined"),
-                    name: "downloadModeMedia"
-                },
-                {
-                    value: 1,
-                    label: qsTr("Operator defined"),
-                    name: "downloadModeOperator"
-                }
-            ]
-            selectedValue: panel.app.downloadMode
-            onSegmentClicked: (value) => panel.app.downloadMode = value
-            enabled: !panel.app.busy
-            Accessible.name: qsTr("Download mode")
-        }
+        Item {
+            width: scroll.availableWidth
+            implicitHeight: content.implicitHeight + Theme.space6 * 2
 
-        // Media defined: the operator's own list of file names.
-        ColumnLayout {
-            visible: panel.app.downloadMode === 0
-            spacing: Theme.space1
+            ColumnLayout {
+                id: content
 
-            RowLayout {
-                TextField {
-                    id: downloadNameField
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: Theme.space6
+                spacing: Theme.space6
 
-                    objectName: "downloadFileName"
+                // ---- the plan ----
+                ColumnLayout {
                     Layout.fillWidth: true
-                    placeholderText: qsTr("File name")
-                    enabled: !panel.app.busy
-                    onAccepted: panel.addName()
-                    Accessible.name: qsTr("Download file name")
-                }
-                AppButton {
-                    objectName: "addDownloadButton"
+                    spacing: Theme.space1
 
-                    text: qsTr("Add")
-                    enabled: !panel.app.busy && downloadNameField.text.trim().length > 0
-                    onClicked: panel.addName()
-                    Accessible.name: qsTr("Add the file name to the download")
-                }
-            }
-            Label {
-                Layout.fillWidth: true
-                visible: panel.app.downloadMode === 0 && downloadList.count === 0
-                text: qsTr("No file named. Name each file the target is to send.")
-                wrapMode: Text.Wrap
-                color: Theme.muted
-            }
-        }
+                    Text {
+                        text: qsTr("THE DOWNLOAD")
+                        color: Theme.accentInk
+                        font.pixelSize: Theme.fontMicro
+                        font.family: Theme.monoFamily
+                        font.letterSpacing: 1.2
+                        font.bold: true
+                    }
 
-        // Operator defined: waiting for the target's list, then the choice.
-        ColumnLayout {
-            visible: panel.app.downloadMode === 1
-            spacing: Theme.space1
-
-            Label {
-                objectName: "downloadWaiting"
-
-                Layout.fillWidth: true
-                visible: panel.app.downloadMode === 1 && !panel.app.downloadChoicePending
-                         && downloadList.count === 0
-                text: panel.app.busy
-                      ? qsTr("Waiting for the target's list of files...")
-                      : qsTr("Nothing to choose from yet. Start the download: the target sends its list of files, the operator ticks what to take, and the choice goes back.")
-                wrapMode: Text.Wrap
-                color: Theme.muted
-            }
-            RowLayout {
-                visible: panel.app.downloadChoicePending
-
-                AppButton {
-                    objectName: "chooseNoneButton"
-
-                    text: qsTr("Choose none")
-                    onClicked: panel.app.chooseNoDownloadFiles()
-                    Accessible.name: qsTr("Choose none of the files")
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("Nothing is downloaded: the operation is cancelled")
-                }
-                AppButton {
-                    objectName: "confirmDownloadButton"
-
-                    primary: true
-                    text: qsTr("Download selected")
-                    enabled: panel.app.downloadSelectedCount > 0
-                    onClicked: panel.app.confirmDownloadSelection()
-                    Accessible.name: qsTr("Download the ticked files")
-                }
-                Label {
-                    Layout.fillWidth: true
-                    text: qsTr("%n file(s) ticked", "", panel.app.downloadSelectedCount)
-                    color: Theme.muted
-                    elide: Text.ElideRight
-                }
-            }
-        }
-
-        // The files, with their own progress while a download runs.
-        Repeater {
-            id: downloadList
-
-            model: panel.app.downloads
-            delegate: ColumnLayout {
-                id: downloadRow
-
-                required property int index
-                required property var model
-                required property string name
-                required property string description
-                required property bool checked
-                required property int ratio
-                required property string fileStatus
-                required property bool failed
-                required property string problem
-
-                Layout.fillWidth: true
-                spacing: 2
-
-                RowLayout {
-                    CheckBox {
-                        visible: panel.app.downloadMode === 1
-                        objectName: "downloadChoiceCheck"
+                    Text {
                         Layout.fillWidth: true
-                        text: downloadRow.name
-                        checked: downloadRow.checked
-                        enabled: panel.app.downloadChoicePending
-                        onToggled: downloadRow.model.checked = checked
-                        Accessible.name: qsTr("Download %1").arg(downloadRow.name)
+                        text: qsTr("Download from %1").arg(root.targetName)
+                        color: Theme.text
+                        font.pixelSize: Theme.fontHeadline
+                        font.family: Theme.headingFamily
+                        font.weight: Font.ExtraBold
+                        wrapMode: Text.WordWrap
                     }
-                    Label {
-                        visible: panel.app.downloadMode === 0
+
+                    RowLayout {
                         Layout.fillWidth: true
-                        text: downloadRow.name
+                        spacing: Theme.space2
+
+                        StatusChip {
+                            text: root.app.busy ? qsTr("RUNNING")
+                                                : root.app.canDownload ? qsTr("READY") : qsTr("NOT READY")
+                            tone: root.app.busy ? "accent" : root.app.canDownload ? "ok" : "warn"
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Each download writes a new DNLD_DATA_<THW_ID_POS>_<n> directory.")
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontBody
+                            elide: Text.ElideRight
+                        }
                     }
-                    AppButton {
-                        visible: panel.app.downloadMode === 0 && !panel.app.busy
-                        text: qsTr("Remove")
-                        onClicked: panel.app.removeDownloadFile(downloadRow.index)
-                        Accessible.name: qsTr("Remove %1 from the download").arg(downloadRow.name)
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 2
+                    color: Theme.divider
+                }
+
+                // ---- mode ----
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.space2
+
+                    SectionHeader {
+                        label: qsTr("Mode")
+                        summary: root.app.downloadMode === 0 ? qsTr("MEDIA DEFINED")
+                                                             : qsTr("OPERATOR DEFINED")
+                    }
+
+                    SegmentedControl {
+                        objectName: "downloadMode"
+                        segments: [
+                            {
+                                value: 0,
+                                label: qsTr("Media defined"),
+                                name: "downloadModeMedia"
+                            },
+                            {
+                                value: 1,
+                                label: qsTr("Operator defined"),
+                                name: "downloadModeOperator"
+                            }
+                        ]
+                        selectedValue: root.app.downloadMode
+                        onSegmentClicked: (value) => root.app.downloadMode = value
+                        enabled: !root.app.busy
+                        Accessible.name: qsTr("Download mode")
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.app.downloadMode === 0
+                              ? qsTr("Name the files the target is to send; only those are requested.")
+                              : qsTr("The target sends its list; tick the files to take, then send the choice back.")
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontBody
+                        wrapMode: Text.WordWrap
                     }
                 }
-                Label {
+
+                // ---- media defined ----
+                ColumnLayout {
                     Layout.fillWidth: true
-                    Layout.leftMargin: 28
-                    visible: downloadRow.description.length > 0
-                    text: downloadRow.description
-                    color: Theme.muted
-                    wrapMode: Text.Wrap
+                    visible: root.app.downloadMode === 0
+                    spacing: Theme.space2
+
+                    SectionHeader {
+                        label: qsTr("Files")
+                        summary: Theme.quantity(mediaDownloadList.count,
+                                                qsTr("file"), qsTr("files"))
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Theme.space2
+
+                        AppTextField {
+                            id: downloadNameField
+
+                            objectName: "downloadFileName"
+                            Layout.fillWidth: true
+                            placeholderText: qsTr("File name, for example CONFIG.LDR")
+                            enabled: !root.app.busy
+                            onAccepted: root.addName()
+                            Accessible.name: qsTr("Download file name")
+                        }
+
+                        AppButton {
+                            objectName: "addDownloadButton"
+                            text: qsTr("Add")
+                            enabled: !root.app.busy && downloadNameField.text.trim().length > 0
+                            onClicked: root.addName()
+                            Accessible.name: qsTr("Add the file name to the download")
+                        }
+                    }
+
+                    EmptyState {
+                        visible: mediaDownloadList.count === 0
+                        title: qsTr("No file named yet")
+                        body: qsTr("Name each file the target is to send. The target's own list is only used in the operator defined mode.")
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 0
+
+                        Repeater {
+                            id: mediaDownloadList
+
+                            model: root.app.downloads
+
+                            delegate: ColumnLayout {
+                                id: nameRow
+
+                                required property int index
+                                required property var model
+                                required property string name
+                                required property string description
+                                required property bool checked
+                                required property int ratio
+                                required property string fileStatus
+                                required property bool failed
+                                required property string problem
+
+                                Layout.fillWidth: true
+                                spacing: Theme.space1
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: Theme.space2
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: nameRow.name
+                                        color: Theme.text
+                                        font.pixelSize: Theme.fontBody
+                                        font.family: Theme.monoFamily
+                                        elide: Text.ElideRight
+                                    }
+
+                                    StatusChip {
+                                        visible: nameRow.ratio >= 0
+                                        text: nameRow.ratio >= 0
+                                              ? nameRow.ratio + "% " + nameRow.fileStatus
+                                              : nameRow.fileStatus
+                                        tone: nameRow.failed ? "fail" : "neutral"
+                                    }
+
+                                    AppButton {
+                                        visible: !root.app.busy
+                                        text: qsTr("Remove")
+                                        onClicked: root.app.removeDownloadFile(nameRow.index)
+                                        Accessible.name: qsTr("Remove %1 from the download").arg(nameRow.name)
+                                    }
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    visible: nameRow.description.length > 0
+                                    text: nameRow.description
+                                    color: Theme.textMuted
+                                    font.pixelSize: Theme.fontSmall
+                                    wrapMode: Text.WordWrap
+                                }
+
+                                TaskProgress {
+                                    Layout.fillWidth: true
+                                    visible: nameRow.ratio >= 0
+                                    value: Math.max(0, nameRow.ratio)
+                                    indeterminate: false
+                                }
+                            }
+                        }
+                    }
                 }
-                ProgressBar {
+
+                // ---- operator defined ----
+                ColumnLayout {
                     Layout.fillWidth: true
-                    Layout.leftMargin: 28
-                    visible: downloadRow.ratio >= 0
-                    from: 0
-                    to: 100
-                    value: downloadRow.ratio
-                    Accessible.name: qsTr("Download progress of %1").arg(downloadRow.name)
+                    visible: root.app.downloadMode === 1
+                    spacing: Theme.space2
+
+                    SectionHeader {
+                        label: qsTr("The target's list")
+                        summary: Theme.quantity(root.app.downloadSelectedCount,
+                                                qsTr("file ticked"),
+                                                qsTr("files ticked"))
+                    }
+
+                    Text {
+                        objectName: "downloadWaiting"
+
+                        Layout.fillWidth: true
+                        visible: !root.app.downloadChoicePending && operatorDownloadList.count === 0
+                        text: root.app.busy
+                              ? qsTr("Waiting for the target's list of files...")
+                              : qsTr("Start the download: the target sends its list, tick what to take, and send the choice back.")
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontBody
+                        wrapMode: Text.WordWrap
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        visible: root.app.downloadChoicePending
+
+                        AppButton {
+                            objectName: "chooseNoneButton"
+                            text: qsTr("Choose none")
+                            onClicked: root.app.chooseNoDownloadFiles()
+                            Accessible.name: qsTr("Choose none of the files")
+                        }
+
+                        AppButton {
+                            objectName: "confirmDownloadButton"
+                            primary: true
+                            text: qsTr("Download selected")
+                            enabled: root.app.downloadSelectedCount > 0
+                            onClicked: root.app.confirmDownloadSelection()
+                            Accessible.name: qsTr("Download the ticked files")
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: Theme.quantity(root.app.downloadSelectedCount,
+                                                 qsTr("file ticked"), qsTr("files ticked"))
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontBody
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 0
+
+                        Repeater {
+                            id: operatorDownloadList
+                            model: root.app.downloads
+
+                            delegate: ColumnLayout {
+                                id: choiceRow
+
+                                required property int index
+                                required property var model
+                                required property string name
+                                required property string description
+                                required property bool checked
+                                required property int ratio
+                                required property string fileStatus
+                                required property bool failed
+                                required property string problem
+
+                                Layout.fillWidth: true
+                                spacing: Theme.space1
+
+                                AppCheckBox {
+                                    objectName: "downloadChoiceCheck"
+                                    Layout.fillWidth: true
+                                    text: choiceRow.name
+                                    checked: choiceRow.checked
+                                    enabled: root.app.downloadChoicePending
+                                    onToggled: (value) => choiceRow.model.checked = value
+                                    Accessible.name: qsTr("Download %1").arg(choiceRow.name)
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 26
+                                    visible: choiceRow.description.length > 0
+                                    text: choiceRow.description
+                                    color: Theme.textMuted
+                                    font.pixelSize: Theme.fontSmall
+                                    wrapMode: Text.WordWrap
+                                }
+
+                                TaskProgress {
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 26
+                                    visible: choiceRow.ratio >= 0
+                                    value: Math.max(0, choiceRow.ratio)
+                                    indeterminate: false
+                                }
+                            }
+                        }
+                    }
                 }
-                Label {
+
+                // ---- destination ----
+                ColumnLayout {
                     Layout.fillWidth: true
-                    Layout.leftMargin: 28
-                    visible: downloadRow.ratio >= 0
-                    text: downloadRow.ratio + "% " + downloadRow.fileStatus
-                          + (downloadRow.problem.length > 0 ? ": " + downloadRow.problem : "")
-                    color: downloadRow.failed ? Theme.fail : Theme.ink
-                    wrapMode: Text.Wrap
+                    spacing: Theme.space2
+
+                    SectionHeader {
+                        label: qsTr("Destination")
+                        summary: root.app.lastDownloadDirectory.length > 0
+                                 ? qsTr("LAST DOWNLOAD") : qsTr("NOT WRITTEN YET")
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Theme.space2
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: root.app.downloadDirectory.length > 0
+                                  ? root.app.downloadDirectory : qsTr("No download directory set")
+                            color: Theme.text
+                            font.pixelSize: Theme.fontSmall
+                            font.family: Theme.monoFamily
+                            elide: Text.ElideMiddle
+                        }
+
+                        AppButton {
+                            text: qsTr("Change...")
+                            enabled: !root.app.busy
+                            onClicked: destinationDialog.open()
+                            Accessible.name: qsTr("Choose the download directory")
+                        }
+
+                        AppButton {
+                            visible: root.app.lastDownloadDirectory.length > 0
+                            text: qsTr("Open folder")
+                            onClicked: Qt.openUrlExternally(root.app.lastDownloadDirectory)
+                            Accessible.name: qsTr("Open the last download directory")
+                        }
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.app.lastDownloadDirectory.length > 0
+                              ? qsTr("The last download was written to %1.").arg(root.app.lastDownloadDirectory)
+                              : qsTr("A new numbered directory is made for every download, even one that is aborted.")
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                    }
+                }
+
+                // ---- the receipt of the last download ----
+                Rectangle {
+                    Layout.fillWidth: true
+                    visible: root.app.resultIsTransfer && root.app.resultWasDownload
+                             && root.app.resultState !== 0 && !root.app.busy
+                    implicitHeight: downloadReceipt.implicitHeight + Theme.space4 * 2
+                    color: Theme.neutral100
+                    border.color: Theme.divider
+                    border.width: 1
+
+                    ColumnLayout {
+                        id: downloadReceipt
+
+                        anchors.fill: parent
+                        anchors.margins: Theme.space4
+                        spacing: Theme.space2
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.space2
+
+                            StatusChip {
+                                text: root.app.resultState === 1 ? qsTr("COMPLETE") : qsTr("FAILED")
+                                tone: root.app.resultState === 1 ? "ok" : "fail"
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.app.resultText
+                                color: Theme.text
+                                font.pixelSize: Theme.fontSubheading
+                                font.family: Theme.headingFamily
+                                font.weight: Font.DemiBold
+                                wrapMode: Text.WordWrap
+                            }
+
+                            AppButton {
+                                visible: root.app.lastDownloadDirectory.length > 0
+                                text: qsTr("Open folder")
+                                onClicked: Qt.openUrlExternally(root.app.lastDownloadDirectory)
+                                Accessible.name: qsTr("Open the download folder")
+                            }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: root.app.resultDetail
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontBody
+                            wrapMode: Text.WordWrap
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Target %1 · %2")
+                                  .arg(root.targetName)
+                                  .arg(root.app.lastDownloadDirectory.length > 0
+                                       ? root.app.lastDownloadDirectory : qsTr("no directory"))
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontSmall
+                            font.family: Theme.monoFamily
+                            wrapMode: Text.WordWrap
+                        }
+                    }
                 }
             }
-        }
-
-        RowLayout {
-            AppButton {
-                objectName: "downloadButton"
-
-                primary: true
-                text: qsTr("Download")
-                enabled: panel.app.canDownload
-                onClicked: panel.app.downloadSelected()
-                Accessible.name: qsTr("Download from the target")
-                ToolTip.visible: hovered
-                ToolTip.text: qsTr("Downloads into a new DNLD_DATA directory under the download directory (Preferences)")
-            }
-        }
-        Label {
-            Layout.fillWidth: true
-            visible: text.length > 0
-            text: qsTr("Download directory: %1").arg(panel.app.lastDownloadDirectory)
-            elide: Text.ElideMiddle
-            color: Theme.muted
         }
     }
 }

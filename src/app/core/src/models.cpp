@@ -200,11 +200,21 @@ QVariant LoadModel::data(const QModelIndex& index, int role) const {
             return load.part_number;
         case HeaderFileRole:
             return load.header_file;
-        case DetailRole:
-            return tr("%1, %n data file(s), %2 support file(s); for %3", "", load.data_files)
+        case DetailRole: {
+            const QString data_files =
+                load.data_files == 1 ? tr("1 data file") : tr("%1 data files").arg(load.data_files);
+            const QString support_files = load.support_files == 1
+                                              ? tr("1 support file")
+                                              : tr("%1 support files").arg(load.support_files);
+            const QString targets = load.target_hardware_ids.isEmpty()
+                                        ? tr("no target ID")
+                                        : load.target_hardware_ids.join(QStringLiteral(", "));
+            return tr("%1 · %2, %3; for %4")
                 .arg(load.header_file)
-                .arg(load.support_files)
-                .arg(load.target_hardware_ids.join(QStringLiteral(", ")));
+                .arg(data_files)
+                .arg(support_files)
+                .arg(targets);
+        }
         case CheckedRole:
             return row.checked;
         case RatioRole:

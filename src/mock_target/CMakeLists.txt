@@ -3,12 +3,13 @@
 # (src/app) can be demonstrated against it end to end: FIND, Information, Upload, Download and
 # aborts. It is a mock for demonstrations, not a real embedded target.
 #
-#   core/   the logic without a window: the 615A target engine, the TargetLink seam over the
-#           platform's sockets, and MockTargetModel on a worker thread
-#   qml/    the window
+#   core/       the logic without a window: the 615A target engine, the TargetLink seam over the
+#               platform's sockets, and MockTargetModel on a worker thread
+#   qml/        the window
 #   main.cpp
 #
-# Qt code lives here and in src/app.
+# The window is a static QML module of its own, as the data loader's is, so the window's test
+# links and loads exactly the compiled module the application does.
 
 find_package(Qt6 6.12 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2)
 
@@ -18,17 +19,27 @@ qt_standard_project_setup(REQUIRES 6.12)
 
 add_subdirectory(core)
 
-qt_add_executable(adl_mock_target main.cpp)
-qt_add_qml_module(adl_mock_target
+adl_prepare_ui_qml()
+
+qt_add_library(adl_mock_target_qml STATIC)
+qt_add_qml_module(adl_mock_target_qml
     URI ArincMockTarget
     VERSION 1.0
     QML_FILES
         qml/TargetWindow.qml
-        qml/LogView.qml)
+        ${ADL_UI_QML_FILES})
+target_link_libraries(adl_mock_target_qml
+    PUBLIC
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::QuickControls2)
+
+qt_add_executable(adl_mock_target main.cpp)
 
 target_compile_features(adl_mock_target PRIVATE cxx_std_23)
 target_link_libraries(adl_mock_target
     PRIVATE
+        $<LINK_LIBRARY:WHOLE_ARCHIVE,adl_mock_target_qml>
         adl::mock_core
         Qt6::Gui
         Qt6::Qml
@@ -37,6 +48,8 @@ target_link_libraries(adl_mock_target
         adl::warnings
         adl::sanitizers
         adl::coverage)
+
+adl_add_ui_support(adl_mock_target)
 
 adl_platform_configure_app(adl_mock_target)
 adl_platform_deploy_qt_runtime(adl_mock_target "${CMAKE_CURRENT_SOURCE_DIR}/qml")

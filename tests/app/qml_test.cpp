@@ -33,6 +33,7 @@
 
 #include "adl/app/loader_model.hpp"
 #include "adl/app/models.hpp"
+#include "adl/ui/fonts.hpp"
 #include "bytes.hpp"
 #include "frame_profiler.hpp"
 #include "language_manager.hpp"
@@ -87,6 +88,7 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "usage: adl_app_qml_test [picture.png [first-run.png [rtl.png]]]\n");
         return 2;
     }
+    adl::ui::register_fonts();
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
 
     // The workload a profiling build captures: this process's GUI thread draws the window and

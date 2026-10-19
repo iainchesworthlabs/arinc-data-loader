@@ -76,6 +76,7 @@ include(CompilerWarnings)
 include(Sanitizers)
 include(Coverage)
 include(Tracy)
+include(AdlUi)
 
 # ---------------------------------------------------------------------------
 # Options

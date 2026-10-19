@@ -80,6 +80,7 @@ add_executable(adl_mock_qml_test qml_test.cpp)
 target_include_directories(adl_mock_qml_test PRIVATE "${PROJECT_SOURCE_DIR}/tests/support")
 target_link_libraries(adl_mock_qml_test
     PRIVATE
+        $<LINK_LIBRARY:WHOLE_ARCHIVE,adl_mock_target_qml>
         adl::mock_core
         adl_fake_platform
         adl::arinc615a
@@ -94,12 +95,13 @@ target_link_libraries(adl_mock_qml_test
         adl::sanitizers
         adl::coverage)
 
+adl_add_ui_support(adl_mock_qml_test)
+
 adl_platform_deploy_qt_runtime(adl_mock_qml_test "${PROJECT_SOURCE_DIR}/src/mock_target/qml")
 adl_deploy_sanitizer_runtime(adl_mock_qml_test)
 add_dependencies(adl_mock_qml_test adl_mock_model_test)
 
-add_test(NAME mock.qml
-    COMMAND adl_mock_qml_test "${PROJECT_SOURCE_DIR}/src/mock_target/qml/TargetWindow.qml")
+add_test(NAME mock.qml COMMAND adl_mock_qml_test)
 # The offscreen platform plugin is not one the deployment step copies beside the program, so it is
 # looked for in the Qt kit's own plugin directory.
 set_tests_properties(mock.qml PROPERTIES

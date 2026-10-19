@@ -3,31 +3,56 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 // What the program is.
-Dialog {
+AppDialog {
     id: dialog
 
-    title: qsTr("About ARINC Data Loader")
-    modal: true
-    standardButtons: Dialog.Close
-    width: 460
+    heading: qsTr("About ARINC Data Loader")
+    primaryText: qsTr("Close")
+    width: 540
 
-    ColumnLayout {
-        spacing: Theme.space2
+    content: ColumnLayout {
+        Layout.fillWidth: true
+        spacing: Theme.space3
 
-        Label {
-            text: qsTr("ARINC Data Loader")
-            font.pixelSize: Theme.fontTitle
-            font.bold: true
+        Text {
+            text: "ADL"
+            color: Theme.accent
+            font.pixelSize: Theme.fontDisplay
+            font.family: Theme.headingFamily
+            font.weight: Font.ExtraBold
+            font.letterSpacing: Theme.trackingTitle
         }
-        Label {
+
+        Text {
             Layout.fillWidth: true
-            text: qsTr("A data loader for ARINC 615A targets and ARINC 665 media sets.")
-            wrapMode: Text.Wrap
+            text: qsTr("An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.")
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontBody
+            wrapMode: Text.WordWrap
         }
-        Label {
-            text: qsTr("Version %1").arg(Qt.application.version.length > 0
-                                         ? Qt.application.version : qsTr("1.0"))
-            color: Theme.muted
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            color: Theme.divider
+        }
+
+        Text {
+            Layout.fillWidth: true
+            text: qsTr("Version %1 · GPL-3.0-or-later").arg(Qt.application.version)
+            color: Theme.text
+            font.pixelSize: Theme.fontSmall
+            font.family: Theme.monoFamily
+        }
+
+        Text {
+            Layout.fillWidth: true
+            text: qsTr("Uses Qt and the Archivo typeface (SIL OFL 1.1).")
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontSmall
+            wrapMode: Text.WordWrap
         }
     }
+
+    onPrimaryClicked: dialog.close()
 }

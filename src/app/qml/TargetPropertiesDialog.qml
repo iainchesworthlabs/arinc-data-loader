@@ -2,100 +2,119 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// What the application knows about the target: the fields of its FIND answer (when it was
-// chosen from the list), and the address and THW_ID_POS as typed.
-Dialog {
+// What the application knows about the target: the address and THW_ID_POS it will use, and the
+// FIND answer those came from (when they came from one).
+AppDialog {
     id: dialog
 
     required property var app
 
-    title: qsTr("Target properties")
-    modal: true
-    standardButtons: Dialog.Close
-    width: 480
+    heading: qsTr("Target properties")
+    primaryText: qsTr("Close")
+    width: 560
 
-    ColumnLayout {
-        spacing: Theme.space2
+    content: ColumnLayout {
+        Layout.fillWidth: true
+        spacing: Theme.space3
 
-        Panel {
-            title: qsTr("Target (typed)")
+        SectionHeader {
+            label: qsTr("Addressing")
+        }
+
+        GridLayout {
             Layout.fillWidth: true
+            columns: 2
+            columnSpacing: Theme.space4
+            rowSpacing: Theme.space2
 
-            GridLayout {
+            Text {
+                text: qsTr("Address")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontSmall
+            }
+
+            Text {
                 Layout.fillWidth: true
-                columns: 2
-                columnSpacing: Theme.space3
-                rowSpacing: Theme.space1
+                text: dialog.app.targetAddress.length > 0
+                      ? dialog.app.targetAddress : qsTr("not set")
+                color: Theme.text
+                font.pixelSize: Theme.fontBody
+                font.family: Theme.monoFamily
+            }
 
-                Label {
-                    text: qsTr("Address")
-                    color: Theme.muted
-                }
-                Label {
-                    text: dialog.app.targetAddress.length > 0
-                          ? dialog.app.targetAddress : qsTr("not set")
-                }
-                Label {
-                    text: qsTr("THW_ID_POS")
-                    color: Theme.muted
-                }
-                Label {
-                    text: dialog.app.thwIdPos.length > 0
-                          ? dialog.app.thwIdPos : qsTr("not set")
-                }
+            Text {
+                text: qsTr("THW_ID_POS")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontSmall
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: dialog.app.thwIdPos.length > 0
+                      ? dialog.app.thwIdPos : qsTr("not set")
+                color: Theme.text
+                font.pixelSize: Theme.fontBody
+                font.family: Theme.monoFamily
             }
         }
 
-        Panel {
-            title: qsTr("FIND answer")
+        SectionHeader {
+            label: qsTr("FIND answer")
+            visible: dialog.app.selectedTargetIndex >= 0
+        }
+
+        ColumnLayout {
             Layout.fillWidth: true
             visible: dialog.app.selectedTargetIndex >= 0
+            spacing: Theme.space2
 
             GridLayout {
                 Layout.fillWidth: true
                 columns: 2
-                columnSpacing: Theme.space3
-                rowSpacing: Theme.space1
+                columnSpacing: Theme.space4
+                rowSpacing: Theme.space2
 
-                Label {
-                    text: qsTr("Address")
-                    color: Theme.muted
+                Text { text: qsTr("Address"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
+                Text {
+                    Layout.fillWidth: true
+                    text: dialog.app.selectedTargetAddress
+                    color: Theme.text
+                    font.pixelSize: Theme.fontBody
+                    font.family: Theme.monoFamily
                 }
-                Label { text: dialog.app.selectedTargetAddress }
-                Label {
-                    text: qsTr("Hardware identifier")
-                    color: Theme.muted
+                Text { text: qsTr("Hardware identifier"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
+                Text {
+                    Layout.fillWidth: true
+                    text: dialog.app.selectedTargetHardwareId
+                    color: Theme.text
+                    font.pixelSize: Theme.fontBody
+                    font.family: Theme.monoFamily
                 }
-                Label { text: dialog.app.selectedTargetHardwareId }
-                Label {
-                    text: qsTr("Type")
-                    color: Theme.muted
+                Text { text: qsTr("Type"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
+                Text { Layout.fillWidth: true; text: dialog.app.selectedTargetTypeName; color: Theme.text }
+                Text { text: qsTr("Position"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
+                Text { Layout.fillWidth: true; text: dialog.app.selectedTargetPosition; color: Theme.text }
+                Text { text: qsTr("Name"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
+                Text { Layout.fillWidth: true; text: dialog.app.selectedTargetLiteralName; color: Theme.text }
+                Text { text: qsTr("Manufacturer code"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
+                Text {
+                    Layout.fillWidth: true
+                    text: dialog.app.selectedTargetManufacturer
+                    color: Theme.text
+                    font.family: Theme.monoFamily
                 }
-                Label { text: dialog.app.selectedTargetTypeName }
-                Label {
-                    text: qsTr("Position")
-                    color: Theme.muted
-                }
-                Label { text: dialog.app.selectedTargetPosition }
-                Label {
-                    text: qsTr("Name")
-                    color: Theme.muted
-                }
-                Label { text: dialog.app.selectedTargetLiteralName }
-                Label {
-                    text: qsTr("Manufacturer code")
-                    color: Theme.muted
-                }
-                Label { text: dialog.app.selectedTargetManufacturer }
             }
         }
 
-        Label {
+        Text {
             Layout.fillWidth: true
             visible: dialog.app.selectedTargetIndex < 0
-            text: qsTr("No target has been chosen from the FIND list.")
-            wrapMode: Text.Wrap
-            color: Theme.muted
+            text: qsTr("No target was chosen from a FIND answer. The address and THW_ID_POS are the values typed in the rail.")
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontBody
+            wrapMode: Text.WordWrap
         }
     }
+
+    onPrimaryClicked: dialog.close()
 }

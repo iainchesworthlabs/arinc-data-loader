@@ -26,22 +26,17 @@ add_subdirectory(core)
 
 set(ADL_APP_QML_FILES
     qml/Main.qml
-    qml/Theme.qml
-    qml/Panel.qml
-    qml/LogView.qml
+    qml/UploadPanel.qml
     qml/DownloadPanel.qml
+    qml/ActivityDock.qml
     qml/FirstRunScreen.qml
-    qml/AppButton.qml
-    qml/SegmentedControl.qml
-    qml/FocusRing.qml
     qml/PreferencesDialog.qml
     qml/MediaSetPropertiesDialog.qml
     qml/TargetPropertiesDialog.qml
-    qml/AboutDialog.qml)
+    qml/AboutDialog.qml
+    ${ADL_UI_QML_FILES})
 
-# Theme is a QML singleton: this must be set before qt_add_qml_module reads it, or the generated
-# qmldir registers it as an ordinary type and every Theme.* binding resolves to undefined.
-set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+adl_prepare_ui_qml()
 
 # The window is a static library of its own, as the Countdown Solver's module is, for one reason:
 # a QML module is registered by static initialisers that nothing calls, so the application links
@@ -103,6 +98,8 @@ target_link_libraries(adl_app
         adl::warnings
         adl::sanitizers
         adl::coverage)
+
+adl_add_ui_support(adl_app)
 
 # The QML compiler writes a C++ loader into this target, and in an optimised build GCC reports a
 # possible null dereference inside Qt's own QHash in it (a header we cannot change, in a file we do

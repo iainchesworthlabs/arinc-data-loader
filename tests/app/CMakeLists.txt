@@ -76,6 +76,8 @@ target_link_libraries(adl_app_qml_test
         adl::sanitizers
         adl::coverage)
 
+adl_add_ui_support(adl_app_qml_test)
+
 adl_platform_deploy_qt_runtime(adl_app_qml_test "${PROJECT_SOURCE_DIR}/src/app/qml")
 adl_deploy_sanitizer_runtime(adl_app_qml_test)
 add_dependencies(adl_app_qml_test adl_app_tests)

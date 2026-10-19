@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs
@@ -9,110 +11,170 @@ ApplicationWindow {
     // The LoaderModel (src/app/core), handed over by main.cpp.
     required property var app
 
-    // The tests render the window in the dark scheme (ADL_DARK=1): the offscreen platform
-    // theme does not follow the color scheme hint, so the palette is set by hand, exactly as a
-    // dark desktop theme supplies it.
+    // The tests render the window in the dark scheme (ADL_DARK=1); the screenshot runs do the
+    // same. The application otherwise follows the desktop's colour scheme.
     property bool renderDark: false
 
-    function applyDarkPalette() {
-        palette.window = "#2d2d30"
-        palette.windowText = "#f0f0f0"
-        palette.base = "#1e1e1e"
-        palette.alternateBase = "#2d2d30"
-        palette.text = "#f0f0f0"
-        palette.placeholderText = "#999999"
-        palette.button = "#3c3c3c"
-        palette.buttonText = "#f0f0f0"
-        palette.brightText = "#ff7070"
-        palette.highlight = "#3574f0"
-        palette.highlightedText = "#ffffff"
-        palette.mid = "#555555"
-        palette.dark = "#1e1e1e"
-        palette.light = "#4a4a4a"
-        palette.toolTipBase = "#2d2d30"
-        palette.toolTipText = "#f0f0f0"
-        palette.link = "#70b0ff"
+    // 0 upload, 1 download. The two operations share the target and the log but not the plan;
+    // keeping the switch here means Download is never below a scroll fold.
+    property int mode: 0
+
+    // Closing during a job asks first, then waits for the target to confirm the abort.
+    property bool closeRequested: false
+    property bool closeAfterStop: false
+
+    readonly property string statusText: app.busy ? qsTr("WORKING")
+                                                  : app.firstRun ? qsTr("SETUP")
+                                                                 : app.canUpload || app.canDownload
+                                                                   ? qsTr("READY") : qsTr("NOT READY")
+    readonly property string statusTone: app.busy ? "accent"
+                                                  : app.canUpload || app.canDownload ? "ok" : "warn"
+    readonly property string readinessText: {
+        if (window.app.busy)
+            return window.app.activity;
+        if (window.mode === 0) {
+            if (window.app.canUpload)
+                return window.app.selectedLoadCount === 1
+                       ? qsTr("Ready: 1 load to %1").arg(window.app.thwIdPos)
+                       : qsTr("Ready: %1 loads to %2")
+                             .arg(window.app.selectedLoadCount)
+                             .arg(window.app.thwIdPos);
+            return qsTr("Upload needs a checked media set, at least one ticked load and a target.");
+        }
+        if (window.app.canDownload)
+            return qsTr("Ready to download from %1.").arg(window.app.thwIdPos);
+        return qsTr("Download needs a target, a destination and - in media defined mode - a file name.");
     }
 
     title: qsTr("ARINC Data Loader")
-    width: 1100
-    height: 760
-    minimumWidth: 760
-    minimumHeight: 520
+    width: 1280
+    height: 900
+    minimumWidth: 1120
+    minimumHeight: 760
     visible: true
+    color: Theme.bg
 
-    // A right-to-left script mirrors the whole window, not only its text: the anchors and the
-    // layouts flip, and the language manager sets the application's layout direction before it
-    // retranslates. Every dialog inherits this.
-    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
-    LayoutMirroring.childrenInherit: true
+    palette.window: Theme.bg
+    palette.windowText: Theme.text
+    palette.base: Theme.neutral100
+    palette.alternateBase: Theme.neutral200
+    palette.text: Theme.text
+    palette.button: Theme.surface
+    palette.buttonText: Theme.text
+    palette.brightText: Theme.accentText
+    palette.highlight: Theme.accentFill
+    palette.highlightedText: Theme.accentText
+    palette.mid: Theme.divider
+    palette.dark: Theme.neutral900
+    palette.light: Theme.neutral100
+    palette.placeholderText: Theme.textMuted
+    palette.toolTipBase: Theme.surface
+    palette.toolTipText: Theme.text
+    palette.link: Theme.accentInk
 
-    // The design tokens follow the palette Qt's Fusion style draws the standard controls from:
-    // the dark scheme is the desktop's, not a second opinion. Set once, after the palette is.
-    Component.onCompleted: {
-        if (renderDark)
-            applyDarkPalette();
-        Theme.dark = palette.window.hslLightness < 0.5;
+    Component.onCompleted: Theme.forcedDark = renderDark;
+
+    onClosing: function(close) {
+        if (window.app.busy && !window.closeAfterStop) {
+            close.accepted = false;
+            closeDialog.open();
+        }
     }
 
-    menuBar: MenuBar {
-        Menu {
-            title: qsTr("&File")
-            Action {
-                text: qsTr("&Preferences...")
-                onTriggered: preferencesDialog.open()
-            }
-            MenuSeparator {}
-            Action {
-                text: qsTr("&Quit")
-                shortcut: StandardKey.Quit
-                onTriggered: window.close()
-            }
+    Shortcut {
+        sequence: StandardKey.Preferences
+        onActivated: preferencesDialog.open()
+    }
+
+    Shortcut {
+        sequence: StandardKey.Quit
+        onActivated: window.close()
+    }
+
+    Shortcut {
+        sequence: "Ctrl+F"
+        onActivated: if (!window.app.busy) window.app.findTargets()
+    }
+
+    header: AppHeader {
+        appCode: "ADL"
+        title: qsTr("ARINC Data Loader")
+        subtitle: qsTr("ARINC 615A · ARINC 665 · engineering load console")
+
+        StatusChip {
+            text: window.statusText
+            tone: window.statusTone
         }
-        Menu {
-            title: qsTr("&Target")
-            enabled: !window.app.firstRun
-            Action {
-                text: qsTr("&Find targets")
-                enabled: !window.app.busy
-                onTriggered: window.app.findTargets()
-            }
-            Action {
-                text: qsTr("&Read information")
-                enabled: window.app.canReadInformation
-                onTriggered: window.app.readInformation()
-            }
-            Action {
-                text: qsTr("&Upload")
-                enabled: window.app.canUpload
-                onTriggered: window.app.uploadSelected()
-            }
+
+        AppButton {
+            text: qsTr("Preferences")
+            onClicked: preferencesDialog.open()
+            Accessible.name: qsTr("Open preferences")
         }
-        Menu {
-            title: qsTr("&Media set")
-            enabled: !window.app.firstRun
-            Action {
-                text: qsTr("&Choose directory...")
-                enabled: !window.app.busy
-                onTriggered: mediaSetDialog.open()
-            }
-            Action {
-                text: qsTr("&Check media set")
-                enabled: !window.app.busy && window.app.mediaSetPath.length > 0
-                onTriggered: window.app.checkMediaSet()
-            }
-            Action {
-                text: qsTr("&Properties...")
-                enabled: window.app.mediaSetPath.length > 0
-                onTriggered: mediaSetPropertiesDialog.open()
-            }
+
+        AppButton {
+            text: qsTr("About")
+            onClicked: aboutDialog.open()
+            Accessible.name: qsTr("About the data loader")
         }
-        Menu {
-            title: qsTr("&Help")
-            Action {
-                text: qsTr("&About")
-                onTriggered: aboutDialog.open()
-            }
+    }
+
+    footer: AppStatusBar {
+        Rectangle {
+            width: 6
+            height: 6
+            radius: 3
+            color: window.app.busy ? Theme.accent : Theme.neutral600
+        }
+
+        Text {
+            text: window.app.busy ? window.app.activity
+                                  : window.app.resultIsTransfer && window.app.resultState === 1
+                                    ? qsTr("Complete")
+                                    : window.app.resultIsTransfer && window.app.resultState === 2
+                                      ? qsTr("Failed") : qsTr("Idle")
+            color: window.app.busy ? Theme.accentInk : Theme.text
+            font.pixelSize: Theme.fontMono
+            font.family: Theme.monoFamily
+            font.bold: window.app.busy
+            elide: Text.ElideRight
+            Layout.maximumWidth: 320
+        }
+
+        Text {
+            text: "·"
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontMono
+        }
+
+        Text {
+            text: window.app.targetValid ? window.app.thwIdPos : qsTr("no target")
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontMono
+            font.family: Theme.monoFamily
+        }
+
+        Text {
+            text: "·"
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontMono
+        }
+
+        Text {
+            Layout.fillWidth: true
+            text: window.app.mediaSetPath.length > 0
+                  ? window.app.mediaSetPath : qsTr("no media set")
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontMono
+            font.family: Theme.monoFamily
+            elide: Text.ElideMiddle
+        }
+
+        Text {
+            text: qsTr("v%1").arg(Qt.application.version)
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontMono
+            font.family: Theme.monoFamily
         }
     }
 
@@ -120,7 +182,11 @@ ApplicationWindow {
         id: mediaSetDialog
 
         title: qsTr("Choose the media set directory")
-        onAccepted: window.app.chooseMediaSet(selectedFolder)
+        onAccepted: {
+            if (window.app.firstRun)
+                window.app.completeFirstRun();
+            window.app.chooseMediaSet(selectedFolder);
+        }
     }
 
     PreferencesDialog {
@@ -145,539 +211,794 @@ ApplicationWindow {
         id: aboutDialog
     }
 
-    // One dialog per failed job: what happened, what it means, and what to do when the
-    // application knows. `dismissError` acknowledges it, and the next failure opens it again.
-    MessageDialog {
+    AppDialog {
+        id: closeDialog
+
+        heading: qsTr("An operation is running")
+        primaryText: qsTr("Stop and close")
+        secondaryText: qsTr("Keep working")
+
+        content: ColumnLayout {
+            Layout.fillWidth: true
+
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontBody
+                wrapMode: Text.WordWrap
+            }
+        }
+
+        onPrimaryClicked: {
+            window.closeAfterStop = true;
+            window.app.abort();
+            window.closeRequested = true;
+            close();
+        }
+
+        onSecondaryClicked: close()
+    }
+
+    AppDialog {
         id: errorDialog
 
-        title: qsTr("The operation failed")
-        buttons: MessageDialog.Ok
-        onButtonClicked: window.app.dismissError()
+        heading: qsTr("The operation failed")
+        primaryText: qsTr("OK")
+
+        content: ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Theme.space2
+
+            Text {
+                Layout.fillWidth: true
+                text: window.app.lastErrorText
+                color: Theme.text
+                font.pixelSize: Theme.fontSubheading
+                font.family: Theme.headingFamily
+                font.weight: Font.DemiBold
+                wrapMode: Text.WordWrap
+            }
+
+            Text {
+                Layout.fillWidth: true
+                visible: window.app.lastErrorDetail.length > 0
+                text: window.app.lastErrorDetail
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontBody
+                wrapMode: Text.WordWrap
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                visible: window.app.lastErrorHint.length > 0
+                color: Theme.divider
+            }
+
+            Text {
+                Layout.fillWidth: true
+                visible: window.app.lastErrorHint.length > 0
+                text: window.app.lastErrorHint
+                color: Theme.accentInk
+                font.pixelSize: Theme.fontBody
+                wrapMode: Text.WordWrap
+            }
+        }
+
+        onPrimaryClicked: {
+            window.app.dismissError();
+            close();
+        }
     }
 
     Connections {
         target: window.app
+
         function onErrorChanged() {
-            if (window.app.lastErrorText.length > 0) {
-                errorDialog.text = window.app.lastErrorText
-                        + (window.app.lastErrorDetail.length > 0
-                           ? "\n\n" + window.app.lastErrorDetail : "")
-                        + (window.app.lastErrorHint.length > 0
-                           ? "\n\n" + window.app.lastErrorHint : "")
-                errorDialog.open()
+            if (window.app.lastErrorText.length > 0)
+                errorDialog.open();
+        }
+
+        function onBusyChanged() {
+            if (!window.app.busy && window.closeRequested) {
+                window.closeRequested = false;
+                window.close();
             }
         }
     }
 
-    // ---- the first launch ----
     FirstRunScreen {
-        id: firstRun
-
         anchors.fill: parent
         visible: window.app.firstRun
         app: window.app
+
+        onChooseMediaSetRequested: mediaSetDialog.open()
     }
 
-    // ---- the workbench ----
-    ColumnLayout {
+    RowLayout {
         anchors.fill: parent
         visible: !window.app.firstRun
         spacing: 0
 
-        SplitView {
-            Layout.fillWidth: true
+        // ---- the context rail: target, then media set ----
+        ScrollView {
+            id: rail
+
+            Layout.preferredWidth: 388
+            Layout.minimumWidth: 348
+            Layout.maximumWidth: 460
             Layout.fillHeight: true
-            Layout.margins: Theme.space3
-            orientation: Qt.Horizontal
+            clip: true
+            contentWidth: availableWidth
 
-            // ---- what the operator sets up and starts ----
-            ScrollView {
-                SplitView.preferredWidth: 460
-                SplitView.minimumWidth: 360
-                contentWidth: availableWidth
-                clip: true
+            ColumnLayout {
+                width: rail.availableWidth
+                spacing: 0
 
-                ColumnLayout {
-                    width: parent.width
-                    spacing: Theme.space3
+                RailBlock {
+                    Layout.margins: Theme.space4
+                    ordinal: "01"
+                    label: qsTr("TARGET")
 
-                    Panel {
-                        title: qsTr("Media set")
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Theme.space2
 
-                        ColumnLayout {
-                            anchors.fill: parent
+                        StatusChip {
+                            text: window.app.targetValid ? qsTr("SET") : qsTr("NOT SET")
+                            tone: window.app.targetValid ? "ok" : "warn"
+                        }
+
+                        Item {
+                            Layout.fillWidth: true
+                        }
+
+                        AppButton {
+                            text: qsTr("Find")
+                            enabled: !window.app.busy
+                            onClicked: window.app.findTargets()
+                            Accessible.name: qsTr("Find targets")
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: Theme.space1
+
+                        Text {
+                            text: qsTr("ADDRESS")
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontMicro
+                            font.family: Theme.monoFamily
+                            font.letterSpacing: 0.8
+                        }
+
+                        AppTextField {
+                            Layout.fillWidth: true
+                            placeholderText: qsTr("10.0.0.2")
+                            text: window.app.targetAddress
+                            enabled: !window.app.busy
+                            onTextEdited: window.app.targetAddress = text
+                            Accessible.name: qsTr("Target address")
+                        }
+
+                        Text {
+                            text: qsTr("THW_ID_POS")
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontMicro
+                            font.family: Theme.monoFamily
+                            font.letterSpacing: 0.8
+                        }
+
+                        AppTextField {
+                            Layout.fillWidth: true
+                            placeholderText: qsTr("HNPFMS_L")
+                            text: window.app.thwIdPos
+                            enabled: !window.app.busy
+                            onTextEdited: window.app.thwIdPos = text
+                            Accessible.name: qsTr("Target hardware identifier and position")
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        visible: targetRepeater.count > 0
+                        spacing: Theme.space1
+
+                        Text {
+                            text: qsTr("FOUND")
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontMicro
+                            font.family: Theme.monoFamily
+                            font.letterSpacing: 0.8
+                        }
+
+                        Repeater {
+                            id: targetRepeater
+
+                            model: window.app.targets
+
+                            delegate: Rectangle {
+                                id: targetRow
+
+                                required property int index
+                                required property string thwIdPos
+                                required property string address
+                                required property string typeName
+                                required property string position
+
+                                Layout.fillWidth: true
+                                implicitHeight: targetContent.implicitHeight + Theme.space2 * 2
+                                color: window.app.selectedTargetIndex === targetRow.index
+                                       ? Theme.accent100 : "transparent"
+                                border.color: window.app.selectedTargetIndex === targetRow.index
+                                              ? Theme.accent300 : Theme.divider
+                                border.width: 1
+
+                                RowLayout {
+                                    id: targetContent
+
+                                    anchors.fill: parent
+                                    anchors.margins: Theme.space2
+                                    spacing: Theme.space2
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 0
+
+                                        Text {
+                                            text: targetRow.thwIdPos.length > 0
+                                                  ? targetRow.thwIdPos : targetRow.address
+                                            color: Theme.text
+                                            font.pixelSize: Theme.fontBody
+                                            font.family: Theme.monoFamily
+                                            font.bold: true
+                                        }
+
+                                        Text {
+                                            text: targetRow.address + " · "
+                                                  + targetRow.typeName + " " + targetRow.position
+                                            color: Theme.textMuted
+                                            font.pixelSize: Theme.fontSmall
+                                            elide: Text.ElideRight
+                                        }
+                                    }
+
+                                    StatusChip {
+                                        visible: window.app.selectedTargetIndex === targetRow.index
+                                        text: qsTr("SELECTED")
+                                        tone: "ok"
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: !window.app.busy
+                                    onClicked: window.app.selectTarget(targetRow.index)
+                                }
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Theme.space2
+
+                        AppButton {
+                            text: qsTr("Properties...")
+                            enabled: window.app.selectedTargetIndex >= 0
+                                     || window.app.targetAddress.length > 0
+                            onClicked: targetPropertiesDialog.open()
+                            Accessible.name: qsTr("Show the target properties")
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: window.app.targetValid
+                                  ? qsTr("Ready to address.")
+                                  : qsTr("Type an address or use FIND.")
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontSmall
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    Layout.leftMargin: Theme.space4
+                    Layout.rightMargin: Theme.space4
+                    color: Theme.divider
+                }
+
+                RailBlock {
+                    id: mediaSetRail
+
+                    property bool findingsExpanded: false
+
+                    Layout.margins: Theme.space4
+                    ordinal: "02"
+                    label: qsTr("MEDIA SET")
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Theme.space2
+
+                        StatusChip {
+                            text: window.app.mediaSetPath.length === 0 ? qsTr("NOT CHOSEN")
+                                                                       : window.app.validationState === 1
+                                                                         ? qsTr("CHECKING")
+                                                                         : window.app.validationState === 2
+                                                                           ? qsTr("CHECKED")
+                                                                           : window.app.validationState === 3
+                                                                             ? qsTr("INVALID") : qsTr("UNCHECKED")
+                            tone: window.app.mediaSetPath.length === 0 ? "neutral"
+                                                                       : window.app.validationState === 2
+                                                                         ? "ok"
+                                                                         : window.app.validationState === 3
+                                                                           ? "fail" : "warn"
+                        }
+
+                        Item {
+                            Layout.fillWidth: true
+                        }
+
+                        AppButton {
+                            text: window.app.mediaSetPath.length === 0
+                                  ? qsTr("Choose...") : qsTr("Change...")
+                            enabled: !window.app.busy
+                            onClicked: mediaSetDialog.open()
+                            Accessible.name: qsTr("Choose the media set directory")
+                        }
+                    }
+
+                    EmptyState {
+                        visible: window.app.mediaSetPath.length === 0
+                        title: qsTr("No media set chosen")
+                        body: qsTr("Choose a directory with one directory per member. It is read and checked before an upload.")
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        visible: window.app.mediaSetPath.length > 0
+                        spacing: Theme.space1
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: window.app.mediaSetPath
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontSmall
+                            font.family: Theme.monoFamily
+                            elide: Text.ElideMiddle
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: window.app.mediaSetPartNumber + " · "
+                                  + Theme.quantity(window.app.mediaSetMemberCount,
+                                                   qsTr("member"), qsTr("members"))
+                                  + " · "
+                                  + Theme.quantity(loadRepeater.count, qsTr("load"), qsTr("loads"))
+                            color: Theme.text
+                            font.pixelSize: Theme.fontSubheading
+                            font.family: Theme.headingFamily
+                            font.weight: Font.DemiBold
+                            wrapMode: Text.WordWrap
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            visible: window.app.mediaSetError.length > 0
+                            text: window.app.mediaSetError
+                            color: Theme.accentInk
+                            font.pixelSize: Theme.fontSmall
+                            wrapMode: Text.WordWrap
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
                             spacing: Theme.space2
 
-                            RowLayout {
-                                AppButton {
-                                    text: qsTr("Choose directory...")
-                                    enabled: !window.app.busy
-                                    onClicked: {
-                                        if (window.app.lastMediaSetDirectory.length > 0)
-                                            mediaSetDialog.currentFolder
-                                                    = window.app.lastMediaSetDirectory
-                                        mediaSetDialog.open()
-                                    }
-                                    Accessible.name: qsTr("Choose the media set directory")
-                                }
-                                AppButton {
-                                    text: qsTr("Check media set")
-                                    enabled: !window.app.busy
-                                             && window.app.mediaSetPath.length > 0
-                                    onClicked: window.app.checkMediaSet()
-                                    Accessible.name: qsTr("Check the media set")
-                                    ToolTip.visible: hovered
-                                    ToolTip.text: qsTr("Reads the set again and checks it; an upload needs a set that has been checked valid")
-                                }
-                                AppButton {
-                                    text: qsTr("Properties...")
-                                    enabled: window.app.mediaSetPath.length > 0
-                                    onClicked: mediaSetPropertiesDialog.open()
-                                    Accessible.name: qsTr("Show the media set properties")
-                                }
+                            AppButton {
+                                text: qsTr("Re-check")
+                                enabled: !window.app.busy && window.app.mediaSetPath.length > 0
+                                onClicked: window.app.checkMediaSet()
+                                Accessible.name: qsTr("Check the media set again")
                             }
-                            Label {
-                                Layout.fillWidth: true
-                                text: window.app.mediaSetPath
-                                elide: Text.ElideMiddle
-                                color: Theme.muted
-                                visible: text.length > 0
-                            }
-                            Label {
-                                Layout.fillWidth: true
-                                visible: window.app.mediaSetPath.length === 0
-                                text: qsTr("No media set chosen. A media set is a directory with one directory per member.")
-                                wrapMode: Text.Wrap
-                                color: Theme.muted
-                            }
-                            Label {
-                                Layout.fillWidth: true
-                                visible: text.length > 0
-                                text: window.app.mediaSetError
-                                color: Theme.fail
-                                wrapMode: Text.Wrap
-                            }
-                            Label {
-                                Layout.fillWidth: true
-                                visible: text.length > 0
-                                text: window.app.mediaSetTitle
-                                font.bold: true
-                                wrapMode: Text.Wrap
-                            }
-                            Label {
-                                Layout.fillWidth: true
-                                visible: window.app.validationState === 1
-                                text: qsTr("Checking the media set...")
-                                wrapMode: Text.Wrap
-                                color: Theme.muted
-                            }
-                            Label {
-                                Layout.fillWidth: true
-                                visible: window.app.validationState === 2
-                                text: qsTr("Media set checked: %1").arg(window.app.validationDetail)
-                                color: Theme.ok
-                                wrapMode: Text.Wrap
-                            }
-                            Label {
-                                Layout.fillWidth: true
-                                visible: window.app.validationState === 3
-                                text: qsTr("The media set is not valid: %1").arg(window.app.validationError)
-                                color: Theme.fail
-                                wrapMode: Text.Wrap
-                            }
-                            RowLayout {
-                                visible: loadList.count > 0
 
-                                AppButton {
-                                    text: qsTr("Tick all")
-                                    enabled: !window.app.busy
-                                    onClicked: window.app.selectAllLoads(true)
-                                    Accessible.name: qsTr("Tick every load for upload")
-                                }
-                                AppButton {
-                                    text: qsTr("Tick none")
-                                    enabled: !window.app.busy
-                                    onClicked: window.app.selectAllLoads(false)
-                                    Accessible.name: qsTr("Untick every load")
-                                }
-                                Label {
-                                    Layout.fillWidth: true
-                                    text: qsTr("%n load(s) ticked for upload", "", window.app.selectedLoadCount)
-                                    color: Theme.muted
-                                    elide: Text.ElideRight
-                                }
+                            AppButton {
+                                text: qsTr("Properties...")
+                                enabled: window.app.mediaSetPath.length > 0
+                                onClicked: mediaSetPropertiesDialog.open()
+                                Accessible.name: qsTr("Show the media set properties")
                             }
-                            Repeater {
-                                id: loadList
+                        }
 
-                                model: window.app.loads
-                                delegate: ColumnLayout {
-                                    id: loadRow
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.topMargin: Theme.space2
+                            spacing: Theme.space1
 
-                                    required property var model
-                                    required property string partNumber
-                                    required property string detail
-                                    required property bool checked
-                                    required property int ratio
-                                    required property string loadStatus
-                                    required property bool failed
-                                    required property string problem
+                            Text {
+                                text: qsTr("LOADS")
+                                color: Theme.textMuted
+                                font.pixelSize: Theme.fontMicro
+                                font.family: Theme.monoFamily
+                                font.letterSpacing: 0.8
+                            }
 
-                                    Layout.fillWidth: true
-                                    spacing: 2
+                            Item {
+                                Layout.fillWidth: true
+                            }
 
-                                    CheckBox {
+                            AppButton {
+                                text: qsTr("All")
+                                enabled: !window.app.busy && loadRepeater.count > 0
+                                onClicked: window.app.selectAllLoads(true)
+                                Accessible.name: qsTr("Tick every load")
+                            }
+
+                            AppButton {
+                                text: qsTr("None")
+                                enabled: !window.app.busy && loadRepeater.count > 0
+                                onClicked: window.app.selectAllLoads(false)
+                                Accessible.name: qsTr("Untick every load")
+                            }
+                        }
+
+                        Repeater {
+                            id: loadRepeater
+
+                            model: window.app.loads
+
+                            delegate: Rectangle {
+                                id: loadRow
+
+                                required property var model
+                                required property string partNumber
+                                required property string detail
+                                required property bool checked
+                                required property int ratio
+                                required property string loadStatus
+                                required property bool failed
+                                required property string problem
+
+                                Layout.fillWidth: true
+                                implicitHeight: loadContent.implicitHeight + Theme.space2 * 2
+                                color: loadRow.checked ? Theme.accent100 : "transparent"
+                                border.color: loadRow.checked ? Theme.accent300 : Theme.divider
+                                border.width: 1
+
+                                ColumnLayout {
+                                    id: loadContent
+
+                                    anchors.fill: parent
+                                    anchors.margins: Theme.space2
+                                    spacing: Theme.space1
+
+                                    AppCheckBox {
                                         objectName: "loadCheck"
                                         Layout.fillWidth: true
                                         text: loadRow.partNumber
                                         checked: loadRow.checked
                                         enabled: !window.app.busy
-                                        onToggled: loadRow.model.checked = checked
+                                        onToggled: (value) => loadRow.model.checked = value
                                         Accessible.name: qsTr("Upload load %1").arg(loadRow.partNumber)
                                     }
-                                    Label {
+
+                                    Text {
                                         Layout.fillWidth: true
-                                        Layout.leftMargin: 28
+                                        Layout.leftMargin: 26
                                         text: loadRow.detail
-                                        color: Theme.muted
-                                        wrapMode: Text.Wrap
+                                        color: Theme.textMuted
+                                        font.pixelSize: Theme.fontSmall
+                                        wrapMode: Text.WordWrap
                                     }
-                                    ProgressBar {
+
+                                    TaskProgress {
                                         Layout.fillWidth: true
-                                        Layout.leftMargin: 28
+                                        Layout.leftMargin: 26
                                         visible: loadRow.ratio >= 0
-                                        from: 0
-                                        to: 100
-                                        value: loadRow.ratio
-                                        Accessible.name: qsTr("Upload progress of %1").arg(loadRow.partNumber)
+                                        value: Math.max(0, loadRow.ratio)
+                                        indeterminate: false
                                     }
-                                    Label {
+
+                                    Text {
                                         Layout.fillWidth: true
-                                        Layout.leftMargin: 28
+                                        Layout.leftMargin: 26
                                         visible: loadRow.ratio >= 0
                                         text: loadRow.ratio + "% " + loadRow.loadStatus
                                               + (loadRow.problem.length > 0 ? ": " + loadRow.problem : "")
-                                        color: loadRow.failed ? Theme.fail : Theme.ink
-                                        wrapMode: Text.Wrap
+                                        color: loadRow.failed ? Theme.accentInk : Theme.text
+                                        font.pixelSize: Theme.fontSmall
+                                        wrapMode: Text.WordWrap
                                     }
                                 }
                             }
-                            Label {
-                                Layout.fillWidth: true
-                                visible: window.app.mediaSetFindings.length > 0
-                                text: qsTr("%n warning(s) against the standard's recommendations", "",
-                                           window.app.mediaSetFindings.length)
-                                color: Theme.warn
-                            }
-                            Repeater {
-                                model: window.app.mediaSetFindings
-                                delegate: Label {
-                                    required property string modelData
-
-                                    Layout.fillWidth: true
-                                    text: modelData
-                                    wrapMode: Text.Wrap
-                                    color: Theme.muted
-                                }
-                            }
                         }
-                    }
 
-                    Panel {
-                        title: qsTr("Target")
-
-                        ColumnLayout {
-                            anchors.fill: parent
+                        RowLayout {
+                            Layout.fillWidth: true
+                            visible: window.app.mediaSetFindings.length > 0
                             spacing: Theme.space2
 
-                            AppButton {
-                                text: qsTr("Find targets")
-                                enabled: !window.app.busy
-                                onClicked: window.app.findTargets()
-                                Accessible.name: qsTr("Find targets")
-                                ToolTip.visible: hovered
-                                ToolTip.text: qsTr("Broadcasts FIND and listens for three seconds")
+                            StatusChip {
+                                text: Theme.quantity(window.app.mediaSetFindings.length,
+                                                     qsTr("WARNING"), qsTr("WARNINGS"))
+                                tone: "warn"
                             }
-                            ListView {
-                                id: targetList
+
+                            Item {
+                                Layout.fillWidth: true
+                            }
+                        }
+
+                        Repeater {
+                            model: window.app.mediaSetFindings
+
+                            delegate: Text {
+                                id: findingRow
+
+                                required property int index
+                                required property string modelData
 
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: Math.min(contentHeight, 140)
-                                visible: count > 0
-                                clip: true
-                                model: window.app.targets
-                                Accessible.role: Accessible.List
-                                Accessible.name: qsTr("Targets found")
-                                delegate: ItemDelegate {
-                                    required property int index
-                                    required property string summary
-
-                                    width: ListView.view.width
-                                    text: summary
-                                    highlighted: ListView.isCurrentItem
-                                    onClicked: {
-                                        targetList.currentIndex = index;
-                                        window.app.selectTarget(index);
-                                    }
-                                }
-                            }
-                            GridLayout {
-                                Layout.fillWidth: true
-                                columns: 2
-                                columnSpacing: Theme.space2
-                                rowSpacing: Theme.space1
-
-                                Label {
-                                    text: qsTr("Address")
-                                    color: Theme.muted
-                                }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    placeholderText: qsTr("10.0.0.2")
-                                    text: window.app.targetAddress
-                                    enabled: !window.app.busy
-                                    onTextEdited: window.app.targetAddress = text
-                                    Accessible.name: qsTr("Target address")
-                                    Component.onCompleted: forceActiveFocus()
-                                }
-                                Label {
-                                    text: qsTr("THW_ID_POS")
-                                    color: Theme.muted
-                                }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    placeholderText: qsTr("HNPFMS_L")
-                                    text: window.app.thwIdPos
-                                    enabled: !window.app.busy
-                                    onTextEdited: window.app.thwIdPos = text
-                                    Accessible.name: qsTr("Target hardware identifier and position")
-                                }
-                            }
-                            AppButton {
-                                text: qsTr("Properties...")
-                                enabled: window.app.selectedTargetIndex >= 0
-                                         || window.app.targetAddress.length > 0
-                                onClicked: targetPropertiesDialog.open()
-                                Accessible.name: qsTr("Show the target properties")
-                            }
-                            Label {
-                                Layout.fillWidth: true
-                                visible: !window.app.targetValid
-                                text: qsTr("Choose a target, or enter its IPv4 address and THW_ID_POS.")
-                                wrapMode: Text.Wrap
-                                color: Theme.muted
+                                visible: findingRow.index < 3 || mediaSetRail.findingsExpanded
+                                text: "· " + findingRow.modelData
+                                color: Theme.accentInk
+                                font.pixelSize: Theme.fontSmall
+                                wrapMode: Text.WordWrap
                             }
                         }
-                    }
 
-                    DownloadPanel {
-                        title: qsTr("Download")
-                        app: window.app
-                    }
-                }
-            }
-
-            // ---- what came back ----
-            ColumnLayout {
-                SplitView.fillWidth: true
-                SplitView.minimumWidth: 320
-                spacing: Theme.space3
-
-                Panel {
-                    title: qsTr("Target configuration")
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: 1
-
-                    ListView {
-                        id: configurationList
-
-                        anchors.fill: parent
-                        clip: true
-                        model: window.app.configuration
-                        Accessible.role: Accessible.List
-                        Accessible.name: qsTr("Target configuration")
-                        ScrollBar.vertical: ScrollBar {}
-
-                        Label {
-                            anchors.centerIn: parent
-                            visible: configurationList.count === 0
-                            text: qsTr("Nothing read yet.")
-                            color: Theme.muted
-                        }
-                        delegate: ColumnLayout {
-                            required property int level
-                            required property string title
-                            required property string detail
-
-                            width: ListView.view.width
-                            spacing: 0
-
-                            Label {
-                                Layout.leftMargin: level === 0 ? 0 : 24
-                                Layout.topMargin: level === 0 ? 6 : 0
-                                text: title
-                                font.bold: level === 0
-                            }
-                            Label {
-                                Layout.leftMargin: level === 0 ? 0 : 24
-                                text: detail
-                                color: Theme.muted
-                            }
-                        }
-                    }
-                }
-
-                Panel {
-                    title: qsTr("Activity")
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: 1
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        spacing: Theme.space1
-
-                        LogView {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            events: window.app.events
-                        }
                         AppButton {
-                            text: qsTr("Clear")
-                            onClicked: window.app.clearLog()
-                            Accessible.name: qsTr("Clear the activity log")
+                            visible: window.app.mediaSetFindings.length > 3
+                            text: mediaSetRail.findingsExpanded ? qsTr("Show fewer")
+                                                                : qsTr("Show all warnings")
+                            onClicked: mediaSetRail.findingsExpanded = !mediaSetRail.findingsExpanded
                         }
                     }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        visible: window.app.validationState === 1
+                        spacing: Theme.space2
+
+                        BusyMark {}
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Reading and checking the set...")
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontBody
+                        }
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        visible: window.app.validationState === 2
+                        text: qsTr("Every file and check value was read and verified.")
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        visible: window.app.validationState === 3
+                        text: window.app.validationError
+                        color: Theme.accentInk
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                    }
+                }
+
+                Item {
+                    Layout.preferredHeight: Theme.space6
                 }
             }
         }
 
-        // ---- the operation: the buttons, the progress and the result, always in reach ----
-        Panel {
-            title: qsTr("Operation")
-            Layout.leftMargin: Theme.space3
-            Layout.rightMargin: Theme.space3
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 2
+            color: Theme.divider
+        }
 
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: Theme.space2
+        // ---- the work area ----
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: 0
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 52
+                color: Theme.surface
 
                 RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: Theme.space4
+                    anchors.rightMargin: Theme.space4
+                    spacing: Theme.space3
+
+                    Text {
+                        text: qsTr("TRANSFER")
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontMicro
+                        font.family: Theme.monoFamily
+                        font.letterSpacing: 1.0
+                    }
+
+                    SegmentedControl {
+                        segments: [
+                            { value: 0, label: qsTr("Upload") },
+                            { value: 1, label: qsTr("Download") }
+                        ]
+                        selectedValue: window.mode
+                        onSegmentClicked: (value) => window.mode = value
+                        enabled: !window.app.busy
+                        Accessible.name: qsTr("Transfer operation")
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+
+                    StatusChip {
+                        text: window.app.busy ? qsTr("RUNNING")
+                                              : window.app.resultIsTransfer && window.app.resultState === 1
+                                                ? qsTr("COMPLETE")
+                                                : window.app.resultIsTransfer && window.app.resultState === 2
+                                                  ? qsTr("FAILED")
+                                                  : window.app.canUpload || window.app.canDownload
+                                                    ? qsTr("READY") : qsTr("NOT READY")
+                        tone: window.app.busy ? "accent"
+                                              : window.app.resultIsTransfer && window.app.resultState === 1
+                                                ? "ok"
+                                                : window.app.resultIsTransfer && window.app.resultState === 2
+                                                  ? "fail"
+                                                  : window.app.canUpload || window.app.canDownload
+                                                    ? "ok" : "warn"
+                    }
+                }
+
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    height: 2
+                    color: Theme.divider
+                }
+            }
+
+            StackLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                currentIndex: window.mode
+
+                UploadPanel {
+                    app: window.app
+
+                    onChooseMediaSetRequested: mediaSetDialog.open()
+                    onCheckMediaSetRequested: window.app.checkMediaSet()
+                    onFindTargetsRequested: window.app.findTargets()
+                }
+
+                DownloadPanel {
+                    app: window.app
+                }
+            }
+
+            ActivityDock {
+                id: activityDock
+
+                Layout.fillWidth: true
+                Layout.preferredHeight: activityDock.expanded ? 260 : 44
+                app: window.app
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 76
+                color: Theme.surface
+
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    height: 1
+                    color: Theme.divider
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: Theme.space4
+                    anchors.rightMargin: Theme.space4
+                    anchors.topMargin: Theme.space2
+                    anchors.bottomMargin: Theme.space2
                     spacing: Theme.space2
 
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: Theme.space1
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.space2
+
+                            BusyMark {
+                                visible: window.app.busy
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: window.readinessText
+                                color: Theme.text
+                                font.pixelSize: Theme.fontBody
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            visible: window.app.busy
+                            spacing: Theme.space2
+
+                            TaskProgress {
+                                Layout.fillWidth: true
+                                value: Math.max(0, window.app.progress)
+                                indeterminate: window.app.progress < 0
+                            }
+
+                            Text {
+                                text: window.app.progress >= 0
+                                      ? window.app.progress + "%" : qsTr("working")
+                                color: Theme.textMuted
+                                font.pixelSize: Theme.fontMono
+                                font.family: Theme.monoFamily
+                            }
+                        }
+                    }
+
                     AppButton {
+                        visible: window.mode === 0
                         text: qsTr("Read information")
                         enabled: window.app.canReadInformation
                         onClicked: window.app.readInformation()
                         Accessible.name: qsTr("Read the target information")
-                        ToolTip.visible: hovered
-                        ToolTip.text: qsTr("Asks the target for its configuration (ARINC 615A Information)")
                     }
+
                     AppButton {
                         objectName: "uploadButton"
-
+                        visible: window.mode === 0
                         primary: true
-                        text: qsTr("Upload")
+                        text: window.app.busy ? qsTr("Uploading...") : qsTr("Upload")
                         enabled: window.app.canUpload
                         onClicked: window.app.uploadSelected()
                         Accessible.name: qsTr("Upload the ticked loads")
-                        ToolTip.visible: hovered
-                        ToolTip.text: qsTr("Loads the ticked loads of the media set to the target (ARINC 615A Upload)")
                     }
+
                     AppButton {
+                        objectName: "downloadButton"
+                        visible: window.mode === 1
+                        primary: true
+                        text: window.app.busy ? qsTr("Downloading...") : qsTr("Download")
+                        enabled: window.app.canDownload
+                        onClicked: window.app.downloadSelected()
+                        Accessible.name: qsTr("Download from the target")
+                    }
+
+                    AppButton {
+                        visible: window.app.busy
                         text: qsTr("Abort")
                         enabled: window.app.canAbort
                         onClicked: window.app.abort()
                         Accessible.name: qsTr("Abort the operation")
                     }
-                    ProgressBar {
-                        Layout.fillWidth: true
-                        visible: window.app.busy
-                        from: 0
-                        to: 100
-                        // The target reports a figure for an upload or a download only; for the
-                        // rest, and before the first status file, the bar only shows that it is
-                        // busy.
-                        indeterminate: window.app.progress < 0
-                        value: Math.max(window.app.progress, 0)
-                        Accessible.name: qsTr("Progress of the operation")
-                    }
-                    Label {
-                        visible: window.app.busy
-                        text: window.app.progress < 0
-                              ? window.app.activity
-                              : window.app.activity + " " + window.app.progress + "%"
-                    }
                 }
-                Label {
-                    Layout.fillWidth: true
-                    visible: !window.app.canUpload
-                             && window.app.mediaSetPath.length > 0
-                             && window.app.selectedLoadCount > 0
-                             && window.app.targetValid
-                             && window.app.validationState !== 2
-                    text: window.app.validationState === 3
-                          ? qsTr("Upload is refused: the media set is not valid.")
-                          : qsTr("Upload is refused until the media set has been checked.")
-                    wrapMode: Text.Wrap
-                    color: Theme.muted
-                }
-                Label {
-                    Layout.fillWidth: true
-                    visible: window.app.resultState !== 0
-                    text: window.app.resultText
-                    font.bold: true
-                    wrapMode: Text.Wrap
-                    color: window.app.resultState === 1 ? Theme.ok : Theme.fail
-                    Accessible.role: Accessible.StaticText
-                    Accessible.name: qsTr("Result: %1").arg(text)
-                }
-                Label {
-                    Layout.fillWidth: true
-                    visible: text.length > 0
-                    text: window.app.resultDetail
-                    wrapMode: Text.Wrap
-                    color: Theme.muted
-                }
-            }
-        }
-
-        // ---- the status bar ----
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 1
-            color: Theme.border
-        }
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.leftMargin: Theme.space3
-            Layout.rightMargin: Theme.space3
-            Layout.topMargin: Theme.space1
-            Layout.bottomMargin: Theme.space1
-            spacing: Theme.space2
-
-            Label {
-                text: window.app.busy ? window.app.activity : qsTr("Idle")
-                font.bold: window.app.busy
-            }
-            Label {
-                text: "·"
-                color: Theme.muted
-            }
-            Label {
-                text: window.app.targetAddress.length > 0
-                      ? window.app.targetAddress : qsTr("no target")
-                color: Theme.muted
-            }
-            Label {
-                text: "·"
-                color: Theme.muted
-            }
-            Label {
-                Layout.fillWidth: true
-                text: window.app.mediaSetPath.length > 0
-                      ? window.app.mediaSetPath : qsTr("no media set")
-                elide: Text.ElideMiddle
-                color: Theme.muted
             }
         }
     }

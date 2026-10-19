@@ -488,9 +488,10 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
     QCOMPARE(model.resultState(), 1);
     QCOMPARE(model.resultText(), QStringLiteral("completed"));
     const auto& reads = fixture.load.item.reads;
-    QVERIFY2(model.resultDetail().contains(
-                 QStringLiteral("The target read %1 file(s)").arg(reads.size())),
-             qPrintable(model.resultDetail()));
+    const QString served = reads.size() == 1
+                               ? QStringLiteral("The target read 1 file")
+                               : QStringLiteral("The target read %1 files").arg(reads.size());
+    QVERIFY2(model.resultDetail().contains(served), qPrintable(model.resultDetail()));
     QVERIFY(model.canUpload());  // and it can be done again
     QVERIFY(!model.canAbort());
 
@@ -513,7 +514,7 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
              QStringLiteral("completed"));
     QVERIFY(!load_field(model, 0, LoadModel::FailedRole).toBool());
 
-    QVERIFY(log_contains(model, QStringLiteral("Uploading 1 load(s) to 10.0.0.2 (HNPFMS_L)")));
+    QVERIFY(log_contains(model, QStringLiteral("Uploading 1 load to 10.0.0.2 (HNPFMS_L)")));
     QVERIFY(log_contains(
         model, QStringLiteral("The target read %1").arg(QString::fromStdString(names.front()))));
     QVERIFY(log_contains(model, QStringLiteral("% of the list")));
@@ -605,7 +606,7 @@ void LoaderModelTest::abort_before_the_target_accepts_ends_the_upload() {
 
     QCOMPARE(model.resultState(), 2);
     QCOMPARE(model.resultText(), QStringLiteral("aborted by the operator"));
-    QVERIFY(model.resultDetail().contains(QStringLiteral("The target read 0 file(s)")));
+    QVERIFY(model.resultDetail().contains(QStringLiteral("The target read 0 files")));
     QVERIFY(rig.target.log().files_read.empty());
 
     // The next upload is not aborted by the last one's request.
@@ -1156,7 +1157,7 @@ void LoaderModelTest::a_media_defined_download_writes_the_files_into_the_numbere
     QCOMPARE(progress.back(), 100);
     QVERIFY(std::is_sorted(progress.begin(), progress.end()));
 
-    QVERIFY(log_contains(model, QStringLiteral("Downloading 2 file(s) from 10.0.0.2 (HNPFMS_L)")));
+    QVERIFY(log_contains(model, QStringLiteral("Downloading 2 files from 10.0.0.2 (HNPFMS_L)")));
     QVERIFY(log_contains(model, QStringLiteral("Received A.BIN")));
     QVERIFY(log_contains(model, QStringLiteral("% of the list")));
     QVERIFY(log_contains(model, QStringLiteral("Finished: completed")));
@@ -1233,7 +1234,7 @@ void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_
     QVERIFY(!downloaded(rig, downloads.path(), "A.BIN").has_value());
     // The window keeps the chosen files, with their progress.
     QCOMPARE(qobject_cast<DownloadModel*>(model.downloads())->rowCount(), 2);
-    QVERIFY(log_contains(model, QStringLiteral("The target listed 3 file(s) it can download.")));
+    QVERIFY(log_contains(model, QStringLiteral("The target listed 3 files it can download.")));
 }
 
 void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() {
@@ -1290,9 +1291,9 @@ void LoaderModelTest::a_download_with_a_missing_file_ends_as_a_failure() {
     // The target completed, but a file the operator asked for never arrived: the application
     // reports the download as failed, with the numbers and a hint.
     QCOMPARE(model.resultState(), 2);
-    QCOMPARE(model.resultText(), QStringLiteral("completed, 1 file(s) missing"));
+    QCOMPARE(model.resultText(), QStringLiteral("completed, 1 file missing"));
     QVERIFY(model.resultDetail().contains(QStringLiteral("Files received: 1 of 2 requested.")));
-    QCOMPARE(model.lastErrorText(), QStringLiteral("completed, 1 file(s) missing"));
+    QCOMPARE(model.lastErrorText(), QStringLiteral("completed, 1 file missing"));
     QVERIFY(model.lastErrorHint().contains(QStringLiteral("did not give back every file")));
     QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content));
     QVERIFY(log_contains(model, QStringLiteral("requested files missing")));

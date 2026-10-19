@@ -10,13 +10,18 @@
 #include <adl/profiling.hpp>
 
 #include "adl/app/loader_model.hpp"
+#include "adl/ui/fonts.hpp"
+#include "adl/ui/window_state.hpp"
 #include "frame_profiler.hpp"
 #include "language_manager.hpp"
 
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
     QGuiApplication::setApplicationName(QStringLiteral("ARINC Data Loader"));
+    QGuiApplication::setApplicationVersion(QStringLiteral("0.1.0"));
     QGuiApplication::setOrganizationName(QStringLiteral("iainchesworthlabs"));
+
+    adl::ui::register_fonts();
 
     adl::profiling::thread_name("gui");
     adl::profiling::app_info("ARINC Data Loader");
@@ -57,6 +62,7 @@ int main(int argc, char* argv[]) {
     if (!engine->rootObjects().isEmpty()) {
         if (auto* window = qobject_cast<QQuickWindow*>(engine->rootObjects().constFirst())) {
             frame_profiler.emplace(window);
+            adl::ui::install_window_state(window);
         }
     }
 

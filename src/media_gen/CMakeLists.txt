@@ -2,11 +2,12 @@
 # disk and generates an ARINC 665 media set as the directory tree the data loader (src/app)
 # uploads to a target.
 #
-#   core/   the logic without a window: the generator's worker thread and the models
-#   qml/    the window
+#   core/       the logic without a window: the generator's worker thread and the models
+#   qml/        the window
 #   main.cpp
 #
-# Qt code lives here and in src/app.
+# The window is a static QML module of its own, as the data loader's is, so the window's test
+# links and loads exactly the compiled module the application does.
 
 find_package(Qt6 6.12 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2)
 
@@ -16,16 +17,27 @@ qt_standard_project_setup(REQUIRES 6.12)
 
 add_subdirectory(core)
 
-qt_add_executable(adl_media_gen main.cpp)
-qt_add_qml_module(adl_media_gen
+adl_prepare_ui_qml()
+
+qt_add_library(adl_media_gen_qml STATIC)
+qt_add_qml_module(adl_media_gen_qml
     URI ArincMediaGen
     VERSION 1.0
     QML_FILES
-        qml/GeneratorWindow.qml)
+        qml/GeneratorWindow.qml
+        ${ADL_UI_QML_FILES})
+target_link_libraries(adl_media_gen_qml
+    PUBLIC
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::QuickControls2)
+
+qt_add_executable(adl_media_gen main.cpp)
 
 target_compile_features(adl_media_gen PRIVATE cxx_std_23)
 target_link_libraries(adl_media_gen
     PRIVATE
+        $<LINK_LIBRARY:WHOLE_ARCHIVE,adl_media_gen_qml>
         adl::gen_core
         Qt6::Gui
         Qt6::Qml
@@ -34,6 +46,8 @@ target_link_libraries(adl_media_gen
         adl::warnings
         adl::sanitizers
         adl::coverage)
+
+adl_add_ui_support(adl_media_gen)
 
 adl_platform_configure_app(adl_media_gen)
 adl_platform_deploy_qt_runtime(adl_media_gen "${CMAKE_CURRENT_SOURCE_DIR}/qml")

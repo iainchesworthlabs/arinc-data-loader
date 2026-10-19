@@ -8,9 +8,10 @@ licence.
 
 1. **The project is GPL-3.0-or-later** (`LICENSE`, `vcpkg.json`). The files carry
    no per-file headers; `LICENSE` and `vcpkg.json` are the statement.
-2. **Nothing third-party is shipped, because nothing is packaged.** The
-   third-party code in use is a build tool (vcpkg) and a test framework
-   (Catch2, BSL-1.0). Neither is linked into anything that is distributed.
+2. **The third-party code in use is a build tool (vcpkg) and a test framework
+   (Catch2, BSL-1.0).** Neither is linked into anything that is distributed.
+   The one third-party asset shipped in the applications is the Archivo
+   typeface (item 6).
 3. **Qt 6.12 is planned for the application.** The intent is to link only
    modules that are also offered under the LGPL, so that "or later" stays true
    of the whole program. This is to be checked when the application is built,
@@ -18,6 +19,11 @@ licence.
 4. **Tracy is opt-in** (`ADL_ENABLE_TRACY`) and is not part of a release build.
 5. **The ARINC standards are not this project's to license, and are not in the
    repository.** See below.
+6. **Archivo is bundled with the applications** under the SIL Open Font
+   License 1.1: `src/ui/fonts/Archivo-Regular.ttf`, `-Medium.ttf`,
+   `-SemiBold.ttf` and `-ExtraBold.ttf`, with the licence text in
+   `src/ui/fonts/OFL.txt`. The faces are resources of each application and are
+   not modified. The About dialog names the face and its licence.
 
 ## The standards
 

@@ -149,6 +149,7 @@ void LoaderModel::setTargetAddress(const QString& address) {
         return;
     }
     target_address_ = trimmed;
+    reconcile_target();
     Q_EMIT targetChanged();
     refresh_availability();
 }
@@ -162,8 +163,23 @@ void LoaderModel::setThwIdPos(const QString& thw_id_pos) {
         return;
     }
     thw_id_pos_ = trimmed;
+    reconcile_target();
     Q_EMIT targetChanged();
     refresh_availability();
+}
+
+// What was observed against one target does not describe another. Editing the address or the
+// THW_ID_POS drops the FIND selection, the configuration read from the previous target and a
+// transfer receipt whose inputs no longer hold; the activity log keeps the history.
+void LoaderModel::reconcile_target() {
+    if (selected_target_row_ != -1) {
+        selected_target_row_ = -1;
+        Q_EMIT selectedTargetChanged();
+    }
+    configuration_.reset({});
+    if (result_is_transfer_) {
+        set_result(0, {}, {});
+    }
 }
 
 bool LoaderModel::targetValid() const {
@@ -393,11 +409,14 @@ bool LoaderModel::begin(Job job) {
 }
 
 void LoaderModel::on_finished(const OperationSummary& summary) {
+    const Job ended = job_;
+    result_is_transfer_ = ended == Job::information || ended == Job::upload ||
+                          ended == Job::download_media || ended == Job::download_operator;
+    result_was_download_ = ended == Job::download_media || ended == Job::download_operator;
     set_result(summary.success ? 1 : 2, summary.outcome, summary.detail);
     if (!summary.success && !quiet_job_) {
         set_error(summary.outcome, summary.detail, summary.hint);
     }
-    const Job ended = job_;
     set_job(Job::none);
     if (ended == Job::media_set) {
         if (!media_set_.error.isEmpty()) {
@@ -428,6 +447,10 @@ void LoaderModel::on_finished(const OperationSummary& summary) {
 }
 
 void LoaderModel::set_result(int state, const QString& text, const QString& detail) {
+    if (state == 0) {
+        result_is_transfer_ = false;
+        result_was_download_ = false;
+    }
     result_state_ = state;
     result_text_ = text;
     result_detail_ = detail;

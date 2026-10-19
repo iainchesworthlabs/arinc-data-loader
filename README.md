@@ -74,6 +74,11 @@ This is the data format and the foundation, not a loader yet. What exists:
     loader cope. Its TFTP is `adl::arinc615a_mini` (`src/arinc615a_mini`), the second,
     independent TFTP implementation the tests were written around, shared now with the
     mock target so the two ends of a dialogue share no transfer code.
+  - **One design system** (`src/ui`) for all three windows, in the ICL Forge Modernist
+    language: the Signal palette, Archivo, zero radius, the 4/8/12/16/24/32 rhythm, and one
+    set of controls. The human-factors analysis behind it, with before/after screenshots, is
+    in [docs/design-overhaul.md](docs/design-overhaul.md); the token and component reference
+    is [docs/design-system.md](docs/design-system.md).
 - The build, the tests, the CI and the repository rules.
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
@@ -106,6 +111,7 @@ src/samples/         the sample loads and media sets
 src/write_payloads/  adl_write_payloads, which writes the samples to a directory
 src/app/             adl_app: the data loader window (Qt Quick), preferences, validation, FIND,
                      Information, Upload and Download
+src/ui/              the shared design system and window chrome for the three applications
 src/media_gen/       adl_media_gen: the media set generator window (Qt Quick)
 src/mock_target/     adl_mock_target: a 615A target over real sockets, for demonstrations
 src/platforms/       everything that differs between operating systems

@@ -73,8 +73,12 @@ class LoaderModel : public QObject {
     Q_PROPERTY(
         QString lastDownloadDirectory READ lastDownloadDirectory NOTIFY downloadDirectoryChanged)
 
-    // The outcome of the last job: 0 none yet, 1 it succeeded, 2 it did not.
+    // The outcome of the last job: 0 none yet, 1 it succeeded, 2 it did not. A media set read or
+    // check also has an outcome, but it is not a transfer; `resultIsTransfer` says whether the
+    // outcome belongs in the transfer receipt or only in the log.
     Q_PROPERTY(int resultState READ resultState NOTIFY resultChanged)
+    Q_PROPERTY(bool resultIsTransfer READ resultIsTransfer NOTIFY resultChanged)
+    Q_PROPERTY(bool resultWasDownload READ resultWasDownload NOTIFY resultChanged)
     Q_PROPERTY(QString resultText READ resultText NOTIFY resultChanged)
     Q_PROPERTY(QString resultDetail READ resultDetail NOTIFY resultChanged)
     // A failed job, for the window's error dialog: what happened, what it means, and what the
@@ -170,6 +174,8 @@ public:
     [[nodiscard]] QString lastDownloadDirectory() const { return last_download_directory_; }
 
     [[nodiscard]] int resultState() const noexcept { return result_state_; }
+    [[nodiscard]] bool resultIsTransfer() const noexcept { return result_is_transfer_; }
+    [[nodiscard]] bool resultWasDownload() const noexcept { return result_was_download_; }
     [[nodiscard]] QString resultText() const { return result_text_; }
     [[nodiscard]] QString resultDetail() const { return result_detail_; }
     [[nodiscard]] QString lastErrorText() const { return last_error_text_; }
@@ -303,6 +309,9 @@ private:
     void set_progress(int percent);
     void set_validation(int state, const QString& error, const QStringList& findings,
                         const QString& detail);
+    // Drops what belonged to the target that was being addressed before the address or
+    // THW_ID_POS changed.
+    void reconcile_target();
     void run_pending_after_find(bool found);
     const FoundTarget* selected_target() const;
     // Re-reads the media set of the last session, after the window has shown.
@@ -337,6 +346,8 @@ private:
     QString target_address_;
     QString thw_id_pos_;
     int result_state_ = 0;
+    bool result_is_transfer_ = false;
+    bool result_was_download_ = false;
     QString result_text_;
     QString result_detail_;
     QString last_error_text_;
