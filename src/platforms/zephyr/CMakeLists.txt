@@ -32,6 +32,14 @@ if(CONFIG_ADL_PLATFORM)
         target_compile_options(adl_platform PRIVATE "SHELL:-isystem ${_dir}")
     endforeach()
 
+    # Warnings stop the build only where CONFIG_ADL_WARNINGS_AS_ERRORS says so: -Wno-error comes
+    # after adl::warnings' -Werror because this library is linked after it.
+    add_library(adl_zephyr_tolerant INTERFACE)
+    target_compile_options(adl_zephyr_tolerant INTERFACE -Wno-error)
+    if(NOT CONFIG_ADL_WARNINGS_AS_ERRORS)
+        target_link_libraries(adl_platform PRIVATE adl_zephyr_tolerant)
+    endif()
+
     # The interfaces are what an application includes (adl/platform/*.hpp); the platforms
     # directory itself is for the implementations (detail/, zephyr/).
     zephyr_include_directories("${_adl_platforms_dir}/interfaces")
@@ -52,6 +60,9 @@ if(CONFIG_ADL_PLATFORM)
         # Zephyr builds the application with, -std=c++23 among them from CONFIG_STD_CPP23.
         foreach(_lib IN ITEMS adl_arinc665 adl_arinc615a adl_arinc615a_runner)
             target_link_libraries(${_lib} PRIVATE zephyr_interface)
+            if(NOT CONFIG_ADL_WARNINGS_AS_ERRORS)
+                target_link_libraries(${_lib} PRIVATE adl_zephyr_tolerant)
+            endif()
         endforeach()
         zephyr_append_cmake_library(adl_arinc665)
         zephyr_append_cmake_library(adl_arinc615a)

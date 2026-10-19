@@ -37,6 +37,9 @@ add_subdirectory("${ADL_REPO_ROOT}/src/arinc615a_mini" adl_arinc615a_mini)
 # Zephyr's flags for them, as the module gives its libraries (-std=c++23 in particular).
 foreach(_lib IN ITEMS adl_samples adl_arinc615a_mini)
     target_link_libraries(${_lib} PRIVATE zephyr_interface)
+    if(NOT CONFIG_ADL_WARNINGS_AS_ERRORS)
+        target_link_libraries(${_lib} PRIVATE adl_zephyr_tolerant)
+    endif()
 endforeach()
 
 # The sources and include directories the RTOS test programs share.

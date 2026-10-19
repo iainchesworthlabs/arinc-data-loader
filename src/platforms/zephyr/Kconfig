@@ -56,6 +56,15 @@ config ADL_FS_COHERENT_HANDLES
 	  after sync() or close(), and a reader opened early may not see
 	  later appends. The loader does not read a file while it is written.
 
+config ADL_WARNINGS_AS_ERRORS
+	bool "Treat warnings in the loader's sources as errors"
+	help
+	  The loader is built with -Wall -Wextra -Wpedantic -Werror and more on the compilers CI
+	  pins. Another compiler, or another optimisation level, can warn about code that is
+	  correct (GCC 14 at -O2 reports a possible null dereference in an inlined
+	  std::vector allocation), and a warning that stops the build is the wrong thing to hand an
+	  integrator. Off, the warnings are still printed. CI's configurations turn this on.
+
 config ADL_LIBRARIES
 	bool "ARINC 665 model and ARINC 615A engine libraries"
 	default y
