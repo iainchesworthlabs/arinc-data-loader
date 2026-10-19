@@ -52,6 +52,18 @@ target_link_libraries(adl_unit_tests
         adl::coverage
         Catch2::Catch2WithMain)
 
+# An optimised GCC build reports "potential null pointer dereference" for every indexing of a
+# std::span made from a std::vector in tests/support/edit.hpp (the helpers that damage a file on
+# purpose). The vector is not null there - a null pointer would be an empty one, which the tests
+# never index - and the Debug legs, which are the ones CI compiles, do not optimise enough to see
+# it, so the warning first appeared in the Release build. It is turned off for this target only, in a
+# target of its own linked after adl::warnings, because the flags of linked targets are given in
+# link order and a -Wno- before -Wnull-dereference would turn it back on.
+add_library(adl_unit_test_flags INTERFACE)
+target_compile_options(adl_unit_test_flags INTERFACE
+    "$<$<CXX_COMPILER_ID:GNU>:-Wno-null-dereference>")
+target_link_libraries(adl_unit_tests PRIVATE adl_unit_test_flags)
+
 adl_deploy_sanitizer_runtime(adl_unit_tests)
 
 catch_discover_tests(adl_unit_tests PROPERTIES LABELS "unit")
@@ -241,6 +253,7 @@ if(ADL_PLATFORM_DESKTOP AND CMAKE_BUILD_TYPE MATCHES "^(Release|RelWithDebInfo|M
             "-DGENERATOR=${CMAKE_GENERATOR}"
             "-DCXX_COMPILER=${CMAKE_CXX_COMPILER}"
             "-DBUILD_TYPE=${CMAKE_BUILD_TYPE}"
+            "-DDOC_DIR=${ADL_PLATFORM_INSTALL_DOCDIR}"
             -P "${CMAKE_CURRENT_SOURCE_DIR}/packaging/check_install.cmake")
     set_tests_properties(system.install_consumer PROPERTIES TIMEOUT 300 LABELS "system")
 endif()

@@ -3,11 +3,12 @@
 # holds is enough, and that nothing in it points back into the source or build tree.
 #
 #   cmake -DBUILD_DIR=<build tree> -DSOURCE_DIR=<repository root> -DWORK_DIR=<scratch>
-#         -DGENERATOR=<generator> -DCXX_COMPILER=<compiler> -DBUILD_TYPE=<config>
+#         -DGENERATOR=<generator> -DCXX_COMPILER=<compiler> -DBUILD_TYPE=<config> -DDOC_DIR=<where the
+#         licence files are installed>
 #         -P tests/packaging/check_install.cmake
 cmake_minimum_required(VERSION 3.28)
 
-foreach(required BUILD_DIR SOURCE_DIR WORK_DIR GENERATOR CXX_COMPILER BUILD_TYPE)
+foreach(required BUILD_DIR SOURCE_DIR WORK_DIR GENERATOR CXX_COMPILER BUILD_TYPE DOC_DIR)
     if(NOT ${required})
         message(FATAL_ERROR "Pass -D${required}=...")
     endif()
@@ -24,7 +25,7 @@ if(NOT result EQUAL 0)
 endif()
 
 foreach(expected include/adl/arinc665/crc.hpp include/adl/platform/host.hpp lib/cmake/adl/adlConfig.cmake
-        lib/cmake/adl/adlTargets.cmake LICENSE.txt)
+        lib/cmake/adl/adlTargets.cmake "${DOC_DIR}/LICENSE.txt")
     if(NOT EXISTS "${WORK_DIR}/prefix/${expected}")
         message(FATAL_ERROR "the development package lacks ${expected}")
     endif()
