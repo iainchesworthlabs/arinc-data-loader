@@ -225,6 +225,15 @@ A smoke test of the platform layer on a Cortex-M3 under QEMU, built with the Zep
 `ZEPHYR_BASE`, builds `tests/platform/zephyr_smoke` for `mps2/an385`, runs it in `qemu-system-arm` (the SDK's
 or the machine's) and exits 0 only if the program reported no failure.
 
+The whole test program on a board is `tools/ci/zephyr_qemu_suite.sh`: it builds `tests/platform/zephyr` for
+`qemu_cortex_a9` with the same SDK (GCC 14.3, picolibc, the SDK's libstdc++ with exceptions and RTTI), runs
+it in the SDK's `qemu-system-xilinx-aarch64` (a distribution's QEMU has no machine for this board) and exits 0
+only if Catch2 reported that every test passed. It needs the same setup as the smoke test; a run takes a few
+minutes to build and about five seconds in QEMU. The board's settings are in
+`tests/platform/zephyr/boards/qemu_cortex_a9.conf` and `.overlay`: picolibc with a 32 MB malloc arena, a larger
+kernel address space for the MMU, Zephyr's POSIX layer for what libstdc++ asks of the C library, and a
+simulated flash for littlefs, since the board has none.
+
 ### FreeRTOS
 
 `tests/platform/freertos` is a CMake project that does what a product's CMake does, on a host: it

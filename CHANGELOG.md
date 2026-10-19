@@ -25,7 +25,8 @@ C++23 CMake monorepo. Nothing has been released.
   jobs that are not required checks yet (`Zephyr (native_sim)` and `FreeRTOS
   (POSIX simulator)`); no board has run either. The Zephyr platform layer was also
   built with the Zephyr SDK's own GCC and picolibc for a Cortex-M3 and a smoke test
-  run in QEMU (`Zephyr (Cortex-M3, QEMU)`). The contract gains the status
+  run in QEMU, and the whole test program (222 test cases) runs on a Cortex-A9 in QEMU with
+  that toolchain (`Zephyr (QEMU, SDK toolchain)`). The contract gains the status
   `experimental` and `ADL_PLATFORM_PROJECT`, for a platform whose image a project of
   its own builds, so the top-level project refuses `-DADL_TARGET_PLATFORM=freertos`
   and `zephyr` and says where to build them. What was verified and what a

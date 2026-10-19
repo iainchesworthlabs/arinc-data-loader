@@ -28,6 +28,14 @@ set(CATCH_INSTALL_EXTRAS OFF CACHE BOOL "" FORCE)
 set(CATCH_DEVELOPMENT_BUILD OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(Catch2)
 
+# Catch2 is built with Zephyr's flags like everything else (on a board those are the
+# architecture's, not the host compiler's defaults), and where there is no host operating system
+# under Zephyr (anything but native_sim) without Catch2's POSIX signal handlers.
+target_link_libraries(Catch2 PRIVATE zephyr_interface)
+if(NOT CONFIG_ARCH_POSIX)
+    target_compile_definitions(Catch2 PUBLIC CATCH_CONFIG_NO_POSIX_SIGNALS)
+endif()
+
 # What the engine tests need beyond the module's libraries: the sample loads and the second
 # TFTP implementation the simulated target is written with.
 list(PREPEND CMAKE_MODULE_PATH "${ADL_REPO_ROOT}/cmake")

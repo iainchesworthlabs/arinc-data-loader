@@ -118,7 +118,8 @@ build/freertos-posix-sim/bin/adl_freertos_tests "[conformance]"           # Free
 
 `tests/platform/zephyr_smoke` is not part of this suite: a few checks (clock, memory, threads, a mutex, a
 queue, UDP) that run on a Cortex-M3 in QEMU, built with the Zephyr SDK's toolchain and no exceptions
-(`tools/ci/zephyr_qemu_smoke.sh`).
+(`tools/ci/zephyr_qemu_smoke.sh`). The Zephyr test program itself also runs on a Cortex-A9 in QEMU with that
+toolchain (`tools/ci/zephyr_qemu_suite.sh`): the same 222 test cases.
 
 Not run on the RTOS programs: the codec and ARINC 665 unit tests (`adl_unit_tests`; they test code the
 desktops already run), the application's tests, and the loopback integration test, which needs the Qt mock

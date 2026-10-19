@@ -69,7 +69,7 @@ with the rulesets.
 | `Zephyr (native_sim)` | ubuntu-26.04 | The platform layer for Zephyr builds with the project's warning set and, with Zephyr 4.4.2's kernel, IPv4/UDP stack (over its loopback interface) and littlefs on simulated flash running as a host process, passes the platform conformance suite and the 615A engine tests (`tests/platform/zephyr`, through `tools/ci/zephyr_native_sim.sh`). **Not a required check.** |
 | `FreeRTOS (POSIX simulator)` | ubuntu-26.04 | The platform layer for FreeRTOS builds, and with FreeRTOS-Kernel V11.2.0's POSIX simulator port, lwIP 2.2.1's UDP sockets over its loopback interface and littlefs on a RAM block device, passes the same two suites (`tests/platform/freertos`, through `tools/ci/freertos_posix_sim.sh`). **Not a required check.** |
 
-| `Zephyr (Cortex-M3, QEMU)` | ubuntu-26.04 | The platform layer and the 665/615A libraries build with the Zephyr SDK's own GCC 14 and picolibc, without exceptions, for a Cortex-M3, and a smoke program (`tests/platform/zephyr_smoke`, through `tools/ci/zephyr_qemu_smoke.sh`) runs in QEMU: clock, memory, threads at every priority, a mutex, a queue and UDP over Zephyr's loopback interface. Not the conformance suite. **Not a required check.** |
+| `Zephyr (QEMU, SDK toolchain)` | ubuntu-26.04 | The platform layer and the 665/615A libraries build with the Zephyr SDK's own GCC 14 and picolibc, without exceptions, for a Cortex-M3, and a smoke program (`tests/platform/zephyr_smoke`, through `tools/ci/zephyr_qemu_smoke.sh`) runs in QEMU: clock, memory, threads at every priority, a mutex, a queue and UDP over Zephyr's loopback interface. Then the whole test program (Catch2, the platform conformance suite and the 615A engine tests: 222 test cases) is built for the Cortex-A9 board `qemu_cortex_a9` with the same toolchain, with exceptions, and runs in the SDK's QEMU (`tools/ci/zephyr_qemu_suite.sh`). **Not a required check.** |
 
 The three simulator jobs are new and are not in the rulesets: they join them after they have been green for a
 while, the way `Scan dependency diff` did ([Branch protection](branch-protection.md#required-checks)). They
@@ -158,7 +158,7 @@ contexts equal the job display names above and in the two policy workflows.
 | `Scan dependency diff` | `dependency-review.yml` | yes - added after it reported on a pull request on the public repository |
 | `Analyze (C++)` | `codeql.yml` | no - informational |
 | `Zephyr (native_sim)` | `ci.yml` | no - new, not required until it has been green for a while |
-| `Zephyr (Cortex-M3, QEMU)` | `ci.yml` | no - new, not required until it has been green for a while |
+| `Zephyr (QEMU, SDK toolchain)` | `ci.yml` | no - new, not required until it has been green for a while |
 | `FreeRTOS (POSIX simulator)` | `ci.yml` | no - new, not required until it has been green for a while |
 
 Every workflow that produces a required check also triggers on `merge_group`,
