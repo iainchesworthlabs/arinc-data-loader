@@ -1,0 +1,9 @@
+# LeakSanitizer suppressions for the test runs (LSAN_OPTIONS in the base test preset).
+#
+# Fontconfig and expat, the system libraries Qt uses to find fonts on Linux, keep a few hundred
+# bytes of their parsed configuration until the process ends, and LeakSanitizer reports that as
+# a leak of the program that started them when a test program exits. It is not this code's to
+# fix, and every first-party leak is still reported: only allocations made inside these two
+# libraries are ignored.
+leak:libfontconfig.so
+leak:libexpat.so
