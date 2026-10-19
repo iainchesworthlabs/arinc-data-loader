@@ -1,7 +1,8 @@
 # Nightly static and dynamic analysis
 
 The per-commit CI ([CI](ci.md)) builds and tests the tree on three compilers and
-runs its tests under AddressSanitizer and UndefinedBehaviorSanitizer. It is not
+runs its tests under AddressSanitizer, and under UndefinedBehaviorSanitizer where
+the compiler has it (GCC and AppleClang, not MSVC). It is not
 the place for a whole-program analyzer: clang-tidy over the libraries,
 MSVC's Code Analysis and a CodeQL build each cost more than the rest of the
 matrix together, and a defect of the kind they find does not get worse by

@@ -1,5 +1,9 @@
 #pragma once
 
+// The text of the label on a member of a media set (ARINC 665-3 section 3.3): the
+// items it carries, those laid out as lines of text, and a check that the
+// required items are present. Printing it is left to whatever uses it.
+
 #include <cstdint>
 #include <optional>
 #include <string>

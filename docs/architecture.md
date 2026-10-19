@@ -24,6 +24,8 @@
 
    adl::media_tree (src/media_tree): members <-> a directory tree, over adl::arinc665
    adl::samples (src/samples): the sample sets; adl_write_payloads writes them out
+   adl::arinc615a_mini (src/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
+   target and the mock target application
 ```
 
 - **`src/arinc665`** is the ARINC 665 library: loads, batches and media sets
@@ -61,11 +63,16 @@
   transfer (client or server, sending or receiving); `DataLoader` runs an Information, Upload or
   Download operation over a few of them at once, with the time-outs and retries of Attachment 4 and the
   abort paths; `FindClient` is FIND. The files of an upload and a download are reached through two small
-  interfaces, `FileSource` and `FileSink`. It is platform-free and allocates nothing: no `std::string`
+  interfaces, `FileSource` and `FileSink`. It is platform-free and allocates nothing of its own (the one exception
+  is the value of a checksum, which `adl::arinc665` returns in a `std::vector`): no `std::string`
   or `std::vector`, no exceptions, no `iostream`, and it never builds an `adl::arinc665` model (it uses
   that library's check value numbers and checksums only). [ARINC 615A codec](arinc615a-codec.md) has the
   layouts, [ARINC 615A engine](arinc615a-engine.md) the design and the choices made where the standard is
   unclear, and [ARINC 615A coverage](arinc615a-coverage.md) the standard section by section.
+- **`src/arinc615a_mini`** is a second, independent TFTP implementation (lock-step blocks, the time-out and
+  retry, the options the loader uses, WAIT and ABORT), deliberately plain and written on the codec only, so
+  that the engine is checked against another reading of the standard and not against itself. It is the TFTP
+  of the simulated target of `tests/engine` and of the mock target application.
 - **`src/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
   opens the sockets the engine asks for, waits on all of them from one thread with
   `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.
@@ -80,7 +87,7 @@
   application's `core/` is its logic without a window, tested headless; each `qml/` is its view.
   **`src/ui`** is the shared design system and window chrome for all three (the same QML source is
   compiled into each application's module). Qt is used in these directories only, and the
-  applications build only with `-DADL_BUILD_APP=ON`. [The application](app.md) has the threading,
+  applications build when `ADL_BUILD_APP` is on (the default on a desktop where Qt 6.12 is found). [The application](app.md) has the threading,
   what it shows and what it does not do yet; [the design overhaul](design-overhaul.md) has the
   human-factors analysis behind the three windows.
 
@@ -108,8 +115,14 @@ route to remove it.
 | `src/samples` | `adl_samples` | `adl::samples` | `adl::samples` | `adl/samples/*.hpp` |
 | `src/arinc615a` | `adl_arinc615a` | `adl::arinc615a` | `adl::arinc615a` | `adl/arinc615a/*.hpp` |
 | `src/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
+| `src/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
 | `src/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
+| `src/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
+| `src/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/*.hpp` |
 | `src/platforms` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
+
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target` and `adl_write_payloads`. `src/ui` is not a
+library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
 directory of a library is its `include/` (or, for the platform, `interfaces/`).
@@ -124,7 +137,8 @@ users.
   AddressSanitizer (and UBSan where the compiler has it).
 - **Failures are values.** An operation that can fail returns
   `std::expected<T, adl::arinc665::Error>` (`adl::platform::Result<T>` in the
-  platform layer, whose interface is `noexcept` throughout). Nothing in the
+  platform layer, whose interface is `noexcept` throughout; `adl::arinc615a::Error` in the 615A library and
+  `adl::media_tree::TreeError` in the tree writer). Nothing in the
   library throws for an expected failure. (Running out of memory is not an expected failure: the model
   types hold `std::string` and `std::vector`, so the library is not yet free of
   the heap.)
@@ -142,7 +156,7 @@ users.
   through `adl::media_tree`. A media set is read from `MediaMember`s, the files of
   each in memory; getting them from a directory is `adl::media_tree`'s job.
 - **Three layers inside the library.** The bottom is bytes: `WordWriter` and
-  `WordReader` (private, `src/wire.hpp`), the CRCs, MD5 and SHA-1. Above it each
+  `WordReader` (private, `src/arinc665/src/wire.hpp`), the CRCs, MD5 and SHA-1. Above it each
   file format is a plain model type with an `encode_*` and a `decode_*` function:
   `HeaderFile`, `BatchFile`, `LoadsList`, `FilesList`, `BatchesList`. At the top
   are the operations that need several files, `build_load`/`verify_load` and

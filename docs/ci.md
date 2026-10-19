@@ -83,16 +83,21 @@ with the rulesets.
 | `Windows (MSVC)` | windows-2025-vs2026 | Preset `windows-msvc-debug` configures, builds warning-free (`/W4 /WX`) with ASan, and all of ctest passes. |
 | `Linux (GCC)` | ubuntu-26.04 | Preset `linux-gcc-debug`: the image's default `g++` builds warning-free (`-Wall -Wextra -Wpedantic -Werror ...`) with ASan and UBSan, and all of ctest passes. |
 | `macOS (AppleClang)` | macos-26 (Apple silicon) | Preset `macos-clang-debug`: AppleClang from Xcode builds warning-free with ASan and UBSan, and all of ctest passes. |
-| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-gcc-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the libraries, the engine, the media tree, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. The preset does not build the Qt applications; their windows are covered by the UI suite on the build legs. |
+| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-gcc-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the ARINC 665 and 615A libraries, the second TFTP implementation, the runner, the media tree, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. The job installs no Qt, so the applications are not built there (the default for `ADL_BUILD_APP` is off without a Qt kit); their windows are covered by the UI suite on the build legs. |
 
-What a build-and-test leg's ctest contains: the Catch2 suites, the application's `app.tests` (QtTest),
-`app.qml` (the window loaded offscreen, with the offscreen platform and the software renderer, so no GPU
-or display is needed), the Qt Quick Test suites `ui.tst_main_window` and `ui.tst_dialogs` (the window
-and its dialogs driven by mouse and key events on the real `Main.qml`), the system smoke tests that start
-the three application programs, and the two repository checks `platform.fragments` (every platform
-fragment satisfies the platform contract, on whichever host this is) and `platform.isolation` (the same
-script as the `platform-isolation` job; it needs `pwsh`, which every hosted image has). A hung test has
-a time-out, so it cannot hold the job.
+What a build-and-test leg's ctest contains: the Catch2 suites (unit, engine, platform, and
+`mock.engine`), the application tests (`app.tests`, `mock.model`, `media_gen.tests`, QtTest), the QML
+loads of the three windows (`app.qml`, `mock.qml`, `media_gen.qml`: the window loaded offscreen, with
+the offscreen platform and the software renderer, so no GPU or display is needed), the Qt Quick Test
+suites `ui.tst_main_window` and `ui.tst_dialogs` (the window and its dialogs driven by mouse and key
+events on the real `Main.qml`), `loopback.integration` (the loader's runner over real sockets on
+127.0.0.1 against the mock target's engine), the system smoke tests that start the three application
+programs and `system.notices`, the `tools.write_payloads` tests, and the repository checks
+`platform.fragments` (every platform fragment satisfies the platform contract, on whichever host this
+is), `platform.selector`, `platform.isolation` (the same script as the `platform-isolation` job) and `docs.links`
+(every relative link and `#anchor` of the Markdown files resolves, pictures included); the last two need
+`pwsh`, which every hosted image has. The application, UI, loopback and system tests carry a
+time-out each, and the job has its own (45 minutes), so a hung test cannot hold a runner.
 
 ### Toolchain choices
 
@@ -176,7 +181,8 @@ nothing: that is why `codeql.yml` and `static-analysis.yml` do not have it.
 ## The vcpkg binary cache
 
 Dependencies come from vcpkg (the `deps/vcpkg` submodule, manifest mode; the
-only one today is Catch2, behind the `tests` feature). Every job that runs
+only one CI uses is Catch2, behind the `tests` feature - Tracy is behind the
+opt-in `profiling` feature, which no CI job turns on). Every job that runs
 vcpkg uses the same two composite actions,
 `.github/actions/vcpkg-cache/restore` and `/save`, which wrap vcpkg's `files`
 binary-cache provider around `actions/cache`:
@@ -196,7 +202,7 @@ An Actions cache entry is readable from its own ref, the base branch of a pull
 request and the default branch, nothing else. So `develop` is where the cache
 every pull request starts from is made: a push to `develop` (or `main`) is
 never cancelled by the next push (`cancel-in-progress` is off for them), and
-the first run on a new branch is cold. With Catch2 as the only port a cold
+the first run on a new branch is cold. With Catch2 as the only port CI builds, a cold
 run costs minutes, not hours; the cache earns its keep mostly on macOS.
 
 `actions/checkout` runs with `fetch-depth: 0` and `submodules: recursive` on
@@ -301,8 +307,9 @@ The three legs (Windows MSVC, Linux GCC, macOS AppleClang) have all run on
 
 ## Not here yet
 
-The Release presets, packaging the Qt application, and the embedded (VxWorks)
-target. Each is a new job or a flag flip, not a redesign. clang-tidy is no longer on this list: it is
+The Release presets, and packaging the Qt application. Each is a new job or a
+flag flip, not a redesign. No embedded (RTOS) platform is built in CI;
+[platform abstraction](platform-abstraction.md) says where each stands. clang-tidy is no longer on this list: it is
 a nightly job, with the rest of the static analysis, in
 [static-analysis.md](static-analysis.md). A Release-only warning
 (`-Wnull-dereference`, for one) still first shows up locally.

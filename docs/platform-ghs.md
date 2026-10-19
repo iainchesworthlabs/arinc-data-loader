@@ -256,6 +256,7 @@ places; neither vendors anything.
 | `INTEGRITY_BSP_ROOT` | The board package (`C:\Repos\common\integrity\int508`): `bsp/`, `target/`, the prebuilt `rsimp2a/` |
 | `INTEGRITY_BSP` | Board name, default `rsimp2a` |
 | `INTEGRITY_TARGET_CPU` | Default `ppc7455` |
+| `INTEGRITY_VERSION` | Default `5.0.8` (also derived from an `intNNN` root) |
 | `INTEGRITY_TOOLCHAIN_ROOT` | The MULTI installation holding `ccppc`/`cxppc` |
 | `INTEGRITY178_ROOT` | The 178B tree (`C:\Repos\common\integrity\int178B`) |
 | `INTEGRITY178_BSP` | Board, default `rsimp2a-bae` |
@@ -307,7 +308,7 @@ and a GHS standard library that is short a header gets a shim.
 
 ## What is done, and what is next
 
-Done in this change: the two find modules, both toolchain files, the selector
+Done: the two find modules, both toolchain files, the selector
 branches, the `ghs508` port on the POSIX sources, the `ghs178b` native port,
 the standard-header shims and their detection, the presets, and the tests that
 hold them to the contract.

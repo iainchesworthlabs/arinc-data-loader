@@ -1,5 +1,8 @@
 #pragma once
 
+// A target's IPv4 address as the operator types it and sees it. Parsing is strict,
+// because the result is where datagrams are sent.
+
 #include <array>
 #include <cstdint>
 #include <optional>

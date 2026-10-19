@@ -181,4 +181,5 @@ not checked).
   below it. The standard describes media (3.4), not a directory of members, so a
   tool that expects its media in another form needs the members copied to it. The
   members written by `adl_write_payloads` have not yet been read by another loader.
-- **Linux and macOS** have not run the tests (docs/building.md).
+- **Linux and macOS by hand.** The tests run on both in CI ([CI](ci.md)); Linux has also been run in a
+  container ([testing](testing.md)), and macOS has not been tried by hand ([building](building.md)).

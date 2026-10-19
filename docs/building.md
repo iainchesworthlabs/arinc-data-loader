@@ -2,9 +2,10 @@
 
 This page builds ARINC Data Loader from source. What CI runs is in [CI](ci.md).
 
-Only Windows with MSVC 19.51 (Visual Studio 2026) has been built and tested so
-far. The Linux and macOS presets and platform code are written to the same
-pattern and run in CI, and have not been tried by hand.
+Only Windows with MSVC 19.51 (Visual Studio 2026) has been built and tested by
+hand so far; Linux (GCC 15, in a container) has been built and tested too. The
+Linux and macOS presets and platform code are written to the same pattern and run
+in CI; macOS has never been tried by hand.
 
 ## Requirements
 
@@ -140,22 +141,19 @@ operation); it is labelled `integration` and needs `ADL_BUILD_APP` too.
 
 The mock target and the loader are two programs, so they can run on one machine (the target's
 transfer ports start at 40000 and grow, and it honors the loader's `port` option) or on two.
-On one machine:
+[The user's guide](user-guide/demonstration.md) takes you through it step by step, with the
+generator making the media set. In short, on one machine:
 
-1. Start `adl_mock_target`, set the identity and the storage directory as you like, press **Start**.
-2. Start `adl_app`. In **File > Preferences…**, set the control port to anything but 59
-   (say 5900) so the loader and the target do not fight over port 59, and type the target's address
-   (`127.0.0.1`) and `<THW_ID_POS>` (`HNPFMS_L` for the default identity). FIND on one machine is
-   not reliable (two sockets sharing port 1001), so name the target by hand.
-3. Generate a media set with `adl_media_gen`, or use `adl_write_payloads` to write the sample sets,
-   open its directory in the loader (**Media set > Choose directory…**), wait for the check, tick a
-   load and **Upload**. The mock target's window shows each file arrive, and stores them under its
-   storage directory.
-4. To watch the loader cope, set an injection in the mock target (say "answer WAIT", or "go
-   silent"), run the operation again, and watch the loader's log and the failure dialog.
+1. Start `adl_mock_target`, choose a storage directory and press **Start**.
+2. Generate a media set with `adl_media_gen`, or write the samples with `adl_write_payloads`.
+3. Start `adl_app`, press **Find** (or type the target's address `127.0.0.1` and
+   `<THW_ID_POS>` `HNPFMS_L`), choose the media set directory, tick a load and **Upload**.
+4. To watch the loader cope, turn on a fault injection in the mock target (stop it, set the
+   fault, start it again) and run the operation again.
 
 On Linux and macOS binding ports 59 and 1001 may need privileges; the mock target's ports are
-editable, and the loader takes the target's port from the address you type.
+editable, and the loader takes the target's port from Preferences (anything but 59 is sent to the
+target as the `port` option).
 
 ## Writing sample payloads
 
@@ -186,6 +184,12 @@ does not write over a directory that has files in it.
 | `macos-clang-debug`, `macos-clang-release` | AppleClang | triplet `arm64-osx`; the applications are on |
 | `ghs508-ghs-debug`, `ghs508-ghs-release` | GHS `cxppc` | INTEGRITY 5.0.8 cross build; `ADL_ACCEPT_UNBUILT_PLATFORM=ON`, tests and the applications off (a target build); needs `INTEGRITY_ROOT`/`INTEGRITY_BSP_ROOT`/`INTEGRITY_TOOLCHAIN_ROOT` (or the compilers on PATH) |
 | `ghs178b-ghs-debug`, `ghs178b-ghs-release` | GHS `cxppc` | INTEGRITY-178B cross build; as above, with `INTEGRITY178_ROOT` |
+
+A Debug build of the applications cannot be used to open the system's own file dialogs on
+Windows: under AddressSanitizer the dialog code (`ntshrui.dll`, reached from the common file
+dialog) trips a heap-buffer-overflow report and the program exits with status 1 when "Choose..." is
+pressed. Use a Release build (`windows-msvc-release`) to drive the windows by hand or to
+[regenerate the screenshots](screenshots.md).
 
 Each preset is available only on its own host. Debug presets turn on
 AddressSanitizer (and UndefinedBehaviorSanitizer where the compiler has it),

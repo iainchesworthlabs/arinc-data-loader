@@ -17,12 +17,12 @@ an operation, drop status files, send a wrong checksum, abort on its own, or go 
 | What | How |
 | --- | --- |
 | FIND | Listens on UDP port 1001 (configurable) and answers a FIND request with the configured identity: target hardware identifier, type name, position, literal name and manufacturer code (`adl::arinc615a`'s FIND codec). |
-| Initialization files | A TFTP server on port 59 (configurable) serves `<THW_ID_POS>.LCI`, `.LUI`, `.LND` and `.LNO` with an "accepted" status file and protocol version A4. It honors the loader's options (block size, and the `port` option that lets the loader use a control port of its own). With an injection it answers WAIT, refuses (0x1000 or 0x1002) or serves garbage, so the loader's error paths can be shown. |
+| Initialization files | A TFTP server on port 59 (configurable) serves `<THW_ID_POS>.LCI`, `.LUI`, `.LND` and `.LNO` with an "accepted" status file and protocol version A4. It honors the loader's options (block size, and the `port` option that lets the loader use a control port of its own). With an injection it answers WAIT or refuses the operation with 0x1000 ("operation denied"), so the loader's error paths can be shown. The engine can also refuse with 0x1002 and serve an initialization file of an invalid structure (`Config::refusal`, `Config::garbage_init`); the window has no control for either. |
 | Information | Writes the configuration status files (`.LCS`), then the configuration list (`.LCL`, hardware with parts), then the final status 0x0003, on the DLP status cadence. |
 | Upload | Reads the upload request (`.LUR`), then each load's header, data and support files from the loader, checking each against the check value the header file records; writes upload status files (`.LUS`) with per-load progress; stores what it read to `<storage directory>/<load part number>/<file name>`; ends 0x0003, or 0x0002 naming the failed loads. |
-| Download | Both modes: for a media defined download it serves the files the loader's `.LNR` asks for; for an operator defined one it writes the list of files it holds (`.LNL`) and serves only the ones the loader's `.LNA` chooses. Files are read at operation start from `<storage directory>/holds`. Download status files (`.LNS`) carry the progress; it ends 0x0003. |
+| Download | Both modes: for a media defined download it serves the files the loader's `.LNR` asks for; for an operator defined one it writes the list of files it holds (`.LNL`) and serves only the ones the loader's `.LNA` chooses. The files it can serve are read **once, when Start is pressed** (the session), from `<storage directory>/holds`, so a file put there while the target is running is not served until it is stopped and started again; with no storage directory or nothing in `holds` it holds one demonstration file, `DEMO.TXT`. Download status files (`.LNS`) carry the progress; it ends 0x0003. |
 | Aborts | When the loader sends ABORT, the mock target stops its transfers and ends the operation with a final status file carrying the loader's code, which is what makes the loader report the abort as confirmed. |
-| Injections | Think time, status period, first-request WAIT, refuse an operation, drop every Nth status file, a bit flipped in a served file, a wrong checksum option, an abort after N status files, and silence (the loader then runs into its 13 second data load protocol time-out). Defaults: behave. |
+| Injections | Answer the first request with WAIT for N seconds, answer every request with WAIT, refuse one chosen operation (Information, Upload, Download media defined, Download operator defined), drop every Nth status file, a bit flipped in every served file (the protocol files included, so a download ends at once as "unsupported protocol version"), a wrong checksum option (reported as a notice; the file is kept and the operation completes), an abort (status 0x1003) after N status files, and silence after the first status file (the loader then runs into its 13 second data load protocol time-out). Think time (0 to 60 000 ms, default 1000) and the status file period (0 to 3600 s, default 4) shape the pace of a dialogue. Defaults: behave. |
 | The log | Every status file, file read or written, WAIT and abort as a line with a severity, shown in the window like the loader's activity log. |
 
 ## Layout
@@ -43,7 +43,7 @@ tests/mock_target/      the engine against the loader's real engine on the fake 
 src/ui/                 the shared design system (Theme, controls, header, footer, log)
 ```
 
-The header owns the run state and Start/Stop: a `SERVING` / `STOPPED` chip and the two buttons.
+The window (1280×900, at least 1120×760) follows the desktop's light or dark scheme, is English only and remembers its size and place. The header owns the run state and Start/Stop: a `SERVING` / `STOPPED` chip and the two buttons (Start needs a hardware identifier; ports must be 1 to 65535). Every field is disabled while the target is serving, so a configuration is changed by stopping, editing and starting again.
 The left rail is the configuration, numbered (identity, ports, storage, behaviour, fault
 injection), and the right is the evidence (the operation, the activity log and the stored files).
 Fault injection is its own block with an `N ACTIVE` / `BEHAVING` chip and `Reset all`, so a demo
@@ -92,9 +92,19 @@ Information, an Upload stored byte for byte, both Download modes and an abort. T
 worker thread, storage written to disk, and the window loaded offscreen with no QML complaints,
 in the light and the dark scheme. The platform-isolation check covers the new sources.
 
-Not checked: FIND between the two applications on one machine (the loopback test covers the
-operations; FIND is fixed to port 1001 on both ends by the standard, and two sockets sharing a
-port on one machine is not reliable on every platform — typing the target's address is the
-reliable single-host path; on Linux and macOS binding ports 59 and 1001 may need privileges). The
-window on a real screen at other scales; keyboard use and screen readers beyond the accessible
-names.
+Also checked, by hand, on Windows, with the three real programs on one machine and a script driving
+the windows ([the screenshots](screenshots.md)): the whole demonstration of
+[the user's guide](user-guide/demonstration.md) (Information, an Upload stored byte for byte, both
+Downloads), a refused upload, a silent target with an abort that is not confirmed, a target that is not
+running, WAIT, dropped status files and an abort by the target. In every operation the loader logs
+`status file transfer failed: <file> (timed out)` after each status file the mock target writes, while
+the status itself is received and the operation completes; the cause has not been found (the loader's
+TFTP server end of a status file, or the mock target's last packet), and it is listed as an open
+question in the user's guide.
+
+Not checked: FIND between the two applications on one machine does **not** work (the loader's
+broadcast is answered by nothing: "0 targets answered", on Windows; FIND is fixed to port 1001 on
+both ends by the standard, and two sockets sharing a port on one machine is not reliable) — typing
+the target's address is the single-host path; on Linux and macOS binding ports 59 and 1001 may need
+privileges. The window at scales other than 100%; keyboard use and screen readers beyond the
+accessible names.

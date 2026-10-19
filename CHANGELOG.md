@@ -11,9 +11,32 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 This is a rebuild of an earlier Visual Studio project (a Win32 static library
 for ARINC 665, an empty one for ARINC 615A, and a C++/CLI unit test project) as a
-C++23 CMake monorepo. Nothing has been released.
+C++23 CMake monorepo. Nothing has been released yet; this section is what the first
+preliminary release (0.1.0) will contain.
+
+### Known limitations
+
+- **Nothing has been checked against a real target, a real loader or another tool's media
+  sets.** The protocol and the file formats are tested against simulated targets, the mock target
+  and independent writers of the same tables. See
+  [the user's guide](docs/user-guide/files-and-limits.md#what-has-not-been-checked).
+- There is no installer or package: the programs are built from source. Only Windows (MSVC) has
+  been driven by hand; Linux and macOS build and test in CI.
+- The loader is the only translated window, and only 148 of its 515 messages are translated in
+  each of the seven non-English catalogues; the translations are a first, mechanical draft.
+- On Windows the Debug presets run under AddressSanitizer, which stops the system file dialogs
+  ("Choose...") from working; use a Release build for the windows.
 
 ### Added
+
+- **A user's guide and pictures of every window** ([docs/user-guide](docs/user-guide/index.md)):
+  what ARINC 615A and 665 are, installing and starting, a ten-minute demonstration with the
+  three programs on one machine, and a page per task (make a media set, run the mock target, find
+  a target, choose a media set, upload, download, the log and the receipt, preferences, languages
+  and colour, keyboard, troubleshooting, where files go and the limits). The screenshots in
+  `docs/images` are of the real windows and `tools/docs/capture_screenshots.ps1` regenerates them
+  ([docs/screenshots.md](docs/screenshots.md)); a link checker (`tools/checks/check_doc_links.ps1`, the
+  `docs.links` test) fails the build on a broken link or a missing picture.
 
 - **Third-party licences in the applications.** About has a Licences button in all
   three applications that opens the notices this build carries: Qt under the LGPL
@@ -97,8 +120,7 @@ C++23 CMake monorepo. Nothing has been released.
   abort button, the target's status files and the engine's notices in an activity log, and the hardware and
   parts it reports. The engine runs on a thread of its own, reporting through queued signals and aborted
   through an atomic flag the runner polls. Built with `-DADL_BUILD_APP=ON` (Qt is the prebuilt kit, found
-  through `QT_ROOT_DIR`); CI installs it on the three desktop legs. Not run against a real target. Download is
-  not in the window yet.
+  through `QT_ROOT_DIR`); CI installs it on the three desktop legs. Not run against a real target.
 - **The application: Upload** ([docs/app.md](docs/app.md)): tick loads of the media set that was read and
   load them to the target with an `UploadOperation`, with a progress bar and a figure for the list, the
   percentage and status of each load from the upload status files, the files the target reads in the log, and
@@ -116,9 +138,9 @@ C++23 CMake monorepo. Nothing has been released.
   `adl::arinc615a_mini`, the second TFTP implementation extracted from the tests so that the two ends of a
   dialogue share no transfer code. `loopback.integration` runs the loader's runner against the mock target's
   engine over 127.0.0.1. Not run against a real target.
-- **The window's minimum set** ([docs/app.md](docs/app.md)): one design-token file (`qml/Theme.qml`)
+- **The window's minimum set** ([docs/app.md](docs/app.md)): one design-token file (`src/ui/qml/Theme.qml`)
   is the single source of truth for colour, type and geometry, and the window is built from a small
-  component library over it (`Panel`, `AppButton`, `SegmentedControl`, `FocusRing`), as the sibling
+  component library over it (`AppButton`, `SegmentedControl`, `FocusRing` and the rest of `src/ui/qml`), as the sibling
   applications' windows are. A first launch opens on a first-run screen (a default target, the
   download directory, and what the window is for) that is stored once passed; the address and
   `<THW_ID_POS>` of the last operation are remembered and put back at start-up; and the strings are
@@ -129,7 +151,8 @@ C++23 CMake monorepo. Nothing has been released.
 - **The window in eight languages** ([docs/app.md](docs/app.md)): catalogues for French, Spanish,
   German, Yiddish, Hebrew, Simplified Chinese and Japanese beside the English source, built by
   `qt_add_translations` into the window's resources and installed by `LanguageManager`; the
-  right-to-left scripts mirror the whole window (`LayoutMirroring`) and the language preference is
+  right-to-left scripts set the application's layout direction (the layout of the window is not
+  mirrored: no `LayoutMirroring` is set in the QML, a known defect) and the language preference is
   persisted. The text is a first, mechanical draft, to be reviewed by speakers; the window test
   installs each catalogue in turn and checks the retranslation and the layout direction.
 - **The applications build by default on the desktops** ([docs/building.md](docs/building.md)):
@@ -164,7 +187,8 @@ C++23 CMake monorepo. Nothing has been released.
   and sink over a directory of the platform's files come with it. Tested against a simulated target
   on the fake platform (a full load of a media set made with `build_media_set`, downloads back, and loss,
   duplication, reordering, WAIT, ABORT and silence from fixed seeds) whose TFTP shares no code with the
-  engine. Not yet checked against another implementation, or over real sockets.
+  engine. Not yet checked against another implementation; the loopback integration test runs it
+  over real sockets against the mock target.
 - **`adl::media_tree`**: writes the members of a media set to a directory tree
   (`member_001`, `member_002`, ...), mapping the standard's backslash pathnames to
   native paths, and reads one back into `MediaMember`s. It refuses names that

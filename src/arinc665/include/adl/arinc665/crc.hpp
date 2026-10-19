@@ -1,5 +1,9 @@
 #pragma once
 
+// The CRCs of ARINC 665 section 4.3 (8, 16 and 32 bits) as one class template,
+// given the parameters of its table. The lookup tables are built at compile time
+// and the only state a CRC holds is its running remainder.
+
 #include <array>
 #include <concepts>
 #include <cstddef>

@@ -72,7 +72,8 @@ it compiles. Outside `src/platforms/` and `tests/platform/` there is:
 - no operating system header (`<windows.h>`, `<unistd.h>`, `<sys/...>`) and no
   call that asks which system this is (`QSysInfo`, `Q_OS_*`, `Qt.platform`);
 - no `WIN32`, `APPLE` or `UNIX` test, and no `CMAKE_SYSTEM_NAME`, in any CMake
-  file but `cmake/Platform.cmake` and the platform fragments.
+  file but `cmake/Platform.cmake`, the platform fragments and the toolchain files
+  in `cmake/toolchains/`.
 
 `tools/checks/check_platform_isolation.ps1` enforces it, and it also runs as the
 `platform.isolation` test, so you will see a violation locally:
@@ -97,8 +98,9 @@ what to do instead of an `#ifdef`, and how to add a platform.
   [docs/static-analysis.md](docs/static-analysis.md)). A disabled check carries
   its reason; add one the same way, and use a `NOLINT` only for a finding from
   a system macro or a known-safe call, with the reason beside it.
-- Keep the library GUI-free and platform-free. Qt belongs in `src/app` and
-  nowhere else.
+- Keep the libraries GUI-free and platform-free. Qt belongs in the three
+  applications (`src/app`, `src/media_gen`, `src/mock_target`) and the interface
+  code they share (`src/ui`), and nowhere else.
 
 ## Commits and pull requests
 
@@ -123,6 +125,9 @@ what to do instead of an `#ifdef`, and how to add a platform.
   riding along with it.
 - If a person using the program would notice the change, add a line under
   `Unreleased` in [CHANGELOG.md](CHANGELOG.md).
+- If you change what a window shows or does, change [the user's guide](docs/user-guide/index.md)
+  with it, and make the pictures again ([docs/screenshots.md](docs/screenshots.md)). The
+  `docs.links` test fails on a link or a picture that is not there.
 - Do not commit a load, media set or capture taken from real equipment, or
   build output. The `.gitignore` already keeps build output out; do not work
   around it. Nor the ARINC standards: they are kept in `docs/specs/` for
@@ -136,7 +141,9 @@ what to do instead of an `#ifdef`, and how to add a platform.
    [docs/branch-protection.md](docs/branch-protection.md) how the protected
    branches are set up.
 3. Describe what changed and why, and what you ran to check it, on which system.
-4. Once it is approved it is merged with a merge commit.
+4. Once the checks are green it goes through the merge queue and is merged with
+   a merge commit. The rulesets require no approving review (the project has one
+   maintainer), but review comments are still worth settling first.
 
 ## Licence of contributions
 

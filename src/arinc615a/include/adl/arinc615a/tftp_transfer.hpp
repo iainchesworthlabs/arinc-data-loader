@@ -97,6 +97,8 @@ enum class TransferOutcome : std::uint8_t {
     return "unknown";
 }
 
+// How a transfer ended and what is known of it: the outcome and the detail that goes
+// with it, the bytes moved and the verdict on the checksum. See TftpTransfer::result().
 struct TransferResult {
     TransferOutcome outcome = TransferOutcome::running;
     std::uint16_t wait_seconds = 0;                                // wait_requested
@@ -111,6 +113,8 @@ struct TransferResult {
     std::optional<std::uint64_t> announced_size;  // the tsize the peer gave, if it did
 };
 
+// The limits a transfer works within: the largest block size it agrees to, the
+// time-out and retries of each exchange, and how long it lingers after the last block.
 struct TransferSettings {
     // The largest block size this end will agree to or ask for; the buffer must hold it and 4.
     std::size_t max_block_size = 1024;
@@ -126,6 +130,8 @@ struct ClientOptions {
     std::optional<std::uint16_t> port;           // the "port" option (initialization requests)
 };
 
+// A datagram waiting to be sent: where to, and the bytes, which are in the
+// transfer's own buffer. See TftpTransfer::take_outgoing().
 struct Outgoing {
     Endpoint to;
     std::span<const std::byte> bytes;

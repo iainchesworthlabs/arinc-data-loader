@@ -1,5 +1,8 @@
 #pragma once
 
+// Conversion of the libraries' text to Qt strings. The libraries are free of Qt
+// and hold their text as UTF-8 or ASCII.
+
 #include <string_view>
 
 #include <QString>

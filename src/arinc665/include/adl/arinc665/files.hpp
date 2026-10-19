@@ -1,5 +1,10 @@
 #pragma once
 
+// What a header file records about each file of a load: the data files, the
+// support files, and the two ARINC 615 configuration files, which are support
+// files with names of their own. These hold the name, part number, length and
+// check values of a file, not its bytes (see FileContent in load.hpp).
+
 #include <cstdint>
 #include <string>
 

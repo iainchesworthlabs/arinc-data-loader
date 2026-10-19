@@ -1,13 +1,14 @@
 # ARINC 615A-3 coverage
 
-This page reviews `docs/specs/615A-3.pdf` against `adl::arinc615a` (the [codec](arinc615a-codec.md) and
+This page reviews `docs/specs/615A-3.pdf` (not in the repository) against `adl::arinc615a` (the [codec](arinc615a-codec.md) and
 the [engine](arinc615a-engine.md)) and `adl::arinc615a_runner`: what each section asks for, where the code
 does it, and which tests hold it down. It is also the list of places the standard is unclear, because those are
 where an interoperability test against a real loader or target matters most. It is in the form of [the 665
 page](arinc665-coverage.md). Section numbers are those of the 615A-3 edition in `docs/specs/`.
 
 The code is the **data loader's** half of the protocol. A target's half (answering `.LCI`, writing status
-files) exists only as the simulated target of the tests.
+files) exists only as the simulated target of the tests and the mock target application (`src/mock_target`,
+[the mock target](mock-target.md)), which is for demonstrations.
 
 ## In short
 
@@ -16,15 +17,16 @@ files) exists only as the simulated target of the tests.
   Download (media defined and operator defined) operations with the status files, the time-outs and retries of
   Attachment 4, the abort paths of 5.4.5.2 and the protocol files of 6.4.
 - It is **sans-I/O**: the state machines hold no socket, thread, clock or file system, work on bytes, allocate
-  nothing, throw nothing and need no RTTI, so they can run on an RTOS and be tested without a network. The
+  nothing (but for the value of a checksum), throw nothing and need no RTTI, so they can run on an RTOS and be tested without a network. The
   runner is the only code that calls `adl::platform`.
 - A full load of a media set built with `adl::arinc665::build_media_set` goes to a simulated target, and
   files come back in both download modes, over a clean network and over one that loses, repeats and reorders
   datagrams, with deterministic seeds. Many of the tests deliberately break the protocol: a target that
   waits, goes silent, aborts, loses or repeats status files, sends a wrong checksum, announces an exception
   timer, refuses options, speaks another protocol version or writes a file that was not asked for.
-- **Nothing has been checked against another implementation**, a loader or a target, and no test runs an
-  operation over real sockets (see [Not yet verified](#not-yet-verified)). The simulated target's TFTP is a
+- **Nothing has been checked against another implementation**, a loader or a target, and the only whole
+  operations over real sockets are run against the mock target's engine (see [Not yet
+  verified](#not-yet-verified)). The simulated target's TFTP is a
   second, independent implementation, but both are my reading of the standard.
 - Not built: hardware (sections 1 to 4, Attachments 1 and 5), and anything on the target's side.
 
@@ -126,9 +128,12 @@ real device. [The engine page](arinc615a-engine.md) says how each is resolved; t
 - **Against any other implementation of 615A**, a data loader or a target. The simulated target is built from
   the same reading of the standard, with its own TFTP code. The choices above are where a real target is likeliest
   to differ; 1, 2, 4 and the text-length choice of the codec are the first to confirm.
-- **Over real sockets, end to end.** The runner is tested on the fake platform only; the real platforms'
-  sockets are covered by `adl::platform`'s conformance suite, but no test runs an operation over loopback or a
-  network. macOS has not run any of it.
+- **Over a real network.** The runner is tested on the fake platform against the simulated target, and on the
+  real host's sockets in `loopback.integration` (`tests/loopback`), which runs whole operations on 127.0.0.1
+  against the mock target's engine. That target's TFTP is the same second implementation, so it checks the
+  sockets and the runner, not the choices above; no test runs an operation over a network or against a device.
+  The real platforms' sockets are also covered by `adl::platform`'s conformance suite. macOS runs these tests
+  only in its CI leg ([CI](ci.md)), not by hand.
 - **Under `-fno-exceptions -fno-rtti` in CI.** The library sources compile that way under g++ 15 with the
   repository's warnings as errors, and the objects hold no reference to `typeinfo` or to a throw (checked once by
   hand); there is no CI job.

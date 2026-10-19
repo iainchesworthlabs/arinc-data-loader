@@ -1,5 +1,8 @@
 #pragma once
 
+// The wording of the engine's notices (Notice, in adl/arinc615a/data_loader.hpp)
+// for the operator, as Qt strings.
+
 #include <cstdint>
 #include <string_view>
 

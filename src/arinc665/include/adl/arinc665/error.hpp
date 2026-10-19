@@ -1,5 +1,9 @@
 #pragma once
 
+// The error type of the ARINC 665 library and the Result alias that its encoders,
+// decoders and builders return. Something the standard only recommends is a
+// Finding (finding.hpp), not an Error.
+
 #include <expected>
 #include <string_view>
 

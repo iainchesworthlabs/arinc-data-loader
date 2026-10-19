@@ -1,5 +1,10 @@
 #pragma once
 
+// A media set in memory: its members and the files on each. build_media_set()
+// lays loads, batches and other files out over the members and writes the list
+// files; read_media_set() does the reverse and checks what it finds. No file
+// system is used here; adl::media_tree maps members to directories.
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -44,6 +49,8 @@ struct FilePlacement {
     std::string subdirectory;
 };
 
+// A load, and where it goes in a media set: the member that holds its header file
+// and where its data and support files are put (see FilePlacement).
 struct PlacedLoad {
     Load load;
     // The part root directory (section 3.2.4.1.1), starting and ending with a
@@ -57,6 +64,7 @@ struct PlacedLoad {
     std::vector<FilePlacement> support_placements;
 };
 
+// A batch file, and the member and directory it is placed in.
 struct PlacedBatch {
     std::string file_name;  // for example "ACM47.LUB"
     BatchFile batch;
@@ -100,6 +108,7 @@ struct MediaSetSpec {
 // name in one directory of a member.
 [[nodiscard]] Result<std::vector<MediaMember>> build_media_set(const MediaSetSpec& spec);
 
+// A batch file as read from a media set: its name and what it decodes to.
 struct ReadBatch {
     std::string file_name;
     BatchFile batch;

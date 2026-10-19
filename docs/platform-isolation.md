@@ -23,7 +23,8 @@ src/platforms/
   interfaces/adl/platform/   what the program needs from a platform: one header each
     paths.hpp, host.hpp, files.hpp, memory.hpp, threads.hpp, time.hpp,
     network.hpp, ipc.hpp, error.hpp, owned.hpp, ring_ipc.hpp
-  windows/ linux/ macos/     one implementation per interface, plus platform.cmake
+  windows/ linux/ macos/     the platform's own files and its platform.cmake (Linux and macOS
+                             take the rest of their implementations from posix/)
   qnx/                       code that has never been compiled (status unbuilt)
   ghs508/ ghs178b/           Green Hills INTEGRITY 5.0.8 and INTEGRITY-178B (unbuilt)
   vxworks/ freertos/ zephyr/ a platform.cmake only: designs, no code
@@ -31,7 +32,8 @@ src/platforms/
   ghs/                       the implementations the INTEGRITY platforms share
   detail/                    portable helpers every platform links
   CMakeLists.txt             builds adl_platform from what the fragment names
-tests/platform/              the fragment and selector checks, and test cases only one platform can run
+tests/platform/              the fragment and selector checks (CMake scripts); a test case only one
+                             platform can run would go here, and there is none today
 tests/conformance/           the same checks against the real host and the fake
 tests/fake/                  the fake platform
 ```
@@ -78,13 +80,15 @@ The contract:
 | --- | --- | --- |
 | Source files compiled into `adl_platform` (relative to `src/platforms`) | `ADL_PLATFORM_SOURCES` | `src/platforms/CMakeLists.txt` |
 | System libraries `adl_platform` links | `ADL_PLATFORM_LINK_LIBRARIES` | `src/platforms/CMakeLists.txt` |
-| Compile definitions, for `adl_platform` only (Windows: `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE`) | `ADL_PLATFORM_COMPILE_DEFINITIONS` | `src/platforms/CMakeLists.txt` |
-| The name in the version block (`Windows`, `Linux`, `macOS`) | `ADL_PLATFORM_DISPLAY_NAME` | The configure summary |
-| Whether this is a desktop (installers, the Qt application and notices exist) | `ADL_PLATFORM_DESKTOP` | Checked by the contract; nothing reads it yet |
+| Compile definitions, for `adl_platform` only (Windows: `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE _WIN32_WINNT=0x0A00`) | `ADL_PLATFORM_COMPILE_DEFINITIONS` | `src/platforms/CMakeLists.txt` |
+| The name in the version block (`Windows`, `Linux`, `macOS`) | `ADL_PLATFORM_DISPLAY_NAME` | The configure summary, the applications' version block (`cmake/AdlUi.cmake`) |
+| Whether this is a desktop (installers, the Qt applications and notices exist) | `ADL_PLATFORM_DESKTOP` | `CMakeLists.txt`, which looks for Qt and builds the applications by default only on a desktop; checked by the contract |
+| For a desktop only: the notice fragments the platform adds, one sentence on where the programs get Qt, and the strings the generated notices must contain | `ADL_PLATFORM_NOTICE_FRAGMENTS`, `ADL_PLATFORM_NOTICE_QT_DEPLOYMENT`, `ADL_PLATFORM_NOTICE_EXPECTED` | `cmake/AdlUi.cmake`, `tests/system/check_notices.cmake` |
+| Optional: a vendor package the platform needs, whether it was found, its name and a hint | `ADL_PLATFORM_PACKAGE_FOUND`, `ADL_PLATFORM_PACKAGE_NAME`, `ADL_PLATFORM_PACKAGE_HINT` | `cmake/Platform.cmake`, which fails the configure by name when the package is missing (the INTEGRITY platforms) |
 | Whether there is code to build (`supported`), code nobody has compiled (`unbuilt`), or only a design (`design-only`) | `ADL_PLATFORM_STATUS` | `cmake/Platform.cmake`, which refuses a build for the last, and for the second unless `ADL_ACCEPT_UNBUILT_PLATFORM` is on |
 | Where an installed Qt lives | `ADL_PLATFORM_QT_SEARCH_ROOTS`, `ADL_PLATFORM_QT_ARCH_DIRS` | `cmake/FindQt6.cmake` |
-| What makes the Qt application a program of this desktop (no console window on Windows, a bundle on macOS) | `adl_platform_configure_app(<target>)` | `src/app/CMakeLists.txt` |
-| Qt's runtime beside a program, including the QML modules in `<qml_dir>` (`windeployqt` on Windows) | `adl_platform_deploy_qt_runtime(<target> <qml_dir>)` | `src/app/CMakeLists.txt`, `tests/CMakeLists.txt` |
+| What makes a Qt application a program of this desktop (no console window on Windows, a bundle on macOS) | `adl_platform_configure_app(<target>)` | `src/app`, `src/media_gen` and `src/mock_target` `CMakeLists.txt` |
+| Qt's runtime beside a program, including the QML modules in `<qml_dir>` (`windeployqt` on Windows) | `adl_platform_deploy_qt_runtime(<target> <qml_dir>)` | the same three, and the `CMakeLists.txt` of `tests/app`, `tests/media_gen`, `tests/mock_target` and `tests/ui` |
 
 The full contract is the header comment of `cmake/Platform.cmake`. A fragment
 that forgets part of it fails the configure by name, not three files away. A
@@ -104,8 +108,9 @@ they stay in `cmake/CompilerWarnings.cmake`, `Sanitizers.cmake` and
    Copy the closest existing platform's and change what differs.
 2. Add a branch for it in `cmake/Platform.cmake`, and its name to the choices of
    `ADL_TARGET_PLATFORM` if it is a cross build.
-3. If it can run the tests, add `tests/platform/<name>/` for any test case only
-   it can run (optional: a platform with none has no directory).
+3. If it has a test case only it can run, add `tests/platform/<name>/` for it (optional,
+   and none exists today: the checks in `tests/platform/` are CMake scripts that apply to
+   every platform).
 
 That is the source tree. Three things outside it still carry platform names,
 because their formats cannot read a CMake variable: the configure, build and
@@ -127,7 +132,7 @@ The cases already in the tree:
 
 | Need | Done as |
 | --- | --- |
-| `<windows.h>` without the `min`/`max` macros, and with the wide-character API | `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE` are in the Windows `platform.cmake` and passed to `adl_platform`; no source file defines them |
+| `<windows.h>` without the `min`/`max` macros, and with the wide-character API | `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE` (and `_WIN32_WINNT`) are in the Windows `platform.cmake` and passed to `adl_platform`; no source file defines them |
 | The path of the running executable | `interfaces/adl/platform/paths.hpp`; `windows/paths_windows.cpp`, `linux/paths_linux.cpp`, `macos/paths_macos.cpp` |
 | Sockets, files, threads, a clock, memory, queues | The interfaces in `interfaces/adl/platform/`, one implementation per platform ([platform abstraction](platform-abstraction.md)) |
 | `MSG_NOSIGNAL` on one system, a different condition-variable wait on another | A function in `posix/posix_os.hpp`, defined once per system in `linux/os_linux.cpp` or `macos/os_macos.cpp` |
@@ -184,13 +189,14 @@ fails, with a `file:line` for each finding, on:
    outside the exemption and pass the check as any shared code does.);
 3. a platform directory without a `platform.cmake`, or a translation unit
    (`.cpp`, `.cc`, `.cxx` or `.mm`) in one that no `platform.cmake` names
-   outside a comment. (`interfaces/` and `posix/` are not platforms, and are
-   not required to have one);
+   outside a comment. (`detail/`, `interfaces/`, `posix/` and `ghs/` are not
+   platforms, and are not required to have one; the translation units in `posix/`
+   and `ghs/` must still be named by some fragment);
 4. a test of the operating system (`WIN32`, `APPLE`, `UNIX`, `LINUX`,
    `ANDROID`, `IOS`, `MINGW`, `CYGWIN`, `EMSCRIPTEN`, `CMAKE_SYSTEM_NAME`,
    `$<PLATFORM_ID:...>`) in any CMake file but `cmake/Platform.cmake`, the
-   platform fragments and any vcpkg triplet under `cmake/triplets/` (there are
-   none yet);
+   platform fragments, any vcpkg triplet under `cmake/triplets/` (there are none
+   yet) and the toolchain files under `cmake/toolchains/`;
 5. any `#define` or `#undef` in first-party C++.
 
 Run it from the repository root:

@@ -1,5 +1,9 @@
 #pragma once
 
+// IntegrityChecker, which runs the CRC, MD5 or SHA-1 calculation that a
+// CheckValueType names, chosen at run time, and returns the result as a
+// CheckValue.
+
 #include <cstddef>
 #include <span>
 #include <string_view>

@@ -1,5 +1,8 @@
 #pragma once
 
+// The status codes of ARINC 615A-3 Table 6.4.10-1, and which of them each status
+// field of the protocol files may hold.
+
 #include <cstdint>
 #include <string_view>
 

@@ -1,5 +1,10 @@
 #pragma once
 
+// A media set written to a directory tree and read back: one directory per member
+// under a root, and below it the directories that the files' pathnames name. File
+// names are limited to ones every platform accepts, so that a tree written on one
+// can be read on another. Failures are returned, not thrown.
+
 #include <cstdint>
 #include <expected>
 #include <filesystem>

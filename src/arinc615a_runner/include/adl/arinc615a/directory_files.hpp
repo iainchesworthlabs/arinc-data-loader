@@ -21,6 +21,8 @@ namespace adl::arinc615a {
 // Whether `name` may be used as a file name inside a directory.
 [[nodiscard]] bool is_safe_file_name(std::string_view name) noexcept;
 
+// Reads the files of a load from the directory, by name, through the platform's
+// file system. At most max_open files are open at once.
 class DirectoryFileSource final : public FileSource {
 public:
     static constexpr std::size_t max_open = 8;
@@ -39,6 +41,8 @@ private:
     std::array<adl::platform::Owned<adl::platform::ReadFile>, max_open> open_;
 };
 
+// Writes the files a target sends into the directory, as described above. At most
+// max_open files are open at once.
 class DirectoryFileSink final : public FileSink {
 public:
     static constexpr std::size_t max_open = 8;
