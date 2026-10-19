@@ -5,14 +5,18 @@
 #include <QSettings>
 #include <QVariantMap>
 
+#include <algorithm>
 #include <array>
+#include <string_view>
+
+using namespace Qt::StringLiterals;
 
 namespace adl::app {
 namespace {
 
 struct LanguageInfo {
-    const char* code;
-    const char* nativeName;
+    std::string_view code;
+    std::string_view native_name;
 };
 
 // "en" first (no .qm - the source strings are already English), then every language this
@@ -30,15 +34,15 @@ constexpr std::array<LanguageInfo, 8> kLanguages{{
     {"ja", "日本語"},
 }};
 
-constexpr auto kSettingsKey = "language/code";
+constexpr QLatin1StringView kSettingsKey{"language/code"};
+
+[[nodiscard]] QLatin1StringView latin1(std::string_view text) {
+    return QLatin1StringView{text.data(), static_cast<qsizetype>(text.size())};
+}
 
 [[nodiscard]] bool is_supported(const QString& code) {
-    for (const LanguageInfo& info : kLanguages) {
-        if (code == QLatin1String(info.code)) {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(
+        kLanguages, [&code](const LanguageInfo& info) { return code == latin1(info.code); });
 }
 
 // Maps a system locale to one of kLanguages, or "en" when there is no catalogue for it.
@@ -54,7 +58,7 @@ LanguageManager::LanguageManager(QGuiApplication& app, QQmlEngine& engine, QObje
 
 void LanguageManager::applyInitialLanguage() {
     const QSettings settings;
-    const QString saved = settings.value(QLatin1String(kSettingsKey)).toString();
+    const QString saved = settings.value(kSettingsKey).toString();
     const QString initial = is_supported(saved) ? saved : language_for_locale(QLocale::system());
 
     installTranslators(initial);
@@ -67,8 +71,9 @@ QVariantList LanguageManager::availableLanguages() const {
     result.reserve(static_cast<qsizetype>(kLanguages.size()));
     for (const LanguageInfo& info : kLanguages) {
         QVariantMap entry;
-        entry["code"] = QString::fromLatin1(info.code);
-        entry["name"] = QString::fromUtf8(info.nativeName);
+        entry["code"] = QString{latin1(info.code)};
+        entry["name"] = QString::fromUtf8(info.native_name.data(),
+                                          static_cast<qsizetype>(info.native_name.size()));
         result << entry;
     }
     return result;
@@ -90,7 +95,7 @@ bool LanguageManager::setLanguage(const QString& code) {
     engine_.retranslate();
 
     QSettings settings;
-    settings.setValue(QLatin1String(kSettingsKey), code);
+    settings.setValue(kSettingsKey, code);
 
     Q_EMIT currentLanguageChanged();
     return true;
@@ -102,7 +107,7 @@ void LanguageManager::installTranslators(const QString& code) {
     app_.removeTranslator(&qt_translator_);
     app_.removeTranslator(&app_translator_);
 
-    if (code == QLatin1String("en")) {
+    if (code == "en"_L1) {
         return;  // no translator: the source strings are English
     }
 

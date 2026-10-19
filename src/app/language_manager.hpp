@@ -12,7 +12,6 @@ namespace adl::app {
 // Owns the application's translators, the persisted language preference, and what a language
 // switch touches: the installed translators and the layout direction (right to left for the
 // scripts that read that way), then QQmlEngine::retranslate() so the running window follows.
-// The pattern is the Countdown Solver's LanguageManager, which is the sibling application's.
 //
 // `app` and `engine` must outlive this object. Declare it after the engine in main.cpp, so the
 // QML tree is gone before the manager is (a binding still reading it while the engine tears down

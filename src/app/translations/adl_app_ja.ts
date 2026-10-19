@@ -4,35 +4,143 @@
 <context>
     <name>AboutDialog</name>
     <message>
-        <location filename="../qml/AboutDialog.qml" line="+9"/>
+        <location filename="../qml/AboutDialog.qml" line="+14"/>
+        <source>ARINC Data Loader %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
         <source>About ARINC Data Loader</source>
         <translation>ARINC Data Loader について</translation>
     </message>
     <message>
-        <location line="+9"/>
-        <source>ARINC Data Loader</source>
-        <translation>ARINC Data Loader</translation>
+        <location line="+1"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>A data loader for ARINC 615A targets and ARINC 665 media sets.</source>
-        <translation>ARINC 615A ターゲットと ARINC 665 メディアセット向けのデータローダー。</translation>
+        <location line="+19"/>
+        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Version %1</source>
-        <translation>バージョン %1</translation>
+        <location line="+7"/>
+        <source>Version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+30"/>
+        <source>Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-55"/>
+        <location line="+39"/>
+        <source>Licences</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ActivityDock</name>
+    <message>
+        <location filename="../qml/ActivityDock.qml" line="+33"/>
+        <source>ACTIVITY</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>1.0</source>
-        <translation>1.0</translation>
+        <source>TARGET CONFIGURATION</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+53"/>
+        <source>Clear</source>
+        <translation type="unfinished">クリア</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Clear the activity log</source>
+        <translation type="unfinished">アクティビティログをクリア</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Read information</source>
+        <translation type="unfinished">情報を読み取る</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Read the target information</source>
+        <translation type="unfinished">ターゲット情報を読み取る</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Hide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Show</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Collapse the evidence panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Expand the evidence panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+36"/>
+        <source>Target configuration</source>
+        <translation type="unfinished">ターゲット構成</translation>
+    </message>
+    <message>
+        <location line="+40"/>
+        <source>Nothing read yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Read information from the target to see its hardware and parts here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AppDialog</name>
+    <message>
+        <location filename="../../ui/qml/AppDialog.qml" line="+12"/>
+        <source>OK</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>CheckTile</name>
+    <message>
+        <location filename="../../ui/qml/CheckTile.qml" line="+45"/>
+        <source>Not set</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DownloadModel</name>
+    <message>
+        <location filename="../core/src/models.cpp" line="+512"/>
+        <source>waiting</source>
+        <translation type="unfinished">待機中</translation>
     </message>
 </context>
 <context>
     <name>DownloadPanel</name>
     <message>
-        <location filename="../qml/DownloadPanel.qml" line="+36"/>
+        <location filename="../qml/DownloadPanel.qml" line="+121"/>
         <source>Media defined</source>
         <translation>メディア定義</translation>
     </message>
@@ -47,12 +155,7 @@
         <translation>ダウンロードモード</translation>
     </message>
     <message>
-        <location line="+14"/>
-        <source>File name</source>
-        <translation>ファイル名</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+38"/>
         <source>Download file name</source>
         <translation>ダウンロードファイル名</translation>
     </message>
@@ -67,22 +170,12 @@
         <translation>ファイル名をダウンロード対象に追加</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>No file named. Name each file the target is to send.</source>
-        <translation>ファイル名が指定されていません。ターゲットが送信する各ファイルの名前を指定してください。</translation>
-    </message>
-    <message>
-        <location line="+18"/>
+        <location line="+103"/>
         <source>Waiting for the target&apos;s list of files...</source>
         <translation>ターゲットのファイル一覧を待機しています...</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Nothing to choose from yet. Start the download: the target sends its list of files, the operator ticks what to take, and the choice goes back.</source>
-        <translation>まだ選択肢がありません。ダウンロードを開始してください。ターゲットがファイル一覧を送信し、オペレーターが取得するファイルにチェックを入れ、その選択が返送されます。</translation>
-    </message>
-    <message>
-        <location line="+10"/>
+        <location line="+13"/>
         <source>Choose none</source>
         <translation>選択なし</translation>
     </message>
@@ -90,11 +183,6 @@
         <location line="+2"/>
         <source>Choose none of the files</source>
         <translation>ファイルを一切選択しない</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Nothing is downloaded: the operation is cancelled</source>
-        <translation>ダウンロードは行われず、操作はキャンセルされます</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -106,79 +194,543 @@
         <source>Download the ticked files</source>
         <translation>チェックしたファイルをダウンロード</translation>
     </message>
-    <message numerus="yes">
-        <location line="+4"/>
-        <source>%n file(s) ticked</source>
-        <translation>
-            <numerusform>%n 件のファイルを選択済み</numerusform>
-        </translation>
-    </message>
     <message>
-        <location line="+37"/>
+        <location line="+44"/>
         <source>Download %1</source>
         <translation>%1 をダウンロード</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="-113"/>
         <source>Remove</source>
         <translation>削除</translation>
     </message>
     <message>
+        <location line="-219"/>
+        <source>no target</source>
+        <translation type="unfinished">ターゲットなし</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <location line="+373"/>
+        <source>Choose the download directory</source>
+        <translation type="unfinished">ダウンロードディレクトリを選択</translation>
+    </message>
+    <message>
+        <location line="-343"/>
+        <source>THE DOWNLOAD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Download from %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>RUNNING</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>READY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>NOT READY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; directory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>MEDIA DEFINED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>OPERATOR DEFINED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+26"/>
+        <source>Name the files the target is to send; only those are requested.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The target sends its list; tick the files to take, then send the choice back.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+2"/>
+        <source>file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>File name, for example CONFIG.LDR</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>No file named yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Name each file the target is to send. The target&apos;s own list is only used in the operator defined mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+53"/>
         <source>Remove %1 from the download</source>
         <translation>%1 をダウンロード対象から削除</translation>
     </message>
     <message>
-        <location line="+18"/>
-        <source>Download progress of %1</source>
-        <translation>%1 のダウンロード進捗</translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>Download</source>
-        <translation>ダウンロード</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Download from the target</source>
-        <translation>ターゲットからダウンロード</translation>
+        <location line="+31"/>
+        <source>The target&apos;s list</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
-        <source>Downloads into a new DNLD_DATA directory under the download directory (Preferences)</source>
-        <translation>ダウンロードディレクトリ (設定) の下に新しい DNLD_DATA ディレクトリを作成してダウンロードします</translation>
+        <location line="+40"/>
+        <source>file ticked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-39"/>
+        <location line="+39"/>
+        <source>files ticked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-29"/>
+        <source>Start the download: the target sends its list, tick what to take, and send the choice back.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+98"/>
+        <source>Destination</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>LAST DOWNLOAD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>NOT WRITTEN YET</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>No download directory set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Change...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <location line="+55"/>
+        <source>Open folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-53"/>
+        <source>Open the last download directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>The last download was written to %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>A new numbered directory is made for every download, even one that is aborted.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+29"/>
+        <source>COMPLETE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>FAILED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>Open the download folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Target %1 · %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>no directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>EngineWorker</name>
+    <message>
+        <location filename="../core/src/engine_worker.cpp" line="+401"/>
+        <location line="+56"/>
+        <location line="+20"/>
+        <location line="+48"/>
+        <location line="+39"/>
+        <source>&quot;%1&quot; is not an IPv4 address.</source>
+        <translation type="unfinished">&quot;%1&quot; は IPv4 アドレスではありません。</translation>
+    </message>
+    <message>
+        <location line="-149"/>
+        <source>Looking for targets (broadcast, three seconds)...</source>
+        <translation type="unfinished">ターゲットを検索しています (ブロードキャスト、3 秒)...</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Looking for a target at %1 (three seconds)...</source>
+        <translation type="unfinished">%1 のターゲットを検索しています (3 秒)...</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>FIND could not run (%1).</source>
+        <translation type="unfinished">FIND を実行できませんでした (%1)。</translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>1 target answered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 targets answered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>Asking %1 (%2) for its configuration...</source>
+        <translation type="unfinished">%1 (%2) に構成情報を要求しています...</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>No media set has been read, so there is nothing to upload.</source>
+        <translation type="unfinished">メディアセットが読み込まれていないため、アップロードするものはありません。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>No load was chosen.</source>
+        <translation type="unfinished">ロードが選択されていません。</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Uploading 1 load to %1 (%2)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Uploading %1 loads to %2 (%3)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>No file was named.</source>
+        <translation type="unfinished">ファイル名が指定されていません。</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>&quot;%1&quot; is not a safe file name.</source>
+        <translation type="unfinished">&quot;%1&quot; は安全なファイル名ではありません。</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Downloading 1 file from %1 (%2)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Downloading %1 files from %2 (%3)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>Asking %1 (%2) for the files it can download...</source>
+        <translation type="unfinished">%1 (%2) にダウンロード可能なファイルを要求しています...</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>The download directory could not be used: %1.</source>
+        <translation type="unfinished">ダウンロードディレクトリを使用できませんでした: %1。</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>the request was refused (%1)</source>
+        <translation type="unfinished">要求が拒否されました (%1)</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>the loader&apos;s port could not be opened (%1)</source>
+        <translation type="unfinished">ローダーのポートを開けませんでした (%1)</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>waiting for the network failed (%1)</source>
+        <translation type="unfinished">ネットワークの待機に失敗しました (%1)</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>The operation could not run: %1.</source>
+        <translation type="unfinished">操作を実行できませんでした: %1。</translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>completed, 1 file failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>completed, %1 files failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>completed, 1 load failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>completed, %1 loads failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>completed, 1 file missing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>completed, %1 files missing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>The target confirmed that it stopped.</source>
+        <translation type="unfinished">ターゲットは停止を確認しました。</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The target did not confirm that it stopped.</source>
+        <translation type="unfinished">ターゲットは停止を確認しませんでした。</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>The target may still be loading; ask it what it is doing before trying again.</source>
+        <translation type="unfinished">ターゲットはまだロード中の可能性があります。再試行する前にターゲットの状態を確認してください。</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>The target read 1 file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The target read %1 files.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Files received: %1 of %2 requested.</source>
+        <translation type="unfinished">受信ファイル: 要求数 %2 中 %1。</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Finished: %1.</source>
+        <translation type="unfinished">完了: %1。</translation>
     </message>
     <message>
         <location line="+6"/>
-        <source>Download directory: %1</source>
-        <translation>ダウンロードディレクトリ: %1</translation>
+        <source>Reading the media set in %1...</source>
+        <translation type="unfinished">%1 のメディアセットを読み込んでいます...</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>media set read</source>
+        <translation type="unfinished">メディアセット読み込み完了</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Read media set %1: 1 load.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Read media set %1: %2 loads.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>The media set could not be read: %1.</source>
+        <translation type="unfinished">メディアセットを読み込めませんでした: %1。</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Checking the media set in %1...</source>
+        <translation type="unfinished">%1 のメディアセットをチェックしています...</translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>media set checked</source>
+        <translation type="unfinished">メディアセットのチェック完了</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Checked media set %1: 1 load, 1 file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Checked media set %1: %2, %3.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>1 load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 loads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>1 file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>The media set could not be checked: %1.</source>
+        <translation type="unfinished">メディアセットをチェックできませんでした: %1。</translation>
     </message>
 </context>
 <context>
     <name>FirstRunScreen</name>
     <message>
-        <location filename="../qml/FirstRunScreen.qml" line="+21"/>
-        <location line="+79"/>
+        <location filename="../qml/FirstRunScreen.qml" line="+22"/>
+        <location line="+176"/>
         <source>Choose the download directory</source>
         <translation>ダウンロードディレクトリを選択</translation>
     </message>
     <message>
-        <location line="-61"/>
-        <source>Before the first operation</source>
-        <translation>最初の操作の前に</translation>
+        <location line="-161"/>
+        <source>FIRST RUN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Load a media set to a target.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>The loader reads an ARINC 665 media set, checks every file and its check value, and moves the loads you tick to an ARINC 615A target. Nothing is sent until you ask it to.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Start loading</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Choose a media set...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Choose the first media set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Opens the media set chooser and the workbench together</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Start loading opens the workbench with these defaults. A media set can be chosen there, or here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+22"/>
+        <source>Defaults</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>The loader needs to know where a target is, and where a download is to be written. Both can be changed later in File → Preferences.</source>
-        <translation>ローダーには、ターゲットの場所とダウンロードの書き込み先が必要です。どちらも後から「ファイル → 設定」で変更できます。</translation>
+        <source>Hide</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+0"/>
+        <source>Set up defaults</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Hide the default settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Show the default settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>These are the values the workbench starts from. They can be changed later in Preferences.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
         <source>Default address</source>
         <translation>既定のアドレス</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+8"/>
         <source>10.0.0.2</source>
         <translation>10.0.0.2</translation>
     </message>
@@ -188,12 +740,12 @@
         <translation>既定のターゲットアドレス</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+4"/>
         <source>Default THW_ID_POS</source>
         <translation>既定の THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+8"/>
         <source>HNPFMS_L</source>
         <translation>HNPFMS_L</translation>
     </message>
@@ -203,291 +755,565 @@
         <translation>既定のターゲットハードウェア識別子と位置</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <location line="+12"/>
+        <location line="+4"/>
+        <location line="+14"/>
         <source>Download directory</source>
         <translation>ダウンロードディレクトリ</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+4"/>
         <source>Browse...</source>
         <translation>参照...</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>Start</source>
-        <translation>開始</translation>
+        <location line="+22"/>
+        <source>WHAT THIS WINDOW DOES</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+31"/>
+        <source>Choose a media set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>A directory with one directory per member. Its loads, files and findings are read and checked.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+30"/>
+        <source>Find the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>FIND broadcasts for three seconds. A target that does not answer can be named by IPv4 address and THW_ID_POS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+30"/>
+        <source>Upload or download</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>The operations run on the engine&apos;s own thread, with progress, an abort and an activity log that keeps what the target said.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>THE THREE TOOLS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+22"/>
+        <source>the loader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Reads a media set, talks to the target, and keeps the evidence.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>the media set generator</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Turns files into the ARINC 665 tree this window opens.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Serves a 615A dialogue over real sockets, and can be made to misbehave.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>The same system draws the media set generator and the mock target, so the three tools read alike.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-385"/>
         <source>Start the loader</source>
         <translation>ローダーを開始</translation>
     </message>
+</context>
+<context>
+    <name>LicencesDialog</name>
     <message>
-        <location line="+2"/>
-        <source>Saves the settings above and opens the window</source>
-        <translation>上記の設定を保存してウィンドウを開きます</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The media set is chosen in the window, then checked before an upload.</source>
-        <translation>メディアセットはウィンドウで選択し、アップロード前にチェックされます。</translation>
+        <location filename="../../ui/qml/LicencesDialog.qml" line="+12"/>
+        <source>This build carries no embedded notices file (:/adl/notices/NOTICES.txt was not compiled in); the NOTICES.txt beside the application and the repository&apos;s LICENSE say what it ships.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+12"/>
-        <source>What this window does</source>
-        <translation>このウィンドウの機能</translation>
+        <source>Third-party licences</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>01  Choose a media set</source>
-        <translation>01  メディアセットを選択</translation>
+        <location line="+1"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>A directory with one directory per member: its loads, files and findings are read and checked.</source>
-        <translation>メンバーごとに 1 つのディレクトリを持つディレクトリです。ロード、ファイル、検出結果が読み取られ、チェックされます。</translation>
+        <location line="+24"/>
+        <source>Third-party licence text</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>LoadModel</name>
+    <message>
+        <location filename="../core/src/models.cpp" line="-307"/>
+        <source>1 data file</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>02  Find the target</source>
-        <translation>02  ターゲットを検索</translation>
+        <location line="+0"/>
+        <source>%1 data files</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>FIND broadcasts for three seconds; a target that does not answer can be named by address and THW_ID_POS.</source>
-        <translation>FIND は 3 秒間ブロードキャストします。応答しないターゲットはアドレスと THW_ID_POS で指定できます。</translation>
+        <location line="+2"/>
+        <source>1 support file</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>03  Upload or download</source>
-        <translation>03  アップロードまたはダウンロード</translation>
+        <location line="+1"/>
+        <source>%1 support files</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>The information, upload and download operations run on the engine&apos;s own thread, with progress, an abort and an activity log.</source>
-        <translation>情報取得、アップロード、ダウンロードの各操作はエンジン専用スレッドで実行され、進捗、中止、アクティビティログを備えます。</translation>
+        <location line="+2"/>
+        <source>no target ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>%1 · %2, %3; for %4</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+110"/>
+        <source>waiting</source>
+        <translation type="unfinished">待機中</translation>
+    </message>
+</context>
+<context>
+    <name>LoaderModel</name>
+    <message>
+        <location filename="../core/src/loader_model.cpp" line="+64"/>
+        <location line="+136"/>
+        <source>1 load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-136"/>
+        <location line="+136"/>
+        <source>%1 loads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-134"/>
+        <source>1 file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1, %2, all check values verified</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>; 1 warning against the standard&apos;s recommendations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>; %1 warnings against the standard&apos;s recommendations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+56"/>
+        <source>Looking for targets...</source>
+        <translation type="unfinished">ターゲットを検索しています...</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+3"/>
+        <location line="+4"/>
+        <source>Stopping the operation...</source>
+        <translation type="unfinished">操作を停止しています...</translation>
+    </message>
+    <message>
+        <location line="-6"/>
+        <source>Reading the target&apos;s configuration...</source>
+        <translation type="unfinished">ターゲットの構成情報を読み取っています...</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Uploading to the target...</source>
+        <translation type="unfinished">ターゲットにアップロードしています...</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Downloading from the target...</source>
+        <translation type="unfinished">ターゲットからダウンロードしています...</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Reading the media set...</source>
+        <translation type="unfinished">メディアセットを読み込んでいます...</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Checking the media set...</source>
+        <translation type="unfinished">メディアセットをチェックしています...</translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>1 member</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 members</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>%1: %2, %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+296"/>
+        <source>Choose the target from the list, then run the operation again.</source>
+        <translation type="unfinished">一覧からターゲットを選択し、操作を再実行してください。</translation>
+    </message>
+    <message>
+        <location line="+88"/>
+        <location line="+23"/>
+        <location line="+23"/>
+        <source>No target is selected; looking for one first.</source>
+        <translation type="unfinished">ターゲットが選択されていません。まず検索します。</translation>
     </message>
 </context>
 <context>
     <name>LogView</name>
     <message>
-        <location filename="../qml/LogView.qml" line="+39"/>
+        <location filename="../../ui/qml/LogView.qml" line="+52"/>
         <source>Activity log</source>
         <translation>アクティビティログ</translation>
+    </message>
+    <message>
+        <location line="+40"/>
+        <source>No activity yet.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="+37"/>
+        <location filename="../qml/Main.qml" line="+53"/>
+        <location line="+52"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
-        <location line="+17"/>
-        <source>&amp;File</source>
-        <translation>&amp;ファイル</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>&amp;Preferences...</source>
-        <translation>&amp;設定...</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>&amp;Quit</source>
-        <translation>&amp;終了</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>&amp;Target</source>
-        <translation>&amp;ターゲット</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>&amp;Find targets</source>
-        <translation>&amp;ターゲットを検索</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>&amp;Read information</source>
-        <translation>&amp;情報を読み取る</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>&amp;Upload</source>
-        <translation>&amp;アップロード</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>&amp;Media set</source>
-        <translation>&amp;メディアセット</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>&amp;Choose directory...</source>
-        <translation>&amp;ディレクトリを選択...</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>&amp;Check media set</source>
-        <translation>&amp;メディアセットをチェック</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>&amp;Properties...</source>
-        <translation>&amp;プロパティ...</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>&amp;Help</source>
-        <translation>&amp;ヘルプ</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>&amp;About</source>
-        <translation>&amp;バージョン情報</translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <location line="+99"/>
+        <location line="+92"/>
+        <location line="+405"/>
         <source>Choose the media set directory</source>
         <translation>メディアセットのディレクトリを選択</translation>
     </message>
     <message>
-        <location line="-68"/>
+        <location line="-323"/>
         <source>The operation failed</source>
         <translation>操作に失敗しました</translation>
     </message>
     <message>
-        <location line="+52"/>
-        <source>Media set</source>
-        <translation>メディアセット</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Choose directory...</source>
-        <translation>ディレクトリを選択...</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Check media set</source>
-        <translation>メディアセットをチェック</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Check the media set</source>
-        <translation>メディアセットをチェック</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Reads the set again and checks it; an upload needs a set that has been checked valid</source>
-        <translation>セットを再読み込みしてチェックします。アップロードには有効と確認済みのセットが必要です</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <location line="+224"/>
+        <location line="+257"/>
+        <location line="+129"/>
         <source>Properties...</source>
         <translation>プロパティ...</translation>
     </message>
     <message>
-        <location line="-221"/>
+        <location line="-119"/>
+        <source>Ready to address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Type an address or use FIND.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>MEDIA SET</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>NOT CHOSEN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>CHECKING</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>CHECKED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>INVALID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>UNCHECKED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Choose...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Change...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>No media set chosen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Choose a directory with one directory per member. It is read and checked before an upload.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>member</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>members</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>loads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+24"/>
+        <source>Re-check</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Check the media set again</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
         <source>Show the media set properties</source>
         <translation>メディアセットのプロパティを表示</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>No media set chosen. A media set is a directory with one directory per member.</source>
-        <translation>メディアセットが選択されていません。メディアセットはメンバーごとに 1 つのディレクトリを持つディレクトリです。</translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>Checking the media set...</source>
-        <translation>メディアセットをチェックしています...</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Media set checked: %1</source>
-        <translation>メディアセットをチェックしました: %1</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>The media set is not valid: %1</source>
-        <translation>メディアセットが無効です: %1</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Tick all</source>
-        <translation>すべてチェック</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Tick every load for upload</source>
-        <translation>すべてのロードをアップロード対象としてチェック</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Tick none</source>
-        <translation>すべてチェック解除</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+36"/>
         <source>Untick every load</source>
         <translation>すべてのロードのチェックを外す</translation>
     </message>
-    <message numerus="yes">
-        <location line="+4"/>
-        <source>%n load(s) ticked for upload</source>
-        <translation>
-            <numerusform>%n 件のロードをアップロード対象として選択済み</numerusform>
-        </translation>
-    </message>
     <message>
-        <location line="+31"/>
+        <location line="+41"/>
         <source>Upload load %1</source>
         <translation>ロード %1 をアップロード</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>Upload progress of %1</source>
-        <translation>%1 のアップロード進捗</translation>
-    </message>
-    <message numerus="yes">
-        <location line="+16"/>
-        <source>%n warning(s) against the standard&apos;s recommendations</source>
-        <translation>
-            <numerusform>標準の推奨事項に対する %n 件の警告</numerusform>
-        </translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>Target</source>
-        <translation>ターゲット</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <location line="+3"/>
+        <location line="-346"/>
         <source>Find targets</source>
         <translation>ターゲットを検索</translation>
     </message>
     <message>
+        <location line="-373"/>
+        <source>WORKING</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>SETUP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+2"/>
-        <source>Broadcasts FIND and listens for three seconds</source>
-        <translation>FIND をブロードキャストして 3 秒間待ち受けます</translation>
+        <location line="+885"/>
+        <source>READY</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>Targets found</source>
-        <translation>検出されたターゲット</translation>
+        <location line="-885"/>
+        <location line="+885"/>
+        <source>NOT READY</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+21"/>
-        <source>Address</source>
-        <translation>アドレス</translation>
+        <location line="-872"/>
+        <source>Ready: 1 load to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Ready: %1 loads to %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Upload needs a checked media set, at least one ticked load and a target.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Ready to download from %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Download needs a target, a destination and - in media defined mode - a file name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+56"/>
+        <source>ARINC 615A · ARINC 665 · engineering load console</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <location line="+94"/>
+        <source>Preferences</source>
+        <translation type="unfinished">設定</translation>
+    </message>
+    <message>
+        <location line="-92"/>
+        <source>Open preferences</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
+        <source>About</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>About the data loader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Complete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+44"/>
+        <source>v%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+30"/>
+        <source>Media set properties</source>
+        <translation type="unfinished">メディアセットのプロパティ</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Target properties</source>
+        <translation type="unfinished">ターゲットのプロパティ</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>About ARINC Data Loader</source>
+        <translation type="unfinished">ARINC Data Loader について</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>An operation is running</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Stop and close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Keep working</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+26"/>
+        <source>OK</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+98"/>
+        <source>TARGET</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>SET</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>NOT SET</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Find</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>ADDRESS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>10.0.0.2</source>
         <translation>10.0.0.2</translation>
     </message>
@@ -502,7 +1328,7 @@
         <translation>THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+11"/>
         <source>HNPFMS_L</source>
         <translation>HNPFMS_L</translation>
     </message>
@@ -512,27 +1338,93 @@
         <translation>ターゲットのハードウェア識別子と位置</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+10"/>
+        <source>FOUND</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+63"/>
+        <source>SELECTED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
         <source>Show the target properties</source>
         <translation>ターゲットのプロパティを表示</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Choose a target, or enter its IPv4 address and THW_ID_POS.</source>
-        <translation>ターゲットを選択するか、その IPv4 アドレスと THW_ID_POS を入力してください。</translation>
+        <location line="+138"/>
+        <source>LOADS</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+14"/>
+        <source>All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Tick every load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>None</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+85"/>
+        <source>WARNING</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>WARNINGS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+29"/>
+        <source>Show fewer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Show all warnings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Reading and checking the set...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Every file and check value was read and verified.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+46"/>
+        <source>TRANSFER</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+164"/>
+        <source>Downloading...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Download from the target</source>
+        <translation type="unfinished">ターゲットからダウンロード</translation>
+    </message>
+    <message>
+        <location line="-157"/>
+        <location line="+154"/>
         <source>Download</source>
         <translation>ダウンロード</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Operation</source>
-        <translation>操作</translation>
-    </message>
-    <message>
-        <location line="+8"/>
+        <location line="-20"/>
         <source>Read information</source>
         <translation>情報を読み取る</translation>
     </message>
@@ -542,14 +1434,40 @@
         <translation>ターゲット情報を読み取る</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Asks the target for its configuration (ARINC 615A Information)</source>
-        <translation>ターゲットに構成情報を要求します (ARINC 615A Information)</translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="-138"/>
+        <location line="+145"/>
         <source>Upload</source>
         <translation>アップロード</translation>
+    </message>
+    <message>
+        <location line="-139"/>
+        <source>Transfer operation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>RUNNING</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>COMPLETE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>FAILED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+105"/>
+        <source>working</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+22"/>
+        <source>Uploading...</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
@@ -557,12 +1475,7 @@
         <translation>チェックしたロードをアップロード</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Loads the ticked loads of the media set to the target (ARINC 615A Upload)</source>
-        <translation>チェックしたロードをメディアセットからターゲットにロードします (ARINC 615A Upload)</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+17"/>
         <source>Abort</source>
         <translation>中止</translation>
     </message>
@@ -572,63 +1485,17 @@
         <translation>操作を中止</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>Upload is refused: the media set is not valid.</source>
-        <translation>アップロードは拒否されました: メディアセットが無効です。</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Upload is refused until the media set has been checked.</source>
-        <translation>メディアセットがチェックされるまでアップロードは拒否されます。</translation>
-    </message>
-    <message>
-        <location line="+14"/>
-        <source>Progress of the operation</source>
-        <translation>操作の進捗</translation>
-    </message>
-    <message>
-        <location line="+17"/>
-        <source>Result: %1</source>
-        <translation>結果: %1</translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <location line="+11"/>
-        <source>Target configuration</source>
-        <translation>ターゲット構成</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Nothing read yet.</source>
-        <translation>まだ読み取られていません。</translation>
-    </message>
-    <message>
-        <location line="+27"/>
-        <source>Activity</source>
-        <translation>アクティビティ</translation>
-    </message>
-    <message>
-        <location line="+14"/>
-        <source>Clear</source>
-        <translation>クリア</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Clear the activity log</source>
-        <translation>アクティビティログをクリア</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="-919"/>
         <source>Idle</source>
         <translation>待機中</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+21"/>
         <source>no target</source>
         <translation>ターゲットなし</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+15"/>
         <source>no media set</source>
         <translation>メディアセットなし</translation>
     </message>
@@ -641,102 +1508,184 @@
         <translation>メディアセットのプロパティ</translation>
     </message>
     <message>
+        <location line="+1"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+16"/>
         <source>Part number</source>
         <translation>部品番号</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+3"/>
         <source>not read</source>
         <translation>未読み取り</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+3"/>
         <source>Members</source>
         <translation>メンバー</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+4"/>
+        <location line="+32"/>
+        <source>Loads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-27"/>
+        <location line="+68"/>
+        <source>Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-63"/>
         <source>Batches</source>
         <translation>バッチ</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Directory</source>
-        <translation>ディレクトリ</translation>
+        <location line="+8"/>
+        <source>No media set chosen</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>not chosen</source>
-        <translation>未選択</translation>
+        <location line="+15"/>
+        <source>load</source>
+        <translation type="unfinished"></translation>
     </message>
-    <message numerus="yes">
+    <message>
+        <location line="+0"/>
+        <source>loads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+42"/>
+        <source>file from FILES.LUM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>files from FILES.LUM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>NAME</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+7"/>
-        <source>%n load(s)</source>
-        <translation>
-            <numerusform>%n 件のロード</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <location line="+35"/>
-        <source>%n file(s), from FILES.LUM</source>
-        <translation>
-            <numerusform>%n 件のファイル (FILES.LUM から)</numerusform>
-        </translation>
+        <source>MEMBER</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+28"/>
-        <source>member %1</source>
-        <translation>メンバー %1</translation>
+        <location line="+7"/>
+        <source>PATH</source>
+        <translation type="unfinished"></translation>
     </message>
-    <message numerus="yes">
-        <location line="+22"/>
-        <source>%n warning(s) against the standard&apos;s recommendations</source>
-        <translation>
-            <numerusform>標準の推奨事項に対する %n 件の警告</numerusform>
-        </translation>
+    <message>
+        <location line="+8"/>
+        <source>CRC</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+71"/>
+        <source>WARNING</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>WARNINGS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Deviations from the standard&apos;s recommendations. They are shown, and do not block an upload.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>PreferencesDialog</name>
     <message>
-        <location filename="../qml/PreferencesDialog.qml" line="+12"/>
+        <location filename="../qml/PreferencesDialog.qml" line="+17"/>
         <source>Preferences</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+1"/>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+50"/>
+        <location line="+224"/>
+        <source>Choose the download directory</source>
+        <translation type="unfinished">ダウンロードディレクトリを選択</translation>
+    </message>
+    <message>
+        <location line="-209"/>
         <source>Appearance</source>
         <translation>外観</translation>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+10"/>
+        <location line="+14"/>
         <source>Language</source>
         <translation>言語</translation>
     </message>
     <message>
-        <location line="+22"/>
-        <source>The window is redrawn in the chosen language; the choice is kept</source>
-        <translation>ウィンドウは選択した言語で再描画され、選択内容は保持されます</translation>
+        <location line="+23"/>
+        <source>The window follows the desktop&apos;s light or dark scheme. Language applies at once; everything else on Save.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>The window follows the desktop&apos;s light or dark scheme.</source>
-        <translation>ウィンドウはデスクトップのライト/ダークスキームに従います。</translation>
+        <location line="+60"/>
+        <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>A set has to pass the check before an upload. With this off, use &apos;Re-check&apos; in the media set rail.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+80"/>
+        <source>Browse...</source>
+        <translation type="unfinished">参照...</translation>
     </message>
     <message>
         <location line="+8"/>
+        <source>The directory is where each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; directory is made.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>Activity lines kept</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>Save applies these choices. Cancel and Esc leave them as they were.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-201"/>
         <source>Target</source>
         <translation>ターゲット</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+10"/>
         <source>Default address</source>
         <translation>既定のアドレス</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+10"/>
         <source>10.0.0.2</source>
         <translation>10.0.0.2</translation>
     </message>
@@ -746,17 +1695,12 @@
         <translation>既定のターゲットアドレス</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Prefilled into the address field at start-up, and again when the operator clears the field</source>
-        <translation>起動時およびオペレーターがフィールドをクリアしたときに、アドレスフィールドに事前入力されます</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+4"/>
         <source>Default THW_ID_POS</source>
         <translation>既定の THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+10"/>
         <source>HNPFMS_L</source>
         <translation>HNPFMS_L</translation>
     </message>
@@ -766,101 +1710,66 @@
         <translation>既定のターゲットハードウェア識別子と位置</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Prefilled into the THW_ID_POS field at start-up, and again when the operator clears the field</source>
-        <translation>起動時およびオペレーターがフィールドをクリアしたときに、THW_ID_POS フィールドに事前入力されます</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+8"/>
         <source>Find the target automatically</source>
         <translation>ターゲットを自動検索</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Before an operation with no target chosen, run FIND and, if exactly one target answers, take it and go on; otherwise show the FIND result and wait</source>
-        <translation>ターゲット未選択で操作を開始する前に FIND を実行し、応答が 1 件だけならそのターゲットを採用して続行します。それ以外は FIND の結果を表示して待機します</translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+13"/>
         <source>Media set</source>
         <translation>メディアセット</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+7"/>
         <source>Check the media set as soon as it is chosen</source>
         <translation>メディアセットの選択後すぐにチェックする</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>A set has to pass the check before an upload is allowed; with this off, choose &apos;Check media set&apos; yourself</source>
-        <translation>アップロードを許可するにはセットがチェックに合格する必要があります。オフの場合は「メディアセットをチェック」を手動で選択してください</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+11"/>
         <source>Last media set</source>
         <translation>最後のメディアセット</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+8"/>
         <source>none</source>
         <translation>なし</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+15"/>
         <source>Loader</source>
         <translation>ローダー</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+10"/>
         <source>Control port</source>
         <translation>制御ポート</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+13"/>
         <source>Loader control port</source>
         <translation>ローダー制御ポート</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>The port the loader listens on (59 unless it has to move); the target is told when it is not 59, which matters when the target runs on this machine</source>
-        <translation>ローダーが待ち受けるポート (移動が必要でない限り 59)。59 でない場合はターゲットに通知されます。これはターゲットがこのマシン上で動作する場合に重要です</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <location line="+7"/>
+        <location line="+5"/>
+        <location line="+15"/>
         <source>Download directory</source>
         <translation>ダウンロードディレクトリ</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Where a download is written: each download makes its own DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; directory under this one (created when it is not there)</source>
-        <translation>ダウンロードの書き込み先です。各ダウンロードはこのディレクトリの下に専用の DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; ディレクトリを作成します (存在しない場合は作成されます)</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location line="+25"/>
         <source>Log</source>
         <translation>ログ</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>Lines kept</source>
-        <translation>保持する行数</translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="+21"/>
         <source>Activity log capacity</source>
         <translation>アクティビティログの容量</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>The most lines the activity log keeps; older ones are dropped</source>
-        <translation>アクティビティログが保持する最大行数。それより古いものは破棄されます</translation>
     </message>
 </context>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+35"/>
+        <location filename="../core/src/engine_worker.cpp" line="-732"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>メディアセットの書き込み先ディレクトリを選択し、セット内のすべてのファイルがまだそこにあることを確認してください。</translation>
     </message>
@@ -959,12 +1868,15 @@
         <source>The target listed its configuration.</source>
         <translation>ターゲットが構成情報を一覧表示しました。</translation>
     </message>
-    <message numerus="yes">
-        <location line="+12"/>
-        <source>The target listed %n file(s) it can download.</source>
-        <translation>
-            <numerusform>ターゲットがダウンロード可能な %n 件のファイルを一覧表示しました。</numerusform>
-        </translation>
+    <message>
+        <location line="+14"/>
+        <source>The target listed 1 file it can download.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The target listed %1 files it can download.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../core/src/host_access.cpp" line="+14"/>
@@ -972,7 +1884,7 @@
         <translation>システムサービスを開始できませんでした (%1)。</translation>
     </message>
     <message>
-        <location filename="../core/src/media_set_summary.cpp" line="+24"/>
+        <location filename="../core/src/media_set_summary.cpp" line="+27"/>
         <source>%1 (%2)</source>
         <translation>%1 (%2)</translation>
     </message>
@@ -993,6 +1905,14 @@
     </message>
 </context>
 <context>
+    <name>TargetModel</name>
+    <message>
+        <location filename="../core/src/models.cpp" line="-299"/>
+        <source>%1 at %2</source>
+        <translation type="unfinished">%2 の %1</translation>
+    </message>
+</context>
+<context>
     <name>TargetPropertiesDialog</name>
     <message>
         <location filename="../qml/TargetPropertiesDialog.qml" line="+12"/>
@@ -1000,67 +1920,387 @@
         <translation>ターゲットのプロパティ</translation>
     </message>
     <message>
-        <location line="+9"/>
-        <source>Target (typed)</source>
-        <translation>ターゲット (手入力)</translation>
+        <location line="+1"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Addressing</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+30"/>
+        <location line="+46"/>
         <source>Address</source>
         <translation>アドレス</translation>
     </message>
     <message>
-        <location line="-25"/>
-        <location line="+8"/>
+        <location line="-38"/>
+        <location line="+15"/>
         <source>not set</source>
         <translation>未設定</translation>
     </message>
     <message>
-        <location line="-5"/>
+        <location line="-8"/>
         <source>THW_ID_POS</source>
         <translation>THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+16"/>
         <source>FIND answer</source>
         <translation>FIND 応答</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+23"/>
         <source>Hardware identifier</source>
         <translation>ハードウェア識別子</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+8"/>
         <source>Type</source>
         <translation>タイプ</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+2"/>
         <source>Position</source>
         <translation>位置</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+2"/>
         <source>Name</source>
         <translation>名前</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+2"/>
         <source>Manufacturer code</source>
         <translation>製造元コード</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>No target has been chosen from the FIND list.</source>
-        <translation>FIND 一覧からターゲットが選択されていません。</translation>
+        <location line="+13"/>
+        <source>No target was chosen from a FIND answer. The address and THW_ID_POS are the values typed in the rail.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>UploadPanel</name>
+    <message>
+        <location filename="../qml/UploadPanel.qml" line="+22"/>
+        <source>no target</source>
+        <translation type="unfinished">ターゲットなし</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>CHECKING</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>CHECKED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>INVALID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>NOT CHECKED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>An operation is running</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Checking the media set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Choose a media set first</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>The media set is not valid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Check the media set</source>
+        <translation type="unfinished">メディアセットをチェック</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Tick at least one load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Choose or find a target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Ready to upload</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Wait for it to finish, or stop it from the action bar.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Every file and its check value is being read; an upload needs the check to pass.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>A media set is a directory with one directory per member. It is read and checked before an upload.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Read the set again, or choose another directory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>The set has to be read again and checked before it may be uploaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Use the check boxes in the media set rail. Nothing is sent until at least one load is ticked.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>FIND, or type the target&apos;s IPv4 address and THW_ID_POS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The target, the set, the ticked loads and the check are all in place.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+39"/>
+        <source>THE UPLOAD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Upload 1 load to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Upload %1 loads to %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>RUNNING</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>READY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>NOT READY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <location line="+45"/>
+        <source>member</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-45"/>
+        <location line="+45"/>
+        <source>members</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-42"/>
+        <location line="+131"/>
+        <source>load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-131"/>
+        <location line="+131"/>
+        <source>loads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-130"/>
+        <source>No media set selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+22"/>
+        <source>Target</source>
+        <translation type="unfinished">ターゲット</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>FIND on start</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <location line="+13"/>
+        <source>Not chosen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-11"/>
+        <source>FIND or type an address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+26"/>
+        <source>SET</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-24"/>
+        <source>AUTO</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>MISSING</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Media set</source>
+        <translation type="unfinished">メディアセット</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Choose a directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Loads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 of %2 ticked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>warning from the check</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>warnings from the check</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>NONE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+60"/>
+        <source>Choose media set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Check the set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Find targets</source>
+        <translation type="unfinished">ターゲットを検索</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Payload</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>LOAD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>CONTENTS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>STATUS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+59"/>
+        <location line="+56"/>
+        <source>FAILED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-56"/>
+        <source>TICKED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>No load is ticked. The media set rail lists every load and its check box.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+29"/>
+        <source>COMPLETE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Target %1 · %2 · %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>no media set</source>
+        <translation type="unfinished">メディアセットなし</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>load ticked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>loads ticked</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+499"/>
+        <location filename="../core/src/models.cpp" line="+489"/>
         <source>waiting</source>
         <translation>待機中</translation>
     </message>
@@ -1069,15 +2309,15 @@
     <name>adl::app::EngineWorker</name>
     <message>
         <location filename="../core/src/engine_worker.cpp" line="+95"/>
-        <location line="+53"/>
-        <location line="+19"/>
-        <location line="+45"/>
-        <location line="+35"/>
+        <location line="+56"/>
+        <location line="+20"/>
+        <location line="+48"/>
+        <location line="+39"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>&quot;%1&quot; は IPv4 アドレスではありません。</translation>
     </message>
     <message>
-        <location line="-138"/>
+        <location line="-149"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>ターゲットを検索しています (ブロードキャスト、3 秒)...</translation>
     </message>
@@ -1091,20 +2331,13 @@
         <source>FIND could not run (%1).</source>
         <translation>FIND を実行できませんでした (%1)。</translation>
     </message>
-    <message numerus="yes">
-        <location line="+21"/>
-        <source>%n target(s) answered</source>
-        <translation>
-            <numerusform>%n 件のターゲットが応答しました</numerusform>
-        </translation>
-    </message>
     <message>
-        <location line="+18"/>
+        <location line="+42"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>%1 (%2) に構成情報を要求しています...</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+15"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>メディアセットが読み込まれていないため、アップロードするものはありません。</translation>
     </message>
@@ -1113,15 +2346,8 @@
         <source>No load was chosen.</source>
         <translation>ロードが選択されていません。</translation>
     </message>
-    <message numerus="yes">
-        <location line="+25"/>
-        <source>Uploading %n load(s) to %1 (%2)...</source>
-        <translation>
-            <numerusform>%1 (%2) に %n 件のロードをアップロードしています...</numerusform>
-        </translation>
-    </message>
     <message>
-        <location line="+16"/>
+        <location line="+44"/>
         <source>No file was named.</source>
         <translation>ファイル名が指定されていません。</translation>
     </message>
@@ -1130,15 +2356,38 @@
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>&quot;%1&quot; は安全なファイル名ではありません。</translation>
     </message>
-    <message numerus="yes">
-        <location line="+9"/>
-        <source>Downloading %n file(s) from %1 (%2)...</source>
-        <translation>
-            <numerusform>%1 (%2) から %n 件のファイルをダウンロードしています...</numerusform>
-        </translation>
+    <message>
+        <location line="-92"/>
+        <source>1 target answered</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+0"/>
+        <source>%1 targets answered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+65"/>
+        <source>Uploading 1 load to %1 (%2)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Uploading %1 loads to %2 (%3)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+37"/>
+        <source>Downloading 1 file from %1 (%2)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Downloading %1 files from %2 (%3)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>%1 (%2) にダウンロード可能なファイルを要求しています...</translation>
     </message>
@@ -1167,29 +2416,88 @@
         <source>The operation could not run: %1.</source>
         <translation>操作を実行できませんでした: %1。</translation>
     </message>
-    <message numerus="yes">
+    <message>
         <location line="+21"/>
-        <source>completed, %n file(s) failed</source>
-        <translation>
-            <numerusform>完了、%n 件のファイルが失敗</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <location line="+1"/>
-        <source>completed, %n load(s) failed</source>
-        <translation>
-            <numerusform>完了、%n 件のロードが失敗</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <location line="+6"/>
-        <source>completed, %n file(s) missing</source>
-        <translation>
-            <numerusform>完了、%n 件のファイルが不足</numerusform>
-        </translation>
+        <source>completed, 1 file failed</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+1"/>
+        <source>completed, %1 files failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>completed, 1 load failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>completed, %1 loads failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>completed, 1 file missing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>completed, %1 files missing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>The target read 1 file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The target read %1 files.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+32"/>
+        <source>Read media set %1: 1 load.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Read media set %1: %2 loads.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+37"/>
+        <source>Checked media set %1: 1 load, 1 file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Checked media set %1: %2, %3.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>1 load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 loads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>1 file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-86"/>
         <source>The target confirmed that it stopped.</source>
         <translation>ターゲットは停止を確認しました。</translation>
     </message>
@@ -1203,15 +2511,8 @@
         <source>The target may still be loading; ask it what it is doing before trying again.</source>
         <translation>ターゲットはまだロード中の可能性があります。再試行する前にターゲットの状態を確認してください。</translation>
     </message>
-    <message numerus="yes">
-        <location line="+6"/>
-        <source>The target read %n file(s).</source>
-        <translation>
-            <numerusform>ターゲットが %n 件のファイルを読み取りました。</numerusform>
-        </translation>
-    </message>
     <message>
-        <location line="+8"/>
+        <location line="+16"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>受信ファイル: 要求数 %2 中 %1。</translation>
     </message>
@@ -1221,7 +2522,7 @@
         <translation>完了: %1。</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Reading the media set in %1...</source>
         <translation>%1 のメディアセットを読み込んでいます...</translation>
     </message>
@@ -1230,20 +2531,13 @@
         <source>media set read</source>
         <translation>メディアセット読み込み完了</translation>
     </message>
-    <message numerus="yes">
-        <location line="+1"/>
-        <source>Read media set %1: %n load(s).</source>
-        <translation>
-            <numerusform>メディアセット %1 を読み込みました: %n 件のロード。</numerusform>
-        </translation>
-    </message>
     <message>
-        <location line="+7"/>
+        <location line="+10"/>
         <source>The media set could not be read: %1.</source>
         <translation>メディアセットを読み込めませんでした: %1。</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
         <source>Checking the media set in %1...</source>
         <translation>%1 のメディアセットをチェックしています...</translation>
     </message>
@@ -1253,27 +2547,45 @@
         <translation>メディアセットのチェック完了</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Checked media set %1: %2 load(s), %3 file(s).</source>
-        <translation>メディアセット %1 をチェックしました: %2 件のロード、%3 件のファイル。</translation>
-    </message>
-    <message>
-        <location line="+8"/>
+        <location line="+13"/>
         <source>The media set could not be checked: %1.</source>
         <translation>メディアセットをチェックできませんでした: %1。</translation>
     </message>
 </context>
 <context>
     <name>adl::app::LoadModel</name>
-    <message numerus="yes">
-        <location filename="../core/src/models.cpp" line="-297"/>
-        <source>%1, %n data file(s), %2 support file(s); for %3</source>
-        <translation>
-            <numerusform>%1、%n 件のデータファイル、%2 件のサポートファイル。対象: %3</numerusform>
-        </translation>
+    <message>
+        <location filename="../core/src/models.cpp" line="-307"/>
+        <source>1 data file</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+108"/>
+        <location line="+0"/>
+        <source>%1 data files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>1 support file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 support files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>no target ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>%1 · %2, %3; for %4</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+110"/>
         <source>waiting</source>
         <translation>待機中</translation>
     </message>
@@ -1281,19 +2593,44 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+61"/>
-        <source>%1 load(s), %2 file(s), all check values verified</source>
-        <translation>%1 件のロード、%2 件のファイル、すべてのチェック値を検証済み</translation>
-    </message>
-    <message numerus="yes">
-        <location line="+4"/>
-        <source>; %n warning(s) against the standard&apos;s recommendations</source>
-        <translation>
-            <numerusform>、標準の推奨事項に対する %n 件の警告</numerusform>
-        </translation>
+        <location filename="../core/src/loader_model.cpp" line="-567"/>
+        <location line="+136"/>
+        <source>1 load</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+55"/>
+        <location line="-136"/>
+        <location line="+136"/>
+        <source>%1 loads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-134"/>
+        <source>1 file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1, %2, all check values verified</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>; 1 warning against the standard&apos;s recommendations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>; %1 warnings against the standard&apos;s recommendations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+56"/>
         <source>Looking for targets...</source>
         <translation>ターゲットを検索しています...</translation>
     </message>
@@ -1329,22 +2666,30 @@
         <source>Checking the media set...</source>
         <translation>メディアセットをチェックしています...</translation>
     </message>
-    <message numerus="yes">
-        <location line="+40"/>
-        <source>%1: %n member(s), %2 load(s)</source>
-        <translation>
-            <numerusform>%1: %n 件のメンバー、%2 件のロード</numerusform>
-        </translation>
+    <message>
+        <location line="+57"/>
+        <source>1 member</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+286"/>
+        <location line="+0"/>
+        <source>%1 members</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>%1: %2, %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+296"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>一覧からターゲットを選択し、操作を再実行してください。</translation>
     </message>
     <message>
-        <location line="+84"/>
-        <location line="+22"/>
-        <location line="+22"/>
+        <location line="+88"/>
+        <location line="+23"/>
+        <location line="+23"/>
         <source>No target is selected; looking for one first.</source>
         <translation>ターゲットが選択されていません。まず検索します。</translation>
     </message>
@@ -1352,7 +2697,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-289"/>
+        <location filename="../core/src/models.cpp" line="-299"/>
         <source>%1 at %2</source>
         <translation>%2 の %1</translation>
     </message>

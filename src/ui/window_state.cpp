@@ -14,12 +14,12 @@ namespace adl::ui {
 
 namespace {
 
-const auto key_x = QStringLiteral("window/x");
-const auto key_y = QStringLiteral("window/y");
-const auto key_width = QStringLiteral("window/width");
-const auto key_height = QStringLiteral("window/height");
-const auto key_maximized = QStringLiteral("window/maximized");
-const auto key_placed = QStringLiteral("window/placed");
+constexpr QLatin1StringView key_x{"window/x"};
+constexpr QLatin1StringView key_y{"window/y"};
+constexpr QLatin1StringView key_width{"window/width"};
+constexpr QLatin1StringView key_height{"window/height"};
+constexpr QLatin1StringView key_maximized{"window/maximized"};
+constexpr QLatin1StringView key_placed{"window/placed"};
 
 bool intersects_any_screen(const QRect& rect) {
     for (QScreen* screen : QGuiApplication::screens()) {

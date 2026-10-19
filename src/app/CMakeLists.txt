@@ -38,7 +38,7 @@ set(ADL_APP_QML_FILES
 
 adl_prepare_ui_qml()
 
-# The window is a static library of its own, as the Countdown Solver's module is, for one reason:
+# The window is a static library of its own for one reason:
 # a QML module is registered by static initialisers that nothing calls, so the application links
 # this with the whole archive - and so does the window's test, which therefore loads the same
 # compiled module the application does rather than a second copy of the files.
@@ -65,8 +65,11 @@ qt_add_executable(adl_app
 # (a deferred call attaches it from the repo root, which CMake then has to wrap in a target of its
 # own). Adding a language is a .ts file here and its line in language_manager.cpp's table.
 # SOURCES names the QML and the C++ that carry translatable strings: lupdate scans exactly these.
+# -no-obsolete: an entry whose source string is gone is not kept as translation memory (git
+# history is that); a catalogue lists what the window says.
 qt_add_translations(adl_app_qml
     IMMEDIATE_CALL
+    LUPDATE_OPTIONS -no-obsolete
     TS_FILES
         translations/adl_app_en.ts
         translations/adl_app_de.ts
