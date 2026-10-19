@@ -26,7 +26,7 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 
 | Workflow | Purpose | Runs on a private copy? |
 | --- | --- | --- |
-| `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs and a coverage report | yes |
+| `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs, a coverage report, and the Zephyr and FreeRTOS simulator jobs | yes |
 | `branch-name-check.yml` | gitflow branch naming; the source/target pairing | yes |
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
 | `codeql.yml` | CodeQL static analysis of the C++ | no - skipped |
@@ -65,6 +65,18 @@ with the rulesets.
 | `Linux (GCC)` | ubuntu-26.04 | Preset `linux-gcc-debug`: the image's default `g++` builds warning-free (`-Wall -Wextra -Wpedantic -Werror ...`) with ASan and UBSan, and all of ctest passes. |
 | `macOS (AppleClang)` | macos-26 (Apple silicon) | Preset `macos-clang-debug`: AppleClang from Xcode builds warning-free with ASan and UBSan, and all of ctest passes. |
 | `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-gcc-coverage` builds and passes its tests, and a gcovr report of `src/` is produced as the `coverage-report` artifact (HTML, plus `summary.json` and a table in the job summary). **Report only: there is no threshold.** |
+
+| `Zephyr (native_sim)` | ubuntu-26.04 | The platform layer for Zephyr builds with the project's warning set and, with Zephyr 4.4.2's kernel, IPv4/UDP stack (over its loopback interface) and littlefs on simulated flash running as a host process, passes the platform conformance suite and the 615A engine tests (`tests/platform/zephyr`, through `tools/ci/zephyr_native_sim.sh`). **Not a required check.** |
+| `FreeRTOS (POSIX simulator)` | ubuntu-26.04 | The platform layer for FreeRTOS builds, and with FreeRTOS-Kernel V11.2.0's POSIX simulator port, lwIP 2.2.1's UDP sockets over its loopback interface and littlefs on a RAM block device, passes the same two suites (`tests/platform/freertos`, through `tools/ci/freertos_posix_sim.sh`). **Not a required check.** |
+
+The two simulator jobs are new and are not in the rulesets: they join them after they have been green for a
+while, the way `Scan dependency diff` did ([Branch protection](branch-protection.md#required-checks)). They
+take their tools as the other legs do, with the pins in the next section: CMake and Ninja from
+`lukka/get-cmake`, west from `.github/requirements/zephyr.txt`, Zephyr from `tests/platform/zephyr/west.yml`
+(a shallow `west update` of Zephyr and the two modules the program needs), and FreeRTOS, lwIP,
+littlefs and Catch2 fetched by CMake at the versions and hashes in `tests/platform/freertos/CMakeLists.txt`.
+They run on `ubuntu-26.04`, the image the Linux leg verifies GCC 15 on; the Zephyr job installs
+`device-tree-compiler` and `gperf` with apt.
 
 What a build-and-test leg's ctest contains: the Catch2 suites, the application's `app.tests` (QtTest) and
 `app.qml` (the window loaded offscreen, with the offscreen platform and the software renderer, so no GPU
@@ -116,7 +128,7 @@ gh workflow run ci.yml --ref <branch> -f legs=clang-format,linux
 ```
 
 `legs` is comma-separated with no spaces: `clang-format`, `platform-isolation`,
-`windows`, `linux`, `macos`, `coverage`, or `all` (the default). An unknown
+`windows`, `linux`, `macos`, `coverage`, `zephyr`, `freertos`, or `all` (the default). An unknown
 name fails the run rather than running nothing. Jobs of a dispatched run are
 named `dispatch - <leg>`, deliberately not the names of the required checks: a
 run that skips legs would otherwise report "skipped" (which counts as a pass)
@@ -143,6 +155,8 @@ contexts equal the job display names above and in the two policy workflows.
 | `Coverage (Linux, GCC)` | `ci.yml` | yes |
 | `Scan dependency diff` | `dependency-review.yml` | yes - added after it reported on a pull request on the public repository |
 | `Analyze (C++)` | `codeql.yml` | no - informational |
+| `Zephyr (native_sim)` | `ci.yml` | no - new, not required until it has been green for a while |
+| `FreeRTOS (POSIX simulator)` | `ci.yml` | no - new, not required until it has been green for a while |
 
 Every workflow that produces a required check also triggers on `merge_group`,
 because the merge queue evaluates the required checks on its temporary
@@ -189,7 +203,9 @@ submodule clone does not have them.
 | | Pinned to | Kept current by |
 | --- | --- | --- |
 | Every GitHub Action, and the composite actions in `.github/actions` | A full commit SHA, version in a trailing comment | Dependabot, weekly, grouped, 7-day cooldown |
-| clang-format, gcovr | `==` in `.github/requirements/*.txt` | Dependabot (`pip`), weekly |
+| clang-format, gcovr, west | `==` in `.github/requirements/*.txt` | Dependabot (`pip`), weekly |
+| Zephyr (and its modules littlefs and cmsis_6) | `revision` in `tests/platform/zephyr/west.yml` (v4.4.2) | By hand |
+| FreeRTOS-Kernel, lwIP, littlefs, Catch2 (the simulator program) | URL and SHA-256 in `tests/platform/freertos/CMakeLists.txt` (V11.2.0, 2.2.1, v2.11.3, v3.15.3) | By hand |
 | aqtinstall (installs Qt) | `==` in `.github/requirements/qt.txt` | Dependabot (`pip`), weekly |
 | Qt | `version` input of the `install-qt` step in `ci.yml` (6.12.0) | By hand, with the labs' shared toolchain |
 | CMake and Ninja (`lukka/get-cmake`) | `cmakeVersion` / `ninjaVersion`, exact, and one the pinned action's catalog lists | By hand, with the action |

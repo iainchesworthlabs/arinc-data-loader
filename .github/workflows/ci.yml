@@ -28,7 +28,8 @@ on:
       legs:
         description: >-
           Comma-separated legs to run, no spaces: clang-format,
-          platform-isolation, windows, linux, macos, coverage - or "all".
+          platform-isolation, windows, linux, macos, coverage, zephyr,
+          freertos - or "all".
         type: string
         default: all
 
@@ -146,8 +147,8 @@ jobs:
           esac
           for leg in ${LEGS//,/ }; do
             case "$leg" in
-              all|clang-format|platform-isolation|windows|linux|macos|coverage) ;;
-              *) echo "::error::unknown leg '$leg' (clang-format, platform-isolation, windows, linux, macos, coverage, all)"
+              all|clang-format|platform-isolation|windows|linux|macos|coverage|zephyr|freertos) ;;
+              *) echo "::error::unknown leg '$leg' (clang-format, platform-isolation, windows, linux, macos, coverage, zephyr, freertos, all)"
                  exit 1 ;;
             esac
           done
@@ -374,3 +375,103 @@ jobs:
         with:
           triplet: x64-linux
           restored: ${{ steps.vcpkg-cache.outputs.listing }}
+
+  # The Zephyr platform (src/platforms/zephyr) on native_sim: Zephyr's kernel, its IPv4/UDP
+  # stack over its loopback interface and littlefs on simulated flash, built as a host process,
+  # running the platform conformance suite and the 615A engine tests (tests/platform/zephyr,
+  # tools/ci/zephyr_native_sim.sh). NOT a required check: it is new, and it joins the rulesets
+  # once it has been green for a while (docs/branch-protection.md, "Staging").
+  zephyr-native-sim:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Zephyr (native_sim)' || 'Zephyr (native_sim)' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',zephyr,') }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      # In a directory of its own: it is the manifest repository of the west workspace
+      # (tests/platform/zephyr/west.yml), and the workspace is its parent.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: arinc-data-loader
+          persist-credentials: false
+
+      # native_sim is built with the image's own g++ (Zephyr's "host" toolchain); the device
+      # tree compiler and gperf are what Zephyr's build asks of the machine besides that.
+      - name: Install Zephyr's host tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends device-tree-compiler gperf
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Install west (pinned)
+        run: |
+          uv venv "$RUNNER_TEMP/zephyr-venv"
+          uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement arinc-data-loader/.github/requirements/zephyr.txt
+          echo "$RUNNER_TEMP/zephyr-venv/bin" >> "$GITHUB_PATH"
+
+      # Zephyr at the version the manifest pins, and only the modules the program needs.
+      - name: Fetch Zephyr
+        run: |
+          west init -l --mf tests/platform/zephyr/west.yml arinc-data-loader
+          west update --narrow --fetch-opt=--depth=1
+          uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement zephyr/scripts/requirements-base.txt
+
+      # What the leg actually built with, in the log.
+      - name: Show the toolchain
+        run: |
+          cmake --version | head -n 1
+          ninja --version
+          g++ --version | head -n 1
+          west --version
+          dtc --version
+          gperf --version | head -n 1
+
+      - name: Build and run on native_sim
+        env:
+          ZEPHYR_BASE: ${{ github.workspace }}/zephyr
+        run: bash arinc-data-loader/tools/ci/zephyr_native_sim.sh
+
+  # The FreeRTOS platform (src/platforms/freertos) on the kernel's POSIX simulator port: the
+  # real kernel in a Linux process, lwIP's UDP sockets over its loopback interface and littlefs
+  # on a RAM block device, running the platform conformance suite and the 615A engine tests
+  # (tests/platform/freertos, tools/ci/freertos_posix_sim.sh). NOT a required check, for the
+  # reason the Zephyr job is not.
+  freertos-posix-sim:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - FreeRTOS (POSIX simulator)' || 'FreeRTOS (POSIX simulator)' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',freertos,') }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      - name: Show the toolchain
+        run: |
+          cmake --version | head -n 1
+          ninja --version
+          g++ --version | head -n 1
+
+      # FreeRTOS, lwIP, littlefs and Catch2 are fetched at the versions and hashes pinned in
+      # tests/platform/freertos/CMakeLists.txt.
+      - name: Build and run on the FreeRTOS POSIX simulator
+        run: bash tools/ci/freertos_posix_sim.sh

@@ -180,6 +180,17 @@ repository set up from this one.
 
 `Analyze (C++)` (CodeQL) is informational and is not required.
 
+### The simulator jobs are not required yet
+
+`Zephyr (native_sim)` and `FreeRTOS (POSIX simulator)` (`ci.yml`) are new, run on every pull request,
+and are **not** in `required_status_checks`: they download Zephyr, FreeRTOS, lwIP and littlefs at run
+time, and a required check that fails because a mirror was down blocks every pull request. Add
+`{ "context": "Zephyr (native_sim)" }` and `{ "context": "FreeRTOS (POSIX simulator)" }` to both ruleset
+files, as for `Scan dependency diff`, once each has been green on a run of pull requests and a merge
+queue entry (they also run on `merge_group`, as every job of `ci.yml` does), and run `apply_rulesets.ps1
+-Apply` again. A manual dispatch names them `dispatch - Zephyr (native_sim)` and `dispatch - FreeRTOS
+(POSIX simulator)`, so a run that skips them cannot report "skipped" under a required name.
+
 ### The `merge_group` rule
 
 Two rules keep the queue honest:

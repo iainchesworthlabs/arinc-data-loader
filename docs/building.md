@@ -157,7 +157,7 @@ every first-party target is built with warnings as errors.
 | `ADL_ENABLE_SANITIZERS` | `ON` | ASan (and UBSan) in Debug |
 | `ADL_ENABLE_COVERAGE` | `OFF` | gcov-style instrumentation (the coverage preset sets it) |
 | `ADL_ENABLE_TRACY` | `OFF` | Links Tracy and pulls it from vcpkg; use a Release build for numbers worth reading |
-| `ADL_TARGET_PLATFORM` | empty | Names the platform for a cross build, where the toolchain does not (`windows`, `linux`, `macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos`, `zephyr`). A desktop build leaves it empty. See [platform isolation](platform-isolation.md#how-cmake-selects) |
+| `ADL_TARGET_PLATFORM` | empty | Names the platform for a cross build, where the toolchain does not (`windows`, `linux`, `macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos`, `zephyr`). A desktop build leaves it empty. `freertos` and `zephyr` are accepted and refused: their images are built by projects of their own ([below](#zephyr-and-freertos)). See [platform isolation](platform-isolation.md#how-cmake-selects) |
 | `ADL_ACCEPT_UNBUILT_PLATFORM` | `OFF` | Allows building a platform whose code has never been compiled (QNX and the two INTEGRITY ports). A platform with no code at all is refused whatever this says |
 
 The Green Hills INTEGRITY platforms are [reviewed in
@@ -165,6 +165,87 @@ docs/platform-ghs.md](platform-ghs.md): what the two source trees provide, how
 `cmake/FindIntegrity.cmake` and `cmake/FindIntegrity178.cmake` find them, and
 what is still open before a first compile. They have never been compiled and
 their code says so.
+
+## Zephyr and FreeRTOS
+
+Both are *experimental*: built, and their tests run, on a simulator in CI, and nowhere else
+([what that means](platform-abstraction.md#the-freertos-and-zephyr-ports)). An RTOS image is built around
+the product's kernel configuration, so neither is a configuration of this project's own CMake; each has a
+program of its own that tests it, and a product does what that program does with its own board.
+
+### Zephyr
+
+The platform layer is a Zephyr module: `zephyr/module.yml` names `src/platforms/zephyr` as its CMake
+directory and its Kconfig. To use it, add this repository to the application's west manifest (or name it
+in `ZEPHYR_EXTRA_MODULES`) and set, in `prj.conf`:
+
+```text
+CONFIG_CPP=y
+CONFIG_STD_CPP23=y
+CONFIG_ADL_PLATFORM=y
+```
+
+`CONFIG_ADL_PLATFORM` depends on, and does not select, the network stack (`CONFIG_NETWORKING`,
+`CONFIG_NET_IPV4`, `CONFIG_NET_UDP`, `CONFIG_NET_SOCKETS`) and `CONFIG_FILE_SYSTEM`: selecting
+`NETWORKING` from a module makes a dependency loop through C++ and OpenThread. It selects the full C++
+library (`CONFIG_REQUIRES_FULL_LIBCPP`), dynamic threads and the socket options the port sets. The
+application mounts the file system the loader writes to, as it would for anything else, before it asks for
+a `Host`, and sizes the pools: a TFTP block can be 65 464 bytes, so a stack that must carry one needs
+`CONFIG_NET_BUF_*` and the interface MTU to match (`tests/platform/zephyr/prj.conf` is a working set for
+native_sim, with the loopback interface's MTU at 65 535). The module's own options are
+`CONFIG_ADL_HEAP_BYTES`, `CONFIG_ADL_THREAD_STACK_BYTES`, `CONFIG_ADL_FS_COHERENT_HANDLES` and
+`CONFIG_ADL_LIBRARIES` (build the ARINC 665 and 615A libraries into the image; default on).
+
+The test program, built as any Zephyr application is, for native_sim:
+
+```sh
+# once: a west workspace with Zephyr at the version tests/platform/zephyr/west.yml pins
+#   (the repository is the manifest repository, so put it in a directory of its own)
+west init -l --mf tests/platform/zephyr/west.yml <the repository directory>
+west update --narrow --fetch-opt=--depth=1
+pip install -r <workspace>/zephyr/scripts/requirements-base.txt
+
+# each time
+ZEPHYR_BASE=<workspace>/zephyr tools/ci/zephyr_native_sim.sh
+```
+
+That script is what CI runs. It needs `west` (pinned in `.github/requirements/zephyr.txt`), CMake, Ninja,
+a C++23 `g++` (the host compiler is the toolchain: `ZEPHYR_TOOLCHAIN_VARIANT=host`), the device tree
+compiler (`dtc`) and `gperf`, and is for Linux or WSL. It builds the program for `native_sim/native/64`,
+runs it in a directory of its own, and exits with Catch2's status. Pass Catch2's arguments in
+`ADL_CATCH_ARGS` (`ADL_CATCH_ARGS="[conformance] --durations yes"`); `zephyr.exe --rt` runs the clock in
+real time instead of as fast as the host allows.
+
+### FreeRTOS
+
+`tests/platform/freertos` is a CMake project that does what a product's CMake does, on a host: it
+fetches FreeRTOS-Kernel, lwIP and littlefs at pinned versions and hashes, builds them with the
+configuration in `tests/platform/freertos/config.cmake` (FreeRTOSConfig.h, lwipopts.h and lwIP's
+`cc.h`, written as text because this repository's source has no `#define`), builds the platform layer from
+the same fragment the other platforms use and links them with a `main` that starts the scheduler and runs
+Catch2 in a task:
+
+```sh
+tools/ci/freertos_posix_sim.sh          # Linux; needs CMake 4, Ninja and a C++23 g++
+```
+
+A product does the same with its own kernel port and its own configuration. What the platform layer asks of
+them:
+
+- **FreeRTOS**: `INCLUDE_vTaskDelete`, `INCLUDE_vTaskDelay`, mutexes, counting semaphores, queues, dynamic
+  allocation (a heap: `pvPortMalloc` serves the memory provider) and, for a thread made on storage the
+  caller supplies, static allocation. Task functions must not be `noexcept` frames that a cancellation could
+  unwind through (only the POSIX simulator port does that).
+- **lwIP**: the sockets API (`LWIP_SOCKET`), `LWIP_SOCKET_POLL`, UDP and IPv4, `SO_REUSE`, `LWIP_SO_RCVBUF`,
+  `LWIP_TCPIP_CORE_LOCKING`, and mailboxes and pools big enough for the datagrams in flight (a 65 507 byte
+  datagram is one pbuf). Its own `sys_arch` is the product's (`tests/platform/freertos/sim` has the
+  simulator's).
+- **littlefs**: built with `LFS_THREADSAFE` and a lock and unlock in its configuration, mounted before the
+  loader asks for a `Host`.
+
+The product tells the platform layer about the file system and the priority of the network task with
+`adl::platform::freertos::set_environment` (`src/platforms/freertos/environment.hpp`), once, before
+`make_host()`. The simulator's `main` is `tests/platform/freertos/sim/main.cpp`.
 
 ## Formatting
 

@@ -15,6 +15,21 @@ C++23 CMake monorepo. Nothing has been released.
 
 ### Added
 
+- **The Zephyr and FreeRTOS platforms** (experimental): the platform layer on
+  Zephyr's native APIs (`k_*`, `fs_*`, `zsock_*`), as a Zephyr module
+  (`zephyr/module.yml`, Kconfig, CMake), and on FreeRTOS with lwIP's sockets
+  API and littlefs. Clock, memory, files, threads and priorities, UDP and
+  the message queue, with the same interfaces as the desktops. The platform
+  conformance suite and the 615A engine tests (222 test cases) run in CI on
+  Zephyr's `native_sim` board and on the FreeRTOS POSIX simulator port, in two new
+  jobs that are not required checks yet (`Zephyr (native_sim)` and `FreeRTOS
+  (POSIX simulator)`); no board has run either. The contract gains the status
+  `experimental` and `ADL_PLATFORM_PROJECT`, for a platform whose image a project of
+  its own builds, so the top-level project refuses `-DADL_TARGET_PLATFORM=freertos`
+  and `zephyr` and says where to build them. What was verified and what a
+  simulator cannot show is in
+  [docs/platform-abstraction.md](docs/platform-abstraction.md#the-freertos-and-zephyr-ports);
+  how to build them in [docs/building.md](docs/building.md#zephyr-and-freertos).
 - **The two Green Hills INTEGRITY platforms, `ghs508` and `ghs178b`**
   (unbuilt): a port of the platform layer to INTEGRITY 5.0.8 on the shared
   POSIX sources, and a native port to INTEGRITY-178B (semaphores, the
@@ -131,8 +146,9 @@ C++23 CMake monorepo. Nothing has been released.
   platform and against the fake, and loopback tests over real UDP.
 - **QNX, VxWorks, FreeRTOS and Zephyr as named targets.** `ADL_TARGET_PLATFORM`
   names the platform of a cross build. QNX has code that has never been compiled
-  (refused unless `ADL_ACCEPT_UNBUILT_PLATFORM` is on); the other three are
-  designs only, and a build for them says so.
+  (refused unless `ADL_ACCEPT_UNBUILT_PLATFORM` is on); VxWorks is a design only,
+  and a build for it says so. (FreeRTOS and Zephyr began as designs and have since
+  been written; see the first entry.)
 - **Repository rules as code**: gitflow branch names, no attribution in commit
   messages or pull request text, formatting, platform isolation, CodeQL,
   dependency review, and the rulesets that require them.
