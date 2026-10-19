@@ -1,5 +1,8 @@
 #include "adl/ui/version.hpp"
 
+#include <QFile>
+#include <QIODevice>
+#include <QQmlContext>
 #include <QString>
 #include <QtGlobal>
 
@@ -22,6 +25,20 @@ QString version_details(const QString& application_name) {
         text += QStringLiteral("\n  state:   dirty (uncommitted changes)");
     }
     return text;
+}
+
+QString licence_notices() {
+    QFile file(QStringLiteral(":/adl/notices/NOTICES.txt"));
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return {};
+    }
+    return QString::fromUtf8(file.readAll());
+}
+
+void set_about_properties(QQmlContext& context, const QString& application_name) {
+    context.setContextProperty(QStringLiteral("appVersionDetails"),
+                               version_details(application_name));
+    context.setContextProperty(QStringLiteral("appLicenceNotices"), licence_notices());
 }
 
 }  // namespace adl::ui

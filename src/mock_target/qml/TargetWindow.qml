@@ -27,7 +27,7 @@ ApplicationWindow {
                                              ? appVersionDetails
                                              : qsTr("ARINC Mock Target %1")
                                                    .arg(Qt.application.version)
-    readonly property bool modalOpen: aboutDialog.opened
+    readonly property bool modalOpen: aboutDialog.opened || licencesDialog.opened
 
     title: qsTr("ARINC Mock Target")
     width: 1280
@@ -160,6 +160,7 @@ ApplicationWindow {
 
         heading: qsTr("About the ARINC Mock Target")
         primaryText: qsTr("Close")
+        secondaryText: qsTr("Licences")
         width: 620
 
         content: ColumnLayout {
@@ -203,7 +204,8 @@ ApplicationWindow {
             Text {
                 Layout.fillWidth: true
                 textFormat: Text.RichText
-                text: qsTr("GNU General Public License, version 3 or later. Includes the Archivo typeface, SIL Open Font License 1.1. <a href=\"https://github.com/iainchesworthlabs/arinc-data-loader\">Repository</a>.")
+                linkColor: Theme.accentInk
+                text: qsTr("GNU General Public License, version 3 or later. Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences. <a href=\"https://github.com/iainchesworthlabs/arinc-data-loader\">Repository</a>.")
                 color: Theme.textMuted
                 font.pixelSize: Theme.fontSmall
                 wrapMode: Text.WordWrap
@@ -211,7 +213,12 @@ ApplicationWindow {
             }
         }
 
+        onSecondaryClicked: licencesDialog.open()
         onPrimaryClicked: aboutDialog.close()
+    }
+
+    LicencesDialog {
+        id: licencesDialog
     }
 
     RowLayout {

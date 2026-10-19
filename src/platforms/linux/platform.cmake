@@ -5,6 +5,13 @@ set(ADL_PLATFORM_DISPLAY_NAME "Linux")
 set(ADL_PLATFORM_DESKTOP ON)
 set(ADL_PLATFORM_STATUS supported)
 
+# The third-party notices (notices/README.md): Qt is the installation the programs were built
+# against, or one deployed with them; nothing else is placed beside them.
+set(ADL_PLATFORM_NOTICE_FRAGMENTS "")
+set(ADL_PLATFORM_NOTICE_QT_DEPLOYMENT
+    "The programs load the Qt shared libraries of the Qt installation they were built against, or the ones deployed with them.")
+set(ADL_PLATFORM_NOTICE_EXPECTED "")
+
 set(ADL_PLATFORM_QT_SEARCH_ROOTS
     "$ENV{HOME}/Qt" "/opt/Qt" "/usr/lib/qt6" "/usr/lib/x86_64-linux-gnu/qt6")
 set(ADL_PLATFORM_QT_ARCH_DIRS gcc_64)

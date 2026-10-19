@@ -22,3 +22,13 @@ foreach(program adl_app adl_media_gen adl_mock_target)
         LABELS "system"
         ENVIRONMENT "TEMP=${CMAKE_BINARY_DIR};TMP=${CMAKE_BINARY_DIR};TMPDIR=${CMAKE_BINARY_DIR}")
 endforeach()
+
+# The licences travel with the build: NOTICES.txt (what it ships from others, with their terms)
+# and LICENSE.txt beside the executables. About > Licences shows the same file, embedded.
+add_test(NAME system.notices
+    COMMAND "${CMAKE_COMMAND}"
+        "-DBIN_DIR=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        "-DQT_VERSION=${Qt6_VERSION}"
+        "-DEXPECTED=${ADL_PLATFORM_NOTICE_EXPECTED}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/check_notices.cmake")
+set_tests_properties(system.notices PROPERTIES TIMEOUT 30 LABELS "system")

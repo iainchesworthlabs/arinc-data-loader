@@ -8,8 +8,12 @@
 # A view must not name a colour or a pixel size: Theme.qml owns both. Adding a component here
 # makes it available to all three windows.
 
+include(Notices)
+
 set(ADL_UI_QML_DIR "${CMAKE_SOURCE_DIR}/src/ui/qml")
 set(ADL_UI_FONT_DIR "${CMAKE_SOURCE_DIR}/src/ui/fonts")
+set(ADL_UI_NOTICES_DIR "${CMAKE_SOURCE_DIR}/notices")
+set(ADL_UI_NOTICES_FILE "${CMAKE_BINARY_DIR}/notices/NOTICES.txt")
 
 # ---- version and provenance -------------------------------------------------
 # Stamped at configure time. The About dialogs print it; a source tarball without git gets
@@ -90,6 +94,7 @@ set(ADL_UI_QML_FILES
     "${ADL_UI_QML_DIR}/CheckTile.qml"
     "${ADL_UI_QML_DIR}/EmptyState.qml"
     "${ADL_UI_QML_DIR}/FocusRing.qml"
+    "${ADL_UI_QML_DIR}/LicencesDialog.qml"
     "${ADL_UI_QML_DIR}/LogView.qml"
     "${ADL_UI_QML_DIR}/RailBlock.qml"
     "${ADL_UI_QML_DIR}/SectionHeader.qml"
@@ -116,9 +121,77 @@ function(adl_prepare_ui_qml)
             QT_QML_SINGLETON_TYPE TRUE)
 endfunction()
 
-# Adds the bundled faces, the registration code and the include directory to an application
-# target. Call after the target exists.
+# ---- third-party notices ----------------------------------------------------
+# The file About > Licences shows and the build places beside the executables: what this build
+# ships from others (Qt under the LGPL, the Archivo typeface under the OFL, the runtime files
+# Qt's deployment tool adds, Tracy in a profiling build), each with the text of its terms. Written
+# once per configure by the first application that asks, from the versions CMake knows, and
+# embedded in every application as :/adl/notices/NOTICES.txt (notices/README.md says how to add a
+# component). Needs Qt found in the calling scope, for its version.
+function(adl_generate_ui_notices)
+    get_property(_adl_notices_done GLOBAL PROPERTY ADL_UI_NOTICES_DONE)
+    if(_adl_notices_done)
+        return()
+    endif()
+    set_property(GLOBAL PROPERTY ADL_UI_NOTICES_DONE TRUE)
+
+    if(NOT Qt6_VERSION)
+        message(FATAL_ERROR "adl_generate_ui_notices: Qt6 must be found before the first "
+                            "application asks for its notices")
+    endif()
+    string(REGEX MATCH "^[0-9]+\\.[0-9]+" _adl_qt_series "${Qt6_VERSION}")
+
+    # What differs by platform is the platform's own to say (src/platforms/<name>/platform.cmake).
+    set(_adl_fragments header qt ${ADL_PLATFORM_NOTICE_FRAGMENTS} fonts)
+    if(ADL_ENABLE_TRACY)
+        list(APPEND _adl_fragments tracy)
+    endif()
+    list(APPEND _adl_fragments standards)
+
+    if(Tracy_VERSION)
+        set(_adl_tracy_version "${Tracy_VERSION}")
+    else()
+        set(_adl_tracy_version "(version not reported by its package)")
+    endif()
+
+    adl_generate_notices("${ADL_UI_NOTICES_FILE}"
+        FRAGMENT_DIR "${ADL_UI_NOTICES_DIR}/fragments"
+        FRAGMENTS ${_adl_fragments}
+        TOKENS
+            "VERSION=${PROJECT_VERSION}"
+            "PLATFORM=${ADL_PLATFORM_DISPLAY_NAME}"
+            "QT_VERSION=${Qt6_VERSION}"
+            "QT_SERIES=${_adl_qt_series}"
+            "QT_DEPLOYMENT=${ADL_PLATFORM_NOTICE_QT_DEPLOYMENT}"
+            "TRACY_VERSION=${_adl_tracy_version}"
+        FILES
+            "LGPL3=${ADL_UI_NOTICES_DIR}/licences/LGPL-3.0.txt"
+            "OFL=${ADL_UI_FONT_DIR}/OFL.txt"
+            "MESA_MIT=${ADL_UI_NOTICES_DIR}/licences/MIT-mesa.txt"
+            "DXC_NCSA=${ADL_UI_NOTICES_DIR}/licences/NCSA-dxc.txt"
+            "TRACY_BSD=${ADL_UI_NOTICES_DIR}/licences/BSD-3-Clause-Tracy.txt")
+
+    # NOTICES.txt and LICENSE.txt beside the executables, so the Qt libraries deployed there travel
+    # with the licence that asks for it. One target for all the programs: they share the bin
+    # directory, and two copies of one file at once would collide.
+    add_custom_target(adl_notices ALL
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                "${ADL_UI_NOTICES_FILE}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/NOTICES.txt"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/LICENSE.txt"
+        COMMENT "Placing NOTICES.txt and LICENSE.txt beside the executables")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/LICENSE")
+endfunction()
+
+# Adds the bundled faces, the registration code, the third-party notices and the include
+# directory to an application target. Call after the target exists.
 function(adl_add_ui_support target)
+    adl_generate_ui_notices()
+    qt_add_resources(${target} "${target}_adl_ui_notices"
+        PREFIX "/adl/notices"
+        BASE "${CMAKE_BINARY_DIR}/notices"
+        FILES "${ADL_UI_NOTICES_FILE}")
     qt_add_resources(${target} "${target}_adl_ui_fonts"
         PREFIX "/adl/fonts"
         BASE "${ADL_UI_FONT_DIR}"

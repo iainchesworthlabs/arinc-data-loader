@@ -46,9 +46,7 @@ int main(int argc, char* argv[]) {
     adl::app::LanguageManager language_manager(application, *engine);
     language_manager.applyInitialLanguage();
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
-    engine->rootContext()->setContextProperty(
-        QStringLiteral("appVersionDetails"),
-        adl::ui::version_details(QStringLiteral("ARINC Data Loader")));
+    adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
 
     QObject::connect(
         &*engine, &QQmlApplicationEngine::objectCreationFailed, &application,

@@ -1,0 +1,7 @@
+The standards
+-------------
+
+ARINC 615A and ARINC 665 are standards published by Aeronautical Radio, Inc.
+This project implements them from the published reports, which are not part of
+this package or of its source and are not covered by its licence. Aeronautical
+Radio, Inc. is not affiliated with this project and does not endorse it.

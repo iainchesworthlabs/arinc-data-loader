@@ -137,8 +137,12 @@ TestCase {
         tryVerify(function() { return dialog.visible })
         const partNumber = findIn(dialog, "mediaSetPartNumberLabel")
         verify(partNumber.text.length > 0)
-        verify(findIn(dialog, "mediaSetLoadCountLabel").text.length > 0)
-        verify(findIn(dialog, "mediaSetFileCountLabel").text.length > 0)
+        // The tiles show the figures of the set that was read, not what they held when the
+        // window was built (before any set was chosen).
+        verify(harness.loadCount() > 0)
+        verify(harness.fileCount() > 0)
+        compare(findIn(dialog, "mediaSetLoadCountLabel").text, String(harness.loadCount()))
+        compare(findIn(dialog, "mediaSetFileCountLabel").text, String(harness.fileCount()))
 
         const close = dialog.standardButton(Dialog.Close)
         verify(close !== null)
@@ -174,5 +178,37 @@ TestCase {
         verify(close !== null)
         mouseClick(close)
         tryVerify(function() { return !dialog.visible })
+    }
+
+    // About > Licences shows the notices the build embedded: Qt's LGPL, the typeface's OFL, and
+    // the programs' own terms, not a placeholder.
+    function test_05_about_shows_the_third_party_licences() {
+        const about = find("aboutDialog")
+        about.open()
+        tryVerify(function() { return about.visible })
+
+        const licencesButton = about.standardButton(Dialog.Cancel)
+        verify(licencesButton !== null)
+        compare(licencesButton.text, "Licences")
+        mouseClick(licencesButton)
+
+        const dialog = find("licencesDialog")
+        tryVerify(function() { return dialog.visible })
+        const text = findIn(dialog, "licenceNoticesText")
+        tryVerify(function() { return text.text.length > 0 })
+        verify(text.text.indexOf("GNU Lesser General Public License".toUpperCase()) >= 0,
+               "the LGPL text is missing")
+        verify(text.text.indexOf("SIL OPEN FONT LICENSE") >= 0, "the OFL text is missing")
+        verify(text.text.indexOf("Archivo") >= 0)
+        verify(text.text.indexOf("Qt 6.") >= 0, "the Qt version is missing")
+        verify(text.text.indexOf("{{") < 0, "a placeholder was left in the notices")
+        verify(text.text.indexOf("not compiled in") < 0, "the build embedded no notices")
+
+        mouseClick(dialog.standardButton(Dialog.Close))
+        tryVerify(function() { return !dialog.visible })
+        // The About dialog stays open under it, as it was.
+        verify(about.visible)
+        mouseClick(about.standardButton(Dialog.Close))
+        tryVerify(function() { return !about.visible })
     }
 }

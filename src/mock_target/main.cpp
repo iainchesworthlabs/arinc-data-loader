@@ -32,9 +32,7 @@ int main(int argc, char* argv[]) {
         &engine, &QQmlApplicationEngine::objectCreationFailed, &application,
         [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
     engine.setInitialProperties({{QStringLiteral("app"), QVariant::fromValue(&model)}});
-    engine.rootContext()->setContextProperty(
-        QStringLiteral("appVersionDetails"),
-        adl::ui::version_details(QStringLiteral("ARINC Mock Target")));
+    adl::ui::set_about_properties(*engine.rootContext(), QStringLiteral("ARINC Mock Target"));
     engine.loadFromModule("ArincMockTarget", "TargetWindow");
     if (!engine.rootObjects().isEmpty()) {
         if (auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst()))

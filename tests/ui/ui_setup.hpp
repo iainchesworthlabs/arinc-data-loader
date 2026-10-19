@@ -15,6 +15,7 @@
 #include <QUrl>
 
 #include "adl/ui/fonts.hpp"
+#include "adl/ui/version.hpp"
 #include "ui_harness.hpp"
 
 namespace adl::ui_test {
@@ -40,6 +41,7 @@ public Q_SLOTS:
     void qmlEngineAvailable(QQmlEngine* engine) {
         engine->rootContext()->setContextProperty(QStringLiteral("appModel"), &harness_->model());
         engine->rootContext()->setContextProperty(QStringLiteral("harness"), harness_.get());
+        adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
         engine->rootContext()->setContextProperty(
             QStringLiteral("mainQmlUrl"), QUrl::fromLocalFile(QString::fromUtf8(ADL_MAIN_QML)));
     }

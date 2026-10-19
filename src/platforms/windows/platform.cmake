@@ -5,6 +5,13 @@ set(ADL_PLATFORM_DISPLAY_NAME "Windows")
 set(ADL_PLATFORM_DESKTOP ON)
 set(ADL_PLATFORM_STATUS supported)
 
+# The third-party notices (notices/README.md): Qt's deployment tool places the Qt DLLs beside the
+# executables, with the runtime files that came with the kit.
+set(ADL_PLATFORM_NOTICE_FRAGMENTS windows-runtime)
+set(ADL_PLATFORM_NOTICE_QT_DEPLOYMENT
+    "Qt's deployment tool places the Qt6*.dll libraries, the plugins and the QML modules they load beside the executables.")
+set(ADL_PLATFORM_NOTICE_EXPECTED "opengl32sw.dll|University of Illinois/NCSA|vc_redist.x64.exe")
+
 # C:/Repos/common/qt is the labs' shared toolchain tree (the same kit the sibling projects'
 # env.ps1 points QT_ROOT_DIR at); it lets an IDE that does not run that script - Visual Studio's
 # CMake integration, for one - find the kit without the environment variable.

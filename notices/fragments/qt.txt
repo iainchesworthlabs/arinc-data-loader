@@ -1,0 +1,40 @@
+Qt {{QT_VERSION}}
+------------------
+
+The programs use Qt {{QT_VERSION}}. {{QT_DEPLOYMENT}} What they link directly
+is Qt Core, Gui, Qml, Quick and Quick Controls 2; their windows import QtQuick,
+QtQuick.Controls, QtQuick.Dialogs, QtQuick.Layouts and QtQuick.Window, together
+with the platform, image-format, icon-engine, TLS, network-information and
+style plugins those need. Which files that is, is decided by Qt's own
+deployment tool, which reads the built binary and scans the QML it imports,
+rather than by a list kept here.
+
+Copyright (C) The Qt Company Ltd. and other contributors.
+
+These are used under the GNU Lesser General Public License, version 3,
+reproduced at the end of this section; the GNU General Public License it refers
+to is LICENSE.txt beside this file. Any Qt translation catalogues the programs
+load are under the BSD 3-clause licence.
+
+The Qt libraries are linked dynamically. You may replace them with a modified
+Qt 6 that is binary-compatible with this version and the programs will load it.
+
+The complete corresponding source of this exact Qt version is published by The
+Qt Company at https://download.qt.io/archive/qt/{{QT_SERIES}}/{{QT_VERSION}}/single/
+and the project will also supply it on request, through the repository's issue
+tracker, for as long as this build is offered.
+
+Some Qt modules are offered under the GNU General Public License, version 3,
+rather than the LGPL: Qt6Quick3DUtils, which the QML profiler plugin in
+qmltooling/ loads, is one, and the deployment tool places it with the rest.
+This project's own licence, the GPL version 3 or later, satisfies that, and the
+combined work is distributed under the GPL.
+
+The Qt libraries in turn contain third-party code, each part under its own
+terms - PCRE2, zlib, FreeType, HarfBuzz, libpng, the Unicode character database
+and some dozens more. The SPDX documents in the Qt kit this build was made
+against (sbom/*.spdx) are the record of which of those it carries and under
+what terms, and Qt's attribution for each, with the full text of every licence
+named, is at https://doc.qt.io/qt-6/licenses-used-in-qt.html
+
+{{FILE:LGPL3}}

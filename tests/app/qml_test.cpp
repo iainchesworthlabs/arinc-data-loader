@@ -135,9 +135,7 @@ int main(int argc, char* argv[]) {
     // it ships are switched through at the end, and English is put back.
     language_manager.setLanguage(QStringLiteral("en"));
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
-    engine->rootContext()->setContextProperty(
-        QStringLiteral("appVersionDetails"),
-        adl::ui::version_details(QStringLiteral("ARINC Data Loader")));
+    adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
 
     int complaints = 0;
     QObject::connect(&*engine, &QQmlApplicationEngine::warnings,

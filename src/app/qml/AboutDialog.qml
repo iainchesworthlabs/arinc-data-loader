@@ -13,8 +13,12 @@ AppDialog {
                                       ? appVersionDetails
                                       : qsTr("ARINC Data Loader %1").arg(Qt.application.version)
 
+    // Licences opens the third-party notices; the window shows them (Main.qml).
+    signal showLicences()
+
     heading: qsTr("About ARINC Data Loader")
     primaryText: qsTr("Close")
+    secondaryText: qsTr("Licences")
     width: 620
 
     content: ColumnLayout {
@@ -59,6 +63,7 @@ AppDialog {
         Text {
             Layout.fillWidth: true
             textFormat: Text.RichText
+            linkColor: Theme.accentInk
             text: qsTr("Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU General Public License</a>.")
             color: Theme.textMuted
             font.pixelSize: Theme.fontSmall
@@ -68,7 +73,7 @@ AppDialog {
 
         Text {
             Layout.fillWidth: true
-            text: qsTr("Includes the Archivo typeface, licensed under the SIL Open Font License 1.1.")
+            text: qsTr("Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.")
             color: Theme.textMuted
             font.pixelSize: Theme.fontSmall
             wrapMode: Text.WordWrap
@@ -77,6 +82,7 @@ AppDialog {
         Text {
             Layout.fillWidth: true
             textFormat: Text.RichText
+            linkColor: Theme.accentInk
             text: "<a href=\"https://github.com/iainchesworthlabs/arinc-data-loader\">github.com/iainchesworthlabs/arinc-data-loader</a>"
             color: Theme.textMuted
             font.pixelSize: Theme.fontSmall
@@ -84,5 +90,6 @@ AppDialog {
         }
     }
 
+    onSecondaryClicked: dialog.showLicences()
     onPrimaryClicked: dialog.close()
 }

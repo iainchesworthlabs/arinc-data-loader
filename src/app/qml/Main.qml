@@ -29,7 +29,7 @@ ApplicationWindow {
                                                                    ? qsTr("READY") : qsTr("NOT READY")
     readonly property string statusTone: app.busy ? "accent"
                                                   : app.canUpload || app.canDownload ? "ok" : "warn"
-    readonly property bool modalOpen: preferencesDialog.opened || aboutDialog.opened
+    readonly property bool modalOpen: preferencesDialog.opened || aboutDialog.opened || licencesDialog.opened
                                       || mediaSetPropertiesDialog.opened
                                       || targetPropertiesDialog.opened || errorDialog.opened
                                       || closeDialog.opened
@@ -231,6 +231,11 @@ ApplicationWindow {
         objectName: "aboutDialog"
 
         title: qsTr("About ARINC Data Loader")
+        onShowLicences: licencesDialog.open()
+    }
+
+    LicencesDialog {
+        id: licencesDialog
     }
 
     AppDialog {
@@ -256,7 +261,11 @@ ApplicationWindow {
         onPrimaryClicked: {
             window.closeAfterStop = true;
             window.app.abort();
-            window.closeRequested = true;
+            // The job may have ended while the dialog was open: no busyChanged would follow.
+            if (window.app.busy)
+                window.closeRequested = true;
+            else
+                window.close();
             close();
         }
 
