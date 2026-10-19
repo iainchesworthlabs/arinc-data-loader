@@ -316,7 +316,7 @@ jobs:
 
       - name: Install the SBOM validators (hash-locked)
         run: |
-          uv venv "$RUNNER_TEMP/sbom-venv"
+          uv venv --python 3.13 "$RUNNER_TEMP/sbom-venv"
           uv pip install --python "$RUNNER_TEMP/sbom-venv/bin/python" --require-hashes --no-build --requirement .github/requirements/sbom.txt
 
       - name: Write the SBOM

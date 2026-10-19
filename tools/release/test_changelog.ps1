@@ -211,3 +211,4 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 Write-Host "all $count case(s) behaved"
+exit 0

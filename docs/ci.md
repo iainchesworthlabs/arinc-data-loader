@@ -146,7 +146,7 @@ a time-out, so it cannot hold the job.
   (aqtinstall, which did this before, cannot read the repository's layout for Windows from Qt 6.11 on, and
   like Qt's own installer checks an archive only against a hash fetched from the same server, so whoever
   could replace an archive could replace its hash.) The one Python package the script needs, `py7zr`, is
-  installed with `uv pip install --require-hashes --no-build` from the hash-locked
+  installed (into a `uv venv --python 3.13`, since the newest Python on an image can be newer than the wheels) with `uv pip install --require-hashes --no-build` from the hash-locked
   `.github/requirements/qt.txt`, so each wheel is the one that was reviewed and nothing is built from a
   source distribution. The install is retried twice, since download.qt.io is a mirror network, but a hash
   mismatch is not retried; the kit is cached under an exact key (version, architecture, and the hashes of

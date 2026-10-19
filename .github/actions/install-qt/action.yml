@@ -49,7 +49,7 @@ runs:
         QT_VERSION: ${{ inputs.version }}
         QT_HOST: ${{ inputs.host }}
       run: |
-        uv venv "$RUNNER_TEMP/qt-venv"
+        uv venv --python 3.13 "$RUNNER_TEMP/qt-venv"
         if [ "$RUNNER_OS" = Windows ]; then
           py="$RUNNER_TEMP/qt-venv/Scripts/python.exe"
         else
