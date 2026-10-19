@@ -14,7 +14,7 @@ namespace {
 
 // Figure C-1: the pointer to the Load Check Value Length is the last of the
 // eight pointers, in words 18 and 19.
-constexpr std::size_t check_value_pointer_offset = 18 * 2;
+constexpr std::size_t check_value_pointer_offset = std::size_t{18} * 2;
 
 std::size_t check_value_offset(std::span<const std::byte> header_bytes) {
     std::size_t pointer = 0;
@@ -29,7 +29,7 @@ std::size_t check_value_offset(std::span<const std::byte> header_bytes) {
 // take them: data files, then support files.
 template <typename Update>
 void for_each_file_bytes(const std::vector<FileContent>& data_files,
-                         const std::vector<FileContent>& support_files, Update&& update) {
+                         const std::vector<FileContent>& support_files, Update update) {
     for (const FileContent& file : data_files) {
         update(std::span<const std::byte>{file.bytes});
     }

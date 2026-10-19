@@ -275,10 +275,10 @@ struct LoaderConfig {
 
     // The largest protocol file we receive or send, and so the size of each slot's buffer for
     // one (a configuration list, a download list, a status file listing many loads).
-    std::size_t max_protocol_file_bytes = 32 * 1024;
+    std::size_t max_protocol_file_bytes = std::size_t{32} * 1024;
 
     // Room for the names of the files a download expects.
-    std::size_t name_pool_bytes = 16 * 1024;
+    std::size_t name_pool_bytes = std::size_t{16} * 1024;
 };
 
 struct LoaderServices {
@@ -484,6 +484,9 @@ private:
     std::span<std::byte> workspace_;
     bool laid_out_ = false;
 
+    // Aggregate value-initialisation zero-fills before the member initialisers
+    // run; the check reads that zero as an enum value.
+    // NOLINTNEXTLINE(bugprone-invalid-enum-default-initialization)
     std::array<Slot, max_slots> slots_{};
     std::size_t slot_count_ = 0;
     std::span<std::byte> outbound_;  // the encoded .LUR, .LNR or .LNA

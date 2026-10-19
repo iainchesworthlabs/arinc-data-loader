@@ -207,7 +207,7 @@ void TftpTransfer::accept_write(Instant now, const Endpoint& client, const TftpR
         refused = refused || !oack.add_block_size(static_cast<std::uint16_t>(block_size_));
     }
     if (options->transfer_size) {
-        expected_size_ = *options->transfer_size;
+        expected_size_ = options->transfer_size;
         result_.announced_size = expected_size_;
         refused = refused || !oack.add_transfer_size(*options->transfer_size);
     }
@@ -444,7 +444,7 @@ bool TftpTransfer::read_options_from_oack(const TftpOptionAck& oack) noexcept {
         return false;
     }
     if (options->transfer_size && receiving_) {
-        expected_size_ = *options->transfer_size;
+        expected_size_ = options->transfer_size;
         result_.announced_size = expected_size_;
     }
     result_.port_acknowledged =

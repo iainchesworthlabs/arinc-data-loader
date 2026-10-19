@@ -6,6 +6,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <memory>
 
 #include "adl/arinc615a/directory_files.hpp"
 #include "rig.hpp"
@@ -1238,8 +1239,8 @@ TEST_CASE("a loader with too small a workspace says so", "[engine][runner]") {
     Rig rig;
     std::vector<std::byte> small(100);
     LoaderServices services;
-    DataLoader loader(rig.config, small, services);
-    const auto started = loader.start(Instant{}, InformationOperation{});
+    auto loader = std::make_unique<DataLoader>(rig.config, small, services);
+    const auto started = loader->start(Instant{}, InformationOperation{});
     REQUIRE_FALSE(started);
     CHECK(started.error() == Error::buffer_too_small);
 }
