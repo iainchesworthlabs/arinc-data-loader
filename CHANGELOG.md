@@ -15,6 +15,15 @@ C++23 CMake monorepo. Nothing has been released.
 
 ### Added
 
+- **Third-party licences in the applications.** About has a Licences button in all
+  three applications that opens the notices this build carries: Qt under the LGPL
+  (with the text of the licence and the offer of its source), the Archivo typeface
+  under the SIL Open Font License, the runtime files Qt's deployment tool adds on
+  Windows, and Tracy in a profiling build. `cmake/Notices.cmake` assembles
+  `NOTICES.txt` at configure time from `notices/fragments` and the licence texts
+  in `notices/licences`, embeds it in each executable and places it, with
+  `LICENSE.txt`, beside them; `system.notices` checks the result.
+  [docs/licensing.md](docs/licensing.md) says how to add a component.
 - **The test suite is now three labelled tiers, with a UI suite and a coverage
   minimum.** Every CTest test is `unit`, `integration` or `system` (`ctest -L
   unit`, and the `check-unit` / `check-integration` / `check-system` targets),
@@ -206,6 +215,25 @@ C++23 CMake monorepo. Nothing has been released.
   and a dirty-tree marker, and the QML resize and log-scroll costs were reduced. The analysis and
   before/after screenshots are in [docs/design-overhaul.md](docs/design-overhaul.md), the token
   reference in [docs/design-system.md](docs/design-system.md).
+
+### Fixed
+
+- A download directory chosen in the folder dialog was stored as a `file:///` URL and
+  handed to the engine as a path; it is converted to a local path.
+- The media set dialog's Loads and Files figures were fixed when the window was built;
+  they follow the set that was read.
+- "Stop and close" did nothing when the job ended while the question was open.
+- The mock target could call into a link that its own session thread was destroying when
+  Stop was pressed, and a download folder it could not list ended the program.
+- Port numbers in the mock target's spin boxes no longer carry the locale's digit grouping
+  ("1,001").
+- Enter now presses the focused button as Space does; the segmented control keeps the
+  keyboard focus on the segment it chooses and a click on the chosen segment does not clear
+  it; error lines in the log use the accessible ink.
+- The `coverage` target passes the `gcov` that matches the compiler, and the coverage gate
+  fails when it measured too little to mean anything (gcovr reports 0 of 0 lines as 100%).
+- The `check-*` targets fail when a tier has no tests; the branch-name check accepts the
+  same one to three levels the ruleset does; Dependabot also covers the `install-qt` action.
 
 ### Changed
 

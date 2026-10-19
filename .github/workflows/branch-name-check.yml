@@ -42,7 +42,9 @@ jobs:
           echo "Source branch: $HEAD_REF"
           echo "Target branch: $BASE_REF"
 
-          gitflow_prefix_re='^(feature|bugfix|release|hotfix|support)/[A-Za-z0-9._-]+$'
+          # One to three name levels, as the branch-names ruleset allows (feature/*, feature/*/*,
+          # feature/*/*/*).
+          gitflow_prefix_re='^(feature|bugfix|release|hotfix|support)(/[A-Za-z0-9._-]+){1,3}$'
 
           # Session branches that coding assistants name themselves are not
           # gitflow names and are refused with a pointed message rather than

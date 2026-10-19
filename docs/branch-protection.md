@@ -192,7 +192,7 @@ Two rules keep the queue honest:
   `dependency-review.yml` carry it.
 - **A workflow that produces no required check must not carry
   `merge_group`**, or every queue entry burns a full run of it for nothing.
-  `codeql.yml` and `scorecard.yml` do not.
+  `codeql.yml`, `static-analysis.yml` and `scorecard.yml` do not.
 
 A queue entry has no head branch name, PR title or PR body of its own, so
 `Validate gitflow branch name` and `Validate commit and PR text` skip their job

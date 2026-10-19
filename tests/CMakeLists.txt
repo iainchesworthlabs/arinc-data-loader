@@ -242,7 +242,7 @@ foreach(tier unit integration system)
             "TEMP=${CMAKE_BINARY_DIR}"
             "TMP=${CMAKE_BINARY_DIR}"
             "TMPDIR=${CMAKE_BINARY_DIR}"
-            "${CMAKE_CTEST_COMMAND}" --output-on-failure -L "${tier}"
+            "${CMAKE_CTEST_COMMAND}" --output-on-failure --no-tests=error -L "${tier}"
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
         COMMENT "Running the ${tier} tests"
         USES_TERMINAL)

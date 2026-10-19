@@ -83,5 +83,17 @@ if(NOT _result EQUAL 0)
         "The report is in ${_output}.")
 endif()
 
+# gcovr reports 0 of 0 lines as 100%, so a filter that matches nothing (a renamed directory) or a
+# gcov that cannot read the data passes both thresholds. The totals have to be there too.
+file(READ "${_output}/summary.json" _summary)
+string(JSON _line_total GET "${_summary}" line_total)
+string(JSON _branch_total GET "${_summary}" branch_total)
+if(_line_total LESS 1000 OR _branch_total LESS 100)
+    message(FATAL_ERROR
+        "Coverage measured only ${_line_total} lines and ${_branch_total} branches: the filter "
+        "matched too little or gcov could not read the data, so the percentages mean nothing. "
+        "The report is in ${_output}.")
+endif()
+
 message(STATUS "Coverage meets the minimum: ${LINE_THRESHOLD}% lines and "
                "${BRANCH_THRESHOLD}% branches. Report: ${_output}/index.html")

@@ -43,6 +43,7 @@ updates:
     # pins must move with the workflows').
     directories:
       - "/"
+      - "/.github/actions/install-qt"
       - "/.github/actions/vcpkg-cache/restore"
       - "/.github/actions/vcpkg-cache/save"
     target-branch: "develop"

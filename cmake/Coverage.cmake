@@ -35,6 +35,12 @@ if(ADL_ENABLE_COVERAGE)
         target_link_options(adl_coverage INTERFACE --coverage)
 
         find_program(ADL_GCOVR_EXECUTABLE NAMES gcovr)
+        # The gcov that matches the compiler: gcovr's default `gcov` is the system's, and a GCC
+        # newer than it writes data files the system gcov cannot read (an empty report). Clang
+        # coverage reads its data through gcov-compatible llvm-cov, which gcovr finds itself.
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+            find_program(ADL_GCOV_EXECUTABLE NAMES gcov-${CMAKE_CXX_COMPILER_VERSION_MAJOR} gcov)
+        endif()
         if(ADL_GCOVR_EXECUTABLE)
             add_custom_target(coverage
                 COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure

@@ -53,6 +53,13 @@ required checks after its first report (see the staging section in
 
 ## Nightly static analysis
 
+A schedule, and a manual dispatch, work only for a workflow on the default branch
+(`main`). These two workflows live on `develop` until the first release merge, so
+nothing runs nightly before then; the per-commit checks above are unaffected.
+The same holds for everything GitHub reads only from the default branch: Dependabot
+(`.github/dependabot.yml`), `scorecard.yml`, the issue templates and `SECURITY.md`'s
+private-reporting link. None of them is active until `main` carries them.
+
 `static-analysis.yml` and `codeql.yml` run on a nightly schedule, not on a
 push or a pull request. They are not required checks: a red night is read in
 the morning, and a merge is not held for an analyzer. The jobs are clang-tidy
@@ -271,16 +278,16 @@ in the index (git ignores a hook that is not, with a warning).
 
 ## When the first run goes red
 
-The build has been run locally on Windows (MSVC 19.51) only; the Linux and macOS
-legs have not run yet, and the first run of each is their first compile of
-`src/platforms/linux` and `src/platforms/macos`. When a leg goes red, the usual
-suspects, in order of likelihood:
+The three legs (Windows MSVC, Linux GCC, macOS AppleClang) have all run on
+`develop`. When a leg goes red, the usual suspects, in order of likelihood:
 
 1. **Warnings as errors** on a compiler version nobody has tried: `-Werror`
    with `-Wconversion`, `-Wsign-conversion`, `-Wold-style-cast` and friends
    will say exactly which line.
-2. **A platform source that has never compiled** (`src/platforms/linux`,
-   `src/platforms/macos`): the leg's log is the first compile of it.
+2. **A timing-dependent test**: the loopback tests run real sockets and a real
+   clock on a shared runner, so one that depends on how fast the other end
+   answers can fail under load. That is a defect to fix in the test or the
+   engine, not a re-run: read the log first.
 3. **The sanitizer runtime**: ASan/UBSan on the hosted image (on Windows, the
    ASan runtime DLL that `adl_deploy_sanitizer_runtime` copies next to the
    tests, found next to the compiler).

@@ -13,6 +13,11 @@ hour). None of them is a required check. A red night is a thing to look at in
 the morning, not a blocked pull request; the required checks stay the ones in
 [branch protection](branch-protection.md).
 
+GitHub starts a scheduled workflow, and registers a manually dispatched one, only
+from the repository's default branch, which is `main`. Until the first release
+merge puts these workflows on `main`, neither runs and `gh workflow run` reports
+that the workflow is not found; see [CI](ci.md#nightly-static-analysis).
+
 ## Schedule
 
 | Workflow | When |
@@ -109,7 +114,8 @@ run on pull requests: a nightly alert is triaged, not merged.
 ### SonarQube (optional)
 
 The Sonar job is off until an administrator turns it on. It is skipped, not red,
-when it is off.
+while `SONAR_HOST_URL` is unset. Set the variable and the secret together: the
+variable alone turns the job on, and the scan then fails for want of a token.
 
 1. Create the project on SonarQube Cloud (free for public projects) or a
    self-hosted SonarQube with the C++ analyzer (a commercial edition asks for

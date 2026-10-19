@@ -2,6 +2,9 @@
 /build/
 build*/
 cmake-build-*/
+# The output directory docs/building.md uses for adl_write_payloads: sample media
+# sets are generated, never committed.
+/out/
 /vcpkg_installed/
 compile_commands.json
 .cache/
