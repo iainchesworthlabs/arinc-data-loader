@@ -21,6 +21,11 @@ ApplicationWindow {
     readonly property bool noCheckValues: app.fileCheckTypeIndex === 0
                                           && app.filesListCheckTypeIndex === 0
                                           && app.loadCheckTypeIndex === 0
+    readonly property string versionDetails: typeof appVersionDetails === "string"
+                                             ? appVersionDetails
+                                             : qsTr("ARINC Media Set Generator %1")
+                                                   .arg(Qt.application.version)
+    readonly property bool modalOpen: aboutDialog.opened
 
     title: qsTr("ARINC Media Set Generator")
     width: 1280
@@ -136,7 +141,7 @@ ApplicationWindow {
 
         heading: qsTr("About the Media Set Generator")
         primaryText: qsTr("Close")
-        width: 540
+        width: 620
 
         content: ColumnLayout {
             Layout.fillWidth: true
@@ -159,12 +164,31 @@ ApplicationWindow {
                 wrapMode: Text.WordWrap
             }
 
+            SectionHeader {
+                label: qsTr("Version")
+            }
+
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Version %1 · GPL-3.0-or-later").arg(Qt.application.version)
+                text: window.versionDetails
                 color: Theme.text
                 font.pixelSize: Theme.fontSmall
                 font.family: Theme.monoFamily
+                wrapMode: Text.WordWrap
+            }
+
+            SectionHeader {
+                label: qsTr("Licences")
+            }
+
+            Text {
+                Layout.fillWidth: true
+                textFormat: Text.RichText
+                text: qsTr("GNU General Public License, version 3 or later. Includes the Archivo typeface, SIL Open Font License 1.1. <a href=\"https://github.com/iainchesworthlabs/arinc-data-loader\">Repository</a>.")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontSmall
+                wrapMode: Text.WordWrap
+                onLinkActivated: (link) => Qt.openUrlExternally(link)
             }
         }
 
@@ -1062,6 +1086,17 @@ ApplicationWindow {
                     }
                 }
             }
+        }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        z: 900
+        visible: window.modalOpen
+        color: Theme.dark ? Qt.rgba(0, 0, 0, 0.62) : Qt.rgba(0, 0, 0, 0.32)
+
+        MouseArea {
+            anchors.fill: parent
         }
     }
 }

@@ -178,9 +178,11 @@ C++23 CMake monorepo. Nothing has been released.
   statement, a preflight and an operation receipt. The windows gained window-geometry
   persistence, a transactional Preferences dialog, a close-during-job question, target
   reconciliation on edit (`resultIsTransfer`/`resultWasDownload`), and the generator and
-  mock target gained mode and check-value visibility. The analysis and before/after
-  screenshots are in [docs/design-overhaul.md](docs/design-overhaul.md), the token reference
-  in [docs/design-system.md](docs/design-system.md).
+  mock target gained mode and check-value visibility. The Preferences page is a two-column modal
+  with a window scrim, the About pages carry version, git describe, commit, branch, build target
+  and a dirty-tree marker, and the QML resize and log-scroll costs were reduced. The analysis and
+  before/after screenshots are in [docs/design-overhaul.md](docs/design-overhaul.md), the token
+  reference in [docs/design-system.md](docs/design-system.md).
 
 ### Changed
 

@@ -223,7 +223,7 @@ void LoaderModelTest::find_lists_the_targets() {
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
 
     QCOMPARE(model.resultState(), 1);
-    QCOMPARE(model.resultText(), QStringLiteral("1 target(s) answered"));
+    QCOMPARE(model.resultText(), QStringLiteral("1 target answered"));
     const auto* targets = qobject_cast<TargetModel*>(model.targets());
     QCOMPARE(targets->rowCount(), 1);
     const QModelIndex row = targets->index(0);
@@ -1023,7 +1023,7 @@ void LoaderModelTest::auto_find_with_several_targets_starts_nothing() {
     model.uploadSelected();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QCOMPARE(model.resultState(), 1);
-    QCOMPARE(model.resultText(), QStringLiteral("2 target(s) answered"));
+    QCOMPARE(model.resultText(), QStringLiteral("2 targets answered"));
     QVERIFY(model.resultDetail().contains(QStringLiteral("Choose the target")));
     QVERIFY(!model.targetValid());
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
@@ -1041,7 +1041,7 @@ void LoaderModelTest::auto_find_with_several_targets_starts_nothing() {
     model2.uploadSelected();
     QTRY_VERIFY_WITH_TIMEOUT(!model2.busy(), 20000);
     QCOMPARE(model2.resultState(), 1);
-    QCOMPARE(model2.resultText(), QStringLiteral("0 target(s) answered"));
+    QCOMPARE(model2.resultText(), QStringLiteral("0 targets answered"));
     QVERIFY(!model2.targetValid());
     QCOMPARE(rig2.target.log().init_requests_at.size(), std::size_t{0});
 }

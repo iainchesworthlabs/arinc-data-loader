@@ -29,6 +29,10 @@ ApplicationWindow {
                                                                    ? qsTr("READY") : qsTr("NOT READY")
     readonly property string statusTone: app.busy ? "accent"
                                                   : app.canUpload || app.canDownload ? "ok" : "warn"
+    readonly property bool modalOpen: preferencesDialog.opened || aboutDialog.opened
+                                      || mediaSetPropertiesDialog.opened
+                                      || targetPropertiesDialog.opened || errorDialog.opened
+                                      || closeDialog.opened
     readonly property string readinessText: {
         if (window.app.busy)
             return window.app.activity;
@@ -107,12 +111,14 @@ ApplicationWindow {
         }
 
         AppButton {
+            objectName: "preferencesButton"
             text: qsTr("Preferences")
             onClicked: preferencesDialog.open()
             Accessible.name: qsTr("Open preferences")
         }
 
         AppButton {
+            objectName: "aboutButton"
             text: qsTr("About")
             onClicked: aboutDialog.open()
             Accessible.name: qsTr("About the data loader")
@@ -191,24 +197,33 @@ ApplicationWindow {
 
     PreferencesDialog {
         id: preferencesDialog
+        objectName: "preferencesDialog"
 
+        title: qsTr("Preferences")
         app: window.app
     }
 
     MediaSetPropertiesDialog {
         id: mediaSetPropertiesDialog
+        objectName: "mediaSetPropertiesDialog"
 
+        title: qsTr("Media set properties")
         app: window.app
     }
 
     TargetPropertiesDialog {
         id: targetPropertiesDialog
+        objectName: "targetPropertiesDialog"
 
+        title: qsTr("Target properties")
         app: window.app
     }
 
     AboutDialog {
         id: aboutDialog
+        objectName: "aboutDialog"
+
+        title: qsTr("About")
     }
 
     AppDialog {
@@ -1000,6 +1015,19 @@ ApplicationWindow {
                     }
                 }
             }
+        }
+    }
+
+    // A modal page recedes the work behind it. The popup draws above this scrim; the window's
+    // work sits below it, so the dialog reads as a page rather than a floating panel.
+    Rectangle {
+        anchors.fill: parent
+        z: 900
+        visible: window.modalOpen
+        color: Theme.dark ? Qt.rgba(0, 0, 0, 0.62) : Qt.rgba(0, 0, 0, 0.32)
+
+        MouseArea {
+            anchors.fill: parent
         }
     }
 }

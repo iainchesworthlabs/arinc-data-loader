@@ -442,7 +442,9 @@ void EngineWorker::find(const QString& destination) {
 
     OperationSummary summary;
     summary.success = true;
-    summary.outcome = tr("%n target(s) answered", "", static_cast<int>(found.size()));
+    const int answer_count = static_cast<int>(found.size());
+    summary.outcome =
+        answer_count == 1 ? tr("1 target answered") : tr("%1 targets answered").arg(answer_count);
     Q_EMIT log_line({Severity::info, summary.outcome + QLatin1Char('.')});
     Q_EMIT finished(summary);
 }

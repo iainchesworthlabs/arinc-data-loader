@@ -1,11 +1,13 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QVariant>
 
 #include "adl/gen/generator_model.hpp"
 #include "adl/ui/fonts.hpp"
+#include "adl/ui/version.hpp"
 #include "adl/ui/window_state.hpp"
 
 int main(int argc, char* argv[]) {
@@ -30,6 +32,9 @@ int main(int argc, char* argv[]) {
         &engine, &QQmlApplicationEngine::objectCreationFailed, &application,
         [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
     engine.setInitialProperties({{QStringLiteral("app"), QVariant::fromValue(&model)}});
+    engine.rootContext()->setContextProperty(
+        QStringLiteral("appVersionDetails"),
+        adl::ui::version_details(QStringLiteral("ARINC Media Set Generator")));
     engine.loadFromModule("ArincMediaGen", "GeneratorWindow");
     if (!engine.rootObjects().isEmpty()) {
         if (auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst()))

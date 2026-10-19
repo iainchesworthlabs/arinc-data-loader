@@ -11,6 +11,7 @@
 
 #include "adl/app/loader_model.hpp"
 #include "adl/ui/fonts.hpp"
+#include "adl/ui/version.hpp"
 #include "adl/ui/window_state.hpp"
 #include "frame_profiler.hpp"
 #include "language_manager.hpp"
@@ -45,6 +46,9 @@ int main(int argc, char* argv[]) {
     adl::app::LanguageManager language_manager(application, *engine);
     language_manager.applyInitialLanguage();
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    engine->rootContext()->setContextProperty(
+        QStringLiteral("appVersionDetails"),
+        adl::ui::version_details(QStringLiteral("ARINC Data Loader")));
 
     QObject::connect(
         &*engine, &QQmlApplicationEngine::objectCreationFailed, &application,

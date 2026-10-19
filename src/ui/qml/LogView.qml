@@ -27,6 +27,20 @@ Item {
         id: list
 
         property bool following: true
+        property bool scrollQueued: false
+
+        function follow() {
+            if (!following)
+                return;
+            if (scrollQueued)
+                return;
+            scrollQueued = true;
+            Qt.callLater(function() {
+                scrollQueued = false;
+                if (following)
+                    positionViewAtEnd();
+            });
+        }
 
         anchors.fill: parent
         clip: true
@@ -69,7 +83,7 @@ Item {
         }
 
         onMovementEnded: following = atYEnd
-        onCountChanged: if (following) Qt.callLater(positionViewAtEnd)
+        onCountChanged: list.follow()
     }
 
     Label {

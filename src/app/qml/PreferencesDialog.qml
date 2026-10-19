@@ -6,6 +6,9 @@ import QtQuick.Layouts
 // The operator's preferences. The dialog edits a working copy: Save writes it, Cancel and Esc
 // leave every stored value as it was. Language is the one exception, and says so, because it
 // swaps the whole window's text the moment it is chosen.
+//
+// Two columns, not a scrolling form: the page is a small, fixed set of choices and a scroll would
+// hide the second half of them for no reason.
 AppDialog {
     id: dialog
 
@@ -14,8 +17,7 @@ AppDialog {
     heading: qsTr("Preferences")
     primaryText: qsTr("Save")
     secondaryText: qsTr("Cancel")
-    width: 720
-    height: 680
+    width: 880
 
     property string draftAddress: ""
     property string draftThwIdPos: ""
@@ -68,23 +70,15 @@ AppDialog {
         onAccepted: dialog.draftDownloadDirectory = selectedFolder
     }
 
-    content: ScrollView {
+    content: RowLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        contentWidth: availableWidth
-        clip: true
+        spacing: Theme.space6
 
         ColumnLayout {
-            width: parent.width
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
             spacing: Theme.space4
-
-            Text {
-                Layout.fillWidth: true
-                text: qsTr("Save applies the choices below. Cancel and Esc leave them as they were. Language applies at once.")
-                color: Theme.textMuted
-                font.pixelSize: Theme.fontBody
-                wrapMode: Text.WordWrap
-            }
 
             SectionHeader {
                 label: qsTr("Appearance")
@@ -93,7 +87,7 @@ AppDialog {
             GridLayout {
                 Layout.fillWidth: true
                 columns: 2
-                columnSpacing: Theme.space4
+                columnSpacing: Theme.space3
                 rowSpacing: Theme.space2
 
                 Text {
@@ -106,7 +100,7 @@ AppDialog {
                 AppComboBox {
                     id: languageBox
 
-                    Layout.preferredWidth: 260
+                    Layout.fillWidth: true
                     visible: dialog.hasLanguages
                     textRole: "name"
                     valueRole: "code"
@@ -114,7 +108,7 @@ AppDialog {
                     Accessible.name: qsTr("Language")
 
                     function sync() {
-                        if (typeof languageManager === "undefined")
+                        if (typeof languageManager === "undefined" || languageManager === null)
                             return;
                         const current = languageManager.currentLanguage;
                         for (let i = 0; i < dialog.languages.length; ++i) {
@@ -126,19 +120,18 @@ AppDialog {
                     }
 
                     onActivated: {
-                        if (typeof languageManager !== "undefined")
+                        if (typeof languageManager !== "undefined" && languageManager !== null)
                             languageManager.setLanguage(currentValue);
                     }
                 }
+            }
 
-                Text {
-                    Layout.columnSpan: 2
-                    Layout.fillWidth: true
-                    text: qsTr("The window follows the desktop's light or dark scheme.")
-                    color: Theme.textMuted
-                    font.pixelSize: Theme.fontSmall
-                    wrapMode: Text.WordWrap
-                }
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("The window follows the desktop's light or dark scheme. Language applies at once; everything else on Save.")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontSmall
+                wrapMode: Text.WordWrap
             }
 
             Rectangle {
@@ -154,7 +147,7 @@ AppDialog {
             GridLayout {
                 Layout.fillWidth: true
                 columns: 2
-                columnSpacing: Theme.space4
+                columnSpacing: Theme.space3
                 rowSpacing: Theme.space2
 
                 Text {
@@ -164,7 +157,7 @@ AppDialog {
                 }
 
                 AppTextField {
-                    Layout.preferredWidth: 280
+                    Layout.fillWidth: true
                     text: dialog.draftAddress
                     placeholderText: qsTr("10.0.0.2")
                     onTextEdited: dialog.draftAddress = text
@@ -178,7 +171,7 @@ AppDialog {
                 }
 
                 AppTextField {
-                    Layout.preferredWidth: 280
+                    Layout.fillWidth: true
                     text: dialog.draftThwIdPos
                     placeholderText: qsTr("HNPFMS_L")
                     onTextEdited: dialog.draftThwIdPos = text
@@ -191,7 +184,7 @@ AppDialog {
                 text: qsTr("Find the target automatically")
                 note: qsTr("Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.")
                 checked: dialog.draftAutoFind
-                onToggled: dialog.draftAutoFind = checked
+                onToggled: (value) => dialog.draftAutoFind = value
             }
 
             Rectangle {
@@ -209,7 +202,7 @@ AppDialog {
                 text: qsTr("Check the media set as soon as it is chosen")
                 note: qsTr("A set has to pass the check before an upload. With this off, use 'Re-check' in the media set rail.")
                 checked: dialog.draftValidateOnOpen
-                onToggled: dialog.draftValidateOnOpen = checked
+                onToggled: (value) => dialog.draftValidateOnOpen = value
             }
 
             RowLayout {
@@ -232,12 +225,12 @@ AppDialog {
                     elide: Text.ElideMiddle
                 }
             }
+        }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 2
-                color: Theme.divider
-            }
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+            spacing: Theme.space4
 
             SectionHeader {
                 label: qsTr("Loader")
@@ -246,7 +239,7 @@ AppDialog {
             GridLayout {
                 Layout.fillWidth: true
                 columns: 2
-                columnSpacing: Theme.space4
+                columnSpacing: Theme.space3
                 rowSpacing: Theme.space2
 
                 Text {
@@ -263,30 +256,55 @@ AppDialog {
                     onValueModified: dialog.draftControlPort = value
                     Accessible.name: qsTr("Loader control port")
                 }
+            }
 
-                Text {
-                    text: qsTr("Download directory")
-                    color: Theme.textMuted
-                    font.pixelSize: Theme.fontSmall
-                }
+            Text {
+                text: qsTr("Download directory")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontSmall
+            }
 
-                RowLayout {
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.space2
+
+                AppTextField {
                     Layout.fillWidth: true
-                    spacing: Theme.space2
-
-                    AppTextField {
-                        Layout.fillWidth: true
-                        text: dialog.draftDownloadDirectory
-                        onTextEdited: dialog.draftDownloadDirectory = text
-                        Accessible.name: qsTr("Download directory")
-                    }
-
-                    AppButton {
-                        text: qsTr("Browse...")
-                        onClicked: downloadDirectoryDialog.open()
-                        Accessible.name: qsTr("Choose the download directory")
-                    }
+                    text: dialog.draftDownloadDirectory
+                    onTextEdited: dialog.draftDownloadDirectory = text
+                    Accessible.name: qsTr("Download directory")
                 }
+
+                AppButton {
+                    text: qsTr("Browse...")
+                    onClicked: downloadDirectoryDialog.open()
+                    Accessible.name: qsTr("Choose the download directory")
+                }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("The directory is where each DNLD_DATA_<THW_ID_POS>_<number> directory is made.")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontSmall
+                wrapMode: Text.WordWrap
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 2
+                color: Theme.divider
+            }
+
+            SectionHeader {
+                label: qsTr("Log")
+            }
+
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: Theme.space3
+                rowSpacing: Theme.space2
 
                 Text {
                     text: qsTr("Activity lines kept")
@@ -304,9 +322,15 @@ AppDialog {
                 }
             }
 
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 2
+                color: Theme.divider
+            }
+
             Text {
                 Layout.fillWidth: true
-                text: qsTr("The download directory is where each DNLD_DATA_<THW_ID_POS>_<number> directory is made.")
+                text: qsTr("Save applies these choices. Cancel and Esc leave them as they were.")
                 color: Theme.textMuted
                 font.pixelSize: Theme.fontSmall
                 wrapMode: Text.WordWrap

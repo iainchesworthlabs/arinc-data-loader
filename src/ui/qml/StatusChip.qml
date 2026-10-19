@@ -25,8 +25,6 @@ Rectangle {
 
     implicitWidth: chip.implicitWidth + Theme.space3 * 2
     implicitHeight: Math.max(20, chip.implicitHeight + 6)
-    Layout.minimumWidth: implicitWidth
-    Layout.preferredWidth: implicitWidth
     color: filled ? Theme.accentFill : "transparent"
     border.width: 1
     border.color: filled ? Theme.accentFill

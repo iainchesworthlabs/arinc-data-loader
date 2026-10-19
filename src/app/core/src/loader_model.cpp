@@ -60,12 +60,16 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
         worker_, &EngineWorker::validation_finished, this, [this](const ValidationReport& report) {
             QString detail;
             if (report.error.isEmpty()) {
-                detail = tr("%1 load(s), %2 file(s), all check values verified")
-                             .arg(report.loads)
-                             .arg(report.files);
+                const QString loads =
+                    report.loads == 1 ? tr("1 load") : tr("%1 loads").arg(report.loads);
+                const QString files =
+                    report.files == 1 ? tr("1 file") : tr("%1 files").arg(report.files);
+                detail = tr("%1, %2, all check values verified").arg(loads, files);
                 if (!report.findings.isEmpty()) {
-                    detail += tr("; %n warning(s) against the standard's recommendations", "",
-                                 static_cast<int>(report.findings.size()));
+                    detail += report.findings.size() == 1
+                                  ? tr("; 1 warning against the standard's recommendations")
+                                  : tr("; %1 warnings against the standard's recommendations")
+                                        .arg(report.findings.size());
                 }
             }
             set_validation(report.error.isEmpty() ? 2 : 3, report.error, report.findings, detail);
@@ -190,9 +194,11 @@ QString LoaderModel::mediaSetTitle() const {
     if (media_set_.path.isEmpty() || !media_set_.error.isEmpty()) {
         return {};
     }
-    return tr("%1: %n member(s), %2 load(s)", "", media_set_.members)
-        .arg(media_set_.part_number)
-        .arg(media_set_.loads.size());
+    const QString members =
+        media_set_.members == 1 ? tr("1 member") : tr("%1 members").arg(media_set_.members);
+    const QString loads =
+        media_set_.loads.size() == 1 ? tr("1 load") : tr("%1 loads").arg(media_set_.loads.size());
+    return tr("%1: %2, %3").arg(media_set_.part_number, members, loads);
 }
 
 bool LoaderModel::canUpload() const {

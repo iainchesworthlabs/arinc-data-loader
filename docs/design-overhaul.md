@@ -433,8 +433,15 @@ true:
   clamped to the current screen. The old windows always opened at 1100×760 in the same place.
 - **First run is no longer a mandatory form.** `Start loading` opens the workbench; the defaults
   are optional and folded away; choosing a media set from the first run also completes it.
-- **Preferences are transactional.** The dialog edits a working copy and writes on Save; Cancel
-  and Esc leave the stored values alone. Language is the one immediate choice and says so.
+- **Preferences are transactional and a page, not a floating form.** The dialog edits a working
+  copy and writes on Save; Cancel and Esc leave the stored values alone. Language is the one
+  immediate choice and says so. The two-column layout keeps every setting visible without a
+  scroll, and the window behind it is dimmed, so it reads as a modal page rather than a panel over
+  a live console ([after](design/screenshots/after-preferences.png)).
+- **The About page carries the build provenance** the other ICL tools show: version, git describe,
+  full commit, branch, build target, Qt version and a dirty-tree marker, generated at configure
+  time by `cmake/AdlUi.cmake` and exposed as `appVersionDetails`. The licences and the repository
+  link sit beside it ([after](design/screenshots/after-about.png)).
 - **Close during a job asks first.** The dialog offers "Keep working" and "Stop and close"; the
   second asks the engine to abort and waits for it to be idle before closing.
 - **The generator no longer shows red errors on untouched fields.** It shows an error only once a
@@ -443,22 +450,39 @@ true:
 - **The mock target derives and copies `THW_ID_POS`**, distinguishes `SERVING` from `STOPPED`,
   summarises active injections and offers `Reset all`; Start is disabled without a hardware ID,
   and an unset storage directory is called out as "still serves, not kept".
-- **Pluralisation** is real prose (`1 load`, `2 loads`) in the new surfaces, not `load(s)`. Some
-  engine log lines still carry the old `(s)` because they are generated in C++ and are part of the
-  evidence; §11 lists the sweep.
+- **Pluralisation** is real prose (`1 load`, `2 loads`) in the new surfaces, not `load(s)`. The
+  loader's and mock target's visible log and summary lines, the find result, the media set title
+  and the `adl_write_payloads` summary were swept too.
 
 ## 9. Verification
 
 - The three windows load with **zero QML warnings**: `adl_app_qml_test`, `adl_gen_qml_test` and
   `adl_mock_qml_test` were rebuilt against the new modules and run with the offscreen platform and
-  software renderer.
+  software renderer. The application test now also opens Preferences and About and fails if either
+  dialog does not open, so the modal page and the provenance block are covered.
 - The application test drives the real model through first run, FIND, Information, a media set
   read and check, an Upload and a media-defined Download, and asserts the outcomes. It passes.
 - The generator test fills the form, starts a generation through the window's own button, and
   asserts a verified set; it passes.
 - The mock target test starts and stops the target through the window's own buttons; it passes.
-- The screenshots in [`design/screenshots`](design/screenshots) are the record of the four
-  surfaces before and after.
+- The screenshots in [`design/screenshots`](design/screenshots) are the record of the surfaces
+  before and after, including the two dialogs.
+
+### Performance
+
+The tests run in a Debug build; **the release build is the one to judge by feel**, and the
+difference is measurable. A scripted 240-step resize at 1200×900 on the RTX 4090 machine cost
+about **0.63 s of CPU in Release** and **1.9 s in Debug** over the same 6 s wall time, both with
+0 ms CPU idle over 2 s. The renderer is D3D11, threaded render loop, max frame latency 2.
+
+Two QML costs were removed in this pass: a checkbox whose label width fed its own implicit width
+(a resize-time binding feedback), and one `positionViewAtEnd` call per log line (now coalesced to
+one per frame). Preferences no longer builds a scrolling form that can overflow its dialog, and
+the dialogs draw one scrim item rather than a full-window overlay per popup. Frame times during a
+scripted resize are still around 18–22 ms at 1200×900 on this machine, so a 60 Hz live resize is
+layout-bound; the release build is the honest comparison, and the remaining work is to move the
+heaviest nested layouts (the rail and the payload table) to fixed lanes if that becomes the
+priority.
 
 Not verified in this pass: a screen reader, a real target over a real network, 175% text size, and
 the Windows/macOS builds of the new QML. Those are in §11.
@@ -486,9 +510,9 @@ the Windows/macOS builds of the new QML. Those are in §11.
 3. **Target confirmation before an automatic FIND operation.** The preflight repeats the target,
    but a sole automatic FIND still starts without an explicit confirmation. A one-line
    "HNPFMS_L answered; use it?" confirmation for the auto path would close this.
-4. **Sweep `(s)` out of the engine's log and summary strings.** `engine_worker.cpp`,
-   `loader_model.cpp` and `mock/engine.cpp` still produce `file(s)`/`load(s)` in lines that are
-   part of the evidence. Make them prose with a helper, as `models.cpp` now is.
+4. **Refresh the translation catalogues.** The new QML and the changed C++ strings are not in the
+   eight `.ts` files; the source text falls back to English. Run lupdate, review the new strings,
+   and add the plural forms the catalogues now need.
 5. **Download directory preview.** Add the next free `DNLD_DATA_<THW_ID_POS>_<n>` to the model so
    the destination can be named before start, and make the aborted-directory consumption visible.
 6. **Preferences: text size and motion.** Add a persisted 100/125/150/175% scale and a reduced

@@ -23,6 +23,11 @@ ApplicationWindow {
                                              + (app.wrongChecksum ? 1 : 0)
                                              + (app.abortAfterStatuses > 0 ? 1 : 0)
                                              + (app.silent ? 1 : 0)
+    readonly property string versionDetails: typeof appVersionDetails === "string"
+                                             ? appVersionDetails
+                                             : qsTr("ARINC Mock Target %1")
+                                                   .arg(Qt.application.version)
+    readonly property bool modalOpen: aboutDialog.opened
 
     title: qsTr("ARINC Mock Target")
     width: 1280
@@ -155,7 +160,7 @@ ApplicationWindow {
 
         heading: qsTr("About the ARINC Mock Target")
         primaryText: qsTr("Close")
-        width: 560
+        width: 620
 
         content: ColumnLayout {
             Layout.fillWidth: true
@@ -178,12 +183,31 @@ ApplicationWindow {
                 wrapMode: Text.WordWrap
             }
 
+            SectionHeader {
+                label: qsTr("Version")
+            }
+
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Version %1 · GPL-3.0-or-later").arg(Qt.application.version)
+                text: window.versionDetails
                 color: Theme.text
                 font.pixelSize: Theme.fontSmall
                 font.family: Theme.monoFamily
+                wrapMode: Text.WordWrap
+            }
+
+            SectionHeader {
+                label: qsTr("Licences")
+            }
+
+            Text {
+                Layout.fillWidth: true
+                textFormat: Text.RichText
+                text: qsTr("GNU General Public License, version 3 or later. Includes the Archivo typeface, SIL Open Font License 1.1. <a href=\"https://github.com/iainchesworthlabs/arinc-data-loader\">Repository</a>.")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontSmall
+                wrapMode: Text.WordWrap
+                onLinkActivated: (link) => Qt.openUrlExternally(link)
             }
         }
 
@@ -957,6 +981,17 @@ ApplicationWindow {
             Item {
                 Layout.preferredHeight: Theme.space4
             }
+        }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        z: 900
+        visible: window.modalOpen
+        color: Theme.dark ? Qt.rgba(0, 0, 0, 0.62) : Qt.rgba(0, 0, 0, 0.32)
+
+        MouseArea {
+            anchors.fill: parent
         }
     }
 }

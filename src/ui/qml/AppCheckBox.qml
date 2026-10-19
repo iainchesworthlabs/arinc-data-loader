@@ -12,7 +12,7 @@ Item {
     property bool checked: false
     signal toggled(bool value)
 
-    implicitWidth: column.implicitWidth
+    implicitWidth: Math.max(220, Math.min(560, label.implicitWidth + 26))
     implicitHeight: column.implicitHeight
     opacity: enabled ? 1.0 : 0.45
     activeFocusOnTab: enabled
@@ -88,7 +88,7 @@ Item {
             Text {
                 id: label
 
-                width: Math.min(implicitWidth, root.width - 26)
+                width: Math.max(0, root.width - 26)
                 text: root.text
                 color: Theme.text
                 font.pixelSize: Theme.fontNormal
@@ -98,7 +98,7 @@ Item {
 
         Text {
             visible: root.note.length > 0
-            width: root.width - 26
+            width: Math.max(0, root.width - 26)
             x: 26
             text: root.note
             color: Theme.textMuted

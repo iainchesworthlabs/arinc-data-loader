@@ -2,13 +2,20 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// What the program is.
+// What the program is. The version block is the same build provenance the other ICL tools show:
+// version, git describe, full commit, branch, build target and Qt version (appVersionDetails is
+// set by main.cpp from adl::ui::version_details(); the fallback is for a harness that does not
+// register it).
 AppDialog {
     id: dialog
 
+    readonly property string details: typeof appVersionDetails === "string"
+                                      ? appVersionDetails
+                                      : qsTr("ARINC Data Loader %1").arg(Qt.application.version)
+
     heading: qsTr("About ARINC Data Loader")
     primaryText: qsTr("Close")
-    width: 540
+    width: 620
 
     content: ColumnLayout {
         Layout.fillWidth: true
@@ -31,26 +38,49 @@ AppDialog {
             wrapMode: Text.WordWrap
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 2
-            color: Theme.divider
+        SectionHeader {
+            label: qsTr("Version")
         }
 
         Text {
+            objectName: "aboutVersionText"
             Layout.fillWidth: true
-            text: qsTr("Version %1 · GPL-3.0-or-later").arg(Qt.application.version)
+            text: dialog.details
             color: Theme.text
             font.pixelSize: Theme.fontSmall
             font.family: Theme.monoFamily
+            wrapMode: Text.WordWrap
+        }
+
+        SectionHeader {
+            label: qsTr("Licences")
         }
 
         Text {
             Layout.fillWidth: true
-            text: qsTr("Uses Qt and the Archivo typeface (SIL OFL 1.1).")
+            textFormat: Text.RichText
+            text: qsTr("Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU General Public License</a>.")
             color: Theme.textMuted
             font.pixelSize: Theme.fontSmall
             wrapMode: Text.WordWrap
+            onLinkActivated: (link) => Qt.openUrlExternally(link)
+        }
+
+        Text {
+            Layout.fillWidth: true
+            text: qsTr("Includes the Archivo typeface, licensed under the SIL Open Font License 1.1.")
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontSmall
+            wrapMode: Text.WordWrap
+        }
+
+        Text {
+            Layout.fillWidth: true
+            textFormat: Text.RichText
+            text: "<a href=\"https://github.com/iainchesworthlabs/arinc-data-loader\">github.com/iainchesworthlabs/arinc-data-loader</a>"
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontSmall
+            onLinkActivated: (link) => Qt.openUrlExternally(link)
         }
     }
 

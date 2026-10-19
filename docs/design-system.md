@@ -109,7 +109,7 @@ bug. Control heights come from their labels, not a fixed box.
 | `BusyMark` | three 5 px squares phased; still at full strength under reduced motion. |
 | `LogView` | mono time, body message, severity colour, follows the end until the operator scrolls. |
 | `FocusRing` | 2 px `focusRing`, 2 px outside the control, z 100. |
-| `AppDialog` | square surface, 2 px heading rule, 24 px padding, footer with one primary and optional secondary. Content is a named `content` property. |
+| `AppDialog` | 2 px `text` border on `surface`, 24 px padding, heading rule, footer with one primary and optional secondary, a window scrim behind it. Content is a named `content` property. |
 
 Rules for composition:
 
@@ -132,7 +132,11 @@ Rules for composition:
 - The focus ring is `accentInk`; width 2, offset 2. It is never the only cue for state.
 - `Theme.motionDuration()` is the one switch for animation; `Theme.reducedMotion` (future
   preference) stops the busy mark and task progress motion without removing the still mark.
-- The modal dialog traps focus as Qt's `Dialog` does; Esc closes it.
+- The modal dialog traps focus as Qt's `Dialog` does; Esc closes it. The window dims its content
+  with one scrim item while a dialog is open, and the dialog itself carries a 2 px border so it
+  reads as a page rather than a floating panel.
+- Preferences is a two-column page, not a scrolling form: the set of choices is small enough to
+  keep visible, and a scroll would hide half of it.
 
 ## Window chrome and first run
 

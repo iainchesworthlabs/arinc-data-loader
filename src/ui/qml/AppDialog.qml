@@ -18,12 +18,17 @@ Dialog {
 
     modal: true
     closePolicy: Popup.CloseOnEscape
+    anchors.centerIn: Overlay.overlay
+    z: 1
+
+    // A modal page reads as a page because the work behind it recedes; the window draws that
+    // scrim itself, above its content and below the popup overlay.
     padding: Theme.space6
     width: 640
     background: Rectangle {
         color: Theme.surface
-        border.color: Theme.divider
-        border.width: 1
+        border.color: Theme.text
+        border.width: 2
         radius: Theme.radius
     }
 

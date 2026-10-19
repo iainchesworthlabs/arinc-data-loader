@@ -34,6 +34,7 @@
 #include "adl/app/loader_model.hpp"
 #include "adl/app/models.hpp"
 #include "adl/ui/fonts.hpp"
+#include "adl/ui/version.hpp"
 #include "bytes.hpp"
 #include "frame_profiler.hpp"
 #include "language_manager.hpp"
@@ -84,8 +85,10 @@ QQuickItem* find_item(QQuickItem* root, const QString& name) {
 
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
-    if (argc > 4) {
-        std::fprintf(stderr, "usage: adl_app_qml_test [picture.png [first-run.png [rtl.png]]]\n");
+    if (argc > 6) {
+        std::fprintf(stderr,
+                     "usage: adl_app_qml_test [picture.png [first-run.png [rtl.png "
+                     "[preferences.png [about.png]]]]]\n");
         return 2;
     }
     adl::ui::register_fonts();
@@ -132,6 +135,9 @@ int main(int argc, char* argv[]) {
     // it ships are switched through at the end, and English is put back.
     language_manager.setLanguage(QStringLiteral("en"));
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    engine->rootContext()->setContextProperty(
+        QStringLiteral("appVersionDetails"),
+        adl::ui::version_details(QStringLiteral("ARINC Data Loader")));
 
     int complaints = 0;
     QObject::connect(&*engine, &QQmlApplicationEngine::warnings,
@@ -191,6 +197,57 @@ int main(int argc, char* argv[]) {
     if (model.firstRun()) {
         std::fprintf(stderr, "passing the first-run screen did not let the workbench through\n");
         return 1;
+    }
+
+    // The header's Preferences opens the shared modal page. The test opens it, pictures it when
+    // asked, and closes it before the operations, so a dialog that does not load or does not
+    // cover the workbench is caught here rather than by eye.
+    {
+        QQuickItem* preferences = find_item(content, QStringLiteral("preferencesButton"));
+        if (preferences == nullptr) {
+            std::fprintf(stderr, "the Preferences button is not in the window\n");
+            return 1;
+        }
+        QMetaObject::invokeMethod(preferences, "click");
+        QCoreApplication::processEvents();
+        QObject* preferences_dialog =
+            window->findChild<QObject*>(QStringLiteral("preferencesDialog"));
+        if (preferences_dialog == nullptr || !preferences_dialog->property("opened").toBool()) {
+            std::fprintf(stderr, "the Preferences dialog did not open\n");
+            return 1;
+        }
+        if (argc > 4) {
+            const QImage preferences_picture = window->grabWindow();
+            if (preferences_picture.isNull() ||
+                !preferences_picture.save(QString::fromLocal8Bit(argv[4]))) {
+                std::fprintf(stderr, "the Preferences picture could not be saved\n");
+                return 1;
+            }
+        }
+        QMetaObject::invokeMethod(preferences_dialog, "close");
+        QCoreApplication::processEvents();
+
+        QQuickItem* about = find_item(content, QStringLiteral("aboutButton"));
+        if (about == nullptr) {
+            std::fprintf(stderr, "the About button is not in the window\n");
+            return 1;
+        }
+        QMetaObject::invokeMethod(about, "click");
+        QCoreApplication::processEvents();
+        QObject* about_dialog = window->findChild<QObject*>(QStringLiteral("aboutDialog"));
+        if (about_dialog == nullptr || !about_dialog->property("opened").toBool()) {
+            std::fprintf(stderr, "the About dialog did not open\n");
+            return 1;
+        }
+        if (argc > 5) {
+            const QImage about_picture = window->grabWindow();
+            if (about_picture.isNull() || !about_picture.save(QString::fromLocal8Bit(argv[5]))) {
+                std::fprintf(stderr, "the About picture could not be saved\n");
+                return 1;
+            }
+        }
+        QMetaObject::invokeMethod(about_dialog, "close");
+        QCoreApplication::processEvents();
     }
 
     // What the operator does: find the target, take it from the list, read its configuration.
