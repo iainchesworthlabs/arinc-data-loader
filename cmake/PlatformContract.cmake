@@ -26,15 +26,24 @@ set(ADL_PLATFORM_CONTRACT_VARIABLES
 set(ADL_PLATFORM_DESKTOP_CONTRACT_VARIABLES
     ADL_PLATFORM_NOTICE_FRAGMENTS
     ADL_PLATFORM_NOTICE_QT_DEPLOYMENT
-    ADL_PLATFORM_NOTICE_EXPECTED)
+    ADL_PLATFORM_NOTICE_EXPECTED
+    ADL_PLATFORM_INSTALL_BINDIR
+    ADL_PLATFORM_INSTALL_DOCDIR
+    ADL_PLATFORM_PACKAGE_RUNTIME_GENERATORS
+    ADL_PLATFORM_PACKAGE_DEVELOPMENT_GENERATORS)
 
 set(ADL_PLATFORM_CONTRACT_HOOKS
     adl_platform_configure_app
     adl_platform_deploy_qt_runtime)
 
+# What a desktop platform adds to the hooks: how its applications are installed and packaged.
+set(ADL_PLATFORM_DESKTOP_CONTRACT_HOOKS
+    adl_platform_install_app
+    adl_platform_configure_packaging)
+
 # Checks the fragment that was just included (in the caller's scope):
 #   - every contract variable is defined (an empty string is a definition);
-#   - every hook exists;
+#   - every hook exists (a desktop platform's own too);
 #   - ADL_PLATFORM_DESKTOP is ON or OFF;
 #   - ADL_PLATFORM_STATUS is supported, unbuilt or design-only, and a platform
 #     that says design-only compiles nothing;
@@ -69,6 +78,13 @@ function(adl_platform_check_contract fragment platforms_dir)
             if(NOT DEFINED ${_variable})
                 message(FATAL_ERROR
                     "${fragment} is a desktop platform and does not set ${_variable} (the "
+                    "contract is described at the top of cmake/Platform.cmake).")
+            endif()
+        endforeach()
+        foreach(_hook IN LISTS ADL_PLATFORM_DESKTOP_CONTRACT_HOOKS)
+            if(NOT COMMAND ${_hook})
+                message(FATAL_ERROR
+                    "${fragment} is a desktop platform and does not define ${_hook}() (the "
                     "contract is described at the top of cmake/Platform.cmake).")
             endif()
         endforeach()

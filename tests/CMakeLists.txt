@@ -228,6 +228,23 @@ if(ADL_BUILD_APP)
     add_subdirectory(system)
 endif()
 
+# The development package (cmake/AdlInstall.cmake): install its component into a scratch prefix and
+# build a program against it with find_package(adl). Only for an optimised build: the Debug presets
+# compile the libraries with the sanitizers, and a program that links such a library has to be
+# built with them too, which is not what a user of the package does.
+if(ADL_PLATFORM_DESKTOP AND CMAKE_BUILD_TYPE MATCHES "^(Release|RelWithDebInfo|MinSizeRel)$")
+    add_test(NAME system.install_consumer
+        COMMAND "${CMAKE_COMMAND}"
+            "-DBUILD_DIR=${CMAKE_BINARY_DIR}"
+            "-DSOURCE_DIR=${CMAKE_SOURCE_DIR}"
+            "-DWORK_DIR=${CMAKE_BINARY_DIR}/install-consumer"
+            "-DGENERATOR=${CMAKE_GENERATOR}"
+            "-DCXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            "-DBUILD_TYPE=${CMAKE_BUILD_TYPE}"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/packaging/check_install.cmake")
+    set_tests_properties(system.install_consumer PROPERTIES TIMEOUT 300 LABELS "system")
+endif()
+
 # The three tiers by label, so a developer can run one of them without remembering which
 # executables hold which tests:
 #

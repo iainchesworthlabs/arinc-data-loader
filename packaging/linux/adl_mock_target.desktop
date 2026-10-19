@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=ARINC Mock Target
+Comment=A mock ARINC 615A target for trying the data loader
+Exec=adl_mock_target
+TryExec=adl_mock_target
+Icon=adl_mock_target
+Terminal=false
+Categories=Development;Utility;

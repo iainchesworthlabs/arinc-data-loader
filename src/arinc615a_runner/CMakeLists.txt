@@ -10,14 +10,19 @@ add_library(adl_arinc615a_runner STATIC
     src/runner.cpp)
 add_library(adl::arinc615a_runner ALIAS adl_arinc615a_runner)
 
-target_include_directories(adl_arinc615a_runner PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(adl_arinc615a_runner
+    PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 target_compile_features(adl_arinc615a_runner PUBLIC cxx_std_23)
 target_link_libraries(adl_arinc615a_runner
     PUBLIC
         adl::arinc615a
         adl::platform
     PRIVATE
-        adl::tracy
-        adl::warnings
-        adl::sanitizers
-        adl::coverage)
+        $<BUILD_LOCAL_INTERFACE:adl::tracy>
+        $<BUILD_LOCAL_INTERFACE:adl::warnings>
+        $<BUILD_LOCAL_INTERFACE:adl::sanitizers>
+        $<BUILD_LOCAL_INTERFACE:adl::coverage>)
+
+adl_install_library(adl_arinc615a_runner INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")

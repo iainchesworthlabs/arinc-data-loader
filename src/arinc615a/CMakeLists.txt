@@ -21,13 +21,18 @@ add_library(adl_arinc615a STATIC
     src/wire.cpp)
 add_library(adl::arinc615a ALIAS adl_arinc615a)
 
-target_include_directories(adl_arinc615a PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(adl_arinc615a
+    PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 target_compile_features(adl_arinc615a PUBLIC cxx_std_23)
 target_link_libraries(adl_arinc615a
     PUBLIC
         adl::arinc665
     PRIVATE
-        adl::tracy
-        adl::warnings
-        adl::sanitizers
-        adl::coverage)
+        $<BUILD_LOCAL_INTERFACE:adl::tracy>
+        $<BUILD_LOCAL_INTERFACE:adl::warnings>
+        $<BUILD_LOCAL_INTERFACE:adl::sanitizers>
+        $<BUILD_LOCAL_INTERFACE:adl::coverage>)
+
+adl_install_library(adl_arinc615a INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
