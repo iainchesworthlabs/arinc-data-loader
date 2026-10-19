@@ -116,6 +116,10 @@ ADL_CATCH_ARGS="[conformance][network]" tools/ci/zephyr_native_sim.sh   # Zephyr
 build/freertos-posix-sim/bin/adl_freertos_tests "[conformance]"           # FreeRTOS: a program with a command line
 ```
 
+`tests/platform/zephyr_smoke` is not part of this suite: a few checks (clock, memory, threads, a mutex, a
+queue, UDP) that run on a Cortex-M3 in QEMU, built with the Zephyr SDK's toolchain and no exceptions
+(`tools/ci/zephyr_qemu_smoke.sh`).
+
 Not run on the RTOS programs: the codec and ARINC 665 unit tests (`adl_unit_tests`; they test code the
 desktops already run), the application's tests, and the loopback integration test, which needs the Qt mock
 target. [Platform abstraction](platform-abstraction.md#the-freertos-and-zephyr-ports) lists what the

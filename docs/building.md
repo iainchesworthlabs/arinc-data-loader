@@ -193,8 +193,11 @@ application mounts the file system the loader writes to, as it would for anythin
 a `Host`, and sizes the pools: a TFTP block can be 65 464 bytes, so a stack that must carry one needs
 `CONFIG_NET_BUF_*` and the interface MTU to match (`tests/platform/zephyr/prj.conf` is a working set for
 native_sim, with the loopback interface's MTU at 65 535). The module's own options are
-`CONFIG_ADL_HEAP_BYTES`, `CONFIG_ADL_THREAD_STACK_BYTES`, `CONFIG_ADL_FS_COHERENT_HANDLES` and
-`CONFIG_ADL_LIBRARIES` (build the ARINC 665 and 615A libraries into the image; default on).
+`CONFIG_ADL_HEAP_BYTES`, `CONFIG_ADL_THREAD_STACK_BYTES`, `CONFIG_ADL_FS_COHERENT_HANDLES`,
+`CONFIG_ADL_WARNINGS_AS_ERRORS` (the loader's sources are built with `-Werror` and the rest of the
+project's warning set only where this is on; CI's configurations turn it on, and a product should leave it
+off, since another compiler or optimisation level can warn about correct code) and `CONFIG_ADL_LIBRARIES`
+(build the ARINC 665 and 615A libraries into the image; default on).
 
 The test program, built as any Zephyr application is, for native_sim:
 
@@ -215,6 +218,12 @@ compiler (`dtc`) and `gperf`, and is for Linux or WSL. It builds the program for
 runs it in a directory of its own, and exits with Catch2's status. Pass Catch2's arguments in
 `ADL_CATCH_ARGS` (`ADL_CATCH_ARGS="[conformance] --durations yes"`); `zephyr.exe --rt` runs the clock in
 real time instead of as fast as the host allows.
+
+A smoke test of the platform layer on a Cortex-M3 under QEMU, built with the Zephyr SDK's own toolchain
+(GCC, picolibc, no exceptions), is `tools/ci/zephyr_qemu_smoke.sh`; it needs the SDK
+(`west sdk install --gnu-toolchains arm-zephyr-eabi`, then `ZEPHYR_SDK_INSTALL_DIR` pointing at it) as well as
+`ZEPHYR_BASE`, builds `tests/platform/zephyr_smoke` for `mps2/an385`, runs it in `qemu-system-arm` (the SDK's
+or the machine's) and exits 0 only if the program reported no failure.
 
 ### FreeRTOS
 

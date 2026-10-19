@@ -182,14 +182,14 @@ repository set up from this one.
 
 ### The simulator jobs are not required yet
 
-`Zephyr (native_sim)` and `FreeRTOS (POSIX simulator)` (`ci.yml`) are new, run on every pull request,
-and are **not** in `required_status_checks`: they download Zephyr, FreeRTOS, lwIP and littlefs at run
+`Zephyr (native_sim)`, `Zephyr (Cortex-M3, QEMU)` and `FreeRTOS (POSIX simulator)` (`ci.yml`) are new,
+run on every pull request, and are **not** in `required_status_checks`: they download Zephyr, FreeRTOS, lwIP and littlefs at run
 time, and a required check that fails because a mirror was down blocks every pull request. Add
-`{ "context": "Zephyr (native_sim)" }` and `{ "context": "FreeRTOS (POSIX simulator)" }` to both ruleset
-files, as for `Scan dependency diff`, once each has been green on a run of pull requests and a merge
+`{ "context": "Zephyr (native_sim)" }`, `{ "context": "Zephyr (Cortex-M3, QEMU)" }` and
+`{ "context": "FreeRTOS (POSIX simulator)" }` to both ruleset files, as for `Scan dependency diff`, once each has been green on a run of pull requests and a merge
 queue entry (they also run on `merge_group`, as every job of `ci.yml` does), and run `apply_rulesets.ps1
--Apply` again. A manual dispatch names them `dispatch - Zephyr (native_sim)` and `dispatch - FreeRTOS
-(POSIX simulator)`, so a run that skips them cannot report "skipped" under a required name.
+-Apply` again. A manual dispatch names them `dispatch - Zephyr (native_sim)`, `dispatch - Zephyr (Cortex-M3, QEMU)` and
+`dispatch - FreeRTOS (POSIX simulator)`, so a run that skips them cannot report "skipped" under a required name.
 
 ### The `merge_group` rule
 

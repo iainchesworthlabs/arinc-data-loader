@@ -442,6 +442,62 @@ jobs:
           ZEPHYR_BASE: ${{ github.workspace }}/zephyr
         run: bash arinc-data-loader/tools/ci/zephyr_native_sim.sh
 
+  # The Zephyr platform built with the Zephyr SDK's own toolchain (GCC, picolibc, no exceptions)
+  # for a Cortex-M3 and run in QEMU: a smoke test (tests/platform/zephyr_smoke,
+  # tools/ci/zephyr_qemu_smoke.sh), not the conformance suite, which needs Catch2 and a file system
+  # and runs on native_sim above. NOT a required check, for the reason that job is not.
+  zephyr-qemu-cortex-m3:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Zephyr (Cortex-M3, QEMU)' || 'Zephyr (Cortex-M3, QEMU)' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',zephyr,') }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: arinc-data-loader
+          persist-credentials: false
+
+      - name: Install Zephyr's host tools and QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends device-tree-compiler gperf qemu-system-arm
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Install west (pinned)
+        run: |
+          uv venv "$RUNNER_TEMP/zephyr-venv"
+          uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement arinc-data-loader/.github/requirements/zephyr.txt
+          echo "$RUNNER_TEMP/zephyr-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch Zephyr
+        run: |
+          west init -l --mf tests/platform/zephyr/west.yml arinc-data-loader
+          west update --narrow --fetch-opt=--depth=1
+          uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement zephyr/scripts/requirements-base.txt
+
+      # The SDK version Zephyr asks for (zephyr/SDK_VERSION), with the Arm toolchain only.
+      - name: Install the Zephyr SDK (Arm)
+        run: west sdk install --install-dir "$RUNNER_TEMP/zephyr-sdk" --gnu-toolchains arm-zephyr-eabi
+
+      - name: Build for the Cortex-M3 and run in QEMU
+        env:
+          ZEPHYR_BASE: ${{ github.workspace }}/zephyr
+        run: |
+          export ZEPHYR_SDK_INSTALL_DIR="$RUNNER_TEMP/zephyr-sdk"
+          bash arinc-data-loader/tools/ci/zephyr_qemu_smoke.sh
+
   # The FreeRTOS platform (src/platforms/freertos) on the kernel's POSIX simulator port: the
   # real kernel in a Linux process, lwIP's UDP sockets over its loopback interface and littlefs
   # on a RAM block device, running the platform conformance suite and the 615A engine tests

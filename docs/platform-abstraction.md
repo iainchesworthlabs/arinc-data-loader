@@ -530,7 +530,7 @@ not. Nothing here has run on a board.
 | Where it ran | The kernel's POSIX simulator port on Linux (GCC 15) | `native_sim/native/64` on Linux (GCC 15, the host's libstdc++) |
 | Network in the run | lwIP's loopback interface: 127.0.0.1 | Zephyr's loopback interface: 127.0.0.1 |
 | Storage in the run | littlefs on a RAM block device | littlefs on the simulated flash |
-| CI job | `FreeRTOS (POSIX simulator)` | `Zephyr (native_sim)` |
+| CI job | `FreeRTOS (POSIX simulator)` | `Zephyr (native_sim)`, and `Zephyr (Cortex-M3, QEMU)` for the smoke test below |
 
 **What was verified.** Both test programs build with the project's warning set (`-Wall -Wextra -Wpedantic
 -Werror` and the rest, on the platform layer's own sources), and run the whole platform layer suite and
@@ -540,6 +540,21 @@ engine tests; [testing](testing.md)) and a test of a thread on a stack the calle
 conformance cases run against the real host of the port and against the fake, so the fake and the port
 were held to each other, as on the desktops. Each program was run ten times in a row without a failure,
 and built with CMake 4.2 and 4.4.
+
+**A real toolchain, once.** `native_sim` and the POSIX port compile with the host's GCC 15 and run on the
+host's C library. The Zephyr platform layer and the 665/615A libraries were also built with the Zephyr SDK
+1.0.1's own toolchain, GCC 14.3 with picolibc and its libstdc++, for a Cortex-M3 (`mps2/an385`), without
+exceptions or RTTI, under the same warning set (`CONFIG_ADL_WARNINGS_AS_ERRORS`), and a smoke program
+(`tests/platform/zephyr_smoke`, `tools/ci/zephyr_qemu_smoke.sh`, CI job `Zephyr (Cortex-M3, QEMU)`) ran in
+QEMU: the clock, memory, a thread at every priority (all `applied`), a mutex, a semaphore, a queue and a
+1400 byte datagram through Zephyr's stack over its loopback interface. That is a smoke test, not the
+suite: it has no files and no Catch2. The whole test program (Catch2, the suite, the engine tests) was
+also built, by hand and once, for `qemu_cortex_a9` with the same toolchain, which found one
+32-bit bug in the fake (`tests/fake/fake_storage.cpp` shifted a `size_t` by 40) and showed that GCC 14.3 at
+`-O2` warns (`-Wnull-dereference`, on an inlined `std::vector` allocation) in `load.cpp` and `runner.cpp`;
+QEMU would not start that image in the time spent, so it was not run, and nothing in the repository
+reproduces it. `qemu_cortex_a53` failed to link Catch2 (an `iostream` symbol the SDK's aarch64 libstdc++
+does not have as Catch2 asks for it).
 
 **Where the code differs from the proposals in the tables above.** Each of these is something the first
 run of the suite, or reading the headers, found:
@@ -616,10 +631,11 @@ Zephyr the stack's receive and transmit threads have priorities of their own
   (RFC 2348), and reassembly (`IP_REASSEMBLY`, `CONFIG_NET_IPV4_FRAGMENT`) has not been exercised.
 - Real flash: littlefs on a NOR device with its wear and its power losses, and the cost of a sync per
   write (the reason `CONFIG_ADL_FS_COHERENT_HANDLES` exists).
-- A toolchain that is not GCC 15 with the host's libstdc++. A target needs a C++23 standard library with
-  `<expected>` and `<span>` (the Zephyr SDK's GCC and its libstdc++ have them from GCC 13), and the test
-  programs enable exceptions and RTTI for Catch2; the platform layer and the libraries do not need
-  them, and nobody has built them with `-fno-exceptions` on an embedded libstdc++.
+- The conformance suite on a real toolchain. The smoke test above is all that has run with the Zephyr
+  SDK's GCC, picolibc and no exceptions; the suite has run only on the host's GCC 15 and libstdc++
+  (the test programs enable exceptions and RTTI for Catch2). FreeRTOS has not been built with an embedded
+  toolchain at all (no `arm-none-eabi` kernel port, no cross build of lwIP and littlefs here). A target
+  needs a C++23 standard library with `<expected>` and `<span>`, which the SDK's GCC 14 has.
 - No allocation after start-up. The platform layer allocates a handle per object, as the desktops do
   ([Area 2](#area-2-memory-memoryhpp)), and the two ports do not yet draw them from fixed slots.
 - A loader against a target through the real stacks: the loopback integration test needs the Qt-based

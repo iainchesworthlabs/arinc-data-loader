@@ -23,7 +23,9 @@ C++23 CMake monorepo. Nothing has been released.
   conformance suite and the 615A engine tests (222 test cases) run in CI on
   Zephyr's `native_sim` board and on the FreeRTOS POSIX simulator port, in two new
   jobs that are not required checks yet (`Zephyr (native_sim)` and `FreeRTOS
-  (POSIX simulator)`); no board has run either. The contract gains the status
+  (POSIX simulator)`); no board has run either. The Zephyr platform layer was also
+  built with the Zephyr SDK's own GCC and picolibc for a Cortex-M3 and a smoke test
+  run in QEMU (`Zephyr (Cortex-M3, QEMU)`). The contract gains the status
   `experimental` and `ADL_PLATFORM_PROJECT`, for a platform whose image a project of
   its own builds, so the top-level project refuses `-DADL_TARGET_PLATFORM=freertos`
   and `zephyr` and says where to build them. What was verified and what a
@@ -172,3 +174,9 @@ C++23 CMake monorepo. Nothing has been released.
 
 - The Visual Studio solution, project, test-settings and `.vsmdi` files, and the
   C++/CLI test project.
+
+### Fixed
+
+- **A shift by 40 of a `size_t` in the fake platform's memory budget**
+  (`tests/fake/fake_storage.cpp`) was not a valid shift on a 32-bit target; it is
+  now half the address space.
