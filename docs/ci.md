@@ -17,6 +17,7 @@ a rule. The same rules are also kept before a push, locally, by the hooks in
 | Builds, tests, formatting, platform isolation | the `ci.yml` jobs, as required checks | `ctest` (includes the isolation check) |
 | Gitflow branch names | `Validate gitflow branch name`, and the `branch-names` ruleset refuses the push | `tools/hooks/pre-push` |
 | No attribution in commits and PR text | `Validate commit and PR text`, as a required check | `tools/hooks/commit-msg` |
+| A user-visible change has a changelog fragment | `Changelog fragment` (not yet a required check) | `pwsh tools/release/Changelog.ps1 -Mode PullRequest -Base origin/develop` |
 | Pull request required, no direct push, no force push | the `main-protection` and `develop-protection` rulesets | - |
 | Merge queue in front of `develop` | the `merge-queue-develop` ruleset | - |
 
@@ -29,6 +30,7 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 | `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs and a coverage gate | yes |
 | `branch-name-check.yml` | gitflow branch naming; the source/target pairing | yes |
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
+| `changelog.yml` | a PR into `develop` adds a changelog fragment, or carries the `no-changelog` label | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
 | `static-analysis.yml` | the nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
 | `dependency-review.yml` | fails a PR that adds a moderate-or-worse vulnerable dependency | no - skipped |
@@ -162,6 +164,7 @@ contexts equal the job display names above and in the two policy workflows.
 | `macOS (AppleClang)` | `ci.yml` | yes |
 | `Coverage (Linux, GCC)` | `ci.yml` | yes |
 | `Scan dependency diff` | `dependency-review.yml` | yes - added after it reported on a pull request on the public repository |
+| `Changelog fragment` | `changelog.yml` | no - not yet required; see below |
 | `Analyze (C++)` | `codeql.yml` | no - informational |
 
 Every workflow that produces a required check also triggers on `merge_group`,
@@ -172,6 +175,23 @@ because the merge queue evaluates the required checks on its temporary
 as a pass for a required check). A workflow that produces **no** required
 check must not carry `merge_group`, or every queue entry burns a run of it for
 nothing: that is why `codeql.yml` and `static-analysis.yml` do not have it.
+
+## The changelog fragment check
+
+`changelog.yml` (job `Changelog fragment`) runs on a pull request into
+`develop`. It first runs `tools/release/test_changelog.ps1`, which proves the
+tool still fails what it must, and then `tools/release/Changelog.ps1 -Mode
+PullRequest`: the pull request must add a well-formed file
+`changelog.d/<name>.<category>.md`, or carry the `no-changelog` label, or come
+from a `release/*`, `hotfix/*` or `dependabot/*` branch. A malformed fragment
+fails even with the label. The label and branch name reach the script through
+the environment. Pull requests into `main` are release pull requests, where the
+fragments are consumed ([Releasing](releasing.md)), and are not checked.
+
+It is a visible check but not a required one yet: requiring it means adding
+`Changelog fragment` to the two ruleset files and to `merge_group` in the
+workflow in one commit (`docs/branch-protection.md`), which is the maintainer's
+call.
 
 ## The vcpkg binary cache
 
