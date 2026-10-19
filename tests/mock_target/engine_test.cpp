@@ -213,6 +213,49 @@ TEST_CASE("an operator abort in the middle of an Upload is confirmed", "[mock][a
     CHECK(recorder.status_codes.back() == StatusCode::aborted_by_operator);
 }
 
+TEST_CASE("an operator abort the moment the first status file arrives is confirmed at once",
+          "[mock][abort]") {
+    // The timing of the loopback test over real sockets, replayed on the fake network where
+    // it is exact: the target is slow to start and then reports every second, and the abort
+    // comes as soon as the first status file has been read, while that file's transfer is
+    // still lingering on the loader's side. The target's next status file request is answered
+    // with ABORT and the status file after it confirms the abort. Nothing in that may fail,
+    // since a target that gives up on a status file does not send it again and the loader
+    // would wait out the data load protocol time-out (13 s) for a confirmation that never
+    // comes.
+    Config config;
+    config.think_time = std::chrono::seconds(2);
+    config.status_period = std::chrono::seconds(1);
+    MockTarget target(config);
+    const adl::arinc665::Load load = make_load(3'000'000, 9);
+    put_load_files(target.rig.loader_host, load);
+    DirectoryFileSource source(target.rig.loader_host.files(), "/load");
+    const std::vector<LoadReference> references = upload_references(load);
+    LoaderRecorder recorder;
+    AbortWhenWanted controller;
+    recorder.abort_on_first_status = &controller.wanted;
+    LoaderServices services;
+    services.source = &source;
+    services.listener = &recorder;
+    RunOptions options;
+    options.controller = &controller;
+    const auto started = target.rig.world.now();
+    const auto outcome =
+        target.rig.run(UploadOperation{UploadRequest{references}}, services, options);
+    const auto took = target.rig.world.now() - started;
+    REQUIRE(outcome);
+    CHECK(outcome->code == OutcomeCode::aborted_by_operator);
+    CHECK(outcome->abort_confirmed);
+    CHECK(target.listener.contains("sees ABORT"));
+    CHECK_FALSE(target.listener.contains("failed"));
+    REQUIRE_FALSE(recorder.status_codes.empty());
+    CHECK(recorder.status_codes.back() == StatusCode::aborted_by_operator);
+    // Two seconds of think time, a second until the next status file, and the confirmation. A
+    // status file transfer that fails once costs the target a 4 second time-out before it
+    // sends the file again, and one that fails twice costs the confirmation (13 seconds more).
+    CHECK(took < std::chrono::seconds(5));
+}
+
 TEST_CASE("a refused Upload is denied by the target", "[mock][injections]") {
     Config config;
     config.refusal =
