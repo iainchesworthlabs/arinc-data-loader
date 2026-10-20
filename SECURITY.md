@@ -53,4 +53,21 @@ details: the advisory is where that is agreed.
 ## Supported versions
 
 There has been no release yet. When there is one, this section will say which
-versions receive fixes.
+versions receive fixes. Until 1.0, only the latest release does.
+
+## Signed releases
+
+A release's files are signed with a dedicated release key, listed in `SHA256SUMS`, and
+attested by GitHub; [Verifying a release](docs/verifying-releases.md) says how to check them.
+The key is:
+
+```text
+ARINC Data Loader Releases <iain.chesworth@gmail.com>
+Ed25519, created 2026-10-19, expires 2028-10-18
+Fingerprint: C6B4 AD93 067E B501 F450  5BCF 3FF3 6825 5329 8A53
+```
+
+The public key is [`docs/release-signing-key.asc`](docs/release-signing-key.asc). It is not on a
+keyserver. A key that does not have this fingerprint did not sign a release of this project; if you
+are shown one that claims to, report it as above. If the key is ever revoked or replaced, this
+section says so and gives the new fingerprint.
