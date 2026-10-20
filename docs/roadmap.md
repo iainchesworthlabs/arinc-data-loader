@@ -47,7 +47,8 @@ UDP, with the Find, Information, Upload and Download operations. It loads what
    and priorities, a clock, UDP and message queues, implemented for Windows,
    Linux and macOS, with a fake platform and a conformance suite, FreeRTOS and
    Zephyr ported and tested on simulators, and QNX, the INTEGRITY ports and
-   VxWorks written or designed for ([platform abstraction](platform-abstraction.md)). The transport is an interface, so the
+   VxWorks written or designed for ([platform
+   abstraction](platform-abstraction.md); section 6 says where each stands). The transport is an interface, so the
    engine does not include a socket header and can be tested against a simulated
    target on the fake network.
 2. **The TFTP codec and the 615A messages (done).** `adl::arinc615a`: the packets
