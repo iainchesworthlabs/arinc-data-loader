@@ -11,7 +11,9 @@
 #include <QUrl>
 
 #include "adl/arinc615a/limits.hpp"
+#include "adl/arinc665/portable_name.hpp"
 #include "adl/platform/host.hpp"
+#include "adl/platform/paths.hpp"
 
 namespace adl::mock {
 
@@ -19,11 +21,6 @@ namespace {
 
 [[nodiscard]] QString to_qstring(std::string_view text) {
     return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
-}
-
-[[nodiscard]] QString to_qstring(const std::u8string& text) {
-    return QString::fromUtf8(reinterpret_cast<const char*>(text.data()),
-                             static_cast<qsizetype>(text.size()));
 }
 
 [[nodiscard]] Bytes to_bytes(std::string_view text) {
@@ -37,34 +34,9 @@ namespace {
     return QTime::currentTime().toString(QStringLiteral("hh:mm:ss"));
 }
 
-// A file or directory name the target's data may be stored under: letters, digits and a few
-// marks, never a separator, so a name from the wire cannot reach outside the storage.
-[[nodiscard]] bool safe_name(std::string_view name) noexcept {
-    if (name.empty() || name.size() > 254) {
-        return false;
-    }
-    for (const char c : name) {
-        const bool ok = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-                        (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-';
-        if (!ok) {
-            return false;
-        }
-    }
-    return name != "." && name != "..";
-}
-
-[[nodiscard]] std::string sanitize_name(std::string_view name) {
-    std::string result;
-    result.reserve(name.size());
-    for (const char c : name) {
-        const bool ok = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-                        (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-';
-        result.push_back(ok ? c : '_');
-    }
-    if (result == "." || result == "..") {
-        return "_";
-    }
-    return result;
+[[nodiscard]] bool is_plain_character(char c) noexcept {
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+           c == '.' || c == '_' || c == '-';
 }
 
 [[nodiscard]] std::filesystem::path fs_path(std::string_view utf8) {
@@ -72,6 +44,31 @@ namespace {
 }
 
 }  // namespace
+
+bool is_storable_name(std::string_view name) noexcept {
+    return name.size() <= 254 && adl::arinc665::is_portable_file_name(name) &&
+           std::ranges::all_of(name, is_plain_character);
+}
+
+std::string storage_directory_name(std::string_view part_number) {
+    std::string result;
+    result.reserve(part_number.size());
+    for (const char c : part_number.substr(0, 254)) {
+        result.push_back(is_plain_character(c) ? c : '_');
+    }
+    if (result.empty()) {
+        return "_";
+    }
+    // Windows drops a trailing dot (and with it a name made of dots only), and a device name is
+    // a device in any directory.
+    if (result.back() == '.') {
+        result.back() = '_';
+    }
+    if (adl::arinc665::is_device_name(result)) {
+        result.insert(result.begin(), '_');
+    }
+    return result;
+}
 
 // ---- The list models -------------------------------------------------------------------------
 
@@ -198,21 +195,27 @@ MockWorker::MockWorker(LinkFactory factory, QObject* parent)
 MockWorker::~MockWorker() = default;
 
 void MockWorker::request_stop() noexcept {
-    stop_wanted_.store(true, std::memory_order_release);
     const std::scoped_lock lock{link_mutex_};
+    stopped_through_ = sessions_queued_;
     if (current_link_ != nullptr) {
         current_link_->request_stop();
     }
 }
 
-void MockWorker::clear_stop() noexcept {
-    stop_wanted_.store(false, std::memory_order_release);
+void MockWorker::session_queued() noexcept {
+    const std::scoped_lock lock{link_mutex_};
+    ++sessions_queued_;
 }
 
 void MockWorker::start_session(Config config, QString storage_directory) {
-    // A stop that arrived before the session began: it was stopped before it started.
-    if (stop_wanted_.exchange(false, std::memory_order_acq_rel)) {
-        return;
+    std::uint64_t mine = 0;
+    {
+        const std::scoped_lock lock{link_mutex_};
+        mine = ++sessions_begun_;
+        // Stopped before it started.
+        if (mine <= stopped_through_) {
+            return;
+        }
     }
     storage_path_ = storage_directory.trimmed().isEmpty()
                         ? std::filesystem::path{}
@@ -227,6 +230,10 @@ void MockWorker::start_session(Config config, QString storage_directory) {
     {
         const std::scoped_lock lock{link_mutex_};
         current_link_ = link_.get();
+        // A stop that came while the link was being made found no link to stop.
+        if (mine <= stopped_through_) {
+            link_->request_stop();
+        }
     }
     engine_ = std::make_unique<MockEngine>(adapter_.get());
     link_->attach(*engine_);
@@ -271,10 +278,8 @@ void MockWorker::read_holds(Config& config) {
                 Bytes bytes(text.size());
                 std::transform(text.begin(), text.end(), bytes.begin(),
                                [](char c) { return std::byte{static_cast<std::uint8_t>(c)}; });
-                const std::u8string name = entry.path().filename().u8string();
-                found.push_back(
-                    HeldFile{std::string{reinterpret_cast<const char*>(name.data()), name.size()},
-                             std::move(bytes), ""});
+                found.push_back(HeldFile{adl::platform::to_utf8(entry.path().filename().u8string()),
+                                         std::move(bytes), ""});
             }
             std::ranges::sort(found,
                               [](const HeldFile& a, const HeldFile& b) { return a.name < b.name; });
@@ -304,7 +309,7 @@ void MockWorker::store_upload(const UploadRecord& record) {
         return;
     }
     const std::filesystem::path part_dir =
-        storage_path_ / fs_path(sanitize_name(record.load_part_number));
+        storage_path_ / fs_path(storage_directory_name(record.load_part_number));
     std::filesystem::create_directories(part_dir, ec);
     if (ec) {
         Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
@@ -314,7 +319,7 @@ void MockWorker::store_upload(const UploadRecord& record) {
     }
     QList<StoredFileRow> rows;
     for (const StoredFile& file : record.files) {
-        if (!safe_name(file.name)) {
+        if (!is_storable_name(file.name)) {
             Q_EMIT log_line(
                 {static_cast<int>(Severity::warning), time_now(),
                  tr("%1 was not stored: not a safe file name.").arg(to_qstring(file.name))});
@@ -334,7 +339,7 @@ void MockWorker::store_upload(const UploadRecord& record) {
         StoredFileRow row;
         row.name = to_qstring(file.name);
         row.size = static_cast<qint64>(file.bytes.size());
-        row.path = QDir::toNativeSeparators(to_qstring(path.u8string()));
+        row.path = QDir::toNativeSeparators(to_qstring(adl::platform::to_utf8(path.u8string())));
         rows.append(row);
     }
     if (!rows.isEmpty()) {
@@ -614,7 +619,7 @@ void MockTargetModel::start() {
         return;
     }
     set_error({});
-    worker_->clear_stop();
+    worker_->session_queued();
     running_ = true;
     Q_EMIT runningChanged();
     QMetaObject::invokeMethod(worker_, &MockWorker::start_session, Qt::QueuedConnection,

@@ -245,27 +245,53 @@ TreeResult<void> write_media_set_tree(const fs::path& root,
         }
     }
 
+    // What this call makes, so that a failure part of the way takes it away again: a full disk
+    // must not leave the first members behind looking like a set.
+    const bool root_existed = fs::exists(root, ec);
+    struct Made {
+        fs::path directory;
+        bool existed;  // an empty member directory that was there: emptied, not removed
+    };
+    std::vector<Made> made;
+    const auto undo = [&](TreeFailure failure) {
+        std::error_code ignored;
+        for (const Made& member : made) {
+            if (member.existed) {
+                for (const auto& entry : fs::directory_iterator(member.directory, ignored)) {
+                    fs::remove_all(entry.path(), ignored);
+                }
+            } else {
+                fs::remove_all(member.directory, ignored);
+            }
+        }
+        if (!root_existed) {
+            fs::remove(root, ignored);  // only if it is empty again, which it is unless it was used
+        }
+        return std::unexpected(std::move(failure));
+    };
+
     fs::create_directories(root, ec);
     if (ec || !fs::is_directory(root, ec)) {
-        return fail(TreeError::cannot_create_directory, root);
+        return undo(TreeFailure{TreeError::cannot_create_directory, root});
     }
     for (const arinc665::MediaMember& member : members) {
         const fs::path member_root = root / member_directory_name(member.sequence_number);
+        made.push_back({member_root, fs::exists(member_root, ec)});
         fs::create_directories(member_root, ec);
         if (ec) {
-            return fail(TreeError::cannot_create_directory, member_root);
+            return undo(TreeFailure{TreeError::cannot_create_directory, member_root});
         }
         for (const arinc665::MediaFile& file : member.files) {
             const auto directory = native_directory(member_root, file.pathname);
             if (!directory) {
-                return std::unexpected(directory.error());
+                return undo(directory.error());
             }
             fs::create_directories(*directory, ec);
             if (ec) {
-                return fail(TreeError::cannot_create_directory, *directory);
+                return undo(TreeFailure{TreeError::cannot_create_directory, *directory});
             }
             if (auto written = write_file(*directory / file.name, file.bytes); !written) {
-                return written;
+                return undo(written.error());
             }
         }
     }

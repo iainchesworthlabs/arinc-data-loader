@@ -1,6 +1,8 @@
 #include "adl/gen/generator_worker.hpp"
 
 #include <cstddef>
+#include <new>
+#include <stdexcept>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -79,6 +81,43 @@ QString findings_line(const adl::arinc665::Finding& finding) {
     return QStringLiteral("%1: %2").arg(to_qstring(finding.clause), to_qstring(finding.message));
 }
 
+// The directory a media set is written to before it is given its name. Whatever is in it when
+// the job ends without keep() is the job's own debris, and is removed.
+class PartialTree {
+public:
+    PartialTree() = default;
+    PartialTree(const PartialTree&) = delete;
+    PartialTree& operator=(const PartialTree&) = delete;
+    ~PartialTree() {
+        if (claimed()) {
+            static_cast<void>(discard());
+        }
+    }
+
+    void claim(std::filesystem::path path) { path_ = std::move(path); }
+    [[nodiscard]] bool claimed() const noexcept { return !path_.empty(); }
+    [[nodiscard]] const std::filesystem::path& path() const noexcept { return path_; }
+    // The set is whole and has its name: there is nothing to remove.
+    void keep() noexcept { path_.clear(); }
+
+    // Removes the directory and what is in it, and says in words, for the operator, whether
+    // anything is left.
+    [[nodiscard]] QString discard() {
+        std::error_code error;
+        std::filesystem::remove_all(path_, error);
+        const bool gone = !std::filesystem::exists(path_, error);
+        const QString where = path_to_qstring(path_);
+        path_.clear();
+        return gone ? GeneratorWorker::tr("Nothing was kept: what had been written was removed.")
+                    : GeneratorWorker::tr(
+                          "What had been written could not be removed, and is still in %1.")
+                          .arg(where);
+    }
+
+private:
+    std::filesystem::path path_;
+};
+
 }  // namespace
 
 const QList<LoadTypeOption>& load_type_options() {
@@ -104,6 +143,18 @@ void GeneratorWorker::fail(GenerateOutcome& outcome, const QString& text, const 
 void GeneratorWorker::generate(const GenerateJob& job) {
     GenerateOutcome outcome;
     outcome.state = 2;
+    try {
+        run(job, outcome);
+    } catch (const std::bad_alloc&) {
+        fail(outcome, tr("The computer ran out of memory while the media set was being made."),
+             tr("Nothing was kept. Choose smaller files, or close other programs and try again."));
+    } catch (const std::exception& error) {
+        fail(outcome, tr("The media set could not be made."),
+             QString::fromLocal8Bit(error.what()));
+    }
+}
+
+void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
 
     // ---- 1. read every file, reporting how far the reading has got ----
     struct PendingFile {
@@ -129,7 +180,7 @@ void GeneratorWorker::generate(const GenerateJob& job) {
 
     qint64 bytes_read = 0;
     for (qsizetype i = 0; i < job.files.size(); ++i) {
-        if (cancelled()) {
+        if (checkpoint("read")) {
             fail(outcome, tr("Cancelled."), tr("Nothing was written."));
             return;
         }
@@ -142,7 +193,18 @@ void GeneratorWorker::generate(const GenerateJob& job) {
         PendingFile entry;
         entry.meta = meta;
         const qint64 size = sizes[static_cast<std::size_t>(i)];
-        entry.bytes.resize(static_cast<std::size_t>(size));
+        try {
+            static_cast<void>(checkpoint("allocate"));
+            entry.bytes.resize(static_cast<std::size_t>(size));
+        } catch (const std::length_error&) {
+            fail(outcome, tr("%1 is too large to be read into memory.").arg(meta.source_path));
+            return;
+        } catch (const std::bad_alloc&) {
+            fail(outcome, tr("%1 is too large to be read into memory.").arg(meta.source_path),
+                 tr("Nothing was written. Choose smaller files, or close other programs and try "
+                    "again."));
+            return;
+        }
         stream.read(reinterpret_cast<char*>(entry.bytes.data()),
                     static_cast<std::streamsize>(size));
         if (!stream) {
@@ -157,7 +219,7 @@ void GeneratorWorker::generate(const GenerateJob& job) {
     }
 
     // ---- 2. the load ----
-    if (cancelled()) {
+    if (checkpoint("load")) {
         fail(outcome, tr("Cancelled."), tr("Nothing was written."));
         return;
     }
@@ -256,70 +318,126 @@ void GeneratorWorker::generate(const GenerateJob& job) {
         return;
     }
 
-    // ---- 4. write the tree; never overwrite what is there ----
-    if (cancelled()) {
+    // ---- 4. write the tree to a temporary directory beside the final one ----
+    // The set appears under its name in one step, when it is whole and has been read back; until
+    // then, and whatever goes wrong (a full disk, a cancel, a set that does not verify), what was
+    // written is removed. Nothing already there is overwritten.
+    if (checkpoint("write")) {
         fail(outcome, tr("Cancelled."), tr("Nothing was written."));
         return;
     }
     const std::filesystem::path base = to_path(job.output_directory);
+    std::error_code error;
+    std::filesystem::create_directories(base, error);
+    if (error || !std::filesystem::is_directory(base, error)) {
+        fail(outcome, tr("The media set could not be written below %1.").arg(job.output_directory),
+             tr("%1 (%2)").arg(job.output_directory,
+                               QString::fromLocal8Bit(error.message().c_str())));
+        return;
+    }
+    PartialTree partial;
+    for (int attempt = 1; attempt <= 100 && !partial.claimed(); ++attempt) {
+        const QString temporary_name =
+            attempt == 1
+                ? QStringLiteral("%1.writing").arg(job.media_set_part_number)
+                : QStringLiteral("%1.writing_%2").arg(job.media_set_part_number).arg(attempt);
+        const std::filesystem::path candidate = base / to_path(temporary_name);
+        if (std::filesystem::create_directory(candidate, error)) {
+            partial.claim(candidate);
+        } else if (error) {
+            fail(outcome,
+                 tr("The media set could not be written below %1.").arg(job.output_directory),
+                 tr("%1 (%2)").arg(path_to_qstring(candidate),
+                                   QString::fromLocal8Bit(error.message().c_str())));
+            return;
+        }
+    }
+    if (!partial.claimed()) {
+        fail(outcome, tr("The media set could not be written below %1.").arg(job.output_directory),
+             tr("Too many unfinished sets (%1.writing...) are there already.")
+                 .arg(job.media_set_part_number));
+        return;
+    }
+    const auto written = adl::media_tree::write_media_set_tree(partial.path(), *members);
+    if (!written) {
+        const QString what =
+            tr("%1 (%2)").arg(path_to_qstring(written.error().path),
+                              to_qstring(adl::media_tree::to_string(written.error().error)));
+        fail(outcome, tr("The media set could not be written below %1.").arg(job.output_directory),
+             what + QLatin1Char(' ') + partial.discard());
+        return;
+    }
+
+    // ---- 5. read the tree back and verify what is on the disk ----
+    // A cancel after the write finds the whole set on the disk, and takes it away again.
+    if (checkpoint("written")) {
+        fail(outcome, tr("Cancelled."), partial.discard());
+        return;
+    }
+    const auto on_disk = adl::media_tree::read_media_set_tree(partial.path());
+    if (!on_disk) {
+        fail(outcome,
+             tr("The written media set could not be read back: %1 (%2).")
+                 .arg(to_qstring(adl::media_tree::to_string(on_disk.error().error)),
+                      path_to_qstring(on_disk.error().path)),
+             partial.discard());
+        return;
+    }
+    const auto set = adl::arinc665::read_media_set(*on_disk);
+    if (!set) {
+        fail(outcome,
+             tr("The written media set does not verify: %1.")
+                 .arg(to_qstring(adl::arinc665::to_string(set.error()))),
+             partial.discard());
+        return;
+    }
+    if (checkpoint("verified")) {
+        fail(outcome, tr("Cancelled."), partial.discard());
+        return;
+    }
+
+    // ---- 6. give the set its name: the first of the names that is free ----
     std::filesystem::path root;
-    QString write_error;
+    QString rename_error;
     for (int attempt = 1; attempt <= 100; ++attempt) {
         const QString directory_name =
             attempt == 1 ? job.media_set_part_number
                          : QStringLiteral("%1_%2").arg(job.media_set_part_number).arg(attempt);
         const std::filesystem::path candidate = base / to_path(directory_name);
-        std::error_code error;
         const bool exists = std::filesystem::exists(candidate, error);
         if (error) {
-            write_error = path_to_qstring(candidate);
+            rename_error = path_to_qstring(candidate);
             break;
         }
         if (exists) {
             const bool empty = std::filesystem::is_empty(candidate, error);
             if (error) {
-                write_error = path_to_qstring(candidate);
+                rename_error = path_to_qstring(candidate);
                 break;
             }
             if (!empty) {
                 continue;  // a set (or anything) is there already: take the next name
             }
+            // An empty directory is taken over (a rename onto it fails on some systems).
+            std::filesystem::remove(candidate, error);
         }
-        const auto written = adl::media_tree::write_media_set_tree(candidate, *members);
-        if (written) {
+        std::filesystem::rename(partial.path(), candidate, error);
+        if (!error) {
             root = candidate;
+            partial.keep();
             break;
         }
-        if (written.error().error == adl::media_tree::TreeError::already_exists) {
+        if (std::filesystem::exists(candidate)) {
             continue;  // appeared while we looked: take the next name
         }
-        write_error =
-            tr("%1 (%2)").arg(path_to_qstring(written.error().path),
-                              to_qstring(adl::media_tree::to_string(written.error().error)));
+        rename_error = tr("%1 (%2)").arg(path_to_qstring(candidate),
+                                         QString::fromLocal8Bit(error.message().c_str()));
         break;
     }
     if (root.empty()) {
         fail(outcome, tr("The media set could not be written below %1.").arg(job.output_directory),
-             write_error);
-        return;
-    }
-
-    // ---- 5. read the tree back and verify what is on the disk ----
-    if (cancelled()) {
-        fail(outcome, tr("Cancelled."), tr("Nothing was written."));
-        return;
-    }
-    const auto on_disk = adl::media_tree::read_media_set_tree(root);
-    if (!on_disk) {
-        fail(outcome, tr("The written media set could not be read back: %1 (%2).")
-                          .arg(to_qstring(adl::media_tree::to_string(on_disk.error().error)),
-                               path_to_qstring(on_disk.error().path)));
-        return;
-    }
-    const auto set = adl::arinc665::read_media_set(*on_disk);
-    if (!set) {
-        fail(outcome, tr("The written media set does not verify: %1.")
-                          .arg(to_qstring(adl::arinc665::to_string(set.error()))));
+             rename_error.isEmpty() ? partial.discard()
+                                    : rename_error + QLatin1Char(' ') + partial.discard());
         return;
     }
 

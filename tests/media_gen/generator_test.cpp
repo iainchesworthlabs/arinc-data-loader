@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <new>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -14,6 +16,7 @@
 
 #include "adl/app/media_set_summary.hpp"
 #include "adl/gen/generator_model.hpp"
+#include "adl/gen/generator_worker.hpp"
 #include "adl/gen/source_file_model.hpp"
 #include "adl/media_tree/media_tree.hpp"
 #include "temp_dir.hpp"
@@ -71,6 +74,51 @@ const arinc665::MediaMember* member_of(const std::vector<arinc665::MediaMember>&
             return member.sequence_number == sequence_number;
         });
     return found == members.end() ? nullptr : &*found;
+}
+
+// A job that is valid, with one data file, for the worker to run directly (on this thread).
+adl::gen::GenerateJob good_job(const std::filesystem::path& source,
+                               const std::filesystem::path& output) {
+    adl::gen::GenerateJob job;
+    job.load_part_number = QStringLiteral("ACM47-1234-5678");
+    job.media_set_part_number = set_part_number;
+    job.header_file_name = QStringLiteral("ACM.LUH");
+    job.target_hardware_ids = {QStringLiteral("ACME")};
+    job.output_directory = QString::fromStdU16String(output.u16string());
+    job.files = {adl::gen::JobFile{QString::fromStdU16String(source.u16string()),
+                                   QStringLiteral("DATA.LUP"),
+                                   adl::gen::SourceFileModel::data_kind, 0}};
+    return job;
+}
+
+// Runs the job to its end and returns how it ended (every job ends with exactly one `finished`).
+adl::gen::GenerateOutcome run_job(adl::gen::GeneratorWorker& worker,
+                                  const adl::gen::GenerateJob& job) {
+    adl::gen::GenerateOutcome outcome;
+    int finished = 0;
+    const auto connection = QObject::connect(
+        &worker, &adl::gen::GeneratorWorker::finished, &worker,
+        [&](const adl::gen::GenerateOutcome& result) {
+            outcome = result;
+            ++finished;
+        });
+    worker.generate(job);
+    QObject::disconnect(connection);
+    if (finished != 1) {
+        outcome.state = -1;
+    }
+    return outcome;
+}
+
+// The names of what is in `directory`, sorted (empty when it is empty or missing).
+QStringList names_in(const std::filesystem::path& directory) {
+    QStringList names;
+    std::error_code error;
+    for (const auto& entry : std::filesystem::directory_iterator(directory, error)) {
+        names.append(QString::fromStdU16String(entry.path().filename().u16string()));
+    }
+    names.sort();
+    return names;
 }
 
 }  // namespace
@@ -339,4 +387,172 @@ void GeneratorTest::writes_the_batch_when_asked() {
     QCOMPARE(set->batches[0].batch.targets[0].loads.size(), std::size_t{1});
     QCOMPARE(QString::fromStdString(set->batches[0].batch.targets[0].loads[0].header_file_name),
              QStringLiteral("ACM.LUH"));
+}
+
+void GeneratorTest::a_cancel_before_anything_is_written_says_nothing_was_written() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    adl::gen::GeneratorWorker worker;
+    worker.set_checkpoint_hook([&](std::string_view place) {
+        if (place == "write") {
+            worker.request_cancel();
+        }
+    });
+    const auto outcome = run_job(worker, good_job(data, output.path()));
+    QCOMPARE(outcome.state, 2);
+    QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
+    QCOMPARE(outcome.detail, QStringLiteral("Nothing was written."));
+    QCOMPARE(names_in(output.path()), QStringList{});
+}
+
+void GeneratorTest::a_cancel_after_the_tree_is_written_removes_it_and_says_so() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    adl::gen::GeneratorWorker worker;
+    bool tree_was_there = false;
+    worker.set_checkpoint_hook([&](std::string_view place) {
+        if (place == "written") {
+            // The tree is on the disk at this point: that is what the cancel finds.
+            tree_was_there = !names_in(output.path()).isEmpty();
+            worker.request_cancel();
+        }
+    });
+    const auto outcome = run_job(worker, good_job(data, output.path()));
+    QVERIFY(tree_was_there);
+    QCOMPARE(outcome.state, 2);
+    QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
+    // It is not "nothing was written": something was, and has been taken away.
+    QVERIFY2(!outcome.detail.contains(QStringLiteral("Nothing was written")),
+             qPrintable(outcome.detail));
+    QVERIFY2(outcome.detail.contains(QStringLiteral("removed")), qPrintable(outcome.detail));
+    QVERIFY(outcome.output_path.isEmpty());
+    QCOMPARE(names_in(output.path()), QStringList{});
+}
+
+void GeneratorTest::a_cancel_after_the_set_verified_removes_it_too() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    adl::gen::GeneratorWorker worker;
+    worker.set_checkpoint_hook([&](std::string_view place) {
+        if (place == "verified") {
+            worker.request_cancel();
+        }
+    });
+    const auto outcome = run_job(worker, good_job(data, output.path()));
+    QCOMPARE(outcome.state, 2);
+    QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
+    QVERIFY(outcome.detail.contains(QStringLiteral("removed")));
+    QCOMPARE(names_in(output.path()), QStringList{});
+}
+
+void GeneratorTest::a_write_that_fails_leaves_no_partial_set() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    // A name no file system takes (longer than any of them allows): the write of the set fails
+    // after the member's directory is made.
+    auto job = good_job(data, output.path());
+    job.files[0].file_name = QString(300, QLatin1Char('A')) + QStringLiteral(".LUP");
+    adl::gen::GeneratorWorker worker;
+    const auto outcome = run_job(worker, job);
+    QCOMPARE(outcome.state, 2);
+    QVERIFY2(outcome.text.contains(QStringLiteral("could not be")), qPrintable(outcome.text));
+    QVERIFY(outcome.output_path.isEmpty());
+    // What had been made was taken away, and the operator is told so.
+    QCOMPARE(names_in(output.path()), QStringList{});
+    QVERIFY2(outcome.detail.contains(QStringLiteral("removed")), qPrintable(outcome.detail));
+}
+
+void GeneratorTest::a_file_that_cannot_be_allocated_ends_the_job_cleanly() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    adl::gen::GeneratorWorker worker;
+    worker.set_checkpoint_hook([](std::string_view place) {
+        if (place == "allocate") {
+            throw std::bad_alloc();  // what resizing the buffer of a huge file would do
+        }
+    });
+    const auto outcome = run_job(worker, good_job(data, output.path()));
+    QCOMPARE(outcome.state, 2);
+    QVERIFY2(outcome.text.contains(QStringLiteral("too large")), qPrintable(outcome.text));
+    QCOMPARE(names_in(output.path()), QStringList{});
+}
+
+void GeneratorTest::any_other_allocation_failure_ends_the_job_cleanly() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    adl::gen::GeneratorWorker worker;
+    // Out of memory after the temporary directory exists: the debris is removed on the way out.
+    worker.set_checkpoint_hook([&](std::string_view place) {
+        if (place == "written") {
+            throw std::bad_alloc();
+        }
+    });
+    auto outcome = run_job(worker, good_job(data, output.path()));
+    QCOMPARE(outcome.state, 2);
+    QVERIFY2(outcome.text.contains(QStringLiteral("out of memory")), qPrintable(outcome.text));
+    QCOMPARE(names_in(output.path()), QStringList{});
+
+    worker.set_checkpoint_hook([](std::string_view place) {
+        if (place == "load") {
+            throw std::runtime_error("something unexpected");
+        }
+    });
+    outcome = run_job(worker, good_job(data, output.path()));
+    QCOMPARE(outcome.state, 2);
+    QVERIFY(outcome.detail.contains(QStringLiteral("something unexpected")));
+}
+
+void GeneratorTest::the_set_appears_under_its_name_in_one_step() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    adl::gen::GeneratorWorker worker;
+    // While the set is being checked it is not under its name yet, only in a directory beside it.
+    QStringList while_checking;
+    worker.set_checkpoint_hook([&](std::string_view place) {
+        if (place == "written") {
+            while_checking = names_in(output.path());
+        }
+    });
+    const auto outcome = run_job(worker, good_job(data, output.path()));
+    QCOMPARE(outcome.state, 1);
+    QCOMPARE(while_checking, QStringList{set_part_number + QStringLiteral(".writing")});
+    // When it is done, it is under its name and the temporary directory is gone.
+    QCOMPARE(names_in(output.path()), QStringList{set_part_number});
+    QCOMPARE(outcome.output_path,
+             QString::fromStdU16String(expected_root(output.path()).u16string()));
+}
+
+void GeneratorTest::a_set_that_exists_is_never_overwritten() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    // A set under the name already, an empty directory under the next name, and the debris of an
+    // earlier job that was killed.
+    write_file(output.path(), "unrelated.txt", "mine");
+    std::filesystem::create_directories(expected_root(output.path()));
+    write_file(expected_root(output.path()), "keep.txt", "an earlier set");
+    std::filesystem::create_directories(output.path() / (set_part_number.toStdString() + "_2"));
+    const auto debris = output.path() / (set_part_number.toStdString() + ".writing");
+    std::filesystem::create_directories(debris);
+    write_file(debris, "half.bin", "half a file");
+
+    adl::gen::GeneratorWorker worker;
+    const auto outcome = run_job(worker, good_job(data, output.path()));
+    QCOMPARE(outcome.state, 1);
+    // It took the empty directory's name, and left everything else as it found it.
+    const auto second = output.path() / (set_part_number.toStdString() + "_2");
+    QCOMPARE(outcome.output_path, QString::fromStdU16String(second.u16string()));
+    QVERIFY(std::filesystem::exists(expected_root(output.path()) / "keep.txt"));
+    QVERIFY(std::filesystem::exists(debris / "half.bin"));
+    QVERIFY(std::filesystem::exists(output.path() / "unrelated.txt"));
+    const auto on_disk = media_tree::read_media_set_tree(second);
+    QVERIFY(on_disk.has_value());
+    QVERIFY(arinc665::read_media_set(*on_disk).has_value());
 }

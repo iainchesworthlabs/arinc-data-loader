@@ -150,20 +150,16 @@ QString download_dir_of(const adl::test::TempDir& directory) {
 std::optional<std::vector<std::byte>> downloaded(adl::test::Rig& rig,
                                                  const std::filesystem::path& directory,
                                                  const std::string& name, unsigned number = 1) {
-    const std::u8string generic = directory.generic_u8string();
-    const std::string path =
-        std::string{reinterpret_cast<const char*>(generic.data()), generic.size()} +
-        "/DNLD_DATA_HNPFMS_L_" + std::to_string(number) + "/" + name;
+    const std::string path = adl::platform::to_platform_path(directory) + "/DNLD_DATA_HNPFMS_L_" +
+                             std::to_string(number) + "/" + name;
     return rig.loader_host.fake_files().get(path);
 }
 
 // Whether the DNLD_DATA_HNPFMS_L_<number> directory under `directory` is there.
 bool downloaded_directory_exists(adl::test::Rig& rig, const std::filesystem::path& directory,
                                  unsigned number) {
-    const std::u8string generic = directory.generic_u8string();
     const std::string path =
-        std::string{reinterpret_cast<const char*>(generic.data()), generic.size()} +
-        "/DNLD_DATA_HNPFMS_L_" + std::to_string(number);
+        adl::platform::to_platform_path(directory) + "/DNLD_DATA_HNPFMS_L_" + std::to_string(number);
     return rig.loader_host.fake_files().stat(path).has_value();
 }
 

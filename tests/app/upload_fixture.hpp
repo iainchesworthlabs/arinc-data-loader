@@ -17,6 +17,7 @@
 
 #include "adl/arinc665/media_set.hpp"
 #include "adl/media_tree/media_tree.hpp"
+#include "adl/platform/paths.hpp"
 #include "adl/samples/scenarios.hpp"
 #include "rig.hpp"
 #include "temp_dir.hpp"
@@ -65,9 +66,7 @@ struct UploadFixture {
                                          std::istreambuf_iterator<char>()};
             std::vector<std::byte> bytes(text.size());
             std::memcpy(bytes.data(), text.data(), text.size());
-            const std::u8string path = entry.path().generic_u8string();
-            files.put(std::string_view{reinterpret_cast<const char*>(path.data()), path.size()},
-                      bytes);
+            files.put(adl::platform::to_platform_path(entry.path()), bytes);
         }
         return true;
     }
