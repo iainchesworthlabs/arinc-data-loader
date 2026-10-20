@@ -193,6 +193,39 @@ suite uses the dialogs' own footer buttons: `AppDialog.standardButton()` maps
 `Dialog.Cancel` to the secondary, so the test clicks the same Save/Close the
 operator does.
 
+## The RTOS test programs
+
+FreeRTOS and Zephyr are tested by programs of their own, because an RTOS image is a project of its own
+(`tests/platform/zephyr`, `tests/platform/freertos`; [building](building.md#zephyr-and-freertos)). Each
+builds the same Catch2 sources as the desktop programs, from one list
+(`tests/platform/rtos_support/test_sources.cmake`): everything `adl_platform_tests` runs (the portable
+types, the memory types, the fake platform, the conformance suite against the real host of the port and
+against the fake) and everything `adl_engine_tests` runs (the 615A engine, the runner and whole operations
+against a simulated target on the fake platform: 222 test cases), and each has two test cases of its own
+(`stack_storage_test.cpp`: a thread on a stack the caller made, which only an RTOS port has). What differs is
+the host under test: the port, on Zephyr's `native_sim` or the FreeRTOS POSIX simulator. A test added to the lists of
+`tests/CMakeLists.txt` belongs in that file too, or the RTOS programs will not run it.
+
+`tests/platform/rtos_support/temp_dir.hpp` shadows `tests/support/temp_dir.hpp` for them: the scratch
+directory is made, and removed with everything in it, through the platform's own `FileSystem` under the
+mount point (`/lfs` on Zephyr, the root of littlefs on FreeRTOS), because the host's file system is not
+the one the port sees. The `[conformance]` tag works as on the desktops:
+
+```sh
+ADL_CATCH_ARGS="[conformance][network]" tools/ci/zephyr_native_sim.sh   # Zephyr: Catch2's arguments in an environment variable
+build/freertos-posix-sim/bin/adl_freertos_tests "[conformance]"           # FreeRTOS: a program with a command line
+```
+
+`tests/platform/zephyr_smoke` is not part of this suite: a few checks (clock, memory, threads, a mutex, a
+queue, UDP) that run on a Cortex-M3 in QEMU, built with the Zephyr SDK's toolchain and no exceptions
+(`tools/ci/zephyr_qemu_smoke.sh`). The Zephyr test program itself also runs on a Cortex-A9 in QEMU with that
+toolchain (`tools/ci/zephyr_qemu_suite.sh`): the same 224 test cases.
+
+Not run on the RTOS programs: the codec and ARINC 665 unit tests (`adl_unit_tests`; they test code the
+desktops already run), the application's tests, and the loopback integration test, which needs the Qt mock
+target. [Platform abstraction](platform-abstraction.md#the-freertos-and-zephyr-ports) lists what the
+simulators leave open.
+
 ## Golden payloads
 
 `tests/golden/make_golden.py` writes a header file, a batch file and the three
@@ -346,8 +379,9 @@ what to expect of each, it checks every byte it reads.
 - The macOS platform sources have not yet been run on a Mac: the first CI run of
   the platform layer is their first test. (The Linux ones have, in a container
   with GCC 15 under the sanitizers.)
-- QNX's sources have never been compiled, and VxWorks, FreeRTOS and Zephyr have
-  none; the conformance suite is how a port will find out where it differs.
+- QNX's sources have never been compiled and VxWorks has none; the conformance suite is how a
+  port will find out where it differs. FreeRTOS and Zephyr have run the suite on simulators only
+  ([below](#the-rtos-test-programs)); no board has run it.
 - The conformance suite cannot show a data race: the fake runs a thread when it is
   joined, and the real-host checks are a handful of contended runs, not a proof.
 - A real allocator is not asked for an impossible amount of memory under the

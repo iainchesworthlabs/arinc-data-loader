@@ -1,0 +1,6 @@
+# Pinned west for the Zephyr (native_sim) CI job and for local use:
+#   pip install -r .github/requirements/zephyr.txt
+# Zephyr's own Python requirements come with the Zephyr version tests/platform/zephyr/west.yml
+# pins (zephyr/scripts/requirements-base.txt, installed after `west update`).
+# Dependabot's pip ecosystem for /.github/requirements keeps this current.
+west==1.5.0

@@ -47,10 +47,15 @@ function(configure_case name succeeds text)
     set(_failures "${_failures}" PARENT_SCOPE)
 endfunction()
 
-# The platforms with a design and no code are refused, and say why.
-configure_case(freertos OFF "FreeRTOS platform is a design only" -DADL_TARGET_PLATFORM=freertos)
+# The platform with a design and no code is refused, and says why.
 configure_case(vxworks OFF "VxWorks platform is a design only" -DADL_TARGET_PLATFORM=vxworks)
-configure_case(zephyr OFF "Zephyr platform is a design only" -DADL_TARGET_PLATFORM=zephyr)
+
+# The platforms whose programs a project of their own builds (Zephyr's image, a FreeRTOS
+# simulator's executable) are refused by this one, and say where to go instead.
+configure_case(freertos OFF "FreeRTOS platform is built by a project of its own"
+    -DADL_TARGET_PLATFORM=freertos)
+configure_case(zephyr OFF "Zephyr platform is built by a project of its own"
+    -DADL_TARGET_PLATFORM=zephyr)
 
 # The platform with code nobody has compiled is refused until it is asked for.
 configure_case(qnx_refused OFF "ADL_ACCEPT_UNBUILT_PLATFORM" -DADL_TARGET_PLATFORM=qnx)
