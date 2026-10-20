@@ -6,7 +6,9 @@
 #include <string>
 #include <utility>
 
+#include <QList>
 #include <QQuickItem>
+#include <QSet>
 #include <QSettings>
 #include <QStringList>
 
@@ -134,6 +136,39 @@ QObject* Harness::findItem(QObject* root, const QString& name) const {
     return nullptr;
 }
 
+void Harness::collectItems(QObject* root, const QString& name, QVariantList& found) const {
+    // An item is both a visual child and a QObject child of its parent; count it once.
+    QList<QObject*> pending{root};
+    QSet<QObject*> seen;
+    while (!pending.isEmpty()) {
+        QObject* current = pending.takeFirst();
+        if (current == nullptr || seen.contains(current)) {
+            continue;
+        }
+        seen.insert(current);
+        if (current->objectName() == name) {
+            found.append(QVariant::fromValue(current));
+        }
+        QList<QObject*> next;
+        if (auto* item = qobject_cast<QQuickItem*>(current)) {
+            for (QQuickItem* child : item->childItems()) {
+                next.append(child);
+            }
+        }
+        next.append(current->children());
+        // Depth first, in tree order: this node's children before its later siblings.
+        for (qsizetype i = next.size(); i-- > 0;) {
+            pending.prepend(next.at(i));
+        }
+    }
+}
+
+QVariantList Harness::findItems(QObject* root, const QString& name) const {
+    QVariantList found;
+    collectItems(root, name, found);
+    return found;
+}
+
 int Harness::targetCount() const {
     const auto* targets = qobject_cast<adl::app::TargetModel*>(model_->targets());
     return targets == nullptr ? 0 : targets->rowCount();
@@ -152,6 +187,33 @@ int Harness::loadCount() const {
 int Harness::fileCount() const {
     const auto* files = qobject_cast<adl::app::FileModel*>(model_->files());
     return files == nullptr ? 0 : files->rowCount();
+}
+
+void Harness::showTargets(int count) {
+    auto* targets = qobject_cast<adl::app::TargetModel*>(model_->targets());
+    if (targets == nullptr) {
+        return;
+    }
+    QList<adl::app::FoundTarget> found;
+    for (int i = 0; i < count; ++i) {
+        adl::app::FoundTarget target;
+        target.address = QStringLiteral("10.0.0.%1").arg(2 + i);
+        target.hardware_id = QStringLiteral("HW%1").arg(i + 1);
+        target.type_name = QStringLiteral("FMS");
+        target.position = i % 2 == 0 ? QStringLiteral("L") : QStringLiteral("R");
+        target.literal_name = QStringLiteral("TARGET %1").arg(i + 1);
+        target.manufacturer_code = QStringLiteral("HNP");
+        found.append(target);
+    }
+    targets->reset(found);
+}
+
+void Harness::addEvent(int severity, const QString& text) {
+    auto* events = qobject_cast<adl::app::EventModel*>(model_->events());
+    if (events == nullptr) {
+        return;
+    }
+    events->append(adl::app::EventEntry{static_cast<adl::app::Severity>(severity), text});
 }
 
 int Harness::eventCount() const {

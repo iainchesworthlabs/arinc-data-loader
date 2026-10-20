@@ -16,6 +16,7 @@
 #include <QString>
 #include <QStringList>
 #include <QUrl>
+#include <QVariantList>
 
 #include "adl/app/loader_model.hpp"
 #include "rig.hpp"
@@ -52,6 +53,9 @@ public:
     // only walks the QObject tree, and a Repeater's delegates are visual children.
     [[nodiscard]] Q_INVOKABLE QObject* findItem(QObject* root, const QString& name) const;
 
+    // Every item called `name` below `root`, in tree order (a Repeater's delegates, for one).
+    [[nodiscard]] Q_INVOKABLE QVariantList findItems(QObject* root, const QString& name) const;
+
     // The rows of the lists the window shows, for assertions that a binding or a button filled one.
     [[nodiscard]] Q_INVOKABLE int targetCount() const;
     [[nodiscard]] Q_INVOKABLE int configurationCount() const;
@@ -60,6 +64,11 @@ public:
     [[nodiscard]] Q_INVOKABLE int eventCount() const;
     [[nodiscard]] Q_INVOKABLE int downloadCount() const;
     [[nodiscard]] Q_INVOKABLE QString eventText() const;
+
+    // Puts `count` found targets in the FIND list (10.0.0.2, 10.0.0.3, ...) without a FIND, and
+    // adds one line of the given severity (0 info, 1 notice, 2 warning, 3 error) to the log.
+    Q_INVOKABLE void showTargets(int count);
+    Q_INVOKABLE void addEvent(int severity, const QString& text);
 
     // Between test cases: the target is ready for another operation and behaves.
     Q_INVOKABLE void resetTarget();
@@ -72,6 +81,7 @@ public:
     Q_INVOKABLE void releaseJob();
 
 private:
+    void collectItems(QObject* root, const QString& name, QVariantList& found) const;
     [[nodiscard]] std::optional<std::vector<std::byte>> downloadedBytes(const QString& name,
                                                                         int number) const;
 
