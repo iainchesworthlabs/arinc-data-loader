@@ -1015,6 +1015,87 @@ TEST_CASE("an abort the target never confirms ends after the data load protocol 
     CHECK(rig.elapsed < seconds(19) + milliseconds(500));
 }
 
+// A controller that never touches the loader: the runner polls it, nothing more.
+class IdleController final : public RunController {
+public:
+    void on_poll(DataLoader& /*loader*/, Instant /*now*/) noexcept override {}
+};
+
+// Aborts as soon as the first status file has been reported.
+class AbortOnFirstStatus final : public RunController {
+public:
+    explicit AbortOnFirstStatus(const Recorder& recorder) : recorder_(recorder) {}
+    void on_poll(DataLoader& loader, Instant now) noexcept override {
+        if (!done_ && !recorder_.status_codes.empty()) {
+            done_ = true;
+            loader.abort(now, StatusCode::aborted_by_operator);
+        }
+    }
+
+private:
+    const Recorder& recorder_;
+    bool done_ = false;
+};
+
+TEST_CASE("polling a run controller does not repeat what the loader asked the runner to do",
+          "[engine][operation][runner]") {
+    // The loader's commands are valid until its next call. A controller that does not call it
+    // (most polls) must not make the runner carry the previous commands out a second time: a
+    // repeated "close the socket of slot n" lands after the slot was given to a new transfer,
+    // and closes the socket the target has just been told to talk to.
+    const SampleLoad load = make_sample_load(20'000);
+    const auto loader_datagrams = [&](const RunOptions& options) {
+        Rig rig(upload_plan(load));
+        rig.source = std::make_unique<MediaSource>(load.files);
+        std::vector<LoadReference> storage;
+        const auto outcome = rig.run(upload_of(load, storage), options);
+        REQUIRE(outcome);
+        CHECK(outcome->code == OutcomeCode::completed);
+        std::size_t sent = 0;
+        for (const auto& packet : rig.network.captured()) {
+            if (packet.from.address == Rig::loader_address) {
+                ++sent;
+            }
+        }
+        return sent;
+    };
+
+    IdleController idle;
+    RunOptions with_controller;
+    with_controller.controller = &idle;
+    const std::size_t without = loader_datagrams(RunOptions{});
+    const std::size_t with = loader_datagrams(with_controller);
+    CHECK(without > 0);
+    CHECK(with == without);
+}
+
+TEST_CASE("an operator abort right after the first status file is confirmed at once",
+          "[engine][operation][abort]") {
+    // The first status file's transfer is still lingering (its dally) when the abort comes, so
+    // it cannot carry the ABORT message: the target's next status file request is what is
+    // answered with it, and its status file after that is the confirmation. That has to work
+    // the first time, without waiting for the target to give up on a failed transfer or for
+    // the data load protocol time-out.
+    const SampleLoad load = make_sample_load(20'000);
+    SimPlan plan = upload_plan(load);
+    plan.work_time = seconds(60);
+    plan.status_period = seconds(1);
+    Rig rig(plan);
+    rig.source = std::make_unique<MediaSource>(load.files);
+    std::vector<LoadReference> storage;
+    AbortOnFirstStatus abort(rig.recorder);
+    RunOptions options;
+    options.controller = &abort;
+    const auto outcome = rig.run(upload_of(load, storage), options);
+    REQUIRE(outcome);
+    INFO(dump(rig.target.log()));
+    CHECK(outcome->code == OutcomeCode::aborted_by_operator);
+    CHECK(outcome->abort_confirmed);
+    CHECK(rig.recorder.count(Notice::status_file_failed) == 0);
+    CHECK(rig.recorder.status_codes.back() == StatusCode::aborted_by_operator);
+    CHECK(rig.elapsed < seconds(10));
+}
+
 TEST_CASE("a target's own abort ends the operation and the other transfers with ABORT 1003",
           "[engine][operation][abort]") {
     const SampleLoad load = make_sample_load(60'000);

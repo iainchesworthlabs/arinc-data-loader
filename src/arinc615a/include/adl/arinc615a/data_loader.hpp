@@ -333,7 +333,7 @@ public:
     // invalid_value for a bad <THW_ID_POS> or configuration. One operation per DataLoader.
     [[nodiscard]] Result<void> start(Instant now, const Operation& operation) noexcept;
 
-    // ---- driving; after each call, run commands() ----------------------------------------
+    // ---- driving; after each call, run take_commands() ----------------------------------------
 
     // A datagram arrived on the control socket (a request from the target).
     void on_control_datagram(Instant now, const Endpoint& from,
@@ -360,6 +360,16 @@ public:
     // The datagrams to send and sockets to close, until the next call.
     [[nodiscard]] std::span<const Command> commands() const noexcept {
         return std::span<const Command>{commands_}.first(command_count_);
+    }
+    // The same commands, handed over once: the next take_commands() (or commands()) before the
+    // next call returns none. A driver that carries them out after each of its steps, whether
+    // that step called the loader or not, uses this one, since carrying a command out twice is
+    // not harmless (a repeated "close the socket of slot n" closes the socket a new transfer
+    // has been given in that slot since). The span is valid until the next call, as above.
+    [[nodiscard]] std::span<const Command> take_commands() noexcept {
+        const auto taken = std::span<const Command>{commands_}.first(command_count_);
+        command_count_ = 0;
+        return taken;
     }
     // When on_timer() should next be called, or `never`.
     [[nodiscard]] Instant next_wake() const noexcept;
