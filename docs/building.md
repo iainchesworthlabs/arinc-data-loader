@@ -206,7 +206,7 @@ target is built with warnings as errors.
 | `ADL_ENABLE_CLANG_TIDY` | `OFF` | Runs clang-tidy as the compiler launcher for the first-party targets under `src/`, with `.clang-tidy` and warnings as errors (the tests clear the launcher; the `linux-gcc-tidy` preset sets it) |
 | `ADL_ENABLE_MSVC_ANALYSIS` | `OFF` | Adds MSVC Code Analysis (`/analyze /analyze:external-`) to every first-party target; MSVC only (the `windows-msvc-analyze` preset sets it) |
 | `ADL_ENABLE_TRACY` | `OFF` | Links Tracy and pulls it from vcpkg; use a Release build for numbers worth reading |
-| `ADL_TARGET_PLATFORM` | empty | Names the platform for a cross build, where the toolchain does not (`windows`, `linux`, `macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos`, `zephyr`). A desktop build leaves it empty. See [platform isolation](platform-isolation.md#how-cmake-selects) |
+| `ADL_TARGET_PLATFORM` | empty | Names the platform for a cross build, where the toolchain does not (`windows`, `linux`, `macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos`, `zephyr`). A desktop build leaves it empty. `freertos` and `zephyr` are accepted and refused: their images are built by projects of their own ([below](#zephyr-and-freertos)). See [platform isolation](platform-isolation.md#how-cmake-selects) |
 | `ADL_ACCEPT_UNBUILT_PLATFORM` | `OFF` | Allows building a platform whose code has never been compiled (QNX and the two INTEGRITY ports). A platform with no code at all is refused whatever this says |
 
 The Green Hills INTEGRITY platforms are [reviewed in
@@ -214,6 +214,105 @@ docs/platform-ghs.md](platform-ghs.md): what the two source trees provide, how
 `cmake/FindIntegrity.cmake` and `cmake/FindIntegrity178.cmake` find them, and
 what is still open before a first compile. They have never been compiled and
 their code says so.
+
+## Zephyr and FreeRTOS
+
+Both are *experimental*: built, and their tests run, on a simulator in CI, and nowhere else
+([what that means](platform-abstraction.md#the-freertos-and-zephyr-ports)). An RTOS image is built around
+the product's kernel configuration, so neither is a configuration of this project's own CMake; each has a
+program of its own that tests it, and a product does what that program does with its own board.
+
+### Zephyr
+
+The platform layer is a Zephyr module: `zephyr/module.yml` names `src/platforms/zephyr` as its CMake
+directory and its Kconfig. To use it, add this repository to the application's west manifest (or name it
+in `ZEPHYR_EXTRA_MODULES`) and set, in `prj.conf`:
+
+```text
+CONFIG_CPP=y
+CONFIG_STD_CPP23=y
+CONFIG_ADL_PLATFORM=y
+```
+
+`CONFIG_ADL_PLATFORM` depends on, and does not select, the network stack (`CONFIG_NETWORKING`,
+`CONFIG_NET_IPV4`, `CONFIG_NET_UDP`, `CONFIG_NET_SOCKETS`) and `CONFIG_FILE_SYSTEM`: selecting
+`NETWORKING` from a module makes a dependency loop through C++ and OpenThread. It selects the full C++
+library (`CONFIG_REQUIRES_FULL_LIBCPP`), dynamic threads and the socket options the port sets. The
+application mounts the file system the loader writes to, as it would for anything else, before it asks for
+a `Host`, and sizes the pools: a TFTP block can be 65 464 bytes, so a stack that must carry one needs
+`CONFIG_NET_BUF_*` and the interface MTU to match (`tests/platform/zephyr/prj.conf` is a working set for
+native_sim, with the loopback interface's MTU at 65 535). The module's own options are
+`CONFIG_ADL_HEAP_BYTES`, `CONFIG_ADL_THREAD_STACK_BYTES`, `CONFIG_ADL_FS_COHERENT_HANDLES`,
+`CONFIG_ADL_WARNINGS_AS_ERRORS` (the loader's sources are built with `-Werror` and the rest of the
+project's warning set only where this is on; CI's configurations turn it on, and a product should leave it
+off, since another compiler or optimisation level can warn about correct code) and `CONFIG_ADL_LIBRARIES`
+(build the ARINC 665 and 615A libraries into the image; default on).
+
+The test program, built as any Zephyr application is, for native_sim:
+
+```sh
+# once: a west workspace with Zephyr at the version tests/platform/zephyr/west.yml pins
+#   (the repository is the manifest repository, so put it in a directory of its own)
+west init -l --mf tests/platform/zephyr/west.yml <the repository directory>
+west update --narrow --fetch-opt=--depth=1
+pip install -r <workspace>/zephyr/scripts/requirements-base.txt
+
+# each time
+ZEPHYR_BASE=<workspace>/zephyr tools/ci/zephyr_native_sim.sh
+```
+
+That script is what CI runs. It needs `west` (pinned in `.github/requirements/zephyr.txt`), CMake, Ninja,
+a C++23 `g++` (the host compiler is the toolchain: `ZEPHYR_TOOLCHAIN_VARIANT=host`), the device tree
+compiler (`dtc`) and `gperf`, and is for Linux or WSL. It builds the program for `native_sim/native/64`,
+runs it in a directory of its own, and exits with Catch2's status. Pass Catch2's arguments in
+`ADL_CATCH_ARGS` (`ADL_CATCH_ARGS="[conformance] --durations yes"`); `zephyr.exe --rt` runs the clock in
+real time instead of as fast as the host allows.
+
+A smoke test of the platform layer on a Cortex-M3 under QEMU, built with the Zephyr SDK's own toolchain
+(GCC, picolibc, no exceptions), is `tools/ci/zephyr_qemu_smoke.sh`; it needs the SDK
+(`west sdk install --gnu-toolchains arm-zephyr-eabi`, then `ZEPHYR_SDK_INSTALL_DIR` pointing at it) as well as
+`ZEPHYR_BASE`, builds `tests/platform/zephyr_smoke` for `mps2/an385`, runs it in `qemu-system-arm` (the SDK's
+or the machine's) and exits 0 only if the program reported no failure.
+
+The whole test program on a board is `tools/ci/zephyr_qemu_suite.sh`: it builds `tests/platform/zephyr` for
+`qemu_cortex_a9` with the same SDK (GCC 14.3, picolibc, the SDK's libstdc++ with exceptions and RTTI), runs
+it in the SDK's `qemu-system-xilinx-aarch64` (a distribution's QEMU has no machine for this board) and exits 0
+only if Catch2 reported that every test passed. It needs the same setup as the smoke test; a run takes a few
+minutes to build and about five seconds in QEMU. The board's settings are in
+`tests/platform/zephyr/boards/qemu_cortex_a9.conf` and `.overlay`: picolibc with a 32 MB malloc arena, a larger
+kernel address space for the MMU, Zephyr's POSIX layer for what libstdc++ asks of the C library, and a
+simulated flash for littlefs, since the board has none.
+
+### FreeRTOS
+
+`tests/platform/freertos` is a CMake project that does what a product's CMake does, on a host: it
+fetches FreeRTOS-Kernel, lwIP and littlefs at pinned versions and hashes, builds them with the
+configuration in `tests/platform/freertos/config.cmake` (FreeRTOSConfig.h, lwipopts.h and lwIP's
+`cc.h`, written as text because this repository's source has no `#define`), builds the platform layer from
+the same fragment the other platforms use and links them with a `main` that starts the scheduler and runs
+Catch2 in a task:
+
+```sh
+tools/ci/freertos_posix_sim.sh          # Linux; needs CMake 4, Ninja and a C++23 g++
+```
+
+A product does the same with its own kernel port and its own configuration. What the platform layer asks of
+them:
+
+- **FreeRTOS**: `INCLUDE_vTaskDelete`, `INCLUDE_vTaskDelay`, mutexes, counting semaphores, queues, dynamic
+  allocation (a heap: `pvPortMalloc` serves the memory provider) and, for a thread made on storage the
+  caller supplies, static allocation. Task functions must not be `noexcept` frames that a cancellation could
+  unwind through (only the POSIX simulator port does that).
+- **lwIP**: the sockets API (`LWIP_SOCKET`), `LWIP_SOCKET_POLL`, UDP and IPv4, `SO_REUSE`, `LWIP_SO_RCVBUF`,
+  `LWIP_TCPIP_CORE_LOCKING`, and mailboxes and pools big enough for the datagrams in flight (a 65 507 byte
+  datagram is one pbuf). Its own `sys_arch` is the product's (`tests/platform/freertos/sim` has the
+  simulator's).
+- **littlefs**: built with `LFS_THREADSAFE` and a lock and unlock in its configuration, mounted before the
+  loader asks for a `Host`.
+
+The product tells the platform layer about the file system and the priority of the network task with
+`adl::platform::freertos::set_environment` (`src/platforms/freertos/environment.hpp`), once, before
+`make_host()`. The simulator's `main` is `tests/platform/freertos/sim/main.cpp`.
 
 ## Formatting
 
