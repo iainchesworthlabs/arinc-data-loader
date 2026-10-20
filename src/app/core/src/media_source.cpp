@@ -1,9 +1,15 @@
 #include "adl/app/media_source.hpp"
 
 #include <algorithm>
+#include <array>
+#include <map>
+#include <tuple>
 
 #include "adl/arinc665/check_value_type.hpp"
 #include "adl/media_tree/media_tree.hpp"
+
+#include "adl/arinc665/sha1.hpp"
+#include "adl/platform/paths.hpp"
 
 #include <adl/profiling.hpp>
 
@@ -30,12 +36,44 @@ using adl::arinc615a::IoFailure;
     }
 }
 
-[[nodiscard]] std::string to_utf8(const std::filesystem::path& path) {
-    const std::u8string text = path.generic_u8string();
-    return {reinterpret_cast<const char*>(text.data()), text.size()};
+using Fingerprint = MediaSetIndex::Fingerprint;
+
+// The fingerprint of bytes in memory.
+[[nodiscard]] Fingerprint fingerprint_of(std::span<const std::byte> bytes) noexcept {
+    adl::arinc665::Sha1 sha1;
+    sha1.update(bytes);
+    return {bytes.size(), sha1.digest()};
+}
+
+// The fingerprint of an open file, read in blocks from the start to its end.
+[[nodiscard]] adl::platform::Result<Fingerprint> fingerprint_of(
+    adl::platform::ReadFile& file) noexcept {
+    const auto size = file.size();
+    if (!size) {
+        return std::unexpected(size.error());
+    }
+    adl::arinc665::Sha1 sha1;
+    std::array<std::byte, 64 * 1024> block;
+    std::uint64_t offset = 0;
+    while (offset < *size) {
+        const auto count = file.read_at(offset, block);
+        if (!count) {
+            return std::unexpected(count.error());
+        }
+        if (*count == 0) {
+            break;  // shorter than its size said: what was read will not match
+        }
+        sha1.update(std::span{block}.first(*count));
+        offset += *count;
+    }
+    return Fingerprint{offset, sha1.digest()};
 }
 
 }  // namespace
+
+std::string MediaSetIndex::Entry::describe() const {
+    return name + " (member " + std::to_string(member) + ", " + pathname + ")";
+}
 
 std::expected<MediaSetIndex, std::string> MediaSetIndex::make(
     const std::filesystem::path& root, const adl::arinc665::FilesList& list) {
@@ -52,9 +90,52 @@ std::expected<MediaSetIndex, std::string> MediaSetIndex::make(
                 file.pathname + file.file_name + ")");
         }
         index.entries_.push_back(
-            Entry{file.file_name, to_utf8(*directory / file.file_name), file.crc});
+            Entry{file.file_name, adl::platform::to_platform_path(*directory / file.file_name),
+                  file.crc, file.member_sequence_number, file.pathname, std::nullopt});
     }
     return index;
+}
+
+std::expected<MediaSetIndex, std::string> MediaSetIndex::make(
+    const std::filesystem::path& root, const adl::arinc665::FilesList& list,
+    std::span<const adl::arinc665::MediaMember> members) {
+    auto index = make(root, list);
+    if (!index) {
+        return index;
+    }
+    using Key = std::tuple<std::uint16_t, std::string_view, std::string_view>;
+    std::map<Key, const adl::arinc665::MediaFile*> files;
+    for (const adl::arinc665::MediaMember& member : members) {
+        for (const adl::arinc665::MediaFile& file : member.files) {
+            files.emplace(Key{member.sequence_number, file.pathname, file.name}, &file);
+        }
+    }
+    for (Entry& entry : index->entries_) {
+        const auto found = files.find(Key{entry.member, entry.pathname, entry.name});
+        if (found == files.end()) {
+            return std::unexpected("not in the media set on the disk: " + entry.describe());
+        }
+        entry.fingerprint = fingerprint_of(found->second->bytes);
+    }
+    return index;
+}
+
+std::optional<std::string> MediaSetIndex::changed_file(adl::platform::FileSystem& files) const {
+    const adl::profiling::Zone zone{"app: verify the media set"};
+    for (const Entry& entry : entries_) {
+        if (!entry.fingerprint) {
+            continue;
+        }
+        auto file = files.open_read(entry.path);
+        if (!file) {
+            return entry.describe();
+        }
+        const auto now = fingerprint_of(**file);
+        if (!now || *now != *entry.fingerprint) {
+            return entry.describe();
+        }
+    }
+    return std::nullopt;
 }
 
 const MediaSetIndex::Entry* MediaSetIndex::find(std::string_view name,
@@ -103,6 +184,20 @@ adl::arinc615a::IoResult<adl::arinc615a::SourceFile> MediaTreeSource::open(
     const auto size = (*file)->size();
     if (!size) {
         return std::unexpected(to_failure(size.error()));
+    }
+    if (entry->fingerprint) {
+        // Not what the set was when it was checked: nothing of it is uploaded. The reason is kept
+        // for the operator, who the target's error would not tell.
+        const auto now = fingerprint_of(**file);
+        if (!now) {
+            return std::unexpected(to_failure(now.error()));
+        }
+        if (*now != *entry->fingerprint) {
+            if (!changed_) {
+                changed_ = entry->describe();
+            }
+            return std::unexpected(IoFailure{IoError::access_denied, 0});
+        }
     }
     *slot = std::move(*file);
     return adl::arinc615a::SourceFile{

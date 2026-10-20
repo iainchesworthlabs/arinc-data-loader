@@ -6,6 +6,8 @@
 #include <QTimer>
 
 #include "adl/app/address.hpp"
+#include "adl/app/download_directory.hpp"
+#include "adl/arinc615a/data_loader.hpp"
 
 #include <adl/profiling.hpp>
 
@@ -188,7 +190,10 @@ void LoaderModel::reconcile_target() {
 }
 
 bool LoaderModel::targetValid() const {
-    return parse_ipv4(target_address_).has_value() && !thw_id_pos_.isEmpty();
+    // The id is checked the way the loader checks it (not just for being there), so a button is
+    // not enabled for an operation the loader would only refuse after the request was made.
+    return parse_ipv4(target_address_).has_value() &&
+           adl::arinc615a::is_valid_thw_id_pos(thw_id_pos_.toStdString());
 }
 
 QString LoaderModel::mediaSetTitle() const {
@@ -214,6 +219,11 @@ bool LoaderModel::canDownload() const {
         return false;
     }
     if (settings_->downloadDirectory().trimmed().isEmpty()) {
+        return false;
+    }
+    // The files go into a directory named after the id: one a directory cannot be named after
+    // is refused here, before anything is made (the worker checks again).
+    if (targetValid() && !can_download_from(thw_id_pos_.toStdString())) {
         return false;
     }
     // The media defined mode needs at least one name; the operator defined mode needs nothing
@@ -433,6 +443,10 @@ void LoaderModel::on_finished(const OperationSummary& summary) {
         set_error(summary.outcome, summary.detail, summary.hint);
     }
     set_job(Job::none);
+    if (summary.media_set_changed) {
+        // What was checked is not what is on the disk any more: the check no longer stands.
+        set_validation(0, {}, {}, {});
+    }
     if (ended == Job::media_set) {
         if (!media_set_.error.isEmpty()) {
             // The set could not be read: it cannot be valid, and the reason is shown.

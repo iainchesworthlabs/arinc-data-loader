@@ -9,8 +9,11 @@ Download fetches files from the target into a folder on your computer. Switch th
 
 Every download writes into a **new folder** named `DNLD_DATA_<THW_ID_POS>_<number>` inside the
 **download folder**, which is shown under **Destination** and set with **Choose folder...** (or in
-[Preferences](preferences.md)). The number is the lowest free one starting at 1; a download that is
-aborted or fails still uses its number. A file is written under a temporary name and renamed when
+[Preferences](preferences.md)). The number is the lowest free one starting at 1. A download that brings back no file (the
+target refuses it or never answers, you cancel or abort it, or the loader cannot run it) leaves no
+folder behind, so its number is free again; one that brought back even a single file keeps its
+folder. A `<THW_ID_POS>` that cannot be part of a folder name (a colon, for example) cannot be
+downloaded from. A file is written under a temporary name and renamed when
 it has arrived whole, and an existing file is never overwritten. **Open folder** opens the folder
 of the last download.
 

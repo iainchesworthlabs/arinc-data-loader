@@ -1,0 +1,1 @@
+A media set that is edited, replaced or removed after it was checked is no longer uploaded as it now is: the loader compares the whole set with what the check saw before it contacts the target, and again as the target asks for each file, and refuses with a message that the set changed and must be checked again ([the loader](docs/app.md)).

@@ -1,0 +1,1 @@
+The media set generator writes the set beside its final folder and renames it into place only when it has been read back and verified. A full disk, a cancel at any moment or a file too large for memory now leaves nothing half-written, and the receipt says truthfully what was removed instead of "Nothing was written" ([the generator](docs/media-gen.md)).

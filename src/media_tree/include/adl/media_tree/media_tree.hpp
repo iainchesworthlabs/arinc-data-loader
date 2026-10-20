@@ -69,7 +69,9 @@ using TreeResult = std::expected<T, TreeFailure>;
 //
 // Everything is checked before anything is written, so a member that cannot be
 // written does not leave the others behind, and nothing is ever overwritten: a
-// member directory that exists and is not empty is an error.
+// member directory that exists and is not empty is an error. A write that fails
+// part of the way (a full disk, a name the file system refuses) removes what it
+// made, so the members it had written do not stay behind looking like a set.
 [[nodiscard]] TreeResult<void> write_media_set_tree(const std::filesystem::path& root,
                                                     std::span<const arinc665::MediaMember> members);
 

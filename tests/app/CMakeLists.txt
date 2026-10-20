@@ -10,6 +10,10 @@ set(CMAKE_AUTOMOC ON)
 add_executable(adl_app_tests
     address_test.cpp
     controls_test.cpp
+    download_directory_test.cpp
+    engine_worker_test.cpp
+    faulty_files.hpp
+    faulty_host.hpp
     loader_model_test.cpp
     main.cpp
     media_source_test.cpp

@@ -78,19 +78,21 @@ Press **Generate media set**. The generator
    does),
 2. builds the load: the header file, with the check values,
 3. builds the members and the three list files,
-4. writes the tree below the output folder, in a new folder named after the media set part
-   number (if that folder already holds anything, `_2`, `_3` and so on is added instead, so
-   nothing is ever overwritten), and
+4. writes the tree to a temporary folder beside the output (named after the media set part number,
+   with `.writing` added),
 5. **reads the tree back from disk**, the way the loader does, and verifies every file and check
-   value.
+   value, and then
+6. gives the folder its name, the media set part number (if that folder already holds anything, `_2`,
+   `_3` and so on is added instead, so nothing is ever overwritten).
 
 When it ends the receipt shows **COMPLETE** and the line "Media set ... written and verified.",
 the numbers of data and support files, the bytes, the members and the folder, with an **Open
 folder** button. If the read-back finds anything that differs from what the standard
 *recommends* (but can still be read), the receipt lists those findings; they do not stop the set
-being used. If something is wrong the receipt says **FAILED** and why. A failure before the tree is written
-leaves nothing behind; one found by the read-back leaves the folder that was written, so look at
-the message before using it.
+being used. If something is wrong the receipt says **FAILED** and why. Whatever fails, and a **Cancel** at
+any point, leaves no half-written set: the temporary folder is removed and the receipt says so (if it
+cannot be removed, the receipt says where it is). A set only ever appears under its own name whole and
+verified.
 
 ![A finished generation](../images/gen-complete.png)
 
