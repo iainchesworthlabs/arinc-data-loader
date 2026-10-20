@@ -21,4 +21,8 @@ target_link_libraries(adl_media_tree
         $<BUILD_LOCAL_INTERFACE:adl::sanitizers>
         $<BUILD_LOCAL_INTERFACE:adl::coverage>)
 
-adl_install_library(adl_media_tree INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+# Only the top-level project installs (cmake/AdlInstall.cmake); a project of its own that builds this
+# library for a target (tests/platform/freertos) has no install rules to add it to.
+if(COMMAND adl_install_library)
+    adl_install_library(adl_media_tree INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+endif()

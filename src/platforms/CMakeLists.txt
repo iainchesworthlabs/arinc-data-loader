@@ -40,4 +40,8 @@ target_link_libraries(adl_platform
 
 # The platform's interfaces are the development package's way to the operating system; the library
 # is this host's implementation of them.
-adl_install_library(adl_platform INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/interfaces")
+# Only the top-level project installs (cmake/AdlInstall.cmake); a project of its own that builds this
+# library for a target (tests/platform/freertos) has no install rules to add it to.
+if(COMMAND adl_install_library)
+    adl_install_library(adl_platform INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/interfaces")
+endif()
