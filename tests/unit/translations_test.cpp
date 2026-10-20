@@ -285,7 +285,7 @@ void append_utf8(std::string& out, char32_t code) {
     return false;
 }
 
-[[nodiscard]] std::string quoted(std::string_view text) {
+[[maybe_unused]] std::string quoted(std::string_view text) {
     return "\"" + std::string{text.substr(0, 80)} + (text.size() > 80 ? "...\"" : "\"");
 }
 
