@@ -1,5 +1,9 @@
 #pragma once
 
+// The values of the file format version field that ARINC 665-3 gives to its load,
+// batch and media files. A later version of a class is read through the file's
+// pointers (section 1.4.3); see header_file.hpp and media_files.hpp.
+
 #include <cstdint>
 
 namespace adl::arinc665 {

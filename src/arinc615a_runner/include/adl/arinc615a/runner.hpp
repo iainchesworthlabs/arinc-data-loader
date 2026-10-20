@@ -49,6 +49,9 @@ struct RunError {
     adl::platform::ErrorCode platform = adl::platform::ErrorCode::other;
 };
 
+// Runs one operation of a DataLoader, or a FIND, over the platform's sockets and
+// clock. run() and find() block the calling thread until the operation has an
+// outcome or the FIND window has closed.
 class Runner {
 public:
     explicit Runner(adl::platform::Host& host) noexcept : host_(host) {}

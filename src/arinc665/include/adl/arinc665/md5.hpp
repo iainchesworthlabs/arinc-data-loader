@@ -1,5 +1,8 @@
 #pragma once
 
+// MD5, the check value of type 4 in ARINC 665. A streaming calculation with fixed
+// storage: bytes are fed in any number of pieces.
+
 #include <array>
 #include <cstddef>
 #include <cstdint>

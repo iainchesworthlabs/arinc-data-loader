@@ -1,7 +1,7 @@
 #pragma once
 
 // The figures of ARINC 615A-3 that the codecs check against, and that the
-// protocol engine above them will use. Section numbers are 615A-3's.
+// protocol engine above them uses. Section numbers are 615A-3's.
 
 #include <cstddef>
 #include <cstdint>

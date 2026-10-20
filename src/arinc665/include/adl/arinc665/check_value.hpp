@@ -1,5 +1,10 @@
 #pragma once
 
+// The check value a file or a load can carry (ARINC 665-3 section 5): its type
+// and the bytes as they are stored. compute_check_value() calculates one for a
+// type; the algorithms behind it are in crc.hpp, md5.hpp and sha1.hpp, and
+// integrity_checker.hpp chooses between them.
+
 #include <cstddef>
 #include <optional>
 #include <span>

@@ -46,7 +46,8 @@ public:
 };
 
 // The Host of the platform this program was built for. Defined once per
-// platform (src/platforms/<name>/host_<name>.cpp); the selector chose which.
+// platform, in host_windows.cpp, host_ghs178b.cpp or host_posix.cpp (which the
+// POSIX platforms share); the selector chose which.
 // This is where an operating system's one-time start-up lives (Winsock on
 // Windows), and the Host's destructor undoes it, so nothing happens before
 // main and nothing is left running after it. Call it once; the services it

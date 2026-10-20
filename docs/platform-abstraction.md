@@ -19,9 +19,9 @@ Be clear about this before reading further.
 
 | Platform | Status | What that means |
 | --- | --- | --- |
-| Windows | **supported** | Built and tested by CI (MSVC, Debug under AddressSanitizer and Release), and by the author |
-| Linux | **supported** | Built and tested by CI (GCC), and in a container by the author (GCC 15, Debug under AddressSanitizer and UBSan, and Release) |
-| macOS | **supported, not yet seen to run** | Written to the same pattern and built by CI (AppleClang); nobody had run it when this was written. The first CI run is its first test. The places most likely to need a fix are listed under [Risks](#gaps-and-risks) |
+| Windows | **supported** | Built and tested by CI (MSVC, the Debug preset under AddressSanitizer; CI does not build Release), and by the author |
+| Linux | **supported** | Built and tested by CI (GCC, the Debug preset under AddressSanitizer and UBSan), and in a container by the author (GCC 15, Debug under AddressSanitizer and UBSan, and Release) |
+| macOS | **supported, not tried by hand** | Written to the same pattern as Linux; CI has a leg that builds and tests it (AppleClang, the Debug preset under AddressSanitizer and UBSan), and it has not been run on a Mac by hand. The places most likely to need a fix are listed under [Risks](#gaps-and-risks) |
 | QNX Neutrino | **unbuilt** | Code exists (`src/platforms/qnx`, on top of the shared `posix/` sources) and has never been compiled against the QNX headers or run. The selector refuses it unless asked (`-DADL_ACCEPT_UNBUILT_PLATFORM=ON`) |
 | INTEGRITY 5.0.8 (GHS) | **unbuilt** | Code exists (`src/platforms/ghs508`, on top of `posix/`) and has never been compiled against the INTEGRITY headers or run; no GHS toolchain exists on this project's machines. [The GHS review](platform-ghs.md) lists the places INTEGRITY's POSIX may differ |
 | INTEGRITY-178B (GHS) | **unbuilt** | Code exists (`src/platforms/ghs178b`, a native port: semaphores, the virtual-clock time-out pattern, ipflite) and has never been compiled. `Threading::spawn` and the `FileSystem` are `unsupported` on purpose; [the GHS review](platform-ghs.md) says why |
@@ -104,13 +104,14 @@ is quoted.
    clock · memory · files · threads · network · ipc
 ```
 
-- **A sans-I/O core.** The 615A and TFTP state machines (stages 2 and 3) take the
+- **A sans-I/O core.** The 615A and TFTP state machines (`TftpTransfer`, `DataLoader` and
+  `FindClient` in `adl::arinc615a`, described in [the engine page](arinc615a-engine.md)) take the
   time and the bytes that arrived and return the bytes to send, the events for the
   application and the next instant they want to be woken. They own no thread,
   socket or clock. That is what makes them portable (the core compiles
   anywhere), testable (feed it a script of packets and times, with no network
   and no waiting) and certifiable (no hidden concurrency).
-- **A thin runner** is the only code that calls the platform: wait on the sockets
+- **A thin runner** (`adl::arinc615a_runner`) is the only code that calls the platform: wait on the sockets
   until the core's next deadline, hand it what arrived, send what it returned,
   read and write the file blocks it asked for. One thread runs it.
 - **A `Host`** (`host.hpp`) gathers the six services behind one reference, so
@@ -176,14 +177,16 @@ context, with a template wrapper, so that nothing is allocated for it.
   the loader never overwrites (5.4.4.3 numbers each download directory, and the
   tree writer in `adl::media_tree` is as careful).
 - `rename` with replacement makes a download atomic: write to a temporary name,
-  check the checksum option's value (5.3.2.3.8.5), rename.
+  rename when the file is complete (`DirectoryFileSink` writes `.part` and renames).
 - **Paths** are UTF-8, `/` separated, never empty and never containing NUL or a
   backslash; every platform refuses those with `invalid_argument`
   (`detail/path_rules.hpp`). A backslash is a separator on Windows and a letter on
   Linux, and file names reach the loader from a target on the network, so the
-  interface makes a name mean one thing everywhere. The engine goes further and
-  never builds a path from a name a target asked for: it serves only names it finds
-  in the load's header file and media set lists, so there is nothing to traverse.
+  interface makes a name mean one thing everywhere. The 615A runner's
+  `DirectoryFileSource` and `DirectoryFileSink` go further and treat a name a target
+  sends as a name and nothing more (`is_safe_file_name`: no separator, no `..`, no control
+  character, 254 characters at most), and the engine accepts a write only for a file the
+  operation asked for, so no path of a target's choosing reaches the file system.
 - It does **not** use `std::filesystem`: no path objects, iterators, error codes or
   allocation, and nothing that an RTOS's library lacks. (`adl::media_tree`, which
   writes a media set to a directory, does use it, and is not part of the
@@ -209,8 +212,8 @@ context, with a template wrapper, so that nothing is allocated for it.
   keeps its name occupied until the last handle closes (the conformance test
   checks that the reader keeps working, not that the name is free).
 - FAT cannot replace atomically, and a power loss mid-download leaves a partial
-  file: the engine writes to a temporary name and renames, and reports a
-  download as complete only after that.
+  file: `DirectoryFileSink` writes to a temporary name and renames, and the
+  engine reports a file as received only after that.
 - Case and Unicode: the interface assumes nothing about two names that differ
   only in case. macOS and Windows file systems are usually case-insensitive and
   Linux's is not. 665 file names are case-sensitive in a load (2.2.2); a media set
@@ -273,12 +276,14 @@ start-up" is a design goal and not yet a fact:
   recycler (above) and by creating what it can at start-up.
 - **The fake allocates freely**: it is for tests.
 
-The route to none, for the embedded target, is a TFTP engine that works only on
-the protocol-file formats of 615A (which are small and fixed in structure) and on
-the *bytes* of the load's files, reading a block at a time through `ReadFile`,
-and never builds a `adl::arinc665` model on the device. The loader serves a header
-file as bytes; it does not need to decode it to do so. That decision belongs to
-stage 2, which owns the codec, and is recorded here as the intention.
+The route to none, for the embedded target, is the one the 615A engine takes: it
+works only on the protocol-file formats of 615A (which are small and fixed in
+structure) and on the *bytes* of the load's files, reading a block at a time
+through a `FileSource`, and builds no `adl::arinc665` model on the device
+([the engine page](arinc615a-engine.md#memory-buffers-and-lifetimes)). The loader
+serves a header file as bytes; it does not need to decode it to do so. The engine's one
+allocation is the value of a checksum, which `adl::arinc665::IntegrityChecker`
+returns in a `std::vector`.
 
 | | Windows | Linux, macOS | QNX | VxWorks | FreeRTOS | Zephyr |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -458,13 +463,14 @@ whole messages with timed `send` and `receive`.
   privileged port on the wildcard address on recent releases; this has not been
   checked here. Windows has no such rule, but its firewall asks. The standard's own
   answer is the "port" option, which moves the loader's control port to 49152 or
-  above for an operation (5.3.2.3.8.6): the loader should offer it, and the
-  conformance tests bind high ports only.
+  above for an operation (5.3.2.3.8.6): the loader offers it
+  (`LoaderConfig::control_port`), and the conformance tests bind high ports only.
 - **FIND on a host with several interfaces**: a limited broadcast
   (255.255.255.255) leaves by the one interface the system picks. Binding the
   socket to an interface's address chooses it; directed broadcast addresses and
-  enumerating interfaces are not offered. The runner takes the local address from
-  its configuration.
+  enumerating interfaces are not offered. `Runner::find` binds FIND's socket to
+  the wildcard address and has no setting for an interface; `FindConfig::destinations`
+  lists the addresses to send to instead of the broadcast.
 - **A loader and a target on one machine** can share FIND's port 1001 only with
   `reuse_address` on both; which socket gets a given datagram is then up to the
   system.
@@ -673,8 +679,8 @@ which is exempt from the rule against testing the operating system; every other
 file reads what the platform's fragment declared. It accepts `windows`, `linux`,
 `macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos` and `zephyr`. QNX is
 also recognised from `CMAKE_SYSTEM_NAME`, the one RTOS that CMake names (the two
-INTEGRITY targets are named through the GHS toolchain files, which set it as
-`Generic`). A platform's fragment declares
+INTEGRITY targets are named by `ADL_TARGET_PLATFORM`, which their toolchain files
+and presets set; the toolchain files give `CMAKE_SYSTEM_NAME` as `Generic`). A platform's fragment declares
 `ADL_PLATFORM_STATUS` (`supported`, `experimental`, `unbuilt` or `design-only`); the selector
 refuses a design-only platform outright and an unbuilt one unless
 `-DADL_ACCEPT_UNBUILT_PLATFORM=ON`. A platform whose image a project of its own builds (FreeRTOS and
@@ -703,7 +709,7 @@ that pointer; [building](building.md) says how each is built. Two tests hold thi
 
 The ones that matter most, in the order they are likely to bite:
 
-1. **macOS has not run.** It shares the POSIX sources with Linux and differs in
+1. **macOS has not been run by hand.** CI is where it runs. It shares the POSIX sources with Linux and differs in
    `macos/os_macos.cpp`: the condition-variable wait, `F_FULLFSYNC`, the priority
    range, thread naming. The UDP datagram limit (9216 bytes by default) is worked
    around with `SO_SNDBUF`, which is not yet seen to work.

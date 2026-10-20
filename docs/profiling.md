@@ -59,7 +59,11 @@ The window's frame loop is `src/app/frame_profiler.cpp`: Qt emits `frameSwapped`
 render time, connected directly so it is measured where it happens). Threads are named `gui`,
 `engine` and Qt's render thread.
 
+Only the main application has zones of its own: `adl_media_gen` and `adl_mock_target` show only the zones
+of the libraries they use.
+
 Not instrumented, and why:
+
 
 - **GPU zones.** Tracy's GPU zones need the graphics API's own instrumentation; Qt's RHI does not
   expose it. The render thread's CPU time is plotted, the GPU's is not.
@@ -123,8 +127,9 @@ check (its fixture is a few KiB), an Upload and a media Download against the sim
 figures below are from one such capture on a Windows workspace; absolute numbers are not the point
 (the fixture is tiny) — the *shape* is what a profile of the real thing starts from.
 
-The headless suite (`adl_app_tests`, 43 tests over 4.9 s) produced 2,292 zones — the figures below
-are from that capture, with the window test's capture for the frame loop.
+The headless suite (`adl_app_tests`, 43 tests over 4.9 s when it was captured; it has more tests now and
+the figures were not re-measured) produced 2,292 zones — the figures below are from that capture, with the
+window test's capture for the frame loop.
 
 | Zone | Calls | Mean | Max | Reading |
 | --- | ---: | ---: | ---: | --- |
@@ -163,4 +168,4 @@ are from that capture, with the window test's capture for the frame loop.
 - The generator writing a large set: the write path's per-file cost is the number to watch, and
   it is OS-bound.
 - GPU zones, if the renderer ever becomes the limit: they need the RHI's own instrumentation,
-  which this change does not add.
+  which this build does not add.

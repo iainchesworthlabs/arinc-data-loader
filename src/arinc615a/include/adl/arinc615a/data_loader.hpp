@@ -225,6 +225,8 @@ enum class OutcomeCode : std::uint8_t {
     return "unknown";
 }
 
+// How an operation ended (`code` is `running` until it has), with the last status the
+// target reported and counts of the status files and the files seen.
 struct Outcome {
     OutcomeCode code = OutcomeCode::running;
     // The operation status of the last status file seen, if any came.
@@ -246,6 +248,8 @@ struct Outcome {
 
 // ---- Set-up ----------------------------------------------------------------------------------
 
+// How the loader is set up: the target and the port the loader listens on, block
+// sizes, the time-outs and retries of Attachment 4, and the sizes of its buffers.
 struct LoaderConfig {
     // The target's TFTP control endpoint: its address and port 59.
     Endpoint target{{}, tftp_control_port};
@@ -281,6 +285,9 @@ struct LoaderConfig {
     std::size_t name_pool_bytes = std::size_t{16} * 1024;
 };
 
+// What the loader calls out to: where an upload reads the load's files, where a
+// download writes the target's, and who is told of progress. With no source or sink
+// the loader refuses the target's requests for files; a listener is optional.
 struct LoaderServices {
     FileSource* source = nullptr;  // an upload reads the load's files through this
     FileSink* sink = nullptr;      // a download writes the target's files through this
@@ -300,6 +307,9 @@ struct Command {
     std::span<const std::byte> bytes;
 };
 
+// The data loader's side of one operation. Construct it with its workspace, call
+// start(), then give it the datagrams that arrive and the time, running commands()
+// after each call, until done() and idle(). One operation per DataLoader.
 class DataLoader {
 public:
     static constexpr std::size_t max_slots = 8;

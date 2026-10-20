@@ -1,5 +1,10 @@
 #pragma once
 
+// The header file (.LUH) of a load, ARINC 665-3 section 2.2.3: a model of it, field
+// for field, and the functions that write it, read it and check it. The files it
+// lists are in files.hpp. The Load Check Value and the Load CRC cover files the
+// header does not hold, so load.hpp is what calculates them.
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>

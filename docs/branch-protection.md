@@ -144,7 +144,7 @@ Consequences worth knowing:
 
 ## Required checks
 
-The required contexts equal the job display names of the three workflows that
+The required contexts equal the job display names of the four workflows that
 produce them:
 
 | Check (context) | Workflow | Required on `develop` | Required on `main` |
@@ -257,7 +257,7 @@ Set by hand in the repository's settings (not expressible as a ruleset):
 
 Dependabot opens its pull requests against `develop` from `dependabot/*`
 branches (its prefix is not configurable, so `branch-name-check.yml` and the
-`branch-names` pattern allow it). They go through the same required checks and
+`branch-names` ruleset allow it). They go through the same required checks and
 the same queue as any other pull request; nothing is bypassed. Commit messages
 and titles Dependabot writes carry no attribution, so
 `Validate commit and PR text` passes them.

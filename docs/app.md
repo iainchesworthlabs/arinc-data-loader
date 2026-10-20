@@ -21,7 +21,7 @@ FIND, the Information, Upload and Download operations are built. What the window
 | About | The `ADL` mark, what the window is for, and the build provenance the other ICL tools show: version, git describe, full commit, branch, build target, Qt version and a dirty-tree marker, generated at configure time; the licence and repository link. |
 | The window's look | The shared design system in `src/ui`: `Theme.qml` is the single source of truth for colour (Signal light and dark), type, spacing and geometry; the shared controls (`AppButton`, `AppCheckBox`, `AppTextField`, `AppComboBox`, `AppSpinBox`, `SegmentedControl`, `FocusRing`), the header and footer, the chips, the log and the dialogs draw from it. The three applications compile the same source; see [the design system](design-system.md). |
 | The first launch | A first-run statement before the workbench: what the window is for, one primary that opens the workbench, an optional route to choose a media set, and the defaults folded away. Passing it once is stored (its fields are the preferences), so every later launch goes straight to the workbench. |
-| The language | Every string goes through `qsTr`/`tr` and there is a catalogue per language: English (the source), French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese (`src/app/translations/adl_app_<code>.ts`, compiled by `qt_add_translations`). `LanguageManager` installs the catalogue for the persisted language (the system locale, then English, on a first run), sets the layout direction — the window mirrors itself for the right-to-left scripts — and retranslates the running window when Preferences switches it. The translations are a first, mechanical draft, to be reviewed by speakers. |
+| The language | The window's own text goes through `qsTr`/`tr`, and there is a catalogue per language: English (the source), French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese (`src/app/translations/adl_app_<code>.ts`, compiled by `qt_add_translations`). `LanguageManager` installs the catalogue for the persisted language (the system locale, then English, on a first run), sets the layout direction (right to left for Hebrew and Yiddish) and retranslates the running window when Preferences switches it. **The window's layout is not mirrored for the right-to-left scripts**: the application's layout direction is set, which right-aligns text such as the log lines, but no QML item sets `LayoutMirroring`, so the rail stays on the left and the header buttons keep their order (seen in [the screenshot](images/app-workbench-hebrew.png)); the window test checks the direction, not the mirroring. **Only 148 of the 515 messages are translated** in each of the seven non-English catalogues (367 are still marked unfinished, so they show in English), and the translations that exist are a first, mechanical draft to be reviewed by speakers. Some text is never translated because it does not come from the window: the names of engine notices and outcomes (`adl::arinc615a::to_string`), the findings of the ARINC 665 library (`clause: message`), and whatever the target itself sends. The generator and the mock target have no catalogue and no language choice; they are English only. |
 | The target that was used | The address and `<THW_ID_POS>` an operation last started against are stored, and put back into the window at start-up, so a session starts where the last one left off. The Preferences defaults fill the fields on a first run, and again whenever the operator clears one. |
 | The activity log | What the target said (its answer, each status file) and the engine's notices (a lost or repeated status file, a refused request, a checksum that did not match, a WAIT), with the time, oldest first. |
 | The outcome | How the operation ended (the engine's `OutcomeCode`), and for an abort whether the target confirmed that it had stopped. Failures also open a dialog once, with the outcome, the detail and, where the application knows one, a hint (a host that could not start, an address that is not an address, a media set that could not be read, an abort the target did not confirm); a status bar carries the current state, the target and the media set. |
@@ -56,9 +56,11 @@ choice asks the target to abort and waits for it.
 src/app/
   main.cpp            creates the QGuiApplication, one LoaderModel and the QML engine
   language_manager    the translators, the persisted language, retranslate and the layout direction
+  frame_profiler      the window's frame loop for a profiling build (docs/profiling.md)
   qml/                Main.qml (the shell), UploadPanel.qml, DownloadPanel.qml, ActivityDock.qml,
-                      FirstRunScreen.qml, and the preferences, properties and about dialogs
-  translations/       the catalogues (adl_app_en.ts), compiled into the window's module
+                      FirstRunScreen.qml, and the preferences, media set properties, target
+                      properties and about dialogs (the licences dialog is in src/ui)
+  translations/       the eight catalogues (adl_app_<code>.ts), compiled into the window's module
   core/               adl_app_core: everything but the window, Qt Core only
     engine_worker     the engine on its own thread, the abort and the deferred download choice
     loader_model      what the QML talks to: properties and a few invokable functions
@@ -70,8 +72,10 @@ src/app/
     events, address   plain values, and the IPv4 parser
     host_access       where the worker gets the platform from
 tests/app/            QtTest, and the window loaded offscreen
+tests/ui/             the window driven through Qt Quick Test (testing.md)
 src/ui/               the shared design system: Theme, the controls, the header and footer, the
-                      log, the dialogs, Archivo and the window geometry helper
+                      log, the dialogs, Archivo, the version and licence text and the window
+                      geometry helper
 ```
 
 `core` has no QML and no GUI, so it is tested headless. The QML is a view: it binds to `LoaderModel`'s
@@ -89,14 +93,14 @@ over, and `Runner::find` not until the window of three seconds has passed. So th
 ```text
    window's thread                           engine thread (QThread "engine")
    ---------------                           --------------------------------
-   LoaderModel  --- queued call ---------->  EngineWorker::find / read_information / read_media_set
+   LoaderModel  --- queued call ---------->  EngineWorker::find / read_information / upload / download / ...
         ^                                         |  Runner::run(loader, op, {controller = &gate})
-        |                                         |    the listener (OperationListener) copies what
+        |                                         |    the listener (JobListener) copies what
         +------ queued signals, in order ---------+    it is handed into Qt values and emits them
         |         log_line, targets_found,                
-        |         configuration_read, finished           AbortGate::on_poll (every 100 ms)
+        |         configuration_read, finished           OperationGate::on_poll (every 100 ms)
         |                                                       ^
-        +------ AbortGate::request() (an atomic flag) ----------+
+        +--- OperationGate::request_abort() (an atomic flag) --+
 ```
 
 - **A job is one queued call and ends with exactly one `finished` signal**, whatever happened (the engine
@@ -104,20 +108,25 @@ over, and `Runner::find` not until the window of three seconds has passed. So th
   `busy` is true and `LoaderModel` refuses another: there is one engine thread, and the operation owns the
   loader's control port. While one runs the ticks beside the loads cannot be changed.
 - **Everything the engine reports is copied at once.** An `OperationListener` is handed views that are
-  valid during the call only, so `InformationListener` turns each into `QString`s and emits a signal.
+  valid during the call only, so `JobListener` (one per job, for every operation) turns each into
+  `QString`s and emits a signal.
   Qt delivers the signals to the window's thread in the order they were emitted, so the log reads in the
   order things happened.
 - **The abort cannot be a queued call**, because the worker's thread is inside the runner, not in its
-  event loop. It is an atomic flag (`AbortGate`), which is also the runner's `RunController`: the runner
-  polls it (every 100 ms by default) and the first poll that sees it calls `DataLoader::abort` once, with
-  `aborted_by_operator`. Both operations (Information and Upload) use it. The flag is cleared by `LoaderModel` before it queues a job, so an abort left
+  event loop. It is an atomic flag (`OperationGate`), which is also the runner's `RunController`: the
+  runner polls it (every 100 ms by default) and the first poll that sees it calls `DataLoader::abort` once,
+  with `aborted_by_operator`. All four jobs that run an operation use it: Information, Upload and the two
+  modes of Download (`LoaderModel::canAbort`); a FIND and the reading of a media set have no abort and end
+  by themselves within seconds. The flag is cleared by `LoaderModel` before it queues a job, so an abort left
   over from an earlier job cannot stop the next. The target is told by the engine (an `ABORT` on every open
   transfer and in answer to the next status request); the operation ends when the target confirms or after
   the 13 second data load protocol time-out.
-- **A deferred file choice** (an operator defined download) will use the same route: `RunController` is
-  where `DataLoader::provide_selection` is called from, with the choice taken from a flag in the same way.
-- **Closing the window** aborts what is running and waits for the engine's thread. For an operation the
-  target has to confirm, that can be up to the 13 second time-out; a FIND, three seconds.
+- **A deferred file choice** (an operator defined download) uses the same route: `OperationGate::on_poll`
+  is where `DataLoader::provide_selection` is called from, with the choice posted by the window
+  (`post_selection`) and taken from a flag in the same way. If an abort has been asked for, it wins.
+- **Closing the window** while a job runs first asks (`An operation is running`: `Keep working` or
+  `Stop and close`); the second choice aborts the job and waits for the engine's thread. For an operation
+  the target has to confirm, that can be up to the 13 second time-out; a FIND, three seconds.
 - **The platform's `Host` is made on the engine thread, once per job** (`system_host_factory`), and
   released at its end, so Winsock (on Windows) is started and stopped around each job and nothing is held
   between them. The factory is a constructor argument of `LoaderModel`, which is how the tests give it a
@@ -218,8 +227,9 @@ requested, and where.
 
 - **Qt is the prebuilt kit, not vcpkg.** `cmake/FindQt6.cmake` finds it through `QT_ROOT_DIR` (set by
   `. C:\Repos\common\env.ps1`, and by CI) or the aqtinstall layout each platform fragment lists.
-- **`ADL_BUILD_APP` is off by default**, so the libraries build on a machine without Qt. CI and the
-  presets of anyone building the application turn it on: `cmake --preset windows-msvc-debug -DADL_BUILD_APP=ON`.
+- **`ADL_BUILD_APP` is on by default on a desktop where the Qt kit is found**, and off where it is not,
+  so the libraries still build on a machine without Qt; `-DADL_BUILD_APP=ON` makes a missing kit an
+  error and `-DADL_BUILD_APP=OFF` is the deliberate libraries-only build ([building](building.md#building-the-application)).
 - **Qt's keyword macros are off** (`QT_NO_KEYWORDS`): `emit`, `signals`, `slots` and `foreach` are
   `Q_EMIT`, `Q_SIGNALS`, `Q_SLOTS` and `Q_FOREACH`. `forever` is one of Qt's macros and is also the name
   of the platform layer's "no time limit", so the macros would stop the platform headers compiling.
@@ -266,8 +276,10 @@ test sets are a few kilobytes), an abort in the middle of a transfer through the
 tests cover it; the application's abort test holds the engine at the start of the job); the window
 against a real target over a real network (the runner over real sockets is run by the loopback
 integration test against the mock target, [mock target](mock-target.md), not by the window); the window
-on a real screen at other scales (both schemes have been looked at offscreen); keyboard use and a screen
+at scales other than 100% (it has been driven on a real Windows desktop in both schemes by a script, see
+[the screenshots](screenshots.md), against the mock target on the same machine: FIND finds nothing there,
+the operations work); keyboard use and a screen
 reader beyond the accessible names the controls carry; the translations' wording (the eight catalogues are
-a first, mechanical draft: the tests prove a catalogue is installed, the window retranslated and the layout
-mirrored, not that a speaker would accept the text); and the first-run screen's download-directory picker
+a first, mechanical draft: the tests prove a catalogue is installed, the window retranslated and the application's layout
+direction set, not that the layout mirrors or that a speaker would accept the text); and the first-run screen's download-directory picker
 (it is a Qt `FolderDialog`, the media set's own picker is the tested one).

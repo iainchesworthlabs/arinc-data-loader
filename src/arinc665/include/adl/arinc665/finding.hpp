@@ -1,5 +1,9 @@
 #pragma once
 
+// Finding, which the check_*() functions of this library return for something the
+// standard says a file "should" be otherwise. It does not stop an operation; an
+// Error (error.hpp) does.
+
 #include <string>
 #include <vector>
 
