@@ -6,6 +6,7 @@
 #include <QVariant>
 
 #include "adl/gen/generator_model.hpp"
+#include "adl/ui/build_info.hpp"
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/settings_location.hpp"
 #include "adl/ui/smoke_test.hpp"
@@ -15,7 +16,7 @@
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
     QGuiApplication::setApplicationName(QStringLiteral("ARINC Media Set Generator"));
-    QGuiApplication::setApplicationVersion(QStringLiteral("0.1.0"));
+    QGuiApplication::setApplicationVersion(QString::fromLatin1(adl::ui::kVersion));
     QGuiApplication::setOrganizationName(QStringLiteral("iainchesworthlabs"));
     // ADL_SETTINGS_DIR moves the preferences into an ini file there (the tests set it).
     adl::ui::redirect_settings_from_environment();

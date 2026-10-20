@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=ARINC Data Loader
+Comment=Load ARINC 665 media sets to a target over ARINC 615A
+Exec=adl_app
+TryExec=adl_app
+Icon=adl_app
+Terminal=false
+Categories=Development;Utility;

@@ -1,0 +1,12 @@
+@PACKAGE_INIT@
+
+# The ARINC Data Loader libraries: adl::arinc665, adl::arinc615a, adl::arinc615a_runner,
+# adl::media_tree and adl::platform. They are static libraries that need nothing but the C++23
+# standard library and the host's own system libraries.
+#
+#   find_package(adl 0.1 REQUIRED)
+#   target_link_libraries(my_tool PRIVATE adl::media_tree)
+
+include("${CMAKE_CURRENT_LIST_DIR}/adlTargets.cmake")
+
+check_required_components(adl)

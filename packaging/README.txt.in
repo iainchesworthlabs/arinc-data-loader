@@ -1,0 +1,39 @@
+ARINC Data Loader @ADL_RELEASE_VERSION@
+=====================================
+
+What is here
+------------
+
+  adl_app           the data loader: reads a media set, finds a target and loads it
+                    over ARINC 615A (or downloads from it)
+  adl_media_gen     the media set generator: builds an ARINC 665 media set from files
+  adl_mock_target   a mock ARINC 615A target, to try the loader against
+  adl_write_payloads  writes sample media sets to a directory (command line)
+
+  LICENSE.txt       the GNU General Public License, version 3 or later, which covers
+                    these programs
+  NOTICES.txt       the third-party components in this package (Qt under the LGPL,
+                    the Archivo typeface under the SIL Open Font License, ...), their
+                    licence texts and the offer of their source. It is also in each
+                    program under About > Licences.
+
+The Qt libraries sit beside the programs as separate files, so they can be replaced by
+another build of the same Qt version, as the LGPL asks.
+
+These programs have not been run against real aircraft equipment. The packages are not
+signed for any operating system's store: your system may warn the first time you start them.
+
+Checking the download
+---------------------
+
+Every file in a release is listed in SHA256SUMS, which is signed with the project's release
+key (a detached PGP signature), and carries a build-provenance attestation that ties it
+to the workflow run that built it. The steps are in
+docs/verifying-releases.md in the source, and at
+
+  @ADL_HOMEPAGE_URL@/blob/main/docs/verifying-releases.md
+
+Source
+------
+
+@ADL_HOMEPAGE_URL@

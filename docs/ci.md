@@ -17,6 +17,7 @@ a rule. The same rules are also kept before a push, locally, by the hooks in
 | Builds, tests, formatting, platform isolation | the `ci.yml` jobs, as required checks | `ctest` (includes the isolation check) |
 | Gitflow branch names | `Validate gitflow branch name`, and the `branch-names` ruleset refuses the push | `tools/hooks/pre-push` |
 | No attribution in commits and PR text | `Validate commit and PR text`, as a required check | `tools/hooks/commit-msg` |
+| A user-visible change has a changelog fragment | `Changelog fragment` (not yet a required check) | `pwsh tools/release/Changelog.ps1 -Mode PullRequest -Base origin/develop` |
 | Pull request required, no direct push, no force push | the `main-protection` and `develop-protection` rulesets | - |
 | Merge queue in front of `develop` | the `merge-queue-develop` ruleset | - |
 
@@ -29,7 +30,9 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 | `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs, a coverage gate, and the Zephyr and FreeRTOS simulator jobs | yes |
 | `branch-name-check.yml` | gitflow branch naming; the source/target pairing | yes |
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
+| `changelog.yml` | a PR into `develop` adds a changelog fragment, or carries the `no-changelog` label | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
+| `release.yml` | the Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on `release/*` branches and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | the nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
 | `dependency-review.yml` | fails a PR that adds a moderate-or-worse vulnerable dependency | no - skipped |
 | `scorecard.yml` | OpenSSF Scorecard score and badge, from `main` | no - skipped |
@@ -68,6 +71,37 @@ Qt applications, a Clang ASan/UBSan build and test run, CodeQL's C++ queries,
 and an optional SonarQube scan that is skipped until it is configured. The
 reason for each, the local presets and the suppression rules are in
 [Nightly static and dynamic analysis](static-analysis.md).
+
+## The release workflow
+
+`release.yml` is described in [Releasing](releasing.md) and checked from the outside by
+[Verifying a release](verifying-releases.md). Where it sits among the others:
+
+- It is not a required check and carries no `merge_group` trigger. On a pull request it runs only
+  when the change touches the packaging (`cmake/`, `packaging/`, `src/platforms/*/platform.cmake`,
+  `tools/release/`, the Qt installer, the presets or the workflow itself), builds, tests, packages and
+  writes the SBOM on the three systems, and has no secrets. It is the only place the Release
+  configuration is compiled, and the only place `system.install_consumer` runs, before a release.
+- On a push to `release/*` or a version tag it also signs, attests and verifies. The job that signs runs
+  in the environment `release-signing`, which GitHub gives to those refs only; the job that drafts the
+  release runs in `release`, which waits for the maintainer.
+- Every action in it is pinned like the others, `permissions: {}` is the workflow's default and each job
+  names what it needs (`id-token` and `attestations` for *Attest*, `contents: write` for *Draft the
+  release*), and nothing in it runs on `pull_request_target`.
+
+### The release signing key
+
+The public key is [`release-signing-key.asc`](release-signing-key.asc). Its fingerprint, also in
+[SECURITY.md](../SECURITY.md) and [Verifying a release](verifying-releases.md), is
+
+```text
+C6B4 AD93 067E B501 F450  5BCF 3FF3 6825 5329 8A53    (Ed25519, expires 2028-10-18)
+```
+
+The private key and its passphrase are the secrets `RELEASE_GPG_PRIVATE_KEY` and
+`RELEASE_GPG_PASSPHRASE` of the environment `release-signing`. `tools/release/sign_release.sh`
+refuses to sign unless the secret holds the key with this fingerprint, and verifies every signature
+against the public key in the repository before the step passes.
 
 ## The jobs in `ci.yml`
 
@@ -124,21 +158,38 @@ the fact instead of re-run.
   leg uses the compiler its image ships. The `Show the toolchain` step puts
   the exact version in the log.
 - **Debug presets.** CI builds the Debug presets because they carry the
-  sanitizers. The Release presets are not built in CI yet; a Release-only
-  warning (`-Wnull-dereference`, for one) would first show up locally.
+  sanitizers. The Release presets are built by `release.yml` (on every
+  packaging pull request and every release branch), so a Release-only warning
+  (`-Wnull-dereference`, for one) shows up there rather than on release day.
 - **Qt, on the three build legs.** The Qt 6.12 application is built and tested (`-DADL_BUILD_APP=ON`).
-  Qt is the prebuilt kit, not vcpkg, and the composite action `.github/actions/install-qt` installs it:
-  with the aqtinstall pinned in `.github/requirements/qt.txt` on Linux (`linux_gcc_64`) and macOS
-  (`clang_64`), and on Windows with `install_qt_msvc.py`, a short script that does what aqtinstall does for
-  one package (the `win64_msvc2022_64` kit, each archive checked against its published SHA-1). aqtinstall
-  3.3.0 does not know the layout Qt's repository has for Windows from Qt 6.11 on (one directory per
-  architecture) and fails with "Failed to locate XML data"; drop the script when a release of it does. The
-  install is retried twice, since download.qt.io is a mirror network, and the kit is cached under an exact
-  key (version, architecture and the installer's pin). On Linux the action installs the few system
-  libraries a prebuilt Qt needs, and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The
-  Qt version is the action's `version` input in `ci.yml` (the same 6.12.0 as the labs' shared toolchain);
-  the matrix has the host and architecture names. The coverage job does not build the application, so it
-  needs no Qt, and its figures are of the portable code; the UI suite runs on the three build legs.
+  Qt is the prebuilt kit, not vcpkg, and the composite action `.github/actions/install-qt` installs it
+  with `install_qt.py`, a short script that reads the kit's package list from download.qt.io
+  (`win64_msvc2022_64`, `linux_gcc_64`, `clang_64`), downloads each archive, **refuses any archive whose
+  SHA-256 is not the one pinned in `.github/requirements/qt-archives.sha256`** and only then unpacks it.
+  (aqtinstall, which did this before, cannot read the repository's layout for Windows from Qt 6.11 on, and
+  like Qt's own installer checks an archive only against a hash fetched from the same server, so whoever
+  could replace an archive could replace its hash.) The one Python package the script needs, `py7zr`, is
+  installed (into a `uv venv --python 3.13`, since the newest Python on an image can be newer than the wheels) with `uv pip install --require-hashes --no-build` from the hash-locked
+  `.github/requirements/qt.txt`, so each wheel is the one that was reviewed and nothing is built from a
+  source distribution. The install is retried twice, since download.qt.io is a mirror network, but a hash
+  mismatch is not retried; the kit is cached under an exact key (version, architecture, and the hashes of
+  the lock files and the script). On Linux the action installs the few system libraries a prebuilt Qt needs,
+  and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The Qt version is the action's
+  `version` input in `ci.yml` and `release.yml` (the same 6.12.0 as the labs' shared toolchain); the matrix
+  has the host and architecture names. The coverage job does not build the application, so it needs no Qt,
+  and its figures are of the portable code; the UI suite runs on the three build legs.
+
+  **Moving to another Qt version** is deliberate and reviewed: change the `version` inputs, then, with the
+  network and Python 3.10 or newer,
+
+  ```sh
+  uv venv /tmp/qt-venv && uv pip install --python /tmp/qt-venv/bin/python --require-hashes -r .github/requirements/qt.txt
+  /tmp/qt-venv/bin/python .github/actions/install-qt/install_qt.py lock 6.12.1 windows linux mac --pins .github/requirements/qt-archives.sha256
+  ```
+
+  which downloads every archive, checks each against the SHA-256 the repository publishes beside it, and
+  rewrites the pins. Read the diff of the pins file like a dependency update, and commit it with the version
+  bump. Until then CI fails with "do not cover the archives", on purpose.
 - **CMake 4.4.2 and Ninja 1.13.2** from `lukka/get-cmake`; the same pins the
   sibling projects use.
 - **Local composite actions are referenced as `./.github/actions/...`.** The
@@ -185,6 +236,7 @@ contexts equal the job display names above and in the two policy workflows.
 | `macOS (AppleClang)` | `ci.yml` | yes |
 | `Coverage (Linux, GCC)` | `ci.yml` | yes |
 | `Scan dependency diff` | `dependency-review.yml` | yes - added after it reported on a pull request on the public repository |
+| `Changelog fragment` | `changelog.yml` | no - not yet required; see below |
 | `Analyze (C++)` | `codeql.yml` | no - informational |
 | `Zephyr (native_sim)` | `ci.yml` | no - new, not required until it has been green for a while |
 | `Zephyr (QEMU, SDK toolchain)` | `ci.yml` | no - new, not required until it has been green for a while |
@@ -198,6 +250,23 @@ because the merge queue evaluates the required checks on its temporary
 as a pass for a required check). A workflow that produces **no** required
 check must not carry `merge_group`, or every queue entry burns a run of it for
 nothing: that is why `codeql.yml` and `static-analysis.yml` do not have it.
+
+## The changelog fragment check
+
+`changelog.yml` (job `Changelog fragment`) runs on a pull request into
+`develop`. It first runs `tools/release/test_changelog.ps1`, which proves the
+tool still fails what it must, and then `tools/release/Changelog.ps1 -Mode
+PullRequest`: the pull request must add a well-formed file
+`changelog.d/<name>.<category>.md`, or carry the `no-changelog` label, or come
+from a `release/*`, `hotfix/*` or `dependabot/*` branch. A malformed fragment
+fails even with the label. The label and branch name reach the script through
+the environment. Pull requests into `main` are release pull requests, where the
+fragments are consumed ([Releasing](releasing.md)), and are not checked.
+
+It is a visible check but not a required one yet: requiring it means adding
+`Changelog fragment` to the two ruleset files and to `merge_group` in the
+workflow in one commit (`docs/branch-protection.md`), which is the maintainer's
+call.
 
 ## The vcpkg binary cache
 
@@ -267,8 +336,9 @@ Python packages come from PyPI.
 | Zephyr (and its modules littlefs, cmsis and cmsis_6) | `revision` in `tests/platform/zephyr/west.yml` (v4.4.2) | By hand |
 | The Zephyr SDK (the Arm toolchain and QEMU of the QEMU job) | File names and SHA-256 in `tools/ci/zephyr_sdk.sha256` (1.0.1, which is what Zephyr v4.4.2's `SDK_VERSION` names; `install_zephyr_sdk.sh` refuses a mismatch) | By hand, with Zephyr |
 | FreeRTOS-Kernel, lwIP, littlefs, Catch2 (the simulator program) | URL and SHA-256 in `tests/platform/freertos/CMakeLists.txt` (V11.2.0, 2.2.1, v2.11.3, v3.15.3) | By hand |
-| aqtinstall (installs Qt) | `==` in `.github/requirements/qt.txt` | Dependabot (`pip`), weekly |
-| Qt | `version` input of the `install-qt` step in `ci.yml` (6.12.0) | By hand, with the labs' shared toolchain |
+| py7zr and its dependencies (unpack Qt) | `==` with every wheel's SHA-256 in `.github/requirements/qt.txt`, compiled from `qt.in`, installed with `--require-hashes --no-build` | Dependabot (`pip`), weekly |
+| The Qt archives | The SHA-256 of each, in `.github/requirements/qt-archives.sha256` | By hand: `install_qt.py lock` |
+| Qt | `version` input of the `install-qt` step in `ci.yml` and `release.yml` (6.12.0) | By hand, with the labs' shared toolchain |
 | CMake and Ninja (`lukka/get-cmake`) | `cmakeVersion` / `ninjaVersion`, exact, and one the pinned action's catalog lists | By hand, with the action |
 | vcpkg and the ports | The submodule commit and `builtin-baseline` | Dependabot (`vcpkg` + `gitsubmodule`, one monthly PR); by hand |
 | Runner images | The label (`ubuntu-24.04`, `ubuntu-26.04`, `windows-2025-vs2026`, `macos-26`) | By hand |

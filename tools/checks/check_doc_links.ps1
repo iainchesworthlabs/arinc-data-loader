@@ -35,11 +35,15 @@ function Get-MarkdownFiles {
     if ($tracked) {
         # Tracked files only, but also new ones that are not committed yet.
         $untracked = & git -C $Root ls-files --others --exclude-standard '*.md' 2>$null
+        # A changelog fragment is written with the links of the CHANGELOG.md it will be assembled into
+        # (tools/release/Changelog.ps1), which are relative to the repository root, not to changelog.d.
         return @($tracked) + @($untracked) | Where-Object { $_ -and -not $_.StartsWith('deps/') } |
+            Where-Object { -not ($_.StartsWith('changelog.d/') -and $_ -ne 'changelog.d/README.md') } |
             ForEach-Object { Join-Path $Root $_ } | Where-Object { Test-Path $_ }
     }
     return Get-ChildItem -Path $Root -Recurse -Filter '*.md' -File |
         Where-Object { $_.FullName -notmatch '[\\/](deps|build|out|\.git)[\\/]' } |
+        Where-Object { $_.FullName -notmatch '[\\/]changelog\.d[\\/](?!README\.md$)' } |
         ForEach-Object { $_.FullName }
 }
 

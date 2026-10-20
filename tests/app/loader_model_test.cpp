@@ -1228,12 +1228,15 @@ void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_
     QVERIFY(model.canDownload());  // a target and a directory are all it needs
 
     QStringList listed;
+    bool list_was_logged = false;
     QObject::connect(&model, &LoaderModel::downloadChoicePendingChanged, &model, [&] {
         if (!model.downloadChoicePending()) {
             return;
         }
         auto* files = qobject_cast<DownloadModel*>(model.downloads());
         listed = files->names();
+        list_was_logged =
+            log_contains(model, QStringLiteral("The target listed 3 files it can download."));
         // Take B.BIN and C.BIN only: the choice is what the gate hands to the loader.
         QVERIFY(files->setData(files->index(0), false, DownloadModel::CheckedRole));
         model.confirmDownloadSelection();
@@ -1262,7 +1265,10 @@ void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_
     QVERIFY(!downloaded(rig, downloads.path(), "A.BIN").has_value());
     // The window keeps the chosen files, with their progress.
     QCOMPARE(qobject_cast<DownloadModel*>(model.downloads())->rowCount(), 2);
-    QVERIFY(log_contains(model, QStringLiteral("The target listed 3 files it can download.")));
+    // The log said so when the list arrived. (It is checked then, not now: while the operator
+    // chooses, the engine keeps reading the target's status and logging it, and an optimised build
+    // does that fast enough to push a line this old out of the log's 2000 lines by the end.)
+    QVERIFY(list_was_logged);
 }
 
 void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() {
