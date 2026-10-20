@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=ARINC Media Set Generator
+Comment=Generate an ARINC 665 media set from files on disk
+Exec=adl_media_gen
+TryExec=adl_media_gen
+Icon=adl_media_gen
+Terminal=false
+Categories=Development;Utility;

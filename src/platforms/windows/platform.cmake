@@ -84,3 +84,27 @@ function(adl_platform_deploy_qt_runtime target qml_dir)
         COMMAND "${ADL_WINDEPLOYQT_EXECUTABLE}" ${_arguments} "$<TARGET_FILE:${target}>"
         COMMENT "Deploying the Qt runtime beside ${target}")
 endfunction()
+
+# ---- packaging (cmake/AdlInstall.cmake, cmake/AdlPackage.cmake) ----------------------------------
+# Where the install tree puts things: the programs and the Qt files beside them in the top directory,
+# so the unpacked archive is a portable folder (no installer, nothing written outside it).
+set(ADL_PLATFORM_INSTALL_BINDIR ".")
+set(ADL_PLATFORM_INSTALL_DOCDIR ".")
+
+# What CPack makes: a zip of the runtime component and a zip of the development component. There is
+# no installer: one that is not signed with a certificate the system trusts only adds a warning to the
+# one the zip already earns, and the folder does not touch the registry.
+set(ADL_PLATFORM_PACKAGE_RUNTIME_GENERATORS ZIP)
+set(ADL_PLATFORM_PACKAGE_DEVELOPMENT_GENERATORS ZIP)
+
+# Qt's own deployment tool (windeployqt, driven by Qt's install-time deploy script) puts the Qt DLLs,
+# the platform and style plugins, the QML modules the program imports and the compiler runtime beside
+# the installed executable, so the folder runs on a machine with no Qt.
+function(adl_platform_install_app target qml_dir)
+    adl_qt_deploy_script(${target} deploy_script)
+    install(SCRIPT "${deploy_script}" COMPONENT runtime)
+endfunction()
+
+# CPack settings only this platform has (none for a zip).
+function(adl_platform_configure_packaging)
+endfunction()
