@@ -85,6 +85,9 @@ The branch model is gitflow ([Branch protection](branch-protection.md)): `releas
 1. **Branch.** `git switch -c release/0.1.0 develop`
 2. **Version.** Set the version in `CMakeLists.txt` (`project(ArincDataLoader VERSION 0.1.0 ...)`) and in
    `vcpkg.json`. (The applications take theirs from CMake.) Nothing else carries it.
+   For the first release also change the two places that say there is no package yet:
+   `README.md` ("no installer yet") and `docs/user-guide/installing.md` ("no installer or download
+   package yet"), to point at the release's packages and [Verifying a release](verifying-releases.md).
 3. **Changelog.** Write `changelog.d/summary.md` if the release needs an introduction, then
 
    ```sh

@@ -1,11 +1,12 @@
 # ARINC 615A codec
 
-`adl::arinc615a` (`src/arinc615a`) turns the packets and files of ARINC 615A-3 into
-bytes and back: the TFTP packets with their options, the FIND packets, and the twelve
-protocol files of section 6.4. It does not send, receive or keep time. The protocol
-engine that uses it (the operations, the state machines, the time-outs) is
-[the next page](arinc615a-engine.md); this page says what the codec does, where the
-standard was unclear and what was chosen, and what has and has not been checked.
+The codec half of `adl::arinc615a` (`src/arinc615a`) turns the packets and files of
+ARINC 615A-3 into bytes and back: the TFTP packets with their options, the FIND packets, and the
+twelve protocol files of section 6.4. It does not send, receive or keep time. The protocol
+engine that uses it (the operations, the state machines, the time-outs) is in the same library,
+under other headers, and is described on [the next page](arinc615a-engine.md#shape); this page
+says what the codec does, where the standard was unclear and what was chosen, and what has and
+has not been checked.
 Section numbers are 615A-3's, which is not in the repository
 ([docs/specs](specs/README.md)).
 
@@ -40,16 +41,18 @@ abstraction](platform-abstraction.md#area-2-memory-memoryhpp)), and its shape fo
   `List<T>` is built from a `std::array` or `std::vector` on the way out, so one type serves
   both directions, and a decoded file can be encoded again as it is.
 - **Nothing allocates, throws or needs RTTI.** There is no `iostream`, no `std::string` or
-  `std::vector` in the library, every function is `noexcept` and failures are values. The
-  only buffer is `OptionBuilder`'s own 256 bytes. It does not build an `adl::arinc665`
-  model: it links `adl::arinc665` for the check value numbers (`CheckValueType`) only.
+  `std::vector` in the library, every function is `noexcept` and failures are values. The only buffer is `OptionBuilder`'s own 256 bytes. (The one allocation in the library is in
+  the engine, not the codec: calculating a checksum, see [the engine
+  page](arinc615a-engine.md#memory-buffers-and-lifetimes).) The codec builds no `adl::arinc665`
+  model and uses that library for the check value numbers (`CheckValueType`) only; the engine's
+  `checksum.hpp` also uses its `IntegrityChecker`.
   What is *not* checked yet is the build under `-fno-exceptions -fno-rtti`: that is a CI job
   on the roadmap.
 - **A decoder checks lengths before it believes them.** A count is trusted only as far as
   the bytes that follow it go, so a file claiming 65535 entries in ten bytes is `truncated`
   after one step, not a loop of 65535. `tests/unit/arinc615a_robustness_test.cpp` runs every
   decoder over every truncation and bit change of a good file and over random bytes under
-  AddressSanitizer.
+  the sanitizers of the Debug build.
 
 ## TFTP (section 5.3.2)
 

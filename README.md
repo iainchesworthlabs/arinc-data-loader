@@ -11,7 +11,11 @@ network. The two standards are not in the repository (see
 
 ## Status
 
-This is the data format and the foundation, not a loader yet. What exists:
+Version 0.1.0, a preliminary release. The libraries, the data loader and its two companion
+applications work end to end against each other on one machine, and the libraries are tested
+against simulated targets and over loopback sockets. **Nothing has been checked against a real
+target, a real loader, or another tool's media sets**, and there is no installer yet (the programs
+are built from source). What exists:
 
 - **`adl::arinc665`**, a library with no GUI and no operating system code, that
   writes and reads everything ARINC 665-3 defines: loads (header, data and
@@ -63,7 +67,7 @@ This is the data format and the foundation, not a loader yet. What exists:
     warnings), FIND, the Information, Upload and Download operations with progress and an abort,
     preferences that persist, properties for the media set and the target, and failures
     that say what went wrong and, where it is known, what to do about it. The window is in
-    eight languages (right-to-left mirroring for the Hebrew-script ones), and a profiling
+    eight languages (the Hebrew-script ones set the layout direction right to left, but the window's layout is not yet mirrored), and a profiling
     build instruments the libraries, the engine and the window's frame loop with Tracy
     0.14.1 ([docs/profiling.md](docs/profiling.md)).
   - **`adl_media_gen`**, the media set generator ([docs/media-gen.md](docs/media-gen.md)):
@@ -95,6 +99,15 @@ What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
 against another tool's files and ARINC 615A against a real target, packaging, translations, Tracy profiling,
 and a build of the loader library for an embedded target (the Green
 Hills INTEGRITY ports are written and unbuilt; VxWorks is a design).
+
+## Using it
+
+[The user's guide](docs/user-guide/index.md) explains the two standards in a paragraph each, how to
+start the three programs, and a complete demonstration on one machine: generate a media set,
+start the mock target, then find it, read its information, upload the set and download files
+from it, with a picture of every screen.
+
+![The loader after an upload to the mock target](docs/images/app-upload-complete.png)
 
 ## Build
 
@@ -128,13 +141,28 @@ src/platforms/       everything that differs between operating systems
 tests/               unit, integration and system tests; the fake platform; the Qt Quick Test UI suite
 cmake/               the platform selector, warnings, static analysis, sanitizers, coverage, Tracy, Qt
 tools/               repository checks, commit policy, git hooks
-docs/                architecture, roadmap, CI, static analysis, coverage of 665 and 615A, the application, the
-                     generator, the mock target, the 615A codec and engine, docs/specs
+docs/                the user's guide, architecture, roadmap, CI, static analysis, coverage of 665 and 615A,
+                     the three applications, the 615A codec and engine, docs/specs
 ```
 
 The operating system is chosen by CMake, never by the source: there is no `#ifdef`
 for a platform anywhere. [docs/platform-isolation.md](docs/platform-isolation.md)
 explains how, and [docs/architecture.md](docs/architecture.md) the rest.
+
+## Documentation
+
+The full index is [docs/README.md](docs/README.md).
+
+| Page | What it is |
+| --- | --- |
+| [User's guide](docs/user-guide/index.md) | Installing, the demonstration, every screen and setting of the three programs, troubleshooting |
+| [Building](docs/building.md), [Testing](docs/testing.md), [CI](docs/ci.md), [Static analysis](docs/static-analysis.md), [Profiling](docs/profiling.md) | Build, test, continuous integration and analysis |
+| [Screenshots](docs/screenshots.md) | How the pictures in the documentation are regenerated |
+| [Architecture](docs/architecture.md), [Platform abstraction](docs/platform-abstraction.md), [Platform isolation](docs/platform-isolation.md), [Green Hills INTEGRITY](docs/platform-ghs.md) | How the code is arranged and how it stays portable |
+| [ARINC 665 coverage](docs/arinc665-coverage.md), [615A codec](docs/arinc615a-codec.md), [615A engine](docs/arinc615a-engine.md), [615A coverage](docs/arinc615a-coverage.md) | The libraries, section by section |
+| [The application](docs/app.md), [the generator](docs/media-gen.md), [the mock target](docs/mock-target.md) | The three programs, for developers |
+| [Design overhaul](docs/design-overhaul.md), [design system](docs/design-system.md) | The human-factors analysis and the shared look |
+| [Roadmap](docs/roadmap.md), [licensing](docs/licensing.md), [branch protection](docs/branch-protection.md), [specs](docs/specs/README.md) | What is planned, licences, repository rules, the standards |
 
 ## Contributing
 

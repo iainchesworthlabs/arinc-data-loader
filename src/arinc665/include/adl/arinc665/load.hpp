@@ -1,5 +1,10 @@
 #pragma once
 
+// A software load as a whole: the header file with its data and support files.
+// build_load() makes one from what a person decides and works out the lengths,
+// CRCs and check values; verify_load() checks a complete one end to end; and
+// check_load() reports where it departs from the standard's recommendations.
+
 #include <cstddef>
 #include <optional>
 #include <string>

@@ -1,5 +1,9 @@
 #pragma once
 
+// The check value types of ARINC 665 Table 5.1, with their titles and the number
+// of bytes each takes in a file. The enumerators have the numbers that are
+// written to the files.
+
 #include <cstddef>
 #include <cstdint>
 #include <string_view>

@@ -12,4 +12,5 @@ the sockets, waits on them from one thread and drives the engine over `adl::plat
 and sink over a directory of the platform's files come with it. Tested against a simulated target
 on the fake platform (a full load of a media set made with `build_media_set`, downloads back, and loss,
 duplication, reordering, WAIT, ABORT and silence from fixed seeds) whose TFTP shares no code with the
-engine. Not yet checked against another implementation, or over real sockets.
+engine. Not yet checked against another implementation; the loopback integration test runs it
+over real sockets against the mock target.

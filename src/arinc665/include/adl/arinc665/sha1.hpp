@@ -1,5 +1,8 @@
 #pragma once
 
+// SHA-1, the check value of type 5 in ARINC 665. A streaming calculation with
+// fixed storage: bytes are fed in any number of pieces.
+
 #include <array>
 #include <cstddef>
 #include <cstdint>

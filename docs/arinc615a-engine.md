@@ -8,8 +8,10 @@ built, what the standard leaves unclear and what was chosen, and what has and ha
 [The coverage page](arinc615a-coverage.md) maps the standard onto it section by section. Section numbers
 are 615A-3's, which is not in the repository ([docs/specs](specs/README.md)).
 
-There is no application yet and no target side: this is the loader's half of the protocol, which is what a
-ground tool or an airborne data loader needs.
+This is the loader's half of the protocol, which is what a ground tool or an airborne data loader needs.
+The library has no target side: the targets that exist are the simulated target of `tests/engine` and the
+mock target application ([the mock target](mock-target.md)), both for tests and demonstrations. The Qt
+application, [the application](app.md), is a window over this engine.
 
 ## Shape
 
@@ -24,6 +26,10 @@ ground tool or an airborne data loader needs.
 | `limits.hpp` | adds the figures of Attachment 4 and 3: `tftp_timeout` 2 s, `tftp_retries` 1, `dlp_timeout` 13 s, `dlp_retries` 1, `tftp_dally` 2 s, `find_window` 3 s |
 | `runner.hpp` (runner library) | `Runner`: sockets, the wait, the clock, `RunController` |
 | `directory_files.hpp` (runner library) | `DirectoryFileSource` and `DirectoryFileSink` over a directory of the platform's files |
+
+A second TFTP implementation, `adl::arinc615a_mini` (`src/arinc615a_mini`), is not part of the engine. It is
+written separately from it, on the codec only, and is the TFTP of the simulated target of the tests and of the
+mock target application.
 
 ### Sans-I/O
 
@@ -57,9 +63,10 @@ included, and a test can drive it with no network at all ([Testing](#what-has-be
   `std::vector`, so a file that has a checksum costs one small allocation when it ends. The runner library
   (`adl::arinc615a_runner`) is host code and uses `std::vector` and `std::string`.
 - **The caller gives the loader a workspace** (`DataLoader::workspace_bytes(config)`, about 270 KB with the
-  defaults, most of it six protocol file buffers of 32 KB): a datagram buffer and a protocol file buffer for
+  defaults, most of it the protocol file buffers of 32 KB, one for each of the six slots and one for the
+  outgoing list): a datagram buffer and a protocol file buffer for
   each slot, a buffer the outgoing list is encoded into, and a pool for the names a download expects. The
-  `DataLoader` object itself (about 16 KB on MSVC) holds the slots, the expected files and the commands, so
+  `DataLoader` object itself (some 16 KB on MSVC when this was written; not re-measured) holds the slots, the expected files and the commands, so
   keep it off a small stack. A protocol file larger than `max_protocol_file_bytes` is refused with error 3.
 - **A decoded packet or file views the bytes it was decoded from**, so the loader owns every buffer it
   holds a view into: the protocol file being received lives in the slot's buffer until the file has been
@@ -210,7 +217,7 @@ still open (the target gave up on that one), and the loader says nothing to the 
   transfer open is ended with `ABORT:XXXX`. The target's next request for a status file is answered with
   `ABORT:XXXX` too, **unless** an ABORT has already gone to the target on another transfer, which informs it
   as well; the status file after that is the target's confirmation (it echoes the code), and ends the
-  operation with `abort_confirmed`. If none comes in 13 seconds the operation ends anyway, unconfirmed.
+  operation with `Outcome::abort_confirmed` set. If none comes in 13 seconds the operation ends anyway, unconfirmed.
   Until then a request for anything but a status file gets `ABORT:XXXX`. An abort before the target has
   accepted the operation has nothing to confirm and ends at once.
 - **The target's abort** is a status file saying 0x1003: the operation ends (after the file has been
@@ -280,16 +287,19 @@ abort or a deferred choice. A datagram that cannot be sent is treated as lost.
 over a link in memory with a seed for loss, duplication and reordering, and one at a time with every datagram
 written out), the loader with hand-written datagrams (what it sends and when, to the nanosecond at the figures
 of Attachment 4), and whole operations through the runner on the fake platform against a **simulated target**
-(`tests/engine/sim_target.cpp`) that has its own TFTP endpoint (`mini_tftp.cpp`) sharing no code with the
+(`tests/engine/sim_target.cpp`) that has its own TFTP endpoint (`adl::arinc615a_mini`,
+`src/arinc615a_mini/src/mini_tftp.cpp`) sharing no code with the
 engine. A full load of a media set built with `adl::arinc665::build_media_set` goes to the target, and files
 come back in a media defined and an operator defined download, also over a network that loses, repeats and
 reorders datagrams, with the target asking to wait, going silent, aborting, announcing an exception timer,
 losing and repeating status files, sending a wrong checksum, and with the operator aborting. Every
 history is deterministic from a seed.
 
-**Not checked:** against any other implementation of 615A (a loader or a target); over real sockets end to
-end (the runner on the real host: `adl::platform`'s own conformance suite covers the sockets, but no test
-runs an operation through them); under `-fno-exceptions -fno-rtti` in CI (the engine is written for it and
+**Not checked:** against any other implementation of 615A (a loader or a target); on a
+real network or against a device: `loopback.integration` (`tests/loopback`) runs whole operations through the
+runner and the real host's sockets on 127.0.0.1, but against the mock target's engine, whose TFTP is
+`adl::arinc615a_mini` (the same reading of the standard), so it checks the sockets and the runner and not the
+choices; `adl::platform`'s conformance suite covers the sockets on their own; under `-fno-exceptions -fno-rtti` in CI (the engine is written for it and
 builds that way by hand, see [testing](testing.md#known-gaps)); the choices above that are marked as
 mine, of which 1 to 3 and the DLP-TO applications to `.LNO`, `.LCL` and `.LNL` are the first to confirm
 against a real device.

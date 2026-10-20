@@ -1,5 +1,9 @@
 #pragma once
 
+// Reading a media set from a directory into the summary the window shows
+// (MediaSetSummary, events.hpp), and making the index of its files that an
+// upload reads them through (media_source.hpp).
+
 #include <memory>
 
 #include <QString>

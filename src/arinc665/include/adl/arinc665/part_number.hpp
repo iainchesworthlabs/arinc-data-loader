@@ -1,5 +1,8 @@
 #pragma once
 
+// The part number type, the check characters of a load part number, and checks of
+// part numbers against the formats of ARINC 665-3 sections 2.1 and 3.1.
+
 #include <cstddef>
 #include <string>
 #include <string_view>

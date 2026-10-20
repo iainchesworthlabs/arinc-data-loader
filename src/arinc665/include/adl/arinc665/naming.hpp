@@ -1,5 +1,9 @@
 #pragma once
 
+// The names ARINC 665-3 gives to the files of a media set, and checks of file
+// names, pathnames and target hardware IDs against what it recommends. The checks
+// return Findings: a name that departs from the standard can still be read.
+
 #include <string_view>
 
 #include "adl/arinc665/finding.hpp"

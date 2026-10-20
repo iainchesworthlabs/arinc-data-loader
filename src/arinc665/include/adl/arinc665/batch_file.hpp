@@ -1,5 +1,9 @@
 #pragma once
 
+// The batch file (.LUB) of ARINC 665-3 section 2.3: its model, and the functions
+// that write it to bytes, read it back and check it. A batch names loads that a
+// maintainer can select together, grouped by the target they go to.
+
 #include <cstddef>
 #include <span>
 #include <string>

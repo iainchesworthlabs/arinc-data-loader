@@ -196,6 +196,16 @@ if(ADL_PWSH)
     set_tests_properties(platform.isolation PROPERTIES LABELS "system")
 endif()
 
+# Every relative link and #anchor in the Markdown files resolves (documentation, README, the user's
+# guide and its pictures). No network: links to other sites are not followed.
+if(ADL_PWSH)
+    add_test(NAME docs.links
+        COMMAND "${ADL_PWSH}" -NoProfile -File
+            "${PROJECT_SOURCE_DIR}/tools/checks/check_doc_links.ps1"
+            -Root "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(docs.links PROPERTIES LABELS "system")
+endif()
+
 # The program that writes the sample media sets: it runs on a directory of its
 # own (emptied first, since it never overwrites), and refuses what it cannot use.
 add_test(NAME tools.write_payloads.clean

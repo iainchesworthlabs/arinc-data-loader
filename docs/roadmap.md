@@ -11,10 +11,6 @@ What is built, and what is planned, in the order it is intended to be done.
 - CI and the repository rules: gitflow, no attribution in commits or PRs,
   formatting, platform isolation ([CI](ci.md)).
 
-Not yet checked: the Linux and macOS legs (they are written, and have not run),
-and the repository rulesets (they cannot be applied until the repository is
-public, or on a paid plan).
-
 ## 2. ARINC 665 (written, not yet checked against another tool)
 
 The data format of `docs/specs/665-3.pdf`, all of it: loads, batch files, media
@@ -51,7 +47,8 @@ UDP, with the Find, Information, Upload and Download operations. It loads what
    and priorities, a clock, UDP and message queues, implemented for Windows,
    Linux and macOS, with a fake platform and a conformance suite, FreeRTOS and
    Zephyr ported and tested on simulators, and QNX, the INTEGRITY ports and
-   VxWorks written or designed for ([platform abstraction](platform-abstraction.md)). The transport is an interface, so the
+   VxWorks written or designed for ([platform
+   abstraction](platform-abstraction.md); section 6 says where each stands). The transport is an interface, so the
    engine does not include a socket header and can be tested against a simulated
    target on the fake network.
 2. **The TFTP codec and the 615A messages (done).** `adl::arinc615a`: the packets
@@ -71,7 +68,8 @@ UDP, with the Find, Information, Upload and Download operations. It loads what
    simulated target on the fake platform: a full load of a media set built with `build_media_set`
    and a download back, with loss, duplication, reordering, WAIT, ABORT and silence, from fixed seeds
    ([the engine](arinc615a-engine.md), [the coverage page](arinc615a-coverage.md)). Not checked
-   against another implementation, a loader or a target, and not run over real sockets.
+   against another implementation, a loader or a target. It is run over real sockets only by the
+   loopback test of the application work (section 4, slice 6), against the mock target.
 
 What is left of the 615A work:
 
@@ -80,8 +78,6 @@ What is left of the 615A work:
   [the coverage page](arinc615a-coverage.md#places-the-standard-is-unclear) and
   [the codec page](arinc615a-codec.md#places-the-standard-is-unclear), the text length of a protocol file
   first.
-- **An integration test over loopback with real sockets** (a target on the real host in a second thread),
-  so that the runner is run through the real platforms, on all three desktops, in CI.
 - **A CI job that builds the library with `-fno-exceptions -fno-rtti`**, which it is written for.
 - **A target-side application.** The libraries build for the target's platform — the 615A engine is
   sans-I/O and the platform layer has a fragment per platform — but there is no program that answers
@@ -90,11 +86,8 @@ What is left of the 615A work:
   tools: an `ADL_BUILD_TARGET` option, a `src/target_app` built the way `src/app` is, presets for the
   embedded platforms that select it, sharing the codec and the protocol-file writers in
   `adl::arinc615a`. [Building](building.md#what-cmake-builds) lists what exists today.
-- Choosing, on the application side, the `DNLD_DATA_<THW_ID_POS>_<number>` directory (5.4.4.3) and
-  when to run FIND (Attachment 3).
 
-What is left from stage 1: the macOS leg has not yet run; the embedded ports are
-unbuilt or designs.
+What is left from stage 1: the embedded ports are unbuilt or designs (section 6).
 
 ## 4. The application
 
@@ -111,8 +104,7 @@ slices; [the application](app.md) says what each does.
    window that reads a media set from a directory (shown, not yet used), runs FIND, takes a target from
    the list or by hand, and runs an Information operation with an abort button, the target's status
    files and notices in an activity log, and its hardware and parts. The window is loaded offscreen in
-   the tests. Not run against a real target, and the Linux and macOS legs had not run it when this was
-   written.
+   the tests. Not run against a real target.
 2. **Upload (done).** The loads of the media set are ticked in the window and loaded to the target: a
    `FileSource` over the media set's directory tree (an index made from `FILES.LUM`, files told apart by
    the CRC in the request, read through the platform's file system), an `UploadOperation` from the ticked
@@ -147,8 +139,8 @@ slices; [the application](app.md) says what each does.
    windows (menus and shortcuts, initial focus, the keyboard highlight of the generator's file list, both
    schemes rendered in the offscreen tests).
 7. **The window's minimum set (done).** The design layer the sibling applications have, brought to the
-   loader: one design-token file (`qml/Theme.qml`) and a small component library over it
-   (`Panel`, `AppButton`, `SegmentedControl`, `FocusRing`); a first-run screen that sets the essentials
+   loader: one design-token file (`Theme.qml`) and a small component library over it
+   (`AppButton`, `SegmentedControl`, `FocusRing` and others, in `src/ui/qml`); a first-run screen that sets the essentials
    once; the address and `<THW_ID_POS>` of the last operation remembered across sessions; and the
    language machinery — `qt_add_translations` over an English catalogue, a `LanguageManager` that
    persists the choice, follows the system locale, sets the layout direction and retranslates the
@@ -159,8 +151,9 @@ What is left of the application:
 
 - Reviewing the draft translations with speakers. The eight catalogues (English, French, Spanish,
   German, Yiddish, Hebrew, Simplified Chinese and Japanese), the `qt_add_translations` pipeline, the
-  language menu, right-to-left mirroring and the retranslation of the running window are in place; the
-  text is a first, mechanical draft.
+  language menu and the retranslation of the running window are in place; the text is a first,
+  mechanical draft. The layout direction is set for the right-to-left scripts, but the window's layout
+  is not mirrored (no `LayoutMirroring` in the QML).
 - FIND over real sockets in the loopback test: the standard fixes FIND to port 1001 on both ends, and two
   sockets sharing a port on one machine is not reliable on every platform, so the loopback test covers the
   operations and names the target by hand; a FIND case may join it if the reuse behaviour proves portable.

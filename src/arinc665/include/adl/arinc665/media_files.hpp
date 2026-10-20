@@ -1,5 +1,10 @@
 #pragma once
 
+// The three list files in the root of every member of a media set, LOADS.LUM,
+// FILES.LUM and BATCHES.LUM (ARINC 665-3 section 3.2.3): a model of each, with
+// its encoder, its decoder and its check. How they are laid out over the members
+// of a set is in media_set.hpp.
+
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -27,6 +32,7 @@ struct MediaSetIdentity {
 
 // ---- LOADS.LUM: the list of loads (section 3.2.3.1, Table 3.2.3.1) ----
 
+// An entry of LOADS.LUM for each load, and the contents of the file as a whole.
 struct LoadsListEntry {
     PartNumber load_part_number;
     std::string header_file_name;
@@ -47,6 +53,7 @@ struct LoadsList {
 
 // ---- FILES.LUM: the list of files (section 3.2.3.2, Table 3.2.3.2) ----
 
+// An entry of FILES.LUM for each file, and the contents of the file as a whole.
 struct FilesListEntry {
     std::string file_name;
     std::string pathname;  // from the root of the member, "\" for a file in the root
@@ -71,6 +78,7 @@ struct FilesList {
 
 // ---- BATCHES.LUM: the list of batches (section 3.2.3.3, Table 3.2.3.3-1) ----
 
+// An entry of BATCHES.LUM for each batch, and the contents of the file as a whole.
 struct BatchesListEntry {
     PartNumber batch_part_number;
     std::string batch_file_name;
