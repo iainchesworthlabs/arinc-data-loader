@@ -26,7 +26,7 @@ What it does:
    choosing and checking the set, Information, Upload, both Downloads, the dialogs.
 3. Runs the failures: a refused upload, a target that is not there, a silent target with the window
    closed during the operation, and every fault the mock target can inject.
-4. Opens a broken copy of the set, the sample set with a warning, and the loader in Hebrew.
+4. Opens a broken copy of the set, the sample set with a warning, the loader in Hebrew (the window mirrors), in Japanese and in Chinese (the system's fonts), and the generator and the mock target in Hebrew.
 5. Does it twice, in the light colours and in the dark.
 
 The pictures are the **client area of the window** (`PrintWindow`), so they carry no title bar
