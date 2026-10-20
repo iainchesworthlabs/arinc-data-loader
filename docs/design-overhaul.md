@@ -385,7 +385,8 @@ bottom action bar.
 The rail is 388 px wide by preference (348 to 460) and scrolls itself; target is always above media
 set because it is the higher-consequence object. The work area has one transfer switch
 (Upload/Download) because the two share the target and the log but not the plan. The activity dock
-is collapsible (260 px open, a 44 px header when collapsed); when it is collapsed the plan gets the
+is collapsible (a quarter of the window, 150 to 260 px, open; a 44 px header when collapsed, and it starts
+collapsed in a window shorter than 700 px); when it is collapsed the plan gets the
 height. In the action bar, `Read information` shows in Upload mode only and `Abort` only while a
 job runs; the Download mode swaps `Upload` for `Download`. In Download mode the work area shows
 `THE DOWNLOAD`, the mode switch (Media defined / Operator defined), the files, the destination and
@@ -466,8 +467,8 @@ font-resource work and the notices (`adl_add_ui_support`).
 The full token and component reference is [`docs/design-system.md`](design-system.md). The three
 rules that matter most:
 
-1. **Zero radius.** Nothing is rounded except a semantic status dot (6 px dot, 3 px radius, in the
-   status bar; 4 px, 2 px radius, in a chip).
+1. **Zero radius.** Nothing is rounded except the neutral status dot (a 4 px disc in the 10 px tone
+   mark of a chip, the status bar and a log line).
 2. **One accent, two roles.** `accent` is for shapes; `accentFill`/`accentText` is for a labelled
    surface. A label never sits on the raw Signal-light accent (4.2:1 on white); the fill is the
    deeper `#b82009` that clears 4.5:1 (6.46:1).
@@ -486,12 +487,13 @@ true:
   looks like a completed transfer in the mode strip or the receipt, and a download's receipt is
   shown in the Download view rather than under the Upload plan. The transfer strip's chip now says
   `READY` / `NOT READY` unless the last job was an Information/Upload/Download (then `COMPLETE` or
-  `FAILED`, and `RUNNING` while a job runs); the header chip has its own words (`WORKING`,
-  `SETUP`, `READY`, `NOT READY`).
+  `FAILED`, and `RUNNING` while a job runs), and the header chip reads the same state (`SETUP` on
+  the first run), so the two cannot disagree.
 - **Window geometry** is restored and saved in C++ (`window_state.cpp`) for all three windows. A
   restored size is kept inside the minimum and the screen's available area (less 48 px wide and
   80 px high), and a saved position is used only if it still meets a screen. The old windows
-  always opened at 1100×760 in the same place; these open at 1280×900 (minimum 1120×760) until a
+  always opened at 1100×760 in the same place; these open at 1280×900 (the loader's minimum is
+  1000×620, the others' 1120×760) until a
   size has been saved.
 - **First run is no longer a mandatory form.** `Start loading` opens the workbench; the defaults
   are optional and folded away; choosing a media set from the first run also completes it.
@@ -600,13 +602,18 @@ done.
 5. **Download directory preview.** Add the next free `DNLD_DATA_<THW_ID_POS>_<n>` to the model so
    the destination can be named before start, and make the aborted-directory consumption visible.
    Open: the view says a numbered directory is made for every download, but not which number.
-6. **Preferences: text size and motion.** Add a persisted 100/125/150/175% scale and a reduced
-   motion switch to the three applications; `Theme.fontScale` and `Theme.reducedMotion` are the
-   hooks. Then run the 175% layout pass. Open: nothing sets either property, and the loader's
+6. **Preferences: text size.** Add a persisted 100/125/150/175% scale to the three applications and
+   run the 175% layout pass. Qt does not expose the platform's text size, so `Theme.fontScale` was
+   removed rather than left unset, and a preference would bring a factor back; reduced motion
+   follows the platform (`Application.styleHints.accessibility`, Qt 6.12). Open: the loader's
    Preferences has no such control.
-7. **Keyboard and screen-reader pass.** The controls carry roles and names and a ring; no NVDA or
-   Orca pass has been run. The activity log, stored-files list and file table need list-item names
-   that include the row identity.
+   Preferences has no such control.
+7. **Keyboard and screen-reader pass.** The loader is keyboard-complete (dialogs open on a field or
+   button, FIND answers and the dock tabs are arrow-key groups, the logs and lists scroll and copy,
+   a 2 px ring everywhere) and its names carry the visible text; the Qt Quick tests in
+   `tests/ui/qml/tst_keyboard.qml` hold that. The generator and the mock target have not had the
+   same pass, and no NVDA or Orca run has been made. The activity log, stored-files list and file
+   table need list-item names that include the row identity.
 8. **The generator's success receipt should clear on edit.** The engine's `resultState` survives a
    field change; a dirty marker or a `resultChanged` reset on the next edit is needed. Open: the
    result is reset only when a new generation starts.

@@ -139,8 +139,9 @@ doing before trying again."
   has a translation for it.
 - **A button is dimmed.** The action bar or the banner above it says what is missing
   ("Upload needs a checked media set, at least one ticked load and a target.").
-- **The window is too big for the screen.** It is at least 1120 by 760 pixels; on a smaller screen its
-  size is limited to the screen and it scrolls its rail.
+- **The window is too big for the screen.** The loader is at least 1000 by 620 pixels; on a smaller screen its
+  size is limited to the screen and its rail and pages scroll (a scroll bar shows when they do).
+  The activity dock starts folded in a short window: press **Show** to open it.
 
 ## Building and running (developers)
 

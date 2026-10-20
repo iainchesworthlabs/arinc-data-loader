@@ -164,7 +164,12 @@ function Find-Control {
     )
     $conditions = @()
     if ($Name) {
-        $conditions += New-Object System.Windows.Automation.PropertyCondition($script:UIA::NameProperty, $Name)
+        # The accessible name is the text on the screen; the longer phrase a control used to be
+        # named by ("Upload the ticked loads") is its description, which UI Automation calls the
+        # help text. Either finds it, so a script can say what it sees or what it means.
+        $byName = New-Object System.Windows.Automation.PropertyCondition($script:UIA::NameProperty, $Name)
+        $byHelp = New-Object System.Windows.Automation.PropertyCondition($script:UIA::HelpTextProperty, $Name)
+        $conditions += New-Object System.Windows.Automation.OrCondition($byName, $byHelp)
     }
     if ($Id) {
         $conditions += New-Object System.Windows.Automation.PropertyCondition($script:UIA::AutomationIdProperty, $Id)
