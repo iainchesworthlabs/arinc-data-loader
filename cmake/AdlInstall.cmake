@@ -116,9 +116,9 @@ endfunction()
 # Generates, with Qt's own deployment support, the script that copies the Qt files <target> needs into
 # the install tree (windeployqt on Windows, macdeployqt on macOS, a copy of the shared libraries Qt
 # uses on Linux), and puts its path in <out-var> for `install(SCRIPT ...)`. The platform fragments
-# call it from adl_platform_install_app. The Qt translations are left out (the programs carry their
-# own catalogues), and so are the QML debugging plugins: a released program has no use for a plugin
-# that opens a debugging connection when it is asked to. The offscreen platform plugin is added to
+# call it from adl_platform_install_app. The Qt translations are left out (the programs carry their own catalogues), and so are the
+# QML debugging plugins: a released program has no use for a plugin that opens a debugging
+# connection when it is asked to. The offscreen platform plugin is added to
 # the one the system uses: it is a few kilobytes, and it lets the packages be started and tested on a
 # machine with no display, which is how a person runs a program in a container or over ssh too.
 # On Linux, what the system itself provides (libc, libstdc++, X11, OpenGL, fontconfig, ...) is left to

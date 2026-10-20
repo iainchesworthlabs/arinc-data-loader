@@ -87,6 +87,11 @@ function(adl_platform_install_app target qml_dir)
         DESTINATION "${target}.app/Contents/Resources" RENAME LICENSE.txt COMPONENT runtime)
     install(FILES "${ADL_UI_NOTICES_FILE}"
         DESTINATION "${target}.app/Contents/Resources" RENAME NOTICES.txt COMPONENT runtime)
+    # macdeployqt takes neither Qt's plugin selection nor a list of extra plugins, so the offscreen
+    # platform plugin (see adl_qt_deploy_script) is put in the bundle first, and macdeployqt, which
+    # fixes up everything it finds in the bundle, treats it like the plugins it chose itself.
+    install(FILES "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}/platforms/libqoffscreen.dylib"
+        DESTINATION "${target}.app/Contents/PlugIns/platforms" COMPONENT runtime)
     adl_qt_deploy_script(${target} deploy_script)
     install(SCRIPT "${deploy_script}" COMPONENT runtime)
 endfunction()
