@@ -4,7 +4,7 @@ A media set, to the loader, is a **folder that holds one folder per member** (`m
 exactly what the generator writes and what `adl_write_payloads` writes for its samples. If you
 choose the wrong level (a member folder, or a folder above the set) the loader says it cannot read it.
 
-Press **Choose...** in the **02 Media set** block, pick the folder, and the loader **reads and
+Press **Choose folder...** in the **02 Media set** block, pick the folder, and the loader **reads and
 checks** it straight away (unless you turned that off in [Preferences](preferences.md)). Reading
 **is** checking: every file is opened, its length and its check values are verified, the three
 list files of every member are compared with each other and with what is on the disk. The chip goes
@@ -30,7 +30,7 @@ the set's properties. They do not stop an upload.
 If a file is missing, has the wrong length, or does not match its check value, or a list file is
 damaged, the chip says **INVALID**, the rail and the Upload view show the reason (for example "CRC
 mismatch" for a data file with a changed byte), a dialog opens once with that reason and the hint
-"Choose the directory the media set was written to, and make sure every file of the set is still
+"Choose the folder the media set was written to, and make sure every file of the set is still
 in it", and **Upload stays dimmed**: nothing can be sent from a set that does not check.
 
 ![A set whose check failed](../images/app-set-invalid.png)

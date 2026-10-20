@@ -19,7 +19,7 @@ What the target answers when a loader asks FIND, and how it is addressed.
 
 | Field | Default | Meaning |
 | --- | --- | --- |
-| **Hardware ID** | `HNPFMS` | The target's hardware identifier. Required: **Start** is dimmed without it |
+| **Hardware ID** | `HNPFMS` | The target's hardware ID. Required: **Start** is dimmed without it |
 | **Type name** | `FMS` | The kind of equipment |
 | **Position** | `L` | Where it is fitted (left, right ...). May be empty |
 | **Literal name** | `FMS LEFT` | A readable name |
@@ -40,7 +40,7 @@ privilege, and on Windows the firewall may ask the first time (see
 
 ## 03 Storage
 
-**Choose directory...** names a folder where the target keeps what an upload sends it, and where
+**Choose folder...** names a folder where the target keeps what an upload sends it, and where
 the files it can give in a download are taken from. **Open folder** opens it.
 
 - An **upload** is stored in `<storage>/<load part number>/<file name>`: one folder per load, with
@@ -50,7 +50,7 @@ the files it can give in a download are taken from. **Open folder** opens it.
   start again. With no storage folder, or an empty `holds`, the target holds one file,
   `DEMO.TXT`.
 - With no storage folder the target still works, but an upload is not kept. The window says so
-  ("No storage directory chosen. The target still serves; an upload is not kept.").
+  ("No storage folder chosen. The target still serves; an upload is not kept.").
 
 ## 04 Behaviour
 
@@ -63,6 +63,8 @@ the files it can give in a download are taken from. **Open folder** opens it.
 
 Everything here defaults to *behaving*. The block's chip says **BEHAVING** or **N ACTIVE**, and
 **Reset all** puts every fault back, so a demonstration cannot quietly run with a fault left on.
+This block is below the fold in a short window, so while any fault is armed a chip (**2 faults
+injected**) also shows in the header and in the footer; press it and the rail scrolls to this block.
 The faults are for seeing what the loader does when the target is not well behaved.
 
 | Fault | What the target does | What you should see in the loader |
@@ -80,8 +82,10 @@ The faults are for seeing what the loader does when the target is not well behav
 
 ## The right-hand side
 
-- **Operation** shows what the target is doing (Information, Upload, Download or *Serving, no
-  operation*) and, for an operation that has progress, the percentage "of the target's list".
+- **Operation** shows what the target is doing (Information, Upload, Download, *Waiting for a
+  request* or *Not started*) and, for an operation that has progress, the percentage "of the
+  target's list". The bar moves only while the target is working on a request. Whether the target
+  is serving is said once, by the chip in the header; the footer says where it listens.
 - **Activity** lists every status file, file read or written, WAIT and abort, each with its time
   and a colour for its seriousness. **Clear** empties it.
 - **Stored files** lists the files an upload left, with their sizes.
@@ -90,7 +94,7 @@ The faults are for seeing what the loader does when the target is not well behav
 
 ## Stopping
 
-**Stop** ends the session at once. If an operation was running the loader will notice that the
+**Stop** (the main button while the target is serving, as **Start** is while it is stopped) ends the session at once. If an operation was running the loader will notice that the
 target went quiet and report it (see [Troubleshooting](troubleshooting.md#the-target-does-not-answer)).
 
 Next: [the loader](loader.md).

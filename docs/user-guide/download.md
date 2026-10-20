@@ -8,7 +8,7 @@ Download fetches files from the target into a folder on your computer. Switch th
 ## Where the files go
 
 Every download writes into a **new folder** named `DNLD_DATA_<THW_ID_POS>_<number>` inside the
-**download folder**, which is shown under **Destination** and set with **Change...** (or in
+**download folder**, which is shown under **Destination** and set with **Choose folder...** (or in
 [Preferences](preferences.md)). The number is the lowest free one starting at 1; a download that is
 aborted or fails still uses its number. A file is written under a temporary name and renamed when
 it has arrived whole, and an existing file is never overwritten. **Open folder** opens the folder
