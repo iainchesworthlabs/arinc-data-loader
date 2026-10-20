@@ -87,13 +87,13 @@ with the rulesets.
 
 | `Zephyr (native_sim)` | ubuntu-26.04 | The platform layer for Zephyr builds with the project's warning set and, with Zephyr 4.4.2's kernel, IPv4/UDP stack (over its loopback interface) and littlefs on simulated flash running as a host process, passes the platform conformance suite and the 615A engine tests (`tests/platform/zephyr`, through `tools/ci/zephyr_native_sim.sh`). **Not a required check.** |
 | `FreeRTOS (POSIX simulator)` | ubuntu-26.04 | The platform layer for FreeRTOS builds, and with FreeRTOS-Kernel V11.2.0's POSIX simulator port, lwIP 2.2.1's UDP sockets over its loopback interface and littlefs on a RAM block device, passes the same two suites (`tests/platform/freertos`, through `tools/ci/freertos_posix_sim.sh`). **Not a required check.** |
-| `Zephyr (QEMU, SDK toolchain)` | ubuntu-26.04 | The platform layer and the 665/615A libraries build with the Zephyr SDK's own GCC 14 and picolibc, without exceptions, for a Cortex-M3, and a smoke program (`tests/platform/zephyr_smoke`, through `tools/ci/zephyr_qemu_smoke.sh`) runs in QEMU: clock, memory, threads at every priority, a mutex, a queue and UDP over Zephyr's loopback interface. Then the whole test program (Catch2, the platform conformance suite and the 615A engine tests: 222 test cases) is built for the Cortex-A9 board `qemu_cortex_a9` with the same toolchain, with exceptions, and runs in the SDK's QEMU (`tools/ci/zephyr_qemu_suite.sh`). **Not a required check.** |
+| `Zephyr (QEMU, SDK toolchain)` | ubuntu-26.04 | The platform layer and the 665/615A libraries build with the Zephyr SDK's own GCC 14 and picolibc, without exceptions, for a Cortex-M3, and a smoke program (`tests/platform/zephyr_smoke`, through `tools/ci/zephyr_qemu_smoke.sh`) runs in QEMU: clock, memory, threads at every priority, a mutex, a queue and UDP over Zephyr's loopback interface. Then the whole test program (Catch2, the platform conformance suite and the 615A engine tests: 224 test cases) is built for the Cortex-A9 board `qemu_cortex_a9` with the same toolchain, with exceptions, and runs in the SDK's QEMU (`tools/ci/zephyr_qemu_suite.sh`). **Not a required check.** |
 
 The three simulator jobs are new and are not in the rulesets: they join them after they have been green for a
 while, the way `Scan dependency diff` did ([Branch protection](branch-protection.md#required-checks)). They
 take their tools as the other legs do, with the pins in the next section: CMake and Ninja from
 `lukka/get-cmake`, west from `.github/requirements/zephyr.txt`, Zephyr from `tests/platform/zephyr/west.yml`
-(a shallow `west update` of Zephyr and the two modules the program needs), and FreeRTOS, lwIP,
+(a shallow `west update` of Zephyr and the three modules the program needs), and FreeRTOS, lwIP,
 littlefs and Catch2 fetched by CMake at the versions and hashes in `tests/platform/freertos/CMakeLists.txt`.
 They run on `ubuntu-26.04`, the image the Linux leg verifies GCC 15 on; the Zephyr job installs
 `device-tree-compiler` and `gperf` with apt.
@@ -232,7 +232,7 @@ submodule clone does not have them.
 | Every GitHub Action, and the composite actions in `.github/actions` | A full commit SHA, version in a trailing comment | Dependabot, weekly, grouped, 7-day cooldown |
 | clang-format, gcovr, west | `==` in `.github/requirements/*.txt` | Dependabot (`pip`), weekly |
 | clang-tidy (nightly analysis) | `==` in `.github/requirements/static-analysis.txt` | Dependabot (`pip`), weekly |
-| Zephyr (and its modules littlefs and cmsis_6) | `revision` in `tests/platform/zephyr/west.yml` (v4.4.2) | By hand |
+| Zephyr (and its modules littlefs, cmsis and cmsis_6) | `revision` in `tests/platform/zephyr/west.yml` (v4.4.2) | By hand |
 | The Zephyr SDK (the Arm toolchain and QEMU of the smoke job) | The version Zephyr names in its `SDK_VERSION` (1.0.1 for v4.4.2) | With Zephyr |
 | FreeRTOS-Kernel, lwIP, littlefs, Catch2 (the simulator program) | URL and SHA-256 in `tests/platform/freertos/CMakeLists.txt` (V11.2.0, 2.2.1, v2.11.3, v3.15.3) | By hand |
 | aqtinstall (installs Qt) | `==` in `.github/requirements/qt.txt` | Dependabot (`pip`), weekly |

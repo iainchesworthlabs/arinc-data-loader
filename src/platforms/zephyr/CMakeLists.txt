@@ -48,10 +48,12 @@ if(CONFIG_ADL_PLATFORM)
     if(CONFIG_ADL_LIBRARIES)
         set(_adl_root "${_adl_platforms_dir}/../..")
         cmake_path(NORMAL_PATH _adl_root)
-        # The library targets link these three; Zephyr builds are not Debug builds and
-        # take no sanitizer, and coverage is a desktop concern.
+        # The library targets link these four; Zephyr builds are not Debug builds and
+        # take no sanitizer, coverage is a desktop concern, and profiling is off (adl::tracy
+        # is then only the header that makes the instrumentation names do nothing).
         include(Sanitizers)
         include(Coverage)
+        include(Tracy)
         add_subdirectory("${_adl_root}/src/arinc665" adl_arinc665)
         add_subdirectory("${_adl_root}/src/arinc615a" adl_arinc615a)
         add_subdirectory("${_adl_root}/src/arinc615a_runner" adl_arinc615a_runner)

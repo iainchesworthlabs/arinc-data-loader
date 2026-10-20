@@ -2,7 +2,7 @@
 #
 # Builds the Zephyr test program (tests/platform/zephyr) for the qemu_cortex_a9 board with the
 # Zephyr SDK's own toolchain (GCC, picolibc, the SDK's libstdc++ with exceptions) and runs it in
-# QEMU: the platform layer's conformance suite and the 615A engine tests, the same 222 test cases
+# QEMU: the platform layer's conformance suite and the 615A engine tests, the same 224 test cases
 # as on native_sim (tools/ci/zephyr_native_sim.sh), but on a 32-bit Arm CPU with a C library that
 # is not the host's. The CI job zephyr-qemu runs exactly this.
 #

@@ -535,7 +535,7 @@ not. Nothing here has run on a board.
 **What was verified.** Both test programs build with the project's warning set (`-Wall -Wextra -Wpedantic
 -Werror` and the rest, on the platform layer's own sources), and run the whole platform layer suite and
 the 615A engine tests: the same Catch2 sources the desktops run (`tests/conformance`, the fake and the
-engine tests; [testing](testing.md)) and a test of a thread on a stack the caller made, 222 test cases and about
+engine tests; [testing](testing.md)) and a test of a thread on a stack the caller made, 224 test cases and about
 36 200 assertions, all passing. The
 conformance cases run against the real host of the port and against the fake, so the fake and the port
 were held to each other, as on the desktops. Each program was run ten times in a row without a failure,
@@ -551,7 +551,7 @@ picolibc and the SDK's libstdc++, and run in QEMU, in two programs:
   queue and a 1400 byte datagram through Zephyr's stack over its loopback interface.
 - The whole test program (`tests/platform/zephyr`, `tools/ci/zephyr_qemu_suite.sh`) on a Cortex-A9
   (`qemu_cortex_a9`, the SDK's `qemu-system-xilinx-aarch64`): Catch2, the conformance suite and the 615A
-  engine tests, **222 test cases and 36 213 assertions, all passing, the same counts as on native_sim**, ten
+  engine tests, **224 test cases and 36 225 assertions, all passing, the same counts as on native_sim**, ten
   runs of one build in a row without a failure, about five seconds of QEMU each. CI job `Zephyr (QEMU, SDK toolchain)`
   runs both.
 

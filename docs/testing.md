@@ -199,7 +199,7 @@ builds the same Catch2 sources as the desktop programs, from one list
 (`tests/platform/rtos_support/test_sources.cmake`): everything `adl_platform_tests` runs (the portable
 types, the memory types, the fake platform, the conformance suite against the real host of the port and
 against the fake) and everything `adl_engine_tests` runs (the 615A engine, the runner and whole operations
-against a simulated target on the fake platform: 220 test cases), and each has two test cases of its own
+against a simulated target on the fake platform: 222 test cases), and each has two test cases of its own
 (`stack_storage_test.cpp`: a thread on a stack the caller made, which only an RTOS port has). What differs is
 the host under test: the port, on Zephyr's `native_sim` or the FreeRTOS POSIX simulator. A test added to the lists of
 `tests/CMakeLists.txt` belongs in that file too, or the RTOS programs will not run it.
@@ -217,7 +217,7 @@ build/freertos-posix-sim/bin/adl_freertos_tests "[conformance]"           # Free
 `tests/platform/zephyr_smoke` is not part of this suite: a few checks (clock, memory, threads, a mutex, a
 queue, UDP) that run on a Cortex-M3 in QEMU, built with the Zephyr SDK's toolchain and no exceptions
 (`tools/ci/zephyr_qemu_smoke.sh`). The Zephyr test program itself also runs on a Cortex-A9 in QEMU with that
-toolchain (`tools/ci/zephyr_qemu_suite.sh`): the same 222 test cases.
+toolchain (`tools/ci/zephyr_qemu_suite.sh`): the same 224 test cases.
 
 Not run on the RTOS programs: the codec and ARINC 665 unit tests (`adl_unit_tests`; they test code the
 desktops already run), the application's tests, and the loopback integration test, which needs the Qt mock

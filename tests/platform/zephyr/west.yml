@@ -12,6 +12,7 @@ manifest:
       revision: v4.4.2
       import:
         name-allowlist:
+          - cmsis      # Cortex-A (the qemu_cortex_a9 suite run); cmsis_6 is Cortex-M
           - cmsis_6
           - littlefs
   self:

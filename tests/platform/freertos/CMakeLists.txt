@@ -32,6 +32,7 @@ list(APPEND CMAKE_MODULE_PATH "${ADL_REPO_ROOT}/cmake")
 include(CompilerWarnings)
 include(Sanitizers)
 include(Coverage)
+include(Tracy)
 
 # ---- the third-party components ------------------------------------------------------------
 # A source tree can be named instead of fetched, for a build without network access:
