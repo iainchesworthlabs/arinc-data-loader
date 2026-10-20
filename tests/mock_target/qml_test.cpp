@@ -124,15 +124,13 @@ int main(int argc, char* argv[]) {
     // The "This computer only" check box is wired to the model.
     QQuickItem* loopback = find_item(content, QStringLiteral("loopbackOnlyField"));
     if (loopback == nullptr) {
-        std::fprintf(stderr, "the loopback-only check box is not in the window
-");
+        std::fprintf(stderr, "the loopback-only check box is not in the window\n");
         return 1;
     }
     model.setLoopbackOnly(true);
     QCoreApplication::processEvents();
     if (!loopback->property("checked").toBool()) {
-        std::fprintf(stderr, "the loopback-only check box does not follow the model
-");
+        std::fprintf(stderr, "the loopback-only check box does not follow the model\n");
         return 1;
     }
     model.setLoopbackOnly(false);
