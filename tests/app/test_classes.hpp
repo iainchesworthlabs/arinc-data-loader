@@ -123,4 +123,17 @@ private Q_SLOTS:
     void a_download_refuses_a_name_that_is_not_a_safe_file_name();
     void a_second_job_is_refused_while_a_download_runs();
     void auto_find_runs_before_a_download_when_no_target_is_selected();
+    void a_language_switch_reaches_the_result_the_log_and_the_failure_on_show();
+};
+
+// Message: a phrase that is translated when it is read.
+class MessageTest : public QObject {
+    Q_OBJECT
+
+private Q_SLOTS:
+    void verbatim_text_is_never_translated();
+    void arguments_replace_the_placeholders_in_one_pass();
+    void a_sequence_joins_its_parts();
+    void a_count_picks_the_plural_form();
+    void the_text_follows_the_installed_translator();
 };

@@ -51,7 +51,8 @@ QHash<int, QByteArray> TargetModel::roleNames() const {
 
 void TargetModel::retranslate() {
     if (!targets_.isEmpty()) {
-        Q_EMIT dataChanged(index(0), index(static_cast<int>(targets_.size()) - 1), {Qt::DisplayRole});
+        Q_EMIT dataChanged(index(0), index(static_cast<int>(targets_.size()) - 1),
+                           {Qt::DisplayRole});
     }
 }
 
@@ -344,8 +345,8 @@ QList<LoadSummary> LoadModel::checked_loads() const {
 void LoadModel::begin_upload() {
     for (Row& row : rows_) {
         row.ratio = row.checked ? 0 : -1;
-        row.status = row.checked ? Message::translated(&LoadModel::tr, QT_TR_NOOP("waiting"))
-                                 : Message();
+        row.status =
+            row.checked ? Message::translated(&LoadModel::tr, QT_TR_NOOP("waiting")) : Message();
         row.problem.clear();
         row.failed = false;
     }

@@ -66,7 +66,7 @@ private:
         QString file_name;
         QString kind = data_kind;
         int check_type = 0;  // CheckValueType::none
-        qint64 size = -1;  // bytes, or -1 when it could not be read
+        qint64 size = -1;    // bytes, or -1 when it could not be read
         QString message;
     };
 

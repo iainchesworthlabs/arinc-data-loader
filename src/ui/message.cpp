@@ -12,8 +12,8 @@ Message Message::verbatim(QString text) {
     return message;
 }
 
-Message Message::translated(Translate translate, const char* source,
-                            std::vector<Message> arguments, int count) {
+Message Message::translated(Translate translate, const char* source, std::vector<Message> arguments,
+                            int count) {
     Message message;
     message.kind_ = Kind::translated;
     message.translate_ = translate;

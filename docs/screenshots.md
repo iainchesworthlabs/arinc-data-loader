@@ -72,7 +72,11 @@ Things to know:
 
 The offscreen QML test programs can also save a window's picture
 (`adl_app_qml_test <workbench.png> <first-run.png> <right-to-left.png> <preferences.png> <about.png>`,
-`ADL_DARK=1` for the dark scheme; see [Testing](testing.md)). They draw the windows over simulated data
+`ADL_DARK=1` for the dark scheme; see [Testing](testing.md)). The right-to-left pictures of
+[Translations](translations.md#right-to-left) are made this way: the loader's, the generator's
+(`adl_gen_qml_test <window.png> <right-to-left.png>`) and the mock target's
+(`adl_mock_qml_test <window.png> <right-to-left.png>`) are the second picture each, drawn in Hebrew
+with Noto Sans Hebrew, and then compressed with `tools/docs/optimise_png.py`. They draw the windows over simulated data
 without a desktop, which is handy in CI, but they are not what the guide shows: the guide uses the
 real programs.
 

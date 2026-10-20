@@ -465,6 +465,7 @@ ApplicationWindow {
                     AppComboBox {
                         Layout.fillWidth: true
                         model: window.app.loadTypeModel
+                        textRole: "display"
                         currentIndex: window.app.loadTypeIndex + 1
                         enabled: !window.app.busy
                         onActivated: window.app.loadTypeIndex = currentIndex - 1

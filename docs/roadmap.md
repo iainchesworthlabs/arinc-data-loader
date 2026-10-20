@@ -149,11 +149,11 @@ slices; [the application](app.md) says what each does.
 
 What is left of the application:
 
-- Reviewing the draft translations with speakers. The eight catalogues (English, French, Spanish,
-  German, Yiddish, Hebrew, Simplified Chinese and Japanese), the `qt_add_translations` pipeline, the
-  language menu and the retranslation of the running window are in place; the text is a first,
-  mechanical draft. The layout direction is set for the right-to-left scripts, but the window's layout
-  is not mirrored (no `LayoutMirroring` in the QML).
+- Reviewing the draft translations with speakers. The three programs have the eight languages
+  (English, French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese), the
+  pipeline, a picker in each window and the retranslation of the running window, the right-to-left
+  scripts mirror the window, and every message has a translation in every language; the seven
+  translations are machine drafts no speaker has read ([translations](translations.md)).
 - FIND over real sockets in the loopback test: the standard fixes FIND to port 1001 on both ends, and two
   sockets sharing a port on one machine is not reliable on every platform, so the loopback test covers the
   operations and names the target by hand; a FIND case may join it if the reuse behaviour proves portable.

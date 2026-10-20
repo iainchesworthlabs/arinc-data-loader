@@ -141,7 +141,7 @@ void GeneratorWorker::generate(const GenerateJob& job) {
     for (qsizetype i = 0; i < job.files.size(); ++i) {
         if (cancelled()) {
             fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Cancelled.")),
-             Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Nothing was written.")));
+                 Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Nothing was written.")));
             return;
         }
         const JobFile& meta = job.files.at(i);
@@ -207,10 +207,9 @@ void GeneratorWorker::generate(const GenerateJob& job) {
 
     auto load = adl::arinc665::build_load(load_spec);
     if (!load) {
-        fail(outcome,
-             Message::translated(
-                 &GeneratorWorker::tr, QT_TR_NOOP("The load could not be built: %1."),
-                 {Message::verbatim(to_qstring(adl::arinc665::to_string(load.error())))}));
+        fail(outcome, Message::translated(
+                          &GeneratorWorker::tr, QT_TR_NOOP("The load could not be built: %1."),
+                          {Message::verbatim(to_qstring(adl::arinc665::to_string(load.error())))}));
         return;
     }
 
@@ -311,10 +310,9 @@ void GeneratorWorker::generate(const GenerateJob& job) {
         if (written.error().error == adl::media_tree::TreeError::already_exists) {
             continue;  // appeared while we looked: take the next name
         }
-        write_error = Message::verbatim(
-            QStringLiteral("%1 (%2)")
-                .arg(path_to_qstring(written.error().path),
-                     to_qstring(adl::media_tree::to_string(written.error().error))));
+        write_error = Message::verbatim(QStringLiteral("%1 (%2)").arg(
+            path_to_qstring(written.error().path),
+            to_qstring(adl::media_tree::to_string(written.error().error))));
         break;
     }
     if (root.empty()) {
@@ -371,7 +369,8 @@ void GeneratorWorker::generate(const GenerateJob& job) {
          Message::translated(&GeneratorWorker::tr, QT_TR_N_NOOP("%n support file(s)"), {},
                              outcome.support_files),
          Message::verbatim(QString::number(outcome.total_bytes)),
-         Message::translated(&GeneratorWorker::tr, QT_TR_N_NOOP("%n member(s)"), {}, outcome.members),
+         Message::translated(&GeneratorWorker::tr, QT_TR_N_NOOP("%n member(s)"), {},
+                             outcome.members),
          Message::verbatim(outcome.output_path)});
     if (!outcome.findings.isEmpty()) {
         outcome.detail = Message::sequence(

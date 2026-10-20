@@ -127,8 +127,8 @@ void LanguageManager::applyFont(const QString& code) {
     }
     // Only a face that is registered: a build or a test that has not registered the bundled fonts
     // keeps the font it has.
-    const QString family = QString::fromUtf8(language->family.data(),
-                                             static_cast<qsizetype>(language->family.size()));
+    const QString family =
+        QString::fromUtf8(language->family.data(), static_cast<qsizetype>(language->family.size()));
     if (!QFontDatabase::families().contains(family)) {
         return;
     }

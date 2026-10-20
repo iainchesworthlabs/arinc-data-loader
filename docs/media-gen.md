@@ -22,6 +22,7 @@ it done.
 | Generate | Reads the files, builds the load, places it (header and support files on the first member; with more than one member the data files are spread round-robin, each in a subdirectory named after the load's part root directory), builds the members and writes the tree under the output directory in a fresh directory named after the media set part number (a counter is appended rather than overwrite). |
 | Verify | Reads the set back from the disk it was written to (`read_media_set_tree`, `read_media_set`) and shows what that found: an error fails the generation; findings — where the set departs from the standard's recommendations — are listed as warnings and do not fail it. A set that reads back without an error is reported done, with its findings. |
 | The outcome | The directory the loader's "Choose directory…" opens (with an Open folder button), the file counts and sizes, and the findings. The progress bar is the bytes read from the source files; writing and reading back are not measured. |
+| The language | A language box in the header, beside About, offers the eight languages of the family (English, French, Spanish, German, Yiddish, Hebrew, Simplified Chinese, Japanese); the choice applies at once and is kept. Hebrew and Yiddish mirror the window ([Hebrew picture](images/gen-hebrew.png)). The catalogues are `src/media_gen/translations` and the shared `src/ui/translations`; the translations are machine drafts no speaker has read ([translations](translations.md)). The findings of the ARINC 665 library stay in English. |
 
 ## Layout
 

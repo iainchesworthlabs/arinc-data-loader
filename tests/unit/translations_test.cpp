@@ -41,13 +41,8 @@ struct Language {
     std::string_view code;
     std::size_t forms;
 };
-constexpr std::array<Language, 7> kLanguages{{{"de", 2},
-                                              {"es", 2},
-                                              {"fr", 2},
-                                              {"he", 2},
-                                              {"ja", 1},
-                                              {"yi", 2},
-                                              {"zh", 1}}};
+constexpr std::array<Language, 7> kLanguages{
+    {{"de", 2}, {"es", 2}, {"fr", 2}, {"he", 2}, {"ja", 1}, {"yi", 2}, {"zh", 1}}};
 
 // One family of catalogues: <directory>/<base>_<code>.ts for each language, and <base>_en.ts
 // for English, which holds the plural messages and nothing else.
@@ -141,8 +136,8 @@ void append_utf8(std::string& out, char32_t code) {
             out += '\'';
         } else if (!entity.empty() && entity[0] == '#') {
             const bool hex = entity.size() > 1 && entity[1] == 'x';
-            const unsigned long code = std::stoul(std::string{entity.substr(hex ? 2 : 1)}, nullptr,
-                                                  hex ? 16 : 10);
+            const unsigned long code =
+                std::stoul(std::string{entity.substr(hex ? 2 : 1)}, nullptr, hex ? 16 : 10);
             append_utf8(out, static_cast<char32_t>(code));
         } else {
             out.append(text.substr(i, end - i + 1));
@@ -193,10 +188,11 @@ void append_utf8(std::string& out, char32_t code) {
         const auto tag_end = text.find('>', message_at);
         Message message;
         message.context = context;
-        message.numerus =
-            text.substr(message_at, tag_end - message_at).find("numerus=\"yes\"") != std::string::npos;
+        message.numerus = text.substr(message_at, tag_end - message_at).find("numerus=\"yes\"") !=
+                          std::string::npos;
         std::size_t next = 0;
-        message.source = unescape(element(text, message_at, message_end, "<source>", "</source>", next));
+        message.source =
+            unescape(element(text, message_at, message_end, "<source>", "</source>", next));
         message.comment =
             unescape(element(text, message_at, message_end, "<comment>", "</comment>", next));
 
@@ -204,15 +200,18 @@ void append_utf8(std::string& out, char32_t code) {
         REQUIRE(translation_at != std::string::npos);
         REQUIRE(translation_at < message_end);
         const auto translation_tag_end = text.find('>', translation_at);
-        message.attributes = text.substr(translation_at + 12, translation_tag_end - translation_at - 12);
+        message.attributes =
+            text.substr(translation_at + 12, translation_tag_end - translation_at - 12);
         // An empty translation is written <translation type="unfinished"></translation> or
         // <translation type="unfinished"/>; the body is empty either way.
         const bool self_closing = text[translation_tag_end - 1] == '/';
-        const auto translation_end = self_closing ? translation_tag_end : text.find("</translation>", translation_tag_end);
+        const auto translation_end =
+            self_closing ? translation_tag_end : text.find("</translation>", translation_tag_end);
         REQUIRE(translation_end != std::string::npos);
         const std::string body =
-            self_closing ? std::string{}
-                         : text.substr(translation_tag_end + 1, translation_end - translation_tag_end - 1);
+            self_closing
+                ? std::string{}
+                : text.substr(translation_tag_end + 1, translation_end - translation_tag_end - 1);
         if (message.numerus) {
             std::size_t form_at = 0;
             while (true) {
@@ -224,8 +223,9 @@ void append_utf8(std::string& out, char32_t code) {
                 const auto form_end = body.find("</numerusform>", form_tag_end);
                 const bool empty_form = body[form_tag_end - 1] == '/';
                 message.forms.push_back(
-                    empty_form ? std::string{}
-                               : unescape(body.substr(form_tag_end + 1, form_end - form_tag_end - 1)));
+                    empty_form
+                        ? std::string{}
+                        : unescape(body.substr(form_tag_end + 1, form_end - form_tag_end - 1)));
                 form_at = empty_form ? form_tag_end : form_end;
             }
         } else {
@@ -271,11 +271,13 @@ void append_utf8(std::string& out, char32_t code) {
 
 [[nodiscard]] bool carries_term(std::string_view text, std::string_view term) {
     for (auto at = text.find(term); at != std::string_view::npos; at = text.find(term, at + 1)) {
-        const bool before_ok = at == 0 || !(std::isalnum(static_cast<unsigned char>(text[at - 1])) ||
-                                             text[at - 1] == '_');
+        const bool before_ok =
+            at == 0 ||
+            !(std::isalnum(static_cast<unsigned char>(text[at - 1])) || text[at - 1] == '_');
         const std::size_t after = at + term.size();
-        const bool after_ok = after >= text.size() ||
-                              !(std::isalnum(static_cast<unsigned char>(text[after])) || text[after] == '_');
+        const bool after_ok =
+            after >= text.size() ||
+            !(std::isalnum(static_cast<unsigned char>(text[after])) || text[after] == '_');
         if (before_ok && after_ok) {
             return true;
         }
@@ -352,8 +354,9 @@ void check_not_copied(const Family& family, const Language& language) {
         bool lower_case_word = false;
         for (std::size_t i = 0; i < message.source.size(); ++i) {
             const bool word_start = i == 0 || message.source[i - 1] == ' ';
-            lower_case_word = lower_case_word ||
-                              (word_start && std::islower(static_cast<unsigned char>(message.source[i])));
+            lower_case_word =
+                lower_case_word ||
+                (word_start && std::islower(static_cast<unsigned char>(message.source[i])));
         }
         if (words < 4 || !lower_case_word) {
             continue;

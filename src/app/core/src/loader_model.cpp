@@ -204,13 +204,12 @@ QString LoaderModel::mediaSetTitle() const {
         return {};
     }
     // One count to a sentence: the members and the loads are phrases of their own.
-    return Message::translated(
-               &LoaderModel::tr, QT_TR_NOOP("%1: %2, %3"),
-               {Message::verbatim(media_set_.part_number),
-                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n member(s)"), {},
-                                    media_set_.members),
-                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n load(s)"), {},
-                                    static_cast<int>(media_set_.loads.size()))})
+    return Message::translated(&LoaderModel::tr, QT_TR_NOOP("%1: %2, %3"),
+                               {Message::verbatim(media_set_.part_number),
+                                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n member(s)"),
+                                                    {}, media_set_.members),
+                                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n load(s)"),
+                                                    {}, static_cast<int>(media_set_.loads.size()))})
         .text();
 }
 

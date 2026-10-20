@@ -74,11 +74,10 @@ void ModelsTest::event_model_capacity_is_per_instance() {
 
 void ModelsTest::configuration_model_replaces_its_rows() {
     ConfigurationModel model;
-    model.reset(
-        {{HardwareRow::Level::hardware, Message::verbatim(QStringLiteral("FMS LEFT")),
-          Message::verbatim(QStringLiteral("serial"))},
-         {HardwareRow::Level::part, Message::verbatim(QStringLiteral("ACM47")),
-          Message::verbatim(QStringLiteral("FMS 1"))}});
+    model.reset({{HardwareRow::Level::hardware, Message::verbatim(QStringLiteral("FMS LEFT")),
+                  Message::verbatim(QStringLiteral("serial"))},
+                 {HardwareRow::Level::part, Message::verbatim(QStringLiteral("ACM47")),
+                  Message::verbatim(QStringLiteral("FMS 1"))}});
     QCOMPARE(model.rowCount(), 2);
     QCOMPARE(model.data(model.index(0), ConfigurationModel::LevelRole).toInt(), 0);
     QCOMPARE(model.data(model.index(1), ConfigurationModel::LevelRole).toInt(), 1);
