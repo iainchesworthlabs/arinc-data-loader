@@ -143,6 +143,14 @@ void GeneratorTest::generates_a_verified_media_set() {
     QCOMPARE(summary.loads[0].data_files, 1);
     QCOMPARE(summary.loads[0].support_files, 1);
     QVERIFY(summary.findings.isEmpty());
+
+    // The outcome describes the form that produced it: changing the form clears it.
+    model.setMemberCount(1);  // no change, so the outcome stays
+    QCOMPARE(model.resultState(), 1);
+    model.setBatchPartNumber(QStringLiteral("ACM4C-0100-0200"));
+    QCOMPARE(model.resultState(), 0);
+    QVERIFY(model.resultText().isEmpty());
+    QVERIFY(model.outputPath().isEmpty());
 }
 
 void GeneratorTest::refuses_an_invalid_form() {

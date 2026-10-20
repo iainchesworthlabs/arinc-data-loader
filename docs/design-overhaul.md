@@ -574,8 +574,8 @@ the Windows/macOS builds of the new QML. Those are in §11.
 
 ## 11. Remaining work, ranked
 
-Checked against the code on this branch: items 1 to 3 and 5 to 11 are still open; item 4 is partly
-done.
+Checked against the code on this branch: items 1 to 3, 5 to 7 and 9 to 11 are still open; item 4 is partly
+done; item 8 is done.
 
 1. **Bind "checked" to a time and a file identity.** Add the check time and a manifest/mtime
    fingerprint to `MediaSetIndex`; mark the set stale when a file changed, and refuse or warn
@@ -607,9 +607,9 @@ done.
 7. **Keyboard and screen-reader pass.** The controls carry roles and names and a ring; no NVDA or
    Orca pass has been run. The activity log, stored-files list and file table need list-item names
    that include the row identity.
-8. **The generator's success receipt should clear on edit.** The engine's `resultState` survives a
-   field change; a dirty marker or a `resultChanged` reset on the next edit is needed. Open: the
-   result is reset only when a new generation starts.
+8. **The generator's success receipt clears on edit.** Done: `GeneratorModel` resets `resultState` to 0
+   (and the output path and findings) on any change to the form, so GENERATED and the banner do not outlive
+   the form they describe.
 9. **The mock target's Stop should be a state, not an instantaneous flag.** Today `running` clears
    before the engine loop returns; a `STOPPING` state and an "operation stopped" line would make
    the last frame truthful.

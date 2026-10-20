@@ -61,7 +61,8 @@ a job is an `AppBanner` above the action bar: success (with `Open folder`), fail
 note that the job was cancelled.
 
 `GeneratorModel::resultState` is 0 (no job yet), 1 (written and verified), 2 (failed) or 3 (the
-operator cancelled it; nothing was written). The window reads the state, not the text.
+operator cancelled it; nothing was written). The window reads the state, not the text. Any later change to the form (a field, a file, the output folder) clears the outcome back to 0, so the
+header and banner never describe a form that is no longer on screen.
 
 The file table's header and rows share one column model (the name takes the room that is left; kind,
 check value, size and `Remove` are fixed widths), so they stay aligned at any window width.
