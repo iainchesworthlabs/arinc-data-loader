@@ -310,7 +310,10 @@ void Harness::makeTargetSlow() {
 }
 
 void Harness::holdUploadAtSecondFile() {
-    gated_->arm(adl::test::GatedHost::Event::open_read, 2);
+    // The application opens every file of the set once before an upload starts, to see that none
+    // changed since the check; the target's own requests come after those.
+    gated_->arm(adl::test::GatedHost::Event::open_read,
+                static_cast<unsigned>(model_->fileCount()) + 2);
 }
 
 void Harness::holdDownloadAtSecondFile() {

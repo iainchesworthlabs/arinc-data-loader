@@ -236,7 +236,7 @@ test on another thread cannot be sure it is still under way when it presses Abor
 tests held the host factory, so the abort landed before the target was even contacted).
 `tests/support/gated_host.hpp` is a `Host` that forwards to another and can hold the thread using it at a
 chosen file call: `arm(Event::open_read, 2)` holds the engine's thread when the target asks for its second
-file (an upload: the first has been read), `arm(Event::create, 2)` when the second file begins to arrive (a
+file (an upload: the first has been read; the application opens each file of the set once before an upload starts, to see that none changed since the check, so the count starts after those), `arm(Event::create, 2)` when the second file begins to arrive (a
 download). The test waits until the gate is reached, asks for the abort, and releases it; the target is made
 slow (`SimPlan::work_time`) so it cannot finish on its own. The same gate is behind `Harness::holdUploadAtSecondFile()`
 and `holdDownloadAtSecondFile()` in the UI suite. The run is deterministic: the engine is single-threaded and

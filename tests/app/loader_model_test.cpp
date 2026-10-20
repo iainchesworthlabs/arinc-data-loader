@@ -1601,6 +1601,7 @@ void LoaderModelTest::abort_in_the_middle_of_an_upload_is_confirmed_by_the_targe
     QVERIFY(fixture.write(rig));
     adl::test::GatedHost gated(rig.loader_host);
     LoaderModel model(gated_host(gated), settings_in());
+    const adl::test::GatedHost::Release unblock(gated);
     point_at_the_target(model);
     read_the_media_set(model, fixture);
     model.selectAllLoads(true);
@@ -1608,8 +1609,10 @@ void LoaderModelTest::abort_in_the_middle_of_an_upload_is_confirmed_by_the_targe
     QVERIFY(all_files >= 2);
 
     // The engine is held when the target asks for its second file: the first is across, the
-    // transfer is under way and the load is not complete.
-    gated.arm(adl::test::GatedHost::Event::open_read, 2);
+    // transfer is under way and the load is not complete. (Before the upload starts, the
+    // application opens every file of the set once to see that none has changed since the check;
+    // those opens come first.)
+    gated.arm(adl::test::GatedHost::Event::open_read, static_cast<unsigned>(model.fileCount()) + 2);
     model.uploadSelected();
     QVERIFY(gated.wait_until_reached());
     QVERIFY(model.busy());
@@ -1650,6 +1653,7 @@ void LoaderModelTest::abort_in_the_middle_of_a_download_is_confirmed_by_the_targ
     adl::test::TempDir downloads;
     adl::test::GatedHost gated(rig.loader_host);
     LoaderModel model(gated_host(gated), settings_in());
+    const adl::test::GatedHost::Release unblock(gated);
     model.setDownloadDirectory(download_dir_of(downloads));
     point_at_the_target(model);
     model.addDownloadFile(QStringLiteral("A.BIN"));
@@ -1847,10 +1851,9 @@ void LoaderModelTest::the_real_host_makes_a_download_directory_with_a_non_ascii_
     QCOMPARE(model.resultState(), 2);
     QVERIFY(model.resultWasDownload());
     QCOMPARE(model.resultText(), QStringLiteral("aborted by the operator"));
-    // The path the window shows for the receipt is the one on the disk, name and all.
-    QVERIFY2(QFileInfo(model.lastDownloadDirectory()).isDir(),
-             qPrintable(model.lastDownloadDirectory()));
-    QVERIFY(model.lastDownloadDirectory().contains(
-        QString::fromUtf8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E")));
+    // No file came back, so the empty numbered folder is taken away again - on the real disk, by
+    // the real host, below a directory whose name is not ASCII - and the chosen directory stays.
+    QVERIFY2(!QFileInfo(numbered).exists(), qPrintable(numbered));
+    QVERIFY(QFileInfo(downloads).isDir());
     QVERIFY(log_contains(model, QStringLiteral("Downloading 1 file from 127.0.0.1")));
 }

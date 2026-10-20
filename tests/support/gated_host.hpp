@@ -30,6 +30,20 @@ public:
         create,     // the loader creates a file to write (a download: a file begins to arrive)
     };
 
+    // Lets the gate go when it leaves scope. Declared after the model that uses the host, it
+    // keeps a failing check from leaving the engine's thread held while the model is destroyed
+    // (which waits for that thread).
+    class Release {
+    public:
+        explicit Release(GatedHost& gate) : gate_(gate) {}
+        Release(const Release&) = delete;
+        Release& operator=(const Release&) = delete;
+        ~Release() { gate_.release(); }
+
+    private:
+        GatedHost& gate_;
+    };
+
     explicit GatedHost(adl::platform::Host& inner) : inner_(inner), files_(*this, inner.files()) {}
     GatedHost(const GatedHost&) = delete;
     GatedHost& operator=(const GatedHost&) = delete;
