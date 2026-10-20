@@ -163,3 +163,36 @@ void MockModelTest::a_failing_link_reports_the_error() {
     QVERIFY(!model.running());
     QCOMPARE(model.errorText(), QStringLiteral("the network is down"));
 }
+
+void MockModelTest::loopback_only_binds_the_link_to_loopback() {
+    MockRig rig;
+    FakeTargetLink* link = nullptr;
+    MockTargetModel model([&]() -> std::expected<std::unique_ptr<TargetLink>, QString> {
+        auto made = std::make_unique<FakeTargetLink>(rig.world, rig.network, rig.target_address);
+        link = made.get();
+        return std::unique_ptr<TargetLink>(std::move(made));
+    });
+    QVERIFY(!model.loopbackOnly());
+
+    // The default listens on every interface.
+    QSignalSpy first_log(&model, &MockTargetModel::logLine);
+    model.start();
+    QTRY_VERIFY_WITH_TIMEOUT(first_log.count() > 0, 5000);
+    QVERIFY(link != nullptr);
+    QCOMPARE(link->local_address(), (Address{{0, 0, 0, 0}}));
+    model.stop();
+
+    // Asked to, it listens on this computer only.
+    QSignalSpy ports_spy(&model, &MockTargetModel::portsChanged);
+    model.setLoopbackOnly(true);
+    QCOMPARE(ports_spy.count(), 1);
+    model.setLoopbackOnly(true);  // no change, no signal
+    QCOMPARE(ports_spy.count(), 1);
+    link = nullptr;
+    QSignalSpy second_log(&model, &MockTargetModel::logLine);
+    model.start();
+    QTRY_VERIFY_WITH_TIMEOUT(second_log.count() > 0, 5000);
+    QVERIFY(link != nullptr);
+    QCOMPARE(link->local_address(), Address::loopback());
+    model.stop();
+}

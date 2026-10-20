@@ -106,5 +106,8 @@ Not checked: FIND between the two applications on one machine does **not** work 
 broadcast is answered by nothing: "0 targets answered", on Windows; FIND is fixed to port 1001 on
 both ends by the standard, and two sockets sharing a port on one machine is not reliable) — typing
 the target's address is the single-host path; on Linux and macOS binding ports 59 and 1001 may need
-privileges. The window at scales other than 100%; keyboard use and screen readers beyond the
+privileges (`Config::bind_address`, the window's **This computer only** setting, binds 127.0.0.1
+instead of every interface: no firewall prompt on Windows, but on macOS a low port on a single
+address may still need root; see the user's guide, Installing). The loader binds loopback too when
+its target is a loopback address (`RunOptions::local_address`). The window at scales other than 100%; keyboard use and screen readers beyond the
 accessible names.

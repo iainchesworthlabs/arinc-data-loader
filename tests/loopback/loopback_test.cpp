@@ -283,6 +283,9 @@ struct MockTarget {
     config.thw = std::string{target_thw};
     config.tftp_port = target_tftp_port;
     config.find_port = target_find_port;
+    // Both ends on loopback: no socket listens on the network, so no firewall asks about the test
+    // program (a prompt for an unfamiliar path holds the screen and stops unattended runs).
+    config.bind_address = Address::loopback();
     config.think_time = std::chrono::milliseconds(200);
     config.status_period = std::chrono::seconds(1);
     return config;
@@ -323,7 +326,9 @@ struct LoaderRig {
         services.listener = &recorder;
         DataLoader loader(config, workspace, services);
         Runner runner(*host);
-        return runner.run(loader, operation, options);
+        RunOptions on_loopback = options;
+        on_loopback.local_address = adl::platform::Ipv4Address::loopback();
+        return runner.run(loader, operation, on_loopback);
     }
 };
 

@@ -45,6 +45,12 @@ public:
     // operator, when the port cannot be bound.
     virtual bool bind(std::uint16_t port, std::string& error) = 0;
 
+    // The interface the link's sockets are bound to, from the next bind() or send() on:
+    // 0.0.0.0 (the default) listens on every interface; 127.0.0.1 only answers a loader on
+    // this machine, and is the one binding an operating system firewall does not ask about.
+    // The fake network has no interfaces and ignores it.
+    virtual void set_local_address(const adl::arinc615a::Address& /*address*/) noexcept {}
+
     // The ports with a socket now (pre-bound ones, and the transfer ports opened by sends).
     [[nodiscard]] virtual std::vector<std::uint16_t> ports() const = 0;
 
@@ -84,6 +90,9 @@ public:
               std::span<const std::byte> payload) override;
     void after(adl::arinc615a::Duration delay, std::function<void()> action) override;
     bool bind(std::uint16_t port, std::string& error) override;
+    void set_local_address(const adl::arinc615a::Address& address) noexcept override {
+        local_ = adl::platform::Ipv4Address{address.octets};
+    }
     [[nodiscard]] std::vector<std::uint16_t> ports() const override;
     [[nodiscard]] std::int32_t wait(std::uint32_t timeout_ms) override;
     bool receive(std::uint16_t port, adl::arinc615a::Endpoint& from, std::span<std::byte> out,
@@ -98,6 +107,7 @@ private:
     void fire_due(adl::arinc615a::Instant now);
 
     std::unique_ptr<adl::platform::Host> host_;
+    adl::platform::Ipv4Address local_ = adl::platform::Ipv4Address::any();
     std::map<std::uint16_t, adl::platform::Owned<adl::platform::UdpSocket>> sockets_;
     // The scheduled callbacks, by deadline (equal deadlines run in the order scheduled).
     std::multimap<adl::arinc615a::Instant, std::function<void()>> timers_;

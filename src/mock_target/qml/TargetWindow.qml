@@ -448,6 +448,23 @@ ApplicationWindow {
                             Accessible.name: qsTr("FIND port")
                         }
                     }
+
+                    AppCheckBox {
+                        objectName: "loopbackOnlyField"
+                        Layout.fillWidth: true
+                        text: qsTr("This computer only (127.0.0.1)")
+                        checked: window.app.loopbackOnly
+                        enabled: !window.app.running
+                        onToggled: (value) => window.app.loopbackOnly = value
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Listens on no network, so the firewall does not ask. A loader on another computer cannot reach it.")
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                    }
                 }
 
                 Rectangle {

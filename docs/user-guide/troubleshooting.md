@@ -58,8 +58,17 @@ copy of the loader is running, and that no other program holds the control port 
   moves its file traffic to that port.
 - **Another copy of the loader is running**, or an earlier one has not finished closing.
 - **The mock target will not start** ("The TFTP and FIND ports must each be between 1 and 65535", or
-  its log shows it could not open a port): something else uses 59 or 1001, or, on Linux and macOS, ports
-  below 1024 need extra privilege. Run it with the privilege, or free the port.
+  its log shows `the FIND port could not be bound: port 1001: ...`): something else uses 59 or 1001,
+  or, with *permission denied*, a port below 1024 needs extra privilege on Linux and macOS (and a
+  port the system has reserved on Windows). On Linux give the program `CAP_NET_BIND_SERVICE` or lower
+  `net.ipv4.ip_unprivileged_port_start`; see [Installing](installing.md#linux).
+- **The loader fails at the start of every operation on Linux** ("the loader's port could not be
+  opened (permission denied)"): its default control port is 59, which is below 1024. Set the
+  *Control port* in Preferences to 5900, or give `adl_app` the capability as above.
+- **A Windows or macOS firewall window is in front of everything**, or an automated run stopped
+  there: see [Installing](installing.md#what-the-firewall-asks). For the demonstration tick *This
+  computer only (127.0.0.1)* in the mock target, which listens on no network and so is not asked
+  about; for a target on the network, run `tools/network-access/windows/adl_firewall.ps1` once.
 - **The loader always sends to port 59 of the target.** Moving the mock target to another TFTP port
   makes it unreachable from the loader. In a demonstration keep the mock target on 59 and move the
   *loader's* control port.
@@ -138,8 +147,11 @@ doing before trying again."
 - On Windows a **Debug** build cannot open the system file dialogs: AddressSanitizer reports an error
   inside Windows and the program exits with status 1 when you press "Choose...". Build and use
   `windows-msvc-release` ([Building](../building.md#presets)).
-- A Windows firewall prompt for an unfamiliar program path appears the first time it opens a port. It
-  is answered by the person at the keyboard; it can stop automated runs of the programs.
+- A Windows firewall prompt for an unfamiliar program path appears the first time it opens a port on
+  the network. It is answered by the person at the keyboard and stops automated runs of the
+  programs; run `tools/network-access/windows/adl_firewall.ps1` as administrator for each build
+  folder, or bind loopback only (the mock target's *This computer only*, and `127.0.0.1` as the target,
+  as the test suite does), see [Installing](installing.md#what-the-firewall-asks).
 
 If none of this helps, the log text and the dialog are what a bug report needs, with the version
 (About) and the operating system.

@@ -121,6 +121,22 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // The "This computer only" check box is wired to the model.
+    QQuickItem* loopback = find_item(content, QStringLiteral("loopbackOnlyField"));
+    if (loopback == nullptr) {
+        std::fprintf(stderr, "the loopback-only check box is not in the window
+");
+        return 1;
+    }
+    model.setLoopbackOnly(true);
+    QCoreApplication::processEvents();
+    if (!loopback->property("checked").toBool()) {
+        std::fprintf(stderr, "the loopback-only check box does not follow the model
+");
+        return 1;
+    }
+    model.setLoopbackOnly(false);
+
     // What the operator does: start the target with the window's own button, watch the log
     // fill, and stop it again with the window's own button.
     QMetaObject::invokeMethod(start, "click");

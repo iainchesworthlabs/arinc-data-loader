@@ -1,0 +1,146 @@
+# AppArmor profiles for the ARINC Data Loader programs.
+#
+# This is a template: tools/network-access/linux/install_apparmor.sh fills in the @@...@@ marks
+# and installs the result as /etc/apparmor.d/arinc-data-loader. See
+# docs/user-guide/installing.md ("Linux").
+#
+# What each program is allowed to do, and nothing else:
+#   - run, and load its libraries (the build's folder, the Qt kit, the system libraries);
+#   - draw a window (X11 or Wayland, GPU, fonts, the desktop's settings);
+#   - send and receive UDP over IPv4 (TFTP and FIND), and, for the loader and the mock target,
+#     bind the standard's ports 59 and 1001 (capability net_bind_service);
+#   - keep its settings and caches under the user's own home;
+#   - read and write files the operator chooses: media sets, downloads, the mock target's storage
+#     (under the user's home, removable media and /tmp; see "Narrowing it" in the guide).
+# It may not open a TCP socket, use raw sockets, load kernel modules, trace other processes or run
+# other programs.
+#
+# Local additions go in /etc/apparmor.d/local/adl_app (or adl_mock_target, adl_media_gen), which
+# are included last and survive a reinstall.
+
+include <tunables/global>
+
+profile adl_app @@ADL_BIN@@/adl_app @@FLAGS@@ {
+  include <abstractions/base>
+  include <abstractions/fonts>
+  include <abstractions/freedesktop.org>
+  include <abstractions/X>
+  include if exists <abstractions/wayland>
+  include if exists <abstractions/mesa>
+  include if exists <abstractions/opengl>
+  include if exists <abstractions/vulkan>
+  include if exists <abstractions/dri-enumerate>
+  include if exists <abstractions/qt6>
+
+  network inet dgram,
+  network inet6 dgram,
+  capability net_bind_service,
+
+  @@ADL_BIN@@/adl_app mr,
+  @@ADL_BIN@@/** mr,
+@@QT_RULES@@
+  # Settings (QSettings), the QML and shader caches.
+  owner @{HOME}/.config/iainchesworthlabs/ rw,
+  owner @{HOME}/.config/iainchesworthlabs/** rwk,
+  owner @{HOME}/.cache/ rw,
+  owner @{HOME}/.cache/iainchesworthlabs/** rwk,
+  owner @{HOME}/.cache/qtshadercache*/** rwk,
+  owner @{HOME}/.cache/QtProject/** rwk,
+
+  # The media sets and downloads the operator chooses.
+  owner @{HOME}/ r,
+  owner @{HOME}/** rwk,
+  /media/** rw,
+  /run/media/** rw,
+  /mnt/** rw,
+  owner /tmp/** rwk,
+
+  # The desktop: file dialogs, the portal and the session bus.
+  owner @{HOME}/.local/share/** r,
+  owner @{HOME}/.config/user-dirs.dirs r,
+  /usr/share/** r,
+  /etc/xdg/** r,
+
+  include if exists <local/adl_app>
+}
+
+profile adl_mock_target @@ADL_BIN@@/adl_mock_target @@FLAGS@@ {
+  include <abstractions/base>
+  include <abstractions/fonts>
+  include <abstractions/freedesktop.org>
+  include <abstractions/X>
+  include if exists <abstractions/wayland>
+  include if exists <abstractions/mesa>
+  include if exists <abstractions/opengl>
+  include if exists <abstractions/vulkan>
+  include if exists <abstractions/dri-enumerate>
+  include if exists <abstractions/qt6>
+
+  network inet dgram,
+  network inet6 dgram,
+  capability net_bind_service,
+
+  @@ADL_BIN@@/adl_mock_target mr,
+  @@ADL_BIN@@/** mr,
+@@QT_RULES@@
+  owner @{HOME}/.config/iainchesworthlabs/ rw,
+  owner @{HOME}/.config/iainchesworthlabs/** rwk,
+  owner @{HOME}/.cache/ rw,
+  owner @{HOME}/.cache/iainchesworthlabs/** rwk,
+  owner @{HOME}/.cache/qtshadercache*/** rwk,
+  owner @{HOME}/.cache/QtProject/** rwk,
+
+  # The storage directory (what an Upload writes) and the media sets it reads.
+  owner @{HOME}/ r,
+  owner @{HOME}/** rwk,
+  /media/** rw,
+  /run/media/** rw,
+  /mnt/** rw,
+  owner /tmp/** rwk,
+
+  owner @{HOME}/.local/share/** r,
+  owner @{HOME}/.config/user-dirs.dirs r,
+  /usr/share/** r,
+  /etc/xdg/** r,
+
+  include if exists <local/adl_mock_target>
+}
+
+# The generator never touches the network: no network rule, no capability.
+profile adl_media_gen @@ADL_BIN@@/adl_media_gen @@FLAGS@@ {
+  include <abstractions/base>
+  include <abstractions/fonts>
+  include <abstractions/freedesktop.org>
+  include <abstractions/X>
+  include if exists <abstractions/wayland>
+  include if exists <abstractions/mesa>
+  include if exists <abstractions/opengl>
+  include if exists <abstractions/vulkan>
+  include if exists <abstractions/dri-enumerate>
+  include if exists <abstractions/qt6>
+
+  @@ADL_BIN@@/adl_media_gen mr,
+  @@ADL_BIN@@/** mr,
+@@QT_RULES@@
+  owner @{HOME}/.config/iainchesworthlabs/ rw,
+  owner @{HOME}/.config/iainchesworthlabs/** rwk,
+  owner @{HOME}/.cache/ rw,
+  owner @{HOME}/.cache/iainchesworthlabs/** rwk,
+  owner @{HOME}/.cache/qtshadercache*/** rwk,
+  owner @{HOME}/.cache/QtProject/** rwk,
+
+  # Where the generated tree and its source files are.
+  owner @{HOME}/ r,
+  owner @{HOME}/** rwk,
+  /media/** rw,
+  /run/media/** rw,
+  /mnt/** rw,
+  owner /tmp/** rwk,
+
+  owner @{HOME}/.local/share/** r,
+  owner @{HOME}/.config/user-dirs.dirs r,
+  /usr/share/** r,
+  /etc/xdg/** r,
+
+  include if exists <local/adl_media_gen>
+}

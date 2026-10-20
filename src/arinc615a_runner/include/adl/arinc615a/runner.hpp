@@ -32,6 +32,11 @@ public:
 
 struct RunOptions {
     RunController* controller = nullptr;
+    // The interface the control socket and every transfer socket are bound to. 0.0.0.0 (the
+    // default) listens on every interface, which is what a target on the network needs and what
+    // makes an operating system firewall ask about the program. A target on this machine
+    // (127.0.0.1) can be reached from loopback sockets alone, which no firewall asks about.
+    adl::platform::Ipv4Address local_address = adl::platform::Ipv4Address::any();
     // How often a controller is polled while nothing else is happening.
     Duration poll_interval = std::chrono::milliseconds(100);
 };

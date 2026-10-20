@@ -51,6 +51,7 @@ std::optional<std::string> MockEngine::start(TargetLink& link, Config config) {
     config_ = std::move(config);
     last_error_.clear();
     std::string error;
+    link_->set_local_address(config_.bind_address);
     if (!link_->bind(config_.find_port, error)) {
         last_error_ = "the FIND port could not be bound: " + error;
         return last_error_;
