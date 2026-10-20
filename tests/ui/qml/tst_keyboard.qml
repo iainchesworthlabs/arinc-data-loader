@@ -151,6 +151,10 @@ TestCase {
 
     function test_03_the_focus_goes_back_to_the_control_that_opened_the_dialog() {
         const button = find("preferencesButton")
+        // A click does not focus a button on macOS (only text controls take mouse focus there), so
+        // the control that opens the dialog is given the focus the way a Tab would.
+        button.forceActiveFocus(Qt.TabFocusReason)
+        verify(button.activeFocus)
         const dialog = openPreferences()
         verify(!button.activeFocus)
         key(Qt.Key_Escape)

@@ -156,6 +156,8 @@ TestCase {
         verify(list.visible)
         compare(list.count, 1)
         tryVerify(function() { return harness.findItem(mainWindow, "targetDelegate") !== null }, 5000)
+        // The answer rows take clicks only while no job runs: wait for FIND to finish.
+        tryVerify(function() { return !appModel.busy }, 20000)
 
         const delegate = find("targetDelegate")
         verify(delegate.visible)
