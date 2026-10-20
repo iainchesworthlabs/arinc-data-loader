@@ -124,3 +124,17 @@ private Q_SLOTS:
     void a_second_job_is_refused_while_a_download_runs();
     void auto_find_runs_before_a_download_when_no_target_is_selected();
 };
+
+// Where a window is put back: the signed coordinate and the reachable title bar.
+class WindowStateTest : public QObject {
+    Q_OBJECT
+
+private Q_SLOTS:
+    void reads_a_stored_coordinate_as_a_signed_value();
+    void wraps_a_coordinate_the_registry_kept_unsigned();
+    void falls_back_for_a_value_that_is_no_coordinate();
+    void accepts_a_window_whose_title_bar_is_on_a_screen();
+    void refuses_a_window_that_barely_touches_a_screen();
+    void finds_a_window_on_a_monitor_left_of_the_primary_one();
+    void a_title_bar_narrower_than_the_minimum_needs_all_of_itself();
+};
