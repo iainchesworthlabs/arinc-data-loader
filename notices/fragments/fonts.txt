@@ -1,0 +1,12 @@
+Typeface
+--------
+
+The programs embed the Archivo typeface (Regular, Medium, SemiBold and
+ExtraBold), Copyright 2020 The Archivo Project Authors
+(https://github.com/Omnibus-Type/Archivo), unmodified, as resources of each
+executable. It is licensed under the SIL Open Font License, Version 1.1,
+reproduced below as it ships with the faces. Archivo has no Hebrew, Chinese or
+Japanese letters: the windows show those languages in the system's own fonts,
+which are not part of this package.
+
+{{FILE:OFL}}

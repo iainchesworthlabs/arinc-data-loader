@@ -37,6 +37,10 @@ public:
             ::CloseHandle(handle_);
         }
     }
+    WindowsSemaphore(const WindowsSemaphore&) = delete;
+    WindowsSemaphore& operator=(const WindowsSemaphore&) = delete;
+    WindowsSemaphore(WindowsSemaphore&&) = delete;
+    WindowsSemaphore& operator=(WindowsSemaphore&&) = delete;
     [[nodiscard]] bool ok() const noexcept { return handle_ != nullptr; }
 
     Result<void> post() noexcept override {
@@ -78,6 +82,10 @@ public:
     explicit WindowsThread(const ThreadSpec& spec) noexcept
         : entry_(spec.entry), argument_(spec.argument) {}
     ~WindowsThread() override { (void)join(); }
+    WindowsThread(const WindowsThread&) = delete;
+    WindowsThread& operator=(const WindowsThread&) = delete;
+    WindowsThread(WindowsThread&&) = delete;
+    WindowsThread& operator=(WindowsThread&&) = delete;
 
     [[nodiscard]] Result<void> start(const ThreadSpec& spec) noexcept {
         // Created suspended so that the priority and the name are in place before the
@@ -103,6 +111,9 @@ public:
 
         if (::ResumeThread(handle_) == static_cast<DWORD>(-1)) {
             const DWORD error = ::GetLastError();
+            // The thread was created suspended and ResumeThread failed, so it has
+            // never run a single instruction: TerminateThread only releases it.
+#pragma warning(suppress : 6258)
             ::TerminateThread(handle_, 1);
             ::CloseHandle(handle_);
             handle_ = nullptr;

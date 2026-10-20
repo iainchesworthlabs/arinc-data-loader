@@ -56,7 +56,9 @@ New behaviour comes with a test, and a bug fix with the test that failed before
 it. [docs/testing.md](docs/testing.md) says where each kind of test lives and
 how to add one. Debug builds run under AddressSanitizer, and every first-party
 target is compiled with warnings as errors, so a warning is a build failure:
-fix it rather than silence it.
+fix it rather than silence it. The nightly suite adds clang-tidy, MSVC Code
+Analysis and Clang's sanitizers; a red night is worth a look, but it does not
+block a pull request ([docs/static-analysis.md](docs/static-analysis.md)).
 
 ## Platform code: the one rule that is not about style
 
@@ -89,8 +91,12 @@ what to do instead of an `#ifdef`, and how to add a platform.
   the code around you.
 - Formatting follows the repository's [`.clang-format`](.clang-format): run
   `clang-format` before committing, or have your editor do it on save.
-- [`.clang-tidy`](.clang-tidy) is the static-analysis configuration. Warnings in
-  the compiler's own set are errors in every build.
+- [`.clang-tidy`](.clang-tidy) is the static-analysis configuration: the
+  compiler's own warning set is an error in every build, and clang-tidy runs
+  with warnings as errors on the nightly analysis (see
+  [docs/static-analysis.md](docs/static-analysis.md)). A disabled check carries
+  its reason; add one the same way, and use a `NOLINT` only for a finding from
+  a system macro or a known-safe call, with the reason beside it.
 - Keep the library GUI-free and platform-free. Qt belongs in `src/app` and
   nowhere else.
 

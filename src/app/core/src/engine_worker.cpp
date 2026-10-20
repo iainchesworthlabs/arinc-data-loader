@@ -16,6 +16,8 @@
 #include "adl/app/notice_text.hpp"
 #include "adl/app/text.hpp"
 #include "adl/arinc615a/data_loader.hpp"
+
+#include <adl/profiling.hpp>
 #include "adl/arinc615a/directory_files.hpp"
 #include "adl/arinc615a/find_client.hpp"
 #include "adl/arinc615a/limits.hpp"
@@ -298,8 +300,10 @@ public:
             rows.append({to_qstring(file.file_name), to_qstring(file.description)});
         }
         Q_EMIT worker_.log_line(
-            {Severity::info, QObject::tr("The target listed %n file(s) it can download.", "",
-                                         static_cast<int>(rows.size()))});
+            {Severity::info,
+             rows.size() == 1
+                 ? QObject::tr("The target listed 1 file it can download.")
+                 : QObject::tr("The target listed %1 files it can download.").arg(rows.size())});
         Q_EMIT worker_.download_list(rows);
         // The operator chooses in the window; the choice comes back through the gate
         // (DataLoader::provide_selection), which the runner's thread calls on its next poll.
@@ -389,6 +393,7 @@ void EngineWorker::fail(const QString& text, const QString& hint,
 }
 
 void EngineWorker::find(const QString& destination) {
+    const adl::profiling::Zone zone{"app: find job"};
     std::vector<Address> destinations;
     if (!destination.isEmpty()) {
         const auto octets = parse_ipv4(destination);
@@ -437,13 +442,16 @@ void EngineWorker::find(const QString& destination) {
 
     OperationSummary summary;
     summary.success = true;
-    summary.outcome = tr("%n target(s) answered", "", static_cast<int>(found.size()));
+    const int answer_count = static_cast<int>(found.size());
+    summary.outcome =
+        answer_count == 1 ? tr("1 target answered") : tr("%1 targets answered").arg(answer_count);
     Q_EMIT log_line({Severity::info, summary.outcome + QLatin1Char('.')});
     Q_EMIT finished(summary);
 }
 
 void EngineWorker::read_information(const QString& address, const QString& thw_id_pos,
                                     quint16 control_port) {
+    const adl::profiling::Zone zone{"app: information job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
         fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
@@ -463,6 +471,7 @@ void EngineWorker::read_information(const QString& address, const QString& thw_i
 
 void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
                           QList<LoadSummary> loads, quint16 control_port) {
+    const adl::profiling::Zone zone{"app: upload job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
         fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
@@ -497,9 +506,11 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
     }
     MediaTreeSource source(lease->host->files(), *index_);
     JobListener listener(*this);
-    Q_EMIT log_line({Severity::info,
-                     tr("Uploading %n load(s) to %1 (%2)...", "", static_cast<int>(loads.size()))
-                         .arg(address, thw_id_pos)});
+    Q_EMIT log_line(
+        {Severity::info,
+         loads.size() == 1
+             ? tr("Uploading 1 load to %1 (%2)...").arg(address, thw_id_pos)
+             : tr("Uploading %1 loads to %2 (%3)...").arg(loads.size()).arg(address, thw_id_pos)});
     run_operation(*lease->host, Address{*octets}, thw_id_pos,
                   adl::arinc615a::UploadOperation{adl::arinc615a::UploadRequest{references}},
                   listener, &source, nullptr, control_port);
@@ -508,6 +519,7 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
 void EngineWorker::download_media(const QString& address, const QString& thw_id_pos,
                                   QStringList names, const QString& download_directory,
                                   quint16 control_port) {
+    const adl::profiling::Zone zone{"app: download job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
         fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
@@ -533,9 +545,12 @@ void EngineWorker::download_media(const QString& address, const QString& thw_id_
     for (const std::string& name : stored) {
         requests.push_back(adl::arinc615a::FileRequest{name, {}});
     }
-    Q_EMIT log_line({Severity::info, tr("Downloading %n file(s) from %1 (%2)...", "",
-                                        static_cast<int>(names.size()))
-                                         .arg(address, thw_id_pos)});
+    Q_EMIT log_line(
+        {Severity::info, names.size() == 1
+                             ? tr("Downloading 1 file from %1 (%2)...").arg(address, thw_id_pos)
+                             : tr("Downloading %1 files from %2 (%3)...")
+                                   .arg(names.size())
+                                   .arg(address, thw_id_pos)});
     run_download(Address{*octets}, thw_id_pos,
                  adl::arinc615a::MediaDownloadOperation{adl::arinc615a::DownloadRequest{requests}},
                  download_directory, control_port);
@@ -543,6 +558,7 @@ void EngineWorker::download_media(const QString& address, const QString& thw_id_
 
 void EngineWorker::download_operator(const QString& address, const QString& thw_id_pos,
                                      const QString& download_directory, quint16 control_port) {
+    const adl::profiling::Zone zone{"app: download operator job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
         fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
@@ -641,17 +657,20 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     summary.statuses_received = outcome->statuses_received;
     summary.statuses_lost = outcome->statuses_lost;
     if (outcome->code == OutcomeCode::completed && outcome->items_failed != 0) {
-        summary.outcome =
-            is_download
-                ? tr("completed, %n file(s) failed", "", static_cast<int>(outcome->items_failed))
-                : tr("completed, %n load(s) failed", "", static_cast<int>(outcome->items_failed));
+        const int failed = static_cast<int>(outcome->items_failed);
+        summary.outcome = is_download
+                              ? (failed == 1 ? tr("completed, 1 file failed")
+                                             : tr("completed, %1 files failed").arg(failed))
+                              : (failed == 1 ? tr("completed, 1 load failed")
+                                             : tr("completed, %1 loads failed").arg(failed));
         if (is_download) {
             summary.hint = download_hint();
         }
     }
     if (missing_files) {
-        summary.outcome = tr("completed, %n file(s) missing", "",
-                             static_cast<int>(outcome->files_requested - outcome->files_received));
+        const int missing = static_cast<int>(outcome->files_requested - outcome->files_received);
+        summary.outcome = missing == 1 ? tr("completed, 1 file missing")
+                                       : tr("completed, %1 files missing").arg(missing);
         summary.hint = download_hint();
     }
     if (outcome->code == OutcomeCode::aborted_by_operator) {
@@ -665,8 +684,10 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
         }
     }
     if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation)) {
-        const QString served =
-            tr("The target read %n file(s).", "", static_cast<int>(outcome->files_served));
+        const int served_count = static_cast<int>(outcome->files_served);
+        const QString served = served_count == 1
+                                   ? tr("The target read 1 file.")
+                                   : tr("The target read %1 files.").arg(served_count);
         summary.detail =
             summary.detail.isEmpty() ? served : served + QLatin1Char(' ') + summary.detail;
     }
@@ -686,6 +707,7 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
 }
 
 void EngineWorker::read_media_set(const QString& path) {
+    const adl::profiling::Zone zone{"app: read media set job"};
     Q_EMIT log_line({Severity::info, tr("Reading the media set in %1...").arg(path)});
     const MediaSetSummary summary = read_media_set_summary(path, &index_);
     Q_EMIT media_set_read(summary);
@@ -694,9 +716,11 @@ void EngineWorker::read_media_set(const QString& path) {
     result.success = summary.error.isEmpty();
     if (result.success) {
         result.outcome = tr("media set read");
-        Q_EMIT log_line({Severity::info, tr("Read media set %1: %n load(s).", "",
-                                            static_cast<int>(summary.loads.size()))
-                                             .arg(summary.part_number)});
+        const int loads = static_cast<int>(summary.loads.size());
+        Q_EMIT log_line(
+            {Severity::info,
+             loads == 1 ? tr("Read media set %1: 1 load.").arg(summary.part_number)
+                        : tr("Read media set %1: %2 loads.").arg(summary.part_number).arg(loads)});
     } else {
         result.outcome = summary.error;
         result.hint = media_set_hint();
@@ -707,6 +731,7 @@ void EngineWorker::read_media_set(const QString& path) {
 }
 
 void EngineWorker::validate_media_set(const QString& path) {
+    const adl::profiling::Zone zone{"app: check media set job"};
     Q_EMIT log_line({Severity::info, tr("Checking the media set in %1...").arg(path)});
     // Read afresh, with a new index: files changed on disk since the set was read are what the
     // check (and the next upload) see.
@@ -729,10 +754,14 @@ void EngineWorker::validate_media_set(const QString& path) {
     result.success = report.error.isEmpty();
     if (result.success) {
         result.outcome = tr("media set checked");
-        Q_EMIT log_line({Severity::info, tr("Checked media set %1: %2 load(s), %3 file(s).")
-                                             .arg(summary.part_number)
-                                             .arg(report.loads)
-                                             .arg(report.files)});
+        Q_EMIT log_line(
+            {Severity::info,
+             report.loads == 1 && report.files == 1
+                 ? tr("Checked media set %1: 1 load, 1 file.").arg(summary.part_number)
+                 : tr("Checked media set %1: %2, %3.")
+                       .arg(summary.part_number)
+                       .arg(report.loads == 1 ? tr("1 load") : tr("%1 loads").arg(report.loads))
+                       .arg(report.files == 1 ? tr("1 file") : tr("%1 files").arg(report.files))});
     } else {
         result.outcome = summary.error;
         result.hint = media_set_hint();

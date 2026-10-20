@@ -27,6 +27,9 @@ class LoaderModel : public QObject {
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(QString activity READ activity NOTIFY busyChanged)
     Q_PROPERTY(bool canAbort READ canAbort NOTIFY canAbortChanged)
+    // A window that has never been through the first-run screen shows it before the workbench;
+    // completing it stores the preferences it was given and hands over.
+    Q_PROPERTY(bool firstRun READ firstRun NOTIFY firstRunChanged)
 
     // The target: chosen from what FIND found, or typed.
     Q_PROPERTY(QString targetAddress READ targetAddress WRITE setTargetAddress NOTIFY targetChanged)
@@ -70,8 +73,12 @@ class LoaderModel : public QObject {
     Q_PROPERTY(
         QString lastDownloadDirectory READ lastDownloadDirectory NOTIFY downloadDirectoryChanged)
 
-    // The outcome of the last job: 0 none yet, 1 it succeeded, 2 it did not.
+    // The outcome of the last job: 0 none yet, 1 it succeeded, 2 it did not. A media set read or
+    // check also has an outcome, but it is not a transfer; `resultIsTransfer` says whether the
+    // outcome belongs in the transfer receipt or only in the log.
     Q_PROPERTY(int resultState READ resultState NOTIFY resultChanged)
+    Q_PROPERTY(bool resultIsTransfer READ resultIsTransfer NOTIFY resultChanged)
+    Q_PROPERTY(bool resultWasDownload READ resultWasDownload NOTIFY resultChanged)
     Q_PROPERTY(QString resultText READ resultText NOTIFY resultChanged)
     Q_PROPERTY(QString resultDetail READ resultDetail NOTIFY resultChanged)
     // A failed job, for the window's error dialog: what happened, what it means, and what the
@@ -87,6 +94,8 @@ class LoaderModel : public QObject {
     Q_PROPERTY(QString mediaSetPartNumber READ mediaSetPartNumber NOTIFY mediaSetChanged)
     Q_PROPERTY(int mediaSetMemberCount READ mediaSetMemberCount NOTIFY mediaSetChanged)
     Q_PROPERTY(int mediaSetBatchCount READ mediaSetBatchCount NOTIFY mediaSetChanged)
+    Q_PROPERTY(int loadCount READ loadCount NOTIFY mediaSetChanged)
+    Q_PROPERTY(int fileCount READ fileCount NOTIFY mediaSetChanged)
     Q_PROPERTY(QString mediaSetError READ mediaSetError NOTIFY mediaSetChanged)
     Q_PROPERTY(QStringList mediaSetFindings READ mediaSetFindings NOTIFY mediaSetChanged)
 
@@ -132,6 +141,7 @@ public:
     ~LoaderModel() override;
 
     [[nodiscard]] bool busy() const noexcept { return job_ != Job::none; }
+    [[nodiscard]] bool firstRun() const { return !settings_->firstRunComplete(); }
     [[nodiscard]] QString activity() const;
     [[nodiscard]] bool canAbort() const noexcept {
         return (job_ == Job::information || job_ == Job::upload || job_ == Job::download_media ||
@@ -166,6 +176,8 @@ public:
     [[nodiscard]] QString lastDownloadDirectory() const { return last_download_directory_; }
 
     [[nodiscard]] int resultState() const noexcept { return result_state_; }
+    [[nodiscard]] bool resultIsTransfer() const noexcept { return result_is_transfer_; }
+    [[nodiscard]] bool resultWasDownload() const noexcept { return result_was_download_; }
     [[nodiscard]] QString resultText() const { return result_text_; }
     [[nodiscard]] QString resultDetail() const { return result_detail_; }
     [[nodiscard]] QString lastErrorText() const { return last_error_text_; }
@@ -177,6 +189,10 @@ public:
     [[nodiscard]] QString mediaSetPartNumber() const { return media_set_.part_number; }
     [[nodiscard]] int mediaSetMemberCount() const noexcept { return media_set_.members; }
     [[nodiscard]] int mediaSetBatchCount() const noexcept { return media_set_.batches; }
+    // The rows of the loads and files lists, as properties a binding can follow: the models are
+    // CONSTANT objects, so a binding that calls their rowCount() is evaluated once and never again.
+    [[nodiscard]] int loadCount() const { return loads_.rowCount(); }
+    [[nodiscard]] int fileCount() const { return files_.rowCount(); }
     [[nodiscard]] QString mediaSetError() const { return media_set_.error; }
     [[nodiscard]] QStringList mediaSetFindings() const { return media_set_.findings; }
 
@@ -213,6 +229,9 @@ public:
     void setLogCapacity(int capacity);
 
 public Q_SLOTS:
+    // The first-run screen has been passed: the preferences it set are the defaults, and the
+    // next launch goes straight to the workbench.
+    void completeFirstRun();
     // Reads the media set in the directory (one directory per member), and shows its loads,
     // which the operator can tick for an upload. Unless validateOnOpen is off, the set is
     // checked right after it is read; until the check says it is valid, no upload.
@@ -253,6 +272,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void busyChanged();
+    void firstRunChanged();
     void canAbortChanged();
     void targetChanged();
     void selectedTargetChanged();
@@ -295,6 +315,9 @@ private:
     void set_progress(int percent);
     void set_validation(int state, const QString& error, const QStringList& findings,
                         const QString& detail);
+    // Drops what belonged to the target that was being addressed before the address or
+    // THW_ID_POS changed.
+    void reconcile_target();
     void run_pending_after_find(bool found);
     const FoundTarget* selected_target() const;
     // Re-reads the media set of the last session, after the window has shown.
@@ -329,6 +352,8 @@ private:
     QString target_address_;
     QString thw_id_pos_;
     int result_state_ = 0;
+    bool result_is_transfer_ = false;
+    bool result_was_download_ = false;
     QString result_text_;
     QString result_detail_;
     QString last_error_text_;

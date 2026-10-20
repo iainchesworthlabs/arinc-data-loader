@@ -332,17 +332,26 @@ void GeneratorWorker::generate(const GenerateJob& job) {
     for (const adl::arinc665::Finding& finding : set->findings) {
         outcome.findings.append(findings_line(finding));
     }
+    const QString data_files_text =
+        outcome.data_files == 1 ? tr("1 data file") : tr("%1 data files").arg(outcome.data_files);
+    const QString support_files_text = outcome.support_files == 1
+                                           ? tr("1 support file")
+                                           : tr("%1 support files").arg(outcome.support_files);
+    const QString members_text =
+        outcome.members == 1 ? tr("1 member") : tr("%1 members").arg(outcome.members);
     outcome.text = tr("Media set %1 written and verified.").arg(job.media_set_part_number);
-    outcome.detail = tr("%1 data file(s), %2 support file(s), %3 bytes in %4 member(s), in %5.")
-                         .arg(outcome.data_files)
-                         .arg(outcome.support_files)
+    outcome.detail = tr("%1, %2, %3 bytes in %4, in %5.")
+                         .arg(data_files_text)
+                         .arg(support_files_text)
                          .arg(outcome.total_bytes)
-                         .arg(outcome.members)
+                         .arg(members_text)
                          .arg(outcome.output_path);
     if (!outcome.findings.isEmpty()) {
-        outcome.detail +=
-            QStringLiteral(" ") + tr("%n difference(s) from the standard's recommendations.", "",
-                                     static_cast<int>(outcome.findings.size()));
+        const QString findings_text =
+            outcome.findings.size() == 1 ? tr("1 difference from the standard's recommendations.")
+                                         : tr("%1 differences from the standard's recommendations.")
+                                               .arg(outcome.findings.size());
+        outcome.detail += QStringLiteral(" ") + findings_text;
     }
     Q_EMIT progress(100);
     Q_EMIT finished(outcome);

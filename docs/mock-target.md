@@ -30,7 +30,7 @@ an operation, drop status files, send a wrong checksum, abort on its own, or go 
 ```text
 src/mock_target/
   main.cpp              creates the QGuiApplication, one MockTargetModel and the QML engine
-  qml/                  TargetWindow.qml (the window), LogView.qml
+  qml/                  TargetWindow.qml (the window)
   core/                 adl_mock_core: everything but the window, Qt Core only
     engine              the 615A target behaviour: no Qt, no socket, one thread, driven by
                         datagrams and timers (like the loader's own engine, the other way round)
@@ -40,7 +40,15 @@ src/mock_target/
                         window binds to
 tests/mock_target/      the engine against the loader's real engine on the fake platform, the
                         model, and the window loaded offscreen
+src/ui/                 the shared design system (Theme, controls, header, footer, log)
 ```
+
+The header owns the run state and Start/Stop: a `SERVING` / `STOPPED` chip and the two buttons.
+The left rail is the configuration, numbered (identity, ports, storage, behaviour, fault
+injection), and the right is the evidence (the operation, the activity log and the stored files).
+Fault injection is its own block with an `N ACTIVE` / `BEHAVING` chip and `Reset all`, so a demo
+cannot quietly run with a stale fault. The derived `THW_ID_POS` is shown and copyable; an unset
+storage directory is called out as "still serves, not kept".
 
 ## How it is put together
 

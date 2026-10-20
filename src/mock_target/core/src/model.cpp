@@ -199,8 +199,9 @@ MockWorker::~MockWorker() = default;
 
 void MockWorker::request_stop() noexcept {
     stop_wanted_.store(true, std::memory_order_release);
-    if (TargetLink* link = current_link_.load(std::memory_order_acquire)) {
-        link->request_stop();
+    const std::scoped_lock lock{link_mutex_};
+    if (current_link_ != nullptr) {
+        current_link_->request_stop();
     }
 }
 
@@ -223,7 +224,10 @@ void MockWorker::start_session(Config config, QString storage_directory) {
         return;
     }
     link_ = std::move(*made);
-    current_link_.store(link_.get(), std::memory_order_release);
+    {
+        const std::scoped_lock lock{link_mutex_};
+        current_link_ = link_.get();
+    }
     engine_ = std::make_unique<MockEngine>(adapter_.get());
     link_->attach(*engine_);
 
@@ -236,9 +240,13 @@ void MockWorker::start_session(Config config, QString storage_directory) {
             Q_EMIT error_occurred(to_qstring(engine_->last_error()));
         }
     }
+    // Cleared before the link is destroyed: a stop that arrives now finds no link.
+    {
+        const std::scoped_lock lock{link_mutex_};
+        current_link_ = nullptr;
+    }
     engine_.reset();
     link_.reset();
-    current_link_.store(nullptr, std::memory_order_release);
 }
 
 void MockWorker::read_holds(Config& config) {
@@ -247,8 +255,14 @@ void MockWorker::read_holds(Config& config) {
         std::error_code ec;
         if (std::filesystem::is_directory(holds, ec)) {
             std::vector<HeldFile> found;
-            for (const auto& entry : std::filesystem::directory_iterator(holds)) {
-                if (!entry.is_regular_file()) {
+            // The non-throwing iteration: a folder the account cannot list (or one that changes
+            // while it is read) ends the list, it does not end the program.
+            std::filesystem::directory_iterator it(holds, ec);
+            for (const std::filesystem::directory_iterator end; !ec && it != end;
+                 it.increment(ec)) {
+                const std::filesystem::directory_entry& entry = *it;
+                if (!entry.is_regular_file(ec)) {
+                    ec.clear();
                     continue;
                 }
                 std::ifstream in(entry.path(), std::ios::binary);

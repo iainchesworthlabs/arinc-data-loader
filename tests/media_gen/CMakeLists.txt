@@ -40,7 +40,9 @@ add_dependencies(adl_gen_tests adl_media_gen)
 
 # A test that hangs (a job that never ends) fails after two minutes instead of holding the run.
 add_test(NAME media_gen.tests COMMAND adl_gen_tests)
-set_tests_properties(media_gen.tests PROPERTIES TIMEOUT 120)
+set_tests_properties(media_gen.tests PROPERTIES
+    TIMEOUT 120
+    LABELS "unit")
 
 # The window: GeneratorWindow.qml with the real model, offscreen, a generation started from the
 # window's own Generate button, and every QML warning an error.
@@ -48,6 +50,7 @@ add_executable(adl_gen_qml_test qml_test.cpp)
 target_include_directories(adl_gen_qml_test PRIVATE "${PROJECT_SOURCE_DIR}/tests/support")
 target_link_libraries(adl_gen_qml_test
     PRIVATE
+        $<LINK_LIBRARY:WHOLE_ARCHIVE,adl_media_gen_qml>
         adl::gen_core
         adl::arinc665
         adl::media_tree
@@ -60,14 +63,16 @@ target_link_libraries(adl_gen_qml_test
         adl::sanitizers
         adl::coverage)
 
+adl_add_ui_support(adl_gen_qml_test)
+
 adl_platform_deploy_qt_runtime(adl_gen_qml_test "${PROJECT_SOURCE_DIR}/src/media_gen/qml")
 adl_deploy_sanitizer_runtime(adl_gen_qml_test)
 add_dependencies(adl_gen_qml_test adl_gen_tests)
 
-add_test(NAME media_gen.qml
-    COMMAND adl_gen_qml_test "${PROJECT_SOURCE_DIR}/src/media_gen/qml/GeneratorWindow.qml")
+add_test(NAME media_gen.qml COMMAND adl_gen_qml_test)
 # The offscreen platform plugin is not one the deployment step copies beside the program, so it is
 # looked for in the Qt kit's own plugin directory.
 set_tests_properties(media_gen.qml PROPERTIES
     TIMEOUT 120
+    LABELS "system;ui"
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Fusion;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")

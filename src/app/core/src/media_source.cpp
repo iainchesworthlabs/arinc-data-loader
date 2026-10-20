@@ -5,6 +5,8 @@
 #include "adl/arinc665/check_value_type.hpp"
 #include "adl/media_tree/media_tree.hpp"
 
+#include <adl/profiling.hpp>
+
 namespace adl::app {
 
 namespace {
@@ -37,6 +39,7 @@ using adl::arinc615a::IoFailure;
 
 std::expected<MediaSetIndex, std::string> MediaSetIndex::make(
     const std::filesystem::path& root, const adl::arinc665::FilesList& list) {
+    const adl::profiling::Zone zone{"app: index the media set"};
     MediaSetIndex index;
     index.entries_.reserve(list.files.size());
     for (const auto& file : list.files) {
@@ -78,6 +81,7 @@ MediaTreeSource::MediaTreeSource(adl::platform::FileSystem& files, const MediaSe
 
 adl::arinc615a::IoResult<adl::arinc615a::SourceFile> MediaTreeSource::open(
     std::string_view name, const std::optional<adl::arinc615a::ChecksumOption>& checksum) noexcept {
+    const adl::profiling::Zone zone{"app: open a media set file"};
     std::optional<std::uint16_t> crc16;
     if (checksum && checksum->type == adl::arinc665::CheckValueType::crc16 &&
         checksum->length == 2) {

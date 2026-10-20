@@ -8,13 +8,15 @@
 #include "adl/arinc665/naming.hpp"
 #include "wire.hpp"
 
+#include <adl/profiling.hpp>
+
 namespace adl::arinc665 {
 
 namespace {
 
 // Figure C-1: the pointer to the Load Check Value Length is the last of the
 // eight pointers, in words 18 and 19.
-constexpr std::size_t check_value_pointer_offset = 18 * 2;
+constexpr std::size_t check_value_pointer_offset = std::size_t{18} * 2;
 
 std::size_t check_value_offset(std::span<const std::byte> header_bytes) {
     std::size_t pointer = 0;
@@ -29,7 +31,7 @@ std::size_t check_value_offset(std::span<const std::byte> header_bytes) {
 // take them: data files, then support files.
 template <typename Update>
 void for_each_file_bytes(const std::vector<FileContent>& data_files,
-                         const std::vector<FileContent>& support_files, Update&& update) {
+                         const std::vector<FileContent>& support_files, Update update) {
     for (const FileContent& file : data_files) {
         update(std::span<const std::byte>{file.bytes});
     }
@@ -123,6 +125,7 @@ Result<void> verify_files(const std::vector<Listed>& listed,
 }  // namespace
 
 Result<Load> build_load(const LoadSpec& spec) {
+    const adl::profiling::Zone zone{"arinc665: build load"};
     HeaderFile header;
     header.part_flags = spec.part_flags;
     header.load_part_number = spec.part_number;
@@ -186,6 +189,7 @@ Result<Load> build_load(const LoadSpec& spec) {
 }
 
 Result<void> verify_load(const Load& load) {
+    const adl::profiling::Zone zone{"arinc665: verify load"};
     const auto header = decode_header_file(load.header_bytes);
     if (!header) {
         return std::unexpected{header.error()};
@@ -212,6 +216,7 @@ Result<void> verify_load(const Load& load) {
 }
 
 Findings check_load(const Load& load) {
+    const adl::profiling::Zone zone{"arinc665: check load"};
     Findings findings = check_header_file(load.header);
     Findings name = check_header_file_name(load.header_file_name);
     findings.insert(findings.end(), name.begin(), name.end());

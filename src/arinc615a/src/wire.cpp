@@ -55,9 +55,7 @@ void Writer::chars(std::string_view text) noexcept {
 
 void Writer::c_string(std::string_view text, bool any_bytes) noexcept {
     for (const char c : text) {
-        if (c == '\0') {
-            fail(Error::malformed_text);
-        } else if (!any_bytes && !is_text_byte(static_cast<unsigned char>(c))) {
+        if (c == '\0' || (!any_bytes && !is_text_byte(static_cast<unsigned char>(c)))) {
             fail(Error::malformed_text);
         }
     }

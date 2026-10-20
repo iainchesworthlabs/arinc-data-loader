@@ -4,6 +4,8 @@
 #include <array>
 #include <type_traits>
 
+#include <adl/profiling.hpp>
+
 namespace adl::arinc665 {
 
 namespace {
@@ -53,6 +55,7 @@ void IntegrityChecker::reset() noexcept {
 }
 
 void IntegrityChecker::update(std::span<const std::byte> data) noexcept {
+    const adl::profiling::Zone zone{"arinc665: check value update"};
     std::visit([data](auto& engine) { engine.update(data); }, engine_);
 }
 

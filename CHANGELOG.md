@@ -15,6 +15,38 @@ C++23 CMake monorepo. Nothing has been released.
 
 ### Added
 
+- **Third-party licences in the applications.** About has a Licences button in all
+  three applications that opens the notices this build carries: Qt under the LGPL
+  (with the text of the licence and the offer of its source), the Archivo typeface
+  under the SIL Open Font License, the runtime files Qt's deployment tool adds on
+  Windows, and Tracy in a profiling build. `cmake/Notices.cmake` assembles
+  `NOTICES.txt` at configure time from `notices/fragments` and the licence texts
+  in `notices/licences`, embeds it in each executable and places it, with
+  `LICENSE.txt`, beside them; `system.notices` checks the result.
+  [docs/licensing.md](docs/licensing.md) says how to add a component.
+- **The test suite is now three labelled tiers, with a UI suite and a coverage
+  minimum.** Every CTest test is `unit`, `integration` or `system` (`ctest -L
+  unit`, and the `check-unit` / `check-integration` / `check-system` targets),
+  and the system tier includes smoke tests that start the three application
+  programs as processes. `tests/ui` is a Qt Quick Test suite that loads the real
+  `Main.qml` and drives its buttons, fields, check boxes and dialogs with Qt
+  Quick Test's mouse and key events against the real model and the simulated
+  target; it runs as `ui.tst_main_window` and `ui.tst_dialogs`. Coverage is
+  gated at **90% of lines and 80% of branches of the portable code** by
+  `cmake/CoverageReport.cmake` (the `coverage` target and the CI coverage job).
+  [docs/testing.md](docs/testing.md) describes the tiers, the UI suite and the
+  report.
+- **A nightly static-analysis suite** ([docs/static-analysis.md](docs/static-analysis.md)):
+  `static-analysis.yml` runs the pinned clang-tidy (with the Clang Static
+  Analyzer, warnings as errors) over `src/`, MSVC Code
+  Analysis (`/analyze /WX`) over the libraries, tests and the three Qt
+  applications, a Clang ASan/UBSan build and test run, and an optional
+  SonarQube scan; CodeQL moves to the same nightly schedule. The analyzers are
+  not required checks and do not run on every commit. New presets
+  `linux-gcc-tidy`, `windows-msvc-analyze`, `linux-clang-debug` and
+  `linux-gcc-sonar` run the same work locally, and `ADL_ENABLE_CLANG_TIDY` /
+  `ADL_ENABLE_MSVC_ANALYSIS` switch the analyzers in a build. `.clang-tidy` is
+  now the gate CI holds, with each disabled check carrying its reason.
 - **The two Green Hills INTEGRITY platforms, `ghs508` and `ghs178b`**
   (unbuilt): a port of the platform layer to INTEGRITY 5.0.8 on the shared
   POSIX sources, and a native port to INTEGRITY-178B (semaphores, the
@@ -84,6 +116,40 @@ C++23 CMake monorepo. Nothing has been released.
   `adl::arinc615a_mini`, the second TFTP implementation extracted from the tests so that the two ends of a
   dialogue share no transfer code. `loopback.integration` runs the loader's runner against the mock target's
   engine over 127.0.0.1. Not run against a real target.
+- **The window's minimum set** ([docs/app.md](docs/app.md)): one design-token file (`qml/Theme.qml`)
+  is the single source of truth for colour, type and geometry, and the window is built from a small
+  component library over it (`Panel`, `AppButton`, `SegmentedControl`, `FocusRing`), as the sibling
+  applications' windows are. A first launch opens on a first-run screen (a default target, the
+  download directory, and what the window is for) that is stored once passed; the address and
+  `<THW_ID_POS>` of the last operation are remembered and put back at start-up; and the strings are
+  in a catalogue (`qt_add_translations`, an English `.ts`) with a `LanguageManager` that persists the
+  language, follows the system locale and retranslates the running window. The QML is a module
+  library of its own, so the window's offscreen test loads the same compiled QML the application
+  does.
+- **The window in eight languages** ([docs/app.md](docs/app.md)): catalogues for French, Spanish,
+  German, Yiddish, Hebrew, Simplified Chinese and Japanese beside the English source, built by
+  `qt_add_translations` into the window's resources and installed by `LanguageManager`; the
+  right-to-left scripts mirror the whole window (`LayoutMirroring`) and the language preference is
+  persisted. The text is a first, mechanical draft, to be reviewed by speakers; the window test
+  installs each catalogue in turn and checks the retranslation and the layout direction.
+- **The applications build by default on the desktops** ([docs/building.md](docs/building.md)):
+  `ADL_BUILD_APP` defaults to on for Windows, Linux and macOS (the source side, and the only place
+  Qt exists) when the Qt kit can be found, and off when `ADL_TARGET_PLATFORM` names a target or the
+  kit is absent — so a desktop without Qt configures the libraries alone instead of failing, and
+  `-DADL_BUILD_APP=ON` with no kit is still an error. The desktop presets therefore contain
+  `adl_app`, `adl_media_gen`, `adl_mock_target` and their tests without a flag, and an IDE that
+  does not run the labs' environment script finds the shared kit under `C:/Repos/common/qt` (the
+  Windows fragment's search roots) rather than failing to generate. The configure output names the
+  three programs, and the building page has the source-side/target-side matrix: the libraries, the
+  host tools, the source-side applications and the (still planned) target-side application.
+- **Tracy 0.14.1 profiling** ([docs/profiling.md](docs/profiling.md)): an opt-in build
+  (`-DADL_ENABLE_TRACY=ON`, vcpkg's `profiling` feature) instruments ARINC 665 and the media tree,
+  the 615A engine and runner, the application's engine jobs and media-set reads, the operator's
+  actions, and the window's frame loop — frame marks, the frame interval and the render thread's
+  time as plots, with the GUI, engine and render threads named. The `adl::profiling` names come
+  from a header CMake generates, so no first-party file carries `#if` or `#define` and the same
+  sources compile to nothing when the switch is off. The feature also installs Tracy's CLI tools,
+  so a trace can be recorded and exported without the GUI profiler.
 - **The 615A engine and runner** (`adl::arinc615a`, `adl::arinc615a_runner`,
   [docs/arinc615a-engine.md](docs/arinc615a-engine.md),
   [docs/arinc615a-coverage.md](docs/arinc615a-coverage.md)): the data loader's side of ARINC
@@ -138,9 +204,43 @@ C++23 CMake monorepo. Nothing has been released.
   dependency review, and the rulesets that require them.
 - **`cmake/FindQt6.cmake` and `cmake/Tracy.cmake`**, ready for the Qt 6.12
   application and Tracy profiling on the roadmap.
+- **One design system for the three applications** (`src/ui`): the ICL Forge Modernist
+  language applied to the loader, the generator and the mock target — the Signal palette,
+  Archivo, zero radius, one control set, a fixed context rail and action bar, a first-run
+  statement, a preflight and an operation receipt. The windows gained window-geometry
+  persistence, a transactional Preferences dialog, a close-during-job question, target
+  reconciliation on edit (`resultIsTransfer`/`resultWasDownload`), and the generator and
+  mock target gained mode and check-value visibility. The Preferences page is a two-column modal
+  with a window scrim, the About pages carry version, git describe, commit, branch, build target
+  and a dirty-tree marker, and the QML resize and log-scroll costs were reduced. The analysis and
+  before/after screenshots are in [docs/design-overhaul.md](docs/design-overhaul.md), the token
+  reference in [docs/design-system.md](docs/design-system.md).
+
+### Fixed
+
+- A download directory chosen in the folder dialog was stored as a `file:///` URL and
+  handed to the engine as a path; it is converted to a local path.
+- The media set dialog's Loads and Files figures were fixed when the window was built;
+  they follow the set that was read.
+- "Stop and close" did nothing when the job ended while the question was open.
+- The mock target could call into a link that its own session thread was destroying when
+  Stop was pressed, and a download folder it could not list ended the program.
+- Port numbers in the mock target's spin boxes no longer carry the locale's digit grouping
+  ("1,001").
+- Enter now presses the focused button as Space does; the segmented control keeps the
+  keyboard focus on the segment it chooses and a click on the chosen segment does not clear
+  it; error lines in the log use the accessible ink.
+- The `coverage` target passes the `gcov` that matches the compiler, and the coverage gate
+  fails when it measured too little to mean anything (gcovr reports 0 of 0 lines as 100%).
+- The `check-*` targets fail when a tier has no tests; the branch-name check accepts the
+  same one to three levels the ruleset does; Dependabot also covers the `install-qt` action.
 
 ### Changed
 
+- CodeQL runs nightly, and not on every push or pull request: a full CodeQL
+  build costs more than the rest of the per-commit matrix, and its alerts are
+  triaged in Security -> Code scanning. The rest of the static analysis follows
+  the same schedule ([docs/static-analysis.md](docs/static-analysis.md)).
 - The CRC-32 follows the standard: input and output are not reflected, and the
   check value is `0xB6B5EE95`. The earlier code described it as reflected with
   the check value `0xCBF43926` (a different CRC).

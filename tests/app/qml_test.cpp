@@ -1,10 +1,11 @@
-// Loads the application's window (argv[1], the path of Main.qml) with the real model, offscreen,
-// runs a FIND and an Information operation through the model against a simulated target on the
-// fake platform while the window is showing, then reads a media set, ticks its load and starts the
-// upload through the window's own check box and button, and fails if the window does not load,
-// the operations do not end as they should or the QML engine has a single complaint. With a second
-// argument it saves what the window looks like there. The platform's graphics are not used: the
-// test's environment asks for the offscreen platform and the software renderer.
+// Loads the application's window (the compiled ArincDataLoader QML module) with the real model,
+// offscreen, drives the first-run screen, then runs a FIND and an Information operation through
+// the model against a simulated target on the fake platform while the window is showing, then
+// reads a media set, ticks its load and starts the upload through the window's own check box and
+// button, and fails if the window does not load, the operations do not end as they should or the
+// QML engine has a single complaint. With an argument it saves what the window looks like there.
+// The platform's graphics are not used: the test's environment asks for the offscreen platform and
+// the software renderer.
 
 #include <cstdio>
 #include <expected>
@@ -17,7 +18,9 @@
 #include <QEventLoop>
 #include <QGuiApplication>
 #include <QImage>
+#include <QLocale>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QQmlError>
 #include <QQuickItem>
 #include <QQuickStyle>
@@ -30,9 +33,15 @@
 
 #include "adl/app/loader_model.hpp"
 #include "adl/app/models.hpp"
+#include "adl/ui/fonts.hpp"
+#include "adl/ui/version.hpp"
 #include "bytes.hpp"
+#include "frame_profiler.hpp"
+#include "language_manager.hpp"
 #include "rig.hpp"
 #include "upload_fixture.hpp"
+
+#include <adl/profiling.hpp>
 
 namespace {
 
@@ -76,17 +85,28 @@ QQuickItem* find_item(QQuickItem* root, const QString& name) {
 
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
-    if (argc < 2) {
-        std::fprintf(stderr, "usage: adl_app_qml_test <path to Main.qml> [picture.png]\n");
+    if (argc > 6) {
+        std::fprintf(stderr,
+                     "usage: adl_app_qml_test [picture.png [first-run.png [rtl.png "
+                     "[preferences.png [about.png]]]]]\n");
         return 2;
     }
+    adl::ui::register_fonts();
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
 
+    // The workload a profiling build captures: this process's GUI thread draws the window and
+    // runs the operations the application's operator would.
+    adl::profiling::thread_name("gui");
+    adl::profiling::app_info("ARINC Data Loader (window test)");
+
     // The model reads QSettings without arguments; the test keeps that out of the operator's
-    // real settings.
+    // real settings, and out of the run before this one: the first-run screen is passed by this
+    // test, so a shared file would make the next run's window think it had been used before.
     QSettings::setDefaultFormat(QSettings::IniFormat);
-    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope,
-                       QDir::tempPath() + QStringLiteral("/adl_test_qsettings"));
+    const QString settings_root = QDir::tempPath() + QStringLiteral("/adl_test_qsettings_") +
+                                  QString::number(QCoreApplication::applicationPid());
+    QDir().mkpath(settings_root);
+    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settings_root);
 
     adl::test::UploadFixture fixture;
     adl::test::SimPlan plan = fixture.plan();
@@ -104,34 +124,129 @@ int main(int argc, char* argv[]) {
         return lease;
     });
 
-    QQmlApplicationEngine engine;
+    // Held in an optional so the engine can be destroyed explicitly at the end, before the
+    // language manager (the window's bindings read it; the application's main.cpp does the same).
+    std::optional<QQmlApplicationEngine> engine{std::in_place};
+    // The window's Preferences read the language manager, exactly as the application's do: the
+    // test registers a real one, so a binding that reads it cannot be the difference.
+    adl::app::LanguageManager language_manager(application, *engine);
+    language_manager.applyInitialLanguage();
+    // The window under test starts in English whatever this machine's locale is; the languages
+    // it ships are switched through at the end, and English is put back.
+    language_manager.setLanguage(QStringLiteral("en"));
+    engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
+
     int complaints = 0;
-    QObject::connect(&engine, &QQmlApplicationEngine::warnings,
+    QObject::connect(&*engine, &QQmlApplicationEngine::warnings,
                      [&complaints](const QList<QQmlError>& warnings) {
                          for (const QQmlError& warning : warnings) {
                              std::fprintf(stderr, "QML: %s\n", qPrintable(warning.toString()));
                              ++complaints;
                          }
                      });
-    engine.setInitialProperties(
+    engine->setInitialProperties(
         {{QStringLiteral("app"), QVariant::fromValue(&model)},
          // ADL_DARK=1 renders in the dark scheme (the window sets a dark palette, which is what
          // a dark desktop theme supplies), so both schemes can be checked and pictured.
          {QStringLiteral("renderDark"),
           QVariant::fromValue(qEnvironmentVariable("ADL_DARK") == QStringLiteral("1"))}});
-    engine.load(QUrl::fromLocalFile(QString::fromLocal8Bit(argv[1])));
+    {
+        const adl::profiling::Zone zone{"app: load QML"};
+        engine->loadFromModule("ArincDataLoader", "Main");
+    }
 
-    if (engine.rootObjects().size() != 1) {
+    if (engine->rootObjects().size() != 1) {
         std::fprintf(stderr, "the window did not load\n");
         return 1;
     }
-    auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst());
+    auto* window = qobject_cast<QQuickWindow*>(engine->rootObjects().constFirst());
     if (window == nullptr || window->title() != QStringLiteral("ARINC Data Loader")) {
         std::fprintf(stderr, "the root object is not the application window\n");
         return 1;
     }
+    // The frame loop of the workload, for the trace; destroyed after the engine below.
+    std::optional<adl::app::FrameProfiler> frame_profiler{std::in_place, window};
 
-    // What the operator does: find the target, take it from the list, read its configuration.
+    // A window that has never been used opens on the first-run screen; passing it is what makes
+    // the workbench appear, and it is the operator's first act, so it is the test's.
+    QCoreApplication::processEvents();
+    if (!model.firstRun()) {
+        std::fprintf(stderr, "a fresh settings file still reports the first run as done\n");
+        return 1;
+    }
+    // With a second argument, what the first launch looks like is kept too: the same window
+    // before the first-run screen has been passed.
+    if (argc > 2) {
+        const QImage first_run = window->grabWindow();
+        if (first_run.isNull() || !first_run.save(QString::fromLocal8Bit(argv[2]))) {
+            std::fprintf(stderr, "the first-run picture could not be saved\n");
+            return 1;
+        }
+    }
+    QQuickItem* content = window->contentItem();
+    QQuickItem* start = find_item(content, QStringLiteral("firstRunStart"));
+    if (start == nullptr) {
+        std::fprintf(stderr, "the first-run screen's Start button is not in the window\n");
+        return 1;
+    }
+    QMetaObject::invokeMethod(start, "click");
+    QCoreApplication::processEvents();
+    if (model.firstRun()) {
+        std::fprintf(stderr, "passing the first-run screen did not let the workbench through\n");
+        return 1;
+    }
+
+    // The header's Preferences opens the shared modal page. The test opens it, pictures it when
+    // asked, and closes it before the operations, so a dialog that does not load or does not
+    // cover the workbench is caught here rather than by eye.
+    {
+        QQuickItem* preferences = find_item(content, QStringLiteral("preferencesButton"));
+        if (preferences == nullptr) {
+            std::fprintf(stderr, "the Preferences button is not in the window\n");
+            return 1;
+        }
+        QMetaObject::invokeMethod(preferences, "click");
+        QCoreApplication::processEvents();
+        QObject* preferences_dialog =
+            window->findChild<QObject*>(QStringLiteral("preferencesDialog"));
+        if (preferences_dialog == nullptr || !preferences_dialog->property("opened").toBool()) {
+            std::fprintf(stderr, "the Preferences dialog did not open\n");
+            return 1;
+        }
+        if (argc > 4) {
+            const QImage preferences_picture = window->grabWindow();
+            if (preferences_picture.isNull() ||
+                !preferences_picture.save(QString::fromLocal8Bit(argv[4]))) {
+                std::fprintf(stderr, "the Preferences picture could not be saved\n");
+                return 1;
+            }
+        }
+        QMetaObject::invokeMethod(preferences_dialog, "close");
+        QCoreApplication::processEvents();
+
+        QQuickItem* about = find_item(content, QStringLiteral("aboutButton"));
+        if (about == nullptr) {
+            std::fprintf(stderr, "the About button is not in the window\n");
+            return 1;
+        }
+        QMetaObject::invokeMethod(about, "click");
+        QCoreApplication::processEvents();
+        QObject* about_dialog = window->findChild<QObject*>(QStringLiteral("aboutDialog"));
+        if (about_dialog == nullptr || !about_dialog->property("opened").toBool()) {
+            std::fprintf(stderr, "the About dialog did not open\n");
+            return 1;
+        }
+        if (argc > 5) {
+            const QImage about_picture = window->grabWindow();
+            if (about_picture.isNull() || !about_picture.save(QString::fromLocal8Bit(argv[5]))) {
+                std::fprintf(stderr, "the About picture could not be saved\n");
+                return 1;
+            }
+        }
+        QMetaObject::invokeMethod(about_dialog, "close");
+        QCoreApplication::processEvents();
+    }
 
     // What the operator does: find the target, take it from the list, read its configuration.
     model.findTargets();
@@ -168,7 +283,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     QCoreApplication::processEvents();
-    QQuickItem* content = window->contentItem();
     QQuickItem* check = find_item(content, QStringLiteral("loadCheck"));
     QQuickItem* upload = find_item(content, QStringLiteral("uploadButton"));
     if (check == nullptr || upload == nullptr) {
@@ -249,8 +363,51 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "the window could not be drawn\n");
         return 1;
     }
-    if (argc > 2 && !picture.save(QString::fromLocal8Bit(argv[2]))) {
+    if (argc > 1 && !picture.save(QString::fromLocal8Bit(argv[1]))) {
         std::fprintf(stderr, "the picture could not be saved\n");
+        return 1;
+    }
+
+    // Every catalogue the window ships: the running window is retranslated, the layout direction
+    // follows the script (right to left for Hebrew and Yiddish), and the text really changes -
+    // which also proves the .qm resource was found and installed.
+    for (const QString& code :
+         {QStringLiteral("fr"), QStringLiteral("es"), QStringLiteral("de"), QStringLiteral("yi"),
+          QStringLiteral("he"), QStringLiteral("zh"), QStringLiteral("ja")}) {
+        if (!language_manager.setLanguage(code)) {
+            std::fprintf(stderr, "the language %s is not accepted\n", qPrintable(code));
+            return 1;
+        }
+        QCoreApplication::processEvents();
+        if (language_manager.currentLanguage() != code) {
+            std::fprintf(stderr, "the language did not change to %s\n", qPrintable(code));
+            return 1;
+        }
+        const bool right_to_left = QLocale(code).textDirection() == Qt::RightToLeft;
+        if ((QGuiApplication::layoutDirection() == Qt::RightToLeft) != right_to_left) {
+            std::fprintf(stderr, "the layout direction did not follow %s\n", qPrintable(code));
+            return 1;
+        }
+        if (QCoreApplication::translate("PreferencesDialog", "Preferences") ==
+            QStringLiteral("Preferences")) {
+            std::fprintf(stderr, "the %s catalogue was not loaded\n", qPrintable(code));
+            return 1;
+        }
+        // With a third argument, what the window looks like right to left is kept too: Hebrew
+        // mirrors the whole layout, not only its text.
+        if (code == QStringLiteral("he") && argc > 3) {
+            const QImage right_to_left_picture = window->grabWindow();
+            if (right_to_left_picture.isNull() ||
+                !right_to_left_picture.save(QString::fromLocal8Bit(argv[3]))) {
+                std::fprintf(stderr, "the right-to-left picture could not be saved\n");
+                return 1;
+            }
+        }
+    }
+    language_manager.setLanguage(QStringLiteral("en"));
+    QCoreApplication::processEvents();
+    if (QGuiApplication::layoutDirection() == Qt::RightToLeft) {
+        std::fprintf(stderr, "English did not put the layout back to left to right\n");
         return 1;
     }
 
@@ -258,5 +415,9 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "%d QML complaint(s)\n", complaints);
         return 1;
     }
+    // The engine first, while the language manager is still alive for the teardown's bindings;
+    // the profiler that listened to the window after it.
+    engine.reset();
+    frame_profiler.reset();
     return 0;
 }

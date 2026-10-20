@@ -24,15 +24,25 @@ will reply there to arrange a private channel.
 
 ### What counts
 
-Today the code parses and builds ARINC 665 data in memory; it opens no files of
-its own beyond what a caller hands it and opens no network connections. So what
-counts, at present, is a crash, hang, out-of-bounds read or other memory-safety
-fault that crafted load, header or media data can cause, and a flaw in the build
-and workflow files in this repository.
+The code parses and builds ARINC 665 data, speaks ARINC 615A (TFTP over UDP, FIND
+by broadcast) to a target, reads and writes media sets and downloaded files on
+disk, and ships three Qt applications (the loader, the media set generator and
+the mock target). So what counts is:
 
-The ARINC 615A protocol engine (TFTP over UDP) and the Qt application are not
-built yet. When they are, every message received from a target is untrusted
-input too, and this section will say so.
+- a crash, hang, out-of-bounds read or other memory-safety fault that crafted
+  load, header or media data can cause;
+- the same from a message a target (or anything that can send UDP to the
+  loader's control port) sends: every datagram, status file, file list and file
+  name received from a target is untrusted input;
+- a file name or path from a target or a media set that makes the loader read or
+  write outside the directory it was given;
+- a flaw in the build and workflow files in this repository, or in what the
+  release process publishes.
+
+The applications do not authenticate a target or encrypt anything: ARINC 615A
+over TFTP has neither, and a hostile network is outside what they defend
+against. A report that depends on that is a limit of the protocol, not a
+vulnerability in this code.
 
 ### What to expect
 

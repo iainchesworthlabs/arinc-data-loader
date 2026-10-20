@@ -1,9 +1,17 @@
 # Testing
 
-The tests are Catch2 unit tests for the libraries and the platform layer, plus
-checks about the build itself and runs of the `adl_write_payloads` program. They
-run in CI on Windows (MSVC), Linux (GCC) and macOS (AppleClang); locally they have
-been run on Windows, and on Linux in a container.
+The suite has three tiers, every one of them labelled in CTest:
+
+| Tier | Label | What it is |
+| --- | --- | --- |
+| Unit | `unit` | One piece of code against its contract: the ARINC 665 library, the 615A codec, the media tree, the samples, the platform types and the fake, the application's models, settings and plain functions, and the media set generator's and mock target's cores |
+| Integration | `integration` | Pieces together: the 615A engine and runner against the simulated target on the fake platform and over real loopback sockets, the platform conformance suite against the real host, and the mock target's engine against the loader's engine |
+| System | `system` | What a user runs: the three application programs started as processes, the windows loaded offscreen and driven through Qt Quick Test, the payload writer, and the build checks. The whole-operation tests carry both `integration` and `system` |
+
+The tests are Catch2 and QtTest/Qt Quick Test programs, plus checks about the
+build itself and runs of the `adl_write_payloads` program. They run in CI on
+Windows (MSVC), Linux (GCC) and macOS (AppleClang); locally they have been run on
+Windows, and on Linux in a container.
 
 ## Running them
 
@@ -11,8 +19,19 @@ After a build (see [Building](building.md)):
 
 ```sh
 ctest --preset windows-msvc-debug              # or linux-gcc-debug, macos-clang-debug
-ctest --preset windows-msvc-debug -R platform  # just the two build checks
+ctest --preset windows-msvc-debug -R platform  # just the build checks
 ctest --preset windows-msvc-debug -R tools     # just the payload writer
+ctest --preset windows-msvc-debug -L unit      # one tier
+ctest --preset windows-msvc-debug -L integration
+ctest --preset windows-msvc-debug -L system
+```
+
+The same three tiers have build targets:
+
+```sh
+cmake --build --preset windows-msvc-debug --target check-unit
+cmake --build --preset windows-msvc-debug --target check-integration
+cmake --build --preset windows-msvc-debug --target check-system
 ```
 
 Every Catch2 `TEST_CASE` is registered with CTest by name
@@ -27,15 +46,31 @@ build/windows-msvc-debug/bin/adl_platform_tests "[conformance]"
 build/windows-msvc-debug/bin/adl_engine_tests "[operation]"
 ```
 
-There are three test programs: `adl_unit_tests` (the ARINC 665 library, the 615A codec, the media
-tree and the samples), `adl_platform_tests` (the platform layer: its portable
-types, the fake platform and the conformance suite) and `adl_engine_tests` (the 615A engine,
-runner and the whole operations against a simulated target on the fake platform).
+The main test programs are `adl_unit_tests` (the ARINC 665 library, the 615A codec, the media
+tree and the samples), `adl_platform_tests` (the platform layer: its portable types, the fake
+platform and the conformance suite) and `adl_engine_tests` (the 615A engine, runner and the whole
+operations against a simulated target on the fake platform). With `ADL_BUILD_APP=ON` they are
+joined by `adl_app_tests` and `adl_ui_tests` (the application's logic and its window), `adl_mock_tests`,
+`adl_mock_model_test`, `adl_gen_tests`, the three offscreen QML programs, `adl_loopback_test` and
+the system smoke tests in `tests/system`.
+
+Two things a confined shell (a container where only the source tree is writable, or Windows'
+sandbox) trips over, neither of them a test failure:
+
+- Catch2 discovers every test by running the test program as it links, writing the listing to
+  `%TEMP%` (or `$TMPDIR`). If writes outside the tree are refused, point TMP and TEMP at a
+  directory inside the build tree before configuring; otherwise the build stops with "Error
+  listing tests from executable" and no output.
+- `platform.selector` configures and builds a probe with the MSVC toolchain, which needs
+  `rc.exe` on PATH: run `ctest` from a Visual Studio developer shell.
+
+The window's tests run offscreen (no desktop needed): the test's environment sets
+`QT_QPA_PLATFORM=offscreen` and points at the Qt kit's plugin directory.
 
 The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]`,
 `[naming]`, `[header]`, `[load]`, `[batch]`, `[media-files]`, `[media-set]`,
 `[label]`, `[media-tree]`, `[golden]`, `[compatibility]`, `[limits]`, `[robustness]` and
-`[platform]`. The 615A codec adds `[tftp]` (with `[options]`, `[wait]` and `[abort]`),
+`[platform]`; `public_api_test.cpp` adds `[to-string]`, `[generic]` and `[listener]`. The 615A codec adds `[tftp]` (with `[options]`, `[wait]` and `[abort]`),
 `[find]`, `[protocol-files]` (with `[status]`, `[text]` and `[names]`), `[golden615a]` and
 `[robustness615a]`. The platform layer adds `[memory]`, `[error]`, `[time]`, `[network]`,
 `[fake]`, `[conformance]` (with `[clock]`, `[files]`, `[threads]`, `[ipc]`,
@@ -46,6 +81,34 @@ on the real host only). The 615A engine adds `[engine]`, with `[tftp-transfer]` 
 `[version]`), `[operation]` (the whole operations, with `[information]`, `[upload]`, `[download]`,
 `[operator]`, `[init]`, `[port]`, `[status]`, `[timeout]`, `[abort]`, `[version]`, `[faults]`),
 `[runner]`, `[find]` and `[files]`.
+
+## Coverage
+
+The project minimum is **90% of lines and 80% of branches of the portable code**. The
+`linux-gcc-coverage` preset instruments the code, and its `coverage` target runs
+the suite and then enforces both figures with gcovr:
+
+```sh
+cmake --preset linux-gcc-coverage
+cmake --build --preset linux-gcc-coverage --target coverage
+```
+
+The report is written to `build/linux-gcc-coverage/coverage`: `index.html` (one
+page per source file), `summary.json` and `cobertura.xml`. The CI coverage job
+runs the same script (`cmake/CoverageReport.cmake`) and fails the job when either
+figure is below the minimum. `--exclude-throw-branches` and
+`--exclude-unreachable-branches` leave out branches no test can take: a throwing
+branch and a line the compiler proves unreachable.
+
+The gate measures the portable code: `src/arinc665`, `src/arinc615a`,
+`src/arinc615a_mini`, `src/arinc615a_runner`, `src/media_tree`, `src/samples`,
+`src/write_payloads` and `src/platforms/interfaces` with `src/platforms/detail`.
+The OS fragments under `src/platforms` are left out because each host builds a
+different set (the same gate has to mean the same thing on all three) and the
+conformance suite is what holds them to the platform contract. The application
+core and the three windows are covered by `app.tests`, the UI suite and the QML
+programs instead; QML cannot be measured by gcovr, which is why the gate is the
+libraries' rather than a blended figure.
 
 ## What there is
 
@@ -73,6 +136,7 @@ on the real host only). The 615A engine adds `[engine]`, with `[tftp-transfer]` 
 | `protocol_files_test.cpp` | The twelve protocol files of section 6.4: exact layouts, round trips, the file length and version, the status codes each field may hold, the text length rule and its padding, the ratios, counts, user defined data, nested lists, and a buffer too small for every file |
 | `arinc615a_golden_test.cpp` | The codec's packets and files against the ones written independently ([below](#golden-payloads)) |
 | `arinc615a_robustness_test.cpp` | Every 615A decoder over every truncation, bit and byte change, several changes at once, inserted and removed bytes, random bytes and random bytes behind a valid beginning, under the sanitizers; whatever is accepted must encode back to bytes that decode to the same thing |
+| `public_api_test.cpp` | The small public vocabulary both libraries share: every `to_string` for the 615A and 665 errors, status codes, notices, transfer outcomes, checksum verdicts and check value types, the Table 5.1 lengths, which status fields may carry each code, the engine clock's saturating arithmetic, the generic CRC fed whole and in pieces, and the default `OperationListener` (every callback is harmless and a download choice with no override is cancelled) |
 | `tests/engine/tftp_transfer_test.cpp` | `TftpTransfer` on its own: two of them over a link in memory (a file read and written at 12 sizes and several block sizes, the largest block, block numbers across the 65535 to 1 wrap in both directions with 65 541 blocks, every datagram duplicated and the sender's block counted (the Sorcerer's Apprentice fix), 120 runs with loss, duplication and reordering from fixed seeds that either deliver the file exactly or time out, reordering by up to 900 ms, the two second time-out and one retry to the datagram, lost ACKs made up for by the retry and three losses not), and one transfer at a time with every datagram written out (WAIT as an answer to a request and as an ordinary error in the middle, ABORT from the peer with each code and our own, error packets, the options of our request and of the OACK we send and accept, an OACK that breaks the rules refused with error 8, a size that is not what arrives, the checksum verdict for each algorithm and a wrong one that does not fail the transfer, repeated and stray and garbage datagrams, a block too long, the dally, repeated requests, a full disk, a file that cannot be read, a request that does not fit its buffer) |
 | `tests/engine/operations_test.cpp` | `DataLoader` with every datagram written out: the request for each operation's initialization file and its options, requests that cannot be made, the time-outs to the nanosecond (2 s and one retry, the DLP retry, 13 s from the end of the initialization file and from the end of each status file, an exception timer longer and shorter than the time-out), requests refused with the right error (before the operation is under way, another operation's file, no slot, from another host), a repeated request, a newer request replacing an old one, status counters (repeats, out of order, gaps, the wrap), an invalid status file, the abort and its confirmation, a protocol version that is not A4 |
 | `tests/engine/data_loader_test.cpp` | Whole operations through the runner on the fake platform against the simulated target: an Information with and without status files, an Upload of a media set built with `build_media_set` (also 150 000 bytes in 64 byte blocks, a short load, two files of one name told apart by the checksum option, a file not yet available, a file refused), media defined and operator defined Downloads (a wrong checksum, no checksum, a file nobody asked for, a missing file, a sink that fails, the choice made later or not at all), a denied or unsupported operation, WAIT, a silent target, the port option, status files lost and repeated, 13 s of silence, the exception timer, the operator's abort in an upload and a download, a target's abort, a protocol version that is not A4, 24 seeds each of an upload and a download over a network that loses, repeats and reorders, a network that loses 45% (it must end, not hang), and that one seed is one history |
@@ -87,11 +151,45 @@ on the real host only). The 615A engine adds `[engine]`, with `[tftp-transfer]` 
 | `tests/app/address_test.cpp`, `notice_text_test.cpp`, `models_test.cpp` | The application's plain parts (QtTest, `app.tests`): the IPv4 parser (four decimal octets and nothing else: no blanks, signs, hexadecimal, short forms), the target's `<THW_ID_POS>`, each engine notice said with its unit, and the four list models (roles, the log keeping the newest 2000 lines, the loads' ticks and their locking while a job runs, and an upload's progress matched to the loads) |
 | `tests/app/loader_model_test.cpp` | Whole jobs through `LoaderModel` on its engine thread, against the simulated target on the fake platform: an Information operation (the result, the hardware and parts, the log in order, one request seen by the target), FIND (a target listed, then none), choosing a target, an abort before the target has accepted (made certain by holding the engine thread at the start of the job) and the next job running, a second job refused while one runs, a host that cannot start, a media set read from a directory and one that is not there, and the model destroyed while a job is queued; the Upload operation: a media set written as a tree and read back, a load ticked and uploaded (the files the target read, the progress only going forward to 100, the log, the ticks locked meanwhile), what an upload needs before it can start (a media set, a tick, a valid target), a file the media set does not have (the target ends the operation), and an abort before the target has accepted |
 | `tests/app/media_source_test.cpp` | The index of a media set's files and the `FileSource` over it, on files in the fake platform's memory: paths below the member and directory, a pathname a tree cannot hold, two files of one name told apart by the CRC in the request, the fall-backs (one file of a name is served whatever the CRC; several and no fitting CRC is not found; several and no CRC is the first), a file in the lists and not on disk, reads at offsets and at the end, and the limit of open files |
-| `tests/app/qml_test.cpp` (`app.qml`) | The window: `Main.qml` loaded offscreen with the real model, a FIND and an Information operation run through it against the simulated target, then a media set read, its load ticked through the window's own check box and an Upload started from the window's button, and any QML warning (a binding to a name that is not there, a property that cannot be overridden) failing the test. It can save a picture of the window (`adl_app_qml_test Main.qml out.png`); the offscreen platform on Windows has no fonts unless `QT_QPA_FONTDIR` points at some |
+| `tests/app/qml_test.cpp` (`app.qml`) | The window: `Main.qml` loaded offscreen with the real model, a FIND and an Information operation run through it against the simulated target, then a media set read, its load ticked through the window's own check box and an Upload started from the window's button, and any QML warning (a binding to a name that is not there, a property that cannot be overridden) failing the test. It can save pictures of the window: `adl_app_qml_test <workbench.png> <first-run.png> <right-to-left.png> <preferences.png> <about.png>` (each optional, in that order; `ADL_DARK=1` selects the dark scheme); the offscreen platform on Windows has no fonts unless `QT_QPA_FONTDIR` points at some |
+| `tests/ui/qml/tst_main_window.qml` (`ui.tst_main_window`) | The loader window through Qt Quick Test: the real `Main.qml` and `LoaderModel`, offscreen, with Qt Quick Test's own mouse and key events on the window's items. Typing a target, FIND and clicking the target it found, reading the information into the configuration list, choosing and re-checking a media set, ticking its loads through the check box and the All/None buttons, an upload started from the Upload button and checked against what the target read, both download modes (a media defined name, and the operator defined choice with its confirm button), a refused operation opening the error dialog and its OK dismissing it, Abort stopping a running upload (the engine held at the host so the job is certainly running), and Clear emptying the activity log. `tst_dialogs.qml` (`ui.tst_dialogs`) opens Preferences, the media set and target properties and About, types into their fields and closes them through their standard buttons; Preferences is checked as transactional, so the model changes only after Save |
+| `tests/system/smoke_app.cmake` (`system.*.starts`) | The built programs as processes: `adl_app`, `adl_media_gen` and `adl_mock_target` each start offscreen and are still running when a three second watchdog stops them. An application that cannot load its QML or find a Qt plugin exits at once, which fails the test |
 | `tools.write_payloads*` (CTest) | `adl_write_payloads` writes every scenario to a fresh directory and verifies it (the setup test `tools.write_payloads.clean` empties the directory first, since the program never overwrites), `--list` works, and an unknown scenario or a missing output directory is refused |
 | `tests/platform/check_fragments.cmake` | `platform.fragments`: each fragment satisfies the platform contract, on whichever host this runs |
 | `tests/platform/check_selector.cmake` | `platform.selector`: configures the project with `ADL_TARGET_PLATFORM` set, and checks that a platform with no code is refused with its reason, that QNX is refused until `ADL_ACCEPT_UNBUILT_PLATFORM` is on and then configures, and that a name that is not a platform lists the ones that are |
 | `tools/checks/check_platform_isolation.ps1` | `platform.isolation`: no preprocessor conditionals or defines, no OS headers outside the platform section, no OS tests in CMake outside the selector |
+
+## The UI suite
+
+`tests/ui` is the window's own suite, written with Qt Quick Test. Each
+`tests/ui/qml/tst_*.qml` file is a `TestCase`, and CTest runs one process per
+file (`ui.tst_main_window`, `ui.tst_dialogs`) so that a media set read in one
+cannot colour the next. `UiSetup` (`tests/ui/ui_setup.hpp`) creates the same rig
+the application's other tests use — the real `LoaderModel` on its engine thread,
+the simulated target on the fake platform, a media set written to disk and
+mirrored into the fake host — and hands the model and a small `Harness` to QML as
+context properties. The application's QML is compiled into a module and its controls
+come from `src/ui/qml`, so the suite's build copies the shared and window QML into
+one directory with a `qmldir` that declares the `Theme` singleton, and the tests
+load that `Main.qml`. It is the window's own source, copied rather than reimplemented;
+the copy is what makes a direct component load see the same components the module does.
+
+The events are Qt Quick Test's: `mouseClick` on the button or check box,
+`keyClick` for each character typed into a field, and `tryCompare`/`tryVerify`
+to wait for the model on its worker thread. The assertions read both what the
+window shows (`statusState`, the configuration list, the result label and the
+error dialog's text) and what the operation did (`Harness` reports the files the
+target read, the downloads in the fake file system and the rows of each list).
+The window is made tall enough that the whole left column is on screen: a click
+on an item scrolled out of view is not a click the window receives.
+
+The error dialog is a Qt Quick `Dialog`, like the other dialogs, rather than a
+native message box: a native modal runs its own event loop and cannot be driven
+by Qt Quick Test. That also keeps the dialog's look the same on every desktop. The
+suite uses the dialogs' own footer buttons: `AppDialog.standardButton()` maps
+`Dialog.Ok`, `Dialog.Save` and `Dialog.Close` to the primary button and
+`Dialog.Cancel` to the secondary, so the test clicks the same Save/Close the
+operator does.
 
 ## Golden payloads
 
@@ -227,10 +325,14 @@ what to expect of each, it checks every byte it reads.
   and [the engine's](arinc615a-coverage.md#places-the-standard-is-unclear) are the first things to confirm.
   The simulated target has a TFTP of its own, but it is the same reading of the standard.
 - The application has been run through its tests only: against the simulated target, never a real one, and the window
-  has been looked at offscreen, not on a screen, at one size and in the light theme. `app.tests` and `app.qml` run
-  on the three desktop legs, and the Linux and macOS ones had not run when this was written.
-- No test runs a 615A operation over real sockets: the runner is tested on the fake platform, and the
-  platforms' sockets by the conformance suite. macOS has not run any of the engine's tests except in CI.
+  has been driven offscreen by Qt Quick Test, not looked at on a screen, at one size and in the light theme.
+  `app.tests`, `app.qml`, `ui.tst_main_window` and `ui.tst_dialogs` run on the three desktop legs, and the Linux
+  and macOS ones had not run when this was written.
+- No test runs a 615A operation against a real target. The loopback integration test
+  (`loopback.integration`) does run whole operations over real sockets, but against the mock
+  target's engine on the same machine; the runner otherwise runs on the fake platform, and the
+  platforms' sockets are covered by the conformance suite. macOS has not run any of the engine's
+  tests except in CI.
 - The codec and the engine are meant for a build without exceptions and RTTI, and no CI job builds them that
   way. (They compile that way under g++ 15 with `-fno-exceptions -fno-rtti`, checked once by hand.)
 - The golden payloads come from the same reading of the standard as the library.

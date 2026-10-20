@@ -73,17 +73,34 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # CMake file reads what the platform's fragment declared.
 include(Platform)
 include(CompilerWarnings)
+include(StaticAnalysis)
 include(Sanitizers)
 include(Coverage)
 include(Tracy)
+include(AdlUi)
 
 # ---------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------
-option(ADL_BUILD_TESTS "Build the unit test suite" ON)
-# The Qt application (src/app). Off by default so that the libraries build on a machine without Qt;
-# CI turns it on. Qt is the prebuilt kit found through QT_ROOT_DIR (cmake/FindQt6.cmake).
-option(ADL_BUILD_APP "Build the Qt application" OFF)
+option(ADL_BUILD_TESTS "Build the unit, integration and system test suites" ON)
+# The three Qt applications (src/app, src/media_gen, src/mock_target) are the source side's
+# programs, so they build by default on a desktop - the only place Qt exists. A target build
+# (ADL_TARGET_PLATFORM names an RTOS, or an embedded toolchain sets it) has no Qt and no use for
+# them and leaves them off. The default also needs a kit that can actually be found: a desktop
+# without Qt configures the libraries alone rather than failing, and an explicit
+# -DADL_BUILD_APP=ON still fails loudly in src/app. Qt is the prebuilt kit found through
+# QT_ROOT_DIR or the search roots each platform's fragment lists (cmake/FindQt6.cmake).
+if(ADL_PLATFORM_DESKTOP)
+    find_package(Qt6 6.12 QUIET COMPONENTS Core Gui Qml Quick QuickControls2 LinguistTools)
+endif()
+if(ADL_PLATFORM_DESKTOP AND Qt6_FOUND)
+    set(_adl_app_default ON)
+else()
+    set(_adl_app_default OFF)
+endif()
+option(ADL_BUILD_APP "Build the Qt applications (default: on a desktop with Qt, off otherwise)"
+    ${_adl_app_default})
+unset(_adl_app_default)
 
 # ---------------------------------------------------------------------------
 # Targets
@@ -140,4 +157,11 @@ endif()
 message(STATUS "ARINC Data Loader ${PROJECT_VERSION} for ${ADL_PLATFORM_DISPLAY_NAME}")
 message(STATUS "  Build tests : ${ADL_BUILD_TESTS}")
 message(STATUS "  Build app   : ${ADL_BUILD_APP}")
+if(ADL_BUILD_APP)
+    message(STATUS "  Applications: adl_app, adl_media_gen, adl_mock_target")
+elseif(ADL_PLATFORM_DESKTOP)
+    message(STATUS "  Applications: off on this desktop (-DADL_BUILD_APP=ON builds adl_app, adl_media_gen, adl_mock_target)")
+else()
+    message(STATUS "  Applications: off for a target build (the source side's programs need a desktop and Qt)")
+endif()
 message(STATUS "  Tracy       : ${ADL_ENABLE_TRACY}")

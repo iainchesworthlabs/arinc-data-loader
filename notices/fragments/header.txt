@@ -1,0 +1,16 @@
+ARINC Data Loader {{VERSION}} - third-party notices, {{PLATFORM}} build
+========================================================================
+
+This file covers the three programs of this build: adl_app, the data loader;
+adl_media_gen, the media set generator; and adl_mock_target, the mock target.
+Each shows it under About > Licences, and the build places a copy beside the
+executables as NOTICES.txt, next to LICENSE.txt.
+
+ARINC Data Loader is free software under the GNU General Public License,
+version 3 or later; the full text is LICENSE.txt beside this file. The source
+is at https://github.com/iainchesworthlabs/arinc-data-loader
+
+What follows is what this build carries from others: each component, the terms
+it is used under, and the text of those terms where they ask to travel with the
+copy. The tools the project is built and tested with - CMake, vcpkg, Catch2 -
+are not part of what is distributed and are not listed.

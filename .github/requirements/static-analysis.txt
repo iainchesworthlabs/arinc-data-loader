@@ -1,0 +1,7 @@
+# Pinned static-analysis tooling for the nightly clang-tidy job and for local
+# use with the linux-gcc-tidy preset (docs/static-analysis.md):
+#   pip install -r .github/requirements/static-analysis.txt
+# Dependabot's pip ecosystem for /.github/requirements keeps this current.
+# Same release as the sibling projects and the pinned clang-format, so one
+# LLVM's checks and formatting rules hold across them.
+clang-tidy==23.1.3

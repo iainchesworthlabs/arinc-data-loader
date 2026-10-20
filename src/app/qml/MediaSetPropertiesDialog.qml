@@ -2,68 +2,81 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// What the chosen media set holds: its identity, its loads, every file of it (from FILES.LUM)
-// and where it differs from the standard's recommendations.
-Dialog {
+// What the chosen media set holds: its identity, its loads, every file from FILES.LUM and where
+// the set differs from the standard's recommendations.
+AppDialog {
     id: dialog
 
     required property var app
 
-    title: qsTr("Media set properties")
-    modal: true
-    standardButtons: Dialog.Close
-    width: 680
-    height: 560
+    heading: qsTr("Media set properties")
+    primaryText: qsTr("Close")
+    width: 940
+    height: 720
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 8
+    content: ColumnLayout {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        spacing: Theme.space3
 
         GridLayout {
-            columns: 2
-            columnSpacing: 12
-            rowSpacing: 4
+            Layout.fillWidth: true
+            columns: 5
+            columnSpacing: Theme.space2
+            rowSpacing: Theme.space2
 
-            Label {
-                text: qsTr("Part number")
-                opacity: 0.7
+            StatTile {
+                label: qsTr("Part number")
+                valueObjectName: "mediaSetPartNumberLabel"
+                value: dialog.app.mediaSetPartNumber.length > 0
+                       ? dialog.app.mediaSetPartNumber : qsTr("not read")
             }
-            Label {
-                text: dialog.app.mediaSetPartNumber.length > 0
-                      ? dialog.app.mediaSetPartNumber : qsTr("not read")
-                font.bold: true
+            StatTile {
+                label: qsTr("Members")
+                value: String(dialog.app.mediaSetMemberCount)
             }
-            Label {
-                text: qsTr("Members")
-                opacity: 0.7
+            StatTile {
+                label: qsTr("Loads")
+                valueObjectName: "mediaSetLoadCountLabel"
+                value: String(dialog.app.loadCount)
             }
-            Label { text: dialog.app.mediaSetMemberCount }
-            Label {
-                text: qsTr("Batches")
-                opacity: 0.7
+            StatTile {
+                label: qsTr("Files")
+                valueObjectName: "mediaSetFileCountLabel"
+                value: String(dialog.app.fileCount)
             }
-            Label { text: dialog.app.mediaSetBatchCount }
-            Label {
-                text: qsTr("Directory")
-                opacity: 0.7
-            }
-            Label {
-                text: dialog.app.mediaSetPath.length > 0
-                      ? dialog.app.mediaSetPath : qsTr("not chosen")
-                elide: Text.ElideMiddle
-                Layout.maximumWidth: 480
+            StatTile {
+                label: qsTr("Batches")
+                value: String(dialog.app.mediaSetBatchCount)
             }
         }
 
-        Label {
-            text: qsTr("%n load(s)", "", dialog.app.loads.rowCount())
-            font.bold: true
+        Text {
+            Layout.fillWidth: true
+            text: dialog.app.mediaSetPath.length > 0
+                  ? dialog.app.mediaSetPath : qsTr("No media set chosen")
+            color: Theme.textMuted
+            font.pixelSize: Theme.fontSmall
+            font.family: Theme.monoFamily
+            elide: Text.ElideMiddle
         }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            color: Theme.divider
+        }
+
+        SectionHeader {
+            label: qsTr("Loads")
+            summary: Theme.quantity(dialog.app.loadCount, qsTr("load"), qsTr("loads"))
+        }
+
         ListView {
             id: loadsList
 
             Layout.fillWidth: true
-            Layout.preferredHeight: 110
+            Layout.preferredHeight: 96
             clip: true
             model: dialog.app.loads
             ScrollBar.vertical: ScrollBar {}
@@ -73,27 +86,75 @@ Dialog {
                 required property string detail
 
                 width: ListView.view.width
-                spacing: 8
+                spacing: Theme.space2
 
-                Label {
-                    Layout.preferredWidth: 180
+                Text {
+                    Layout.preferredWidth: 210
                     text: partNumber
-                    elide: Text.ElideRight
+                    color: Theme.text
+                    font.pixelSize: Theme.fontBody
+                    font.family: Theme.monoFamily
                     font.bold: true
+                    elide: Text.ElideRight
                 }
-                Label {
+
+                Text {
                     Layout.fillWidth: true
                     text: detail
-                    opacity: 0.7
+                    color: Theme.textMuted
+                    font.pixelSize: Theme.fontSmall
                     elide: Text.ElideRight
                 }
             }
         }
 
-        Label {
-            text: qsTr("%n file(s), from FILES.LUM", "", dialog.app.files.rowCount())
-            font.bold: true
+        SectionHeader {
+            label: qsTr("Files")
+            summary: Theme.quantity(dialog.app.fileCount,
+                                    qsTr("file from FILES.LUM"), qsTr("files from FILES.LUM"))
         }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Theme.space2
+
+            Text {
+                Layout.preferredWidth: 220
+                text: qsTr("NAME")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontMicro
+                font.family: Theme.monoFamily
+            }
+            Text {
+                Layout.preferredWidth: 72
+                text: qsTr("MEMBER")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontMicro
+                font.family: Theme.monoFamily
+            }
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("PATH")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontMicro
+                font.family: Theme.monoFamily
+            }
+            Text {
+                Layout.preferredWidth: 64
+                horizontalAlignment: Text.AlignRight
+                text: qsTr("CRC")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontMicro
+                font.family: Theme.monoFamily
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: Theme.divider
+        }
+
         ListView {
             id: filesList
 
@@ -110,50 +171,83 @@ Dialog {
                 required property string crc
 
                 width: ListView.view.width
-                spacing: 8
+                spacing: Theme.space2
 
-                Label {
+                Text {
                     Layout.preferredWidth: 220
                     text: name
+                    color: Theme.text
+                    font.pixelSize: Theme.fontSmall
+                    font.family: Theme.monoFamily
                     elide: Text.ElideRight
                 }
-                Label {
+                Text {
                     Layout.preferredWidth: 72
-                    text: qsTr("member %1").arg(member)
-                    opacity: 0.7
+                    text: String(member)
+                    color: Theme.textMuted
+                    font.pixelSize: Theme.fontSmall
+                    font.family: Theme.monoFamily
                 }
-                Label {
+                Text {
                     Layout.fillWidth: true
                     text: pathname
+                    color: Theme.textMuted
+                    font.pixelSize: Theme.fontSmall
                     elide: Text.ElideMiddle
-                    opacity: 0.7
                 }
-                Label {
-                    Layout.preferredWidth: 44
+                Text {
+                    Layout.preferredWidth: 64
                     horizontalAlignment: Text.AlignRight
                     text: crc
-                    font.family: "Consolas"
-                    opacity: 0.85
+                    color: Theme.textMuted
+                    font.pixelSize: Theme.fontSmall
+                    font.family: Theme.monoFamily
                 }
             }
         }
 
-        Label {
+        RowLayout {
+            Layout.fillWidth: true
             visible: dialog.app.mediaSetFindings.length > 0
-            text: qsTr("%n warning(s) against the standard's recommendations", "",
-                       dialog.app.mediaSetFindings.length)
-            font.bold: true
-        }
-        Repeater {
-            model: dialog.app.mediaSetFindings
-            delegate: Label {
-                required property string modelData
+            spacing: Theme.space2
 
+            StatusChip {
+                text: Theme.quantity(dialog.app.mediaSetFindings.length,
+                                     qsTr("WARNING"), qsTr("WARNINGS"))
+                tone: "warn"
+            }
+
+            Text {
                 Layout.fillWidth: true
-                text: modelData
-                wrapMode: Text.Wrap
-                opacity: 0.8
+                text: qsTr("Deviations from the standard's recommendations. They are shown, and do not block an upload.")
+                color: Theme.textMuted
+                font.pixelSize: Theme.fontSmall
+                wrapMode: Text.WordWrap
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: dialog.app.mediaSetFindings.length > 0
+            spacing: 0
+
+            Repeater {
+                model: dialog.app.mediaSetFindings
+
+                delegate: Text {
+                    id: finding
+
+                    required property string modelData
+
+                    Layout.fillWidth: true
+                    text: "· " + finding.modelData
+                    color: Theme.accentInk
+                    font.pixelSize: Theme.fontSmall
+                    wrapMode: Text.WordWrap
+                }
             }
         }
     }
+
+    onPrimaryClicked: dialog.close()
 }

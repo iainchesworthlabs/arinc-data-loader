@@ -16,8 +16,9 @@
 # csvexport), so a trace can be recorded and dumped headlessly, without the GUI
 # profiler.
 #
-# The instrumentation macros themselves arrive with the first code worth
-# profiling; this file is the switch and the dependency, not the zones.
+# The instrumentation itself lives in the generated <adl/profiling.hpp> (below)
+# and the zones in the libraries and the application; this file is the switch,
+# the dependency and the header.
 #
 # Nothing here is for shipping: a Tracy client opens a TCP listener and answers
 # UDP discovery broadcasts, which a released binary - and anything that runs on
@@ -28,6 +29,20 @@ option(ADL_ENABLE_TRACY "Enable Tracy profiler instrumentation" OFF)
 
 add_library(adl_tracy INTERFACE)
 add_library(adl::tracy ALIAS adl_tracy)
+
+# <adl/profiling.hpp> is generated, one flavour for each state of the switch: the adl::profiling
+# names call Tracy when profiling is on, and do nothing when it is off. The repository forbids #if
+# and #define in its own C++, so the choice is made in a build artifact; every instrumented file
+# includes this header and uses only those names.
+set(ADL_PROFILING_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/profiling/profiling_noop.hpp.in")
+if(ADL_ENABLE_TRACY)
+    set(ADL_PROFILING_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/profiling/profiling_tracy.hpp.in")
+endif()
+set(ADL_PROFILING_INCLUDE_DIR "${CMAKE_BINARY_DIR}/generated/include")
+file(MAKE_DIRECTORY "${ADL_PROFILING_INCLUDE_DIR}/adl")
+configure_file("${ADL_PROFILING_TEMPLATE}" "${ADL_PROFILING_INCLUDE_DIR}/adl/profiling.hpp"
+    @ONLY)
+target_include_directories(adl_tracy INTERFACE "${ADL_PROFILING_INCLUDE_DIR}")
 
 if(ADL_ENABLE_TRACY)
     find_package(Tracy CONFIG REQUIRED)

@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include <QAbstractListModel>
@@ -138,7 +139,11 @@ private:
     std::unique_ptr<MockEngine> engine_;
     std::filesystem::path storage_path_;
     std::unique_ptr<Adapter> adapter_;
-    std::atomic<TargetLink*> current_link_{nullptr};
+    // The link a stop request is delivered to. request_stop() runs on the GUI thread while the
+    // session thread owns and destroys the link, so the pointer is only used, and only cleared,
+    // under this mutex: a stop never calls into a link that is being destroyed.
+    std::mutex link_mutex_;
+    TargetLink* current_link_ = nullptr;
     std::atomic<bool> stop_wanted_{false};
 };
 

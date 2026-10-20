@@ -24,6 +24,7 @@
 
 #include "adl/gen/generator_model.hpp"
 #include "adl/gen/source_file_model.hpp"
+#include "adl/ui/fonts.hpp"
 #include "temp_dir.hpp"
 
 namespace {
@@ -72,10 +73,11 @@ QUrl url_of(const std::filesystem::path& path) {
 
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
-    if (argc < 2) {
-        std::fprintf(stderr, "usage: adl_gen_qml_test <GeneratorWindow.qml path> [picture.png]\n");
+    if (argc > 2) {
+        std::fprintf(stderr, "usage: adl_gen_qml_test [picture.png]\n");
         return 2;
     }
+    adl::ui::register_fonts();
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
 
     // The files the generation reads, and the directory it writes below.
@@ -119,7 +121,7 @@ int main(int argc, char* argv[]) {
          // a dark desktop theme supplies), so both schemes can be checked and pictured.
          {QStringLiteral("renderDark"),
           QVariant::fromValue(qEnvironmentVariable("ADL_DARK") == QStringLiteral("1"))}});
-    engine.load(QUrl::fromLocalFile(QString::fromLocal8Bit(argv[1])));
+    engine.loadFromModule("ArincMediaGen", "GeneratorWindow");
 
     if (engine.rootObjects().size() != 1) {
         std::fprintf(stderr, "the window did not load\n");
@@ -166,7 +168,7 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "the window could not be drawn\n");
         return 1;
     }
-    if (argc > 2 && !picture.save(QString::fromLocal8Bit(argv[2]))) {
+    if (argc > 1 && !picture.save(QString::fromLocal8Bit(argv[1]))) {
         std::fprintf(stderr, "the picture could not be saved\n");
         return 1;
     }

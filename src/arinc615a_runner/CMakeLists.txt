@@ -17,6 +17,7 @@ target_link_libraries(adl_arinc615a_runner
         adl::arinc615a
         adl::platform
     PRIVATE
+        adl::tracy
         adl::warnings
         adl::sanitizers
         adl::coverage)

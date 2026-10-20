@@ -8,16 +8,39 @@ licence.
 
 1. **The project is GPL-3.0-or-later** (`LICENSE`, `vcpkg.json`). The files carry
    no per-file headers; `LICENSE` and `vcpkg.json` are the statement.
-2. **Nothing third-party is shipped, because nothing is packaged.** The
-   third-party code in use is a build tool (vcpkg) and a test framework
-   (Catch2, BSL-1.0). Neither is linked into anything that is distributed.
-3. **Qt 6.12 is planned for the application.** The intent is to link only
-   modules that are also offered under the LGPL, so that "or later" stays true
-   of the whole program. This is to be checked when the application is built,
-   not before.
+2. **The third-party code in use is a build tool (vcpkg) and a test framework
+   (Catch2, BSL-1.0).** Neither is linked into anything that is distributed.
+   What the applications ship from others is Qt (item 3), the Archivo typeface
+   (item 6) and, on Windows, the runtime files Qt's deployment tool places beside
+   Qt. All of it is listed, with the text of its terms, in the notices the
+   applications show (below).
+3. **Qt 6.12 is linked by the three applications**, dynamically, under the GNU
+   Lesser General Public License, version 3. The offer of the source, the right to
+   replace the libraries and the LGPL text are in the notices. One module the
+   deployment places, `Qt6Quick3DUtils` (loaded by the QML profiler plugin), is
+   offered under the GPL 3 rather than the LGPL; the project's own GPL-3.0-or-later
+   satisfies that.
 4. **Tracy is opt-in** (`ADL_ENABLE_TRACY`) and is not part of a release build.
 5. **The ARINC standards are not this project's to license, and are not in the
    repository.** See below.
+6. **Archivo is bundled with the applications** under the SIL Open Font
+   License 1.1: `src/ui/fonts/Archivo-Regular.ttf`, `-Medium.ttf`,
+   `-SemiBold.ttf` and `-ExtraBold.ttf`, with the licence text in
+   `src/ui/fonts/OFL.txt`. The faces are resources of each application and are
+   not modified. The About dialogs name the face and its licence, and the
+   Licences dialog carries the OFL text.
+
+## The notices the applications carry
+
+About > Licences (all three applications) shows `NOTICES.txt`, and the build places the same
+file, with `LICENSE.txt`, beside the executables. It is assembled at configure time from
+`notices/fragments` and `notices/licences` by `cmake/Notices.cmake`, so the versions are the
+ones the build used, and a missing fragment or licence file stops the configure. See
+[notices/README.md](../notices/README.md) for how to add a component; `system.notices` checks
+the generated file.
+
+Still open: a release package must carry the same two files (the packaging work has not been
+done), and a package for Linux or macOS has to say how the Qt libraries it ships can be replaced.
 
 ## The standards
 
