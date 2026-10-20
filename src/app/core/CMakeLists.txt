@@ -7,6 +7,7 @@ set(CMAKE_AUTOMOC ON)
 
 add_library(adl_app_core STATIC
     include/adl/app/address.hpp
+    include/adl/app/download_directory.hpp
     include/adl/app/engine_worker.hpp
     include/adl/app/events.hpp
     include/adl/app/host_access.hpp
@@ -18,6 +19,7 @@ add_library(adl_app_core STATIC
     include/adl/app/settings.hpp
     include/adl/app/text.hpp
     src/address.cpp
+    src/download_directory.cpp
     src/engine_worker.cpp
     src/events.cpp
     src/host_access.cpp

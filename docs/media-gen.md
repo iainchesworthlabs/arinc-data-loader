@@ -59,6 +59,15 @@ and place.
   any of them is wrong. Nothing is written until every input is valid, and nothing overwrites
   anything (`write_media_set_tree` refuses a non-empty member directory; the generator picks a
   fresh directory instead).
+- **The set appears under its name in one step.** The tree is written to `<part number>.writing` beside
+  the final directory, read back and verified there, and only then renamed to its name (the first of
+  `<part number>`, `<part number>_2`... that is free; an empty directory is taken over, a non-empty one
+  never touched). Until then nothing is under the set's name, and whatever goes wrong (a full disk, a name
+  the file system refuses, a set that does not verify, a cancel, running out of memory) removes the
+  temporary directory, and the receipt says so ("Nothing was kept: what had been written was removed", or,
+  if the removal itself failed, where the remains are). A file too large to be held in memory ends the job
+  with its name, not a crash. `write_media_set_tree` itself also removes what it made when a write fails
+  part of the way.
 - **Generation is verification.** The write step is followed by reading the set back with the
   same functions the data loader reads it with (`read_media_set_tree`, `read_media_set`, and
   the loader's own summary in the tests), so a set the generator calls good is a set the loader
@@ -73,8 +82,10 @@ is written; multi-member sets place the data files as promised; a job cancelled 
 being read, or before the tree is written, leaves nothing behind; a batch, when asked for, is on the set.
 The window loads offscreen with no QML complaints and generates through the model.
 
-Known gap: a cancel that arrives after the tree has been written (before the read-back) stops the job with
-"Nothing was written" while the directory is on the disk (`generator_worker.cpp`, step 5).
+A cancel at each place the job can stop is tested through a hook (`GeneratorWorker::set_checkpoint_hook`):
+before anything is written the receipt says nothing was written; after the tree is written, and after it has
+been verified, it says what was removed. A failing write is made with a file name no file system takes; a
+failing allocation by throwing `std::bad_alloc` from the hook.
 
 The window was also driven on a real Windows desktop by a script ([the screenshots](screenshots.md)):
 the form filled in, files added through the system file dialog, a set generated and then opened and

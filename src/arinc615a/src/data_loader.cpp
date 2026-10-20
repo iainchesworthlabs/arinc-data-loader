@@ -10,7 +10,6 @@ namespace adl::arinc615a {
 namespace {
 
 constexpr std::size_t longest_name = 254;
-constexpr std::size_t longest_stem = 240;
 
 [[nodiscard]] std::size_t transfer_buffer_bytes(const LoaderConfig& config) noexcept {
     return std::max(config.max_block_size + 4, TftpTransfer::min_buffer_bytes);
@@ -20,13 +19,14 @@ constexpr std::size_t longest_stem = 240;
     return std::clamp<std::size_t>(config.max_transfers, 2, DataLoader::max_slots);
 }
 
-[[nodiscard]] bool plain_name(std::string_view text) noexcept {
-    return std::ranges::none_of(text, [](char c) {
-        return static_cast<unsigned char>(c) < 0x20 || c == '/' || c == '\\' || c == 0x7F;
-    });
-}
-
 }  // namespace
+
+bool is_valid_thw_id_pos(std::string_view id) noexcept {
+    return !id.empty() && id.size() <= max_thw_id_pos_length &&
+           std::ranges::none_of(id, [](char c) {
+               return static_cast<unsigned char>(c) < 0x20 || c == '/' || c == '\\' || c == 0x7F;
+           });
+}
 
 // ---- FileSelection ---------------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ Result<void> DataLoader::start(Instant now, const Operation& operation) noexcept
         return std::unexpected(Error::invalid_value);
     }
     const std::string_view id = config_.thw_id_pos;
-    if (id.empty() || id.size() > longest_stem || !plain_name(id) || config_.control_port == 0 ||
+    if (!is_valid_thw_id_pos(id) || config_.control_port == 0 ||
         config_.max_block_size < tftp_min_block_size ||
         config_.max_block_size > tftp_max_block_size ||
         config_.preferred_block_size < tftp_min_block_size ||

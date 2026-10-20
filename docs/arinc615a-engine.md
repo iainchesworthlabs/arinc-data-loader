@@ -149,8 +149,15 @@ writes the files.
 
 Only the files the operation asked for are accepted, by name and once each: a write request for anything
 else is refused with error 2, so a target cannot choose a path (the `FileSink` is still free to defend
-itself, and `DirectoryFileSink` does). Each file goes to the `FileSink` as it arrives and is made
-permanent only when complete (`finish`) or thrown away (`discard`).
+itself, and `DirectoryFileSink` does, with `is_safe_file_name`: the portable, platform independent name
+of `adl::arinc665::is_portable_file_name`, so that a colon, a device name or a trailing dot cannot reach
+the file system on any host, and not the sink's own `.part` suffix). Each file goes to the `FileSink` as it
+arrives and is made permanent only when complete (`finish`) or thrown away (`discard`).
+
+`<THW_ID_POS>` is checked by `is_valid_thw_id_pos` (1 to 240 characters, none a control character, a slash or
+a backslash); `DataLoader::start` refuses anything else with `invalid_value`, and the function is exported
+so that a caller that makes something from the id first (the application's download directory) asks the
+loader's own rule instead of its own copy.
 
 ### The data load protocol time-out (Attachment 4, 4-4.1)
 

@@ -1,13 +1,14 @@
 #include "adl/media_tree/media_tree.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cstddef>
 #include <fstream>
 #include <set>
 #include <system_error>
 #include <tuple>
 #include <utility>
+
+#include "adl/arinc665/portable_name.hpp"
 
 #include <adl/profiling.hpp>
 
@@ -34,30 +35,6 @@ std::string lowered(std::string_view text) {
     return result;
 }
 
-// CON, PRN, AUX, NUL, COM1 to COM9 and LPT1 to LPT9, with or without an
-// extension: on Windows these are devices, whatever directory they are named in.
-bool is_device_name(std::string_view name) {
-    const std::string stem = lowered(name.substr(0, name.find('.')));
-    constexpr std::array<std::string_view, 4> plain{"con", "prn", "aux", "nul"};
-    if (std::find(plain.begin(), plain.end(), stem) != plain.end()) {
-        return true;
-    }
-    return stem.size() == 4 && (stem.starts_with("com") || stem.starts_with("lpt")) &&
-           stem[3] >= '1' && stem[3] <= '9';
-}
-
-// One directory or file name, as the header says.
-bool is_portable_name(std::string_view name) {
-    if (name.empty() || name == "." || name == ".." || name.back() == '.' || name.back() == ' ') {
-        return false;
-    }
-    constexpr std::string_view forbidden = "/\\:*?\"<>|";
-    const bool characters_ok = std::all_of(name.begin(), name.end(), [&](char c) {
-        return c >= 0x20 && c <= 0x7E && forbidden.find(c) == std::string_view::npos;
-    });
-    return characters_ok && !is_device_name(name);
-}
-
 // "\a\b\" as {"a", "b"}; "\" as {}.
 TreeResult<std::vector<std::string>> split_pathname(std::string_view pathname) {
     if (pathname.empty() || pathname.front() != '\\' || pathname.back() != '\\') {
@@ -68,7 +45,7 @@ TreeResult<std::vector<std::string>> split_pathname(std::string_view pathname) {
     while (start < pathname.size()) {
         const std::size_t end = pathname.find('\\', start);
         const std::string_view name = pathname.substr(start, end - start);
-        if (!is_portable_name(name)) {
+        if (!arinc665::is_portable_file_name(name)) {
             return fail(TreeError::invalid_pathname, fs::path{std::string{pathname}});
         }
         directories.emplace_back(name);
@@ -118,7 +95,7 @@ TreeResult<void> validate(std::span<const arinc665::MediaMember> members) {
             if (!directories) {
                 return std::unexpected(directories.error());
             }
-            if (!is_portable_name(file.name)) {
+            if (!arinc665::is_portable_file_name(file.name)) {
                 return fail(TreeError::invalid_file_name, fs::path{file.name});
             }
             if (!seen.insert(lowered(to_pathname(*directories) + file.name)).second) {
@@ -173,7 +150,7 @@ TreeResult<void> read_directory(const fs::path& directory, std::vector<std::stri
         }
         const fs::path path = it->path();
         const std::string name = path.filename().string();
-        if (!is_portable_name(name)) {
+        if (!arinc665::is_portable_file_name(name)) {
             return fail(TreeError::invalid_file_name, path);
         }
         const fs::file_status status = it->symlink_status(ec);
@@ -268,27 +245,53 @@ TreeResult<void> write_media_set_tree(const fs::path& root,
         }
     }
 
+    // What this call makes, so that a failure part of the way takes it away again: a full disk
+    // must not leave the first members behind looking like a set.
+    const bool root_existed = fs::exists(root, ec);
+    struct Made {
+        fs::path directory;
+        bool existed;  // an empty member directory that was there: emptied, not removed
+    };
+    std::vector<Made> made;
+    const auto undo = [&](TreeFailure failure) {
+        std::error_code ignored;
+        for (const Made& member : made) {
+            if (member.existed) {
+                for (const auto& entry : fs::directory_iterator(member.directory, ignored)) {
+                    fs::remove_all(entry.path(), ignored);
+                }
+            } else {
+                fs::remove_all(member.directory, ignored);
+            }
+        }
+        if (!root_existed) {
+            fs::remove(root, ignored);  // only if it is empty again, which it is unless it was used
+        }
+        return std::unexpected(std::move(failure));
+    };
+
     fs::create_directories(root, ec);
     if (ec || !fs::is_directory(root, ec)) {
-        return fail(TreeError::cannot_create_directory, root);
+        return undo(TreeFailure{TreeError::cannot_create_directory, root});
     }
     for (const arinc665::MediaMember& member : members) {
         const fs::path member_root = root / member_directory_name(member.sequence_number);
+        made.push_back({member_root, fs::exists(member_root, ec)});
         fs::create_directories(member_root, ec);
         if (ec) {
-            return fail(TreeError::cannot_create_directory, member_root);
+            return undo(TreeFailure{TreeError::cannot_create_directory, member_root});
         }
         for (const arinc665::MediaFile& file : member.files) {
             const auto directory = native_directory(member_root, file.pathname);
             if (!directory) {
-                return std::unexpected(directory.error());
+                return undo(directory.error());
             }
             fs::create_directories(*directory, ec);
             if (ec) {
-                return fail(TreeError::cannot_create_directory, *directory);
+                return undo(TreeFailure{TreeError::cannot_create_directory, *directory});
             }
             if (auto written = write_file(*directory / file.name, file.bytes); !written) {
-                return written;
+                return undo(written.error());
             }
         }
     }
