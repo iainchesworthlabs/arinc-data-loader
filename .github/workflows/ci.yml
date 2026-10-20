@@ -255,7 +255,22 @@ jobs:
         shell: bash
         env:
           CMAKE_PRESET: ${{ matrix.preset }}
-        run: ctest --preset "$CMAKE_PRESET"
+        run: ctest --preset "$CMAKE_PRESET" --output-junit "$GITHUB_WORKSPACE/build/$CMAKE_PRESET/ctest-junit.xml"
+
+      # Only when the leg is red: the full CTest log (every test's output, not
+      # only what the job log shows for the failures) and the JUnit report, so a
+      # failure that does not reproduce locally leaves its evidence behind.
+      - name: Upload test logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ctest-logs-${{ matrix.preset }}
+          path: |
+            build/${{ matrix.preset }}/ctest-junit.xml
+            build/${{ matrix.preset }}/Testing/Temporary/LastTest.log
+            build/${{ matrix.preset }}/Testing/Temporary/LastTestsFailed.log
+          if-no-files-found: warn
+          retention-days: 14
 
       # Saved even when a later step fails: otherwise a red leg throws away
       # every package vcpkg had already built. Only saves when packages were

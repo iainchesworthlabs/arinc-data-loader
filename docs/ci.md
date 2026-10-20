@@ -74,6 +74,11 @@ platform contract, on whichever host this is) and `platform.isolation` (the
 same script as the `platform-isolation` job; it needs `pwsh`, which every
 hosted image has).
 
+A leg whose build or tests fail uploads the CTest log (`Testing/Temporary/LastTest.log`, with every test's
+output rather than only the failures') and a JUnit report as the `ctest-logs-<preset>` artifact, for 14 days;
+a green leg uploads nothing. A test that fails on CI and not on a person's machine can then be read after
+the fact instead of re-run.
+
 ### Toolchain choices
 
 - **No compiler install.** The code needs `<expected>` and `<format>`, which
