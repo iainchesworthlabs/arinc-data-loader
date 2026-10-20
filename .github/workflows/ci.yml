@@ -290,8 +290,9 @@ jobs:
   # conformance suite is what holds them to the platform contract.
   # cmake/CoverageReport.cmake holds the figures and the gcovr switches; this job
   # only builds, tests and calls it. The report is uploaded either way, so a red
-  # gate still has the numbers to look at. The Qt applications are not part of
-  # this preset; their windows are exercised by the UI suite on the build legs.
+  # gate still has the numbers to look at. A second pass measures the Qt applications'
+  # window-free logic (src/app/core, src/mock_target/core, src/media_gen/core) at a lower
+  # floor; the windows' QML cannot be measured and is exercised by the UI suite.
   coverage:
     name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Coverage (Linux, GCC)' || 'Coverage (Linux, GCC)' }}
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',coverage,') }}
@@ -345,8 +346,17 @@ jobs:
             echo "GCOV=gcov" >> "$GITHUB_ENV"
           fi
 
+      # The prebuilt Qt kit, as on the Linux (GCC) leg: the second coverage pass measures the
+      # applications' window-free logic (src/*/core), which needs the applications built.
+      - name: Install Qt
+        uses: ./.github/actions/install-qt
+        with:
+          version: "6.12.0"
+          host: linux
+          arch: linux_gcc_64
+
       - name: Configure
-        run: cmake --preset linux-gcc-coverage
+        run: cmake --preset linux-gcc-coverage -DADL_BUILD_APP=ON
 
       - name: Build
         run: cmake --build --preset linux-gcc-coverage
@@ -359,8 +369,8 @@ jobs:
       # One script owns the minimum and the gcovr switches (the same one the
       # local `coverage` target calls): 90% lines, 80% branches, report in
       # build/linux-gcc-coverage/coverage. It fails the job when either figure
-      # is below the minimum.
-      - name: Coverage report and gate (90% lines, 80% branches)
+      # is below the minimum, and when the applications' pass measured too little.
+      - name: Coverage report and gates (libraries 90% lines and 80% branches, applications at their floor)
         env:
           GCOVR: ${{ runner.temp }}/cov-venv/bin/gcovr
         shell: bash

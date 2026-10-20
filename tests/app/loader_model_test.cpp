@@ -67,7 +67,8 @@ HostFactory gated_host(adl::test::GatedHost& gated) {
 // of another one. Without a directory it is a file in the scratch directory of the test that is
 // running (init() moves that on before each test), the same place a QSettings made without
 // arguments uses, so nothing is shared with another test or another run.
-std::unique_ptr<AppSettings> settings_in(const QString& file = adl::test::scratch_settings().file()) {
+std::unique_ptr<AppSettings> settings_in(
+    const QString& file = adl::test::scratch_settings().file()) {
     return std::make_unique<AppSettings>(std::make_unique<QSettings>(file, QSettings::IniFormat));
 }
 
@@ -1719,8 +1720,14 @@ void LoaderModelTest::a_download_result_is_a_transfer_and_a_download_even_when_i
 void LoaderModelTest::the_real_host_makes_a_download_directory_with_a_non_ascii_name() {
     QTemporaryDir scratch;
     QVERIFY(scratch.isValid());
-    const QString downloads = scratch.filePath(
-        QString::fromUtf8("T\xC3\xA9" "l\xC3\xA9" "charg\xC3\xA9" "s " "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E" " " "\xC3\xB1"));
+    const QString downloads =
+        scratch.filePath(QString::fromUtf8("T\xC3\xA9"
+                                           "l\xC3\xA9"
+                                           "charg\xC3\xA9"
+                                           "s "
+                                           "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E"
+                                           " "
+                                           "\xC3\xB1"));
     QVERIFY(QDir().mkpath(downloads));
 
     LoaderModel model(system_host_factory(), settings_in());
@@ -1745,6 +1752,7 @@ void LoaderModelTest::the_real_host_makes_a_download_directory_with_a_non_ascii_
     // The path the window shows for the receipt is the one on the disk, name and all.
     QVERIFY2(QFileInfo(model.lastDownloadDirectory()).isDir(),
              qPrintable(model.lastDownloadDirectory()));
-    QVERIFY(model.lastDownloadDirectory().contains(QString::fromUtf8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E")));
+    QVERIFY(model.lastDownloadDirectory().contains(
+        QString::fromUtf8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E")));
     QVERIFY(log_contains(model, QStringLiteral("Downloading 1 file from 127.0.0.1")));
 }

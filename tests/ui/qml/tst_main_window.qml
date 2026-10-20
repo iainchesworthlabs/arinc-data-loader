@@ -397,22 +397,24 @@ TestCase {
         tryCompare(appModel, "downloadSelectedCount", 2)
 
         // Untick the first (a.bin) by clicking its check box: one file is left ticked.
-        console.log("DBG before findItems " + Date.now())
         const checks = harness.findItems(mainWindow, "downloadChoiceCheck")
-        console.log("DBG after findItems " + Date.now() + " n=" + checks.length)
         compare(checks.length, 2)
         verify(checks[0].enabled)
-        mouseClick(checks[0])
+        verify(checks[1].enabled)
+        // AppCheckBox.click() is the check box's own toggle (what a mouse click or the space bar
+        // does): the rows are inside the scrolled left column, so a mouse position could land on
+        // a neighbour.
+        checks[0].click()
         tryCompare(appModel, "downloadSelectedCount", 1)
         verify(find("confirmDownloadButton").enabled)
 
         // Untick the other too: nothing is chosen, and confirming it is not allowed.
-        mouseClick(checks[1])
+        checks[1].click()
         tryCompare(appModel, "downloadSelectedCount", 0)
         verify(!find("confirmDownloadButton").enabled)
 
         // Tick only the second again, and send the choice.
-        mouseClick(checks[1])
+        checks[1].click()
         tryCompare(appModel, "downloadSelectedCount", 1)
         click("confirmDownloadButton")
         tryCompare(appModel, "resultState", 1, 20000)

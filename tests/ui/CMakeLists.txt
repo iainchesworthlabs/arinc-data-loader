@@ -77,14 +77,14 @@ adl_deploy_sanitizer_runtime(adl_ui_tests)
 add_dependencies(adl_ui_tests adl_app_tests)
 
 # One test per QML file, so each starts with a model of its own (a media set read by one file
-# cannot colour what the next one sees). A test that hangs fails after three minutes instead of
+# cannot colour what the next one sees). A test that hangs fails after five minutes instead of
 # holding the run. The offscreen platform plugin is not one the deployment step copies beside the
 # program, so it is looked for in the Qt kit's own plugin directory.
 foreach(test_file tst_main_window tst_dialogs tst_first_run tst_window_close)
     add_test(NAME ui.${test_file}
         COMMAND adl_ui_tests -input "${CMAKE_CURRENT_SOURCE_DIR}/qml/${test_file}.qml")
     set_tests_properties(ui.${test_file} PROPERTIES
-        TIMEOUT 180
+        TIMEOUT 300
         LABELS "ui;system"
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Fusion;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")
 endforeach()

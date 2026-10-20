@@ -75,9 +75,7 @@ public:
         return inner_.memory();
     }
     [[nodiscard]] adl::platform::FileSystem& files() noexcept override { return files_; }
-    [[nodiscard]] adl::platform::Threading& threads() noexcept override {
-        return inner_.threads();
-    }
+    [[nodiscard]] adl::platform::Threading& threads() noexcept override { return inner_.threads(); }
     [[nodiscard]] adl::platform::Network& network() noexcept override { return inner_.network(); }
     [[nodiscard]] adl::platform::Ipc& ipc() noexcept override { return inner_.ipc(); }
 
@@ -106,7 +104,8 @@ private:
             gate_.pass(Event::create);
             return inner_.create(path, mode);
         }
-        adl::platform::Result<adl::platform::FileInfo> stat(std::string_view path) noexcept override {
+        adl::platform::Result<adl::platform::FileInfo> stat(
+            std::string_view path) noexcept override {
             return inner_.stat(path);
         }
         adl::platform::Result<void> make_directory(std::string_view path) noexcept override {

@@ -532,9 +532,10 @@ true:
   rather than the earlier one: `ui.tst_main_window` clicks the real Find, Read information,
   Re-check, All/None, Upload, Abort and Download controls, and `ui.tst_dialogs` opens
   Preferences, the media set and target properties, About and Licences and drives their fields
-  and standard buttons. Both pass. The Preferences test asserts that Save writes the edited
-  values through to the model; it does not drive the Cancel or Esc path, so "Cancel leaves the
-  stored values alone" rests on the dialog's working-copy design, not on a test.
+  and standard buttons. Both pass. The Preferences tests assert the transactional behaviour: with
+  every field edited, the model and the settings file still hold the old values until Save, Save
+  writes all of them (and a new model over the same file reads them back), and Cancel and Esc
+  leave both as they were.
 - The generator test fills the form, starts a generation through the window's own button, and
   asserts a verified set; it passes.
 - The mock target test starts and stops the target through the window's own buttons; it passes.

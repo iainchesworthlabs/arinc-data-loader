@@ -6,7 +6,7 @@ The suite has three tiers, every one of them labelled in CTest:
 | --- | --- | --- |
 | Unit | `unit` | One piece of code against its contract: the ARINC 665 library, the 615A codec, the media tree, the samples, the platform types and the fake, the application's models, settings and plain functions, and the media set generator's and mock target's cores |
 | Integration | `integration` | Pieces together: the 615A engine and runner against the simulated target on the fake platform and over real loopback sockets, the platform conformance suite against the real host, and the mock target's engine against the loader's engine |
-| System | `system` | What a user runs: the three application programs started as processes, the windows loaded offscreen and driven through Qt Quick Test, the payload writer, and the build checks. The whole-operation tests carry both `integration` and `system` |
+| System | `system` | What a user runs: the three application programs started as processes (each must draw its window and exit 0), the windows loaded offscreen and driven through Qt Quick Test, the payload writer, and the build checks. The whole-operation tests carry both `integration` and `system` |
 
 The tests are Catch2 and QtTest/Qt Quick Test programs, plus checks about the
 build itself and runs of the `adl_write_payloads` program. They run in CI on
@@ -101,15 +101,27 @@ figure is below the minimum. `--exclude-throw-branches` and
 `--exclude-unreachable-branches` leave out branches no test can take: a throwing
 branch and a line the compiler proves unreachable.
 
-The gate measures the portable code: `src/arinc665`, `src/arinc615a`,
-`src/arinc615a_mini`, `src/arinc615a_runner`, `src/media_tree`, `src/samples`,
-`src/write_payloads` and `src/platforms/interfaces` with `src/platforms/detail`.
-The OS fragments under `src/platforms` are left out because each host builds a
-different set (the same gate has to mean the same thing on all three) and the
-conformance suite is what holds them to the platform contract. The application
-core and the three windows are covered by `app.tests`, the UI suite and the QML
-programs instead; QML cannot be measured by gcovr, which is why the gate is the
-libraries' rather than a blended figure.
+The gate measures the portable code:
+`src/arinc665`, `src/arinc615a`, `src/arinc615a_mini`, `src/arinc615a_runner`, `src/media_tree`,
+`src/samples`, `src/write_payloads` and `src/platforms/interfaces` with `src/platforms/detail`.
+The OS fragments under `src/platforms` are left out because each host builds a different set (the
+same gate has to mean the same thing on all three) and the conformance suite is what holds them to
+the platform contract. QML cannot be measured by gcovr, which is why the gate is the libraries' and
+not a blended figure.
+
+**A second pass measures the applications' window-free logic**: `src/app/core`,
+`src/mock_target/core` and `src/media_gen/core` (the models, the engine's worker, the settings, the
+host access, and the generator's and the mock target's cores), with Qt's generated files (`moc_*`,
+`mocs_compilation`, `*_autogen`) left out. These are plain C++ with Qt types, driven by `app.tests`,
+the UI suite and the generator and mock target tests, and they were outside the gate for no better
+reason than that they need the Qt kit. The floor is lower than the libraries' and is set a little
+under what the suite measures (@APP_MEASURE@); raise it when the measure rises. The same script runs
+the pass (`cmake/CoverageReport.cmake`, `-DAPP_LINE_THRESHOLD=` and `-DAPP_BRANCH_THRESHOLD=`), its
+report is in `build/linux-gcc-coverage/coverage/apps`, and the pass **fails when it measures too
+little** (fewer than 1000 lines or 300 branches: a coverage build configured without the
+applications, tests that did not run, a filter that matched nothing), because gcovr reports 0 of 0
+as 100%. The CI coverage job installs the Qt kit and configures with `-DADL_BUILD_APP=ON` for that
+reason; the first pass is unaffected by it.
 
 ## What there is
 
@@ -125,7 +137,7 @@ libraries' rather than a blended figure.
 | `batch_file_test.cpp` | The batch file layout, round trips, damage, the recommendations |
 | `media_files_test.cpp` | The three lists: layout, round trips with and without user data, sequence numbers, damage, the recommendations |
 | `media_set_test.cpp` | Building and reading media sets across members, the lists on each member, FILES.LUM's entries, partial reads, damage of every file, members of different sets, files of one name told apart by directory and CRC (section 3.2.4.2), findings |
-| `media_tree_test.cpp` | Every sample media set through a directory tree and back (and the set read from the disk verifies like the one in memory), the backslash pathnames as native paths, empty files and deep directories, binary content, names that cannot be files on every platform (device names, reserved characters, trailing dots, non-ASCII), sequence numbers outside 1 to 255, duplicate names whatever their case, nothing written when anything is invalid, never writing over a non-empty member, a stray entry or a link in a tree being refused, and damage on the disk being found when the set is read. The temporary directories come from `tests/support/temp_dir.hpp`. The link case is skipped where the account cannot create symbolic links (an ordinary Windows account) |
+| `media_tree_test.cpp` | Every sample media set through a directory tree and back (and the set read from the disk verifies like the one in memory), the backslash pathnames as native paths, empty files and deep directories, binary content, names that cannot be files on every platform (device names, reserved characters, trailing dots, non-ASCII), sequence numbers outside 1 to 255, duplicate names whatever their case, nothing written when anything is invalid, never writing over a non-empty member, a stray entry or a link in a tree being refused, and damage on the disk being found when the set is read. The temporary directories come from `tests/support/temp_dir.hpp`. The link case makes a symbolic link, and where the account may not (an ordinary Windows account) a directory junction with `mklink /J`, which any account may make, so it runs on all three desktops and is skipped only when neither can be made |
 | `media_label_test.cpp` | The label text, its date format, the required items |
 | `golden_test.cpp` | The library's header file, batch file and list files against files written independently ([below](#golden-payloads)) |
 | `compatibility_test.cpp` | The ARINC 615 and Boeing 777 layouts of Appendix F (built by `adl::samples`, which `adl_write_payloads` writes out) |
@@ -149,12 +161,13 @@ libraries' rather than a blended figure.
 | `platform_types_test.cpp` | Error codes and their names, `Instant` arithmetic that saturates instead of wrapping, the protocol's largest figures fitting a `Duration`, IPv4 addresses read and written (and the bad ones refused) |
 | `fake_platform_test.cpp` | The fake itself: the clock moves only when told, events run in time order, a latency, a loss profile that is the same for the same seed, a filter that drops, duplicates and corrupts chosen datagrams, jitter that reorders and loses none, an agent standing in for a target, two hosts on one network, broadcast, a receive buffer that overflows, the in-memory file system, a memory budget, threads that run when joined |
 | `tests/conformance/*` | The platform contract, each check run against the fake **and** the real host this build selected. Clock: never backwards, sleeps at least what was asked and not wildly more, a wall clock that is plausible or `unsupported`. Memory: zeroed, aligned, writable, independent, refused with the right reason, `resident` granted or refused usefully. Files: a file written in pieces is read back at any offset (a short count only at the end), a file across the largest TFTP block size (65464), exclusive creation, directories, listing (and changing the directory while listing), rename over a file, a file that outlives its removal, paths the interface refuses (empty, backslash, NUL), non-ASCII names, a full disk, a closed file. Threads: join, destroying a thread waits for it, every priority level starts a thread and `normal` is always applied, a mutex, a semaphore's count, ceiling and time-out. Queues: whole messages in order, a full queue, a ring that wraps, bad sizes, caller-supplied storage. Network: a datagram of each TFTP-relevant size arrives whole with its source, order, time-out, a second bind refused, a port shared on request, an address that is not the host's, waiting on several sockets, truncation, the maximum datagram, a send to a closed port not upsetting the sender, broadcast needing permission. Real host only: threads contending on a mutex, a queue between threads under backpressure, a thousand datagrams echoed over real UDP, one thread serving five sockets with `wait_readable`, a datagram arriving from another thread while a receive waits |
-| `tests/app/address_test.cpp`, `notice_text_test.cpp`, `models_test.cpp` | The application's plain parts (QtTest, `app.tests`): the IPv4 parser (four decimal octets and nothing else: no blanks, signs, hexadecimal, short forms), the target's `<THW_ID_POS>`, each engine notice said with its unit, and the four list models (roles, the log keeping the newest 2000 lines, the loads' ticks and their locking while a job runs, and an upload's progress matched to the loads) |
-| `tests/app/loader_model_test.cpp` | Whole jobs through `LoaderModel` on its engine thread, against the simulated target on the fake platform: an Information operation (the result, the hardware and parts, the log in order, one request seen by the target), FIND (a target listed, then none), choosing a target, an abort before the target has accepted (made certain by holding the engine thread at the start of the job) and the next job running, a second job refused while one runs, a host that cannot start, a media set read from a directory and one that is not there, and the model destroyed while a job is queued; the Upload operation: a media set written as a tree and read back, a load ticked and uploaded (the files the target read, the progress only going forward to 100, the log, the ticks locked meanwhile), what an upload needs before it can start (a media set, a tick, a valid target), a file the media set does not have (the target ends the operation), and an abort before the target has accepted |
+| `tests/app/address_test.cpp`, `notice_text_test.cpp`, `models_test.cpp` | The application's plain parts (QtTest, `app.tests`): the IPv4 parser (four decimal octets and nothing else: no blanks, signs, hexadecimal, short forms), the target's `<THW_ID_POS>`, each engine notice said with its unit (every enumerator of `Notice`, each with a sentence of its own), and the four list models (roles, the log keeping the newest 2000 lines, the loads' ticks and their locking while a job runs, and an upload's progress matched to the loads) |
+| `tests/app/loader_model_test.cpp` | Whole jobs through `LoaderModel` on its engine thread, against the simulated target on the fake platform: an Information operation (the result, the hardware and parts, the log in order, one request seen by the target), FIND (a target listed, then none), choosing a target, an abort before the target has accepted (made certain by holding the engine thread at the start of the job) and the next job running, a second job refused while one runs, a host that cannot start, a media set read from a directory and one that is not there, and the model destroyed while a job is queued; a target changed after a FIND and an Information (`reconcile_target`: the selection, the configuration and the receipt go, the log stays, a media set result is not a receipt and survives), `resultIsTransfer` and `resultWasDownload` for every kind of job (including a failed download); the application's own `system_host_factory` on the real host, with a download directory whose name is not ASCII (nothing answers on the loopback, the operation is stopped once the numbered directory exists on the real disk); the Upload operation: a media set written as a tree and read back, a load ticked and uploaded (the files the target read, the progress only going forward to 100, the log, the ticks locked meanwhile), what an upload needs before it can start (a media set, a tick, a valid target), a file the media set does not have (the target ends the operation), an abort before the target has accepted, and **an abort in the middle of an Upload and of a Download**: the target is slow (`work_time`), the engine's thread is held inside the file call that begins the second file ([below](#holding-a-transfer-half-way)), the model is aborted, and the target's confirmation (`The target confirmed that it stopped.`), the partial `files_read` / `files_written` and the progress already reported are asserted |
 | `tests/app/media_source_test.cpp` | The index of a media set's files and the `FileSource` over it, on files in the fake platform's memory: paths below the member and directory, a pathname a tree cannot hold, two files of one name told apart by the CRC in the request, the fall-backs (one file of a name is served whatever the CRC; several and no fitting CRC is not found; several and no CRC is the first), a file in the lists and not on disk, reads at offsets and at the end, and the limit of open files |
 | `tests/app/qml_test.cpp` (`app.qml`) | The window: `Main.qml` loaded offscreen with the real model, a FIND and an Information operation run through it against the simulated target, then a media set read, its load ticked through the window's own check box and an Upload started from the window's button, and any QML warning (a binding to a name that is not there, a property that cannot be overridden) failing the test. It can save pictures of the window: `adl_app_qml_test <workbench.png> <first-run.png> <right-to-left.png> <preferences.png> <about.png>` (each optional, in that order; `ADL_DARK=1` selects the dark scheme); the offscreen platform on Windows has no fonts unless `QT_QPA_FONTDIR` points at some |
-| `tests/ui/qml/tst_main_window.qml` (`ui.tst_main_window`) | The loader window through Qt Quick Test: the real `Main.qml` and `LoaderModel`, offscreen, with Qt Quick Test's own mouse and key events on the window's items. Typing a target, FIND and clicking the target it found, reading the information into the configuration list, choosing and re-checking a media set, ticking its loads through the check box and the All/None buttons, an upload started from the Upload button and checked against what the target read, both download modes (a media defined name, and the operator defined choice with its confirm button), a refused operation opening the error dialog and its OK dismissing it, Abort stopping a running upload (the engine held at the host so the job is certainly running), and Clear emptying the activity log. `tst_dialogs.qml` (`ui.tst_dialogs`) opens Preferences, the media set and target properties and About, types into their fields and closes them through their standard buttons. The Preferences test checks that **Save** writes the values through to the model; that Cancel and Esc leave the stored values alone (the dialog edits a working copy, see [the application](app.md)) is **not** asserted by any test. `test_05` opens About and its Licences page |
-| `tests/system/smoke_app.cmake` (`system.*.starts`) | The built programs as processes: `adl_app`, `adl_media_gen` and `adl_mock_target` each start offscreen and are still running when a three second watchdog stops them. An application that cannot load its QML or find a Qt plugin exits at once, which fails the test |
+| `tests/ui/qml/tst_main_window.qml` (`ui.tst_main_window`) | The loader window through Qt Quick Test: the real `Main.qml` and `LoaderModel`, offscreen, with Qt Quick Test's own mouse and key events on the window's items. Typing a target, FIND and clicking the target it found, reading the information into the configuration list, choosing and re-checking a media set, ticking its loads through the check box and the All/None buttons, an upload started from the Upload button and checked against what the target read, both download modes (a media defined name, and the operator defined choice with its confirm button, unticked file by file through `downloadChoiceCheck`, and "Choose none" cancelling the download), a refused operation opening the error dialog and its OK dismissing it, **Abort in the middle of an upload and of a download** (the engine held half way through the transfer; the progress bar is shown, Abort cannot be pressed twice, the target confirms the stop, part of the load is across, and the error dialog is open - asserted, not "if it is visible"), and Clear emptying the activity log. `tst_dialogs.qml` (`ui.tst_dialogs`) opens Preferences, the media set and target properties and About, types into their fields and closes them through their standard buttons. **Preferences is transactional, and the tests say so**: every field is changed and, before Save, the model and the settings file still hold the old values; Save then writes all of them to both (read back through a second `LoaderModel` over the same ini); Cancel and Esc leave the model and the file as they were, and reopening the dialog shows the stored values, not the abandoned edit. `test_05` opens About and its Licences page. `tst_first_run.qml` (`ui.tst_first_run`) starts on a settings file with nothing in it: the first-run screen stands in front of the workbench, the defaults are typed into its own fields (address, `THW_ID_POS`, download directory), Start loading hands over, the workbench starts from them, and a new model over the same file finds the first run done and the same defaults. `tst_window_close.qml` (`ui.tst_window_close`) closes the window: idle, it closes without asking; with a job running it asks, "Keep working" leaves job and window alone, "Stop and close" aborts, waits for the job to end and then closes, and - when the job ended while the question was open, so no change of state is left to close the window - closes at once without aborting anything |
+| `tests/system/smoke_app.cmake` (`system.*.starts`) | The built programs as processes: `adl_app`, `adl_media_gen` and `adl_mock_target` each start offscreen with `--smoke-test` and **must draw their window's first frame, print `smoke-test: first frame drawn` and exit 0** (an application that cannot load its QML or find a Qt plugin exits with an error, and one that never shows its window runs into the time-out - both fail). Their settings are redirected with `ADL_SETTINGS_DIR` to a directory under the build tree, and the test requires that the program wrote its ini file there, which proves the redirection took effect and the real registry key or configuration file was not used |
+| `tests/ui/window_state_test.cpp` (`ui.window_state`) | The window geometry the three programs share (`src/ui/window_state.cpp`), on a bare window on the offscreen platform: the default size and place when nothing is stored, a stored size and position coming back, a size below the minimum raised, a size larger than the screen allows brought inside it (less 48 and 80 pixels), a position on no screen ignored (and one that was never saved not used), a maximised window opening maximised, and what is written when the window closes (the maximised rectangle is not remembered as its size) |
 | `tools.write_payloads*` (CTest) | `adl_write_payloads` writes every scenario to a fresh directory and verifies it (the setup test `tools.write_payloads.clean` empties the directory first, since the program never overwrites), `--list` works, and an unknown scenario or a missing output directory is refused |
 | `tests/platform/check_fragments.cmake` | `platform.fragments`: each fragment satisfies the platform contract, on whichever host this runs |
 | `tests/platform/check_selector.cmake` | `platform.selector`: configures the project with `ADL_TARGET_PLATFORM` set, and checks that a platform with no code is refused with its reason, that QNX is refused until `ADL_ACCEPT_UNBUILT_PLATFORM` is on and then configures, and that a name that is not a platform lists the ones that are |
@@ -165,7 +178,7 @@ libraries' rather than a blended figure.
 
 `tests/ui` is the window's own suite, written with Qt Quick Test. Each
 `tests/ui/qml/tst_*.qml` file is a `TestCase`, and CTest runs one process per
-file (`ui.tst_main_window`, `ui.tst_dialogs`) so that a media set read in one
+file (`ui.tst_main_window`, `ui.tst_dialogs`, `ui.tst_first_run`, `ui.tst_window_close`) so that a media set read in one
 cannot colour the next. `UiSetup` (`tests/ui/ui_setup.hpp`) creates the same rig
 the application's other tests use — the real `LoaderModel` on its engine thread,
 the simulated target on the fake platform, a media set written to disk and
@@ -192,6 +205,38 @@ suite uses the dialogs' own footer buttons: `AppDialog.standardButton()` maps
 `Dialog.Ok`, `Dialog.Save` and `Dialog.Close` to the primary button and
 `Dialog.Cancel` to the secondary, so the test clicks the same Save/Close the
 operator does.
+
+## Settings in the tests
+
+A test never reads or writes the settings of the person running it, nor those another test (or the
+run before) left. Three mechanisms, by what is being run:
+
+- **A test program that uses `QSettings`** (`app.tests`, `app.qml`, `ui.*`, `ui.window_state`) moves
+  the default format and place into a scratch directory (`tests/support/scratch_settings.hpp`:
+  `adl::test::ScratchSettings`, an ini file in a `QTemporaryDir`). `LoaderModelTest::init()` and
+  `WindowStateTest::init()` move it on to a fresh empty directory before every test, and the old one
+  is deleted, so `lastAddress`, `downloadDirectory` and the last media set of one test are not there
+  for the next. `LoaderModel` tests are given their own file with `settings_in()`, and the UI suite's
+  `Harness` has an ini of its own.
+- **A program started as a process** (`system.*.starts`) is given `ADL_SETTINGS_DIR` pointing below the
+  build tree, which makes the program use an ini file there ([the application](app.md#where-the-settings-are-kept)).
+  The variable is read by every `main()` through one helper, `adl::ui::redirect_settings_from_environment()`
+  (`src/ui/settings_location.cpp`).
+- **The scratch space** of the whole run is under the build tree (`ctest --preset` and the `check-*`
+  targets set `TEMP`, `TMP` and `TMPDIR` to it), and a test removes the directories it makes.
+
+## Holding a transfer half way
+
+The fake platform runs in virtual time, so a whole transfer takes a few milliseconds of real time and a
+test on another thread cannot be sure it is still under way when it presses Abort (the earlier abort
+tests held the host factory, so the abort landed before the target was even contacted).
+`tests/support/gated_host.hpp` is a `Host` that forwards to another and can hold the thread using it at a
+chosen file call: `arm(Event::open_read, 2)` holds the engine's thread when the target asks for its second
+file (an upload: the first has been read), `arm(Event::create, 2)` when the second file begins to arrive (a
+download). The test waits until the gate is reached, asks for the abort, and releases it; the target is made
+slow (`SimPlan::work_time`) so it cannot finish on its own. The same gate is behind `Harness::holdUploadAtSecondFile()`
+and `holdDownloadAtSecondFile()` in the UI suite. The run is deterministic: the engine is single-threaded and
+the clock virtual, so what the target has done when the gate is reached is the same every time.
 
 ## The RTOS test programs
 
@@ -361,7 +406,7 @@ what to expect of each, it checks every byte it reads.
   The simulated target has a TFTP of its own, but it is the same reading of the standard.
 - The application has been run through its tests only: against the simulated target, never a real one, and the window
   has been driven offscreen by Qt Quick Test, not looked at on a screen, at one size and in the light theme.
-  `app.tests`, `app.qml`, `ui.tst_main_window` and `ui.tst_dialogs` run on the three desktop legs, and the Linux
+  `app.tests`, `app.qml` and the `ui.*` tests run on the three desktop legs, and the Linux
   and macOS ones had not run when this was written.
 - No test runs a 615A operation against a real target. The loopback integration test
   (`loopback.integration`) does run whole operations over real sockets, but against the mock

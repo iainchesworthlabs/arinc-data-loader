@@ -135,9 +135,10 @@ private Q_SLOTS:
     void a_maximised_window_opens_maximised() {
         store(available().x() + 10, available().y() + 10, 500, 350, true, true);
 
+        // Installing the state shows the window maximised by itself (a show() after it would
+        // put it back to its normal state).
         QQuickWindow window;
         configure(window);
-        window.show();
 
         QCOMPARE(window.visibility(), QWindow::Maximized);
     }
@@ -172,7 +173,6 @@ private Q_SLOTS:
 
         QQuickWindow window;
         configure(window);
-        window.show();
         QCOMPARE(window.visibility(), QWindow::Maximized);
 
         window.close();

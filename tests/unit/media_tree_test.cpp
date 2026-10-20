@@ -64,8 +64,7 @@ std::string make_directory_link(const fs::path& link, const fs::path& target) {
     if (!ec) {
         return {};
     }
-    const std::string command =
-        "mklink /J \"" + link.string() + "\" \"" + target.string() + "\"";
+    const std::string command = "mklink /J \"" + link.string() + "\" \"" + target.string() + "\"";
     if (std::system(command.c_str()) == 0 && fs::exists(link, ec)) {
         return {};
     }
@@ -427,7 +426,8 @@ TEST_CASE("a link in a tree is refused, not followed", "[media-tree]") {
     TempDir elsewhere;
     put_file(elsewhere.path() / "SECRET.BIN", "outside the tree");
     fs::create_directories(dir.path() / "member_001");
-    const std::string why = make_directory_link(dir.path() / "member_001" / "link", elsewhere.path());
+    const std::string why =
+        make_directory_link(dir.path() / "member_001" / "link", elsewhere.path());
     if (!why.empty()) {
         SKIP("this account can make neither a symbolic link nor a junction: " << why);
     }

@@ -12,12 +12,12 @@
 #include <vector>
 
 #include <QObject>
-#include <QVariantList>
-#include <QVariantMap>
 #include <QSemaphore>
 #include <QString>
 #include <QStringList>
 #include <QUrl>
+#include <QVariantList>
+#include <QVariantMap>
 
 #include "adl/app/loader_model.hpp"
 #include "gated_host.hpp"

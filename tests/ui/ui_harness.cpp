@@ -142,8 +142,7 @@ QString Harness::downloadedFileText(const QString& name, int number) const {
 
 namespace {
 
-void collect(QObject* root, const QString& name, QVariantList& found,
-             std::set<QObject*>& visited) {
+void collect(QObject* root, const QString& name, QVariantList& found, std::set<QObject*>& visited) {
     if (root == nullptr || !visited.insert(root).second) {
         return;
     }
@@ -288,9 +287,11 @@ void Harness::resetTarget() {
 }
 
 void Harness::resetDownloads() {
+    // Back to an empty media defined list. (remove_row refuses while the list is the target's own
+    // choice, so removing rows one by one would never end after an operator defined download.)
     auto* downloads = qobject_cast<adl::app::DownloadModel*>(model_->downloads());
-    while (downloads != nullptr && downloads->rowCount() > 0) {
-        downloads->remove_row(0);
+    if (downloads != nullptr) {
+        downloads->reset_media({});
     }
 }
 
