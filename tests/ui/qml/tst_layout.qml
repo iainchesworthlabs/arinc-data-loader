@@ -104,6 +104,12 @@ TestCase {
         verify(bar.visible, "there is no visible scroll bar on an overflowing page")
         verify(bar.size < 1.0)
         verify(bar.width >= 10, "the scroll bar is " + bar.width + " px wide")
+        // On the trailing edge and as tall as the view: a bar the application supplies to a
+        // ScrollView is not laid out by Qt, and used to sit at the top left, 100 px high.
+        verify(Math.abs(bar.x + bar.width - scroll.width) <= 1,
+               "the scroll bar is at x=" + bar.x + " in a view " + scroll.width + " wide")
+        verify(bar.height >= scroll.availableHeight - 1,
+               "the scroll bar is " + bar.height + " px high in a view " + scroll.availableHeight)
 
         // The Payload section is below the fold and reachable by scrolling.
         flick.contentY = flick.contentHeight - flick.height

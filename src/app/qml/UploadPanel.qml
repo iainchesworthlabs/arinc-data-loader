@@ -140,7 +140,7 @@ Item {
         anchors.fill: parent
         contentWidth: availableWidth
         clip: true
-        ScrollBar.vertical: AppScrollBar {}
+        ScrollBar.vertical: AppScrollBar { inScrollView: true }
 
         Item {
             width: scroll.availableWidth

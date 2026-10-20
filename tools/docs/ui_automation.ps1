@@ -152,6 +152,56 @@ function Get-AdlWindow {
     return $script:UIA::FromHandle([IntPtr]$Process.MainWindowHandle)
 }
 
+# The loader's controls used to be named by a phrase that said what they do ("Upload the ticked
+# loads"); an accessible name is now the text on the screen ("Upload"), so that a person who says
+# what they see is understood. The script still says what a control does: this maps each phrase to
+# the objectName the program gives the control (found as the end of its AutomationId) or to the
+# text that names it now.
+$script:ControlIds = @{
+    'Open preferences'                = 'preferencesButton'
+    'About the data loader'           = 'aboutButton'
+    'Find targets'                    = 'findTargetsButton'
+    'Show the target properties'      = 'targetPropertiesButton'
+    'Choose the media set directory'  = 'mediaSetChooseButton'
+    'Check the media set again'       = 'mediaSetCheckButton'
+    'Show the media set properties'   = 'mediaSetPropertiesButton'
+    'Tick every load'                 = 'tickAllLoadsButton'
+    'Untick every load'               = 'tickNoLoadsButton'
+    'Read the target information'     = 'readInformationButton'
+    'Upload the ticked loads'         = 'uploadButton'
+    'Download from the target'        = 'downloadButton'
+    'Abort the operation'             = 'abortButton'
+    'Clear the activity log'          = 'clearLogButton'
+    'Start the loader'                = 'firstRunStart'
+    'Choose none of the files'        = 'chooseNoneButton'
+    'Download the ticked files'       = 'confirmDownloadButton'
+    'Add the file name to the download' = 'addDownloadButton'
+}
+$script:ControlNames = @{
+    'Show the default settings'       = 'Set up defaults'
+    'Hide the default settings'       = 'Hide'
+    'Choose the first media set'      = 'Choose a media set...'
+    'Collapse the evidence panel'     = 'Hide'
+    'Expand the evidence panel'       = 'Show'
+    'Open the last download directory' = 'Open folder'
+    'Open the download folder'        = 'Open folder'
+    'Target hardware identifier and position' = 'THW_ID_POS'
+    'Default target address'          = 'Default address'
+    'Default target hardware identifier and position' = 'Default THW_ID_POS'
+    'Loader control port'             = 'Control port'
+    'Activity log capacity'           = 'Activity lines kept'
+}
+
+function Resolve-ControlName {
+    param([string]$Name)
+    if ($script:ControlNames.ContainsKey($Name)) { return $script:ControlNames[$Name] }
+    # "Download FAULTS.TXT" and "Upload load <part number>" are check boxes named by their label.
+    if ($Name -match '^Download (\S+\.\S+)$') { return $Matches[1] }
+    if ($Name -match '^Upload load (.+)$') { return $Matches[1] }
+    if ($Name -match '^Remove (.+) from the download$') { return 'Remove' }
+    return $Name
+}
+
 function Find-Control {
     param(
         $Window,
@@ -162,14 +212,30 @@ function Find-Control {
         [switch]$Last,
         [int]$TimeoutMs = 8000
     )
+    $suffix = $null
+    if ($Name -and -not $Id) {
+        if ($script:ControlIds.ContainsKey($Name)) { $suffix = $script:ControlIds[$Name]; $Name = '' }
+        else { $Name = Resolve-ControlName $Name }
+    }
+    if ($suffix) {
+        $everything = [System.Windows.Automation.Condition]::TrueCondition
+        $watch = [System.Diagnostics.Stopwatch]::StartNew()
+        do {
+            $matches_ = @($Window.FindAll($script:Scope::Descendants, $everything) | Where-Object {
+                $_.Current.AutomationId -like "*.$suffix" -or $_.Current.AutomationId -eq $suffix })
+            if ($Type) {
+                $ct = [System.Windows.Automation.ControlType]::$Type
+                $matches_ = @($matches_ | Where-Object { $_.Current.ControlType -eq $ct })
+            }
+            if ($matches_.Count -gt 0) { return $(if ($Last) { $matches_[-1] } else { $matches_[0] }) }
+            Start-Sleep -Milliseconds 150
+        } while ($watch.ElapsedMilliseconds -lt $TimeoutMs)
+        if ($Optional) { return $null }
+        throw "No control with the id ending in '$suffix' appeared"
+    }
     $conditions = @()
     if ($Name) {
-        # The accessible name is the text on the screen; the longer phrase a control used to be
-        # named by ("Upload the ticked loads") is its description, which UI Automation calls the
-        # help text. Either finds it, so a script can say what it sees or what it means.
-        $byName = New-Object System.Windows.Automation.PropertyCondition($script:UIA::NameProperty, $Name)
-        $byHelp = New-Object System.Windows.Automation.PropertyCondition($script:UIA::HelpTextProperty, $Name)
-        $conditions += New-Object System.Windows.Automation.OrCondition($byName, $byHelp)
+        $conditions += New-Object System.Windows.Automation.PropertyCondition($script:UIA::NameProperty, $Name)
     }
     if ($Id) {
         $conditions += New-Object System.Windows.Automation.PropertyCondition($script:UIA::AutomationIdProperty, $Id)

@@ -33,7 +33,7 @@ AppDialog {
         Layout.fillWidth: true
         Layout.fillHeight: true
         clip: true
-        ScrollBar.vertical: AppScrollBar {}
+        ScrollBar.vertical: AppScrollBar { inScrollView: true }
 
         TextArea {
             id: noticesText

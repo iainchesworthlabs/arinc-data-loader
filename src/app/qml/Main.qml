@@ -396,7 +396,7 @@ ApplicationWindow {
             Layout.fillHeight: true
             clip: true
             contentWidth: availableWidth
-            ScrollBar.vertical: AppScrollBar {}
+            ScrollBar.vertical: AppScrollBar { inScrollView: true }
 
             ColumnLayout {
                 width: rail.availableWidth
