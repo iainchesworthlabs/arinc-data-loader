@@ -52,6 +52,13 @@ public:
         ports_.push_back(port);
         return true;
     }
+    void set_local_address(const adl::arinc615a::Address& address) noexcept override {
+        local_address_ = address;
+    }
+    // The interface the engine asked for (0.0.0.0 until it asks): the fake network has none.
+    [[nodiscard]] const adl::arinc615a::Address& local_address() const noexcept {
+        return local_address_;
+    }
     [[nodiscard]] std::vector<std::uint16_t> ports() const override { return ports_; }
     std::int32_t wait(std::uint32_t timeout_ms) override {
         world_.advance_by(std::chrono::milliseconds(timeout_ms));
@@ -84,6 +91,7 @@ private:
     adl::platform::Ipv4Address address_;
     adl::mock::MockEngine* engine_ = nullptr;
     std::vector<std::uint16_t> ports_;
+    adl::arinc615a::Address local_address_{};
     std::atomic<bool> stop_{false};
 };
 

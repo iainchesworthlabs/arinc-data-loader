@@ -41,22 +41,150 @@ screen once; every later start goes straight to the workbench.
 
 ## What the firewall asks
 
-The programs talk over UDP. The mock target listens on ports 59 and 1001 for as long as it is
-serving; the loader listens only while it works (on port 1001 during a FIND, and on its control
-port during an operation, because the target comes back to the loader for the files of an
-upload). The first time a program opens such a port, Windows Defender Firewall (or the firewall of
-your system) may ask whether to allow it to communicate on private and public networks.
+The programs talk over UDP. The first time one of them listens on the network, the operating
+system's firewall may stop and ask whether to allow it. The questions are the system's, the answers
+are yours, and the programs never change a firewall setting themselves. What each program opens:
 
-- Traffic between two programs on **the same machine** (the demonstration) does not need the
-  firewall to allow anything, because it never leaves the machine. If the prompt appears, you can
-  answer it either way for the demonstration.
-- To load a **target on another machine**, the loader must be able to send to the target's
-  address, and the target's answer must be allowed back in. Allow the loader on the network the
-  target is on (normally *private*). The firewall prompt is the operating system's decision and
-  belongs to you; the programs never change firewall settings themselves.
-- UDP port **59** (control) and **1001** (FIND) are the standard's ports. On Linux and macOS a
-  program may need extra privilege to listen below port 1024; the mock target's ports and the
-  loader's control port can be changed, see [Troubleshooting](troubleshooting.md).
+| Program | Listens on | When |
+| --- | --- | --- |
+| Mock target | UDP 1001 (FIND) and 59 (the loader's requests), then a port from 40000 up for each transfer | while it is *SERVING* |
+| Loader | UDP 1001 during a FIND; its **control port** (59 unless changed in [Preferences](preferences.md)) and a port the system picks for each transfer | only while it works |
+| Generator | nothing | never |
+
+A target on another machine comes back to the loader's ports, so the loader's computer must let
+those datagrams in. The ports of a transfer are chosen when it starts (TFTP, RFC 1350), which is why
+the helper scripts below allow a *program*, not a list of port numbers.
+
+### The demonstration needs no prompt
+
+When the loader and the mock target run on the same computer nothing has to leave it. Tick
+**This computer only (127.0.0.1)** in the mock target's *Ports* block before pressing **Start**, and
+type `127.0.0.1` as the loader's target address. The mock target then binds 127.0.0.1 instead of
+every interface, and the loader, when its target is a loopback address, does the same for its own
+sockets. A program that listens on no network interface raises no firewall prompt on Windows (checked
+by starting a program from two new folders: the bind to 0.0.0.0 made Windows create a rule, the bind
+to 127.0.0.1 did not). That also keeps unattended runs of the programs from stopping on a prompt
+that nobody answers. A loader on *another* computer cannot reach a mock target that is ticked this
+way; untick the box for that.
+
+### Windows
+
+**What you see.** Windows Defender Firewall shows "Allow *adl_mock_target* to communicate on these
+networks?" the first time a program at an unfamiliar path listens on a non-loopback address. A new
+path is any new folder: a different build, a copy of the programs, the same programs after a move.
+Pressing *Allow access* makes an inbound rule for that exact path for **TCP and UDP, any port, on
+the private and public networks**, which is wider than the programs need. The window stays in front
+of other programs until it is answered.
+
+**Make the narrow rule first.** `tools/network-access/windows/adl_firewall.ps1` makes one rule per
+program path that allows inbound **UDP only**, on the **Private** profile only, from the **local
+subnet** only. Open PowerShell as administrator (right-click, *Run as administrator*) and run it with
+the folder that holds the programs:
+
+```powershell
+.\tools\network-access\windows\adl_firewall.ps1 -BinDir .\build\windows-msvc-release\bin
+```
+
+| Command | Does |
+| --- | --- |
+| `... -BinDir <folder>` | Adds (or replaces) the rule of each program in the folder |
+| `... -Action Show` | Lists every inbound rule that names a program, including the broad ones the prompt made; no administrator needed |
+| `... -Action Remove -BinDir <folder>` | Removes the rules this script made for that folder |
+| `... -WhatIf` | Says what it would do and changes nothing |
+| `-Profile Private,Public`, `-RemoteAddress Any` | Widens the rule; the defaults are the safe ones |
+
+A network that Windows calls *Public* is not covered by the default; the script warns when your
+current network is one. Make the network *Private* (Settings, Network and internet), or widen the
+rule knowingly. Rules made by the prompt can be removed in *Windows Defender Firewall with Advanced
+Security* (`wf.msc`) under *Inbound Rules*, or listed with `-Action Show`.
+
+**Ports 59 and 1001 need no administrator on Windows.** A normal account can bind any port, and no
+UAC prompt appears (checked). If a port fails with *permission denied* on Windows it is one the system
+has reserved (`netsh interface ipv4 show excludedportrange protocol=udp` lists them); choose another.
+
+### Linux
+
+**Ports below 1024.** Linux lets only root (or a program with the `CAP_NET_BIND_SERVICE` capability)
+bind ports below 1024. The mock target needs 59 and 1001, and the loader needs its control port,
+which is **59 by default**, so on a normal account the loader fails at the start of an operation
+until you do one of these (options 1 and 2 checked on Ubuntu 26.04):
+
+1. **Give the programs the capability**, once per file, as root. Nothing else changes:
+
+   ```bash
+   sudo setcap cap_net_bind_service=+ep build/linux-gcc-release/bin/adl_mock_target
+   sudo setcap cap_net_bind_service=+ep build/linux-gcc-release/bin/adl_app
+   ```
+
+   `getcap` shows it and `setcap -r` takes it away. A rebuild replaces the file and with it the
+   capability, so repeat it after building. It does not take effect on a filesystem mounted `nosuid`
+   (many `/tmp` mounts; the build folder is normally fine). The system also ignores `LD_LIBRARY_PATH`
+   for such a program, so a Qt that is found only through that variable is not found; install Qt where
+   the system's loader looks, or record its folder in the program's RPATH.
+2. **Lower the limit for the whole machine**: ports from 59 up can then be bound by anyone.
+
+   ```bash
+   echo 'net.ipv4.ip_unprivileged_port_start=59' | sudo tee /etc/sysctl.d/60-adl-ports.conf
+   sudo sysctl --system
+   ```
+
+   Delete the file and run `sudo sysctl --system` to undo it. This is a system-wide change.
+3. **Use a higher port for the loader.** Set the loader's *Control port* to 5900 (Preferences). The
+   target is still addressed on 59, so a mock target still needs option 1 or 2.
+
+**What the mock target says.** If it cannot bind a port it stays *STOPPED* and shows
+`the FIND port could not be bound: port 1001: permission denied (a port below 1024 may need extra
+privilege; see Troubleshooting)`. The loader's dialog reads "The loader could not use the network or
+its port...", and its log line ends `(permission denied)`.
+
+**The Linux firewall.** Most desktops have none in the way. If `ufw` is on, allow your local
+network in (`sudo ufw allow from 192.168.1.0/24 proto udp`, with your own subnet); with `firewalld`,
+put the subnet in a trusted zone. Neither has been tried with these programs.
+
+**AppArmor.** On Ubuntu, Debian and SUSE a profile can confine each program to what it needs: draw a
+window, keep its settings, use UDP, bind a low port and touch the user's own files. The generator's
+profile has no network access at all. `tools/network-access/linux/install_apparmor.sh` writes the
+three profiles for a build folder and loads them in **complain** mode, in which nothing is blocked
+and what would have been blocked is logged:
+
+```bash
+sudo tools/network-access/linux/install_apparmor.sh \
+    --bin-dir "$PWD/build/linux-gcc-release/bin" --qt-dir ~/Qt/6.12.0/gcc_64
+# use the programs through a whole session, then read what would have been denied:
+sudo aa-logprof              # or: sudo journalctl -k | grep 'apparmor="ALLOWED"'
+# when it is quiet, enforce (the same command with --enforce), or take them away:
+sudo tools/network-access/linux/install_apparmor.sh --remove
+```
+
+`--print` shows the finished profile and checks that `apparmor_parser` accepts it, without
+installing anything. Additions go in `/etc/apparmor.d/local/adl_app` (or `adl_mock_target`,
+`adl_media_gen`), which survive a reinstall. The profiles let a program write anywhere under the
+user's home, `/media`, `/run/media`, `/mnt` and `/tmp`, because the operator chooses where media
+sets and downloads go; to narrow that, edit the template's `owner @{HOME}/** rwk,` lines to the
+folders you use. The profiles were **parsed, installed and removed** on Ubuntu 26.04 under WSL 2,
+whose kernel has no AppArmor, so they have **not been enforced against a running program**: do the
+complain-mode session above before trusting them.
+
+**SELinux.** A program you start from your own session runs in the unconfined domain and SELinux
+changes nothing for it. A confined domain (a service you wrote, a container) needs the port
+labelled, `sudo semanage port -a -t <type> -p udp 59` (and 1001), and a denial shows in
+`sudo ausearch -m avc -ts recent`. The project ships no SELinux policy.
+
+### macOS
+
+**The application firewall** (System Settings, Network, Firewall) shows "Do you want the application
+*adl_mock_target* to accept incoming network connections?" when it is on and a program that is not
+signed by a trusted developer starts to listen. Answer *Allow*, or register the programs beforehand
+with `sudo tools/network-access/macos/adl_macos_firewall.sh add <each .app>` (`status` lists them).
+Loopback traffic is not filtered, so the demonstration setting above avoids it.
+
+**Ports below 1024.** Since macOS 10.14 a program may bind a low port without root, but only to
+*every* interface (0.0.0.0); binding a low port to a single address such as 127.0.0.1 may still need
+root. So on a Mac the mock target's **This computer only** setting can fail with *permission denied*
+on ports 59 and 1001; leave it off, or run the mock target as root.
+
+These two macOS statements come from Apple's documentation and reports from other projects; this
+project has **not tried them** on a Mac.
 
 ## Windows that remember
 

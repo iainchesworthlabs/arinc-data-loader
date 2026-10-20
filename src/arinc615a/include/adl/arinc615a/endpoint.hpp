@@ -17,6 +17,9 @@ struct Address {
     [[nodiscard]] static constexpr Address broadcast() noexcept {
         return Address{{255, 255, 255, 255}};
     }
+    [[nodiscard]] static constexpr Address loopback() noexcept { return Address{{127, 0, 0, 1}}; }
+    // Anywhere in 127.0.0.0/8: an address of this machine that no packet leaves it for.
+    [[nodiscard]] constexpr bool is_loopback() const noexcept { return octets[0] == 127; }
 };
 
 struct Endpoint {

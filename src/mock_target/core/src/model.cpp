@@ -459,6 +459,14 @@ void MockTargetModel::setFindPort(int value) {
     Q_EMIT portsChanged();
 }
 
+void MockTargetModel::setLoopbackOnly(bool value) {
+    if (value == loopback_only_) {
+        return;
+    }
+    loopback_only_ = value;
+    Q_EMIT portsChanged();
+}
+
 void MockTargetModel::setThinkTimeMs(int value) {
     if (value == think_time_ms_) {
         return;
@@ -562,6 +570,9 @@ Config MockTargetModel::make_config() const {
         literal_name_.trimmed().toStdString(), manufacturer_code_.trimmed().toStdString()};
     config.tftp_port = static_cast<std::uint16_t>(tftp_port_);
     config.find_port = static_cast<std::uint16_t>(find_port_);
+    if (loopback_only_) {
+        config.bind_address = adl::arinc615a::Address::loopback();
+    }
     config.think_time = std::chrono::milliseconds(think_time_ms_);
     config.status_period = std::chrono::seconds(status_period_sec_);
     config.wait_first_seconds = static_cast<std::uint16_t>(

@@ -31,11 +31,11 @@ void RealTargetLink::send(std::uint16_t from_port, const Endpoint& to,
                           std::span<const std::byte> payload) {
     auto& socket = sockets_[from_port];
     if (!socket) {
-        // Any address, the port the transfer speaks from. A send is also what opens the
-        // socket, so a port that has never sent has nothing listening on it (a datagram for
-        // it cannot have arrived, since the loader answers what it was sent).
+        // The configured interface, the port the transfer speaks from. A send is also what opens
+        // the socket, so a port that has never sent has nothing listening on it (a datagram for it
+        // cannot have arrived, since the loader answers what it was sent).
         adl::platform::UdpOptions options;
-        options.local = adl::platform::Endpoint{adl::platform::Ipv4Address::any(), from_port};
+        options.local = adl::platform::Endpoint{local_, from_port};
         auto opened = host_->network().open_udp(options);
         if (!opened) {
             return;  // a lost datagram, as UDP promises
@@ -54,13 +54,17 @@ bool RealTargetLink::bind(std::uint16_t port, std::string& error) {
         return true;
     }
     adl::platform::UdpOptions options;
-    options.local = adl::platform::Endpoint{adl::platform::Ipv4Address::any(), port};
+    options.local = adl::platform::Endpoint{local_, port};
     options.reuse_address = true;  // several targets (or a loader) may share this machine
     options.receive_buffer_bytes = 256 * 1024;
     auto opened = host_->network().open_udp(options);
     if (!opened) {
         error = "port " + std::to_string(port) + ": " +
                 std::string{adl::platform::to_string(opened.error().code)};
+        if (opened.error().code == adl::platform::ErrorCode::permission_denied) {
+            // The usual cause on Linux and macOS; on Windows, a port the system has reserved.
+            error += " (a port below 1024 may need extra privilege; see Troubleshooting)";
+        }
         return false;
     }
     sockets_[port] = std::move(*opened);

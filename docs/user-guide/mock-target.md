@@ -32,8 +32,11 @@ What the target answers when a loader asks FIND, and how it is addressed.
 | --- | --- | --- |
 | **TFTP control port** | 59 | The port the loader's requests go to. The standard says 59. The loader asks the target to use a port of its own for the files it serves, so the two can share a machine as long as the loader's control port (in its [Preferences](preferences.md)) is not also 59 |
 | **FIND port** | 1001 | The port FIND requests arrive on |
+| **This computer only (127.0.0.1)** | off | Listens on the loopback address alone instead of every network interface. A loader on the same computer can reach it and no other computer can; the operating system's firewall does not ask about it. Leave it off for a loader on another machine |
 
-Both must be between 1 and 65535. On Linux and macOS, ports below 1024 may need extra privilege.
+Both ports must be between 1 and 65535. On Linux and macOS, ports below 1024 may need extra
+privilege, and on Windows the firewall may ask the first time (see
+[Installing](installing.md#what-the-firewall-asks)).
 
 ## 03 Storage
 

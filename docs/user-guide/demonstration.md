@@ -67,8 +67,9 @@ turns **SERVING** and the log says `listening: FIND on port 1001, TFTP on port 5
 
 ![The mock target, serving](../images/mock-serving.png)
 
-(If the firewall asks, see [Installing](installing.md#what-the-firewall-asks); this demonstration
-never leaves the computer.)
+(To keep the firewall from asking, tick **This computer only (127.0.0.1)** in the *Ports* block before
+pressing **Start**; this demonstration never leaves the computer. See
+[Installing](installing.md#what-the-firewall-asks).)
 
 ## 4. Start the loader and set it up
 
