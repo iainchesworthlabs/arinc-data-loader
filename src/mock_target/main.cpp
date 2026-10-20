@@ -7,6 +7,8 @@
 
 #include "adl/mock/model.hpp"
 #include "adl/ui/fonts.hpp"
+#include "adl/ui/settings_location.hpp"
+#include "adl/ui/smoke_test.hpp"
 #include "adl/ui/version.hpp"
 #include "adl/ui/window_state.hpp"
 
@@ -15,6 +17,8 @@ int main(int argc, char* argv[]) {
     QGuiApplication::setApplicationName(QStringLiteral("ARINC Mock Target"));
     QGuiApplication::setApplicationVersion(QStringLiteral("0.1.0"));
     QGuiApplication::setOrganizationName(QStringLiteral("iainchesworthlabs"));
+    // ADL_SETTINGS_DIR moves the preferences into an ini file there (the tests set it).
+    adl::ui::redirect_settings_from_environment();
 
     adl::ui::register_fonts();
 
@@ -35,8 +39,10 @@ int main(int argc, char* argv[]) {
     adl::ui::set_about_properties(*engine.rootContext(), QStringLiteral("ARINC Mock Target"));
     engine.loadFromModule("ArincMockTarget", "TargetWindow");
     if (!engine.rootObjects().isEmpty()) {
-        if (auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst()))
+        if (auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst())) {
             adl::ui::install_window_state(window);
+            adl::ui::install_smoke_test(window);
+        }
     }
 
     return QGuiApplication::exec();

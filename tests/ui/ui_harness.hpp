@@ -12,12 +12,15 @@
 #include <vector>
 
 #include <QObject>
+#include <QVariantList>
+#include <QVariantMap>
 #include <QSemaphore>
 #include <QString>
 #include <QStringList>
 #include <QUrl>
 
 #include "adl/app/loader_model.hpp"
+#include "gated_host.hpp"
 #include "rig.hpp"
 #include "upload_fixture.hpp"
 
@@ -51,6 +54,22 @@ public:
     // An item anywhere below `root`, visual children and QObject children both: QML's findChild
     // only walks the QObject tree, and a Repeater's delegates are visual children.
     [[nodiscard]] Q_INVOKABLE QObject* findItem(QObject* root, const QString& name) const;
+    // Every such item, in the order they were made (the delegates of a Repeater).
+    [[nodiscard]] Q_INVOKABLE QVariantList findItems(QObject* root, const QString& name) const;
+
+    // The preferences as a new LoaderModel, made over the same settings file, reads them: what the
+    // window stored is what the next launch will find. And the download directory the suite starts
+    // from (it is not a directory that exists).
+    [[nodiscard]] Q_INVOKABLE QVariantMap storedPreferences() const;
+    [[nodiscard]] Q_INVOKABLE QString initialDownloadDirectory() const;
+
+    // What the target has been through, for assertions about aborts.
+    [[nodiscard]] Q_INVOKABLE int targetAbortsSeen() const;
+    [[nodiscard]] Q_INVOKABLE int targetFilesWrittenCount() const;
+    [[nodiscard]] Q_INVOKABLE QStringList targetFilesWritten() const;
+
+    // An item anywhere below `root` whose `text` is exactly `text` (a button without a name).
+    [[nodiscard]] Q_INVOKABLE QObject* findItemByText(QObject* root, const QString& text) const;
 
     // The rows of the lists the window shows, for assertions that a binding or a button filled one.
     [[nodiscard]] Q_INVOKABLE int targetCount() const;
@@ -70,6 +89,15 @@ public:
     // is running (and press Abort) however fast the fake platform would finish it.
     Q_INVOKABLE void holdNextJob();
     Q_INVOKABLE void releaseJob();
+    // The target keeps working (and reporting) for a minute after its last file, so a job cannot
+    // end before the test has done what it wants to do to it.
+    Q_INVOKABLE void makeTargetSlow();
+    // Holds the engine's thread in the middle of the next transfer: an upload when the target
+    // asks for its second file (the first has been read), a download as the second file begins
+    // to arrive. gateReached() says it is held; releaseJob() lets it go.
+    Q_INVOKABLE void holdUploadAtSecondFile();
+    Q_INVOKABLE void holdDownloadAtSecondFile();
+    [[nodiscard]] Q_INVOKABLE bool gateReached() const;
 
 private:
     [[nodiscard]] std::optional<std::vector<std::byte>> downloadedBytes(const QString& name,
@@ -80,6 +108,7 @@ private:
     adl::test::TempDir settings_directory_;
     adl::test::UploadFixture fixture_;
     std::unique_ptr<adl::test::Rig> rig_;
+    std::unique_ptr<adl::test::GatedHost> gated_;
     std::unique_ptr<adl::app::LoaderModel> model_;
     std::atomic<bool> hold_{false};
     QSemaphore released_;

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -50,6 +51,25 @@ bool same_members(const std::vector<MediaMember>& a, const std::vector<MediaMemb
         }
     }
     return true;
+}
+
+// Makes `link` a link to the directory `target`. A symbolic link where the account may create one
+// (always on Linux and macOS; on Windows only with the privilege or in developer mode), and
+// otherwise a directory junction, which Windows lets any account make: the command prompt's
+// mklink does it. Where there is no mklink the command simply fails, and so does this. Returns
+// what went wrong, or an empty string.
+std::string make_directory_link(const fs::path& link, const fs::path& target) {
+    std::error_code ec;
+    fs::create_directory_symlink(target, link, ec);
+    if (!ec) {
+        return {};
+    }
+    const std::string command =
+        "mklink /J \"" + link.string() + "\" \"" + target.string() + "\"";
+    if (std::system(command.c_str()) == 0 && fs::exists(link, ec)) {
+        return {};
+    }
+    return ec ? ec.message() : "neither a symbolic link nor a junction could be made";
 }
 
 MediaMember member_with(std::uint16_t sequence_number, std::vector<MediaFile> files) {
@@ -407,10 +427,9 @@ TEST_CASE("a link in a tree is refused, not followed", "[media-tree]") {
     TempDir elsewhere;
     put_file(elsewhere.path() / "SECRET.BIN", "outside the tree");
     fs::create_directories(dir.path() / "member_001");
-    std::error_code ec;
-    fs::create_directory_symlink(elsewhere.path(), dir.path() / "member_001" / "link", ec);
-    if (ec) {
-        SKIP("this account cannot create symbolic links: " << ec.message());
+    const std::string why = make_directory_link(dir.path() / "member_001" / "link", elsewhere.path());
+    if (!why.empty()) {
+        SKIP("this account can make neither a symbolic link nor a junction: " << why);
     }
 
     const auto read = read_media_set_tree(dir.path());
