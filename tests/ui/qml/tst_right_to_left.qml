@@ -167,11 +167,14 @@ TestCase {
         compare(Math.round(fill.width), 40)
         compare(Math.round(fill.x + fill.width), Math.round(bar.contentItem.width))
 
-        // The indeterminate bar travels from the start edge too.
+        // The indeterminate bar travels from the start edge too: at whatever point of its run it
+        // is (the animation may or may not be running, by the desktop's reduced-motion setting),
+        // it is that far along the free space from the right edge.
         bar.indeterminate = true
-        bar.contentItem.phase = 0
         wait(20)
-        compare(Math.round(fill.x + fill.width), Math.round(bar.contentItem.width))
+        const track = bar.contentItem
+        const free = track.width - fill.width
+        compare(Math.round(fill.x), Math.round(free * (1 - track.phase)))
         bar.destroy()
     }
 
