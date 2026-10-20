@@ -38,7 +38,7 @@ ApplicationWindow {
         if (app.outputDirectoryError.length > 0)
             list.push(qsTr("output folder"));
         if (app.filesError.length > 0)
-            list.push(qsTr("files"));
+            list.push(qsTr("a data file"));
         return list;
     }
     // Nothing has been entered yet: the window is waiting, not complaining.
