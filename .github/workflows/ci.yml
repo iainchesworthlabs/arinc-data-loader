@@ -438,10 +438,21 @@ jobs:
           uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement arinc-data-loader/.github/requirements/zephyr.txt
           echo "$RUNNER_TEMP/zephyr-venv/bin" >> "$GITHUB_PATH"
 
-      # Zephyr at the version the manifest pins, and only the modules the program needs.
+      # Zephyr at the version the manifest pins, and only the modules the program needs. The
+      # workspace is cached under a key made from the manifest, so a run that has it fetches nothing
+      # (docs/ci.md, "What is cached").
+      - name: Restore the Zephyr workspace
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .west
+            zephyr
+            modules
+          key: zephyr-workspace-${{ runner.os }}-${{ hashFiles('arinc-data-loader/tests/platform/zephyr/west.yml') }}
+
       - name: Fetch Zephyr
         run: |
-          west init -l --mf tests/platform/zephyr/west.yml arinc-data-loader
+          [ -d .west ] || west init -l --mf tests/platform/zephyr/west.yml arinc-data-loader
           west update --narrow --fetch-opt=--depth=1
           uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement zephyr/scripts/requirements-base.txt
 
@@ -500,15 +511,37 @@ jobs:
           uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement arinc-data-loader/.github/requirements/zephyr.txt
           echo "$RUNNER_TEMP/zephyr-venv/bin" >> "$GITHUB_PATH"
 
+      - name: Restore the Zephyr workspace
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .west
+            zephyr
+            modules
+          key: zephyr-workspace-${{ runner.os }}-${{ hashFiles('arinc-data-loader/tests/platform/zephyr/west.yml') }}
+
       - name: Fetch Zephyr
         run: |
-          west init -l --mf tests/platform/zephyr/west.yml arinc-data-loader
+          [ -d .west ] || west init -l --mf tests/platform/zephyr/west.yml arinc-data-loader
           west update --narrow --fetch-opt=--depth=1
           uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement zephyr/scripts/requirements-base.txt
 
-      # The SDK version Zephyr asks for (zephyr/SDK_VERSION), with the Arm toolchain only.
-      - name: Install the Zephyr SDK (Arm)
-        run: west sdk install --install-dir "$RUNNER_TEMP/zephyr-sdk" --gnu-toolchains arm-zephyr-eabi
+      # The SDK's Arm toolchain and host tools, cached under a key made from the pinned release files.
+      # Not `west sdk install`: that asks the GitHub releases API what exists, and the API refuses an
+      # unauthenticated address that has used its allowance (403 "rate limit exceeded"), which a shared
+      # runner's address does. install_zephyr_sdk.sh downloads the pinned files directly and checks them.
+      - name: Restore the Zephyr SDK
+        id: sdk-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/zephyr-sdk
+          key: zephyr-sdk-${{ runner.os }}-${{ hashFiles('arinc-data-loader/tools/ci/zephyr_sdk.sha256') }}
+
+      - name: Install the Zephyr SDK (Arm toolchain and host tools)
+        if: ${{ steps.sdk-cache.outputs.cache-hit != 'true' }}
+        env:
+          ZEPHYR_BASE: ${{ github.workspace }}/zephyr
+        run: bash arinc-data-loader/tools/ci/install_zephyr_sdk.sh "$RUNNER_TEMP/zephyr-sdk"
 
       - name: Build the smoke test for the Cortex-M3 and run it in QEMU
         env:

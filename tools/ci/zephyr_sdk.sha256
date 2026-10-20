@@ -1,0 +1,7 @@
+# The Zephyr SDK that tools/ci/install_zephyr_sdk.sh installs: the files of the sdk-ng release named
+# by the first file below, with the SHA-256 each must have. Zephyr 4.4.2 asks for SDK 1.0.1
+# (zephyr/SDK_VERSION). Change these lines by hand, with the SDK version Zephyr asks for in
+# tests/platform/zephyr/west.yml, taking the figures from the release's sha256.sum.
+ca9bc0ff66fafca1dac9d592a36d953cf16d096a9d09b1c0357f021cf9f6a7eb  zephyr-sdk-1.0.1_linux-x86_64_minimal.tar.xz
+21b85981cb5a1818d9bc53d82af80f208946ec038b982ff1907287572ed3a634  toolchain_gnu_linux-x86_64_arm-zephyr-eabi.tar.xz
+4d90f2d9a42802bc76bfaacd2bb52e6c30a046a425148e1ed1a7311cb66bde60  hosttools_linux-x86_64.tar.xz

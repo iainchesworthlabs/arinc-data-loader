@@ -11,7 +11,7 @@
 # Environment:
 #   ZEPHYR_BASE             required: the Zephyr checkout of the west workspace
 #   ZEPHYR_SDK_INSTALL_DIR  required: the Zephyr SDK with the arm-zephyr-eabi toolchain and the
-#                           host tools (west sdk install -t arm-zephyr-eabi). The board needs the
+#                           host tools (tools/ci/install_zephyr_sdk.sh). The board needs the
 #                           SDK's qemu-system-xilinx-aarch64: distributions' QEMU has no machine
 #                           for it.
 #   ADL_BUILD_DIR           default <repo>/build/zephyr-qemu-suite
@@ -29,7 +29,7 @@ if [ -z "${ZEPHYR_BASE:-}" ] || [ ! -d "$ZEPHYR_BASE" ]; then
     exit 2
 fi
 if [ -z "${ZEPHYR_SDK_INSTALL_DIR:-}" ] || [ ! -d "$ZEPHYR_SDK_INSTALL_DIR" ]; then
-    echo "zephyr_qemu_suite: set ZEPHYR_SDK_INSTALL_DIR to the Zephyr SDK (west sdk install)." >&2
+    echo "zephyr_qemu_suite: set ZEPHYR_SDK_INSTALL_DIR to the Zephyr SDK (tools/ci/install_zephyr_sdk.sh)." >&2
     exit 2
 fi
 export ZEPHYR_TOOLCHAIN_VARIANT=zephyr

@@ -225,6 +225,32 @@ the vcpkg-using jobs: with a `builtin-baseline`, vcpkg reads historical port
 versions out of the submodule's git history, and the default depth-1
 submodule clone does not have them.
 
+## What the Zephyr jobs cache, and what they never ask the GitHub API
+
+`Zephyr (native_sim)` and `Zephyr (QEMU, SDK toolchain)` keep two things with `actions/cache`, each under a
+key made from the file that pins it, so a change to the pin is a new key and nothing stale is ever restored:
+
+| Cached | Key | Where it comes from when there is no entry |
+| --- | --- | --- |
+| The west workspace (`.west`, `zephyr`, `modules`) | `zephyr-workspace-<os>-` + hash of `tests/platform/zephyr/west.yml` | `west update --narrow --fetch-opt=--depth=1`, a shallow git clone of Zephyr and three modules |
+| The Zephyr SDK's Arm toolchain and host tools (the QEMU job only; about 1.2 GB unpacked) | `zephyr-sdk-<os>-` + hash of `tools/ci/zephyr_sdk.sha256` | `tools/ci/install_zephyr_sdk.sh`, which downloads three release files by URL |
+
+To bust a cache, change what it is keyed on (bump the Zephyr `revision` or the module list in `west.yml`; or
+the version and hashes in `zephyr_sdk.sha256`), or delete the entry (Actions, Caches, or
+`gh cache delete <key>`). A cache that is missing, evicted or unreadable costs a download and nothing else:
+neither job needs it to be there.
+
+The SDK is **not** installed with `west sdk install`. That command asks the GitHub releases API which files
+a release has, unauthenticated, and the API allows an address a few dozen such requests an hour: a shared
+runner's address had used them up when a merge queue run failed with "fetch_releases API rate limit
+exceeded ... 403". `install_zephyr_sdk.sh` knows the file names, takes the pinned SHA-256 of each from
+`tools/ci/zephyr_sdk.sha256`, downloads them from `github.com/.../releases/download/<tag>/<file>` (a download,
+not an API call, and with retries) and refuses a file whose checksum differs. So no token is passed and none
+is needed. Nothing else in the Zephyr or FreeRTOS jobs calls `api.github.com` on its own account: `west
+update` and the FreeRTOS job's CMake downloads are `git clone` and archive downloads, `lukka/get-cmake` and
+`astral-sh/setup-uv` are the actions the other legs use (they authenticate with the workflow token), and the
+Python packages come from PyPI.
+
 ## What CI pins
 
 | | Pinned to | Kept current by |
@@ -233,7 +259,7 @@ submodule clone does not have them.
 | clang-format, gcovr, west | `==` in `.github/requirements/*.txt` | Dependabot (`pip`), weekly |
 | clang-tidy (nightly analysis) | `==` in `.github/requirements/static-analysis.txt` | Dependabot (`pip`), weekly |
 | Zephyr (and its modules littlefs, cmsis and cmsis_6) | `revision` in `tests/platform/zephyr/west.yml` (v4.4.2) | By hand |
-| The Zephyr SDK (the Arm toolchain and QEMU of the smoke job) | The version Zephyr names in its `SDK_VERSION` (1.0.1 for v4.4.2) | With Zephyr |
+| The Zephyr SDK (the Arm toolchain and QEMU of the QEMU job) | File names and SHA-256 in `tools/ci/zephyr_sdk.sha256` (1.0.1, which is what Zephyr v4.4.2's `SDK_VERSION` names; `install_zephyr_sdk.sh` refuses a mismatch) | By hand, with Zephyr |
 | FreeRTOS-Kernel, lwIP, littlefs, Catch2 (the simulator program) | URL and SHA-256 in `tests/platform/freertos/CMakeLists.txt` (V11.2.0, 2.2.1, v2.11.3, v3.15.3) | By hand |
 | aqtinstall (installs Qt) | `==` in `.github/requirements/qt.txt` | Dependabot (`pip`), weekly |
 | Qt | `version` input of the `install-qt` step in `ci.yml` (6.12.0) | By hand, with the labs' shared toolchain |
