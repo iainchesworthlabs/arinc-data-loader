@@ -1,0 +1,25 @@
+# Read by CPack for every generator it runs (CPACK_PROJECT_CONFIG_FILE), with CPACK_GENERATOR set to
+# that generator. Written by cmake/AdlPackage.cmake from the platform's lists of generators.
+#
+# An archive generator (ZIP, TGZ) makes one archive for each component it is asked for; any other
+# generator (a disk image) makes one package, of the runtime component.
+
+set(_adl_runtime_generators "@ADL_PLATFORM_PACKAGE_RUNTIME_GENERATORS@")
+set(_adl_development_generators "@ADL_PLATFORM_PACKAGE_DEVELOPMENT_GENERATORS@")
+
+set(_adl_components "")
+if(CPACK_GENERATOR IN_LIST _adl_runtime_generators)
+    list(APPEND _adl_components runtime)
+endif()
+if(CPACK_GENERATOR IN_LIST _adl_development_generators)
+    list(APPEND _adl_components development)
+endif()
+
+if(CPACK_GENERATOR MATCHES "^(ZIP|TGZ)$")
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+    # An archive unpacks into a directory of its own name, not into the directory it is unpacked in.
+    set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY ON)
+    set(CPACK_COMPONENTS_ALL ${_adl_components})
+else()
+    set(CPACK_INSTALL_CMAKE_PROJECTS "@CMAKE_BINARY_DIR@;@PROJECT_NAME@;runtime;/")
+endif()

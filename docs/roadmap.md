@@ -96,7 +96,7 @@ from vcpkg: it is the prebuilt kit found through `QT_ROOT_DIR` (the shared
 toolchain at `C:\Repos\common\qt\6.12.0`), by `cmake/FindQt6.cmake`; the platform
 fragments declare where each system keeps Qt and the two hooks the application needs
 (`adl_platform_configure_app`, `adl_platform_deploy_qt_runtime`). CI installs the kit with a pinned
-aqtinstall on the three desktop legs, and builds the application with `-DADL_BUILD_APP=ON`. Built in
+install script (every archive checked against a pinned SHA-256) on the three desktop legs, and builds the application with `-DADL_BUILD_APP=ON`. Built in
 slices; [the application](app.md) says what each does.
 
 1. **The skeleton and the engine bridge (done).** The engine on a thread of its own with a queued

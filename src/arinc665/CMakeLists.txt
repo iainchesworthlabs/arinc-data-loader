@@ -25,11 +25,20 @@ add_library(adl_arinc665 STATIC
     src/wire.cpp)
 add_library(adl::arinc665 ALIAS adl_arinc665)
 
-target_include_directories(adl_arinc665 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(adl_arinc665
+    PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 target_compile_features(adl_arinc665 PUBLIC cxx_std_23)
 target_link_libraries(adl_arinc665
     PRIVATE
-        adl::tracy
-        adl::warnings
-        adl::sanitizers
-        adl::coverage)
+        $<BUILD_LOCAL_INTERFACE:adl::tracy>
+        $<BUILD_LOCAL_INTERFACE:adl::warnings>
+        $<BUILD_LOCAL_INTERFACE:adl::sanitizers>
+        $<BUILD_LOCAL_INTERFACE:adl::coverage>)
+
+# Only the top-level project installs (cmake/AdlInstall.cmake); a project of its own that builds this
+# library for a target (tests/platform/freertos) has no install rules to add it to.
+if(COMMAND adl_install_library)
+    adl_install_library(adl_arinc665 INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+endif()

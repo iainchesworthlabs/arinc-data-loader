@@ -123,8 +123,15 @@ what to do instead of an `#ifdef`, and how to add a platform.
 
 - Keep pull requests focused. A bug fix does not need an unrelated refactor
   riding along with it.
-- If a person using the program would notice the change, add a line under
-  `Unreleased` in [CHANGELOG.md](CHANGELOG.md).
+- If a person using the program would notice the change, add a changelog
+  fragment: a small file `changelog.d/<name>.<category>.md` (category `added`,
+  `changed`, `deprecated`, `removed`, `fixed` or `security`) holding the entry's
+  text, in the same pull request. You do not edit [CHANGELOG.md](CHANGELOG.md):
+  two pull requests that each add a file do not conflict, and the release
+  assembles the files into it. If nobody using the program would notice (a
+  test, a refactor, CI, a documentation fix), give the pull request the
+  `no-changelog` label instead; the `Changelog fragment` check wants one or the
+  other. [changelog.d/README.md](changelog.d/README.md) has the details.
 - If you change what a window shows or does, change [the user's guide](docs/user-guide/index.md)
   with it, and make the pictures again ([docs/screenshots.md](docs/screenshots.md)). The
   `docs.links` test fails on a link or a picture that is not there.
@@ -144,6 +151,13 @@ what to do instead of an `#ifdef`, and how to add a platform.
 4. Once the checks are green it goes through the merge queue and is merged with
    a merge commit. The rulesets require no approving review (the project has one
    maintainer), but review comments are still worth settling first.
+
+## Releases
+
+A release is cut by the maintainer from a `release/*` branch, following
+[docs/releasing.md](docs/releasing.md); the release workflow builds, tests,
+packages, signs and drafts it. The packages and how to check them are described
+in [docs/verifying-releases.md](docs/verifying-releases.md).
 
 ## Licence of contributions
 

@@ -1,32 +1,35 @@
 name: Install Qt
 description: >-
-  Installs the prebuilt Qt kit (not from vcpkg) with the pinned aqtinstall of
-  .github/requirements/qt.txt (on Windows with install_qt_msvc.py beside this file), caches it, and points QT_ROOT_DIR at it, which is
-  where cmake/FindQt6.cmake looks first. The job must have checked the
-  repository out.
+  Installs the prebuilt Qt kit (not from vcpkg) with .github/actions/install-qt/install_qt.py, which
+  checks every archive against the SHA-256 pinned in .github/requirements/qt-archives.sha256 before it
+  unpacks it, caches the kit, and points QT_ROOT_DIR at it, which is where cmake/FindQt6.cmake looks
+  first. The only Python package it needs (py7zr) is installed from the hash-locked
+  .github/requirements/qt.txt. The job must have checked the repository out.
 
 inputs:
   version:
-    description: Qt version, as the labs' shared toolchain pins it.
+    description: Qt version, as the labs' shared toolchain pins it. It needs pins in qt-archives.sha256.
     required: true
   host:
-    description: aqtinstall host (windows, linux or mac).
+    description: The kit's host (windows, linux or mac).
     required: true
   arch:
-    description: aqtinstall architecture (win64_msvc2022_64, linux_gcc_64 or clang_64).
+    description: >-
+      The kit's architecture name (win64_msvc2022_64, linux_gcc_64 or clang_64). The host decides which
+      kit is installed; this names it in the cache key and in the log.
     required: true
 
 runs:
   using: composite
   steps:
-    # An exact key: the kit changes only when the version, the architecture or the
-    # installer's pin does.
+    # An exact key: the kit changes only when the version, the architecture, the pinned archives or
+    # the installer does.
     - name: Restore the Qt kit
       id: cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ runner.temp }}/qt
-        key: qt-${{ inputs.version }}-${{ inputs.arch }}-${{ hashFiles('.github/requirements/qt.txt') }}
+        key: qt-${{ inputs.version }}-${{ inputs.arch }}-${{ hashFiles('.github/requirements/qt.txt', '.github/requirements/qt-archives.sha256', '.github/actions/install-qt/install_qt.py') }}
 
     - name: Install uv
       if: steps.cache.outputs.cache-hit != 'true'
@@ -34,36 +37,33 @@ runs:
       with:
         enable-cache: false
 
-    # download.qt.io is a mirror network and now and then refuses one request, so a
-    # failed install is tried again twice before the job is failed.
-    - name: Install Qt (aqtinstall, or install_qt_msvc.py on Windows)
+    # download.qt.io is a mirror network and now and then refuses one request, so a failed install is
+    # tried again twice before the job is failed. A hash that does not match is not retried: it is
+    # the point of the pins, and install_qt.py exits with the reason.
+    #   --require-hashes   py7zr and what it needs are installed only if each wheel is the one locked
+    #   --no-build         from wheels only: a source distribution would run its own build script
+    - name: Install Qt (install_qt.py, archives checked against the pins)
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       env:
         QT_VERSION: ${{ inputs.version }}
         QT_HOST: ${{ inputs.host }}
-        QT_ARCH: ${{ inputs.arch }}
       run: |
-        uv venv "$RUNNER_TEMP/qt-venv"
+        uv venv --python 3.13 "$RUNNER_TEMP/qt-venv"
         if [ "$RUNNER_OS" = Windows ]; then
           py="$RUNNER_TEMP/qt-venv/Scripts/python.exe"
         else
           py="$RUNNER_TEMP/qt-venv/bin/python"
         fi
-        uv pip install --python "$py" --requirement .github/requirements/qt.txt
-        # aqtinstall 3.3.0 cannot read the layout Qt's repository has for Windows from Qt 6.11 on
-        # (one directory per architecture), so Windows has a small installer of its own that does
-        # what aqtinstall does for one package. See install_qt_msvc.py.
+        uv pip install --python "$py" --require-hashes --no-build --requirement .github/requirements/qt.txt
+        mkdir -p "$RUNNER_TEMP/qt"
         for attempt in 1 2 3; do
-          if [ "$QT_HOST" = windows ]; then
-            install=("$py" "$GITHUB_ACTION_PATH/install_qt_msvc.py" "$QT_VERSION" "$RUNNER_TEMP/qt")
-          else
-            install=("$py" -m aqt install-qt "$QT_HOST" desktop "$QT_VERSION" "$QT_ARCH" --outputdir "$RUNNER_TEMP/qt")
-          fi
-          if "${install[@]}"; then
+          status=0
+          "$py" -I "$GITHUB_ACTION_PATH/install_qt.py" install "$QT_VERSION" "$QT_HOST" "$RUNNER_TEMP/qt"             --pins .github/requirements/qt-archives.sha256 || status=$?
+          if [ "$status" -eq 0 ]; then
             exit 0
           fi
-          echo "aqtinstall failed (attempt $attempt of 3)"
+          echo "installing Qt failed (attempt $attempt of 3)"
           sleep $((attempt * 15))
         done
         exit 1

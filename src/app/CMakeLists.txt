@@ -116,4 +116,5 @@ target_link_libraries(adl_app PRIVATE adl_app_generated_code)
 
 adl_platform_configure_app(adl_app)
 adl_platform_deploy_qt_runtime(adl_app "${CMAKE_CURRENT_SOURCE_DIR}/qml")
+adl_install_application(adl_app "${CMAKE_CURRENT_SOURCE_DIR}/qml")
 adl_deploy_sanitizer_runtime(adl_app)

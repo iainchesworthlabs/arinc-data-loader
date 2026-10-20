@@ -1,0 +1,57 @@
+name: Changelog
+
+# A pull request into develop carries a changelog fragment (changelog.d/<name>.<category>.md),
+# or the no-changelog label to say, deliberately, that nobody using the program would notice
+# the change. CONTRIBUTING.md says how to write one; tools/release/Changelog.ps1 is the whole
+# rule, and docs/ci.md describes this job.
+#
+# Pull requests into main are release and hotfix pull requests, where the fragments are consumed
+# (docs/releasing.md), so they are not checked here.
+#
+# This is not (yet) a required check. If it is made one, change the ruleset and this file in one
+# commit, and add the merge_group trigger (a queue entry has no labels, so the job would skip
+# there, as the two text checks do): docs/branch-protection.md, "The merge_group rule".
+#
+# The pull request's labels, branch and base reach the script through the environment, never by
+# interpolating ${{ }} into the shell.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled]
+    branches: [develop]
+
+permissions: {}
+
+concurrency:
+  group: changelog-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fragment:
+    name: Changelog fragment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      # The whole history, so the merge base with the target branch can be found.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # A rule that silently passes everything is worse than none: prove the tool still fails
+      # what it must before trusting it with this pull request.
+      - name: Self-test the changelog tool
+        shell: pwsh
+        run: ./tools/release/test_changelog.ps1
+
+      - name: Check the pull request for a fragment
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_REF: ${{ github.head_ref }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: >-
+          ./tools/release/Changelog.ps1 -Mode PullRequest
+          -Base $env:BASE_SHA -HeadRef $env:HEAD_REF -Labels $env:LABELS
