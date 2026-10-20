@@ -34,7 +34,7 @@ Each check answers a different question, so use the ones you can:
 | Expires | 2028-10-18 |
 
 The public key is [`docs/release-signing-key.asc`](release-signing-key.asc) in this repository, and
-the same file is in each release as `arinc-data-loader-release-signing-key.asc`. It is **not** on a
+the same file is in each release as `arinc-data-loader-release-key.pgp`. It is **not** on a
 keyserver. Do not trust a key because it came with the download: compare the fingerprint above with
 the one in [SECURITY.md](../SECURITY.md) and in [CI](ci.md), which are separate files, and with the
 repository on GitHub as you see it.
@@ -44,7 +44,7 @@ repository on GitHub as you see it.
 You need [GnuPG](https://gnupg.org/) (`gpg`). Download the release's files into one directory, then:
 
 ```sh
-gpg --import release-signing-key.asc
+gpg --import arinc-data-loader-release-key.pgp     # or docs/release-signing-key.asc from the repository
 gpg --fingerprint 3FF3682553298A53       # compare with the table above, character by character
 
 gpg --verify SHA256SUMS.asc SHA256SUMS

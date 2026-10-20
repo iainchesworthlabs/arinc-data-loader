@@ -333,7 +333,7 @@ jobs:
           cp dist/* release/
           # The public key travels with the release for convenience; what it is trusted by is its
           # fingerprint, which a downloader compares with SECURITY.md (docs/verifying-releases.md).
-          cp docs/release-signing-key.asc release/arinc-data-loader-release-signing-key.asc
+          cp docs/release-signing-key.asc release/arinc-data-loader-release-key.pgp
           "$RUNNER_TEMP/sbom-venv/bin/python" -I tools/release/validate_sbom.py \
             "release/arinc-data-loader-$VERSION.spdx.json" "release/arinc-data-loader-$VERSION.cdx.json"
           ls -l release
