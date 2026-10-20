@@ -26,12 +26,14 @@ src/platforms/
   windows/ linux/ macos/     one implementation per interface, plus platform.cmake
   qnx/                       code that has never been compiled (status unbuilt)
   ghs508/ ghs178b/           Green Hills INTEGRITY 5.0.8 and INTEGRITY-178B (unbuilt)
-  vxworks/ freertos/ zephyr/ a platform.cmake only: designs, no code
+  freertos/ zephyr/          experimental: built and tested on a simulator (docs/platform-abstraction.md)
+  vxworks/                   a platform.cmake only: a design, no code
   posix/                     the implementations the POSIX systems share
   ghs/                       the implementations the INTEGRITY platforms share
   detail/                    portable helpers every platform links
   CMakeLists.txt             builds adl_platform from what the fragment names
-tests/platform/              the fragment and selector checks, and test cases only one platform can run
+tests/platform/              the fragment and selector checks, and test cases only one platform can run;
+                             the programs that test freertos/ and zephyr/ (zephyr/, freertos/, rtos_support/)
 tests/conformance/           the same checks against the real host and the fake
 tests/fake/                  the fake platform
 ```
@@ -70,7 +72,11 @@ cmake -DADL_TARGET_PLATFORM=freertos --toolchain <toolchain file> ...
 is an error that lists the ones it does. The rest of the build never sees it, so
 the isolation check has nothing to find. The selector then reads the fragment's
 `ADL_PLATFORM_STATUS` and refuses a platform that is only a design, and one whose
-code has never been compiled unless `-DADL_ACCEPT_UNBUILT_PLATFORM=ON`.
+code has never been compiled unless `-DADL_ACCEPT_UNBUILT_PLATFORM=ON`. A platform whose image a
+project of its own builds (an RTOS: Zephyr's `find_package(Zephyr)`, a FreeRTOS kernel port and `main`)
+says where in `ADL_PLATFORM_PROJECT`, and the selector refuses it with that pointer; that project
+includes the platform's fragment itself for the source list, and the fragment is the one place the
+sources of the platform are named.
 
 The contract:
 
@@ -81,7 +87,8 @@ The contract:
 | Compile definitions, for `adl_platform` only (Windows: `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE`) | `ADL_PLATFORM_COMPILE_DEFINITIONS` | `src/platforms/CMakeLists.txt` |
 | The name in the version block (`Windows`, `Linux`, `macOS`) | `ADL_PLATFORM_DISPLAY_NAME` | The configure summary |
 | Whether this is a desktop (installers, the Qt application and notices exist) | `ADL_PLATFORM_DESKTOP` | Checked by the contract; nothing reads it yet |
-| Whether there is code to build (`supported`), code nobody has compiled (`unbuilt`), or only a design (`design-only`) | `ADL_PLATFORM_STATUS` | `cmake/Platform.cmake`, which refuses a build for the last, and for the second unless `ADL_ACCEPT_UNBUILT_PLATFORM` is on |
+| Whether there is code to build and CI runs it (`supported`), CI runs it on a simulator only (`experimental`), the code has never been compiled (`unbuilt`), or there is only a design (`design-only`) | `ADL_PLATFORM_STATUS` | `cmake/Platform.cmake`, which refuses a build for the last, and for `unbuilt` unless `ADL_ACCEPT_UNBUILT_PLATFORM` is on |
+| Optional: where the platform's image is built, for a platform the top-level project does not build | `ADL_PLATFORM_PROJECT` | `cmake/Platform.cmake`, which refuses to configure and says where to go |
 | Where an installed Qt lives | `ADL_PLATFORM_QT_SEARCH_ROOTS`, `ADL_PLATFORM_QT_ARCH_DIRS` | `cmake/FindQt6.cmake` |
 | What makes the Qt application a program of this desktop (no console window on Windows, a bundle on macOS) | `adl_platform_configure_app(<target>)` | `src/app/CMakeLists.txt` |
 | Qt's runtime beside a program, including the QML modules in `<qml_dir>` (`windeployqt` on Windows) | `adl_platform_deploy_qt_runtime(<target> <qml_dir>)` | `src/app/CMakeLists.txt`, `tests/CMakeLists.txt` |
@@ -100,7 +107,8 @@ they stay in `cmake/CompilerWarnings.cmake`, `Sanitizers.cmake` and
    (`paths_<name>.cpp` and the files named in
    [platform abstraction](platform-abstraction.md); use a `posix/` file where the
    implementation is the same) and a `platform.cmake` that fills in the
-   contract, with `ADL_PLATFORM_STATUS` `unbuilt` until CI builds and runs it.
+   contract, with `ADL_PLATFORM_STATUS` `unbuilt` until CI builds it and runs the platform suite
+   (`experimental` on a simulator, `supported` on the target).
    Copy the closest existing platform's and change what differs.
 2. Add a branch for it in `cmake/Platform.cmake`, and its name to the choices of
    `ADL_TARGET_PLATFORM` if it is a cross build.

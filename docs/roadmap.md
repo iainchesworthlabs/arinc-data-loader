@@ -49,9 +49,9 @@ UDP, with the Find, Information, Upload and Download operations. It loads what
 
 1. **The platform abstraction (done).** Interfaces for files, memory, threads
    and priorities, a clock, UDP and message queues, implemented for Windows,
-   Linux and macOS, with a fake platform and a conformance suite, and QNX,
-   VxWorks, FreeRTOS and Zephyr designed for ([platform
-   abstraction](platform-abstraction.md)). The transport is an interface, so the
+   Linux and macOS, with a fake platform and a conformance suite, FreeRTOS and
+   Zephyr ported and tested on simulators, and QNX, the INTEGRITY ports and
+   VxWorks written or designed for ([platform abstraction](platform-abstraction.md)). The transport is an interface, so the
    engine does not include a socket header and can be tested against a simulated
    target on the fake network.
 2. **The TFTP codec and the 615A messages (done).** `adl::arinc615a`: the packets
@@ -187,9 +187,16 @@ is the **Green Hills INTEGRITY support** ([the GHS review](platform-ghs.md)):
 `cmake/FindIntegrity178.cmake`, the GHS toolchain files and presets. VxWorks
 178C remains the design target it was. The platform layer is shaped for all of
 them ([platform abstraction](platform-abstraction.md)): a design for VxWorks,
-FreeRTOS and Zephyr, code for QNX and INTEGRITY that has never been compiled,
-and a selector that takes `-DADL_TARGET_PLATFORM`. The structure is meant to
-make each a new platform and not a new codebase:
+code for QNX and INTEGRITY that has never been compiled, **FreeRTOS and Zephyr
+(lwIP and littlefs; Zephyr's own stack and `fs_*`) built and tested on
+simulators in CI**, and a selector that takes `-DADL_TARGET_PLATFORM`. The
+structure is meant to make each a new platform and not a new codebase. What is
+left for FreeRTOS and Zephyr is a board: run the suite on one, settle the
+priority plan against its network threads, put the loader and a target on a real
+link (FIND's broadcast, fragmentation of a 65 KB block), run on real flash, and
+build the libraries with the SDK's toolchain, and if the product has the
+alternatives, add FreeRTOS+TCP and a FAT file system as ports of
+`network_freertos.cpp` and `files_freertos.cpp`. For the rest:
 
 - an implementation of each platform interface in `src/platforms/vxworks` (the
   fragment and the branch in `cmake/Platform.cmake` already exist), with a

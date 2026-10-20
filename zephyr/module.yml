@@ -1,0 +1,7 @@
+# ARINC Data Loader as a Zephyr module (https://docs.zephyrproject.org/latest/develop/modules.html).
+# Add this repository to a west manifest, or name it in ZEPHYR_EXTRA_MODULES, and set
+# CONFIG_ADL_PLATFORM=y; docs/building.md has the details.
+name: arinc-data-loader
+build:
+  cmake: src/platforms/zephyr
+  kconfig: src/platforms/zephyr/Kconfig

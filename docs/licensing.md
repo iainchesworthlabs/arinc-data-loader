@@ -9,7 +9,12 @@ licence.
 1. **The project is GPL-3.0-or-later** (`LICENSE`, `vcpkg.json`). The files carry
    no per-file headers; `LICENSE` and `vcpkg.json` are the statement.
 2. **The third-party code in use is a build tool (vcpkg) and a test framework
-   (Catch2, BSL-1.0).** Neither is linked into anything that is distributed.
+   (Catch2, BSL-1.0).** Neither is linked into anything that is distributed. The two RTOS test programs
+   (`tests/platform/zephyr`, `tests/platform/freertos`) fetch, at build time, and link into those
+   test programs only, Zephyr (Apache-2.0) and its littlefs module (BSD-3-Clause), FreeRTOS-Kernel
+   (MIT), lwIP (BSD-3-Clause) and littlefs (BSD-3-Clause), none of it copied into this repository.
+   A product that links the platform layer to any of them distributes that component under its own
+   licence beside this project's GPL-3.0-or-later, and carries its notice.
    What the applications ship from others is Qt (item 3), the Archivo typeface
    (item 6) and, on Windows, the runtime files Qt's deployment tool places beside
    Qt. All of it is listed, with the text of its terms, in the notices the

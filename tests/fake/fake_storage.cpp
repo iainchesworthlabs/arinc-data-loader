@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <limits>
 #include <new>
 
 namespace adl::fake {
@@ -384,8 +385,9 @@ platform::Result<platform::MemoryRegion> FakeMemory::acquire(std::size_t bytes,
     if (use == platform::MemoryUse::resident && deny_resident_) {
         return platform::fail(ErrorCode::resource_exhausted);
     }
-    // Far beyond any machine: refuse here, as an allocator under a sanitizer aborts.
-    constexpr std::size_t absurd = std::size_t{1} << 40;
+    // Far beyond any machine: refuse here, as an allocator under a sanitizer aborts. (Half of
+    // the address space: a shift by 40 is not a valid shift of a 32 bit size_t.)
+    constexpr std::size_t absurd = std::numeric_limits<std::size_t>::max() / 2;
     if (bytes > absurd || bytes > budget_ || outstanding_ > budget_ - bytes) {
         return platform::fail(ErrorCode::resource_exhausted);
     }
