@@ -25,6 +25,7 @@
 #include "adl/arinc665/check_value.hpp"
 #include "adl/arinc665/media_set.hpp"
 #include "adl/media_tree/media_tree.hpp"
+#include "adl/platform/paths.hpp"
 #include "adl/samples/scenarios.hpp"
 #include "bytes.hpp"
 #include "rig.hpp"
@@ -890,6 +891,51 @@ void LoaderModelTest::check_media_set_revalidates_files_changed_on_disk() {
     model.checkMediaSet();
     wait_for_the_check(model, 2);
     QVERIFY(model.canUpload());
+    model.uploadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QCOMPARE(model.resultText(), QStringLiteral("completed"));
+}
+
+void LoaderModelTest::a_set_edited_after_the_check_is_not_uploaded() {
+    adl::test::UploadFixture fixture;
+    adl::test::Rig rig(fixture.plan());
+    QVERIFY(fixture.write(rig));
+    LoaderModel model(rig_host(rig));
+    read_the_media_set(model, fixture);
+    point_at_the_target(model);
+    model.selectAllLoads(true);
+    QVERIFY(model.canUpload());
+
+    // One byte of a file changes after the check passed (the engine reads through the host's
+    // file system, which the fixture mirrors the disk into).
+    std::filesystem::path where;
+    QVERIFY(!read_file(fixture.directory.path(), "APP.LUP", &where).empty());
+    const std::string path = adl::platform::to_platform_path(where);
+    auto& files = rig.loader_host.fake_files();
+    const auto original = files.get(path);
+    QVERIFY(original.has_value());
+    auto edited = *original;
+    edited[edited.size() / 2] ^= std::byte{0x40};
+    files.put(path, edited);
+
+    model.uploadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    // Nothing was sent, the reason is named, and the set has to be checked again.
+    QCOMPARE(model.resultState(), 2);
+    QVERIFY2(model.resultText().contains(QStringLiteral("changed after it was checked")),
+             qPrintable(model.resultText()));
+    QVERIFY(model.resultDetail().contains(QStringLiteral("APP.LUP")));
+    QVERIFY(model.lastErrorHint().contains(QStringLiteral("Check the media set again")));
+    QVERIFY(rig.target.log().files_read.empty());
+    QCOMPARE(model.validationState(), 0);
+    QVERIFY(!model.canUpload());
+
+    // Put back as it was and checked again, it is uploaded.
+    files.put(path, *original);
+    model.checkMediaSet();
+    wait_for_the_check(model, 2);
     model.uploadSelected();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QCOMPARE(model.resultState(), 1);

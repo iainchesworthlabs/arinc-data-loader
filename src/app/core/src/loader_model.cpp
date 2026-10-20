@@ -429,6 +429,10 @@ void LoaderModel::on_finished(const OperationSummary& summary) {
         set_error(summary.outcome, summary.detail, summary.hint);
     }
     set_job(Job::none);
+    if (summary.media_set_changed) {
+        // What was checked is not what is on the disk any more: the check no longer stands.
+        set_validation(0, {}, {}, {});
+    }
     if (ended == Job::media_set) {
         if (!media_set_.error.isEmpty()) {
             // The set could not be read: it cannot be valid, and the reason is shown.

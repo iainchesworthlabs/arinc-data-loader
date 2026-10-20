@@ -39,6 +39,12 @@ QString media_set_hint() {
         "file of the set is still in it.");
 }
 
+QString media_set_changed_hint() {
+    return QObject::tr(
+        "Something in the media set was edited, replaced or removed after it was checked, so "
+        "nothing was uploaded. Check the media set again, then upload.");
+}
+
 QString host_hint() {
     return QObject::tr(
         "The loader could not use the network or its port. Check that no other "
@@ -504,6 +510,20 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
         fail(lease.error(), host_hint());
         return;
     }
+    // What the operator checked is what is uploaded: a set edited since is refused here, before
+    // the target is contacted, and again as the target opens each file.
+    if (const auto changed = index_->changed_file(lease->host->files())) {
+        const QString text =
+            tr("The media set changed after it was checked: %1.").arg(to_qstring(*changed));
+        Q_EMIT log_line({Severity::error, text});
+        OperationSummary summary;
+        summary.outcome = tr("the media set changed after it was checked");
+        summary.detail = text;
+        summary.hint = media_set_changed_hint();
+        summary.media_set_changed = true;
+        Q_EMIT finished(summary);
+        return;
+    }
     MediaTreeSource source(lease->host->files(), *index_);
     JobListener listener(*this);
     Q_EMIT log_line(
@@ -513,7 +533,7 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
              : tr("Uploading %1 loads to %2 (%3)...").arg(loads.size()).arg(address, thw_id_pos)});
     run_operation(*lease->host, Address{*octets}, thw_id_pos,
                   adl::arinc615a::UploadOperation{adl::arinc615a::UploadRequest{references}},
-                  listener, &source, nullptr, control_port);
+                  listener, &source, nullptr, control_port, {}, &source);
 }
 
 void EngineWorker::download_media(const QString& address, const QString& thw_id_pos,
@@ -597,7 +617,8 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
                                  const adl::arinc615a::Operation& operation,
                                  adl::arinc615a::OperationListener& listener,
                                  adl::arinc615a::FileSource* source, adl::arinc615a::FileSink* sink,
-                                 quint16 control_port, const QString& download_directory) {
+                                 quint16 control_port, const QString& download_directory,
+                                 const MediaTreeSource* media) {
     const std::string thw = thw_id_pos.toStdString();
     adl::arinc615a::LoaderConfig config;
     config.target = adl::arinc615a::Endpoint{target, adl::arinc615a::tftp_control_port};
@@ -688,7 +709,17 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
                    "again.");
         }
     }
-    if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation)) {
+    if (media != nullptr && media->changed_file()) {
+        // The target was refused a file that is not what was checked; that, and not what the
+        // target made of the refusal, is why the upload did not complete.
+        const QString changed = to_qstring(*media->changed_file());
+        summary.success = false;
+        summary.media_set_changed = true;
+        summary.detail = tr("The media set changed after it was checked: %1. (The upload ended: %2.)")
+                             .arg(changed, summary.outcome);
+        summary.outcome = tr("the media set changed after it was checked");
+        summary.hint = media_set_changed_hint();
+    } else if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation)) {
         const int served_count = static_cast<int>(outcome->files_served);
         const QString served = served_count == 1
                                    ? tr("The target read 1 file.")

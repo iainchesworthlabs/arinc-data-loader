@@ -73,6 +73,10 @@ private Q_SLOTS:
     void one_file_of_a_name_is_served_whatever_the_crc();
     void no_such_file_is_not_found();
     void reads_at_offsets_and_gives_back_its_slots();
+    void a_file_changed_after_the_check_is_refused();
+    void the_whole_set_can_be_verified_before_an_upload();
+    void an_index_made_without_the_files_does_not_verify();
+    void a_listed_file_that_is_not_in_the_set_is_refused();
 };
 
 // Whole jobs through LoaderModel: the engine on its own thread, against the simulated target on
@@ -104,6 +108,7 @@ private Q_SLOTS:
     void a_set_is_uploadable_only_after_the_check_passes();
     void a_corrupted_set_fails_the_check_and_stays_refused();
     void check_media_set_revalidates_files_changed_on_disk();
+    void a_set_edited_after_the_check_is_not_uploaded();
     void findings_warn_but_do_not_block_the_upload();
     void with_validate_on_open_off_the_set_waits_for_a_check();
     void the_control_port_flows_into_the_loader();
