@@ -9,6 +9,7 @@ import QtQuick.Layouts
 // written. The action itself is the window's fixed bar.
 Item {
     id: root
+    objectName: "downloadPanel"
 
     required property var app
 
@@ -32,12 +33,19 @@ Item {
         onAccepted: root.app.downloadDirectory = selectedFolder
     }
 
+    // Tab to a control below the fold and the page follows it.
+    RevealOnFocus {
+        flickable: scroll.contentItem
+    }
+
     ScrollView {
         id: scroll
+        objectName: "downloadScroll"
 
         anchors.fill: parent
         contentWidth: availableWidth
         clip: true
+        ScrollBar.vertical: AppScrollBar {}
 
         Item {
             width: scroll.availableWidth
@@ -176,7 +184,7 @@ Item {
                             text: qsTr("Add")
                             enabled: !root.app.busy && downloadNameField.text.trim().length > 0
                             onClicked: root.addName()
-                            Accessible.name: qsTr("Add the file name to the download")
+                            Accessible.description: qsTr("Add the file name to the download")
                         }
                     }
 
@@ -229,14 +237,15 @@ Item {
                                         text: nameRow.ratio >= 0
                                               ? nameRow.ratio + "% " + nameRow.fileStatus
                                               : nameRow.fileStatus
-                                        tone: nameRow.failed ? "fail" : "neutral"
+                                        tone: nameRow.failed ? "fail"
+                                                             : nameRow.ratio >= 100 ? "ok" : "accent"
                                     }
 
                                     AppButton {
                                         visible: !root.app.busy
                                         text: qsTr("Remove")
                                         onClicked: root.app.removeDownloadFile(nameRow.index)
-                                        Accessible.name: qsTr("Remove %1 from the download").arg(nameRow.name)
+                                        Accessible.description: qsTr("Remove %1 from the download").arg(nameRow.name)
                                     }
                                 }
 
@@ -294,7 +303,7 @@ Item {
                             objectName: "chooseNoneButton"
                             text: qsTr("Choose none")
                             onClicked: root.app.chooseNoDownloadFiles()
-                            Accessible.name: qsTr("Choose none of the files")
+                            Accessible.description: qsTr("Choose none of the files")
                         }
 
                         AppButton {
@@ -303,7 +312,7 @@ Item {
                             text: qsTr("Download selected")
                             enabled: root.app.downloadSelectedCount > 0
                             onClicked: root.app.confirmDownloadSelection()
-                            Accessible.name: qsTr("Download the ticked files")
+                            Accessible.description: qsTr("Download the ticked files")
                         }
 
                         Text {
@@ -347,7 +356,7 @@ Item {
                                     checked: choiceRow.checked
                                     enabled: root.app.downloadChoicePending
                                     onToggled: (value) => choiceRow.model.checked = value
-                                    Accessible.name: qsTr("Download %1").arg(choiceRow.name)
+                                    Accessible.description: qsTr("Download %1").arg(choiceRow.name)
                                 }
 
                                 Text {
@@ -401,14 +410,14 @@ Item {
                             text: qsTr("Change...")
                             enabled: !root.app.busy
                             onClicked: destinationDialog.open()
-                            Accessible.name: qsTr("Choose the download directory")
+                            Accessible.description: qsTr("Choose the download directory")
                         }
 
                         AppButton {
                             visible: root.app.lastDownloadDirectory.length > 0
                             text: qsTr("Open folder")
-                            onClicked: Qt.openUrlExternally(root.app.lastDownloadDirectory)
-                            Accessible.name: qsTr("Open the last download directory")
+                            onClicked: Qt.openUrlExternally(Theme.fileUrl(root.app.lastDownloadDirectory))
+                            Accessible.description: qsTr("Open the last download directory")
                         }
                     }
 
@@ -462,8 +471,8 @@ Item {
                             AppButton {
                                 visible: root.app.lastDownloadDirectory.length > 0
                                 text: qsTr("Open folder")
-                                onClicked: Qt.openUrlExternally(root.app.lastDownloadDirectory)
-                                Accessible.name: qsTr("Open the download folder")
+                                onClicked: Qt.openUrlExternally(Theme.fileUrl(root.app.lastDownloadDirectory))
+                                Accessible.description: qsTr("Open the download folder")
                             }
                         }
 

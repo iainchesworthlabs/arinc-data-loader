@@ -503,7 +503,7 @@ ApplicationWindow {
                         AppButton {
                             text: qsTr("Open folder")
                             enabled: window.app.storageDirectory.length > 0
-                            onClicked: Qt.openUrlExternally(window.app.storageDirectory)
+                            onClicked: Qt.openUrlExternally(Theme.fileUrl(window.app.storageDirectory))
                             Accessible.name: qsTr("Open the storage directory")
                         }
                     }

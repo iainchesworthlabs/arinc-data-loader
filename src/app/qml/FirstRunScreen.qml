@@ -16,6 +16,10 @@ Item {
     signal started()
     signal chooseMediaSetRequested()
 
+    // The first screen opens with the keyboard on its one primary, so Enter starts.
+    onVisibleChanged: if (visible) startButton.forceActiveFocus(Qt.TabFocusReason)
+    Component.onCompleted: if (visible) startButton.forceActiveFocus(Qt.TabFocusReason)
+
     FolderDialog {
         id: downloadDirectoryDialog
 
@@ -67,6 +71,8 @@ Item {
                 spacing: Theme.space2
 
                 AppButton {
+                    id: startButton
+
                     objectName: "firstRunStart"
                     primary: true
                     text: qsTr("Start loading")
@@ -74,13 +80,13 @@ Item {
                         root.app.completeFirstRun();
                         root.started();
                     }
-                    Accessible.name: qsTr("Start the loader")
+                    Accessible.description: qsTr("Start the loader")
                 }
 
                 AppButton {
                     text: qsTr("Choose a media set...")
                     onClicked: root.chooseMediaSetRequested()
-                    Accessible.name: qsTr("Choose the first media set")
+                    Accessible.description: qsTr("Choose the first media set")
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Opens the media set chooser and the workbench together")
                 }
@@ -120,7 +126,7 @@ Item {
                 AppButton {
                     text: root.showDefaults ? qsTr("Hide") : qsTr("Set up defaults")
                     onClicked: root.showDefaults = !root.showDefaults
-                    Accessible.name: root.showDefaults ? qsTr("Hide the default settings")
+                    Accessible.description: root.showDefaults ? qsTr("Hide the default settings")
                                                         : qsTr("Show the default settings")
                 }
             }
@@ -155,8 +161,9 @@ Item {
                         Layout.fillWidth: true
                         placeholderText: qsTr("10.0.0.2")
                         text: root.app.defaultTargetAddress
-                        onTextEdited: root.app.defaultTargetAddress = text
-                        Accessible.name: qsTr("Default target address")
+                        onTextCommitted: (value) => root.app.defaultTargetAddress = value
+                        Accessible.name: qsTr("Default address")
+                        Accessible.description: qsTr("Default target address")
                     }
 
                     Text {
@@ -170,8 +177,9 @@ Item {
                         Layout.fillWidth: true
                         placeholderText: qsTr("HNPFMS_L")
                         text: root.app.defaultThwIdPos
-                        onTextEdited: root.app.defaultThwIdPos = text
-                        Accessible.name: qsTr("Default target hardware identifier and position")
+                        onTextCommitted: (value) => root.app.defaultThwIdPos = value
+                        Accessible.name: qsTr("Default THW_ID_POS")
+                        Accessible.description: qsTr("Default target hardware identifier and position")
                     }
 
                     Text {
@@ -188,14 +196,14 @@ Item {
                             objectName: "firstRunDownloadDirectory"
                             Layout.fillWidth: true
                             text: root.app.downloadDirectory
-                            onTextEdited: root.app.downloadDirectory = text
+                            onTextCommitted: (value) => root.app.downloadDirectory = value
                             Accessible.name: qsTr("Download directory")
                         }
 
                         AppButton {
                             text: qsTr("Browse...")
                             onClicked: downloadDirectoryDialog.open()
-                            Accessible.name: qsTr("Choose the download directory")
+                            Accessible.description: qsTr("Choose the download directory")
                         }
                     }
                 }

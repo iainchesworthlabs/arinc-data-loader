@@ -23,11 +23,20 @@ ApplicationWindow {
     property bool closeRequested: false
     property bool closeAfterStop: false
 
-    readonly property string statusText: app.busy ? qsTr("WORKING")
+    // One state for the whole window: the header chip, the transfer strip's chip and the status bar
+    // all read it, so they cannot disagree (the header said READY while the strip said FAILED).
+    readonly property bool lastFailed: app.resultIsTransfer && app.resultState === 2
+    readonly property bool lastComplete: app.resultIsTransfer && app.resultState === 1
+    readonly property string statusText: app.busy ? qsTr("RUNNING")
                                                   : app.firstRun ? qsTr("SETUP")
-                                                                 : app.canUpload || app.canDownload
-                                                                   ? qsTr("READY") : qsTr("NOT READY")
+                                                  : lastFailed ? qsTr("FAILED")
+                                                  : lastComplete ? qsTr("COMPLETE")
+                                                  : app.canUpload || app.canDownload
+                                                    ? qsTr("READY") : qsTr("NOT READY")
     readonly property string statusTone: app.busy ? "accent"
+                                                  : app.firstRun ? "neutral"
+                                                  : lastFailed ? "fail"
+                                                  : lastComplete ? "ok"
                                                   : app.canUpload || app.canDownload ? "ok" : "warn"
     readonly property bool modalOpen: preferencesDialog.opened || aboutDialog.opened || licencesDialog.opened
                                       || mediaSetPropertiesDialog.opened
@@ -53,8 +62,10 @@ ApplicationWindow {
     title: qsTr("ARINC Data Loader")
     width: 1280
     height: 900
-    minimumWidth: 1120
-    minimumHeight: 760
+    // 1000 x 620 leaves the header, the action bar and the status bar on screen on a 1366 x 768
+    // display at 125% scaling and on a 1920 x 1080 display at 150%.
+    minimumWidth: 1000
+    minimumHeight: 620
     visible: true
     color: Theme.bg
 
@@ -106,6 +117,7 @@ ApplicationWindow {
         subtitle: qsTr("ARINC 615A · ARINC 665 · engineering load console")
 
         StatusChip {
+            objectName: "headerStatusChip"
             text: window.statusText
             tone: window.statusTone
         }
@@ -114,37 +126,43 @@ ApplicationWindow {
             objectName: "preferencesButton"
             text: qsTr("Preferences")
             onClicked: preferencesDialog.open()
-            Accessible.name: qsTr("Open preferences")
+            Accessible.description: qsTr("Open preferences")
         }
 
         AppButton {
             objectName: "aboutButton"
             text: qsTr("About")
             onClicked: aboutDialog.open()
-            Accessible.name: qsTr("About the data loader")
+            Accessible.description: qsTr("About the data loader")
         }
     }
 
     footer: AppStatusBar {
-        Rectangle {
-            width: 6
-            height: 6
-            radius: 3
-            color: window.app.busy ? Theme.accent : Theme.neutral600
+        // The state mark: the same glyph the chips use for the same state, so the status bar does
+        // not rely on a coloured dot.
+        ToneGlyph {
+            Layout.preferredWidth: 10
+            Layout.preferredHeight: 10
+            glyph: window.app.busy ? "busy"
+                                   : window.lastFailed ? "cross"
+                                                       : window.lastComplete ? "check" : "dot"
+            color: window.app.busy ? Theme.accentInk
+                                   : window.lastFailed ? Theme.fail : Theme.neutral700
         }
 
         Text {
             objectName: "statusState"
 
             text: window.app.busy ? window.app.activity
-                                  : window.app.resultIsTransfer && window.app.resultState === 1
+                                  : window.lastComplete
                                     ? qsTr("Complete")
-                                    : window.app.resultIsTransfer && window.app.resultState === 2
+                                    : window.lastFailed
                                       ? qsTr("Failed") : qsTr("Idle")
-            color: window.app.busy ? Theme.accentInk : Theme.text
+            color: window.app.busy ? Theme.accentInk
+                                   : window.lastFailed ? Theme.fail : Theme.text
             font.pixelSize: Theme.fontMono
             font.family: Theme.monoFamily
-            font.bold: window.app.busy
+            font.bold: window.app.busy || window.lastFailed
             elide: Text.ElideRight
             Layout.maximumWidth: 320
         }
@@ -245,6 +263,10 @@ ApplicationWindow {
         heading: qsTr("An operation is running")
         primaryText: qsTr("Stop and close")
         secondaryText: qsTr("Keep working")
+        // The primary stops a running transfer, so it is not the default: the focus starts on
+        // "Keep working" and Enter does not press "Stop and close" from elsewhere in the dialog.
+        initialFocus: "secondary"
+        enterAccepts: false
 
         content: ColumnLayout {
             Layout.fillWidth: true
@@ -322,10 +344,11 @@ ApplicationWindow {
             }
         }
 
-        onPrimaryClicked: {
-            window.app.dismissError();
-            close();
-        }
+        onPrimaryClicked: close()
+
+        // OK, Esc and any other way of closing the dialog acknowledge the failure: Esc used to
+        // close it and leave the error standing in the model.
+        onClosed: window.app.dismissError()
     }
 
     Connections {
@@ -358,8 +381,14 @@ ApplicationWindow {
         spacing: 0
 
         // ---- the context rail: target, then media set ----
+        // Tab into a control below the fold and the rail follows it.
+        RevealOnFocus {
+            flickable: rail.contentItem
+        }
+
         ScrollView {
             id: rail
+            objectName: "railScroll"
 
             Layout.preferredWidth: 388
             Layout.minimumWidth: 348
@@ -367,6 +396,7 @@ ApplicationWindow {
             Layout.fillHeight: true
             clip: true
             contentWidth: availableWidth
+            ScrollBar.vertical: AppScrollBar {}
 
             ColumnLayout {
                 width: rail.availableWidth
@@ -396,7 +426,7 @@ ApplicationWindow {
                             text: qsTr("Find")
                             enabled: !window.app.busy
                             onClicked: window.app.findTargets()
-                            Accessible.name: qsTr("Find targets")
+                            Accessible.description: qsTr("Find targets")
                         }
                     }
 
@@ -419,7 +449,7 @@ ApplicationWindow {
                             placeholderText: qsTr("10.0.0.2")
                             text: window.app.targetAddress
                             enabled: !window.app.busy
-                            onTextEdited: window.app.targetAddress = text
+                            onTextCommitted: (value) => window.app.targetAddress = value
                             Accessible.name: qsTr("Target address")
                         }
 
@@ -438,8 +468,9 @@ ApplicationWindow {
                             placeholderText: qsTr("HNPFMS_L")
                             text: window.app.thwIdPos
                             enabled: !window.app.busy
-                            onTextEdited: window.app.thwIdPos = text
-                            Accessible.name: qsTr("Target hardware identifier and position")
+                            onTextCommitted: (value) => window.app.thwIdPos = value
+                            Accessible.name: qsTr("THW_ID_POS")
+                            Accessible.description: qsTr("Target hardware identifier and position")
                         }
                     }
 
@@ -473,13 +504,64 @@ ApplicationWindow {
                                 required property string typeName
                                 required property string position
 
+                                readonly property bool chosen: window.app.selectedTargetIndex === targetRow.index
+
+                                // The FIND answers are one choice, read like a radio group: one tab
+                                // stop (the chosen answer, the first when none is), Up and Down
+                                // choose the neighbour and move the focus to it, Enter or Space
+                                // chooses the focused one.
+                                function chooseRow(position) {
+                                    const row = targetRepeater.itemAt(position);
+                                    if (row === null)
+                                        return;
+                                    window.app.selectTarget(position);
+                                    row.forceActiveFocus(Qt.TabFocusReason);
+                                }
+
                                 Layout.fillWidth: true
                                 implicitHeight: targetContent.implicitHeight + Theme.space2 * 2
-                                color: window.app.selectedTargetIndex === targetRow.index
-                                       ? Theme.accent100 : "transparent"
-                                border.color: window.app.selectedTargetIndex === targetRow.index
-                                              ? Theme.accent300 : Theme.divider
-                                border.width: 1
+                                color: targetRow.chosen ? Theme.selectedFill : "transparent"
+                                border.color: targetRow.chosen ? Theme.selectedBorder : Theme.divider
+                                border.width: targetRow.chosen ? Theme.selectedBorderWidth : 1
+                                enabled: !window.app.busy
+                                activeFocusOnTab: targetRow.index
+                                                  === (window.app.selectedTargetIndex >= 0
+                                                       ? window.app.selectedTargetIndex : 0)
+                                                  || targetRow.activeFocus
+                                Accessible.role: Accessible.RadioButton
+                                Accessible.name: (targetRow.thwIdPos.length > 0
+                                                  ? targetRow.thwIdPos : targetRow.address)
+                                Accessible.description: targetRow.address + ", " + targetRow.typeName
+                                                        + " " + targetRow.position
+                                Accessible.checkable: true
+                                Accessible.checked: targetRow.chosen
+                                Accessible.focusable: true
+                                Accessible.onPressAction: window.app.selectTarget(targetRow.index)
+
+                                Keys.onPressed: function(event) {
+                                    const count = targetRepeater.count;
+                                    if (event.key === Qt.Key_Up || event.key === Qt.Key_Left) {
+                                        targetRow.chooseRow((targetRow.index - 1 + count) % count);
+                                        event.accepted = true;
+                                    } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Right) {
+                                        targetRow.chooseRow((targetRow.index + 1) % count);
+                                        event.accepted = true;
+                                    } else if (event.key === Qt.Key_Home) {
+                                        targetRow.chooseRow(0);
+                                        event.accepted = true;
+                                    } else if (event.key === Qt.Key_End) {
+                                        targetRow.chooseRow(count - 1);
+                                        event.accepted = true;
+                                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                                               || event.key === Qt.Key_Space) {
+                                        window.app.selectTarget(targetRow.index);
+                                        event.accepted = true;
+                                    }
+                                }
+
+                                FocusRing {
+                                    active: targetRow.activeFocus
+                                }
 
                                 RowLayout {
                                     id: targetContent
@@ -520,7 +602,10 @@ ApplicationWindow {
                                 MouseArea {
                                     anchors.fill: parent
                                     enabled: !window.app.busy
-                                    onClicked: window.app.selectTarget(targetRow.index)
+                                    onClicked: {
+                                        window.app.selectTarget(targetRow.index);
+                                        targetRow.forceActiveFocus(Qt.MouseFocusReason);
+                                    }
                                 }
                             }
                         }
@@ -537,7 +622,7 @@ ApplicationWindow {
                             enabled: window.app.selectedTargetIndex >= 0
                                      || window.app.targetAddress.length > 0
                             onClicked: targetPropertiesDialog.open()
-                            Accessible.name: qsTr("Show the target properties")
+                            Accessible.description: qsTr("Show the target properties")
                         }
 
                         Text {
@@ -582,10 +667,12 @@ ApplicationWindow {
                                                                            : window.app.validationState === 3
                                                                              ? qsTr("INVALID") : qsTr("UNCHECKED")
                             tone: window.app.mediaSetPath.length === 0 ? "neutral"
-                                                                       : window.app.validationState === 2
-                                                                         ? "ok"
-                                                                         : window.app.validationState === 3
-                                                                           ? "fail" : "warn"
+                                                                       : window.app.validationState === 1
+                                                                         ? "accent"
+                                                                         : window.app.validationState === 2
+                                                                           ? "ok"
+                                                                           : window.app.validationState === 3
+                                                                             ? "fail" : "warn"
                         }
 
                         Item {
@@ -599,7 +686,7 @@ ApplicationWindow {
                                   ? qsTr("Choose...") : qsTr("Change...")
                             enabled: !window.app.busy
                             onClicked: mediaSetDialog.open()
-                            Accessible.name: qsTr("Choose the media set directory")
+                            Accessible.description: qsTr("Choose the media set directory")
                         }
                     }
 
@@ -637,13 +724,10 @@ ApplicationWindow {
                             wrapMode: Text.WordWrap
                         }
 
-                        Text {
-                            Layout.fillWidth: true
+                        ToneMessage {
                             visible: window.app.mediaSetError.length > 0
+                            tone: "fail"
                             text: window.app.mediaSetError
-                            color: Theme.accentInk
-                            font.pixelSize: Theme.fontSmall
-                            wrapMode: Text.WordWrap
                         }
 
                         RowLayout {
@@ -656,7 +740,7 @@ ApplicationWindow {
                                 text: qsTr("Re-check")
                                 enabled: !window.app.busy && window.app.mediaSetPath.length > 0
                                 onClicked: window.app.checkMediaSet()
-                                Accessible.name: qsTr("Check the media set again")
+                                Accessible.description: qsTr("Check the media set again")
                             }
 
                             AppButton {
@@ -665,7 +749,7 @@ ApplicationWindow {
                                 text: qsTr("Properties...")
                                 enabled: window.app.mediaSetPath.length > 0
                                 onClicked: mediaSetPropertiesDialog.open()
-                                Accessible.name: qsTr("Show the media set properties")
+                                Accessible.description: qsTr("Show the media set properties")
                             }
                         }
 
@@ -692,7 +776,7 @@ ApplicationWindow {
                                 text: qsTr("All")
                                 enabled: !window.app.busy && loadRepeater.count > 0
                                 onClicked: window.app.selectAllLoads(true)
-                                Accessible.name: qsTr("Tick every load")
+                                Accessible.description: qsTr("Tick every load")
                             }
 
                             AppButton {
@@ -701,7 +785,7 @@ ApplicationWindow {
                                 text: qsTr("None")
                                 enabled: !window.app.busy && loadRepeater.count > 0
                                 onClicked: window.app.selectAllLoads(false)
-                                Accessible.name: qsTr("Untick every load")
+                                Accessible.description: qsTr("Untick every load")
                             }
                         }
 
@@ -724,9 +808,9 @@ ApplicationWindow {
 
                                 Layout.fillWidth: true
                                 implicitHeight: loadContent.implicitHeight + Theme.space2 * 2
-                                color: loadRow.checked ? Theme.accent100 : "transparent"
-                                border.color: loadRow.checked ? Theme.accent300 : Theme.divider
-                                border.width: 1
+                                color: loadRow.checked ? Theme.selectedFill : "transparent"
+                                border.color: loadRow.checked ? Theme.selectedBorder : Theme.divider
+                                border.width: loadRow.checked ? Theme.selectedBorderWidth : 1
 
                                 ColumnLayout {
                                     id: loadContent
@@ -742,7 +826,7 @@ ApplicationWindow {
                                         checked: loadRow.checked
                                         enabled: !window.app.busy
                                         onToggled: (value) => loadRow.model.checked = value
-                                        Accessible.name: qsTr("Upload load %1").arg(loadRow.partNumber)
+                                        Accessible.description: qsTr("Upload load %1").arg(loadRow.partNumber)
                                     }
 
                                     Text {
@@ -762,15 +846,13 @@ ApplicationWindow {
                                         indeterminate: false
                                     }
 
-                                    Text {
-                                        Layout.fillWidth: true
+                                    ToneMessage {
                                         Layout.leftMargin: 26
                                         visible: loadRow.ratio >= 0
+                                        tone: loadRow.failed ? "fail"
+                                                             : loadRow.ratio >= 100 ? "ok" : "neutral"
                                         text: loadRow.ratio + "% " + loadRow.loadStatus
                                               + (loadRow.problem.length > 0 ? ": " + loadRow.problem : "")
-                                        color: loadRow.failed ? Theme.accentInk : Theme.text
-                                        font.pixelSize: Theme.fontSmall
-                                        wrapMode: Text.WordWrap
                                     }
                                 }
                             }
@@ -795,18 +877,17 @@ ApplicationWindow {
                         Repeater {
                             model: window.app.mediaSetFindings
 
-                            delegate: Text {
+                            // A warning from the check reads in the warning ink with a triangle,
+                            // not in the error's red: it does not stop an upload.
+                            delegate: ToneMessage {
                                 id: findingRow
 
                                 required property int index
                                 required property string modelData
 
-                                Layout.fillWidth: true
                                 visible: findingRow.index < 3 || mediaSetRail.findingsExpanded
-                                text: "· " + findingRow.modelData
-                                color: Theme.accentInk
-                                font.pixelSize: Theme.fontSmall
-                                wrapMode: Text.WordWrap
+                                tone: "warn"
+                                text: findingRow.modelData
                             }
                         }
 
@@ -842,13 +923,10 @@ ApplicationWindow {
                         wrapMode: Text.WordWrap
                     }
 
-                    Text {
-                        Layout.fillWidth: true
+                    ToneMessage {
                         visible: window.app.validationState === 3
+                        tone: "fail"
                         text: window.app.validationError
-                        color: Theme.accentInk
-                        font.pixelSize: Theme.fontSmall
-                        wrapMode: Text.WordWrap
                     }
                 }
 
@@ -905,20 +983,9 @@ ApplicationWindow {
                     }
 
                     StatusChip {
-                        text: window.app.busy ? qsTr("RUNNING")
-                                              : window.app.resultIsTransfer && window.app.resultState === 1
-                                                ? qsTr("COMPLETE")
-                                                : window.app.resultIsTransfer && window.app.resultState === 2
-                                                  ? qsTr("FAILED")
-                                                  : window.app.canUpload || window.app.canDownload
-                                                    ? qsTr("READY") : qsTr("NOT READY")
-                        tone: window.app.busy ? "accent"
-                                              : window.app.resultIsTransfer && window.app.resultState === 1
-                                                ? "ok"
-                                                : window.app.resultIsTransfer && window.app.resultState === 2
-                                                  ? "fail"
-                                                  : window.app.canUpload || window.app.canDownload
-                                                    ? "ok" : "warn"
+                        objectName: "stripStatusChip"
+                        text: window.statusText
+                        tone: window.statusTone
                     }
                 }
 
@@ -942,6 +1009,7 @@ ApplicationWindow {
                     onChooseMediaSetRequested: mediaSetDialog.open()
                     onCheckMediaSetRequested: window.app.checkMediaSet()
                     onFindTargetsRequested: window.app.findTargets()
+                    onTickAllLoadsRequested: window.app.selectAllLoads(true)
                 }
 
                 DownloadPanel {
@@ -951,10 +1019,18 @@ ApplicationWindow {
 
             ActivityDock {
                 id: activityDock
+                objectName: "activityDock"
 
                 Layout.fillWidth: true
-                Layout.preferredHeight: activityDock.expanded ? 260 : 44
+                // A share of the window rather than a fixed 260 px: at the minimum size the plan
+                // above it would otherwise be left with about 280 px.
+                Layout.preferredHeight: activityDock.expanded
+                                        ? Math.max(150, Math.min(260, Math.round(window.height * 0.26)))
+                                        : 44
                 app: window.app
+
+                // A short window starts with the dock folded away; the operator opens it with Show.
+                Component.onCompleted: expanded = window.height >= 700
             }
 
             Rectangle {
@@ -1029,7 +1105,7 @@ ApplicationWindow {
                         text: qsTr("Read information")
                         enabled: window.app.canReadInformation
                         onClicked: window.app.readInformation()
-                        Accessible.name: qsTr("Read the target information")
+                        Accessible.description: qsTr("Read the target information")
                     }
 
                     AppButton {
@@ -1039,7 +1115,7 @@ ApplicationWindow {
                         text: window.app.busy ? qsTr("Uploading...") : qsTr("Upload")
                         enabled: window.app.canUpload
                         onClicked: window.app.uploadSelected()
-                        Accessible.name: qsTr("Upload the ticked loads")
+                        Accessible.description: qsTr("Upload the ticked loads")
                     }
 
                     AppButton {
@@ -1049,7 +1125,7 @@ ApplicationWindow {
                         text: window.app.busy ? qsTr("Downloading...") : qsTr("Download")
                         enabled: window.app.canDownload
                         onClicked: window.app.downloadSelected()
-                        Accessible.name: qsTr("Download from the target")
+                        Accessible.description: qsTr("Download from the target")
                     }
 
                     AppButton {
@@ -1059,7 +1135,7 @@ ApplicationWindow {
                         text: qsTr("Abort")
                         enabled: window.app.canAbort
                         onClicked: window.app.abort()
-                        Accessible.name: qsTr("Abort the operation")
+                        Accessible.description: qsTr("Abort the operation")
                     }
                 }
             }

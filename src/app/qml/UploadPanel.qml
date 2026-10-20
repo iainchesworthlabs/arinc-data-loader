@@ -9,12 +9,14 @@ import QtQuick.Layouts
 // fixed bar, not a control at the end of this page.
 Item {
     id: root
+    objectName: "uploadPanel"
 
     required property var app
 
     signal chooseMediaSetRequested()
     signal checkMediaSetRequested()
     signal findTargetsRequested()
+    signal tickAllLoadsRequested()
 
     readonly property string targetName: root.app.thwIdPos.length > 0
                                          ? root.app.thwIdPos
@@ -38,59 +40,107 @@ Item {
         }
     }
 
-    readonly property string nextTitle: {
+    // The one thing the operator has to do next. The title, the sentence under it and the button
+    // all come from this, so they cannot disagree (the title used to say "Tick at least one load"
+    // beside a button that said "Find targets").
+    readonly property string nextStep: {
         if (root.app.busy)
-            return qsTr("An operation is running");
+            return "busy";
         if (root.app.validationState === 1)
-            return qsTr("Checking the media set");
+            return "checking";
         if (root.app.mediaSetPath.length === 0)
-            return qsTr("Choose a media set first");
+            return "choose";
         if (root.app.validationState === 3)
-            return qsTr("The media set is not valid");
+            return "invalid";
         if (root.app.validationState !== 2)
-            return qsTr("Check the media set");
+            return "check";
         if (root.app.selectedLoadCount === 0)
-            return qsTr("Tick at least one load");
+            return "tick";
         if (!root.app.targetValid && !root.app.autoFindBeforeOperation)
-            return qsTr("Choose or find a target");
-        return qsTr("Ready to upload");
+            return "find";
+        return "ready";
+    }
+    readonly property string nextTitle: {
+        switch (root.nextStep) {
+        case "busy": return qsTr("An operation is running");
+        case "checking": return qsTr("Checking the media set");
+        case "choose": return qsTr("Choose a media set first");
+        case "invalid": return qsTr("The media set is not valid");
+        case "check": return qsTr("Check the media set");
+        case "tick": return qsTr("Tick at least one load");
+        case "find": return qsTr("Choose or find a target");
+        default: return qsTr("Ready to upload");
+        }
     }
     readonly property string nextBody: {
-        if (root.app.busy)
+        switch (root.nextStep) {
+        case "busy":
             return qsTr("Wait for it to finish, or stop it from the action bar.");
-        if (root.app.validationState === 1)
+        case "checking":
             return qsTr("Every file and its check value is being read; an upload needs the check to pass.");
-        if (root.app.mediaSetPath.length === 0)
+        case "choose":
             return qsTr("A media set is a directory with one directory per member. It is read and checked before an upload.");
-        if (root.app.validationState === 3)
+        case "invalid":
             return root.app.validationError.length > 0
                    ? root.app.validationError
                    : qsTr("Read the set again, or choose another directory.");
-        if (root.app.validationState !== 2)
+        case "check":
             return qsTr("The set has to be read again and checked before it may be uploaded.");
-        if (root.app.selectedLoadCount === 0)
-            return qsTr("Use the check boxes in the media set rail. Nothing is sent until at least one load is ticked.");
-        if (!root.app.targetValid && !root.app.autoFindBeforeOperation)
+        case "tick":
+            return qsTr("Use the check boxes in the media set rail, or tick every load here. Nothing is sent until at least one load is ticked.");
+        case "find":
             return qsTr("FIND, or type the target's IPv4 address and THW_ID_POS.");
-        return qsTr("The target, the set, the ticked loads and the check are all in place.");
+        default:
+            return qsTr("The target, the set, the ticked loads and the check are all in place.");
+        }
     }
+    // The label of the button beside the sentence; empty when there is nothing to press.
+    readonly property string nextActionText: {
+        switch (root.nextStep) {
+        case "choose":
+        case "invalid": return qsTr("Choose media set");
+        case "check": return qsTr("Check the set");
+        case "tick": return qsTr("Tick all loads");
+        case "find": return qsTr("Find targets");
+        default: return "";
+        }
+    }
+    // A step that is not yet satisfied is a warning; the all-clear and a running job are not.
+    readonly property bool nextIsPending: root.nextStep !== "ready" && root.nextStep !== "busy"
 
     function runNextAction() {
-        if (root.app.mediaSetPath.length === 0 || root.app.validationState === 3) {
+        switch (root.nextStep) {
+        case "choose":
+        case "invalid":
             root.chooseMediaSetRequested();
-        } else if (root.app.validationState !== 2) {
+            break;
+        case "check":
             root.checkMediaSetRequested();
-        } else if (!root.app.targetValid && !root.app.autoFindBeforeOperation) {
+            break;
+        case "tick":
+            root.tickAllLoadsRequested();
+            break;
+        case "find":
             root.findTargetsRequested();
+            break;
+        default:
+            break;
         }
+    }
+
+    // Tab to a control below the fold and the page follows it.
+    RevealOnFocus {
+        flickable: scroll.contentItem
     }
 
     ScrollView {
         id: scroll
+        objectName: "uploadScroll"
 
         anchors.fill: parent
         contentWidth: availableWidth
         clip: true
+        ScrollBar.vertical: AppScrollBar {}
 
         Item {
             width: scroll.availableWidth
@@ -169,7 +219,9 @@ Item {
                 // ---- preflight ----
                 GridLayout {
                     Layout.fillWidth: true
-                    columns: 3
+                    // Three tiles across when there is room for each to show its detail, one per row
+                    // when there is not (the work area is about 560 px wide at the minimum window).
+                    columns: content.width >= 720 ? 3 : 1
                     columnSpacing: Theme.space2
                     rowSpacing: Theme.space2
 
@@ -213,11 +265,15 @@ Item {
 
                 // ---- the next thing to do, or the all-clear ----
                 Rectangle {
+                    id: nextBanner
+
+                    readonly property string nextTone: root.nextStep === "busy" ? "accent"
+                                                       : root.nextIsPending ? "warn" : "ok"
+
                     Layout.fillWidth: true
                     implicitHeight: nextRow.implicitHeight + Theme.space3 * 2
-                    color: root.app.canUpload || root.app.busy ? Theme.neutral100 : Theme.accent100
-                    border.color: root.app.canUpload || root.app.busy
-                                  ? Theme.divider : Theme.accent300
+                    color: root.nextIsPending ? Theme.accent100 : Theme.neutral100
+                    border.color: root.nextIsPending ? Theme.warn : Theme.divider
                     border.width: 1
 
                     RowLayout {
@@ -227,12 +283,15 @@ Item {
                         anchors.margins: Theme.space3
                         spacing: Theme.space3
 
-                        Rectangle {
-                            Layout.preferredWidth: 24
-                            Layout.preferredHeight: 2
+                        // The glyph says the same as the border: a triangle while a step is open, a
+                        // check when everything is in place, a play mark while a job runs.
+                        ToneGlyph {
+                            Layout.preferredWidth: 14
+                            Layout.preferredHeight: 14
                             Layout.alignment: Qt.AlignTop
-                            color: root.app.canUpload || root.app.busy
-                                   ? Theme.neutral600 : Theme.accentInk
+                            Layout.topMargin: 2
+                            glyph: Theme.toneGlyph(nextBanner.nextTone)
+                            color: Theme.toneTextInk(nextBanner.nextTone)
                         }
 
                         ColumnLayout {
@@ -257,18 +316,10 @@ Item {
                         }
 
                         AppButton {
-                            visible: !root.app.canUpload && !root.app.busy
-                                     && root.app.validationState !== 1
-                                     && (root.app.mediaSetPath.length === 0
-                                         || root.app.validationState === 3
-                                         || root.app.validationState !== 2
-                                         || (!root.app.targetValid
-                                             && !root.app.autoFindBeforeOperation))
-                            text: (root.app.mediaSetPath.length === 0
-                                   || root.app.validationState === 3)
-                                  ? qsTr("Choose media set")
-                                  : root.app.validationState !== 2 ? qsTr("Check the set")
-                                                                   : qsTr("Find targets")
+                            objectName: "nextActionButton"
+
+                            visible: root.nextActionText.length > 0
+                            text: root.nextActionText
                             onClicked: root.runNextAction()
                         }
                     }
@@ -369,6 +420,7 @@ Item {
                                           ? loadRow.ratio + "% " + loadRow.loadStatus
                                           : loadRow.failed ? qsTr("FAILED") : qsTr("TICKED")
                                     tone: loadRow.failed ? "fail"
+                                                         : loadRow.ratio >= 100 ? "ok"
                                                          : loadRow.ratio >= 0 ? "accent" : "neutral"
                                 }
                             }
@@ -380,13 +432,10 @@ Item {
                                 indeterminate: false
                             }
 
-                            Text {
-                                Layout.fillWidth: true
+                            ToneMessage {
                                 visible: loadRow.problem.length > 0
+                                tone: "fail"
                                 text: loadRow.problem
-                                color: Theme.accentInk
-                                font.pixelSize: Theme.fontSmall
-                                wrapMode: Text.WordWrap
                             }
                         }
                     }
