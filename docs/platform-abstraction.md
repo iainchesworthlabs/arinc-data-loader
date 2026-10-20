@@ -26,16 +26,23 @@ Be clear about this before reading further.
 | INTEGRITY 5.0.8 (GHS) | **unbuilt** | Code exists (`src/platforms/ghs508`, on top of `posix/`) and has never been compiled against the INTEGRITY headers or run; no GHS toolchain exists on this project's machines. [The GHS review](platform-ghs.md) lists the places INTEGRITY's POSIX may differ |
 | INTEGRITY-178B (GHS) | **unbuilt** | Code exists (`src/platforms/ghs178b`, a native port: semaphores, the virtual-clock time-out pattern, ipflite) and has never been compiled. `Threading::spawn` and the `FileSystem` are `unsupported` on purpose; [the GHS review](platform-ghs.md) says why |
 | VxWorks | **design only** | No code. The fragment exists so the name is known and a build is refused with an explanation |
-| FreeRTOS | **design only** | As VxWorks |
-| Zephyr | **design only** | As VxWorks |
+| FreeRTOS | **experimental** | Built, and the conformance suite and the 615A engine tests run, in CI on the kernel's POSIX simulator port: the real kernel in a Linux process, lwIP's UDP sockets over its loopback interface, littlefs on a RAM block device (`src/platforms/freertos`, `tests/platform/freertos`). No target hardware, real network interface or flash has run it. [What was and was not verified](#the-freertos-and-zephyr-ports) |
+| Zephyr | **experimental** | Built, and the conformance suite and the 615A engine tests run, in CI on Zephyr's `native_sim` board: Zephyr's own kernel, IPv4/UDP stack (over its loopback interface) and littlefs on simulated flash, as a host process (`src/platforms/zephyr`, `tests/platform/zephyr`). No board has run it. [What was and was not verified](#the-freertos-and-zephyr-ports) |
 
-Only the three desktops can be built and tested here. For the others this
-page says what the operating system offers as the author understands it from
-its documentation, without having built against it (the two INTEGRITY ports
-are reviewed against the supplied source trees in [the GHS
-review](platform-ghs.md)). Every such statement is a claim to check against the
-vendor's headers when a port is compiled, and the tables mark where the author
-is unsure.
+*Experimental* is a status of its own: more than QNX's unbuilt code (it compiles, and a test suite passes
+on it, in CI) and less than the desktops' supported (what ran is a simulator, which has no priorities
+against real interrupts, no real link, no real flash). The fragment says `experimental`, and the selector
+builds nothing for it from the top-level project: the image of an RTOS is built by a project of its own
+([Selecting a platform](#selecting-a-platform)).
+
+Only the three desktops are built and tested on their own hardware. FreeRTOS and Zephyr run on
+simulators. For QNX, VxWorks and the INTEGRITY ports this page says what the operating system offers as
+the author understands it from its documentation, without having built against it (the two INTEGRITY
+ports are reviewed against the supplied source trees in [the GHS review](platform-ghs.md)). Every such
+statement is a claim to check against the vendor's headers when a port is compiled, and the tables mark
+where the author is unsure. The FreeRTOS and Zephyr columns below were claims until those ports were
+written; [the section on them](#the-freertos-and-zephyr-ports) says where the code differs from what
+the tables proposed.
 
 The choice to ship QNX as unbuilt code and the other three as designs was the
 author's, not the owner's: QNX is POSIX, so a port is a few hundred lines on
@@ -44,9 +51,9 @@ port is written against a particular configuration (VxWorks 178C's permitted
 API subset, FreeRTOS's choice of network stack and file system, Zephyr's
 Kconfig) that nobody here has. The Green Hills INTEGRITY ports (5.0.8 on the
 POSIX sources, 178B native) followed when their source trees became available;
-[the GHS review](platform-ghs.md) is where they are described. If the owner
-would rather have QNX as a design only, or a real attempt at one of the
-designs, that is a change to a fragment and one file.
+[the GHS review](platform-ghs.md) is where they are described. FreeRTOS and
+Zephyr were then written, at the owner's request, against the one configuration
+each that a simulator provides, and are experimental. VxWorks is still a design.
 
 ## What 615A asks of a platform
 
@@ -343,19 +350,20 @@ platform has priorities and refused this process them) or `unsupported`. A deskt
 carries on at the default when it is refused; the loader is correct either way,
 because its guarantees come from time-outs and not from scheduling.
 
-| Level | Windows | Linux | macOS | QNX (unbuilt) | VxWorks (design) | FreeRTOS (design) | Zephyr (design) |
+| Level | Windows | Linux | macOS | QNX (unbuilt) | VxWorks (design) | FreeRTOS (experimental) | Zephyr (experimental) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Direction of the native scale | higher = more urgent | higher = more urgent (real-time classes) | higher = more urgent | higher = more urgent, 1 to 255 | **lower = more urgent**, 0 to 255 | higher = more urgent, 0 (idle) to `configMAX_PRIORITIES - 1` | **lower = more urgent**; negative = cooperative |
 | `lowest` | `THREAD_PRIORITY_LOWEST` | `SCHED_IDLE` | `SCHED_OTHER` at the range's minimum | 5 | 200 | 1 | the lowest application priority (`K_LOWEST_APPLICATION_THREAD_PRIO`) |
-| `low` | `BELOW_NORMAL` | `SCHED_BATCH` | a quarter up the range | 8 | 150 | spread between `lowest` and `normal` | between `lowest` and `normal` |
-| `normal` | `NORMAL` | `SCHED_OTHER` | the middle of the range | 10 (QNX's default) | 100 (the usual application default) | spread across the range | the default application priority |
-| `high` | `ABOVE_NORMAL` | `SCHED_FIFO`, a quarter of the way up the FIFO range | three quarters up the range | 30 | 60 (numerically above tNet0's 50: less urgent than the stack's task) | below the TCP/IP task (`ipconfigIP_TASK_PRIORITY`, usually `configMAX_PRIORITIES - 2`) | above `normal` |
-| `highest` | `HIGHEST` | `SCHED_FIFO`, half way | the top of the range | 50 (an unprivileged process may be held to 63) | 55 | one below `high`'s ceiling, never the IP task's | 1 (0 left to the system) |
+| `low` | `BELOW_NORMAL` | `SCHED_BATCH` | a quarter up the range | 8 | 150 | a quarter of the way below the network task | three quarters of the way down |
+| `normal` | `NORMAL` | `SCHED_OTHER` | the middle of the range | 10 (QNX's default) | 100 (the usual application default) | half of the way below the network task | half way down the pre-emptible range |
+| `high` | `ABOVE_NORMAL` | `SCHED_FIFO`, a quarter of the way up the FIFO range | three quarters up the range | 30 | 60 (numerically above tNet0's 50: less urgent than the stack's task) | three quarters of the way below the network task (lwIP's `tcpip_thread`, FreeRTOS+TCP's `ipconfigIP_TASK_PRIORITY`: usually `configMAX_PRIORITIES - 2`) | a quarter of the way down |
+| `highest` | `HIGHEST` | `SCHED_FIFO`, half way | the top of the range | 50 (an unprivileged process may be held to 63) | 55 | one below the network task, never the stack's | 1 (0 left to the system) |
 | Refused when | never (within the normal class) | `SCHED_FIFO` needs `CAP_SYS_NICE` or `RLIMIT_RTPRIO`: `not_permitted` | never | above the process's allowed maximum | n/a | n/a | n/a |
 
-The VxWorks, FreeRTOS and Zephyr columns are a proposal to be settled against each
-product's priority plan; they are not code. What is fixed is the rule that makes
-the proposal safe:
+The VxWorks column is a proposal to be settled against the product's priority plan; it is
+not code. The FreeRTOS and Zephyr columns are what the code does, with the numbers in
+[the section on those ports](#the-freertos-and-zephyr-ports), and a product still has to settle them
+against its own plan. What is fixed is the rule that makes them safe:
 
 - **Never produce a cooperative Zephyr priority.** A cooperative thread is never
   preempted by another thread, so a runner mapped to one starves everything below
@@ -513,6 +521,151 @@ Linux and macOS today and a port's first job tomorrow. The checks that need real
 concurrency (threads contending on a lock, a queue between threads, an echo server
 over real UDP, one thread serving several sockets) run on the real host only.
 
+## The FreeRTOS and Zephyr ports
+
+Written on the owner's request, each against the one configuration a simulator provides. Read the tables
+above for what the operating systems offer; this section is what the code does, what ran, and what did
+not. Nothing here has run on a board.
+
+| | FreeRTOS | Zephyr |
+| --- | --- | --- |
+| Operating system | FreeRTOS-Kernel V11.2.0 | Zephyr 4.4.2 |
+| Network stack | lwIP 2.2.1, its sockets API (`lwip_socket`, `lwip_poll`, ...), IPv4 and UDP | Zephyr's own stack, `zsock_*`, IPv4 and UDP |
+| Files | littlefs 2.11.3 (`lfs_*`) on a mounted `lfs_t` the product hands over (`freertos/environment.hpp`) | Zephyr's `fs_*` API on whatever the product mounts; tested on littlefs over flash |
+| How it is built | A CMake project on a host that builds the kernel, lwIP and littlefs and links the platform layer to them (`tests/platform/freertos`; a product does the same with its own kernel port and configuration) | A Zephyr module (`zephyr/module.yml`, `src/platforms/zephyr/Kconfig`) that an application turns on with `CONFIG_ADL_PLATFORM=y` |
+| Where it ran | The kernel's POSIX simulator port on Linux (GCC 15) | `native_sim/native/64` on Linux (GCC 15, the host's libstdc++), and `qemu_cortex_a9` in QEMU (the SDK's GCC 14.3, picolibc, libstdc++) |
+| Network in the run | lwIP's loopback interface: 127.0.0.1 | Zephyr's loopback interface: 127.0.0.1 |
+| Storage in the run | littlefs on a RAM block device | littlefs on the simulated flash |
+| CI job | `FreeRTOS (POSIX simulator)` | `Zephyr (native_sim)`, and `Zephyr (QEMU, SDK toolchain)` for the Cortex-M3 and Cortex-A9 runs below |
+
+**What was verified.** Both test programs build with the project's warning set (`-Wall -Wextra -Wpedantic
+-Werror` and the rest, on the platform layer's own sources), and run the whole platform layer suite and
+the 615A engine tests: the same Catch2 sources the desktops run (`tests/conformance`, the fake and the
+engine tests; [testing](testing.md)) and a test of a thread on a stack the caller made, 224 test cases and about
+36 200 assertions, all passing. The
+conformance cases run against the real host of the port and against the fake, so the fake and the port
+were held to each other, as on the desktops. Each program was run ten times in a row without a failure,
+and built with CMake 4.2 and 4.4.
+
+**A real toolchain and C library.** `native_sim` and the POSIX port compile with the host's GCC 15 and run on
+the host's C library. The Zephyr port was also built with the Zephyr SDK 1.0.1's own toolchain, GCC 14.3 with
+picolibc and the SDK's libstdc++, and run in QEMU, in two programs:
+
+- A smoke program (`tests/platform/zephyr_smoke`, `tools/ci/zephyr_qemu_smoke.sh`) on a Cortex-M3
+  (`mps2/an385`), without exceptions or RTTI, with the project's warning set as errors on the platform layer
+  and the libraries: the clock, memory, a thread at every priority (all `applied`), a mutex, a semaphore, a
+  queue and a 1400 byte datagram through Zephyr's stack over its loopback interface.
+- The whole test program (`tests/platform/zephyr`, `tools/ci/zephyr_qemu_suite.sh`) on a Cortex-A9
+  (`qemu_cortex_a9`, the SDK's `qemu-system-xilinx-aarch64`): Catch2, the conformance suite and the 615A
+  engine tests, **224 test cases and 36 225 assertions, all passing, the same counts as on native_sim**, ten
+  runs of one build in a row without a failure, about five seconds of QEMU each. CI job `Zephyr (QEMU, SDK toolchain)`
+  runs both.
+
+What running the suite on that toolchain found. A 32-bit bug in the fake (`tests/fake/fake_storage.cpp`
+shifted a `size_t` by 40). Two things that only a board shows, both settings of the test program: the
+board's MMU has to be given a kernel address space that holds the image (`CONFIG_KERNEL_VM_SIZE`; with the
+default 8 MB the image panics before the console is up and QEMU prints nothing), and picolibc's malloc arena
+has to be sized for the tests (the TFTP block-number wrap tests keep about 131 000 packet records, which
+overran 8 MB with `std::bad_alloc`; native_sim has the host's heap). The platform layer needed nothing. GCC
+14.3 at `-O2` warns (`-Wnull-dereference`, on an inlined `std::vector` allocation) in `load.cpp` and
+`runner.cpp`, so that program is built with `CONFIG_ADL_WARNINGS_AS_ERRORS=n`; the smoke program builds the
+platform layer and the libraries with `-Werror` on the Cortex-M3. The C++ the suite uses
+(exceptions, RTTI, `<expected>`, `<span>`) works on the SDK's libstdc++ and picolibc, with Zephyr's POSIX layer
+(`CONFIG_POSIX_API`) answering the `open`, `read` and `fstat` that Catch2's streams ask the C library for.
+
+What it does not show. It is a Cortex-A9 under QEMU's TCG, so timing, cache and interrupt behaviour are those
+of an emulator, and the network is Zephyr's loopback, as on native_sim. `qemu_cortex_a53` (AArch64) does not
+link Catch2: the SDK's aarch64 libstdc++ lacks `basic_streambuf<char>::seekoff(long long, ...)` as Catch2
+asks for it, which is the SDK's, not this project's. Nothing here runs with exceptions off other than the
+smoke program, because Catch2 needs them.
+
+**Where the code differs from the proposals in the tables above.** Each of these is something the first
+run of the suite, or reading the headers, found:
+
+- **Files.** littlefs gives a file handle the file as it was when it was opened, and holds what a writer has
+  written in the writer's cache until a sync, so the interface's promise that a reader sees what a writer
+  wrote by the time `write` returned needed work on both ports: a new or emptied file is synced when it is
+  created, every write is synced, and a reader looks at the file's size before each read and reopens it when
+  it has grown. A reader whose file has been removed keeps the handle it has. On Zephyr this is
+  `CONFIG_ADL_FS_COHERENT_HANDLES` (default on; off, another handle sees data after `sync()` or `close()`,
+  at the file system's speed). `rename` replaces atomically on littlefs; where a Zephyr file system's
+  rename will not replace (FAT), the port removes the destination first, which is not atomic. Exclusive
+  creation is `LFS_O_EXCL` on FreeRTOS and a look first on Zephyr, whose `fs_open` has no such flag.
+- **Mutex.** A Zephyr `k_mutex` is recursive and the interface's is not, so `try_lock` by the holder is
+  refused (the lock count says it is the holder). A FreeRTOS mutex is not recursive and refuses it by
+  itself.
+- **Semaphore.** FreeRTOS: a counting semaphore, whose give at the ceiling fails, which is
+  `resource_exhausted`. Zephyr: a `k_sem` stops at its limit without saying so, so the semaphore is a count
+  under a `k_mutex` with a `k_condvar`, as in the POSIX port.
+- **Queue.** A kernel queue copies fixed-size items, and a message here is anything up to `message_bytes`
+  long. Both ports keep the messages in slots and carry the slot numbers on two native queues, one of free
+  slots and one of full ones (`k_msgq`, `xQueueCreate`), so the kernel does the blocking, the ordering and the
+  time-outs. The two queues of numbers are the one allocation a queue makes that a caller's `storage` does
+  not cover.
+- **Threads.** Zephyr: a `k_thread` on a stack from `k_thread_stack_alloc` (`CONFIG_DYNAMIC_THREAD`) or the
+  caller's own storage, joined with `k_thread_join`. FreeRTOS: `xTaskCreate`, or `xTaskCreateStatic` on the
+  caller's storage. A task cannot be joined, so it signals a semaphore as its last act and waits to be
+  deleted, and the joiner deletes it (the kernel then has nothing left of it, which a task that deleted
+  itself would not guarantee until the idle task had run). The task function must not be `noexcept`: on the
+  POSIX simulator port deleting a task cancels its thread, which unwinds the stack with an exception a
+  `noexcept` frame turns into `std::terminate`. A real port does not unwind, and the function is harmless
+  there.
+- **Memory.** Zephyr: a `k_heap` over an array in `.bss` of `CONFIG_ADL_HEAP_BYTES`. FreeRTOS:
+  `pvPortMalloc` with an alignment header (the heap hands out `portBYTE_ALIGNMENT`, a caller can ask for
+  4096).
+- **Clock.** Zephyr: `k_uptime_ticks`, 64 bits. FreeRTOS: `xTaskGetTickCount` widened to 64 bits by
+  counting wraps (it must be read at least once in half a wrap; the runner reads it every time it wakes).
+  Neither waits longer than a day (Zephyr) or an hour (FreeRTOS) in one kernel call. Wall time:
+  FreeRTOS has none (`unsupported`); Zephyr reports it only once something has set the real-time clock.
+- **Network.** `receive_from` reads without blocking and waits with `poll`, as on POSIX. A datagram that did
+  not fit is told by `ZSOCK_MSG_TRUNC` on Zephyr and by `MSG_TRUNC` of `recvmsg` on lwIP (which returns the
+  datagram's length, so the port keeps the smaller). Zephyr answers a bind to an address no interface has
+  with `ENOENT` (and so does an exhausted `CONFIG_NET_MAX_CONN`, which is worth knowing when it appears),
+  mapped to `address_unavailable`; lwIP binds anything, so the port looks the address up among the
+  interfaces. Whether a socket may send a broadcast is enforced by the port, not left to the stack.
+
+**Priorities, as built.** With `N` the priority of the network stack's task (`Environment::
+network_task_priority`, default `configMAX_PRIORITIES - 2`) on FreeRTOS, and `L =
+K_LOWEST_APPLICATION_THREAD_PRIO` (`CONFIG_NUM_PREEMPT_PRIORITIES - 1`) on Zephyr:
+
+| Level | FreeRTOS (higher is more urgent) | Zephyr (lower is more urgent) |
+| --- | --- | --- |
+| `highest` | `N - 1` | 1 |
+| `high` | three quarters of `N - 1` | `1 + (L - 1) / 4` |
+| `normal` | half of `N - 1` | `1 + (L - 1) / 2` |
+| `low` | a quarter of `N - 1` | `1 + 3 (L - 1) / 4` |
+| `lowest` | 1 | `L` |
+
+Each is at least 1 on FreeRTOS (0 is the idle task's) and is never negative on Zephyr (a cooperative thread
+is never pre-empted). With the simulator's configuration (`configMAX_PRIORITIES` 8, `N` 6) the levels are
+5, 3, 2, 1 and 1; with `native_sim`'s 15 pre-emptible priorities they are 1, 4, 7, 10 and 14. The
+outcome is always `applied`. **A product still has to check the plan against its own threads**: on
+Zephyr the stack's receive and transmit threads have priorities of their own
+(`CONFIG_NET_RX_THREAD_PRIORITY` and the traffic classes), and no level here is chosen against them.
+
+**What the simulators cannot show, and nobody has checked.**
+
+- Any board: interrupt latency, the MPU or userspace (`stack_storage` is used as the caller made it and
+  must be aligned for the architecture), the cooperative or tickless configurations, SMP.
+- A real link. Both runs use the loopback interface only, so FIND's broadcast has not left a machine,
+  ARP and a link-layer MTU have not been in the way, and a 65 KB datagram has never been fragmented on
+  the wire. The loopback is given a 65535 byte MTU (Zephyr) and the stack's pools are sized for one
+  such datagram in flight twice over (both); a product's `blksize` has to be what its stack can carry
+  (RFC 2348), and reassembly (`IP_REASSEMBLY`, `CONFIG_NET_IPV4_FRAGMENT`) has not been exercised.
+- Real flash: littlefs on a NOR device with its wear and its power losses, and the cost of a sync per
+  write (the reason `CONFIG_ADL_FS_COHERENT_HANDLES` exists).
+- Real hardware, and a 64-bit or exceptions-free build of the suite. The suite has run on the Zephyr SDK's
+  GCC, picolibc and libstdc++ on an emulated Cortex-A9; the Cortex-M3 has run only the smoke test (Catch2
+  needs exceptions), and AArch64 does not link Catch2 (above). FreeRTOS has not been built with an embedded
+  toolchain at all (no `arm-none-eabi` kernel port, no cross build of lwIP and littlefs here). A target
+  needs a C++23 standard library with `<expected>` and `<span>`, which the SDK's GCC 14 has.
+- No allocation after start-up. The platform layer allocates a handle per object, as the desktops do
+  ([Area 2](#area-2-memory-memoryhpp)), and the two ports do not yet draw them from fixed slots.
+- A loader against a target through the real stacks: the loopback integration test needs the Qt-based
+  mock target, which does not run on either.
+- The other network stacks and file systems of the design (FreeRTOS+TCP, FAT and FatFs): a port to
+  one is a new `network_` or `files_` source and not a change to the rest.
+
 ## Selecting a platform
 
 A desktop build needs nothing. A cross build names its target:
@@ -528,9 +681,12 @@ file reads what the platform's fragment declared. It accepts `windows`, `linux`,
 also recognised from `CMAKE_SYSTEM_NAME`, the one RTOS that CMake names (the two
 INTEGRITY targets are named by `ADL_TARGET_PLATFORM`, which their toolchain files
 and presets set; the toolchain files give `CMAKE_SYSTEM_NAME` as `Generic`). A platform's fragment declares
-`ADL_PLATFORM_STATUS` (`supported`, `unbuilt` or `design-only`); the selector
+`ADL_PLATFORM_STATUS` (`supported`, `experimental`, `unbuilt` or `design-only`); the selector
 refuses a design-only platform outright and an unbuilt one unless
-`-DADL_ACCEPT_UNBUILT_PLATFORM=ON`. Two tests hold this:
+`-DADL_ACCEPT_UNBUILT_PLATFORM=ON`. A platform whose image a project of its own builds (FreeRTOS and
+Zephyr: an RTOS image is built around the product's kernel configuration, port and main, and Zephyr's
+around `find_package(Zephyr)`) declares where, in `ADL_PLATFORM_PROJECT`, and this project refuses it with
+that pointer; [building](building.md) says how each is built. Two tests hold this:
 `platform.fragments` (every fragment meets the contract) and `platform.selector`
 (an explicit target is understood, and the refusals say why).
 
@@ -543,8 +699,11 @@ refuses a design-only platform outright and an unbuilt one unless
 3. Fill in the fragment, set its status to `unbuilt`, and list the files.
 4. Build it. Run the conformance suite on the target (the suite needs only the
    interfaces, a Catch2 that runs there or a small harness that calls the same
-   functions).
-5. Change the status to `supported` only when CI builds and runs it.
+   functions). `tests/platform/rtos_support/test_sources.cmake` lists the sources the two RTOS
+   programs run, and `tests/platform/rtos_support/temp_dir.hpp` stands in for the host-file-system
+   scratch directory of the desktop tests.
+5. Change the status to `experimental` when CI builds it and runs the suite on a simulator, and to
+   `supported` only when it runs on the target.
 
 ## Gaps and risks
 
@@ -554,7 +713,8 @@ The ones that matter most, in the order they are likely to bite:
    `macos/os_macos.cpp`: the condition-variable wait, `F_FULLFSYNC`, the priority
    range, thread naming. The UDP datagram limit (9216 bytes by default) is worked
    around with `SO_SNDBUF`, which is not yet seen to work.
-2. **The embedded targets are unproven.** In particular, VxWorks 178C is a
+2. **The embedded targets are unproven.** FreeRTOS and Zephyr have run on simulators and on nothing
+   else ([what that leaves open](#the-freertos-and-zephyr-ports)). VxWorks 178C is a
    certifiable profile whose available API subset (sockets? a file system?
    `pthread`?) is the first thing to establish; nothing here assumes more than the
    standard VxWorks APIs named above, and none of it has been checked against the

@@ -34,9 +34,11 @@ are built from source). What exists:
 - **`adl::platform`**, the one place that knows which operating system this is:
   files, memory, threads and priorities, a clock, UDP sockets and message queues,
   as interfaces with an implementation each for Windows, Linux and macOS, and a
-  fake that runs the whole engine without a socket or a real second. QNX and the
-  two Green Hills INTEGRITY ports (5.0.8 and 178B) have code that has never been
-  compiled; VxWorks, FreeRTOS and Zephyr are designs.
+  fake that runs the whole engine without a socket or a real second. FreeRTOS and
+  Zephyr are experimental: their platform conformance suite and the 615A engine tests
+  run in CI on simulators (the FreeRTOS POSIX port, Zephyr's native_sim), and on no
+  board. QNX and the two Green Hills INTEGRITY ports (5.0.8 and 178B) have code that
+  has never been compiled; VxWorks is a design.
   [docs/platform-abstraction.md](docs/platform-abstraction.md) has the design and
   says what has been verified; [docs/platform-ghs.md](docs/platform-ghs.md) is the
   review behind the INTEGRITY ports.
