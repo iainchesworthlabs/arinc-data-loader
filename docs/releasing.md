@@ -143,6 +143,11 @@ has put `release.yml` on `main`, the branch push is the way to rehearse.
 | Environment `release` | Settings, Environments | Required reviewer: the maintainer. Deployment tags: `v*` only. Holds no secrets; it gates *Draft the release* |
 | Label `no-changelog` | Issues, Labels | for the changelog check |
 
+`tools/repo/apply_release_environments.ps1` makes both environments and, with `-KeyFile` and
+`-PassphraseFile`, stores the two secrets (a dry run unless `-Apply` is given; the key and passphrase are
+read from files and go to `gh secret set` on its standard input). The label is `gh label create
+no-changelog`.
+
 Only the *Sign* job uses the key, and it can run only on a `release/*` branch or a `v*` tag (GitHub
 refuses the environment to any other ref, so a pull request or a feature branch never receives the
 secrets). A person who can push a `release/*` branch can change the workflow on it and so read the
