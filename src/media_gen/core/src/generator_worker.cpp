@@ -101,6 +101,14 @@ void GeneratorWorker::fail(GenerateOutcome& outcome, const QString& text, const 
     Q_EMIT finished(outcome);
 }
 
+void GeneratorWorker::stop(GenerateOutcome& outcome) {
+    outcome.state = 3;
+    outcome.text = tr("Cancelled.");
+    outcome.detail = tr("Nothing was written.");
+    Q_EMIT progress(-1);
+    Q_EMIT finished(outcome);
+}
+
 void GeneratorWorker::generate(const GenerateJob& job) {
     GenerateOutcome outcome;
     outcome.state = 2;
@@ -130,7 +138,7 @@ void GeneratorWorker::generate(const GenerateJob& job) {
     qint64 bytes_read = 0;
     for (qsizetype i = 0; i < job.files.size(); ++i) {
         if (cancelled()) {
-            fail(outcome, tr("Cancelled."), tr("Nothing was written."));
+            stop(outcome);
             return;
         }
         const JobFile& meta = job.files.at(i);
@@ -158,7 +166,7 @@ void GeneratorWorker::generate(const GenerateJob& job) {
 
     // ---- 2. the load ----
     if (cancelled()) {
-        fail(outcome, tr("Cancelled."), tr("Nothing was written."));
+        stop(outcome);
         return;
     }
     LoadSpec load_spec;
@@ -258,7 +266,7 @@ void GeneratorWorker::generate(const GenerateJob& job) {
 
     // ---- 4. write the tree; never overwrite what is there ----
     if (cancelled()) {
-        fail(outcome, tr("Cancelled."), tr("Nothing was written."));
+        stop(outcome);
         return;
     }
     const std::filesystem::path base = to_path(job.output_directory);
@@ -306,7 +314,7 @@ void GeneratorWorker::generate(const GenerateJob& job) {
 
     // ---- 5. read the tree back and verify what is on the disk ----
     if (cancelled()) {
-        fail(outcome, tr("Cancelled."), tr("Nothing was written."));
+        stop(outcome);
         return;
     }
     const auto on_disk = adl::media_tree::read_media_set_tree(root);

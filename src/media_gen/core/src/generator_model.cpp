@@ -341,11 +341,11 @@ void GeneratorModel::refresh_validation() {
 
     QString output_error;
     if (output_directory_.isEmpty()) {
-        output_error = tr("Choose an output directory.");
+        output_error = tr("Choose an output folder.");
     } else {
         const QFileInfo directory(output_directory_);
         if (!directory.exists() || !directory.isDir()) {
-            output_error = tr("The output directory does not exist.");
+            output_error = tr("The output folder does not exist.");
         }
     }
 

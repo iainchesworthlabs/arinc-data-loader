@@ -46,7 +46,7 @@ struct GenerateJob {
     QList<JobFile> files;
 };
 
-// How the job ended: 1 the set was written and read back, 2 it was not (or was cancelled).
+// How the job ended: 1 the set was written and read back, 2 it was not, 3 the operator cancelled it.
 // `findings` are where the written set differs from the standard's recommendations, which do not
 // stop a generation.
 struct GenerateOutcome {
@@ -97,6 +97,8 @@ private:
         return cancel_.load(std::memory_order_acquire);
     }
     void fail(GenerateOutcome& outcome, const QString& text, const QString& detail = {});
+    // Ends the job as cancelled: the operator asked for it, so it is not a failure.
+    void stop(GenerateOutcome& outcome);
 
     std::atomic<bool> cancel_{false};
 };

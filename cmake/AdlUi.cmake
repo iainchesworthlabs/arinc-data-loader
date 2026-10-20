@@ -81,6 +81,8 @@ configure_file("${CMAKE_SOURCE_DIR}/src/ui/version.hpp.in"
 
 set(ADL_UI_QML_FILES
     "${ADL_UI_QML_DIR}/Theme.qml"
+    "${ADL_UI_QML_DIR}/AboutDialog.qml"
+    "${ADL_UI_QML_DIR}/AppBanner.qml"
     "${ADL_UI_QML_DIR}/AppButton.qml"
     "${ADL_UI_QML_DIR}/AppCheckBox.qml"
     "${ADL_UI_QML_DIR}/AppComboBox.qml"

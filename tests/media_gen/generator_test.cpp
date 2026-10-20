@@ -295,7 +295,7 @@ void GeneratorTest::cancel_writes_nothing() {
     QTRY_VERIFY_WITH_TIMEOUT(model.progressPercent() > 0, 60000);
     model.cancel();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 60000);
-    QCOMPARE(model.resultState(), 2);
+    QCOMPARE(model.resultState(), 3);
     QCOMPARE(model.resultText(), QStringLiteral("Cancelled."));
     QVERIFY(!directory_exists(expected_root(output.path())));
     QVERIFY(model.outputPath().isEmpty());

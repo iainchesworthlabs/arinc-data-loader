@@ -66,7 +66,8 @@ class GeneratorModel : public QObject {
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(int progressPercent READ progressPercent NOTIFY progressChanged)
 
-    // The outcome of the last generation: 0 none yet, 1 the set was written and verified, 2 not.
+    // The outcome of the last generation: 0 none yet, 1 the set was written and verified, 2 it
+    // failed, 3 the operator cancelled it.
     Q_PROPERTY(int resultState READ resultState NOTIFY resultChanged)
     Q_PROPERTY(QString resultText READ resultText NOTIFY resultChanged)
     Q_PROPERTY(QString resultDetail READ resultDetail NOTIFY resultChanged)
