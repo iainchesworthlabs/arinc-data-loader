@@ -14,7 +14,7 @@ published until the maintainer reads the draft and presses the button.
 | --- | --- |
 | `arinc-data-loader-<v>-windows-x86_64.zip` | A portable folder: `adl_app.exe`, `adl_media_gen.exe`, `adl_mock_target.exe`, `adl_write_payloads.exe`, the Qt DLLs, plugins and QML modules Qt's `windeployqt` places beside them, `README.txt`, `LICENSE.txt`, `NOTICES.txt` |
 | `arinc-data-loader-<v>-linux-x86_64.tar.gz` | `bin/` (the four programs), `lib/` and `plugins/` and `qml/` (the Qt files), `share/applications/*.desktop`, `share/icons/hicolor/scalable/apps/*.svg`, `share/doc/arinc-data-loader/{LICENSE,NOTICES}.txt` |
-| `arinc-data-loader-<v>-macos-arm64.dmg` | The three application bundles (Qt frameworks and QML modules inside, signed ad hoc, each with `LICENSE.txt` and `NOTICES.txt` in `Contents/Resources`), `tools/adl_write_payloads`, `README.txt`, `LICENSE.txt`, `NOTICES.txt` |
+| `arinc-data-loader-<v>-macos-arm64.dmg` | The three application bundles (Qt frameworks and QML modules inside, signed ad hoc, each with `LICENSE.txt` and `NOTICES.txt` in `Contents/Resources`), `tools/adl_write_payloads`, an `Applications` link to drag them onto, `README.txt`, `LICENSE.txt`, `NOTICES.txt` |
 | `arinc-data-loader-dev-<v>-<system>-<arch>.zip` / `.tar.gz` | The development package: headers, static libraries and the `adl` CMake package (below), `LICENSE.txt`, `NOTICES.txt` |
 | `arinc-data-loader-<v>.spdx.json`, `.cdx.json` | The software bill of materials (SPDX 2.3, CycloneDX 1.6) |
 | `<leg>-qt<module>-6.12.0.spdx.json`, `.cdx.json` | The Qt kit's own SBOM documents for the modules the packages hold; the SPDX document refers to them |
