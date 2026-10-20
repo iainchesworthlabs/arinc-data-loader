@@ -72,6 +72,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # The one place the target OS is decided (cmake/Platform.cmake); every other
 # CMake file reads what the platform's fragment declared.
 include(Platform)
+include(AdlInstall)
 include(CompilerWarnings)
 include(StaticAnalysis)
 include(Sanitizers)
@@ -159,6 +160,15 @@ endif()
 if(ADL_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+endif()
+
+# What `cmake --install` installs and CPack packs (cmake/AdlInstall.cmake, cmake/AdlPackage.cmake):
+# the programs and the libraries other programs can build on, on the desktops. A target build
+# (an RTOS) ships nothing from here.
+if(ADL_PLATFORM_DESKTOP)
+    adl_install_licences()
+    adl_install_package_config()
+    include(AdlPackage)
 endif()
 
 message(STATUS "ARINC Data Loader ${PROJECT_VERSION} for ${ADL_PLATFORM_DISPLAY_NAME}")

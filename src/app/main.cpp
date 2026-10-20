@@ -10,6 +10,7 @@
 #include <adl/profiling.hpp>
 
 #include "adl/app/loader_model.hpp"
+#include "adl/ui/build_info.hpp"
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/language_manager.hpp"
 #include "adl/ui/version.hpp"
@@ -19,7 +20,7 @@
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
     QGuiApplication::setApplicationName(QStringLiteral("ARINC Data Loader"));
-    QGuiApplication::setApplicationVersion(QStringLiteral("0.1.0"));
+    QGuiApplication::setApplicationVersion(QString::fromLatin1(adl::ui::kVersion));
     QGuiApplication::setOrganizationName(QStringLiteral("iainchesworthlabs"));
 
     adl::ui::register_fonts();
