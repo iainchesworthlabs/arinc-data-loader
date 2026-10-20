@@ -36,6 +36,8 @@ either, and none comes with the programs: those two languages need a Chinese or 
 system, which Windows, macOS and ordinary Linux desktops have (a bare container does not, and shows
 boxes).
 
+![The loader in Japanese](../images/app-workbench-japanese.png)
+
 ## Colour
 
 The three programs follow the desktop's colour scheme: light when the desktop is light, dark when

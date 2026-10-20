@@ -142,7 +142,16 @@ Archivo has no Hebrew letters and no Chinese or Japanese characters.
 - **Chinese and Japanese** are drawn in the system's own CJK fonts (Archivo stays for the Latin
   letters). No CJK face is bundled: one is several megabytes per script and the desktops the
   programs run on ship them. A system without a CJK font shows empty boxes for those two languages
-  (a minimal Linux install or container; install a font such as Noto Sans CJK).
+  (a minimal Linux install or container; install a font such as Noto Sans CJK). On a real Windows
+  desktop both are drawn by the system's fallback fonts (checked in both colour schemes), though a
+  line may mix glyph weights where the fallback hops between fonts. **The offscreen window tests
+  cannot draw them**: Qt's offscreen platform has no fallback fonts on Windows, so a picture made
+  there shows boxes for Chinese and Japanese (the tests check the text, not the glyphs; the pictures
+  below were made on the real Windows platform).
+
+![The loader in Japanese](images/app-workbench-japanese.png)
+
+![The loader in Chinese](images/app-workbench-chinese.png)
 
 ## For a reviewer
 
