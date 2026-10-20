@@ -292,14 +292,14 @@ void MockWorker::read_holds(Config& config) {
 void MockWorker::store_upload(const UploadRecord& record) {
     if (storage_path_.empty()) {
         Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The storage directory is not set, so the upload is not stored.")});
+                         tr("The storage folder is not set, so the upload is not stored.")});
         return;
     }
     std::error_code ec;
     std::filesystem::create_directories(storage_path_, ec);
     if (ec) {
         Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The storage directory could not be made: %1.")
+                         tr("The storage folder could not be made: %1.")
                              .arg(QString::fromStdString(ec.message()))});
         return;
     }
@@ -308,7 +308,7 @@ void MockWorker::store_upload(const UploadRecord& record) {
     std::filesystem::create_directories(part_dir, ec);
     if (ec) {
         Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The load's directory could not be made: %1.")
+                         tr("The load's folder could not be made: %1.")
                              .arg(QString::fromStdString(ec.message()))});
         return;
     }
@@ -326,9 +326,9 @@ void MockWorker::store_upload(const UploadRecord& record) {
                   static_cast<std::streamsize>(file.bytes.size()));
         out.close();
         if (!out) {
-            Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                             tr("%1 could not be written to the storage directory.")
-                                 .arg(to_qstring(file.name))});
+            Q_EMIT log_line(
+                {static_cast<int>(Severity::warning), time_now(),
+                 tr("%1 could not be written to the storage folder.").arg(to_qstring(file.name))});
             continue;
         }
         StoredFileRow row;

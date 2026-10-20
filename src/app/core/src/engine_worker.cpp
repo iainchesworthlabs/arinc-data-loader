@@ -35,7 +35,7 @@ using adl::arinc615a::SelectionDecision;
 // honest: only these are known well enough to point anywhere.
 QString media_set_hint() {
     return QObject::tr(
-        "Choose the directory the media set was written to, and make sure every "
+        "Choose the folder the media set was written to, and make sure every "
         "file of the set is still in it.");
 }
 
@@ -54,7 +54,7 @@ QString address_hint() {
 
 QString download_directory_hint() {
     return QObject::tr(
-        "Choose a download directory that exists or can be created, and make "
+        "Choose a download folder that exists or can be created, and make "
         "sure it can be written (Preferences).");
 }
 
@@ -80,7 +80,7 @@ std::optional<QString> make_directory_chain(adl::platform::FileSystem& files,
     const auto existing = files.stat(path);
     if (existing) {
         if (existing->kind != adl::platform::FileKind::directory) {
-            return QObject::tr("%1 is not a directory").arg(to_qstring(path));
+            return QObject::tr("%1 is not a folder").arg(to_qstring(path));
         }
         return std::nullopt;
     }
@@ -582,7 +582,7 @@ void EngineWorker::run_download(const Address& target, const QString& thw_id_pos
     const auto made = make_download_directory(
         lease->host->files(), to_platform_path(download_directory), thw_id_pos.toStdString());
     if (!made) {
-        fail(tr("The download directory could not be used: %1.").arg(made.error()),
+        fail(tr("The download folder could not be used: %1.").arg(made.error()),
              download_directory_hint());
         return;
     }

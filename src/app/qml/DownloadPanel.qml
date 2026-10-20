@@ -249,6 +249,16 @@ Item {
                                     value: Math.max(0, nameRow.ratio)
                                     indeterminate: false
                                 }
+
+                                // Why this file failed, in words, under its bar.
+                                Text {
+                                    Layout.fillWidth: true
+                                    visible: nameRow.failed && nameRow.problem.length > 0
+                                    text: nameRow.problem
+                                    color: Theme.accentInk
+                                    font.pixelSize: Theme.fontSmall
+                                    wrapMode: Text.WordWrap
+                                }
                             }
                         }
                     }

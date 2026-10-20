@@ -439,7 +439,7 @@ void LoaderModelTest::media_set_that_is_not_there_is_reported() {
     QCOMPARE(model.validationState(), 3);
     QCOMPARE(model.validationError(), model.mediaSetError());
     QVERIFY(model.lastErrorText().isEmpty() == false);
-    QVERIFY(model.lastErrorHint().contains(QStringLiteral("Choose the directory")));
+    QVERIFY(model.lastErrorHint().contains(QStringLiteral("Choose the folder")));
     QVERIFY(log_contains(model, QStringLiteral("could not be read")));
 }
 
@@ -758,7 +758,7 @@ void LoaderModelTest::a_failure_surfaces_for_the_dialog() {
     model.chooseMediaSet(QUrl::fromLocalFile(QDir::tempPath() + QStringLiteral("/no-such-set")));
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QCOMPARE(model.resultState(), 2);
-    QVERIFY(model.lastErrorHint().contains(QStringLiteral("Choose the directory")));
+    QVERIFY(model.lastErrorHint().contains(QStringLiteral("Choose the folder")));
 
     // And so has an address that is not one.
     model.findTargets(QStringLiteral("not an address"));
