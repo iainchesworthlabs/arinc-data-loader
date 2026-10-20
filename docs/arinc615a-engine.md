@@ -40,12 +40,14 @@ that arrived and answers with the bytes to send and the time it next wants to be
 loader.on_control_datagram(now, from, bytes);          // the target sent a request
 loader.on_transfer_datagram(now, slot, from, bytes);   // a datagram for one transfer's socket
 loader.on_timer(now);                                  // time passed
-for (const Command& c : loader.commands()) { ... }     // send, send from the control port, close a socket
+for (const Command& c : loader.take_commands()) { ... } // send, send from the control port, close a socket
 const Instant wake = loader.next_wake();               // when to call on_timer next, or `never`
 ```
 
 A transfer is one **slot**, and a slot is one socket (the runner opens it at the transfer's first send and
-closes it on a `release_slot` command). The loader is TFTP client for the initialization file and for the
+closes it on a `release_slot` command). The commands of a call are valid until the next call, and `take_commands()` hands them over once: a driver
+that carried them out again after a step that did not call the loader (a poll of its controller, say) would
+repeat a `release_slot` that lands after the slot was given to a new transfer, and close that transfer's socket. The loader is TFTP client for the initialization file and for the
 list it writes, and TFTP server, on its control port (59, or the one the `port` option named), for
 everything the target starts, so several slots are open at once. `Runner` waits on all of them from one
 thread with `Network::wait_readable`.
