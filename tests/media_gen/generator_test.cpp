@@ -407,7 +407,7 @@ void GeneratorTest::a_cancel_before_anything_is_written_says_nothing_was_written
         }
     });
     const auto outcome = run_job(worker, good_job(data, output.path()));
-    QCOMPARE(outcome.state, 2);
+    QCOMPARE(outcome.state, 3);  // cancelled, not failed
     QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
     QCOMPARE(outcome.detail, QStringLiteral("Nothing was written."));
     QCOMPARE(names_in(output.path()), QStringList{});
@@ -428,7 +428,7 @@ void GeneratorTest::a_cancel_after_the_tree_is_written_removes_it_and_says_so() 
     });
     const auto outcome = run_job(worker, good_job(data, output.path()));
     QVERIFY(tree_was_there);
-    QCOMPARE(outcome.state, 2);
+    QCOMPARE(outcome.state, 3);  // cancelled, not failed
     QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
     // It is not "nothing was written": something was, and has been taken away.
     QVERIFY2(!outcome.detail.contains(QStringLiteral("Nothing was written")),
@@ -449,7 +449,7 @@ void GeneratorTest::a_cancel_after_the_set_verified_removes_it_too() {
         }
     });
     const auto outcome = run_job(worker, good_job(data, output.path()));
-    QCOMPARE(outcome.state, 2);
+    QCOMPARE(outcome.state, 3);  // cancelled, not failed
     QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
     QVERIFY(outcome.detail.contains(QStringLiteral("removed")));
     QCOMPARE(names_in(output.path()), QStringList{});
