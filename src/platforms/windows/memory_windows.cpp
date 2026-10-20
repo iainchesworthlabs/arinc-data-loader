@@ -11,7 +11,7 @@ namespace {
 
 // VirtualAlloc hands out whole pages at the allocation granularity (64 KiB), and
 // returns memory that is already zero.
-constexpr std::size_t largest_alignment = 64 * 1024;
+constexpr std::size_t largest_alignment = std::size_t{64} * 1024;
 
 class WindowsMemory final : public MemoryProvider {
 public:

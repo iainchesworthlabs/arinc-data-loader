@@ -62,6 +62,16 @@
 #                                 one: where that project is. This project
 #                                 refuses to configure for it and says so.
 #
+# Facts a desktop platform (ADL_PLATFORM_DESKTOP ON) adds, for the third-party notices the
+# applications show (cmake/AdlUi.cmake, notices/README.md):
+#   ADL_PLATFORM_NOTICE_FRAGMENTS    Fragments (notices/fragments/<name>.txt) this platform
+#                                    adds after the Qt section, e.g. the runtime files
+#                                    Qt's deployment tool places on Windows. May be empty.
+#   ADL_PLATFORM_NOTICE_QT_DEPLOYMENT
+#                                    One sentence on where the programs get Qt from.
+#   ADL_PLATFORM_NOTICE_EXPECTED     Strings, separated by "|", the generated notices must
+#                                    contain on this platform (tests/system/check_notices.cmake).
+#
 # Build inputs (paths are relative to src/platforms):
 #   ADL_PLATFORM_SOURCES          Compiled into adl_platform: one
 #                                 implementation of every interfaces/ header.

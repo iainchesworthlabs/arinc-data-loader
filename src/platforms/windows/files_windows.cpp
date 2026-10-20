@@ -50,7 +50,11 @@ public:
     }
 
     [[nodiscard]] bool valid() const noexcept { return !error_.has_value(); }
-    [[nodiscard]] Error error() const noexcept { return *error_; }
+    [[nodiscard]] Error error() const noexcept {
+        // Callers ask for the error only when valid() is false. The fallback
+        // keeps the access total; it is never reached by contract.
+        return error_.value_or(Error{ErrorCode::invalid_argument, 0});
+    }
     [[nodiscard]] const wchar_t* c_str() const noexcept { return buffer_.data(); }
     [[nodiscard]] std::size_t length() const noexcept { return length_; }
 
@@ -64,6 +68,10 @@ class WindowsReadFile final : public ReadFile {
 public:
     explicit WindowsReadFile(HANDLE handle) noexcept : handle_(handle) {}
     ~WindowsReadFile() override { ::CloseHandle(handle_); }
+    WindowsReadFile(const WindowsReadFile&) = delete;
+    WindowsReadFile& operator=(const WindowsReadFile&) = delete;
+    WindowsReadFile(WindowsReadFile&&) = delete;
+    WindowsReadFile& operator=(WindowsReadFile&&) = delete;
 
     Result<std::uint64_t> size() noexcept override {
         LARGE_INTEGER size{};
@@ -111,6 +119,10 @@ public:
             ::CloseHandle(handle_);
         }
     }
+    WindowsWriteFile(const WindowsWriteFile&) = delete;
+    WindowsWriteFile& operator=(const WindowsWriteFile&) = delete;
+    WindowsWriteFile(WindowsWriteFile&&) = delete;
+    WindowsWriteFile& operator=(WindowsWriteFile&&) = delete;
 
     Result<void> write(std::span<const std::byte> data) noexcept override {
         if (handle_ == INVALID_HANDLE_VALUE) {

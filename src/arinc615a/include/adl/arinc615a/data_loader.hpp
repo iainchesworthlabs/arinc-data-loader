@@ -275,10 +275,10 @@ struct LoaderConfig {
 
     // The largest protocol file we receive or send, and so the size of each slot's buffer for
     // one (a configuration list, a download list, a status file listing many loads).
-    std::size_t max_protocol_file_bytes = 32 * 1024;
+    std::size_t max_protocol_file_bytes = std::size_t{32} * 1024;
 
     // Room for the names of the files a download expects.
-    std::size_t name_pool_bytes = 16 * 1024;
+    std::size_t name_pool_bytes = std::size_t{16} * 1024;
 };
 
 struct LoaderServices {
@@ -323,7 +323,7 @@ public:
     // invalid_value for a bad <THW_ID_POS> or configuration. One operation per DataLoader.
     [[nodiscard]] Result<void> start(Instant now, const Operation& operation) noexcept;
 
-    // ---- driving; after each call, run commands() ----------------------------------------
+    // ---- driving; after each call, run take_commands() ----------------------------------------
 
     // A datagram arrived on the control socket (a request from the target).
     void on_control_datagram(Instant now, const Endpoint& from,
@@ -350,6 +350,16 @@ public:
     // The datagrams to send and sockets to close, until the next call.
     [[nodiscard]] std::span<const Command> commands() const noexcept {
         return std::span<const Command>{commands_}.first(command_count_);
+    }
+    // The same commands, handed over once: the next take_commands() (or commands()) before the
+    // next call returns none. A driver that carries them out after each of its steps, whether
+    // that step called the loader or not, uses this one, since carrying a command out twice is
+    // not harmless (a repeated "close the socket of slot n" closes the socket a new transfer
+    // has been given in that slot since). The span is valid until the next call, as above.
+    [[nodiscard]] std::span<const Command> take_commands() noexcept {
+        const auto taken = std::span<const Command>{commands_}.first(command_count_);
+        command_count_ = 0;
+        return taken;
     }
     // When on_timer() should next be called, or `never`.
     [[nodiscard]] Instant next_wake() const noexcept;
@@ -484,6 +494,9 @@ private:
     std::span<std::byte> workspace_;
     bool laid_out_ = false;
 
+    // Aggregate value-initialisation zero-fills before the member initialisers
+    // run; the check reads that zero as an enum value.
+    // NOLINTNEXTLINE(bugprone-invalid-enum-default-initialization)
     std::array<Slot, max_slots> slots_{};
     std::size_t slot_count_ = 0;
     std::span<std::byte> outbound_;  // the encoded .LUR, .LNR or .LNA

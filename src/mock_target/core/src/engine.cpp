@@ -787,7 +787,8 @@ void MockEngine::on_list_received(const std::string& name, const Bytes& bytes) {
         loads_done_ = 0;
         load_index_ = 0;
         file_index_ = 0;
-        note(Severity::info, "upload request: " + std::to_string(loads_.size()) + " load(s)");
+        note(Severity::info, "upload request: " + std::to_string(loads_.size()) +
+                                 (loads_.size() == 1 ? " load" : " loads"));
         upload_read_header(generation);
         return;
     }
@@ -814,7 +815,8 @@ void MockEngine::on_list_received(const std::string& name, const Bytes& bytes) {
     writes_done_ = 0;
     writes_total_ = requests_.size();
     request_index_ = 0;
-    note(Severity::info, "download request: " + std::to_string(requests_.size()) + " file(s)");
+    note(Severity::info, "download request: " + std::to_string(requests_.size()) +
+                             (requests_.size() == 1 ? " file" : " files"));
     download_write_next(generation);
 }
 

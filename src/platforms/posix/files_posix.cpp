@@ -39,7 +39,11 @@ public:
         buffer_[path.size()] = '\0';
     }
     [[nodiscard]] bool valid() const noexcept { return !error_.has_value(); }
-    [[nodiscard]] Error error() const noexcept { return *error_; }
+    [[nodiscard]] Error error() const noexcept {
+        // Callers ask for the error only when valid() is false. The fallback
+        // keeps the access total; it is never reached by contract.
+        return error_.value_or(Error{ErrorCode::invalid_argument, 0});
+    }
     [[nodiscard]] const char* c_str() const noexcept { return buffer_.data(); }
 
 private:
@@ -270,6 +274,9 @@ public:
         const int dir_fd = ::dirfd(dir);
         for (;;) {
             errno = 0;
+            // readdir is thread-safe for distinct DIR streams, and this one is
+            // local to the call; the check flags the function by name.
+            // NOLINTNEXTLINE(concurrency-mt-unsafe)
             const dirent* entry = ::readdir(dir);
             if (entry == nullptr) {
                 const int error = errno;

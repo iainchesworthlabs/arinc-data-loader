@@ -83,8 +83,13 @@ What is left of the 615A work:
 - **An integration test over loopback with real sockets** (a target on the real host in a second thread),
   so that the runner is run through the real platforms, on all three desktops, in CI.
 - **A CI job that builds the library with `-fno-exceptions -fno-rtti`**, which it is written for.
-- **A target side** (answering `.LCI`, writing status files), if a target is to be built and not only
-  loaded.
+- **A target-side application.** The libraries build for the target's platform — the 615A engine is
+  sans-I/O and the platform layer has a fragment per platform — but there is no program that answers
+  `.LCI` and writes the status files: `adl_mock_target` does that only as a desktop demonstration
+  ([docs/mock-target.md](mock-target.md)). The shape is a fourth build output beside the source-side
+  tools: an `ADL_BUILD_TARGET` option, a `src/target_app` built the way `src/app` is, presets for the
+  embedded platforms that select it, sharing the codec and the protocol-file writers in
+  `adl::arinc615a`. [Building](building.md#what-cmake-builds) lists what exists today.
 - Choosing, on the application side, the `DNLD_DATA_<THW_ID_POS>_<number>` directory (5.4.4.3) and
   when to run FIND (Attachment 3).
 
@@ -141,10 +146,21 @@ slices; [the application](app.md) says what each does.
    ([the mock target](mock-target.md)); and a dark-scheme, keyboard and accessibility pass over all three
    windows (menus and shortcuts, initial focus, the keyboard highlight of the generator's file list, both
    schemes rendered in the offscreen tests).
+7. **The window's minimum set (done).** The design layer the sibling applications have, brought to the
+   loader: one design-token file (`qml/Theme.qml`) and a small component library over it
+   (`Panel`, `AppButton`, `SegmentedControl`, `FocusRing`); a first-run screen that sets the essentials
+   once; the address and `<THW_ID_POS>` of the last operation remembered across sessions; and the
+   language machinery — `qt_add_translations` over an English catalogue, a `LanguageManager` that
+   persists the choice, follows the system locale, sets the layout direction and retranslates the
+   running window. The QML is a static module library the application and the window's test both link,
+   so the test runs what ships ([the application](app.md)).
 
 What is left of the application:
 
-- Remembering the last target and download directory; translations.
+- Reviewing the draft translations with speakers. The eight catalogues (English, French, Spanish,
+  German, Yiddish, Hebrew, Simplified Chinese and Japanese), the `qt_add_translations` pipeline, the
+  language menu, right-to-left mirroring and the retranslation of the running window are in place; the
+  text is a first, mechanical draft.
 - FIND over real sockets in the loopback test: the standard fixes FIND to port 1001 on both ends, and two
   sockets sharing a port on one machine is not reliable on every platform, so the loopback test covers the
   operations and names the target by hand; a FIND case may join it if the reuse behaviour proves portable.
@@ -152,10 +168,15 @@ What is left of the application:
 
 ## 5. Profiling
 
-Tracy, as an opt-in build: `cmake/Tracy.cmake` and the `profiling` vcpkg feature
-are in place, behind `ADL_ENABLE_TRACY`. What is missing is the zones, which
-come with the first code worth profiling. Nothing that ships opens Tracy's
-listener.
+Tracy 0.14.1, as an opt-in build: `cmake/Tracy.cmake`, the `profiling` vcpkg feature
+and `-DADL_ENABLE_TRACY=ON` are the switch, and the zones are in the libraries, the
+application's engine and window, and its frame loop (frame marks, the frame interval
+and the render thread's time as plots). What is left is the trace work itself: an
+I/O-bound upload of a many-gigabyte media set, the target's transfer timing over a
+real network, and the GPU zones that would need the graphics API's own
+instrumentation. [Profiling](profiling.md) says what is instrumented and how a trace
+is taken, with the CLI tools and without the GUI profiler. Nothing that ships opens
+Tracy's listener.
 
 ## 6. An embedded target
 
@@ -199,5 +220,8 @@ What the target's certification needs from the code is not decided here.
 
 ## 7. Around the edges
 
-clang-tidy as a CI job, the Release presets in CI, a coverage threshold once the
-figures have been looked at, packaging, and a `docs/` site.
+The Release presets in CI, packaging, and a `docs/` site. The coverage minimum
+(90% lines, 80% branches) is enforced now, as are the UI and system suites, so
+they are no longer on this list. clang-tidy is not here either: it runs nightly
+with MSVC Code Analysis, CodeQL and Clang's sanitizers
+([static-analysis.md](static-analysis.md)).

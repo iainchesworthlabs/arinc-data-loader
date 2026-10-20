@@ -45,15 +45,27 @@ add_dependencies(adl_app_tests adl_app)
 # A test that hangs (a debug runtime's dialog waiting for an answer on a machine with a desktop,
 # a job that never ends) fails after two minutes instead of holding the run.
 add_test(NAME app.tests COMMAND adl_app_tests)
-set_tests_properties(app.tests PROPERTIES TIMEOUT 120)
+set_tests_properties(app.tests PROPERTIES
+    TIMEOUT 120
+    LABELS "unit")
 
-# The window: Main.qml with the real model, offscreen, a FIND and an Information operation run
-# while it shows, and every QML warning an error.
-add_executable(adl_app_qml_test qml_test.cpp)
-target_include_directories(adl_app_qml_test PRIVATE "${PROJECT_SOURCE_DIR}/tests/support")
+# The window: the same compiled QML module the application links (adl_app_qml), loaded offscreen
+# with the real model, through the first-run screen and then a FIND, an Information operation, a
+# media set check, an Upload and a media defined Download - with every QML warning an error.
+add_executable(adl_app_qml_test
+    qml_test.cpp
+    "${PROJECT_SOURCE_DIR}/src/app/frame_profiler.cpp"
+    "${PROJECT_SOURCE_DIR}/src/app/frame_profiler.hpp"
+    "${PROJECT_SOURCE_DIR}/src/app/language_manager.cpp"
+    "${PROJECT_SOURCE_DIR}/src/app/language_manager.hpp")
+target_include_directories(adl_app_qml_test PRIVATE
+    "${PROJECT_SOURCE_DIR}/tests/support"
+    "${PROJECT_SOURCE_DIR}/src/app")
 target_link_libraries(adl_app_qml_test
     PRIVATE
+        $<LINK_LIBRARY:WHOLE_ARCHIVE,adl_app_qml>
         adl::app_core
+        adl::tracy
         adl_sim_target
         adl::arinc665
         adl::media_tree
@@ -66,14 +78,18 @@ target_link_libraries(adl_app_qml_test
         adl::sanitizers
         adl::coverage)
 
+adl_add_ui_support(adl_app_qml_test)
+
 adl_platform_deploy_qt_runtime(adl_app_qml_test "${PROJECT_SOURCE_DIR}/src/app/qml")
 adl_deploy_sanitizer_runtime(adl_app_qml_test)
 add_dependencies(adl_app_qml_test adl_app_tests)
 
-add_test(NAME app.qml
-    COMMAND adl_app_qml_test "${PROJECT_SOURCE_DIR}/src/app/qml/Main.qml")
+# The window's test can save what the window looks like: one picture per run, in the scheme the
+# environment asks for (ADL_DARK=1 for the dark one).
+add_test(NAME app.qml COMMAND adl_app_qml_test)
 # The offscreen platform plugin is not one the deployment step copies beside the program, so it is
 # looked for in the Qt kit's own plugin directory.
 set_tests_properties(app.qml PROPERTIES
     TIMEOUT 120
+    LABELS "system;ui"
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Fusion;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")

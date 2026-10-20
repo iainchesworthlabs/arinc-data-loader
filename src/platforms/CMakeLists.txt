@@ -11,6 +11,17 @@ foreach(_source IN LISTS ADL_PLATFORM_SOURCES)
 endforeach()
 
 target_sources(adl_platform PRIVATE ${_adl_platform_sources})
+
+# MSVC's Code Analysis takes C6101 from the Windows SDK's inline
+# WSAGetIPUserMtu wrapper: the wrapper's getsockopt fills *Mtu on success, which
+# the analyzer does not model. It is the only finding in SDK code this project
+# does not own; disable it for the one translation unit that includes it. A
+# source property has to be set in the directory that adds the target, which is
+# why this is here and not in the Windows fragment.
+if(MSVC AND ADL_ENABLE_MSVC_ANALYSIS)
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/windows/network_windows.cpp"
+        PROPERTIES COMPILE_OPTIONS /wd6101)
+endif()
 target_include_directories(adl_platform
     PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/interfaces"
     # The implementations include each other's internal headers (detail/, posix/,

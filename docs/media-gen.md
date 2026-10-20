@@ -35,7 +35,14 @@ src/media_gen/
     generator_model       what the QML talks to: properties and a few invokable functions
 tests/media_gen/          QtTest headless (including reading a generated set back through the
                           loader's own media set summary), and the window loaded offscreen
+src/ui/                   the shared design system (Theme, controls, header, footer, log)
 ```
+
+The window is a fixed left rail of numbered blocks (01 media set, 02 load, 03 batch) beside the
+artefact: the file table, the result receipt and the fixed action bar. The definition of the set
+does not scroll away with the file table; the file table is the part that changes. The action is
+always the filled button at the bottom right, and the check-value choice is visible as its own
+`NO CHECK VALUES` chip when all three choices are `none`.
 
 ## How it is put together
 

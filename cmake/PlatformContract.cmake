@@ -21,6 +21,13 @@ set(ADL_PLATFORM_CONTRACT_VARIABLES
     ADL_PLATFORM_LINK_LIBRARIES
     ADL_PLATFORM_COMPILE_DEFINITIONS)
 
+# What a desktop platform (ADL_PLATFORM_DESKTOP ON) adds, because the applications and their
+# third-party notices exist only there. An empty string is a definition.
+set(ADL_PLATFORM_DESKTOP_CONTRACT_VARIABLES
+    ADL_PLATFORM_NOTICE_FRAGMENTS
+    ADL_PLATFORM_NOTICE_QT_DEPLOYMENT
+    ADL_PLATFORM_NOTICE_EXPECTED)
+
 set(ADL_PLATFORM_CONTRACT_HOOKS
     adl_platform_configure_app
     adl_platform_deploy_qt_runtime)
@@ -55,6 +62,16 @@ function(adl_platform_check_contract fragment platforms_dir)
         message(FATAL_ERROR
             "${fragment}: ADL_PLATFORM_DESKTOP must be ON or OFF, not "
             "'${ADL_PLATFORM_DESKTOP}'.")
+    endif()
+
+    if(ADL_PLATFORM_DESKTOP STREQUAL "ON")
+        foreach(_variable IN LISTS ADL_PLATFORM_DESKTOP_CONTRACT_VARIABLES)
+            if(NOT DEFINED ${_variable})
+                message(FATAL_ERROR
+                    "${fragment} is a desktop platform and does not set ${_variable} (the "
+                    "contract is described at the top of cmake/Platform.cmake).")
+            endif()
+        endforeach()
     endif()
 
     if(NOT ADL_PLATFORM_STATUS STREQUAL "supported" AND

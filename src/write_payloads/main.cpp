@@ -118,9 +118,15 @@ bool write_scenario(const adl::samples::Scenario& scenario, const std::filesyste
     for (const adl::arinc665::MediaMember& member : *on_disk) {
         files += member.files.size();
     }
-    std::cout << scenario.name << ": " << on_disk->size() << " member(s), " << files << " file(s), "
-              << set->loads.size() << " load(s), " << set->batches.size() << " batch(es), "
-              << set->findings.size() << " finding(s) -> " << directory.string() << '\n';
+    const auto count_text = [](std::size_t count, const char* one, const char* many) {
+        return std::to_string(count) + ' ' + (count == 1 ? one : many);
+    };
+    std::cout << scenario.name << ": " << count_text(on_disk->size(), "member", "members") << ", "
+              << count_text(files, "file", "files") << ", "
+              << count_text(set->loads.size(), "load", "loads") << ", "
+              << count_text(set->batches.size(), "batch", "batches") << ", "
+              << count_text(set->findings.size(), "finding", "findings") << " -> "
+              << directory.string() << '\n';
     for (const adl::arinc665::Finding& finding : set->findings) {
         std::cout << "    " << finding.clause << ": " << finding.message << '\n';
     }

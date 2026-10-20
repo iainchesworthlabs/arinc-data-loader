@@ -13,6 +13,7 @@ target_link_libraries(adl_media_tree
     PUBLIC
         adl::arinc665
     PRIVATE
+        adl::tracy
         adl::warnings
         adl::sanitizers
         adl::coverage)

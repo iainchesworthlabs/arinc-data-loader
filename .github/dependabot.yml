@@ -4,8 +4,8 @@ version: 2
 #
 #   github-actions   weekly. Minor and patch updates are grouped into one PR; a
 #                    major update is its own PR and waits for a human.
-#   pip              weekly. The pinned CI tooling (clang-format, gcovr) in
-#                    .github/requirements.
+#   pip              weekly. The pinned CI tooling (clang-format, gcovr,
+#                    clang-tidy) in .github/requirements.
 #   vcpkg + deps/    monthly, one combined PR: the manifest's builtin-baseline
 #   vcpkg submodule  and the vendored vcpkg checkout have to move together (the
 #                    ports resolved from the baseline are built with the
@@ -43,6 +43,7 @@ updates:
     # pins must move with the workflows').
     directories:
       - "/"
+      - "/.github/actions/install-qt"
       - "/.github/actions/vcpkg-cache/restore"
       - "/.github/actions/vcpkg-cache/save"
     target-branch: "develop"

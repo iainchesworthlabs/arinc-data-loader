@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <variant>
 
+#include <adl/profiling.hpp>
+
 namespace adl::arinc615a {
 namespace {
 
@@ -116,6 +118,7 @@ void TftpTransfer::fail_with_io(const IoFailure& failure) noexcept {
 Result<void> TftpTransfer::start_read(Instant now, const Endpoint& server,
                                       std::string_view file_name, const ClientOptions& options,
                                       BlockSink& sink, const TransferSettings& settings) noexcept {
+    const adl::profiling::Zone zone{"615a: tftp read start"};
     begin(settings, true, true, server);
     sink_ = &sink;
     asked_ = options;
@@ -154,6 +157,7 @@ Result<void> TftpTransfer::start_write(Instant now, const Endpoint& server,
                                        std::string_view file_name, const ClientOptions& options,
                                        BlockSource& source,
                                        const TransferSettings& settings) noexcept {
+    const adl::profiling::Zone zone{"615a: tftp write start"};
     begin(settings, true, false, server);
     source_ = &source;
     asked_ = options;
@@ -207,7 +211,7 @@ void TftpTransfer::accept_write(Instant now, const Endpoint& client, const TftpR
         refused = refused || !oack.add_block_size(static_cast<std::uint16_t>(block_size_));
     }
     if (options->transfer_size) {
-        expected_size_ = *options->transfer_size;
+        expected_size_ = options->transfer_size;
         result_.announced_size = expected_size_;
         refused = refused || !oack.add_transfer_size(*options->transfer_size);
     }
@@ -444,7 +448,7 @@ bool TftpTransfer::read_options_from_oack(const TftpOptionAck& oack) noexcept {
         return false;
     }
     if (options->transfer_size && receiving_) {
-        expected_size_ = *options->transfer_size;
+        expected_size_ = options->transfer_size;
         result_.announced_size = expected_size_;
     }
     result_.port_acknowledged =

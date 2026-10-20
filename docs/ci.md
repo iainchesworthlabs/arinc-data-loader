@@ -26,10 +26,11 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 
 | Workflow | Purpose | Runs on a private copy? |
 | --- | --- | --- |
-| `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs, a coverage report, and the Zephyr and FreeRTOS simulator jobs | yes |
+| `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs, a coverage gate, and the Zephyr and FreeRTOS simulator jobs | yes |
 | `branch-name-check.yml` | gitflow branch naming; the source/target pairing | yes |
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
-| `codeql.yml` | CodeQL static analysis of the C++ | no - skipped |
+| `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
+| `static-analysis.yml` | the nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
 | `dependency-review.yml` | fails a PR that adds a moderate-or-worse vulnerable dependency | no - skipped |
 | `scorecard.yml` | OpenSSF Scorecard score and badge, from `main` | no - skipped |
 | Dependabot (`.github/dependabot.yml`) | Actions pins, the pinned CI tooling, the vcpkg baseline plus its submodule | yes |
@@ -50,6 +51,24 @@ diff` needs the repository's dependency graph switched on, and was added to the
 required checks after its first report (see the staging section in
 [Branch protection](branch-protection.md)).
 
+## Nightly static analysis
+
+A schedule, and a manual dispatch, work only for a workflow on the default branch
+(`main`). These two workflows live on `develop` until the first release merge, so
+nothing runs nightly before then; the per-commit checks above are unaffected.
+The same holds for everything GitHub reads only from the default branch: Dependabot
+(`.github/dependabot.yml`), `scorecard.yml`, the issue templates and `SECURITY.md`'s
+private-reporting link. None of them is active until `main` carries them.
+
+`static-analysis.yml` and `codeql.yml` run on a nightly schedule, not on a
+push or a pull request. They are not required checks: a red night is read in
+the morning, and a merge is not held for an analyzer. The jobs are clang-tidy
+over the libraries (`src/`), MSVC Code Analysis over the libraries, tests and
+Qt applications, a Clang ASan/UBSan build and test run, CodeQL's C++ queries,
+and an optional SonarQube scan that is skipped until it is configured. The
+reason for each, the local presets and the suppression rules are in
+[Nightly static and dynamic analysis](static-analysis.md).
+
 ## The jobs in `ci.yml`
 
 The job *display names* are the required-check contexts in
@@ -64,11 +83,10 @@ with the rulesets.
 | `Windows (MSVC)` | windows-2025-vs2026 | Preset `windows-msvc-debug` configures, builds warning-free (`/W4 /WX`) with ASan, and all of ctest passes. |
 | `Linux (GCC)` | ubuntu-26.04 | Preset `linux-gcc-debug`: the image's default `g++` builds warning-free (`-Wall -Wextra -Wpedantic -Werror ...`) with ASan and UBSan, and all of ctest passes. |
 | `macOS (AppleClang)` | macos-26 (Apple silicon) | Preset `macos-clang-debug`: AppleClang from Xcode builds warning-free with ASan and UBSan, and all of ctest passes. |
-| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-gcc-coverage` builds and passes its tests, and a gcovr report of `src/` is produced as the `coverage-report` artifact (HTML, plus `summary.json` and a table in the job summary). **Report only: there is no threshold.** |
+| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-gcc-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the libraries, the engine, the media tree, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. The preset does not build the Qt applications; their windows are covered by the UI suite on the build legs. |
 
 | `Zephyr (native_sim)` | ubuntu-26.04 | The platform layer for Zephyr builds with the project's warning set and, with Zephyr 4.4.2's kernel, IPv4/UDP stack (over its loopback interface) and littlefs on simulated flash running as a host process, passes the platform conformance suite and the 615A engine tests (`tests/platform/zephyr`, through `tools/ci/zephyr_native_sim.sh`). **Not a required check.** |
 | `FreeRTOS (POSIX simulator)` | ubuntu-26.04 | The platform layer for FreeRTOS builds, and with FreeRTOS-Kernel V11.2.0's POSIX simulator port, lwIP 2.2.1's UDP sockets over its loopback interface and littlefs on a RAM block device, passes the same two suites (`tests/platform/freertos`, through `tools/ci/freertos_posix_sim.sh`). **Not a required check.** |
-
 | `Zephyr (QEMU, SDK toolchain)` | ubuntu-26.04 | The platform layer and the 665/615A libraries build with the Zephyr SDK's own GCC 14 and picolibc, without exceptions, for a Cortex-M3, and a smoke program (`tests/platform/zephyr_smoke`, through `tools/ci/zephyr_qemu_smoke.sh`) runs in QEMU: clock, memory, threads at every priority, a mutex, a queue and UDP over Zephyr's loopback interface. Then the whole test program (Catch2, the platform conformance suite and the 615A engine tests: 222 test cases) is built for the Cortex-A9 board `qemu_cortex_a9` with the same toolchain, with exceptions, and runs in the SDK's QEMU (`tools/ci/zephyr_qemu_suite.sh`). **Not a required check.** |
 
 The three simulator jobs are new and are not in the rulesets: they join them after they have been green for a
@@ -80,13 +98,19 @@ littlefs and Catch2 fetched by CMake at the versions and hashes in `tests/platfo
 They run on `ubuntu-26.04`, the image the Linux leg verifies GCC 15 on; the Zephyr job installs
 `device-tree-compiler` and `gperf` with apt.
 
-What a build-and-test leg's ctest contains: the Catch2 suites, the application's `app.tests` (QtTest) and
+What a build-and-test leg's ctest contains: the Catch2 suites, the application's `app.tests` (QtTest),
 `app.qml` (the window loaded offscreen, with the offscreen platform and the software renderer, so no GPU
-or display is needed; both have a two minute time-out so that a hung test cannot hold the job), and the two
-repository checks `platform.fragments` (every platform fragment satisfies the
-platform contract, on whichever host this is) and `platform.isolation` (the
-same script as the `platform-isolation` job; it needs `pwsh`, which every
-hosted image has).
+or display is needed), the Qt Quick Test suites `ui.tst_main_window` and `ui.tst_dialogs` (the window
+and its dialogs driven by mouse and key events on the real `Main.qml`), the system smoke tests that start
+the three application programs, and the two repository checks `platform.fragments` (every platform
+fragment satisfies the platform contract, on whichever host this is) and `platform.isolation` (the same
+script as the `platform-isolation` job; it needs `pwsh`, which every hosted image has). A hung test has
+a time-out, so it cannot hold the job.
+
+A leg whose build or tests fail uploads the CTest log (`Testing/Temporary/LastTest.log`, with every test's
+output rather than only the failures') and a JUnit report as the `ctest-logs-<preset>` artifact, for 14 days;
+a green leg uploads nothing. A test that fails on CI and not on a person's machine can then be read after
+the fact instead of re-run.
 
 ### Toolchain choices
 
@@ -109,7 +133,7 @@ hosted image has).
   libraries a prebuilt Qt needs, and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The
   Qt version is the action's `version` input in `ci.yml` (the same 6.12.0 as the labs' shared toolchain);
   the matrix has the host and architecture names. The coverage job does not build the application, so it
-  needs no Qt, and its figures are of the libraries only.
+  needs no Qt, and its figures are of the portable code; the UI suite runs on the three build legs.
 - **CMake 4.4.2 and Ninja 1.13.2** from `lukka/get-cmake`; the same pins the
   sibling projects use.
 - **Local composite actions are referenced as `./.github/actions/...`.** The
@@ -168,7 +192,7 @@ because the merge queue evaluates the required checks on its temporary
 (there is no head branch name, title or body of its own; a skipped job counts
 as a pass for a required check). A workflow that produces **no** required
 check must not carry `merge_group`, or every queue entry burns a run of it for
-nothing: that is why `codeql.yml` does not have it.
+nothing: that is why `codeql.yml` and `static-analysis.yml` do not have it.
 
 ## The vcpkg binary cache
 
@@ -207,6 +231,7 @@ submodule clone does not have them.
 | --- | --- | --- |
 | Every GitHub Action, and the composite actions in `.github/actions` | A full commit SHA, version in a trailing comment | Dependabot, weekly, grouped, 7-day cooldown |
 | clang-format, gcovr, west | `==` in `.github/requirements/*.txt` | Dependabot (`pip`), weekly |
+| clang-tidy (nightly analysis) | `==` in `.github/requirements/static-analysis.txt` | Dependabot (`pip`), weekly |
 | Zephyr (and its modules littlefs and cmsis_6) | `revision` in `tests/platform/zephyr/west.yml` (v4.4.2) | By hand |
 | The Zephyr SDK (the Arm toolchain and QEMU of the smoke job) | The version Zephyr names in its `SDK_VERSION` (1.0.1 for v4.4.2) | With Zephyr |
 | FreeRTOS-Kernel, lwIP, littlefs, Catch2 (the simulator program) | URL and SHA-256 in `tests/platform/freertos/CMakeLists.txt` (V11.2.0, 2.2.1, v2.11.3, v3.15.3) | By hand |
@@ -277,27 +302,31 @@ in the index (git ignores a hook that is not, with a warning).
 
 ## When the first run goes red
 
-The build has been run locally on Windows (MSVC 19.51) only; the Linux and macOS
-legs have not run yet, and the first run of each is their first compile of
-`src/platforms/linux` and `src/platforms/macos`. When a leg goes red, the usual
-suspects, in order of likelihood:
+The three legs (Windows MSVC, Linux GCC, macOS AppleClang) have all run on
+`develop`. When a leg goes red, the usual suspects, in order of likelihood:
 
 1. **Warnings as errors** on a compiler version nobody has tried: `-Werror`
    with `-Wconversion`, `-Wsign-conversion`, `-Wold-style-cast` and friends
    will say exactly which line.
-2. **A platform source that has never compiled** (`src/platforms/linux`,
-   `src/platforms/macos`): the leg's log is the first compile of it.
+2. **A timing-dependent test**: the loopback tests run real sockets and a real
+   clock on a shared runner, so one that depends on how fast the other end
+   answers can fail under load. That is a defect to fix in the test or the
+   engine, not a re-run: read the log first.
 3. **The sanitizer runtime**: ASan/UBSan on the hosted image (on Windows, the
    ASan runtime DLL that `adl_deploy_sanitizer_runtime` copies next to the
    tests, found next to the compiler).
 4. **The vcpkg submodule**: a clone without enough history for the baseline
    (`fetch-depth: 0` is set for that reason).
-5. **Coverage**: gcovr refusing a counter; the report step passes
-   `--gcov-ignore-parse-errors negative_hits.warn_once_per_file` for the known
-   gcov bug, and the coverage preset updates counters atomically.
+5. **Coverage**: gcovr refusing a counter, or a figure below the minimum. The
+   report step passes `--gcov-ignore-parse-errors negative_hits.warn_once_per_file`
+   for the known gcov bug, and the coverage preset updates counters atomically.
+   The artifact names the file and line under the minimum; add the test that
+   covers it, or remove the dead code.
 
 ## Not here yet
 
-clang-tidy (the `.clang-tidy` file exists; there is no job), the Release
-presets, packaging the Qt application, a coverage threshold (and coverage of the application), and the
-embedded (VxWorks) target. Each is a new job or a flag flip, not a redesign.
+The Release presets, packaging the Qt application, and the embedded (VxWorks)
+target. Each is a new job or a flag flip, not a redesign. clang-tidy is no longer on this list: it is
+a nightly job, with the rest of the static analysis, in
+[static-analysis.md](static-analysis.md). A Release-only warning
+(`-Wnull-dereference`, for one) still first shows up locally.

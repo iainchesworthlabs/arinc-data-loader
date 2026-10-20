@@ -28,6 +28,7 @@ target_include_directories(adl_arinc665 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/incl
 target_compile_features(adl_arinc665 PUBLIC cxx_std_23)
 target_link_libraries(adl_arinc665
     PRIVATE
+        adl::tracy
         adl::warnings
         adl::sanitizers
         adl::coverage)

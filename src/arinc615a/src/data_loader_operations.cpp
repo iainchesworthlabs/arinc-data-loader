@@ -7,6 +7,8 @@
 
 #include "adl/arinc615a/data_loader.hpp"
 
+#include <adl/profiling.hpp>
+
 namespace adl::arinc615a {
 namespace {
 
@@ -35,6 +37,7 @@ void DataLoader::on_slot_finished(Instant now, std::size_t index) noexcept {
 }
 
 void DataLoader::on_client_finished(Instant now, Slot& slot) noexcept {
+    const adl::profiling::Zone zone{"615a: file received"};
     const TransferResult& result = slot.transfer.result();
     end_suspension(now, slot);
     if (done()) {
@@ -107,6 +110,7 @@ void DataLoader::on_client_finished(Instant now, Slot& slot) noexcept {
 }
 
 void DataLoader::on_server_finished(Instant now, Slot& slot) noexcept {
+    const adl::profiling::Zone zone{"615a: file sent"};
     const TransferResult& result = slot.transfer.result();
     const bool ok = result.outcome == TransferOutcome::succeeded;
     const bool silent = result.outcome == TransferOutcome::aborted;
@@ -457,6 +461,7 @@ bool DataLoader::take_counter(std::uint16_t counter) noexcept {
 }
 
 void DataLoader::on_status_file(Instant now, Slot& slot) noexcept {
+    const adl::profiling::Zone zone{"615a: status file"};
     const std::span<const std::byte> bytes =
         std::span<const std::byte>{slot.file}.first(slot.io.length);
     switch (kind_) {
@@ -674,8 +679,10 @@ void DataLoader::do_abort(Instant now, StatusCode status) noexcept {
     if (!started_ || done() || abort_status_) {
         return;
     }
-    abort_status_ = status == StatusCode::aborted_by_operator ? StatusCode::aborted_by_operator
-                                                              : StatusCode::aborted_by_data_loader;
+    const StatusCode abort_status = status == StatusCode::aborted_by_operator
+                                        ? StatusCode::aborted_by_operator
+                                        : StatusCode::aborted_by_data_loader;
+    abort_status_ = abort_status;
     if (!accepted_) {
         // The target has not started anything yet, so it has nothing to confirm.
         finish_aborted(now, false);
@@ -692,7 +699,7 @@ void DataLoader::do_abort(Instant now, StatusCode status) noexcept {
         }
         slot.retry_pending = false;
         if (slot.transfer.active() && !slot.transfer.lingering() &&
-            slot.transfer.abort(*abort_status_)) {
+            slot.transfer.abort(abort_status)) {
             abort_answered_ = true;
         }
         pump(now, i);

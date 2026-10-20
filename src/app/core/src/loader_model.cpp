@@ -6,6 +6,8 @@
 
 #include "adl/app/address.hpp"
 
+#include <adl/profiling.hpp>
+
 namespace adl::app {
 
 LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> settings,
@@ -14,11 +16,18 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
       settings_(settings != nullptr ? std::move(settings) : std::make_unique<AppSettings>()) {
     register_metatypes();
 
-    // The operator's preferences: the log's length now, and the target fields pre-filled (they
-    // are filled again whenever the operator clears them).
+    // The operator's preferences: the log's length now, and the target fields filled in - the
+    // target of the last session where there was one (so a session starts where the last left
+    // off), the defaults otherwise (and again whenever the operator clears a field).
     events_.set_capacity(settings_->logCapacity());
-    target_address_ = settings_->defaultTargetAddress();
-    thw_id_pos_ = settings_->defaultThwIdPos();
+    target_address_ = settings_->lastTargetAddress();
+    if (target_address_.isEmpty()) {
+        target_address_ = settings_->defaultTargetAddress();
+    }
+    thw_id_pos_ = settings_->lastThwIdPos();
+    if (thw_id_pos_.isEmpty()) {
+        thw_id_pos_ = settings_->defaultThwIdPos();
+    }
 
     worker_ = new EngineWorker(std::move(host_factory));
     worker_->moveToThread(&thread_);
@@ -51,12 +60,16 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
         worker_, &EngineWorker::validation_finished, this, [this](const ValidationReport& report) {
             QString detail;
             if (report.error.isEmpty()) {
-                detail = tr("%1 load(s), %2 file(s), all check values verified")
-                             .arg(report.loads)
-                             .arg(report.files);
+                const QString loads =
+                    report.loads == 1 ? tr("1 load") : tr("%1 loads").arg(report.loads);
+                const QString files =
+                    report.files == 1 ? tr("1 file") : tr("%1 files").arg(report.files);
+                detail = tr("%1, %2, all check values verified").arg(loads, files);
                 if (!report.findings.isEmpty()) {
-                    detail += tr("; %n warning(s) against the standard's recommendations", "",
-                                 static_cast<int>(report.findings.size()));
+                    detail += report.findings.size() == 1
+                                  ? tr("; 1 warning against the standard's recommendations")
+                                  : tr("; %1 warnings against the standard's recommendations")
+                                        .arg(report.findings.size());
                 }
             }
             set_validation(report.error.isEmpty() ? 2 : 3, report.error, report.findings, detail);
@@ -91,6 +104,7 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
             [this](const OperationSummary& summary) { on_finished(summary); });
 
     thread_.setObjectName(QStringLiteral("engine"));
+    connect(&thread_, &QThread::started, worker_, [] { adl::profiling::thread_name("engine"); });
     thread_.start();
 
     // The media set of the last session is read again once the window is up, quietly: it does
@@ -139,6 +153,7 @@ void LoaderModel::setTargetAddress(const QString& address) {
         return;
     }
     target_address_ = trimmed;
+    reconcile_target();
     Q_EMIT targetChanged();
     refresh_availability();
 }
@@ -152,8 +167,23 @@ void LoaderModel::setThwIdPos(const QString& thw_id_pos) {
         return;
     }
     thw_id_pos_ = trimmed;
+    reconcile_target();
     Q_EMIT targetChanged();
     refresh_availability();
+}
+
+// What was observed against one target does not describe another. Editing the address or the
+// THW_ID_POS drops the FIND selection, the configuration read from the previous target and a
+// transfer receipt whose inputs no longer hold; the activity log keeps the history.
+void LoaderModel::reconcile_target() {
+    if (selected_target_row_ != -1) {
+        selected_target_row_ = -1;
+        Q_EMIT selectedTargetChanged();
+    }
+    configuration_.reset({});
+    if (result_is_transfer_) {
+        set_result(0, {}, {});
+    }
 }
 
 bool LoaderModel::targetValid() const {
@@ -164,9 +194,11 @@ QString LoaderModel::mediaSetTitle() const {
     if (media_set_.path.isEmpty() || !media_set_.error.isEmpty()) {
         return {};
     }
-    return tr("%1: %n member(s), %2 load(s)", "", media_set_.members)
-        .arg(media_set_.part_number)
-        .arg(media_set_.loads.size());
+    const QString members =
+        media_set_.members == 1 ? tr("1 member") : tr("%1 members").arg(media_set_.members);
+    const QString loads =
+        media_set_.loads.size() == 1 ? tr("1 load") : tr("%1 loads").arg(media_set_.loads.size());
+    return tr("%1: %2, %3").arg(media_set_.part_number, members, loads);
 }
 
 bool LoaderModel::canUpload() const {
@@ -277,7 +309,12 @@ void LoaderModel::setControlPort(int port) {
     Q_EMIT preferencesChanged();
 }
 
-void LoaderModel::setDownloadDirectory(const QString& directory) {
+void LoaderModel::setDownloadDirectory(const QString& chosen) {
+    // A FolderDialog's selectedFolder is a QUrl, and QML hands it over as "file:///...": the
+    // engine is given a path.
+    const QString directory = chosen.startsWith(QStringLiteral("file:"), Qt::CaseInsensitive)
+                                  ? QUrl(chosen).toLocalFile()
+                                  : chosen;
     if (directory == settings_->downloadDirectory()) {
         return;
     }
@@ -371,16 +408,26 @@ bool LoaderModel::begin(Job job) {
         last_download_directory_.clear();
         Q_EMIT downloadDirectoryChanged();
     }
+    // The target an operation starts against is the one the next session starts against. Only
+    // an operation has a target: a media set read or a check does not.
+    if (job == Job::information || job == Job::upload || job == Job::download_media ||
+        job == Job::download_operator) {
+        settings_->setLastTargetAddress(target_address_);
+        settings_->setLastThwIdPos(thw_id_pos_);
+    }
     set_job(job);
     return true;
 }
 
 void LoaderModel::on_finished(const OperationSummary& summary) {
+    const Job ended = job_;
+    result_is_transfer_ = ended == Job::information || ended == Job::upload ||
+                          ended == Job::download_media || ended == Job::download_operator;
+    result_was_download_ = ended == Job::download_media || ended == Job::download_operator;
     set_result(summary.success ? 1 : 2, summary.outcome, summary.detail);
     if (!summary.success && !quiet_job_) {
         set_error(summary.outcome, summary.detail, summary.hint);
     }
-    const Job ended = job_;
     set_job(Job::none);
     if (ended == Job::media_set) {
         if (!media_set_.error.isEmpty()) {
@@ -411,6 +458,10 @@ void LoaderModel::on_finished(const OperationSummary& summary) {
 }
 
 void LoaderModel::set_result(int state, const QString& text, const QString& detail) {
+    if (state == 0) {
+        result_is_transfer_ = false;
+        result_was_download_ = false;
+    }
     result_state_ = state;
     result_text_ = text;
     result_detail_ = detail;
@@ -463,6 +514,7 @@ void LoaderModel::run_pending_after_find(bool found) {
 }
 
 void LoaderModel::chooseMediaSet(const QUrl& directory) {
+    const adl::profiling::Zone zone{"app: choose media set"};
     if (!begin(Job::media_set)) {
         return;
     }
@@ -477,6 +529,7 @@ void LoaderModel::chooseMediaSet(const QUrl& directory) {
 }
 
 void LoaderModel::checkMediaSet() {
+    const adl::profiling::Zone zone{"app: check media set"};
     if (media_set_.path.isEmpty() || !begin(Job::validate)) {
         return;
     }
@@ -499,6 +552,7 @@ void LoaderModel::selectAllLoads(bool selected) {
 }
 
 void LoaderModel::findTargets(const QString& address) {
+    const adl::profiling::Zone zone{"app: find targets"};
     if (!begin(Job::find)) {
         return;
     }
@@ -520,6 +574,7 @@ void LoaderModel::selectTarget(int row) {
 }
 
 void LoaderModel::readInformation() {
+    const adl::profiling::Zone zone{"app: read information"};
     if (!targetValid()) {
         // The operator's preference: look for the target first, and go on only when exactly one
         // answers.
@@ -541,6 +596,7 @@ void LoaderModel::readInformation() {
 }
 
 void LoaderModel::uploadSelected() {
+    const adl::profiling::Zone zone{"app: upload selected"};
     if (!canUpload()) {
         return;
     }
@@ -563,6 +619,7 @@ void LoaderModel::uploadSelected() {
 }
 
 void LoaderModel::downloadSelected() {
+    const adl::profiling::Zone zone{"app: download selected"};
     if (!canDownload()) {
         return;
     }
@@ -652,6 +709,18 @@ void LoaderModel::abort() {
     worker_->request_abort();
     Q_EMIT busyChanged();  // the activity text changes
     Q_EMIT canAbortChanged();
+}
+
+void LoaderModel::completeFirstRun() {
+    if (settings_->firstRunComplete()) {
+        return;
+    }
+    settings_->setFirstRunComplete(true);
+    // The first-run fields are the preferences; the window starts with them, so the operator's
+    // first operation does not need to retype what was just entered.
+    setTargetAddress(settings_->defaultTargetAddress());
+    setThwIdPos(settings_->defaultThwIdPos());
+    Q_EMIT firstRunChanged();
 }
 
 void LoaderModel::clearLog() {

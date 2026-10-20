@@ -223,7 +223,7 @@ void LoaderModelTest::find_lists_the_targets() {
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
 
     QCOMPARE(model.resultState(), 1);
-    QCOMPARE(model.resultText(), QStringLiteral("1 target(s) answered"));
+    QCOMPARE(model.resultText(), QStringLiteral("1 target answered"));
     const auto* targets = qobject_cast<TargetModel*>(model.targets());
     QCOMPARE(targets->rowCount(), 1);
     const QModelIndex row = targets->index(0);
@@ -242,7 +242,10 @@ void LoaderModelTest::selecting_a_target_fills_the_address() {
     adl::test::SimPlan plan;
     plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "R", "FMS RIGHT", "HNP"};
     adl::test::Rig rig(plan);
-    LoaderModel model(rig_host(rig));
+    // A file of its own: the target of a last operation is restored from the settings, and this
+    // test is about a window with no target yet.
+    QTemporaryDir settings_dir;
+    LoaderModel model(rig_host(rig), settings_in(settings_dir));
     QVERIFY(!model.canReadInformation());
 
     model.findTargets();
@@ -260,7 +263,9 @@ void LoaderModelTest::selecting_a_target_fills_the_address() {
 
 void LoaderModelTest::a_target_needs_an_address_and_a_name() {
     adl::test::Rig rig;
-    LoaderModel model(rig_host(rig));
+    // As above: no stored last target, so the window starts with the fields empty.
+    QTemporaryDir settings_dir;
+    LoaderModel model(rig_host(rig), settings_in(settings_dir));
     QVERIFY(!model.targetValid());
 
     model.setTargetAddress(QStringLiteral("10.0.0.2"));
@@ -483,9 +488,10 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
     QCOMPARE(model.resultState(), 1);
     QCOMPARE(model.resultText(), QStringLiteral("completed"));
     const auto& reads = fixture.load.item.reads;
-    QVERIFY2(model.resultDetail().contains(
-                 QStringLiteral("The target read %1 file(s)").arg(reads.size())),
-             qPrintable(model.resultDetail()));
+    const QString served = reads.size() == 1
+                               ? QStringLiteral("The target read 1 file")
+                               : QStringLiteral("The target read %1 files").arg(reads.size());
+    QVERIFY2(model.resultDetail().contains(served), qPrintable(model.resultDetail()));
     QVERIFY(model.canUpload());  // and it can be done again
     QVERIFY(!model.canAbort());
 
@@ -508,7 +514,7 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
              QStringLiteral("completed"));
     QVERIFY(!load_field(model, 0, LoadModel::FailedRole).toBool());
 
-    QVERIFY(log_contains(model, QStringLiteral("Uploading 1 load(s) to 10.0.0.2 (HNPFMS_L)")));
+    QVERIFY(log_contains(model, QStringLiteral("Uploading 1 load to 10.0.0.2 (HNPFMS_L)")));
     QVERIFY(log_contains(
         model, QStringLiteral("The target read %1").arg(QString::fromStdString(names.front()))));
     QVERIFY(log_contains(model, QStringLiteral("% of the list")));
@@ -600,7 +606,7 @@ void LoaderModelTest::abort_before_the_target_accepts_ends_the_upload() {
 
     QCOMPARE(model.resultState(), 2);
     QCOMPARE(model.resultText(), QStringLiteral("aborted by the operator"));
-    QVERIFY(model.resultDetail().contains(QStringLiteral("The target read 0 file(s)")));
+    QVERIFY(model.resultDetail().contains(QStringLiteral("The target read 0 files")));
     QVERIFY(rig.target.log().files_read.empty());
 
     // The next upload is not aborted by the last one's request.
@@ -665,6 +671,51 @@ void LoaderModelTest::clearing_a_target_field_restores_its_default() {
     QVERIFY(model2.targetAddress().isEmpty());
     model2.setDefaultTargetAddress(QStringLiteral("10.1.1.1"));
     QCOMPARE(model2.targetAddress(), QStringLiteral("10.1.1.1"));
+}
+
+void LoaderModelTest::the_first_run_screen_is_shown_until_it_is_passed() {
+    QTemporaryDir settings_dir;
+    {
+        adl::test::Rig rig;
+        LoaderModel model(rig_host(rig), settings_in(settings_dir));
+        QVERIFY(model.firstRun());
+        model.setDefaultTargetAddress(QStringLiteral("10.0.0.2"));
+        model.setDefaultThwIdPos(QStringLiteral("HNPFMS_L"));
+        model.completeFirstRun();
+        QVERIFY(!model.firstRun());
+        // What the first run set is what the window starts with, so the first operation does not
+        // retype it.
+        QCOMPARE(model.targetAddress(), QStringLiteral("10.0.0.2"));
+        QCOMPARE(model.thwIdPos(), QStringLiteral("HNPFMS_L"));
+        QVERIFY(model.targetValid());
+    }
+
+    // The next launch goes straight to the workbench.
+    adl::test::Rig rig;
+    LoaderModel again(rig_host(rig), settings_in(settings_dir));
+    QVERIFY(!again.firstRun());
+    QCOMPARE(again.targetAddress(), QStringLiteral("10.0.0.2"));
+}
+
+void LoaderModelTest::the_target_of_the_last_operation_comes_back() {
+    QTemporaryDir settings_dir;
+    {
+        adl::test::Rig rig;
+        LoaderModel model(rig_host(rig), settings_in(settings_dir));
+        // The defaults are one thing; the target an operation actually used is another.
+        model.setDefaultTargetAddress(QStringLiteral("10.0.0.1"));
+        model.setDefaultThwIdPos(QStringLiteral("DEFAULT_L"));
+        point_at_the_target(model);
+        model.readInformation();
+        QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+        QCOMPARE(model.resultState(), 1);
+    }
+
+    // A new window starts against the last operation's target, not a default.
+    adl::test::Rig rig;
+    LoaderModel again(rig_host(rig), settings_in(settings_dir));
+    QCOMPARE(again.targetAddress(), QStringLiteral("10.0.0.2"));
+    QCOMPARE(again.thwIdPos(), QStringLiteral("HNPFMS_L"));
 }
 
 void LoaderModelTest::a_failure_surfaces_for_the_dialog() {
@@ -972,7 +1023,7 @@ void LoaderModelTest::auto_find_with_several_targets_starts_nothing() {
     model.uploadSelected();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QCOMPARE(model.resultState(), 1);
-    QCOMPARE(model.resultText(), QStringLiteral("2 target(s) answered"));
+    QCOMPARE(model.resultText(), QStringLiteral("2 targets answered"));
     QVERIFY(model.resultDetail().contains(QStringLiteral("Choose the target")));
     QVERIFY(!model.targetValid());
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
@@ -990,7 +1041,7 @@ void LoaderModelTest::auto_find_with_several_targets_starts_nothing() {
     model2.uploadSelected();
     QTRY_VERIFY_WITH_TIMEOUT(!model2.busy(), 20000);
     QCOMPARE(model2.resultState(), 1);
-    QCOMPARE(model2.resultText(), QStringLiteral("0 target(s) answered"));
+    QCOMPARE(model2.resultText(), QStringLiteral("0 targets answered"));
     QVERIFY(!model2.targetValid());
     QCOMPARE(rig2.target.log().init_requests_at.size(), std::size_t{0});
 }
@@ -1106,7 +1157,7 @@ void LoaderModelTest::a_media_defined_download_writes_the_files_into_the_numbere
     QCOMPARE(progress.back(), 100);
     QVERIFY(std::is_sorted(progress.begin(), progress.end()));
 
-    QVERIFY(log_contains(model, QStringLiteral("Downloading 2 file(s) from 10.0.0.2 (HNPFMS_L)")));
+    QVERIFY(log_contains(model, QStringLiteral("Downloading 2 files from 10.0.0.2 (HNPFMS_L)")));
     QVERIFY(log_contains(model, QStringLiteral("Received A.BIN")));
     QVERIFY(log_contains(model, QStringLiteral("% of the list")));
     QVERIFY(log_contains(model, QStringLiteral("Finished: completed")));
@@ -1183,7 +1234,7 @@ void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_
     QVERIFY(!downloaded(rig, downloads.path(), "A.BIN").has_value());
     // The window keeps the chosen files, with their progress.
     QCOMPARE(qobject_cast<DownloadModel*>(model.downloads())->rowCount(), 2);
-    QVERIFY(log_contains(model, QStringLiteral("The target listed 3 file(s) it can download.")));
+    QVERIFY(log_contains(model, QStringLiteral("The target listed 3 files it can download.")));
 }
 
 void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() {
@@ -1240,9 +1291,9 @@ void LoaderModelTest::a_download_with_a_missing_file_ends_as_a_failure() {
     // The target completed, but a file the operator asked for never arrived: the application
     // reports the download as failed, with the numbers and a hint.
     QCOMPARE(model.resultState(), 2);
-    QCOMPARE(model.resultText(), QStringLiteral("completed, 1 file(s) missing"));
+    QCOMPARE(model.resultText(), QStringLiteral("completed, 1 file missing"));
     QVERIFY(model.resultDetail().contains(QStringLiteral("Files received: 1 of 2 requested.")));
-    QCOMPARE(model.lastErrorText(), QStringLiteral("completed, 1 file(s) missing"));
+    QCOMPARE(model.lastErrorText(), QStringLiteral("completed, 1 file missing"));
     QVERIFY(model.lastErrorHint().contains(QStringLiteral("did not give back every file")));
     QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content));
     QVERIFY(log_contains(model, QStringLiteral("requested files missing")));
@@ -1278,6 +1329,23 @@ void LoaderModelTest::abort_of_a_download_stops_it() {
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QCOMPARE(model.resultState(), 1);
     QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 2));
+}
+
+// A FolderDialog's selectedFolder is a QUrl; assigned to the string property it arrives as
+// "file:///...", which the engine would take for a relative path.
+void LoaderModelTest::a_directory_from_a_folder_dialog_is_stored_as_a_path() {
+    adl::test::Rig rig(download_plan());
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+
+    const QString path = download_dir_of(downloads);
+    model.setDownloadDirectory(QUrl::fromLocalFile(path).toString());
+    QCOMPARE(QDir::fromNativeSeparators(model.downloadDirectory()),
+             QDir::fromNativeSeparators(path));
+
+    // A plain path is stored as it is.
+    model.setDownloadDirectory(path);
+    QCOMPARE(model.downloadDirectory(), path);
 }
 
 void LoaderModelTest::a_download_needs_a_target_a_directory_and_files() {

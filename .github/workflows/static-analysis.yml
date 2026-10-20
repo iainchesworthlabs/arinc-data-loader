@@ -1,0 +1,299 @@
+name: Static analysis
+
+# The nightly analyzers: clang-tidy (with the Clang Static Analyzer), MSVC Code
+# Analysis, Clang's ASan/UBSan build, and the optional SonarQube scan. They are
+# deliberately not on push or pull_request: a full analysis costs more than the
+# per-commit CI, and a defect of the kind they find does not get worse by
+# waiting for the night. docs/static-analysis.md is the page that explains each
+# job and how to run it by hand; docs/ci.md lists what runs on every change.
+#
+# CodeQL has its own workflow (codeql.yml) on the same schedule. Its result is
+# triaged under Security > Code scanning, and its permissions are different
+# enough (security-events: write) to keep the two apart.
+#
+# A manual run is a full run; there is nothing to narrow, because every job is
+# independent and the workflow is the one place to start all of them:
+#   gh workflow run static-analysis.yml --ref <branch>
+
+on:
+  schedule:
+    # 13:17 UTC: just after midnight in Sydney in daylight saving, late evening
+    # in standard time. GitHub's cron is UTC; the exact local hour is not
+    # important, only that it is out of the working day.
+    - cron: "17 13 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: static-analysis-${{ github.ref }}
+  # A manual run supersedes the night's run; the other way round would let an
+  # old tree finish after a newer one and report on it.
+  cancel-in-progress: true
+
+# No job gets more than it names below.
+permissions: {}
+
+env:
+  VCPKG_DISABLE_METRICS: "1"
+
+jobs:
+  # clang-tidy over every translation unit under src/, with .clang-tidy and
+  # --warnings-as-errors=* (cmake/StaticAnalysis.cmake). The build is the
+  # analysis, so the analyzer sees exactly the flags the build uses. The tests
+  # are not tidied: Catch2's REQUIRE/CHECK macros expand to code the checks
+  # cannot see through, and the sanitizer legs run them. The applications are
+  # off too: they need Qt, and the libraries are where the protocol and format
+  # code lives.
+  clang-tidy:
+    name: clang-tidy (Linux, GCC)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      # fetch-depth: 0 for vcpkg's version resolution against the deps/vcpkg
+      # submodule - see ci.yml.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Restore vcpkg binaries
+        id: vcpkg-cache
+        uses: ./.github/actions/vcpkg-cache/restore
+        with:
+          triplet: x64-linux
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      # The pinned clang-tidy from PyPI, not the runner image's: a newer
+      # clang-tidy adds checks, and the gate must not change under an image
+      # bump. Dependabot keeps the pin current (pip ecosystem).
+      - name: Install clang-tidy (pinned)
+        run: |
+          uv venv "$RUNNER_TEMP/tidy-venv"
+          uv pip install --python "$RUNNER_TEMP/tidy-venv/bin/python" --requirement .github/requirements/static-analysis.txt
+          echo "$RUNNER_TEMP/tidy-venv/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/tidy-venv/bin/clang-tidy" --version
+
+      - name: Configure
+        run: cmake --preset linux-gcc-tidy
+
+      # The log is kept whether the build passes or fails: a clang-tidy finding
+      # is a compile error from Ninja's point of view, and the diagnostic is
+      # the useful part of a red run.
+      - name: Run clang-tidy
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p build/static-analysis
+          cmake --build --preset linux-gcc-tidy 2>&1 | tee build/static-analysis/clang-tidy.log
+
+      - name: Upload clang-tidy log
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: clang-tidy-log
+          path: build/static-analysis
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Save vcpkg binaries
+        if: ${{ always() }}
+        uses: ./.github/actions/vcpkg-cache/save
+        with:
+          triplet: x64-linux
+          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+
+  # MSVC Code Analysis (/analyze) over the libraries, the tests and the three
+  # Qt applications. The applications are included here, unlike clang-tidy:
+  # this is the only analyzer that sees the Windows platform layer and the Qt
+  # window code, and Qt's headers arrive as external (/analyze:external-).
+  msvc-analysis:
+    name: MSVC Code Analysis (Windows)
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      # fetch-depth: 0 for vcpkg's version resolution - see ci.yml.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Restore vcpkg binaries
+        id: vcpkg-cache
+        uses: ./.github/actions/vcpkg-cache/restore
+        with:
+          triplet: x64-windows
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      # Ninja needs cl.exe on PATH; the preset does not set up the VS
+      # environment itself.
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+
+      - name: Install Qt
+        uses: ./.github/actions/install-qt
+        with:
+          version: "6.12.0"
+          host: windows
+          arch: win64_msvc2022_64
+
+      - name: Configure
+        run: cmake --preset windows-msvc-analyze
+
+      - name: Run MSVC Code Analysis
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p build/static-analysis
+          cmake --build --preset windows-msvc-analyze 2>&1 | tee build/static-analysis/msvc-analysis.log
+
+      - name: Upload analysis log
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: msvc-analysis-log
+          path: build/static-analysis
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Save vcpkg binaries
+        if: ${{ always() }}
+        uses: ./.github/actions/vcpkg-cache/save
+        with:
+          triplet: x64-windows
+          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+
+  # The sanitizer leg the per-commit CI does not have: Clang's ASan and UBSan
+  # over the libraries and tests. The Linux and macOS legs use GCC and
+  # AppleClang, and MSVC has no UBSan, so this is the one nightly run that sees
+  # Clang's UBSan on Linux. The applications are off (they need Qt); their code
+  # is built by the MSVC analysis leg above.
+  clang-sanitizers:
+    name: Clang ASan/UBSan (Linux)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      # fetch-depth: 0 for vcpkg's version resolution - see ci.yml.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Restore vcpkg binaries
+        id: vcpkg-cache
+        uses: ./.github/actions/vcpkg-cache/restore
+        with:
+          triplet: x64-linux
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      # The image's Clang, like the other three legs use the compiler their
+      # image ships. The preset selects clang++ and the Debug sanitizer flags
+      # come from cmake/Sanitizers.cmake.
+      - name: Install Clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang
+          clang++ --version | head -n 1
+
+      - name: Configure
+        run: cmake --preset linux-clang-debug
+
+      - name: Build
+        run: cmake --build --preset linux-clang-debug
+
+      - name: Test
+        env:
+          # LeakSanitizer is part of ASan on Linux; a leak in the tests is a
+          # finding this leg exists to report. UBSan already halts on the first
+          # error (-fno-sanitize-recover=all), and the stack trace says where.
+          ASAN_OPTIONS: detect_leaks=1:strict_string_checks=1
+          UBSAN_OPTIONS: print_stacktrace=1
+        run: ctest --preset linux-clang-debug
+
+      - name: Save vcpkg binaries
+        if: ${{ always() }}
+        uses: ./.github/actions/vcpkg-cache/save
+        with:
+          triplet: x64-linux
+          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+
+  # Optional: SonarQube (or SonarQube Cloud). It is off until an administrator
+  # sets the repository variable SONAR_HOST_URL (https://sonarcloud.io for the
+  # cloud) and the SONAR_TOKEN secret; until then the job is skipped, not red.
+  # The project key and organization are in sonar-project.properties, which a
+  # self-hosted server edits. Report only: the scanner does not wait for the
+  # quality gate, so a first scan publishes its findings instead of failing the
+  # night (docs/static-analysis.md).
+  sonarqube:
+    name: SonarQube
+    if: ${{ vars.SONAR_HOST_URL != '' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      # A full history gives Sonar the blame it uses for new-code periods, and
+      # fetch-depth: 0 is needed by vcpkg anyway.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Restore vcpkg binaries
+        id: vcpkg-cache
+        uses: ./.github/actions/vcpkg-cache/restore
+        with:
+          triplet: x64-linux
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      # Configure only: the Sonar C++ analyzer reads compile_commands.json, it
+      # does not need the objects. Tests are off in this preset, so the scan is
+      # of the libraries and the platform section.
+      - name: Configure
+        run: cmake --preset linux-gcc-sonar
+
+      - name: Scan
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+
+      - name: Save vcpkg binaries
+        if: ${{ always() }}
+        uses: ./.github/actions/vcpkg-cache/save
+        with:
+          triplet: x64-linux
+          restored: ${{ steps.vcpkg-cache.outputs.listing }}

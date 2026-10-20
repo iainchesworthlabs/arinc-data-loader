@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <adl/profiling.hpp>
+
 namespace adl::arinc615a {
 namespace {
 
@@ -97,6 +99,7 @@ Instant to_instant(adl::platform::Instant at) noexcept {
 
 std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation& operation,
                                              const RunOptions& options) noexcept {
+    const adl::profiling::Zone zone{"615a: run operation"};
     auto& network = host_.network();
     auto& clock = host_.clock();
 
@@ -114,7 +117,7 @@ std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation
         return std::unexpected(
             RunError{RunError::Stage::start, started.error(), adl::platform::ErrorCode::other});
     }
-    sockets.execute(loader.commands());
+    sockets.execute(loader.take_commands());
 
     std::vector<std::byte> buffer(loader.datagram_buffer_bytes());
     std::array<UdpSocket*, DataLoader::max_slots + 1> waiting{};
@@ -165,21 +168,22 @@ std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation
                 } else {
                     loader.on_transfer_datagram(now, owners[i], from, bytes);
                 }
-                sockets.execute(loader.commands());
+                sockets.execute(loader.take_commands());
             }
         }
         if (options.controller != nullptr) {
             options.controller->on_poll(loader, now);
-            sockets.execute(loader.commands());
+            sockets.execute(loader.take_commands());
         }
         loader.on_timer(now);
-        sockets.execute(loader.commands());
+        sockets.execute(loader.take_commands());
     }
     return loader.outcome();
 }
 
 adl::platform::Result<std::size_t> Runner::find(const FindConfig& config, std::span<FindTarget> out,
                                                 std::uint16_t port) noexcept {
+    const adl::profiling::Zone zone{"615a: find"};
     auto& network = host_.network();
     auto& clock = host_.clock();
 

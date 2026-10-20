@@ -514,6 +514,10 @@ Result<ErrorMeaning> interpret_error(const TftpError& error) noexcept {
             }
             code = (code << 4) | *digit;
         }
+        // 6.4.10 writes the abort status as four hexadecimal characters and
+        // the code is carried as it stands. StatusCode's underlying type is
+        // fixed at std::uint16_t, so every value the four characters can spell
+        // is a value of the type; the codec's tests hold that down.
         return AbortMessage{static_cast<StatusCode>(code)};
     }
     return error;

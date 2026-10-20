@@ -256,7 +256,22 @@ jobs:
         shell: bash
         env:
           CMAKE_PRESET: ${{ matrix.preset }}
-        run: ctest --preset "$CMAKE_PRESET"
+        run: ctest --preset "$CMAKE_PRESET" --output-junit "$GITHUB_WORKSPACE/build/$CMAKE_PRESET/ctest-junit.xml"
+
+      # Only when the leg is red: the full CTest log (every test's output, not
+      # only what the job log shows for the failures) and the JUnit report, so a
+      # failure that does not reproduce locally leaves its evidence behind.
+      - name: Upload test logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ctest-logs-${{ matrix.preset }}
+          path: |
+            build/${{ matrix.preset }}/ctest-junit.xml
+            build/${{ matrix.preset }}/Testing/Temporary/LastTest.log
+            build/${{ matrix.preset }}/Testing/Temporary/LastTestsFailed.log
+          if-no-files-found: warn
+          retention-days: 14
 
       # Saved even when a later step fails: otherwise a red leg throws away
       # every package vcpkg had already built. Only saves when packages were
@@ -268,10 +283,15 @@ jobs:
           triplet: ${{ matrix.triplet }}
           restored: ${{ steps.vcpkg-cache.outputs.listing }}
 
-  # Line and branch coverage of src/ from the unit tests, as a report. There is
-  # NO threshold: nothing here fails on a number until the figures have been
-  # looked at, and a gate (gcovr --fail-under-line / --fail-under-branch) is a
-  # deliberate later change to this job.
+  # Line and branch coverage of the portable code (the libraries, the platform
+  # interfaces, the media tree, the samples, the runner and the payload writer),
+  # gated at the project minimum: 90% of lines and 80% of branches. The OS
+  # fragments are not in this figure: each host builds a different set, and the
+  # conformance suite is what holds them to the platform contract.
+  # cmake/CoverageReport.cmake holds the figures and the gcovr switches; this job
+  # only builds, tests and calls it. The report is uploaded either way, so a red
+  # gate still has the numbers to look at. The Qt applications are not part of
+  # this preset; their windows are exercised by the UI suite on the build legs.
   coverage:
     name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Coverage (Linux, GCC)' || 'Coverage (Linux, GCC)' }}
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',coverage,') }}
@@ -331,40 +351,38 @@ jobs:
       - name: Build
         run: cmake --build --preset linux-gcc-coverage
 
+      # A failing test fails the job before the coverage gate; the gate is for
+      # testable code that no test reaches.
       - name: Test
         run: ctest --preset linux-gcc-coverage
 
-      # --gcov-ignore-parse-errors ...warn_once_per_file: a counter gcov reads
-      # back negative (gcc bug 68080) is taken as zero and named once, rather
-      # than aborting a report-only job. The coverage preset already updates
-      # counters atomically, which is what normally prevents it.
-      - name: Coverage report
+      # One script owns the minimum and the gcovr switches (the same one the
+      # local `coverage` target calls): 90% lines, 80% branches, report in
+      # build/linux-gcc-coverage/coverage. It fails the job when either figure
+      # is below the minimum.
+      - name: Coverage report and gate (90% lines, 80% branches)
+        env:
+          GCOVR: ${{ runner.temp }}/cov-venv/bin/gcovr
         shell: bash
         run: |
-          mkdir -p build/coverage
-          gcovr --root . --filter 'src/.*' \
-            --gcov-executable "$GCOV" \
-            --object-directory build/linux-gcc-coverage \
-            --exclude-throw-branches --exclude-unreachable-branches \
-            --gcov-ignore-errors=no_working_dir_found \
-            --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
-            --print-summary \
-            --html-details build/coverage/index.html \
-            --json-summary build/coverage/summary.json --json-summary-pretty
+          cmake -DREPO_ROOT="$PWD" \
+            -DBUILD_DIR="$PWD/build/linux-gcc-coverage" \
+            -DGCOV="$GCOV" -DGCOVR="$GCOVR" \
+            -P cmake/CoverageReport.cmake
 
       - name: Summarise coverage
-        if: ${{ always() && hashFiles('build/coverage/summary.json') != '' }}
+        if: ${{ always() && hashFiles('build/linux-gcc-coverage/coverage/summary.json') != '' }}
         shell: bash
         run: |
-          jq -r '"### Coverage of src/ (report only, no threshold)\n\n| | covered | total | percent |\n|---|---|---|---|\n| lines | \(.line_covered // 0) | \(.line_total // 0) | \(.line_percent // 0) |\n| branches | \(.branch_covered // 0) | \(.branch_total // 0) | \(.branch_percent // 0) |"' \
-            build/coverage/summary.json >> "$GITHUB_STEP_SUMMARY"
+          jq -r '"### Coverage of src/ (minimum: 90% lines, 80% branches)\n\n| | covered | total | percent |\n|---|---|---|---|\n| lines | \(.line_covered // 0) | \(.line_total // 0) | \(.line_percent // 0) |\n| branches | \(.branch_covered // 0) | \(.branch_total // 0) | \(.branch_percent // 0) |"' \
+            build/linux-gcc-coverage/coverage/summary.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-report
-          path: build/coverage
+          path: build/linux-gcc-coverage/coverage
           if-no-files-found: warn
           retention-days: 14
 

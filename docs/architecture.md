@@ -72,13 +72,17 @@
   It also has a `FileSource` and a `FileSink` over a directory of the platform's files. That is what
   makes the engine portable to an RTOS (a port replaces the runner) and testable without a network (the
   tests replace the platform with the fake and the target with a simulated one).
-- **`src/app`** is the Qt 6.12 application, a thin layer over the libraries: a window to choose a media
-  set, run FIND, pick a target and read its configuration with an Information operation. The engine runs
-  on a thread of its own (the runner blocks), reports to the window through queued signals, and is
-  aborted through an atomic flag the runner polls. `core/` (`adl::app_core`) is the logic without a
-  window and is tested headless; `qml/` is the view. Qt belongs here and nowhere else, and it is built
-  only with `-DADL_BUILD_APP=ON`. [The application](app.md) has the threading, what it shows and what it
-  does not do yet.
+- **`src/app`**, **`src/media_gen`** and **`src/mock_target`** are the Qt 6.12 applications, thin layers
+  over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
+  Upload and Download operations; a generator for the media set those operations load; and a mock
+  target over real sockets. The engine runs on a thread of its own (the runner blocks), reports to the
+  window through queued signals, and is aborted through an atomic flag the runner polls. Each
+  application's `core/` is its logic without a window, tested headless; each `qml/` is its view.
+  **`src/ui`** is the shared design system and window chrome for all three (the same QML source is
+  compiled into each application's module). Qt is used in these directories only, and the
+  applications build only with `-DADL_BUILD_APP=ON`. [The application](app.md) has the threading,
+  what it shows and what it does not do yet; [the design overhaul](design-overhaul.md) has the
+  human-factors analysis behind the three windows.
 
 A library never depends on one above it. `adl::arinc665` does not link
 `adl::platform`; only a library that needs the system does.

@@ -17,17 +17,48 @@ FIND, the Information, Upload and Download operations are built. What the window
 | Read information | The Information operation (5.4.2): the target's status files and its list of hardware and parts, with an abort button. |
 | Upload | The Upload operation (5.4.3): the ticked loads of the media set are loaded to the target. The target reads their header, data and support files from the media set on disk; the window shows how far the target's list has got and, beside each ticked load, its own percentage and status (and why, for one the target gave up on), from the upload status files. With the abort button. See [what the Upload operation needs](#what-the-upload-operation-needs-from-the-application). |
 | Download | The Download operation (5.4.4), in both modes. Media defined: the operator names the files the target is to send. Operator defined: the target's list of files is shown to be ticked, the choice goes back through the engine's deferred-selection route, and "Choose none" cancels the operation the way the standard says. The files land in a fresh `DNLD_DATA_<THW_ID_POS>_<number>` directory under the download directory (Preferences): the number is the lowest free one, and even an aborted download consumes its directory. Each file's row carries its own status and progress; the abort button covers downloads. See [what the Download operation needs](#what-the-download-operation-needs-from-the-application). |
-| Preferences | Persistent settings, in a dialog from the File menu: the last media set directory (restored quietly at start-up), a default target address and `<THW_ID_POS>` (prefilled), the loader's control port (anything but 59 is sent to the target as the `port` option, which is what lets the loader and a target share one machine), the download directory, whether FIND runs by itself before an operation with no chosen target (one answer is taken automatically; none or several leaves the choice to the operator), whether a chosen media set is checked at once, and the activity log's capacity. |
+| Preferences | Persistent settings, in a two-column modal page from the header's Preferences button: the last media set directory (restored quietly at start-up), a default target address and `<THW_ID_POS>` (prefilled), the loader's control port (anything but 59 is sent to the target as the `port` option, which is what lets the loader and a target share one machine), the download directory, whether FIND runs by itself before an operation with no chosen target (one answer is taken automatically; none or several leaves the choice to the operator), whether a chosen media set is checked at once, the activity log's capacity, and the language. The dialog edits a working copy: Save writes it, Cancel and Esc leave the stored values as they were. |
+| About | The `ADL` mark, what the window is for, and the build provenance the other ICL tools show: version, git describe, full commit, branch, build target, Qt version and a dirty-tree marker, generated at configure time; the licence and repository link. |
+| The window's look | The shared design system in `src/ui`: `Theme.qml` is the single source of truth for colour (Signal light and dark), type, spacing and geometry; the shared controls (`AppButton`, `AppCheckBox`, `AppTextField`, `AppComboBox`, `AppSpinBox`, `SegmentedControl`, `FocusRing`), the header and footer, the chips, the log and the dialogs draw from it. The three applications compile the same source; see [the design system](design-system.md). |
+| The first launch | A first-run statement before the workbench: what the window is for, one primary that opens the workbench, an optional route to choose a media set, and the defaults folded away. Passing it once is stored (its fields are the preferences), so every later launch goes straight to the workbench. |
+| The language | Every string goes through `qsTr`/`tr` and there is a catalogue per language: English (the source), French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese (`src/app/translations/adl_app_<code>.ts`, compiled by `qt_add_translations`). `LanguageManager` installs the catalogue for the persisted language (the system locale, then English, on a first run), sets the layout direction — the window mirrors itself for the right-to-left scripts — and retranslates the running window when Preferences switches it. The translations are a first, mechanical draft, to be reviewed by speakers. |
+| The target that was used | The address and `<THW_ID_POS>` an operation last started against are stored, and put back into the window at start-up, so a session starts where the last one left off. The Preferences defaults fill the fields on a first run, and again whenever the operator clears one. |
 | The activity log | What the target said (its answer, each status file) and the engine's notices (a lost or repeated status file, a refused request, a checksum that did not match, a WAIT), with the time, oldest first. |
 | The outcome | How the operation ended (the engine's `OutcomeCode`), and for an abort whether the target confirmed that it had stopped. Failures also open a dialog once, with the outcome, the detail and, where the application knows one, a hint (a host that could not start, an address that is not an address, a media set that could not be read, an abort the target did not confirm); a status bar carries the current state, the target and the media set. |
+
+## The window
+
+The window is one of three instruments on a shared design system (`src/ui`, described in
+[the design system](design-system.md)). The workbench is a fixed context rail beside a work area:
+
+- **The rail** is target (01) then media set (02). The target fields and the FIND results are
+  always above the set, and the loads and their check boxes live inside the media set block. The
+  rail scrolls itself; it is not where the action is.
+- **The work area** has a fixed `Upload` / `Download` switch. `Upload` shows the plan, the three
+  preflight checks (target, set, loads), the payload table of the ticked loads and the receipt of
+  the last transfer. `Download` shows the mode and its consequence, the file list and the
+  destination directory. The activity log and the target's configuration share a collapsible dock
+  below it.
+- **The action bar** is fixed at the bottom: the current state and progress on the left, then
+  `Read information`, the one primary (`Upload` or `Download`) and `Abort` while a job runs.
+- **The header** carries the `ADL` mark, the product and its scope, a readiness chip, Preferences
+  and About. The footer carries the state, the target, the media set and the version.
+
+A media set is read and checked when it is chosen (`Re-check` does it again); a set that reads is
+valid, and its findings are warnings shown once under the set. The preflight repeats the target,
+the set and the ticked count immediately above the action, and the payload table names each load
+that will be sent. Closing during a job asks whether to keep working or stop and close; the second
+choice asks the target to abort and waits for it.
 
 ## Layout
 
 ```text
 src/app/
   main.cpp            creates the QGuiApplication, one LoaderModel and the QML engine
-  qml/                Main.qml (the window), Panel.qml, LogView.qml, the preferences,
-                      properties and about dialogs
+  language_manager    the translators, the persisted language, retranslate and the layout direction
+  qml/                Main.qml (the shell), UploadPanel.qml, DownloadPanel.qml, ActivityDock.qml,
+                      FirstRunScreen.qml, and the preferences, properties and about dialogs
+  translations/       the catalogues (adl_app_en.ts), compiled into the window's module
   core/               adl_app_core: everything but the window, Qt Core only
     engine_worker     the engine on its own thread, the abort and the deferred download choice
     loader_model      what the QML talks to: properties and a few invokable functions
@@ -39,11 +70,16 @@ src/app/
     events, address   plain values, and the IPv4 parser
     host_access       where the worker gets the platform from
 tests/app/            QtTest, and the window loaded offscreen
+src/ui/               the shared design system: Theme, the controls, the header and footer, the
+                      log, the dialogs, Archivo and the window geometry helper
 ```
 
 `core` has no QML and no GUI, so it is tested headless. The QML is a view: it binds to `LoaderModel`'s
 properties and the four models and calls its functions. The window gets the model as a required initial
-property (`app`), so there is no global and no singleton.
+property (`app`), so there is no global and no singleton; the language manager is the one context
+property, because it belongs to the process rather than to the loader. The QML is a static library of its
+own (`adl_app_qml`), linked whole into the application and into the window's test, so the test loads the
+same compiled module the application does.
 
 ## The engine and the window: threads
 
@@ -218,7 +254,10 @@ reads is uploadable, findings warn but do not block, a re-check catches files ch
 operator's ticks survive a re-read); the failure hints; and the window itself, loaded offscreen with every
 QML warning an error, driven through a FIND, an Information operation, a media set check, an Upload and a
 media defined Download (the load ticked and the buttons pressed through the window's own items), in the
-light and the dark scheme.
+light and the dark scheme. Also checked: the first-run screen hands over to the workbench only once (a
+stored preference); the last operation's target comes back in a new model over the same settings; and the
+language manager starts in English, then installs each of the eight catalogues in turn, retranslates the
+running window, and sets the layout direction the script asks for.
 
 Not checked: an Upload against a real target (and so which checksum a real target sends for each file,
 see above), an Upload whose files are in two directories of one name end to end (the source is tested
@@ -228,5 +267,7 @@ tests cover it; the application's abort test holds the engine at the start of th
 against a real target over a real network (the runner over real sockets is run by the loopback
 integration test against the mock target, [mock target](mock-target.md), not by the window); the window
 on a real screen at other scales (both schemes have been looked at offscreen); keyboard use and a screen
-reader beyond the accessible names the controls carry; translations (the strings go through `tr`/`qsTr`,
-and there is no catalogue).
+reader beyond the accessible names the controls carry; the translations' wording (the eight catalogues are
+a first, mechanical draft: the tests prove a catalogue is installed, the window retranslated and the layout
+mirrored, not that a speaker would accept the text); and the first-run screen's download-directory picker
+(it is a Qt `FolderDialog`, the media set's own picker is the tested one).
