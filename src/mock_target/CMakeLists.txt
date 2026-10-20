@@ -53,4 +53,5 @@ adl_add_ui_support(adl_mock_target)
 
 adl_platform_configure_app(adl_mock_target)
 adl_platform_deploy_qt_runtime(adl_mock_target "${CMAKE_CURRENT_SOURCE_DIR}/qml")
+adl_install_application(adl_mock_target "${CMAKE_CURRENT_SOURCE_DIR}/qml")
 adl_deploy_sanitizer_runtime(adl_mock_target)

@@ -72,6 +72,17 @@
 #   ADL_PLATFORM_NOTICE_EXPECTED     Strings, separated by "|", the generated notices must
 #                                    contain on this platform (tests/system/check_notices.cmake).
 #
+# ... and for the packages built from the install tree (cmake/AdlInstall.cmake,
+# cmake/AdlPackage.cmake):
+#   ADL_PLATFORM_INSTALL_BINDIR      Where the programs go in the install tree ("." for a portable
+#                                    folder, "bin", "tools" beside application bundles).
+#   ADL_PLATFORM_INSTALL_DOCDIR      Where LICENSE.txt, NOTICES.txt and README.txt go.
+#   ADL_PLATFORM_PACKAGE_RUNTIME_GENERATORS
+#   ADL_PLATFORM_PACKAGE_DEVELOPMENT_GENERATORS
+#                                    CPack generators for the runtime component (the programs, with
+#                                    the Qt files they need) and the development component (the
+#                                    libraries, their headers and the CMake package).
+#
 # Build inputs (paths are relative to src/platforms):
 #   ADL_PLATFORM_SOURCES          Compiled into adl_platform: one
 #                                 implementation of every interfaces/ header.
@@ -90,6 +101,16 @@
 #                                 Puts Qt's runtime next to the built program,
 #                                 including the QML modules imported by the
 #                                 QML sources in <qml_dir> ("" if it has none).
+#
+# Hooks a desktop platform adds (a platform with ADL_PLATFORM_DESKTOP ON defines both):
+#   adl_platform_install_app(<target> <qml_dir>)
+#                                 What `cmake --install` does for <target> besides installing it:
+#                                 the Qt runtime it needs to start on a machine with no Qt (Qt's
+#                                 deploy script), the licence files inside a bundle, a desktop
+#                                 entry and icon. It installs into the "runtime" component.
+#   adl_platform_configure_packaging()
+#                                 Sets, in the parent scope, the CPack variables only this platform
+#                                 has (a disk image's format, ...). May be empty.
 # ---------------------------------------------------------------------------
 include_guard(GLOBAL)
 

@@ -9,3 +9,9 @@ target_link_libraries(adl_write_payloads
         adl::coverage)
 
 adl_deploy_sanitizer_runtime(adl_write_payloads)
+
+# A command-line tool for people who work with media sets: it ships with the programs.
+if(ADL_PLATFORM_DESKTOP)
+    install(TARGETS adl_write_payloads
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT runtime)
+endif()

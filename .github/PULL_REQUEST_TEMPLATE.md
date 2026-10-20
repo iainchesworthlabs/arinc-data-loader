@@ -10,5 +10,6 @@
 
 - [ ] The branch follows gitflow naming (`feature/*`, `bugfix/*`, `release/*`, `hotfix/*`, `support/*`) and targets `develop`
 - [ ] New or changed behaviour has test coverage
+- [ ] A user-visible change has a changelog fragment (`changelog.d/<name>.<category>.md`), or the pull request has the `no-changelog` label
 - [ ] `clang-format` is clean and the platform-isolation check passes (docs/ci.md)
 - [ ] Commit messages and this description carry no attribution lines: no trailers, no tool or vendor names (docs/ci.md, "Commit and PR text policy")

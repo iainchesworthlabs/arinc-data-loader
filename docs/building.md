@@ -219,6 +219,26 @@ docs/platform-ghs.md](platform-ghs.md): what the two source trees provide, how
 what is still open before a first compile. They have never been compiled and
 their code says so.
 
+## Packages
+
+`cmake --install` and CPack make the packages a release ships ([Releasing](releasing.md) says what is
+in them and why). With a Release build of the applications:
+
+```sh
+cmake --preset linux-gcc-release            # or windows-msvc-release, macos-clang-release
+cmake --build --preset linux-gcc-release
+cd build/linux-gcc-release && cpack -B packages
+pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.0-linux-x86_64.tar.gz
+```
+
+`cpack` writes the runtime package (the three applications, `adl_write_payloads`, Qt's runtime files,
+`README.txt`, `LICENSE.txt`, `NOTICES.txt`) and the development package (the libraries, headers and the `adl`
+CMake package) for this system; `-DADL_RELEASE_VERSION=0.2.0-rc.1` names them for a pre-release. To use the
+development package, `find_package(adl 0.1 REQUIRED)` with its directory on `CMAKE_PREFIX_PATH`. The macOS
+presets set `CMAKE_OSX_DEPLOYMENT_TARGET` to 14.4, the oldest macOS Qt 6.12 supports; a build for an older one
+would fail Qt's own check, so it is set on purpose and not left to the SDK. A Debug build installs libraries
+compiled with the sanitizers, which only a program built with them can link; package from a Release build.
+
 ## Zephyr and FreeRTOS
 
 Both are *experimental*: built, and their tests run, on a simulator in CI, and nowhere else
