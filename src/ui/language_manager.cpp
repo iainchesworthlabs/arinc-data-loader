@@ -1,4 +1,4 @@
-#include "language_manager.hpp"
+#include "adl/ui/language_manager.hpp"
 
 #include <QLibraryInfo>
 #include <QLocale>
@@ -8,10 +8,11 @@
 #include <algorithm>
 #include <array>
 #include <string_view>
+#include <utility>
 
 using namespace Qt::StringLiterals;
 
-namespace adl::app {
+namespace adl::ui {
 namespace {
 
 struct LanguageInfo {
@@ -19,10 +20,11 @@ struct LanguageInfo {
     std::string_view native_name;
 };
 
-// "en" first (no .qm - the source strings are already English), then every language this
-// application has a catalogue for. A language is added by putting its .ts beside the others,
-// adding it to the TS_FILES list in src/app/CMakeLists.txt and adding its line here. The
-// translation text itself is a first, mechanical draft, to be reviewed by a speaker.
+// "en" first (only its plural catalogues: the source strings are already English), then every
+// language the applications have catalogues for. A language is added by putting its .ts beside the
+// others in each application's translations directory (and src/ui/translations), adding it to
+// their TS_FILES lists in CMake and adding its line here. The translation text itself is a first,
+// machine-drafted version, to be reviewed by a speaker of the language.
 constexpr std::array<LanguageInfo, 8> kLanguages{{
     {"en", "English"},
     {"fr", "Français"},
@@ -53,8 +55,9 @@ constexpr QLatin1StringView kSettingsKey{"language/code"};
 
 }  // namespace
 
-LanguageManager::LanguageManager(QGuiApplication& app, QQmlEngine& engine, QObject* parent)
-    : QObject(parent), app_(app), engine_(engine) {}
+LanguageManager::LanguageManager(QGuiApplication& app, QQmlEngine& engine, QString catalogue,
+                                 QObject* parent)
+    : QObject(parent), app_(app), engine_(engine), catalogue_(std::move(catalogue)) {}
 
 void LanguageManager::applyInitialLanguage() {
     const QSettings settings;
@@ -64,6 +67,10 @@ void LanguageManager::applyInitialLanguage() {
     installTranslators(initial);
     app_.setLayoutDirection(QLocale(initial).textDirection());
     current_language_ = initial;
+}
+
+bool LanguageManager::rightToLeft() const {
+    return QLocale(current_language_).textDirection() == Qt::RightToLeft;
 }
 
 QVariantList LanguageManager::availableLanguages() const {
@@ -105,22 +112,28 @@ void LanguageManager::installTranslators(const QString& code) {
     // Each translator's previous language is replaced in place, so a failed load below leaves
     // the old translator removed rather than half installed.
     app_.removeTranslator(&qt_translator_);
+    app_.removeTranslator(&ui_translator_);
     app_.removeTranslator(&app_translator_);
 
-    if (code == "en"_L1) {
-        return;  // no translator: the source strings are English
-    }
+    const QLocale locale(code);
+    const QString catalogue_directory = QStringLiteral(":/i18n");
 
-    // Qt 6 keeps its own catalogue in one qt_<code>.qm per language.
-    if (qt_translator_.load(QLocale(code), QStringLiteral("qt"), QStringLiteral("_"),
+    // Qt keeps its own catalogue in one qt_<code>.qm per language; English has none.
+    if (code != "en"_L1 &&
+        qt_translator_.load(locale, QStringLiteral("qt"), QStringLiteral("_"),
                             QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
         app_.installTranslator(&qt_translator_);
     }
 
-    if (app_translator_.load(QLocale(code), QStringLiteral("adl_app"), QStringLiteral("_"),
-                             QStringLiteral(":/i18n"))) {
+    // The application's own are in the resources, English included: its catalogue holds the
+    // plural forms of the source strings and nothing else.
+    if (ui_translator_.load(locale, QStringLiteral("adl_ui"), QStringLiteral("_"),
+                            catalogue_directory)) {
+        app_.installTranslator(&ui_translator_);
+    }
+    if (app_translator_.load(locale, catalogue_, QStringLiteral("_"), catalogue_directory)) {
         app_.installTranslator(&app_translator_);
     }
 }
 
-}  // namespace adl::app
+}  // namespace adl::ui

@@ -16,6 +16,7 @@
 #include "adl/app/engine_worker.hpp"
 #include "adl/app/events.hpp"
 #include "adl/app/host_access.hpp"
+#include "adl/app/message.hpp"
 #include "adl/app/models.hpp"
 #include "adl/app/settings.hpp"
 
@@ -25,7 +26,7 @@ class LoaderModel : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
-    Q_PROPERTY(QString activity READ activity NOTIFY busyChanged)
+    Q_PROPERTY(QString activity READ activity NOTIFY activityChanged)
     Q_PROPERTY(bool canAbort READ canAbort NOTIFY canAbortChanged)
     // A window that has never been through the first-run screen shows it before the workbench;
     // completing it stores the preferences it was given and hands over.
@@ -84,9 +85,9 @@ class LoaderModel : public QObject {
     // A failed job, for the window's error dialog: what happened, what it means, and what the
     // operator can do (when the application knows). Set on every failure, one dialog per
     // failure; `dismissError` acknowledges it.
-    Q_PROPERTY(QString lastErrorText READ lastErrorText NOTIFY errorChanged)
-    Q_PROPERTY(QString lastErrorDetail READ lastErrorDetail NOTIFY errorChanged)
-    Q_PROPERTY(QString lastErrorHint READ lastErrorHint NOTIFY errorChanged)
+    Q_PROPERTY(QString lastErrorText READ lastErrorText NOTIFY errorTextChanged)
+    Q_PROPERTY(QString lastErrorDetail READ lastErrorDetail NOTIFY errorTextChanged)
+    Q_PROPERTY(QString lastErrorHint READ lastErrorHint NOTIFY errorTextChanged)
 
     // The media set that was read.
     Q_PROPERTY(QString mediaSetPath READ mediaSetPath NOTIFY mediaSetChanged)
@@ -178,11 +179,11 @@ public:
     [[nodiscard]] int resultState() const noexcept { return result_state_; }
     [[nodiscard]] bool resultIsTransfer() const noexcept { return result_is_transfer_; }
     [[nodiscard]] bool resultWasDownload() const noexcept { return result_was_download_; }
-    [[nodiscard]] QString resultText() const { return result_text_; }
-    [[nodiscard]] QString resultDetail() const { return result_detail_; }
-    [[nodiscard]] QString lastErrorText() const { return last_error_text_; }
-    [[nodiscard]] QString lastErrorDetail() const { return last_error_detail_; }
-    [[nodiscard]] QString lastErrorHint() const { return last_error_hint_; }
+    [[nodiscard]] QString resultText() const { return result_text_.text(); }
+    [[nodiscard]] QString resultDetail() const { return result_detail_.text(); }
+    [[nodiscard]] QString lastErrorText() const { return last_error_text_.text(); }
+    [[nodiscard]] QString lastErrorDetail() const { return last_error_detail_.text(); }
+    [[nodiscard]] QString lastErrorHint() const { return last_error_hint_.text(); }
 
     [[nodiscard]] QString mediaSetPath() const { return media_set_.path; }
     [[nodiscard]] QString mediaSetTitle() const;
@@ -199,7 +200,7 @@ public:
     [[nodiscard]] int validationState() const noexcept { return validation_state_; }
     [[nodiscard]] QString validationError() const { return validation_error_; }
     [[nodiscard]] QStringList validationFindings() const { return validation_findings_; }
-    [[nodiscard]] QString validationDetail() const { return validation_detail_; }
+    [[nodiscard]] QString validationDetail() const { return validation_detail_.text(); }
 
     [[nodiscard]] QObject* targets() { return &targets_; }
     [[nodiscard]] QObject* events() { return &events_; }
@@ -269,9 +270,14 @@ public Q_SLOTS:
     void clearLog();
     // The window's error dialog has been read: the next failure opens it again.
     void dismissError();
+    // The language changed: what the model holds as phrases (the result, the failure on show, the
+    // check's detail, the activity, the lists' rows) is said again in the new one. The
+    // applications connect LanguageManager::currentLanguageChanged to this.
+    void retranslate();
 
 Q_SIGNALS:
     void busyChanged();
+    void activityChanged();
     void firstRunChanged();
     void canAbortChanged();
     void targetChanged();
@@ -285,7 +291,11 @@ Q_SIGNALS:
     void downloadDirectoryChanged();
     void progressChanged();
     void resultChanged();
+    // A failure has been recorded (the window opens its dialog) ...
     void errorChanged();
+    // ... or the text of the failure on show changed, which also happens when it is dismissed
+    // and when the language changes.
+    void errorTextChanged();
     void mediaSetChanged();
     void validationChanged();
     void preferencesChanged();
@@ -305,16 +315,17 @@ private:
     // answered.
     enum class Pending { none, information, upload, download };
 
+    static Message no_target_selected();
     bool begin(Job job);
     void on_finished(const OperationSummary& summary);
-    void set_result(int state, const QString& text, const QString& detail);
-    void set_error(const QString& text, const QString& detail, const QString& hint);
+    void set_result(int state, const Message& text, const Message& detail);
+    void set_error(const Message& text, const Message& detail, const Message& hint);
     void set_job(Job job);
     // Tells the window when what it may start has changed.
     void refresh_availability();
     void set_progress(int percent);
     void set_validation(int state, const QString& error, const QStringList& findings,
-                        const QString& detail);
+                        const Message& detail);
     // Drops what belonged to the target that was being addressed before the address or
     // THW_ID_POS changed.
     void reconcile_target();
@@ -354,16 +365,16 @@ private:
     int result_state_ = 0;
     bool result_is_transfer_ = false;
     bool result_was_download_ = false;
-    QString result_text_;
-    QString result_detail_;
-    QString last_error_text_;
-    QString last_error_detail_;
-    QString last_error_hint_;
+    Message result_text_;
+    Message result_detail_;
+    Message last_error_text_;
+    Message last_error_detail_;
+    Message last_error_hint_;
     MediaSetSummary media_set_;
     int validation_state_ = 0;
     QString validation_error_;
     QStringList validation_findings_;
-    QString validation_detail_;
+    Message validation_detail_;
 
     std::unique_ptr<AppSettings> settings_;
 };

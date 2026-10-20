@@ -38,11 +38,8 @@ ApplicationWindow {
             return window.app.activity;
         if (window.mode === 0) {
             if (window.app.canUpload)
-                return window.app.selectedLoadCount === 1
-                       ? qsTr("Ready: 1 load to %1").arg(window.app.thwIdPos)
-                       : qsTr("Ready: %1 loads to %2")
-                             .arg(window.app.selectedLoadCount)
-                             .arg(window.app.thwIdPos);
+                return qsTr("Ready: %n load(s) to %1", "", window.app.selectedLoadCount)
+                       .arg(window.app.thwIdPos);
             return qsTr("Upload needs a checked media set, at least one ticked load and a target.");
         }
         if (window.app.canDownload)
@@ -57,6 +54,12 @@ ApplicationWindow {
     minimumHeight: 760
     visible: true
     color: Theme.bg
+
+    // Right-to-left languages mirror the whole window: the rail, the header's actions, a row's
+    // order, a control's indicator. The language manager sets the application's layout direction;
+    // this follows it, and every item and popup below inherits it.
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
 
     palette.window: Theme.bg
     palette.windowText: Theme.text
@@ -361,6 +364,7 @@ ApplicationWindow {
         ScrollView {
             id: rail
 
+            objectName: "rail"
             Layout.preferredWidth: 388
             Layout.minimumWidth: 348
             Layout.maximumWidth: 460
@@ -626,10 +630,9 @@ ApplicationWindow {
                         Text {
                             Layout.fillWidth: true
                             text: window.app.mediaSetPartNumber + " · "
-                                  + Theme.quantity(window.app.mediaSetMemberCount,
-                                                   qsTr("member"), qsTr("members"))
+                                  + qsTr("%n member(s)", "", window.app.mediaSetMemberCount)
                                   + " · "
-                                  + Theme.quantity(loadRepeater.count, qsTr("load"), qsTr("loads"))
+                                  + qsTr("%n load(s)", "", loadRepeater.count)
                             color: Theme.text
                             font.pixelSize: Theme.fontSubheading
                             font.family: Theme.headingFamily
@@ -746,6 +749,7 @@ ApplicationWindow {
                                     }
 
                                     Text {
+                                        objectName: "loadDetail"
                                         Layout.fillWidth: true
                                         Layout.leftMargin: 26
                                         text: loadRow.detail
@@ -782,8 +786,7 @@ ApplicationWindow {
                             spacing: Theme.space2
 
                             StatusChip {
-                                text: Theme.quantity(window.app.mediaSetFindings.length,
-                                                     qsTr("WARNING"), qsTr("WARNINGS"))
+                                text: qsTr("%n WARNING(S)", "", window.app.mediaSetFindings.length)
                                 tone: "warn"
                             }
 

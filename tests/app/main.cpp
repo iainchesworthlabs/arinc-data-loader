@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QSettings>
 #include <QTest>
+#include <QTranslator>
 
 #include "test_classes.hpp"
 
@@ -27,6 +28,12 @@ public:
 int main(int argc, char* argv[]) {
     QCoreApplication application(argc, argv);
     ScratchSettings scratch;
+    // English has a catalogue of its own for the plural forms ("%n load(s)" is "1 load" or "2
+    // loads" only through it); the application installs it, and so does the logic under test.
+    QTranslator english;
+    if (english.load(QStringLiteral("adl_app_en"), QStringLiteral(ADL_I18N_DIR))) {
+        QCoreApplication::installTranslator(&english);
+    }
     int failed = 0;
     {
         AddressTest test;

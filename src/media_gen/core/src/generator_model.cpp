@@ -12,6 +12,8 @@
 
 namespace adl::gen {
 
+using adl::ui::Message;
+
 namespace {
 
 QString to_qstring(std::string_view text) {
@@ -54,6 +56,7 @@ GeneratorModel::GeneratorModel(QObject* parent) : QObject(parent) {
     connect(worker_, &GeneratorWorker::progress, this,
             [this](int percent) { set_progress(percent); });
     connect(&files_, &SourceFileModel::filesChanged, this, [this] { refresh_validation(); });
+    fill_load_type_model();
 
     thread_.setObjectName(QStringLiteral("generator"));
     thread_.start();
@@ -187,12 +190,24 @@ void GeneratorModel::setLoadCheckTypeIndex(int index) {
     refresh_validation();
 }
 
+void GeneratorModel::fill_load_type_model() {
+    const QStringList options = loadTypeOptions();
+    if (load_type_model_.rowCount() != options.size()) {
+        load_type_model_.setStringList(options);
+        return;
+    }
+    // The same rows with other text: changed in place, so the combo keeps its choice.
+    for (int i = 0; i < options.size(); ++i) {
+        load_type_model_.setData(load_type_model_.index(i), options.at(i));
+    }
+}
+
 QStringList GeneratorModel::loadTypeOptions() const {
     QStringList options;
     options.append(tr("None"));
     for (const LoadTypeOption& option : load_type_options()) {
         options.append(tr("%1 (%2, ID 0x%3)")
-                           .arg(option.description, option.code)
+                           .arg(GeneratorWorker::tr(option.description), option.code)
                            .arg(option.id, 4, 16, QLatin1Char('0')));
     }
     return options;
@@ -225,7 +240,10 @@ void GeneratorModel::generate() {
         return;
     }
     if (!can_generate_) {
-        set_result(2, tr("Cannot generate: fix the marked fields first."), {});
+        set_result(2,
+                   Message::translated(&GeneratorModel::tr,
+                                       QT_TR_NOOP("Cannot generate: fix the marked fields first.")),
+                   {});
         return;
     }
     // A request left over from an earlier job must not stop this one.
@@ -392,7 +410,15 @@ void GeneratorModel::on_finished(const GenerateOutcome& outcome) {
     refresh_validation();
 }
 
-void GeneratorModel::set_result(int state, const QString& text, const QString& detail) {
+void GeneratorModel::retranslate() {
+    // The fields' messages are made by the validation; the result and the options are read again.
+    refresh_validation();
+    fill_load_type_model();
+    files_.retranslate();
+    Q_EMIT resultChanged();
+}
+
+void GeneratorModel::set_result(int state, const Message& text, const Message& detail) {
     result_state_ = state;
     result_text_ = text;
     result_detail_ = detail;

@@ -1,12 +1,14 @@
 import QtQuick
 import QtQuick.Controls as QQC
 
-// A spin box drawn to the family: neutral100, a 1 px divider, square stepper cells on the right.
+// A spin box drawn to the family: neutral100, a 1 px divider, square stepper cells at the end edge
+// (the right in a left-to-right window, the left in a mirrored one).
 QQC.SpinBox {
     id: control
 
     implicitHeight: 30
-    rightPadding: 26
+    leftPadding: control.mirrored ? 26 : padding
+    rightPadding: control.mirrored ? padding : 26
     font.pixelSize: Theme.fontBody
     font.family: Theme.monoFamily
     editable: true
@@ -20,7 +22,7 @@ QQC.SpinBox {
     }
 
     up.indicator: Rectangle {
-        x: control.width - width
+        x: control.mirrored ? 0 : control.width - width
         y: 1
         width: 24
         height: (control.height - 2) / 2
@@ -38,7 +40,7 @@ QQC.SpinBox {
     }
 
     down.indicator: Rectangle {
-        x: control.width - width
+        x: control.mirrored ? 0 : control.width - width
         y: height + 1
         width: 24
         height: (control.height - 2) / 2

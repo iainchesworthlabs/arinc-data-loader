@@ -34,6 +34,11 @@ target_link_libraries(adl_app_tests
         adl::sanitizers
         adl::coverage)
 
+# The compiled English catalogue (plural forms) is read from where the application's build puts it.
+target_compile_definitions(adl_app_tests PRIVATE
+    ADL_I18N_DIR="${CMAKE_BINARY_DIR}/src/app")
+add_dependencies(adl_app_tests adl_app_lrelease)
+
 adl_platform_deploy_qt_runtime(adl_app_tests "")
 adl_deploy_sanitizer_runtime(adl_app_tests)
 
@@ -55,9 +60,7 @@ set_tests_properties(app.tests PROPERTIES
 add_executable(adl_app_qml_test
     qml_test.cpp
     "${PROJECT_SOURCE_DIR}/src/app/frame_profiler.cpp"
-    "${PROJECT_SOURCE_DIR}/src/app/frame_profiler.hpp"
-    "${PROJECT_SOURCE_DIR}/src/app/language_manager.cpp"
-    "${PROJECT_SOURCE_DIR}/src/app/language_manager.hpp")
+    "${PROJECT_SOURCE_DIR}/src/app/frame_profiler.hpp")
 target_include_directories(adl_app_qml_test PRIVATE
     "${PROJECT_SOURCE_DIR}/tests/support"
     "${PROJECT_SOURCE_DIR}/src/app")

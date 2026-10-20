@@ -148,11 +148,6 @@ QtObject {
     readonly property real trackingWide: 1.2 * fontScale
     readonly property real trackingTitle: -0.3 * fontScale
 
-    // A count with its noun, without the "(s)" that reads as a form rather than a sentence.
-    function quantity(count, singular, plural) {
-        return count + " " + (count === 1 ? singular : plural);
-    }
-
     // Archivo is bundled with each application and registered before the QML engine starts; the
     // fallback keeps a build that has not registered it readable rather than blank.
     readonly property string headingFamily: {

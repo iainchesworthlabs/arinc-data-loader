@@ -25,6 +25,7 @@
 
 #include "adl/mock/engine.hpp"
 #include "adl/mock/link.hpp"
+#include "adl/ui/message.hpp"
 
 namespace adl::mock {
 
@@ -206,7 +207,7 @@ public:
     ~MockTargetModel() override;
 
     [[nodiscard]] bool running() const noexcept { return running_; }
-    [[nodiscard]] QString errorText() const { return error_text_; }
+    [[nodiscard]] QString errorText() const { return error_text_.text(); }
 
     [[nodiscard]] QString hardwareId() const { return hardware_id_; }
     [[nodiscard]] QString typeName() const { return type_name_; }
@@ -262,6 +263,8 @@ public Q_SLOTS:
     // Asks the session that is running to stop.
     void stop();
     void clearLog();
+    // The language changed: the error on show is said again in the new one.
+    void retranslate();
 
 Q_SIGNALS:
     void runningChanged();
@@ -280,13 +283,13 @@ Q_SIGNALS:
 
 private:
     [[nodiscard]] adl::mock::Config make_config() const;
-    void set_error(const QString& text);
+    void set_error(const adl::ui::Message& text);
 
     MockWorker* worker_ = nullptr;
     QThread thread_;
 
     bool running_ = false;
-    QString error_text_;
+    adl::ui::Message error_text_;
 
     QString hardware_id_ = QStringLiteral("HNPFMS");
     QString type_name_ = QStringLiteral("FMS");

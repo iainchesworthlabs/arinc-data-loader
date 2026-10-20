@@ -132,7 +132,7 @@ private:
     // Ends the job with `text` as the outcome, and `hint` (when known) as what the operator can
     // do about it. `download_directory` (when set) is a directory that was made for the job and
     // is reported all the same, so the operator knows where it is.
-    void fail(const QString& text, const QString& hint = {},
+    void fail(const Message& text, const Message& hint = {},
               const QString& download_directory = {});
     // Runs `operation` against the target and reports how it ended; the part the Information,
     // Upload and Download operations share. `listener`, `source` and `sink` live for the call;

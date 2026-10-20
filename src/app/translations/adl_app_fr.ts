@@ -114,27 +114,29 @@
     </message>
 </context>
 <context>
-    <name>AppDialog</name>
+    <name>AddressProblem</name>
     <message>
-        <location filename="../../ui/qml/AppDialog.qml" line="+12"/>
-        <source>OK</source>
-        <translation type="unfinished"></translation>
+        <location filename="../core/src/engine_worker.cpp" line="+93"/>
+        <source>&quot;%1&quot; is not an IPv4 address.</source>
+        <translation type="unfinished">« %1 » n&apos;est pas une adresse IPv4.</translation>
     </message>
 </context>
 <context>
-    <name>CheckTile</name>
+    <name>DirectoryProblem</name>
     <message>
-        <location filename="../../ui/qml/CheckTile.qml" line="+45"/>
-        <source>Not set</source>
-        <translation type="unfinished"></translation>
+        <location line="+12"/>
+        <source>%1 is not a directory</source>
+        <translation type="unfinished">%1 n&apos;est pas un répertoire</translation>
     </message>
-</context>
-<context>
-    <name>DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+512"/>
-        <source>waiting</source>
-        <translation type="unfinished">en attente</translation>
+        <location line="+5"/>
+        <source>cannot look at %1 (%2)</source>
+        <translation type="unfinished">impossible d&apos;examiner %1 (%2)</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>cannot create %1 (%2)</source>
+        <translation type="unfinished">impossible de créer %1 (%2)</translation>
     </message>
 </context>
 <context>
@@ -154,8 +156,16 @@
         <source>Download mode</source>
         <translation>Mode de téléchargement</translation>
     </message>
+    <message numerus="yes">
+        <location line="+22"/>
+        <source>%n file(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+38"/>
+        <location line="+15"/>
         <source>Download file name</source>
         <translation>Nom du fichier à télécharger</translation>
     </message>
@@ -169,8 +179,17 @@
         <source>Add the file name to the download</source>
         <translation>Ajouter le nom du fichier au téléchargement</translation>
     </message>
+    <message numerus="yes">
+        <location line="+92"/>
+        <location line="+38"/>
+        <source>%n file(s) ticked</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+103"/>
+        <location line="-29"/>
         <source>Waiting for the target&apos;s list of files...</source>
         <translation>En attente de la liste des fichiers de la cible...</translation>
     </message>
@@ -195,28 +214,28 @@
         <translation>Télécharger les fichiers cochés</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+43"/>
         <source>Download %1</source>
         <translation>Télécharger %1</translation>
     </message>
     <message>
-        <location line="-113"/>
+        <location line="-110"/>
         <source>Remove</source>
         <translation>Retirer</translation>
     </message>
     <message>
-        <location line="-219"/>
+        <location line="-218"/>
         <source>no target</source>
         <translation type="unfinished">aucune cible</translation>
     </message>
     <message>
         <location line="+13"/>
-        <location line="+373"/>
+        <location line="+369"/>
         <source>Choose the download directory</source>
         <translation type="unfinished">Choisir le répertoire de téléchargement</translation>
     </message>
     <message>
-        <location line="-343"/>
+        <location line="-339"/>
         <source>THE DOWNLOAD</source>
         <translation type="unfinished"></translation>
     </message>
@@ -276,17 +295,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>File name, for example CONFIG.LDR</source>
         <translation type="unfinished"></translation>
     </message>
@@ -311,24 +320,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
-        <location line="+40"/>
-        <source>file ticked</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-39"/>
-        <location line="+39"/>
-        <source>files ticked</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-29"/>
+        <location line="+11"/>
         <source>Start the download: the target sends its list, tick what to take, and send the choice back.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+98"/>
+        <location line="+97"/>
         <source>Destination</source>
         <translation type="unfinished"></translation>
     </message>
@@ -397,253 +394,6 @@
         <location line="+3"/>
         <source>no directory</source>
         <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>EngineWorker</name>
-    <message>
-        <location filename="../core/src/engine_worker.cpp" line="+401"/>
-        <location line="+56"/>
-        <location line="+20"/>
-        <location line="+48"/>
-        <location line="+39"/>
-        <source>&quot;%1&quot; is not an IPv4 address.</source>
-        <translation type="unfinished">« %1 » n&apos;est pas une adresse IPv4.</translation>
-    </message>
-    <message>
-        <location line="-149"/>
-        <source>Looking for targets (broadcast, three seconds)...</source>
-        <translation type="unfinished">Recherche de cibles (diffusion, trois secondes)...</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Looking for a target at %1 (three seconds)...</source>
-        <translation type="unfinished">Recherche d&apos;une cible à %1 (trois secondes)...</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>FIND could not run (%1).</source>
-        <translation type="unfinished">FIND n&apos;a pas pu s&apos;exécuter (%1).</translation>
-    </message>
-    <message>
-        <location line="+23"/>
-        <source>1 target answered</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 targets answered</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>Asking %1 (%2) for its configuration...</source>
-        <translation type="unfinished">Demande de configuration à %1 (%2)...</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>No media set has been read, so there is nothing to upload.</source>
-        <translation type="unfinished">Aucun jeu de média n&apos;a été lu, il n&apos;y a donc rien à téléverser.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>No load was chosen.</source>
-        <translation type="unfinished">Aucun chargement n&apos;a été choisi.</translation>
-    </message>
-    <message>
-        <location line="+27"/>
-        <source>Uploading 1 load to %1 (%2)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Uploading %1 loads to %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>No file was named.</source>
-        <translation type="unfinished">Aucun fichier n&apos;a été nommé.</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>&quot;%1&quot; is not a safe file name.</source>
-        <translation type="unfinished">« %1 » n&apos;est pas un nom de fichier sûr.</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Downloading 1 file from %1 (%2)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Downloading %1 files from %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <source>Asking %1 (%2) for the files it can download...</source>
-        <translation type="unfinished">Demande à %1 (%2) des fichiers qu&apos;elle peut télécharger...</translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The download directory could not be used: %1.</source>
-        <translation type="unfinished">Le répertoire de téléchargement n&apos;a pas pu être utilisé : %1.</translation>
-    </message>
-    <message>
-        <location line="+43"/>
-        <source>the request was refused (%1)</source>
-        <translation type="unfinished">la requête a été refusée (%1)</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>the loader&apos;s port could not be opened (%1)</source>
-        <translation type="unfinished">le port du chargeur n&apos;a pas pu être ouvert (%1)</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>waiting for the network failed (%1)</source>
-        <translation type="unfinished">l&apos;attente du réseau a échoué (%1)</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The operation could not run: %1.</source>
-        <translation type="unfinished">L&apos;opération n&apos;a pas pu s&apos;exécuter : %1.</translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>completed, 1 file failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, 1 load failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 loads failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>completed, 1 file missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The target confirmed that it stopped.</source>
-        <translation type="unfinished">La cible a confirmé son arrêt.</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target did not confirm that it stopped.</source>
-        <translation type="unfinished">La cible n&apos;a pas confirmé son arrêt.</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>The target may still be loading; ask it what it is doing before trying again.</source>
-        <translation type="unfinished">La cible charge peut-être encore ; demandez-lui ce qu&apos;elle fait avant de réessayer.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>The target read 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target read %1 files.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Files received: %1 of %2 requested.</source>
-        <translation type="unfinished">Fichiers reçus : %1 sur %2 demandés.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Finished: %1.</source>
-        <translation type="unfinished">Terminé : %1.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Reading the media set in %1...</source>
-        <translation type="unfinished">Lecture du jeu de média dans %1...</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>media set read</source>
-        <translation type="unfinished">jeu de média lu</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Read media set %1: 1 load.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Read media set %1: %2 loads.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The media set could not be read: %1.</source>
-        <translation type="unfinished">Le jeu de média n&apos;a pas pu être lu : %1.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Checking the media set in %1...</source>
-        <translation type="unfinished">Vérification du jeu de média dans %1...</translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>media set checked</source>
-        <translation type="unfinished">jeu de média vérifié</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Checked media set %1: 1 load, 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Checked media set %1: %2, %3.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The media set could not be checked: %1.</source>
-        <translation type="unfinished">Le jeu de média n&apos;a pas pu être vérifié : %1.</translation>
     </message>
 </context>
 <context>
@@ -847,210 +597,137 @@
     </message>
 </context>
 <context>
-    <name>LicencesDialog</name>
+    <name>Hint</name>
     <message>
-        <location filename="../../ui/qml/LicencesDialog.qml" line="+12"/>
-        <source>This build carries no embedded notices file (:/adl/notices/NOTICES.txt was not compiled in); the NOTICES.txt beside the application and the repository&apos;s LICENSE say what it ships.</source>
-        <translation type="unfinished"></translation>
+        <location filename="../core/src/engine_worker.cpp" line="-72"/>
+        <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
+        <translation type="unfinished">Choisissez le répertoire dans lequel le jeu de média a été écrit et assurez-vous que chaque fichier du jeu s&apos;y trouve encore.</translation>
     </message>
     <message>
-        <location line="+12"/>
-        <source>Third-party licences</source>
-        <translation type="unfinished"></translation>
+        <location line="+6"/>
+        <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
+        <translation type="unfinished">Le chargeur n&apos;a pas pu utiliser le réseau ni son port. Vérifiez qu&apos;aucune autre instance du chargeur n&apos;est en cours d&apos;exécution et qu&apos;aucun autre programme n&apos;occupe le port de contrôle (Préférences).</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Close</source>
-        <translation type="unfinished"></translation>
+        <location line="+7"/>
+        <source>Enter the target&apos;s IPv4 address as four numbers of 0 to 255 separated by dots, for example 10.0.0.2.</source>
+        <translation type="unfinished">Saisissez l&apos;adresse IPv4 de la cible sous forme de quatre nombres de 0 à 255 séparés par des points, par exemple 10.0.0.2.</translation>
     </message>
     <message>
-        <location line="+24"/>
-        <source>Third-party licence text</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>LoadModel</name>
-    <message>
-        <location filename="../core/src/models.cpp" line="-307"/>
-        <source>1 data file</source>
-        <translation type="unfinished"></translation>
+        <location line="+6"/>
+        <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
+        <translation type="unfinished">Choisissez un répertoire de téléchargement qui existe ou peut être créé et assurez-vous qu&apos;il est accessible en écriture (Préférences).</translation>
     </message>
     <message>
-        <location line="+0"/>
-        <source>%1 data files</source>
-        <translation type="unfinished"></translation>
+        <location line="+6"/>
+        <source>The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed.</source>
+        <translation type="unfinished">La cible n&apos;a pas renvoyé tous les fichiers demandés. Vérifiez les noms par rapport à ce que la cible peut fournir et demandez-lui pourquoi un fichier a échoué.</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>1 support file</source>
-        <translation type="unfinished"></translation>
+        <location line="+7"/>
+        <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
+        <translation type="unfinished">Nommez le fichier tel que la cible le connaît : un nom simple de 254 caractères au maximum, sans chemin.</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>%1 support files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>no target ID</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>%1 · %2, %3; for %4</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+110"/>
-        <source>waiting</source>
-        <translation type="unfinished">en attente</translation>
+        <location line="+6"/>
+        <source>The target may still be loading; ask it what it is doing before trying again.</source>
+        <translation type="unfinished">La cible charge peut-être encore ; demandez-lui ce qu&apos;elle fait avant de réessayer.</translation>
     </message>
 </context>
 <context>
-    <name>LoaderModel</name>
+    <name>HostAccess</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+64"/>
-        <location line="+136"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-136"/>
-        <location line="+136"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-134"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1, %2, all check values verified</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>; 1 warning against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>; %1 warnings against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+56"/>
-        <source>Looking for targets...</source>
-        <translation type="unfinished">Recherche de cibles...</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <location line="+3"/>
-        <location line="+4"/>
-        <source>Stopping the operation...</source>
-        <translation type="unfinished">Arrêt de l&apos;opération...</translation>
-    </message>
-    <message>
-        <location line="-6"/>
-        <source>Reading the target&apos;s configuration...</source>
-        <translation type="unfinished">Lecture de la configuration de la cible...</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Uploading to the target...</source>
-        <translation type="unfinished">Téléversement vers la cible...</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Downloading from the target...</source>
-        <translation type="unfinished">Téléchargement depuis la cible...</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Reading the media set...</source>
-        <translation type="unfinished">Lecture du jeu de média...</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Checking the media set...</source>
-        <translation type="unfinished">Vérification du jeu de média...</translation>
-    </message>
-    <message>
-        <location line="+57"/>
-        <source>1 member</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>%1: %2, %3</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+296"/>
-        <source>Choose the target from the list, then run the operation again.</source>
-        <translation type="unfinished">Choisissez la cible dans la liste, puis relancez l&apos;opération.</translation>
-    </message>
-    <message>
-        <location line="+88"/>
-        <location line="+23"/>
-        <location line="+23"/>
-        <source>No target is selected; looking for one first.</source>
-        <translation type="unfinished">Aucune cible n&apos;est sélectionnée ; recherche préalable d&apos;une cible.</translation>
+        <location filename="../core/src/host_access.cpp" line="+24"/>
+        <source>The system services could not be started (%1).</source>
+        <translation type="unfinished">Les services système n&apos;ont pas pu être démarrés (%1).</translation>
     </message>
 </context>
 <context>
-    <name>LogView</name>
+    <name>JobListener</name>
     <message>
-        <location filename="../../ui/qml/LogView.qml" line="+52"/>
-        <source>Activity log</source>
-        <translation>Journal d&apos;activité</translation>
+        <location filename="../core/src/engine_worker.cpp" line="+122"/>
+        <source>The target answered: %1</source>
+        <translation type="unfinished">La cible a répondu : %1</translation>
     </message>
     <message>
-        <location line="+40"/>
-        <source>No activity yet.</source>
+        <location line="+13"/>
+        <source>Status %1: %2</source>
+        <translation type="unfinished">État %1 : %2</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <location line="+39"/>
+        <source>Status %1: %2, %3% of the list</source>
+        <translation type="unfinished">État %1 : %2, %3 % de la liste</translation>
+    </message>
+    <message>
+        <location line="-13"/>
+        <source>The target failed load %1 (%2)%3</source>
+        <translation type="unfinished">La cible a échoué sur le chargement %1 (%2)%3</translation>
+    </message>
+    <message>
+        <location line="+39"/>
+        <source>The target failed file %1%2</source>
+        <translation type="unfinished">La cible a échoué sur le fichier %1%2</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>The target read %1 (%2 bytes)</source>
+        <translation type="unfinished">La cible a lu %1 (%2 octets)</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Received %1 (%2 bytes)</source>
+        <translation type="unfinished">Reçu %1 (%2 octets)</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>serial number %1</source>
+        <translation type="unfinished">numéro de série %1</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>The target listed its configuration.</source>
+        <translation type="unfinished">La cible a listé sa configuration.</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>The target listed %n file(s) it can download.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>, about %1 s left</source>
+        <translation type="unfinished">, environ %1 s restantes</translation>
     </message>
 </context>
 <context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="+53"/>
-        <location line="+52"/>
+        <location filename="../qml/Main.qml" line="+50"/>
+        <location line="+58"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
         <location line="+92"/>
-        <location line="+405"/>
+        <location line="+406"/>
         <source>Choose the media set directory</source>
         <translation>Choisir le répertoire du jeu de média</translation>
     </message>
     <message>
-        <location line="-323"/>
+        <location line="-324"/>
         <source>The operation failed</source>
         <translation>L&apos;opération a échoué</translation>
     </message>
     <message>
-        <location line="+257"/>
-        <location line="+129"/>
+        <location line="+258"/>
+        <location line="+128"/>
         <source>Properties...</source>
         <translation>Propriétés...</translation>
     </message>
     <message>
-        <location line="-119"/>
+        <location line="-118"/>
         <source>Ready to address.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1110,27 +787,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+21"/>
-        <source>member</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+24"/>
+        <location line="+46"/>
         <source>Re-check</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1155,12 +812,12 @@
         <translation>Téléverser le chargement %1</translation>
     </message>
     <message>
-        <location line="-346"/>
+        <location line="-345"/>
         <source>Find targets</source>
         <translation>Rechercher les cibles</translation>
     </message>
     <message>
-        <location line="-373"/>
+        <location line="-377"/>
         <source>WORKING</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1171,28 +828,18 @@
     </message>
     <message>
         <location line="+2"/>
-        <location line="+885"/>
+        <location line="+888"/>
         <source>READY</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-885"/>
-        <location line="+885"/>
+        <location line="-888"/>
+        <location line="+888"/>
         <source>NOT READY</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-872"/>
-        <source>Ready: 1 load to %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Ready: %1 loads to %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="-874"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1207,7 +854,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+56"/>
+        <location line="+62"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1288,7 +935,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+98"/>
+        <location line="+99"/>
         <source>TARGET</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1352,8 +999,24 @@
         <source>Show the target properties</source>
         <translation>Afficher les propriétés de la cible</translation>
     </message>
+    <message numerus="yes">
+        <location line="+89"/>
+        <source>%n member(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>%n load(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+138"/>
+        <location line="+46"/>
         <source>LOADS</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1373,17 +1036,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+85"/>
-        <source>WARNING</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>WARNINGS</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+114"/>
         <source>Show fewer</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1439,8 +1092,24 @@
         <source>Upload</source>
         <translation>Téléverser</translation>
     </message>
+    <message numerus="yes">
+        <location line="-1001"/>
+        <source>Ready: %n load(s) to %1</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+748"/>
+        <source>%n WARNING(S)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="-139"/>
+        <location line="+114"/>
         <source>Transfer operation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1549,28 +1218,32 @@
         <source>No media set chosen</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+15"/>
-        <source>load</source>
-        <translation type="unfinished"></translation>
+        <source>%n load(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+41"/>
+        <source>%n file(s) from FILES.LUM</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+101"/>
+        <source>%n WARNING(S)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+0"/>
-        <source>loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+42"/>
-        <source>file from FILES.LUM</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>files from FILES.LUM</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="-92"/>
         <source>NAME</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1590,17 +1263,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+71"/>
-        <source>WARNING</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>WARNINGS</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+76"/>
         <source>Deviations from the standard&apos;s recommendations. They are shown, and do not block an upload.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1623,24 +1286,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+50"/>
-        <location line="+224"/>
+        <location line="+43"/>
+        <location line="+202"/>
         <source>Choose the download directory</source>
         <translation type="unfinished">Choisir le répertoire de téléchargement</translation>
     </message>
     <message>
-        <location line="-209"/>
+        <location line="-187"/>
         <source>Appearance</source>
         <translation>Apparence</translation>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+14"/>
         <source>Language</source>
         <translation>Langue</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+15"/>
         <source>The window follows the desktop&apos;s light or dark scheme. Language applies at once; everything else on Save.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1764,152 +1426,6 @@
         <location line="+21"/>
         <source>Activity log capacity</source>
         <translation>Capacité du journal d&apos;activité</translation>
-    </message>
-</context>
-<context>
-    <name>QObject</name>
-    <message>
-        <location filename="../core/src/engine_worker.cpp" line="-732"/>
-        <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
-        <translation>Choisissez le répertoire dans lequel le jeu de média a été écrit et assurez-vous que chaque fichier du jeu s&apos;y trouve encore.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
-        <translation>Le chargeur n&apos;a pas pu utiliser le réseau ni son port. Vérifiez qu&apos;aucune autre instance du chargeur n&apos;est en cours d&apos;exécution et qu&apos;aucun autre programme n&apos;occupe le port de contrôle (Préférences).</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Enter the target&apos;s IPv4 address as four numbers of 0 to 255 separated by dots, for example 10.0.0.2.</source>
-        <translation>Saisissez l&apos;adresse IPv4 de la cible sous forme de quatre nombres de 0 à 255 séparés par des points, par exemple 10.0.0.2.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
-        <translation>Choisissez un répertoire de téléchargement qui existe ou peut être créé et assurez-vous qu&apos;il est accessible en écriture (Préférences).</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed.</source>
-        <translation>La cible n&apos;a pas renvoyé tous les fichiers demandés. Vérifiez les noms par rapport à ce que la cible peut fournir et demandez-lui pourquoi un fichier a échoué.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
-        <translation>Nommez le fichier tel que la cible le connaît : un nom simple de 254 caractères au maximum, sans chemin.</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>%1 is not a directory</source>
-        <translation>%1 n&apos;est pas un répertoire</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <location line="+40"/>
-        <source>cannot look at %1 (%2)</source>
-        <translation>impossible d&apos;examiner %1 (%2)</translation>
-    </message>
-    <message>
-        <location line="-28"/>
-        <location line="+35"/>
-        <source>cannot create %1 (%2)</source>
-        <translation>impossible de créer %1 (%2)</translation>
-    </message>
-    <message>
-        <location line="+24"/>
-        <source>The target answered: %1</source>
-        <translation>La cible a répondu : %1</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Status %1: %2</source>
-        <translation>État %1 : %2</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <location line="+15"/>
-        <location line="+40"/>
-        <source>, about %1 s left</source>
-        <translation>, environ %1 s restantes</translation>
-    </message>
-    <message>
-        <location line="-46"/>
-        <location line="+40"/>
-        <source>Status %1: %2, %3% of the list</source>
-        <translation>État %1 : %2, %3 % de la liste</translation>
-    </message>
-    <message>
-        <location line="-11"/>
-        <source>The target failed load %1 (%2)%3</source>
-        <translation>La cible a échoué sur le chargement %1 (%2)%3</translation>
-    </message>
-    <message>
-        <location line="+40"/>
-        <source>The target failed file %1%2</source>
-        <translation>La cible a échoué sur le fichier %1%2</translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>The target read %1 (%2 bytes)</source>
-        <translation>La cible a lu %1 (%2 octets)</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Received %1 (%2 bytes)</source>
-        <translation>Reçu %1 (%2 octets)</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>serial number %1</source>
-        <translation>numéro de série %1</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>The target listed its configuration.</source>
-        <translation>La cible a listé sa configuration.</translation>
-    </message>
-    <message>
-        <location line="+14"/>
-        <source>The target listed 1 file it can download.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target listed %1 files it can download.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../core/src/host_access.cpp" line="+14"/>
-        <source>The system services could not be started (%1).</source>
-        <translation>Les services système n&apos;ont pas pu être démarrés (%1).</translation>
-    </message>
-    <message>
-        <location filename="../core/src/media_set_summary.cpp" line="+27"/>
-        <source>%1 (%2)</source>
-        <translation>%1 (%2)</translation>
-    </message>
-    <message>
-        <location line="+45"/>
-        <source>%1: %2</source>
-        <translation>%1 : %2</translation>
-    </message>
-    <message>
-        <location filename="../core/src/notice_text.cpp" line="+25"/>
-        <source> (%1 s)</source>
-        <translation> (%1 s)</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source> (port %1)</source>
-        <translation> (port %1)</translation>
-    </message>
-</context>
-<context>
-    <name>TargetModel</name>
-    <message>
-        <location filename="../core/src/models.cpp" line="-299"/>
-        <source>%1 at %2</source>
-        <translation type="unfinished">%1 à %2</translation>
     </message>
 </context>
 <context>
@@ -2119,32 +1635,42 @@
         <source>NOT READY</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location line="+9"/>
-        <location line="+45"/>
-        <source>member</source>
-        <translation type="unfinished"></translation>
+    <message numerus="yes">
+        <location line="+8"/>
+        <location line="+43"/>
+        <source>%n member(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="-41"/>
+        <location line="+127"/>
+        <source>%n load(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="-76"/>
+        <source>%n warning(s) from the check</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+248"/>
+        <source>%n load(s) ticked</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
     </message>
     <message>
-        <location line="-45"/>
-        <location line="+45"/>
-        <source>members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-42"/>
-        <location line="+131"/>
-        <source>load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-131"/>
-        <location line="+131"/>
-        <source>loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-130"/>
+        <location line="-298"/>
         <source>No media set selected</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2171,12 +1697,12 @@
     </message>
     <message>
         <location line="+1"/>
-        <location line="+26"/>
+        <location line="+23"/>
         <source>SET</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-24"/>
+        <location line="-21"/>
         <source>AUTO</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2191,7 +1717,7 @@
         <translation type="unfinished">Jeu de média</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+5"/>
         <source>Choose a directory</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2207,16 +1733,6 @@
     </message>
     <message>
         <location line="+3"/>
-        <source>warning from the check</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>warnings from the check</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
         <source>NONE</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2241,7 +1757,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+10"/>
         <source>LOAD</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2286,21 +1802,247 @@
         <source>no media set</source>
         <translation type="unfinished">aucun jeu de média</translation>
     </message>
+</context>
+<context>
+    <name>Wording</name>
     <message>
-        <location line="+2"/>
-        <source>load ticked</source>
+        <location filename="../core/src/wording.cpp" line="+18"/>
+        <location line="+59"/>
+        <source>running</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>loads ticked</source>
+        <location line="-57"/>
+        <location line="+35"/>
+        <source>completed</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-33"/>
+        <source>denied by the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>not supported by the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+41"/>
+        <source>aborted by the operator</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-39"/>
+        <location line="+37"/>
+        <source>aborted by the data loader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-35"/>
+        <location line="+33"/>
+        <source>aborted by the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-31"/>
+        <source>unsupported protocol version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>a file transfer failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>data load protocol time-out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>the target was silent longer than its exception timer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+50"/>
+        <source>protocol error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-48"/>
+        <source>local error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+54"/>
+        <location line="+35"/>
+        <source>unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-83"/>
+        <source>accepted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>in progress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>in progress, with details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>denied</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>not supported</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>unknown status code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>succeeded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>timed out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>the peer sent an error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>the peer aborted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>the peer asked to wait</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>options refused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>transfer size mismatch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>local file error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>aborted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>status files lost</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status file repeated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status file out of order</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status file transfer failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>checksum did not match</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>checksum algorithm not supported</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>file not available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>request refused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>transfer failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>target asked to wait</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>options refused, asked again without them</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>port option not taken by the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>requested files missing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source> (%1 s)</source>
+        <translation type="unfinished"> (%1 s)</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source> (port %1)</source>
+        <translation type="unfinished"> (port %1)</translation>
     </message>
 </context>
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+489"/>
+        <location filename="../core/src/models.cpp" line="+538"/>
         <source>waiting</source>
         <translation>en attente</translation>
     </message>
@@ -2308,36 +2050,32 @@
 <context>
     <name>adl::app::EngineWorker</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+95"/>
-        <location line="+56"/>
-        <location line="+20"/>
-        <location line="+48"/>
-        <location line="+39"/>
-        <source>&quot;%1&quot; is not an IPv4 address.</source>
-        <translation>« %1 » n&apos;est pas une adresse IPv4.</translation>
-    </message>
-    <message>
-        <location line="-149"/>
+        <location filename="../core/src/engine_worker.cpp" line="+104"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>Recherche de cibles (diffusion, trois secondes)...</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Looking for a target at %1 (three seconds)...</source>
         <translation>Recherche d&apos;une cible à %1 (trois secondes)...</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+10"/>
         <source>FIND could not run (%1).</source>
         <translation>FIND n&apos;a pas pu s&apos;exécuter (%1).</translation>
     </message>
     <message>
-        <location line="+42"/>
+        <location line="+23"/>
+        <source>%n target(s) answered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>Demande de configuration à %1 (%2)...</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+17"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>Aucun jeu de média n&apos;a été lu, il n&apos;y a donc rien à téléverser.</translation>
     </message>
@@ -2347,7 +2085,12 @@
         <translation>Aucun chargement n&apos;a été choisi.</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+26"/>
+        <source>Uploading %n load(s) to %1 (%2)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
         <source>No file was named.</source>
         <translation>Aucun fichier n&apos;a été nommé.</translation>
     </message>
@@ -2357,57 +2100,52 @@
         <translation>« %1 » n&apos;est pas un nom de fichier sûr.</translation>
     </message>
     <message>
-        <location line="-92"/>
-        <source>1 target answered</source>
+        <location line="+13"/>
+        <source>Downloading %n file(s) from %1 (%2)...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+0"/>
-        <source>%1 targets answered</source>
+        <location line="+128"/>
+        <source>completed, %n file(s) failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+65"/>
-        <source>Uploading 1 load to %1 (%2)...</source>
+        <location line="+2"/>
+        <source>completed, %n load(s) failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Uploading %1 loads to %2 (%3)...</source>
+        <location line="+8"/>
+        <source>completed, %n file(s) missing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+37"/>
-        <source>Downloading 1 file from %1 (%2)...</source>
+        <location line="+16"/>
+        <source>The target read %n file(s).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Downloading %1 files from %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
+        <location line="-135"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>Demande à %1 (%2) des fichiers qu&apos;elle peut télécharger...</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+18"/>
         <source>The download directory could not be used: %1.</source>
         <translation>Le répertoire de téléchargement n&apos;a pas pu être utilisé : %1.</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+52"/>
         <source>the request was refused (%1)</source>
         <translation>la requête a été refusée (%1)</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+5"/>
         <source>the loader&apos;s port could not be opened (%1)</source>
         <translation>le port du chargeur n&apos;a pas pu être ouvert (%1)</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>waiting for the network failed (%1)</source>
         <translation>l&apos;attente du réseau a échoué (%1)</translation>
     </message>
@@ -2417,137 +2155,72 @@
         <translation>L&apos;opération n&apos;a pas pu s&apos;exécuter : %1.</translation>
     </message>
     <message>
-        <location line="+21"/>
-        <source>completed, 1 file failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, 1 load failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 loads failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>completed, 1 file missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The target read 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target read %1 files.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+32"/>
-        <source>Read media set %1: 1 load.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Read media set %1: %2 loads.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+37"/>
-        <source>Checked media set %1: 1 load, 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+139"/>
         <source>Checked media set %1: %2, %3.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-86"/>
+        <location line="-98"/>
         <source>The target confirmed that it stopped.</source>
         <translation>La cible a confirmé son arrêt.</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>The target did not confirm that it stopped.</source>
         <translation>La cible n&apos;a pas confirmé son arrêt.</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>The target may still be loading; ask it what it is doing before trying again.</source>
-        <translation>La cible charge peut-être encore ; demandez-lui ce qu&apos;elle fait avant de réessayer.</translation>
-    </message>
-    <message>
-        <location line="+16"/>
+        <location line="+19"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>Fichiers reçus : %1 sur %2 demandés.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+9"/>
         <source>Finished: %1.</source>
         <translation>Terminé : %1.</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+9"/>
         <source>Reading the media set in %1...</source>
         <translation>Lecture du jeu de média dans %1...</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+9"/>
         <source>media set read</source>
         <translation>jeu de média lu</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+4"/>
+        <source>Read media set %1: %n load(s).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The media set could not be read: %1.</source>
         <translation>Le jeu de média n&apos;a pas pu être lu : %1.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+10"/>
         <source>Checking the media set in %1...</source>
         <translation>Vérification du jeu de média dans %1...</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+23"/>
         <source>media set checked</source>
         <translation>jeu de média vérifié</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+8"/>
+        <source>%n load(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%n file(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The media set could not be checked: %1.</source>
         <translation>Le jeu de média n&apos;a pas pu être vérifié : %1.</translation>
     </message>
@@ -2555,37 +2228,27 @@
 <context>
     <name>adl::app::LoadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-307"/>
-        <source>1 data file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 data files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>1 support file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1 support files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location filename="../core/src/models.cpp" line="-313"/>
         <source>no target ID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>%1 · %2, %3; for %4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+110"/>
+        <location line="+2"/>
+        <source>%n data file(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>%n support file(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+115"/>
         <source>waiting</source>
         <translation>en attente</translation>
     </message>
@@ -2593,44 +2256,28 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="-567"/>
-        <location line="+136"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-136"/>
-        <location line="+136"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-134"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location filename="../core/src/loader_model.cpp" line="+65"/>
         <source>%1, %2, all check values verified</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>; 1 warning against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location line="+1"/>
-        <source>; %1 warnings against the standard&apos;s recommendations</source>
+        <location line="+146"/>
+        <source>%n load(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+56"/>
+        <location line="-144"/>
+        <source>%n file(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>; %n warning(s) against the standard&apos;s recommendations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+61"/>
         <source>Looking for targets...</source>
         <translation>Recherche de cibles...</translation>
     </message>
@@ -2667,29 +2314,22 @@
         <translation>Vérification du jeu de média...</translation>
     </message>
     <message>
-        <location line="+57"/>
-        <source>1 member</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+58"/>
         <source>%1: %2, %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+296"/>
+        <location line="+2"/>
+        <source>%n member(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+304"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>Choisissez la cible dans la liste, puis relancez l&apos;opération.</translation>
     </message>
     <message>
-        <location line="+88"/>
-        <location line="+23"/>
-        <location line="+23"/>
+        <location line="-392"/>
         <source>No target is selected; looking for one first.</source>
         <translation>Aucune cible n&apos;est sélectionnée ; recherche préalable d&apos;une cible.</translation>
     </message>
@@ -2697,7 +2337,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-299"/>
+        <location filename="../core/src/models.cpp" line="-324"/>
         <source>%1 at %2</source>
         <translation>%1 à %2</translation>
     </message>

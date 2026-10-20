@@ -17,6 +17,7 @@ add_library(adl_app_core STATIC
     include/adl/app/notice_text.hpp
     include/adl/app/settings.hpp
     include/adl/app/text.hpp
+    include/adl/app/wording.hpp
     src/address.cpp
     src/engine_worker.cpp
     src/events.cpp
@@ -26,7 +27,8 @@ add_library(adl_app_core STATIC
     src/media_source.cpp
     src/models.cpp
     src/notice_text.cpp
-    src/settings.cpp)
+    src/settings.cpp
+    src/wording.cpp)
 add_library(adl::app_core ALIAS adl_app_core)
 
 target_include_directories(adl_app_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -37,6 +39,7 @@ target_compile_definitions(adl_app_core PUBLIC QT_NO_KEYWORDS)
 target_link_libraries(adl_app_core
     PUBLIC
         Qt6::Core
+        adl::ui_message
         adl::arinc615a
         adl::arinc615a_runner
         adl::arinc665

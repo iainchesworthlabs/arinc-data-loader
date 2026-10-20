@@ -34,6 +34,8 @@ public:
 
     void reset(QList<FoundTarget> targets);
     [[nodiscard]] const FoundTarget* at(int row) const;
+    // The language changed: the rows are read again in the new one.
+    void retranslate();
 
 private:
     QList<FoundTarget> targets_;
@@ -61,6 +63,8 @@ public:
 
     void append(const EventEntry& entry);
     void clear();
+    // The language changed: the lines are read again in the new one.
+    void retranslate();
 
 private:
     struct Line {
@@ -104,6 +108,8 @@ public:
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     void reset(QList<HardwareRow> rows);
+    // The language changed: the rows are read again in the new one.
+    void retranslate();
 
 private:
     QList<HardwareRow> rows_;
@@ -150,6 +156,8 @@ public:
     void begin_upload();
     // A status file: matches each row to a load by header file and part number.
     void apply_progress(const QList<LoadProgressRow>& rows);
+    // The language changed: the rows are read again in the new one.
+    void retranslate();
 
 Q_SIGNALS:
     // The number of ticked loads may have changed.
@@ -160,7 +168,7 @@ private:
         LoadSummary load;
         bool checked = false;
         int ratio = -1;
-        QString status;
+        Message status;
         QString problem;
         bool failed = false;
     };
@@ -217,6 +225,8 @@ public:
     void begin_download();
     // A status file: matches each row to a file by name.
     void apply_progress(const QList<FileProgressRow>& rows);
+    // The language changed: the rows are read again in the new one.
+    void retranslate();
 
     // While locked (the download runs, or the choice has been made) the ticks cannot change.
     void set_locked(bool locked) noexcept { locked_ = locked; }
@@ -231,7 +241,7 @@ private:
         QString description;
         bool checked = false;
         int ratio = -1;
-        QString status;
+        Message status;
         QString problem;
         bool failed = false;
     };

@@ -377,7 +377,7 @@ MockTargetModel::MockTargetModel(LinkFactory factory, QObject* parent) : QObject
                 Q_EMIT storedFilesChanged();
             });
     connect(worker_, &MockWorker::error_occurred, this, [this](const QString& text) {
-        set_error(text);
+        set_error(adl::ui::Message::verbatim(text));
         if (running_) {
             running_ = false;
             Q_EMIT runningChanged();
@@ -395,11 +395,15 @@ MockTargetModel::~MockTargetModel() {
     thread_.wait();
 }
 
-void MockTargetModel::set_error(const QString& text) {
-    if (text == error_text_) {
+void MockTargetModel::set_error(const adl::ui::Message& text) {
+    if (text.text() == error_text_.text()) {
         return;
     }
     error_text_ = text;
+    Q_EMIT errorTextChanged();
+}
+
+void MockTargetModel::retranslate() {
     Q_EMIT errorTextChanged();
 }
 
@@ -610,7 +614,9 @@ void MockTargetModel::start() {
         return;
     }
     if (tftp_port_ < 1 || tftp_port_ > 65535 || find_port_ < 1 || find_port_ > 65535) {
-        set_error(tr("The TFTP and FIND ports must each be between 1 and 65535."));
+        set_error(adl::ui::Message::translated(
+            &MockTargetModel::tr,
+            QT_TR_NOOP("The TFTP and FIND ports must each be between 1 and 65535.")));
         return;
     }
     set_error({});

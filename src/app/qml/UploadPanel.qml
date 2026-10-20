@@ -147,11 +147,9 @@ Item {
                             Layout.fillWidth: true
                             text: root.app.mediaSetPartNumber.length > 0
                                   ? root.app.mediaSetPartNumber + " · "
-                                    + Theme.quantity(root.app.mediaSetMemberCount,
-                                                     qsTr("member"), qsTr("members"))
+                                    + qsTr("%n member(s)", "", root.app.mediaSetMemberCount)
                                     + " · "
-                                    + Theme.quantity(root.app.loadCount,
-                                                     qsTr("load"), qsTr("loads"))
+                                    + qsTr("%n load(s)", "", root.app.loadCount)
                                   : qsTr("No media set selected")
                             color: Theme.textMuted
                             font.pixelSize: Theme.fontBody
@@ -192,8 +190,7 @@ Item {
                         value: root.app.mediaSetPartNumber.length > 0
                                ? root.app.mediaSetPartNumber : qsTr("Not chosen")
                         detail: root.app.mediaSetPartNumber.length > 0
-                                ? Theme.quantity(root.app.mediaSetMemberCount,
-                                                 qsTr("member"), qsTr("members"))
+                                ? qsTr("%n member(s)", "", root.app.mediaSetMemberCount)
                                 : qsTr("Choose a directory")
                         chipText: root.checkText
                         tone: root.checkTone
@@ -203,9 +200,7 @@ Item {
                         label: qsTr("Loads")
                         value: qsTr("%1 of %2 ticked").arg(root.app.selectedLoadCount)
                                .arg(root.app.loadCount)
-                        detail: Theme.quantity(root.app.mediaSetFindings.length,
-                                               qsTr("warning from the check"),
-                                               qsTr("warnings from the check"))
+                        detail: qsTr("%n warning(s) from the check", "", root.app.mediaSetFindings.length)
                         chipText: root.app.selectedLoadCount > 0 ? qsTr("SET") : qsTr("NONE")
                         tone: root.app.selectedLoadCount > 0 ? "ok" : "warn"
                     }
@@ -281,8 +276,7 @@ Item {
 
                     SectionHeader {
                         label: qsTr("Payload")
-                        summary: Theme.quantity(root.app.selectedLoadCount,
-                                                qsTr("load"), qsTr("loads"))
+                        summary: qsTr("%n load(s)", "", root.app.selectedLoadCount)
                     }
 
                     RowLayout {
@@ -454,9 +448,7 @@ Item {
                                   .arg(root.targetName)
                                   .arg(root.app.mediaSetPartNumber.length > 0
                                        ? root.app.mediaSetPartNumber : qsTr("no media set"))
-                                  .arg(Theme.quantity(root.app.selectedLoadCount,
-                                                      qsTr("load ticked"),
-                                                      qsTr("loads ticked")))
+                                  .arg(qsTr("%n load(s) ticked", "", root.app.selectedLoadCount))
                             color: Theme.textMuted
                             font.pixelSize: Theme.fontSmall
                             font.family: Theme.monoFamily

@@ -35,6 +35,12 @@ ApplicationWindow {
     visible: true
     color: Theme.bg
 
+    // Right-to-left languages mirror the whole window: the rail, the header's actions, a row's
+    // order, a control's indicator. The language manager sets the application's layout direction;
+    // this follows it, and every item and popup below inherits it.
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
+
     palette.window: Theme.bg
     palette.windowText: Theme.text
     palette.base: Theme.neutral100
@@ -68,6 +74,10 @@ ApplicationWindow {
         StatusChip {
             text: window.statusText
             tone: window.statusTone
+        }
+
+        LanguagePicker {
+            objectName: "languagePicker"
         }
 
         AppButton {
@@ -454,7 +464,7 @@ ApplicationWindow {
 
                     AppComboBox {
                         Layout.fillWidth: true
-                        model: window.app.loadTypeOptions()
+                        model: window.app.loadTypeModel
                         currentIndex: window.app.loadTypeIndex + 1
                         enabled: !window.app.busy
                         onActivated: window.app.loadTypeIndex = currentIndex - 1
@@ -663,10 +673,10 @@ ApplicationWindow {
 
                     Text {
                         Layout.fillWidth: true
-                        text: Theme.quantity(window.app.memberCount, qsTr("member"), qsTr("members"))
+                        text: qsTr("%n member(s)", "", window.app.memberCount)
                               + " · "
-                              + Theme.quantity(filesList.count, qsTr("file"), qsTr("files"))
-                              + " · 1 load"
+                              + qsTr("%n file(s)", "", filesList.count)
+                              + " · " + qsTr("%n load(s)", "", 1)
                         color: Theme.textMuted
                         font.pixelSize: Theme.fontBody
                         elide: Text.ElideRight
@@ -746,7 +756,7 @@ ApplicationWindow {
                     }
 
                     Text {
-                        text: Theme.quantity(filesList.count, qsTr("file"), qsTr("files"))
+                        text: qsTr("%n file(s)", "", filesList.count)
                         color: Theme.textMuted
                         font.pixelSize: Theme.fontSmall
                         font.family: Theme.monoFamily

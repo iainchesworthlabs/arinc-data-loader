@@ -34,10 +34,10 @@
 #include "adl/app/loader_model.hpp"
 #include "adl/app/models.hpp"
 #include "adl/ui/fonts.hpp"
+#include "adl/ui/language_manager.hpp"
 #include "adl/ui/version.hpp"
 #include "bytes.hpp"
 #include "frame_profiler.hpp"
-#include "language_manager.hpp"
 #include "rig.hpp"
 #include "upload_fixture.hpp"
 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     std::optional<QQmlApplicationEngine> engine{std::in_place};
     // The window's Preferences read the language manager, exactly as the application's do: the
     // test registers a real one, so a binding that reads it cannot be the difference.
-    adl::app::LanguageManager language_manager(application, *engine);
+    adl::ui::LanguageManager language_manager(application, *engine, QStringLiteral("adl_app"));
     language_manager.applyInitialLanguage();
     // The window under test starts in English whatever this machine's locale is; the languages
     // it ships are switched through at the end, and English is put back.

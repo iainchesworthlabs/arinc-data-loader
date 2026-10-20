@@ -114,27 +114,29 @@
     </message>
 </context>
 <context>
-    <name>AppDialog</name>
+    <name>AddressProblem</name>
     <message>
-        <location filename="../../ui/qml/AppDialog.qml" line="+12"/>
-        <source>OK</source>
-        <translation type="unfinished"></translation>
+        <location filename="../core/src/engine_worker.cpp" line="+93"/>
+        <source>&quot;%1&quot; is not an IPv4 address.</source>
+        <translation type="unfinished">“%1”不是 IPv4 地址。</translation>
     </message>
 </context>
 <context>
-    <name>CheckTile</name>
+    <name>DirectoryProblem</name>
     <message>
-        <location filename="../../ui/qml/CheckTile.qml" line="+45"/>
-        <source>Not set</source>
-        <translation type="unfinished"></translation>
+        <location line="+12"/>
+        <source>%1 is not a directory</source>
+        <translation type="unfinished">%1 不是目录</translation>
     </message>
-</context>
-<context>
-    <name>DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+512"/>
-        <source>waiting</source>
-        <translation type="unfinished">等待中</translation>
+        <location line="+5"/>
+        <source>cannot look at %1 (%2)</source>
+        <translation type="unfinished">无法访问 %1（%2）</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>cannot create %1 (%2)</source>
+        <translation type="unfinished">无法创建 %1（%2）</translation>
     </message>
 </context>
 <context>
@@ -154,8 +156,15 @@
         <source>Download mode</source>
         <translation>下载模式</translation>
     </message>
+    <message numerus="yes">
+        <location line="+22"/>
+        <source>%n file(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+38"/>
+        <location line="+15"/>
         <source>Download file name</source>
         <translation>下载文件名</translation>
     </message>
@@ -169,8 +178,16 @@
         <source>Add the file name to the download</source>
         <translation>将文件名添加到下载</translation>
     </message>
+    <message numerus="yes">
+        <location line="+92"/>
+        <location line="+38"/>
+        <source>%n file(s) ticked</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+103"/>
+        <location line="-29"/>
         <source>Waiting for the target&apos;s list of files...</source>
         <translation>正在等待目标的文件列表...</translation>
     </message>
@@ -195,28 +212,28 @@
         <translation>下载已勾选的文件</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+43"/>
         <source>Download %1</source>
         <translation>下载 %1</translation>
     </message>
     <message>
-        <location line="-113"/>
+        <location line="-110"/>
         <source>Remove</source>
         <translation>移除</translation>
     </message>
     <message>
-        <location line="-219"/>
+        <location line="-218"/>
         <source>no target</source>
         <translation type="unfinished">无目标</translation>
     </message>
     <message>
         <location line="+13"/>
-        <location line="+373"/>
+        <location line="+369"/>
         <source>Choose the download directory</source>
         <translation type="unfinished">选择下载目录</translation>
     </message>
     <message>
-        <location line="-343"/>
+        <location line="-339"/>
         <source>THE DOWNLOAD</source>
         <translation type="unfinished"></translation>
     </message>
@@ -276,17 +293,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>File name, for example CONFIG.LDR</source>
         <translation type="unfinished"></translation>
     </message>
@@ -311,24 +318,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
-        <location line="+40"/>
-        <source>file ticked</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-39"/>
-        <location line="+39"/>
-        <source>files ticked</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-29"/>
+        <location line="+11"/>
         <source>Start the download: the target sends its list, tick what to take, and send the choice back.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+98"/>
+        <location line="+97"/>
         <source>Destination</source>
         <translation type="unfinished"></translation>
     </message>
@@ -397,253 +392,6 @@
         <location line="+3"/>
         <source>no directory</source>
         <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>EngineWorker</name>
-    <message>
-        <location filename="../core/src/engine_worker.cpp" line="+401"/>
-        <location line="+56"/>
-        <location line="+20"/>
-        <location line="+48"/>
-        <location line="+39"/>
-        <source>&quot;%1&quot; is not an IPv4 address.</source>
-        <translation type="unfinished">“%1”不是 IPv4 地址。</translation>
-    </message>
-    <message>
-        <location line="-149"/>
-        <source>Looking for targets (broadcast, three seconds)...</source>
-        <translation type="unfinished">正在查找目标（广播，三秒）...</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Looking for a target at %1 (three seconds)...</source>
-        <translation type="unfinished">正在 %1 查找目标（三秒）...</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>FIND could not run (%1).</source>
-        <translation type="unfinished">FIND 无法运行（%1）。</translation>
-    </message>
-    <message>
-        <location line="+23"/>
-        <source>1 target answered</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 targets answered</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>Asking %1 (%2) for its configuration...</source>
-        <translation type="unfinished">正在向 %1（%2）请求其配置...</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>No media set has been read, so there is nothing to upload.</source>
-        <translation type="unfinished">尚未读取媒体集，因此没有可上传的内容。</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>No load was chosen.</source>
-        <translation type="unfinished">未选择任何加载项。</translation>
-    </message>
-    <message>
-        <location line="+27"/>
-        <source>Uploading 1 load to %1 (%2)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Uploading %1 loads to %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>No file was named.</source>
-        <translation type="unfinished">未指定任何文件。</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>&quot;%1&quot; is not a safe file name.</source>
-        <translation type="unfinished">“%1”不是安全的文件名。</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Downloading 1 file from %1 (%2)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Downloading %1 files from %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <source>Asking %1 (%2) for the files it can download...</source>
-        <translation type="unfinished">正在向 %1（%2）请求其可下载的文件...</translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The download directory could not be used: %1.</source>
-        <translation type="unfinished">下载目录无法使用：%1。</translation>
-    </message>
-    <message>
-        <location line="+43"/>
-        <source>the request was refused (%1)</source>
-        <translation type="unfinished">请求被拒绝（%1）</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>the loader&apos;s port could not be opened (%1)</source>
-        <translation type="unfinished">加载器的端口无法打开（%1）</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>waiting for the network failed (%1)</source>
-        <translation type="unfinished">等待网络失败（%1）</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The operation could not run: %1.</source>
-        <translation type="unfinished">操作无法运行：%1。</translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>completed, 1 file failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, 1 load failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 loads failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>completed, 1 file missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The target confirmed that it stopped.</source>
-        <translation type="unfinished">目标已确认其停止。</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target did not confirm that it stopped.</source>
-        <translation type="unfinished">目标未确认其停止。</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>The target may still be loading; ask it what it is doing before trying again.</source>
-        <translation type="unfinished">目标可能仍在加载；重试前请先询问其当前状态。</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>The target read 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target read %1 files.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Files received: %1 of %2 requested.</source>
-        <translation type="unfinished">已接收文件：%1，请求 %2。</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Finished: %1.</source>
-        <translation type="unfinished">已完成：%1。</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Reading the media set in %1...</source>
-        <translation type="unfinished">正在读取 %1 中的媒体集...</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>media set read</source>
-        <translation type="unfinished">媒体集已读取</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Read media set %1: 1 load.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Read media set %1: %2 loads.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The media set could not be read: %1.</source>
-        <translation type="unfinished">媒体集无法读取：%1。</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Checking the media set in %1...</source>
-        <translation type="unfinished">正在检查 %1 中的媒体集...</translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>media set checked</source>
-        <translation type="unfinished">媒体集已检查</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Checked media set %1: 1 load, 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Checked media set %1: %2, %3.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The media set could not be checked: %1.</source>
-        <translation type="unfinished">媒体集无法检查：%1。</translation>
     </message>
 </context>
 <context>
@@ -847,210 +595,137 @@
     </message>
 </context>
 <context>
-    <name>LicencesDialog</name>
+    <name>Hint</name>
     <message>
-        <location filename="../../ui/qml/LicencesDialog.qml" line="+12"/>
-        <source>This build carries no embedded notices file (:/adl/notices/NOTICES.txt was not compiled in); the NOTICES.txt beside the application and the repository&apos;s LICENSE say what it ships.</source>
-        <translation type="unfinished"></translation>
+        <location filename="../core/src/engine_worker.cpp" line="-72"/>
+        <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
+        <translation type="unfinished">请选择写入媒体集的目录，并确保该媒体集的每个文件仍保存在其中。</translation>
     </message>
     <message>
-        <location line="+12"/>
-        <source>Third-party licences</source>
-        <translation type="unfinished"></translation>
+        <location line="+6"/>
+        <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
+        <translation type="unfinished">加载器无法使用网络或其端口。请检查是否没有其他加载器实例在运行，以及是否没有其他程序占用控制端口（首选项）。</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Close</source>
-        <translation type="unfinished"></translation>
+        <location line="+7"/>
+        <source>Enter the target&apos;s IPv4 address as four numbers of 0 to 255 separated by dots, for example 10.0.0.2.</source>
+        <translation type="unfinished">请以用点分隔的四个 0 到 255 的数字输入目标的 IPv4 地址，例如 10.0.0.2。</translation>
     </message>
     <message>
-        <location line="+24"/>
-        <source>Third-party licence text</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>LoadModel</name>
-    <message>
-        <location filename="../core/src/models.cpp" line="-307"/>
-        <source>1 data file</source>
-        <translation type="unfinished"></translation>
+        <location line="+6"/>
+        <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
+        <translation type="unfinished">请选择存在或可创建的下载目录，并确保其可写（首选项）。</translation>
     </message>
     <message>
-        <location line="+0"/>
-        <source>%1 data files</source>
-        <translation type="unfinished"></translation>
+        <location line="+6"/>
+        <source>The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed.</source>
+        <translation type="unfinished">目标未返回所请求的全部文件。请对照目标可提供的文件核对名称，并询问其某个文件失败的原因。</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>1 support file</source>
-        <translation type="unfinished"></translation>
+        <location line="+7"/>
+        <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
+        <translation type="unfinished">请按目标所知的方式命名文件：不含路径、最多 254 个字符的纯名称。</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>%1 support files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>no target ID</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>%1 · %2, %3; for %4</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+110"/>
-        <source>waiting</source>
-        <translation type="unfinished">等待中</translation>
+        <location line="+6"/>
+        <source>The target may still be loading; ask it what it is doing before trying again.</source>
+        <translation type="unfinished">目标可能仍在加载；重试前请先询问其当前状态。</translation>
     </message>
 </context>
 <context>
-    <name>LoaderModel</name>
+    <name>HostAccess</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+64"/>
-        <location line="+136"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-136"/>
-        <location line="+136"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-134"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1, %2, all check values verified</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>; 1 warning against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>; %1 warnings against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+56"/>
-        <source>Looking for targets...</source>
-        <translation type="unfinished">正在查找目标...</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <location line="+3"/>
-        <location line="+4"/>
-        <source>Stopping the operation...</source>
-        <translation type="unfinished">正在停止操作...</translation>
-    </message>
-    <message>
-        <location line="-6"/>
-        <source>Reading the target&apos;s configuration...</source>
-        <translation type="unfinished">正在读取目标的配置...</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Uploading to the target...</source>
-        <translation type="unfinished">正在上传到目标...</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Downloading from the target...</source>
-        <translation type="unfinished">正在从目标下载...</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Reading the media set...</source>
-        <translation type="unfinished">正在读取媒体集...</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Checking the media set...</source>
-        <translation type="unfinished">正在检查媒体集...</translation>
-    </message>
-    <message>
-        <location line="+57"/>
-        <source>1 member</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>%1: %2, %3</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+296"/>
-        <source>Choose the target from the list, then run the operation again.</source>
-        <translation type="unfinished">请从列表中选择目标，然后再次运行操作。</translation>
-    </message>
-    <message>
-        <location line="+88"/>
-        <location line="+23"/>
-        <location line="+23"/>
-        <source>No target is selected; looking for one first.</source>
-        <translation type="unfinished">未选择目标；先查找一个目标。</translation>
+        <location filename="../core/src/host_access.cpp" line="+24"/>
+        <source>The system services could not be started (%1).</source>
+        <translation type="unfinished">系统服务无法启动（%1）。</translation>
     </message>
 </context>
 <context>
-    <name>LogView</name>
+    <name>JobListener</name>
     <message>
-        <location filename="../../ui/qml/LogView.qml" line="+52"/>
-        <source>Activity log</source>
-        <translation>活动日志</translation>
+        <location filename="../core/src/engine_worker.cpp" line="+122"/>
+        <source>The target answered: %1</source>
+        <translation type="unfinished">目标响应：%1</translation>
     </message>
     <message>
-        <location line="+40"/>
-        <source>No activity yet.</source>
+        <location line="+13"/>
+        <source>Status %1: %2</source>
+        <translation type="unfinished">状态 %1：%2</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <location line="+39"/>
+        <source>Status %1: %2, %3% of the list</source>
+        <translation type="unfinished">状态 %1：%2，列表的 %3%</translation>
+    </message>
+    <message>
+        <location line="-13"/>
+        <source>The target failed load %1 (%2)%3</source>
+        <translation type="unfinished">目标加载项 %1 失败（%2）%3</translation>
+    </message>
+    <message>
+        <location line="+39"/>
+        <source>The target failed file %1%2</source>
+        <translation type="unfinished">目标文件 %1 失败%2</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>The target read %1 (%2 bytes)</source>
+        <translation type="unfinished">目标已读取 %1（%2 字节）</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Received %1 (%2 bytes)</source>
+        <translation type="unfinished">已接收 %1（%2 字节）</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>serial number %1</source>
+        <translation type="unfinished">序列号 %1</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>The target listed its configuration.</source>
+        <translation type="unfinished">目标已列出其配置。</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>The target listed %n file(s) it can download.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>, about %1 s left</source>
+        <translation type="unfinished">，约剩 %1 秒</translation>
     </message>
 </context>
 <context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="+53"/>
-        <location line="+52"/>
+        <location filename="../qml/Main.qml" line="+50"/>
+        <location line="+58"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
         <location line="+92"/>
-        <location line="+405"/>
+        <location line="+406"/>
         <source>Choose the media set directory</source>
         <translation>选择媒体集目录</translation>
     </message>
     <message>
-        <location line="-323"/>
+        <location line="-324"/>
         <source>The operation failed</source>
         <translation>操作失败</translation>
     </message>
     <message>
-        <location line="+257"/>
-        <location line="+129"/>
+        <location line="+258"/>
+        <location line="+128"/>
         <source>Properties...</source>
         <translation>属性...</translation>
     </message>
     <message>
-        <location line="-119"/>
+        <location line="-118"/>
         <source>Ready to address.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1110,27 +785,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+21"/>
-        <source>member</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+24"/>
+        <location line="+46"/>
         <source>Re-check</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1155,12 +810,12 @@
         <translation>上传加载项 %1</translation>
     </message>
     <message>
-        <location line="-346"/>
+        <location line="-345"/>
         <source>Find targets</source>
         <translation>查找目标</translation>
     </message>
     <message>
-        <location line="-373"/>
+        <location line="-377"/>
         <source>WORKING</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1171,28 +826,18 @@
     </message>
     <message>
         <location line="+2"/>
-        <location line="+885"/>
+        <location line="+888"/>
         <source>READY</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-885"/>
-        <location line="+885"/>
+        <location line="-888"/>
+        <location line="+888"/>
         <source>NOT READY</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-872"/>
-        <source>Ready: 1 load to %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Ready: %1 loads to %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="-874"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1207,7 +852,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+56"/>
+        <location line="+62"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1288,7 +933,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+98"/>
+        <location line="+99"/>
         <source>TARGET</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1352,8 +997,22 @@
         <source>Show the target properties</source>
         <translation>显示目标属性</translation>
     </message>
+    <message numerus="yes">
+        <location line="+89"/>
+        <source>%n member(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>%n load(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+138"/>
+        <location line="+46"/>
         <source>LOADS</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1373,17 +1032,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+85"/>
-        <source>WARNING</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>WARNINGS</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+114"/>
         <source>Show fewer</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1439,8 +1088,22 @@
         <source>Upload</source>
         <translation>上传</translation>
     </message>
+    <message numerus="yes">
+        <location line="-1001"/>
+        <source>Ready: %n load(s) to %1</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+748"/>
+        <source>%n WARNING(S)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="-139"/>
+        <location line="+114"/>
         <source>Transfer operation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1549,28 +1212,29 @@
         <source>No media set chosen</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+15"/>
-        <source>load</source>
-        <translation type="unfinished"></translation>
+        <source>%n load(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+41"/>
+        <source>%n file(s) from FILES.LUM</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+101"/>
+        <source>%n WARNING(S)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+0"/>
-        <source>loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+42"/>
-        <source>file from FILES.LUM</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>files from FILES.LUM</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="-92"/>
         <source>NAME</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1590,17 +1254,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+71"/>
-        <source>WARNING</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>WARNINGS</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+76"/>
         <source>Deviations from the standard&apos;s recommendations. They are shown, and do not block an upload.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1623,24 +1277,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+50"/>
-        <location line="+224"/>
+        <location line="+43"/>
+        <location line="+202"/>
         <source>Choose the download directory</source>
         <translation type="unfinished">选择下载目录</translation>
     </message>
     <message>
-        <location line="-209"/>
+        <location line="-187"/>
         <source>Appearance</source>
         <translation>外观</translation>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+14"/>
         <source>Language</source>
         <translation>语言</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+15"/>
         <source>The window follows the desktop&apos;s light or dark scheme. Language applies at once; everything else on Save.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1764,152 +1417,6 @@
         <location line="+21"/>
         <source>Activity log capacity</source>
         <translation>活动日志容量</translation>
-    </message>
-</context>
-<context>
-    <name>QObject</name>
-    <message>
-        <location filename="../core/src/engine_worker.cpp" line="-732"/>
-        <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
-        <translation>请选择写入媒体集的目录，并确保该媒体集的每个文件仍保存在其中。</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
-        <translation>加载器无法使用网络或其端口。请检查是否没有其他加载器实例在运行，以及是否没有其他程序占用控制端口（首选项）。</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Enter the target&apos;s IPv4 address as four numbers of 0 to 255 separated by dots, for example 10.0.0.2.</source>
-        <translation>请以用点分隔的四个 0 到 255 的数字输入目标的 IPv4 地址，例如 10.0.0.2。</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
-        <translation>请选择存在或可创建的下载目录，并确保其可写（首选项）。</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed.</source>
-        <translation>目标未返回所请求的全部文件。请对照目标可提供的文件核对名称，并询问其某个文件失败的原因。</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
-        <translation>请按目标所知的方式命名文件：不含路径、最多 254 个字符的纯名称。</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>%1 is not a directory</source>
-        <translation>%1 不是目录</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <location line="+40"/>
-        <source>cannot look at %1 (%2)</source>
-        <translation>无法访问 %1（%2）</translation>
-    </message>
-    <message>
-        <location line="-28"/>
-        <location line="+35"/>
-        <source>cannot create %1 (%2)</source>
-        <translation>无法创建 %1（%2）</translation>
-    </message>
-    <message>
-        <location line="+24"/>
-        <source>The target answered: %1</source>
-        <translation>目标响应：%1</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Status %1: %2</source>
-        <translation>状态 %1：%2</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <location line="+15"/>
-        <location line="+40"/>
-        <source>, about %1 s left</source>
-        <translation>，约剩 %1 秒</translation>
-    </message>
-    <message>
-        <location line="-46"/>
-        <location line="+40"/>
-        <source>Status %1: %2, %3% of the list</source>
-        <translation>状态 %1：%2，列表的 %3%</translation>
-    </message>
-    <message>
-        <location line="-11"/>
-        <source>The target failed load %1 (%2)%3</source>
-        <translation>目标加载项 %1 失败（%2）%3</translation>
-    </message>
-    <message>
-        <location line="+40"/>
-        <source>The target failed file %1%2</source>
-        <translation>目标文件 %1 失败%2</translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>The target read %1 (%2 bytes)</source>
-        <translation>目标已读取 %1（%2 字节）</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Received %1 (%2 bytes)</source>
-        <translation>已接收 %1（%2 字节）</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>serial number %1</source>
-        <translation>序列号 %1</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>The target listed its configuration.</source>
-        <translation>目标已列出其配置。</translation>
-    </message>
-    <message>
-        <location line="+14"/>
-        <source>The target listed 1 file it can download.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target listed %1 files it can download.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../core/src/host_access.cpp" line="+14"/>
-        <source>The system services could not be started (%1).</source>
-        <translation>系统服务无法启动（%1）。</translation>
-    </message>
-    <message>
-        <location filename="../core/src/media_set_summary.cpp" line="+27"/>
-        <source>%1 (%2)</source>
-        <translation>%1（%2）</translation>
-    </message>
-    <message>
-        <location line="+45"/>
-        <source>%1: %2</source>
-        <translation>%1：%2</translation>
-    </message>
-    <message>
-        <location filename="../core/src/notice_text.cpp" line="+25"/>
-        <source> (%1 s)</source>
-        <translation> （%1 秒）</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source> (port %1)</source>
-        <translation> （端口 %1）</translation>
-    </message>
-</context>
-<context>
-    <name>TargetModel</name>
-    <message>
-        <location filename="../core/src/models.cpp" line="-299"/>
-        <source>%1 at %2</source>
-        <translation type="unfinished">%1（位于 %2）</translation>
     </message>
 </context>
 <context>
@@ -2119,32 +1626,38 @@
         <source>NOT READY</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location line="+9"/>
-        <location line="+45"/>
-        <source>member</source>
-        <translation type="unfinished"></translation>
+    <message numerus="yes">
+        <location line="+8"/>
+        <location line="+43"/>
+        <source>%n member(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="-41"/>
+        <location line="+127"/>
+        <source>%n load(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="-76"/>
+        <source>%n warning(s) from the check</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+248"/>
+        <source>%n load(s) ticked</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
     </message>
     <message>
-        <location line="-45"/>
-        <location line="+45"/>
-        <source>members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-42"/>
-        <location line="+131"/>
-        <source>load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-131"/>
-        <location line="+131"/>
-        <source>loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-130"/>
+        <location line="-298"/>
         <source>No media set selected</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2171,12 +1684,12 @@
     </message>
     <message>
         <location line="+1"/>
-        <location line="+26"/>
+        <location line="+23"/>
         <source>SET</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-24"/>
+        <location line="-21"/>
         <source>AUTO</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2191,7 +1704,7 @@
         <translation type="unfinished">媒体集</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+5"/>
         <source>Choose a directory</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2207,16 +1720,6 @@
     </message>
     <message>
         <location line="+3"/>
-        <source>warning from the check</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>warnings from the check</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
         <source>NONE</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2241,7 +1744,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+10"/>
         <source>LOAD</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2286,21 +1789,247 @@
         <source>no media set</source>
         <translation type="unfinished">无媒体集</translation>
     </message>
+</context>
+<context>
+    <name>Wording</name>
     <message>
-        <location line="+2"/>
-        <source>load ticked</source>
+        <location filename="../core/src/wording.cpp" line="+18"/>
+        <location line="+59"/>
+        <source>running</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>loads ticked</source>
+        <location line="-57"/>
+        <location line="+35"/>
+        <source>completed</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-33"/>
+        <source>denied by the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>not supported by the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+41"/>
+        <source>aborted by the operator</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-39"/>
+        <location line="+37"/>
+        <source>aborted by the data loader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-35"/>
+        <location line="+33"/>
+        <source>aborted by the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-31"/>
+        <source>unsupported protocol version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>a file transfer failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>data load protocol time-out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>the target was silent longer than its exception timer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+50"/>
+        <source>protocol error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-48"/>
+        <source>local error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+54"/>
+        <location line="+35"/>
+        <source>unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-83"/>
+        <source>accepted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>in progress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>in progress, with details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>denied</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>not supported</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>unknown status code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>succeeded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>timed out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>the peer sent an error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>the peer aborted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>the peer asked to wait</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>options refused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>transfer size mismatch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>local file error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>aborted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>status files lost</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status file repeated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status file out of order</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status file transfer failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>checksum did not match</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>checksum algorithm not supported</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>file not available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>request refused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>transfer failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>target asked to wait</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>options refused, asked again without them</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>port option not taken by the target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>requested files missing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source> (%1 s)</source>
+        <translation type="unfinished"> （%1 秒）</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source> (port %1)</source>
+        <translation type="unfinished"> （端口 %1）</translation>
     </message>
 </context>
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+489"/>
+        <location filename="../core/src/models.cpp" line="+538"/>
         <source>waiting</source>
         <translation>等待中</translation>
     </message>
@@ -2308,36 +2037,32 @@
 <context>
     <name>adl::app::EngineWorker</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+95"/>
-        <location line="+56"/>
-        <location line="+20"/>
-        <location line="+48"/>
-        <location line="+39"/>
-        <source>&quot;%1&quot; is not an IPv4 address.</source>
-        <translation>“%1”不是 IPv4 地址。</translation>
-    </message>
-    <message>
-        <location line="-149"/>
+        <location filename="../core/src/engine_worker.cpp" line="+104"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>正在查找目标（广播，三秒）...</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Looking for a target at %1 (three seconds)...</source>
         <translation>正在 %1 查找目标（三秒）...</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+10"/>
         <source>FIND could not run (%1).</source>
         <translation>FIND 无法运行（%1）。</translation>
     </message>
     <message>
-        <location line="+42"/>
+        <location line="+23"/>
+        <source>%n target(s) answered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>正在向 %1（%2）请求其配置...</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+17"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>尚未读取媒体集，因此没有可上传的内容。</translation>
     </message>
@@ -2347,7 +2072,12 @@
         <translation>未选择任何加载项。</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+26"/>
+        <source>Uploading %n load(s) to %1 (%2)...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
         <source>No file was named.</source>
         <translation>未指定任何文件。</translation>
     </message>
@@ -2357,57 +2087,52 @@
         <translation>“%1”不是安全的文件名。</translation>
     </message>
     <message>
-        <location line="-92"/>
-        <source>1 target answered</source>
+        <location line="+13"/>
+        <source>Downloading %n file(s) from %1 (%2)...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+0"/>
-        <source>%1 targets answered</source>
+        <location line="+128"/>
+        <source>completed, %n file(s) failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+65"/>
-        <source>Uploading 1 load to %1 (%2)...</source>
+        <location line="+2"/>
+        <source>completed, %n load(s) failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Uploading %1 loads to %2 (%3)...</source>
+        <location line="+8"/>
+        <source>completed, %n file(s) missing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+37"/>
-        <source>Downloading 1 file from %1 (%2)...</source>
+        <location line="+16"/>
+        <source>The target read %n file(s).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Downloading %1 files from %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
+        <location line="-135"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>正在向 %1（%2）请求其可下载的文件...</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+18"/>
         <source>The download directory could not be used: %1.</source>
         <translation>下载目录无法使用：%1。</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+52"/>
         <source>the request was refused (%1)</source>
         <translation>请求被拒绝（%1）</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+5"/>
         <source>the loader&apos;s port could not be opened (%1)</source>
         <translation>加载器的端口无法打开（%1）</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>waiting for the network failed (%1)</source>
         <translation>等待网络失败（%1）</translation>
     </message>
@@ -2417,137 +2142,72 @@
         <translation>操作无法运行：%1。</translation>
     </message>
     <message>
-        <location line="+21"/>
-        <source>completed, 1 file failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, 1 load failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 loads failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>completed, 1 file missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The target read 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target read %1 files.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+32"/>
-        <source>Read media set %1: 1 load.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Read media set %1: %2 loads.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+37"/>
-        <source>Checked media set %1: 1 load, 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+139"/>
         <source>Checked media set %1: %2, %3.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-86"/>
+        <location line="-98"/>
         <source>The target confirmed that it stopped.</source>
         <translation>目标已确认其停止。</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>The target did not confirm that it stopped.</source>
         <translation>目标未确认其停止。</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>The target may still be loading; ask it what it is doing before trying again.</source>
-        <translation>目标可能仍在加载；重试前请先询问其当前状态。</translation>
-    </message>
-    <message>
-        <location line="+16"/>
+        <location line="+19"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>已接收文件：%1，请求 %2。</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+9"/>
         <source>Finished: %1.</source>
         <translation>已完成：%1。</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+9"/>
         <source>Reading the media set in %1...</source>
         <translation>正在读取 %1 中的媒体集...</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+9"/>
         <source>media set read</source>
         <translation>媒体集已读取</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+4"/>
+        <source>Read media set %1: %n load(s).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The media set could not be read: %1.</source>
         <translation>媒体集无法读取：%1。</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+10"/>
         <source>Checking the media set in %1...</source>
         <translation>正在检查 %1 中的媒体集...</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+23"/>
         <source>media set checked</source>
         <translation>媒体集已检查</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+8"/>
+        <source>%n load(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%n file(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The media set could not be checked: %1.</source>
         <translation>媒体集无法检查：%1。</translation>
     </message>
@@ -2555,37 +2215,27 @@
 <context>
     <name>adl::app::LoadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-307"/>
-        <source>1 data file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 data files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>1 support file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1 support files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location filename="../core/src/models.cpp" line="-313"/>
         <source>no target ID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>%1 · %2, %3; for %4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+110"/>
+        <location line="+2"/>
+        <source>%n data file(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>%n support file(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+115"/>
         <source>waiting</source>
         <translation>等待中</translation>
     </message>
@@ -2593,44 +2243,28 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="-567"/>
-        <location line="+136"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-136"/>
-        <location line="+136"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-134"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location filename="../core/src/loader_model.cpp" line="+65"/>
         <source>%1, %2, all check values verified</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>; 1 warning against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location line="+1"/>
-        <source>; %1 warnings against the standard&apos;s recommendations</source>
+        <location line="+146"/>
+        <source>%n load(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+56"/>
+        <location line="-144"/>
+        <source>%n file(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>; %n warning(s) against the standard&apos;s recommendations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+61"/>
         <source>Looking for targets...</source>
         <translation>正在查找目标...</translation>
     </message>
@@ -2667,29 +2301,22 @@
         <translation>正在检查媒体集...</translation>
     </message>
     <message>
-        <location line="+57"/>
-        <source>1 member</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+58"/>
         <source>%1: %2, %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+296"/>
+        <location line="+2"/>
+        <source>%n member(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+304"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>请从列表中选择目标，然后再次运行操作。</translation>
     </message>
     <message>
-        <location line="+88"/>
-        <location line="+23"/>
-        <location line="+23"/>
+        <location line="-392"/>
         <source>No target is selected; looking for one first.</source>
         <translation>未选择目标；先查找一个目标。</translation>
     </message>
@@ -2697,7 +2324,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-299"/>
+        <location filename="../core/src/models.cpp" line="-324"/>
         <source>%1 at %2</source>
         <translation>%1（位于 %2）</translation>
     </message>

@@ -110,6 +110,12 @@ unset(_adl_app_default)
 # platform.cmake names.
 add_subdirectory(src/platforms)
 
+# Tests are registered from the source directories too (the translation checks sit beside the
+# catalogues they check), so testing has to be on before any of them is added.
+if(ADL_BUILD_TESTS)
+    enable_testing()
+endif()
+
 # The ARINC 665 library holds the media set, load and integrity-check logic. It
 # is GUI-free and platform-free.
 add_subdirectory(src/arinc665)
@@ -140,6 +146,7 @@ add_subdirectory(src/write_payloads)
 
 # The Qt application: a thin layer over the libraries above, and the only place Qt is used.
 if(ADL_BUILD_APP)
+    add_subdirectory(src/ui)
     add_subdirectory(src/app)
     # The mock target: a Qt application that behaves as an ARINC 615A target over real
     # sockets, for demonstrating the loader's dialogues end to end.

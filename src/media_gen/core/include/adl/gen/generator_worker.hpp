@@ -16,6 +16,8 @@
 #include <QString>
 #include <QStringList>
 
+#include "adl/ui/message.hpp"
+
 namespace adl::gen {
 
 // One file the operator chose, as the worker takes it. `kind` is SourceFileModel's "data" or
@@ -51,8 +53,8 @@ struct GenerateJob {
 // stop a generation.
 struct GenerateOutcome {
     int state = 0;
-    QString text;
-    QString detail;
+    adl::ui::Message text;
+    adl::ui::Message detail;
     QString output_path;   // where the set was written, when it was
     QStringList findings;  // "clause: message"
     int members = 0;
@@ -63,8 +65,11 @@ struct GenerateOutcome {
 
 // The load types the window offers. The Load Type ID is assigned by the system designer, not by
 // the standard, so these are the examples the ARINC 665 world uses.
+//
+// `description` is the English text that is written into the load's header file, whatever
+// language the window is in; the window shows it through GeneratorWorker::tr().
 struct LoadTypeOption {
-    QString description;
+    const char* description;
     QString code;
     std::uint16_t id;
 };
@@ -96,7 +101,9 @@ private:
     [[nodiscard]] bool cancelled() const noexcept {
         return cancel_.load(std::memory_order_acquire);
     }
-    void fail(GenerateOutcome& outcome, const QString& text, const QString& detail = {});
+    void fail(GenerateOutcome& outcome, const adl::ui::Message& text,
+              const adl::ui::Message& detail = {});
+    [[nodiscard]] static adl::ui::Message cannot_read(const QString& path);
 
     std::atomic<bool> cancel_{false};
 };

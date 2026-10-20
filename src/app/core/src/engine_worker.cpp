@@ -8,12 +8,13 @@
 #include <variant>
 #include <vector>
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QSet>
 
 #include "adl/app/address.hpp"
 #include "adl/app/media_set_summary.hpp"
-#include "adl/app/notice_text.hpp"
+#include "adl/app/wording.hpp"
 #include "adl/app/text.hpp"
 #include "adl/arinc615a/data_loader.hpp"
 
@@ -33,61 +34,109 @@ using adl::arinc615a::SelectionDecision;
 
 // What the operator can do about a failure the application can recognise. The set is small and
 // honest: only these are known well enough to point anywhere.
-QString media_set_hint() {
-    return QObject::tr(
-        "Choose the directory the media set was written to, and make sure every "
-        "file of the set is still in it.");
-}
+class Hint {
+    Q_DECLARE_TR_FUNCTIONS(Hint)
 
-QString host_hint() {
-    return QObject::tr(
-        "The loader could not use the network or its port. Check that no other "
-        "copy of the loader is running, and that no other program holds the "
-        "control port (Preferences).");
-}
+public:
+    static Message media_set() {
+        return Message::translated(
+            &Hint::tr, QT_TR_NOOP("Choose the directory the media set was written to, and make "
+                                  "sure every file of the set is still in it."));
+    }
 
-QString address_hint() {
-    return QObject::tr(
-        "Enter the target's IPv4 address as four numbers of 0 to 255 separated "
-        "by dots, for example 10.0.0.2.");
-}
+    static Message host() {
+        return Message::translated(
+            &Hint::tr, QT_TR_NOOP("The loader could not use the network or its port. Check that "
+                                  "no other copy of the loader is running, and that no other "
+                                  "program holds the control port (Preferences)."));
+    }
 
-QString download_directory_hint() {
-    return QObject::tr(
-        "Choose a download directory that exists or can be created, and make "
-        "sure it can be written (Preferences).");
-}
+    static Message address() {
+        return Message::translated(
+            &Hint::tr, QT_TR_NOOP("Enter the target's IPv4 address as four numbers of 0 to 255 "
+                                  "separated by dots, for example 10.0.0.2."));
+    }
 
-QString download_hint() {
-    return QObject::tr(
-        "The target did not give back every file that was asked for. Check the "
-        "names against what the target can give, and ask it why a file failed.");
-}
+    static Message download_directory() {
+        return Message::translated(
+            &Hint::tr, QT_TR_NOOP("Choose a download directory that exists or can be created, and "
+                                  "make sure it can be written (Preferences)."));
+    }
 
-QString file_name_hint() {
-    return QObject::tr(
-        "Name the file as the target knows it: a plain name of at most 254 "
-        "characters, without a path.");
-}
+    static Message download() {
+        return Message::translated(
+            &Hint::tr, QT_TR_NOOP("The target did not give back every file that was asked for. "
+                                  "Check the names against what the target can give, and ask it "
+                                  "why a file failed."));
+    }
+
+    static Message file_name() {
+        return Message::translated(
+            &Hint::tr, QT_TR_NOOP("Name the file as the target knows it: a plain name of at most "
+                                  "254 characters, without a path."));
+    }
+
+    static Message abort_unconfirmed() {
+        return Message::translated(
+            &Hint::tr, QT_TR_NOOP("The target may still be loading; ask it what it is doing "
+                                  "before trying again."));
+    }
+};
+
+// The complaint about an address that is not an IPv4 one.
+class AddressProblem {
+    Q_DECLARE_TR_FUNCTIONS(AddressProblem)
+
+public:
+    static Message not_an_address(const QString& address) {
+        return Message::translated(&AddressProblem::tr,
+                                   QT_TR_NOOP("\"%1\" is not an IPv4 address."),
+                                   {Message::verbatim(address)});
+    }
+};
+
+// Problems with a directory, as the operator is told them. The platform's error code is its own
+// word and is not translated.
+class DirectoryProblem {
+    Q_DECLARE_TR_FUNCTIONS(DirectoryProblem)
+
+public:
+    static Message not_a_directory(std::string_view path) {
+        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("%1 is not a directory"),
+                                   {Message::verbatim(to_qstring(path))});
+    }
+
+    static Message cannot_look_at(std::string_view path, adl::platform::ErrorCode code) {
+        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("cannot look at %1 (%2)"),
+                                   {Message::verbatim(to_qstring(path)), error_code(code)});
+    }
+
+    static Message cannot_create(std::string_view path, adl::platform::ErrorCode code) {
+        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("cannot create %1 (%2)"),
+                                   {Message::verbatim(to_qstring(path)), error_code(code)});
+    }
+
+    static Message error_code(adl::platform::ErrorCode code) {
+        return Message::verbatim(QString::fromLatin1(adl::platform::to_string(code)));
+    }
+};
 
 // Makes `path` a directory, creating the directories on the way: the platform's
 // make_directory wants the parent to exist, and the operator's download directory may be a
 // path that is not there yet (the default Documents/ArincDownloads is made on demand).
 // Returns what to tell the operator, or nothing.
-std::optional<QString> make_directory_chain(adl::platform::FileSystem& files,
+std::optional<Message> make_directory_chain(adl::platform::FileSystem& files,
                                             std::string_view path) {
     using adl::platform::ErrorCode;
     const auto existing = files.stat(path);
     if (existing) {
         if (existing->kind != adl::platform::FileKind::directory) {
-            return QObject::tr("%1 is not a directory").arg(to_qstring(path));
+            return DirectoryProblem::not_a_directory(path);
         }
         return std::nullopt;
     }
     if (existing.error().code != ErrorCode::not_found) {
-        return QObject::tr("cannot look at %1 (%2)")
-            .arg(to_qstring(path),
-                 QString::fromLatin1(adl::platform::to_string(existing.error().code)));
+        return DirectoryProblem::cannot_look_at(path, existing.error().code);
     }
     const std::size_t cut = path.rfind('/');
     if (cut != std::string_view::npos && cut != 0) {
@@ -97,9 +146,7 @@ std::optional<QString> make_directory_chain(adl::platform::FileSystem& files,
     }
     const auto made = files.make_directory(path);
     if (!made) {
-        return QObject::tr("cannot create %1 (%2)")
-            .arg(to_qstring(path),
-                 QString::fromLatin1(adl::platform::to_string(made.error().code)));
+        return DirectoryProblem::cannot_create(path, made.error().code);
     }
     return std::nullopt;
 }
@@ -108,7 +155,7 @@ std::optional<QString> make_directory_chain(adl::platform::FileSystem& files,
 // download directory (5.4.4.3), the <number> being the lowest that does not exist yet, starting
 // at 1. The download directory itself is created when it is not there. Returns the platform path
 // (UTF-8, '/' separated) of the new directory, or what to tell the operator.
-std::expected<std::string, QString> make_download_directory(adl::platform::FileSystem& files,
+std::expected<std::string, Message> make_download_directory(adl::platform::FileSystem& files,
                                                             std::string_view directory,
                                                             std::string_view thw_id_pos) {
     using adl::platform::ErrorCode;
@@ -124,17 +171,11 @@ std::expected<std::string, QString> make_download_directory(adl::platform::FileS
             continue;  // whatever it is, the number is not free
         }
         if (taken.error().code != ErrorCode::not_found) {
-            return std::unexpected(
-                QObject::tr("cannot look at %1 (%2)")
-                    .arg(to_qstring(path),
-                         QString::fromLatin1(adl::platform::to_string(taken.error().code))));
+            return std::unexpected(DirectoryProblem::cannot_look_at(path, taken.error().code));
         }
         const auto made = files.make_directory(path);
         if (!made) {
-            return std::unexpected(
-                QObject::tr("cannot create %1 (%2)")
-                    .arg(to_qstring(path),
-                         QString::fromLatin1(adl::platform::to_string(made.error().code))));
+            return std::unexpected(DirectoryProblem::cannot_create(path, made.error().code));
         }
         return path;
     }
@@ -152,48 +193,46 @@ std::string to_platform_path(const QString& text) {
 // an upload or a download. It runs on the worker's thread, inside the runner, and everything it
 // is handed is valid only during the call: all of it is copied into Qt strings at once.
 class JobListener final : public adl::arinc615a::OperationListener {
+    Q_DECLARE_TR_FUNCTIONS(JobListener)
+
 public:
     explicit JobListener(EngineWorker& worker) : worker_(worker) {}
 
     void on_initialization(const adl::arinc615a::InitializationFile& file) noexcept override {
-        QString text = QObject::tr("The target answered: %1")
-                           .arg(to_qstring(adl::arinc615a::to_string(file.status)));
+        std::vector<Message> parts{Message::translated(&JobListener::tr,
+                                                       QT_TR_NOOP("The target answered: %1"),
+                                                       {Wording::status(file.status)})};
         if (!file.description.empty()) {
-            text += QStringLiteral(" (%1)").arg(to_qstring(file.description));
+            parts.push_back(Message::verbatim(QStringLiteral(" (%1)").arg(to_qstring(file.description))));
         }
         const bool accepted = file.status == adl::arinc615a::StatusCode::accepted;
-        Q_EMIT worker_.log_line({accepted ? Severity::info : Severity::warning, text});
+        Q_EMIT worker_.log_line(
+            {accepted ? Severity::info : Severity::warning, Message::sequence(std::move(parts))});
     }
 
     void on_configuration_status(
         const adl::arinc615a::ConfigurationStatus& status) noexcept override {
-        QString text = QObject::tr("Status %1: %2")
-                           .arg(status.counter)
-                           .arg(to_qstring(adl::arinc615a::to_string(status.status)));
-        if (status.estimated_time != 0 &&
-            status.estimated_time != adl::arinc615a::estimated_time_unknown) {
-            text += QObject::tr(", about %1 s left").arg(status.estimated_time);
-        }
+        std::vector<Message> parts{Message::translated(
+            &JobListener::tr, QT_TR_NOOP("Status %1: %2"),
+            {Message::verbatim(QString::number(status.counter)), Wording::status(status.status)})};
+        append_time_left(parts, status.estimated_time);
         if (!status.description.empty()) {
-            text += QStringLiteral(" (%1)").arg(to_qstring(status.description));
+            parts.push_back(Message::verbatim(QStringLiteral(" (%1)").arg(to_qstring(status.description))));
         }
-        Q_EMIT worker_.log_line({Severity::info, text});
+        Q_EMIT worker_.log_line({Severity::info, Message::sequence(std::move(parts))});
     }
 
     void on_upload_status(const adl::arinc615a::UploadStatus& status) noexcept override {
-        QString text = QObject::tr("Status %1: %2, %3% of the list")
-                           .arg(status.counter)
-                           .arg(to_qstring(adl::arinc615a::to_string(status.status)))
-                           .arg(status.list_ratio);
-        if (status.estimated_time != 0 &&
-            status.estimated_time != adl::arinc615a::estimated_time_unknown) {
-            text += QObject::tr(", about %1 s left").arg(status.estimated_time);
-        }
+        std::vector<Message> parts{Message::translated(
+            &JobListener::tr, QT_TR_NOOP("Status %1: %2, %3% of the list"),
+            {Message::verbatim(QString::number(status.counter)), Wording::status(status.status),
+             Message::verbatim(QString::number(status.list_ratio))})};
+        append_time_left(parts, status.estimated_time);
         if (adl::arinc615a::description_is_meaningful(status.status) &&
             !status.description.empty()) {
-            text += QStringLiteral(" (%1)").arg(to_qstring(status.description));
+            parts.push_back(Message::verbatim(QStringLiteral(" (%1)").arg(to_qstring(status.description))));
         }
-        Q_EMIT worker_.log_line({Severity::info, text});
+        Q_EMIT worker_.log_line({Severity::info, Message::sequence(std::move(parts))});
 
         QList<LoadProgressRow> rows;
         for (const adl::arinc615a::LoadProgress& load : status.loads) {
@@ -201,7 +240,7 @@ public:
             row.header_file = to_qstring(load.header_file_name);
             row.part_number = to_qstring(load.load_part_number_name);
             row.ratio = load.ratio;
-            row.status = to_qstring(adl::arinc615a::to_string(load.status));
+            row.status = Wording::status(load.status);
             row.failed = load.status == adl::arinc615a::StatusCode::item_failed;
             if (adl::arinc615a::description_is_meaningful(load.status)) {
                 row.description = to_qstring(load.description);
@@ -210,10 +249,12 @@ public:
                 failed_logged_.append(row.header_file);
                 Q_EMIT worker_.log_line(
                     {Severity::error,
-                     QObject::tr("The target failed load %1 (%2)%3")
-                         .arg(row.part_number, row.header_file,
-                              row.description.isEmpty() ? QString()
-                                                        : QStringLiteral(": ") + row.description)});
+                     Message::translated(
+                         &JobListener::tr, QT_TR_NOOP("The target failed load %1 (%2)%3"),
+                         {Message::verbatim(row.part_number), Message::verbatim(row.header_file),
+                          Message::verbatim(row.description.isEmpty()
+                                                ? QString()
+                                                : QStringLiteral(": ") + row.description)})});
             }
             rows.append(row);
         }
@@ -221,19 +262,16 @@ public:
     }
 
     void on_download_status(const adl::arinc615a::DownloadStatus& status) noexcept override {
-        QString text = QObject::tr("Status %1: %2, %3% of the list")
-                           .arg(status.counter)
-                           .arg(to_qstring(adl::arinc615a::to_string(status.status)))
-                           .arg(status.list_ratio);
-        if (status.estimated_time != 0 &&
-            status.estimated_time != adl::arinc615a::estimated_time_unknown) {
-            text += QObject::tr(", about %1 s left").arg(status.estimated_time);
-        }
+        std::vector<Message> parts{Message::translated(
+            &JobListener::tr, QT_TR_NOOP("Status %1: %2, %3% of the list"),
+            {Message::verbatim(QString::number(status.counter)), Wording::status(status.status),
+             Message::verbatim(QString::number(status.list_ratio))})};
+        append_time_left(parts, status.estimated_time);
         if (adl::arinc615a::description_is_meaningful(status.status) &&
             !status.description.empty()) {
-            text += QStringLiteral(" (%1)").arg(to_qstring(status.description));
+            parts.push_back(Message::verbatim(QStringLiteral(" (%1)").arg(to_qstring(status.description))));
         }
-        Q_EMIT worker_.log_line({Severity::info, text});
+        Q_EMIT worker_.log_line({Severity::info, Message::sequence(std::move(parts))});
 
         QList<FileProgressRow> rows;
         for (const adl::arinc615a::FileProgress& file : status.files) {
@@ -241,7 +279,7 @@ public:
             row.name = to_qstring(file.file_name);
             // The download status has no figure per file: a file is 100% when it has arrived.
             row.ratio = received_.contains(row.name) ? 100 : 0;
-            row.status = to_qstring(adl::arinc615a::to_string(file.status));
+            row.status = Wording::status(file.status);
             row.failed = file.status == adl::arinc615a::StatusCode::item_failed;
             if (adl::arinc615a::description_is_meaningful(file.status)) {
                 row.description = to_qstring(file.description);
@@ -250,10 +288,12 @@ public:
                 failed_logged_.append(row.name);
                 Q_EMIT worker_.log_line(
                     {Severity::error,
-                     QObject::tr("The target failed file %1%2")
-                         .arg(row.name, row.description.isEmpty()
-                                            ? QString()
-                                            : QStringLiteral(": ") + row.description)});
+                     Message::translated(
+                         &JobListener::tr, QT_TR_NOOP("The target failed file %1%2"),
+                         {Message::verbatim(row.name),
+                          Message::verbatim(row.description.isEmpty()
+                                                ? QString()
+                                                : QStringLiteral(": ") + row.description)})});
             }
             rows.append(row);
         }
@@ -263,7 +303,9 @@ public:
     void on_file_sent(std::string_view name, std::uint64_t bytes) noexcept override {
         Q_EMIT worker_.log_line(
             {Severity::info,
-             QObject::tr("The target read %1 (%2 bytes)").arg(to_qstring(name)).arg(bytes)});
+             Message::translated(&JobListener::tr, QT_TR_NOOP("The target read %1 (%2 bytes)"),
+                                 {Message::verbatim(to_qstring(name)),
+                                  Message::verbatim(QString::number(bytes))})});
     }
 
     void on_file_received(std::string_view name,
@@ -271,24 +313,30 @@ public:
         const QString text = to_qstring(name);
         received_.insert(text);
         Q_EMIT worker_.log_line(
-            {Severity::info, QObject::tr("Received %1 (%2 bytes)").arg(text).arg(file.size)});
+            {Severity::info,
+             Message::translated(&JobListener::tr, QT_TR_NOOP("Received %1 (%2 bytes)"),
+                                 {Message::verbatim(text),
+                                  Message::verbatim(QString::number(file.size))})});
     }
 
     void on_configuration_list(const adl::arinc615a::ConfigurationList& list) noexcept override {
         QList<HardwareRow> rows;
         for (const adl::arinc615a::HardwareItem& item : list.hardware) {
-            rows.append({HardwareRow::Level::hardware, to_qstring(item.literal_name),
-                         QObject::tr("serial number %1").arg(to_qstring(item.serial_number))});
+            rows.append({HardwareRow::Level::hardware, Message::verbatim(to_qstring(item.literal_name)),
+                         Message::translated(&JobListener::tr, QT_TR_NOOP("serial number %1"),
+                                             {Message::verbatim(to_qstring(item.serial_number))})});
             for (const adl::arinc615a::HardwarePart& part : item.parts) {
                 QString title = to_qstring(part.part_number);
                 if (!part.amendment.empty()) {
                     title += QLatin1Char(' ') + to_qstring(part.amendment);
                 }
-                rows.append({HardwareRow::Level::part, title, to_qstring(part.designation)});
+                rows.append({HardwareRow::Level::part, Message::verbatim(title),
+                             Message::verbatim(to_qstring(part.designation))});
             }
         }
         Q_EMIT worker_.log_line(
-            {Severity::info, QObject::tr("The target listed its configuration.")});
+            {Severity::info, Message::translated(&JobListener::tr,
+                                                 QT_TR_NOOP("The target listed its configuration."))});
         Q_EMIT worker_.configuration_read(rows);
     }
 
@@ -301,9 +349,9 @@ public:
         }
         Q_EMIT worker_.log_line(
             {Severity::info,
-             rows.size() == 1
-                 ? QObject::tr("The target listed 1 file it can download.")
-                 : QObject::tr("The target listed %1 files it can download.").arg(rows.size())});
+             Message::translated(&JobListener::tr,
+                                 QT_TR_NOOP("The target listed %n file(s) it can download."), {},
+                                 static_cast<int>(rows.size()))});
         Q_EMIT worker_.download_list(rows);
         // The operator chooses in the window; the choice comes back through the gate
         // (DataLoader::provide_selection), which the runner's thread calls on its next poll.
@@ -311,10 +359,18 @@ public:
     }
 
     void on_notice(Notice notice, std::string_view subject, std::uint32_t value) noexcept override {
-        Q_EMIT worker_.log_line({Severity::notice, notice_text(notice, subject, value)});
+        Q_EMIT worker_.log_line({Severity::notice, Wording::notice(notice, subject, value)});
     }
 
 private:
+    // ", about N s left" when the target gave an estimate.
+    static void append_time_left(std::vector<Message>& parts, std::uint32_t seconds) {
+        if (seconds != 0 && seconds != adl::arinc615a::estimated_time_unknown) {
+            parts.push_back(Message::translated(&JobListener::tr, QT_TR_NOOP(", about %1 s left"),
+                                                {Message::verbatim(QString::number(seconds))}));
+        }
+    }
+
     EngineWorker& worker_;
     QStringList failed_logged_;  // loads or files already reported as failed
     QSet<QString> received_;     // the files of the download that have arrived
@@ -382,7 +438,7 @@ EngineWorker::EngineWorker(HostFactory host_factory, QObject* parent)
     register_metatypes();
 }
 
-void EngineWorker::fail(const QString& text, const QString& hint,
+void EngineWorker::fail(const Message& text, const Message& hint,
                         const QString& download_directory) {
     Q_EMIT log_line({Severity::error, text});
     OperationSummary summary;
@@ -398,7 +454,7 @@ void EngineWorker::find(const QString& destination) {
     if (!destination.isEmpty()) {
         const auto octets = parse_ipv4(destination);
         if (!octets) {
-            fail(tr("\"%1\" is not an IPv4 address.").arg(destination), address_hint());
+            fail(AddressProblem::not_an_address(destination), Hint::address());
             return;
         }
         destinations.push_back(Address{*octets});
@@ -406,14 +462,18 @@ void EngineWorker::find(const QString& destination) {
 
     auto lease = host_factory_();
     if (!lease) {
-        fail(lease.error(), host_hint());
+        fail(Message::verbatim(lease.error()), Hint::host());
         return;
     }
 
-    Q_EMIT log_line({Severity::info,
-                     destination.isEmpty()
-                         ? tr("Looking for targets (broadcast, three seconds)...")
-                         : tr("Looking for a target at %1 (three seconds)...").arg(destination)});
+    Q_EMIT log_line(
+        {Severity::info,
+         destination.isEmpty()
+             ? Message::translated(&EngineWorker::tr,
+                                   QT_TR_NOOP("Looking for targets (broadcast, three seconds)..."))
+             : Message::translated(&EngineWorker::tr,
+                                   QT_TR_NOOP("Looking for a target at %1 (three seconds)..."),
+                                   {Message::verbatim(destination)})});
 
     adl::arinc615a::FindConfig config;
     config.destinations = destinations;
@@ -421,8 +481,9 @@ void EngineWorker::find(const QString& destination) {
     adl::arinc615a::Runner runner(*lease->host);
     const auto count = runner.find(config, answers);
     if (!count) {
-        fail(tr("FIND could not run (%1).")
-                 .arg(QString::fromLatin1(adl::platform::to_string(count.error().code))));
+        fail(Message::translated(
+            &EngineWorker::tr, QT_TR_NOOP("FIND could not run (%1)."),
+            {Message::verbatim(QString::fromLatin1(adl::platform::to_string(count.error().code)))}));
         return;
     }
 
@@ -444,8 +505,9 @@ void EngineWorker::find(const QString& destination) {
     summary.success = true;
     const int answer_count = static_cast<int>(found.size());
     summary.outcome =
-        answer_count == 1 ? tr("1 target answered") : tr("%1 targets answered").arg(answer_count);
-    Q_EMIT log_line({Severity::info, summary.outcome + QLatin1Char('.')});
+        Message::translated(&EngineWorker::tr, QT_TR_NOOP("%n target(s) answered"), {}, answer_count);
+    Q_EMIT log_line(
+        {Severity::info, Message::sequence({summary.outcome, Message::verbatim(QStringLiteral("."))})});
     Q_EMIT finished(summary);
 }
 
@@ -454,16 +516,18 @@ void EngineWorker::read_information(const QString& address, const QString& thw_i
     const adl::profiling::Zone zone{"app: information job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
-        fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
+        fail(AddressProblem::not_an_address(address), Hint::address());
         return;
     }
     auto lease = host_factory_();
     if (!lease) {
-        fail(lease.error(), host_hint());
+        fail(Message::verbatim(lease.error()), Hint::host());
         return;
     }
-    Q_EMIT log_line(
-        {Severity::info, tr("Asking %1 (%2) for its configuration...").arg(address, thw_id_pos)});
+    Q_EMIT log_line({Severity::info,
+                     Message::translated(&EngineWorker::tr,
+                                         QT_TR_NOOP("Asking %1 (%2) for its configuration..."),
+                                         {Message::verbatim(address), Message::verbatim(thw_id_pos)})});
     JobListener listener(*this);
     run_operation(*lease->host, Address{*octets}, thw_id_pos,
                   adl::arinc615a::InformationOperation{}, listener, nullptr, nullptr, control_port);
@@ -474,15 +538,16 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
     const adl::profiling::Zone zone{"app: upload job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
-        fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
+        fail(AddressProblem::not_an_address(address), Hint::address());
         return;
     }
     if (!index_) {
-        fail(tr("No media set has been read, so there is nothing to upload."));
+        fail(Message::translated(&EngineWorker::tr,
+                                 QT_TR_NOOP("No media set has been read, so there is nothing to upload.")));
         return;
     }
     if (loads.isEmpty()) {
-        fail(tr("No load was chosen."));
+        fail(Message::translated(&EngineWorker::tr, QT_TR_NOOP("No load was chosen.")));
         return;
     }
     // The request names each load by its header file and part number; the strings it views are
@@ -501,16 +566,16 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
 
     auto lease = host_factory_();
     if (!lease) {
-        fail(lease.error(), host_hint());
+        fail(Message::verbatim(lease.error()), Hint::host());
         return;
     }
     MediaTreeSource source(lease->host->files(), *index_);
     JobListener listener(*this);
-    Q_EMIT log_line(
-        {Severity::info,
-         loads.size() == 1
-             ? tr("Uploading 1 load to %1 (%2)...").arg(address, thw_id_pos)
-             : tr("Uploading %1 loads to %2 (%3)...").arg(loads.size()).arg(address, thw_id_pos)});
+    Q_EMIT log_line({Severity::info,
+                     Message::translated(&EngineWorker::tr,
+                                         QT_TR_NOOP("Uploading %n load(s) to %1 (%2)..."),
+                                         {Message::verbatim(address), Message::verbatim(thw_id_pos)},
+                                         static_cast<int>(loads.size()))});
     run_operation(*lease->host, Address{*octets}, thw_id_pos,
                   adl::arinc615a::UploadOperation{adl::arinc615a::UploadRequest{references}},
                   listener, &source, nullptr, control_port);
@@ -522,11 +587,11 @@ void EngineWorker::download_media(const QString& address, const QString& thw_id_
     const adl::profiling::Zone zone{"app: download job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
-        fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
+        fail(AddressProblem::not_an_address(address), Hint::address());
         return;
     }
     if (names.isEmpty()) {
-        fail(tr("No file was named."));
+        fail(Message::translated(&EngineWorker::tr, QT_TR_NOOP("No file was named.")));
         return;
     }
     // The names are checked before the operation starts: the request (and later the sink) would
@@ -536,7 +601,9 @@ void EngineWorker::download_media(const QString& address, const QString& thw_id_
     for (const QString& name : names) {
         stored.push_back(name.toStdString());
         if (!adl::arinc615a::is_safe_file_name(stored.back())) {
-            fail(tr("\"%1\" is not a safe file name.").arg(name), file_name_hint());
+            fail(Message::translated(&EngineWorker::tr, QT_TR_NOOP("\"%1\" is not a safe file name."),
+                                     {Message::verbatim(name)}),
+                 Hint::file_name());
             return;
         }
     }
@@ -545,12 +612,11 @@ void EngineWorker::download_media(const QString& address, const QString& thw_id_
     for (const std::string& name : stored) {
         requests.push_back(adl::arinc615a::FileRequest{name, {}});
     }
-    Q_EMIT log_line(
-        {Severity::info, names.size() == 1
-                             ? tr("Downloading 1 file from %1 (%2)...").arg(address, thw_id_pos)
-                             : tr("Downloading %1 files from %2 (%3)...")
-                                   .arg(names.size())
-                                   .arg(address, thw_id_pos)});
+    Q_EMIT log_line({Severity::info,
+                     Message::translated(&EngineWorker::tr,
+                                         QT_TR_NOOP("Downloading %n file(s) from %1 (%2)..."),
+                                         {Message::verbatim(address), Message::verbatim(thw_id_pos)},
+                                         static_cast<int>(names.size()))});
     run_download(Address{*octets}, thw_id_pos,
                  adl::arinc615a::MediaDownloadOperation{adl::arinc615a::DownloadRequest{requests}},
                  download_directory, control_port);
@@ -561,12 +627,14 @@ void EngineWorker::download_operator(const QString& address, const QString& thw_
     const adl::profiling::Zone zone{"app: download operator job"};
     const auto octets = parse_ipv4(address);
     if (!octets) {
-        fail(tr("\"%1\" is not an IPv4 address.").arg(address), address_hint());
+        fail(AddressProblem::not_an_address(address), Hint::address());
         return;
     }
     Q_EMIT log_line(
         {Severity::info,
-         tr("Asking %1 (%2) for the files it can download...").arg(address, thw_id_pos)});
+         Message::translated(&EngineWorker::tr,
+                             QT_TR_NOOP("Asking %1 (%2) for the files it can download..."),
+                             {Message::verbatim(address), Message::verbatim(thw_id_pos)})});
     run_download(Address{*octets}, thw_id_pos, adl::arinc615a::OperatorDownloadOperation{},
                  download_directory, control_port);
 }
@@ -576,14 +644,16 @@ void EngineWorker::run_download(const Address& target, const QString& thw_id_pos
                                 const QString& download_directory, quint16 control_port) {
     auto lease = host_factory_();
     if (!lease) {
-        fail(lease.error(), host_hint());
+        fail(Message::verbatim(lease.error()), Hint::host());
         return;
     }
     const auto made = make_download_directory(
         lease->host->files(), to_platform_path(download_directory), thw_id_pos.toStdString());
     if (!made) {
-        fail(tr("The download directory could not be used: %1.").arg(made.error()),
-             download_directory_hint());
+        fail(Message::translated(&EngineWorker::tr,
+                                 QT_TR_NOOP("The download directory could not be used: %1."),
+                                 {made.error()}),
+             Hint::download_directory());
         return;
     }
     adl::arinc615a::DirectoryFileSink sink(lease->host->files(), *made);
@@ -626,24 +696,31 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     const auto outcome = runner.run(*loader, operation, options);
     if (!outcome) {
         const auto& error = outcome.error();
-        QString why;
-        QString hint;
+        Message why;
+        Message hint;
+        const Message platform_code =
+            Message::verbatim(QString::fromLatin1(adl::platform::to_string(error.platform)));
         switch (error.stage) {
             case adl::arinc615a::RunError::Stage::start:
-                why = tr("the request was refused (%1)")
-                          .arg(to_qstring(adl::arinc615a::to_string(error.engine)));
+                why = Message::translated(
+                    &EngineWorker::tr, QT_TR_NOOP("the request was refused (%1)"),
+                    {Message::verbatim(to_qstring(adl::arinc615a::to_string(error.engine)))});
                 break;
             case adl::arinc615a::RunError::Stage::control_socket:
-                why = tr("the loader's port could not be opened (%1)")
-                          .arg(QString::fromLatin1(adl::platform::to_string(error.platform)));
-                hint = host_hint();
+                why = Message::translated(&EngineWorker::tr,
+                                          QT_TR_NOOP("the loader's port could not be opened (%1)"),
+                                          {platform_code});
+                hint = Hint::host();
                 break;
             case adl::arinc615a::RunError::Stage::wait:
-                why = tr("waiting for the network failed (%1)")
-                          .arg(QString::fromLatin1(adl::platform::to_string(error.platform)));
+                why = Message::translated(&EngineWorker::tr,
+                                          QT_TR_NOOP("waiting for the network failed (%1)"),
+                                          {platform_code});
                 break;
         }
-        fail(tr("The operation could not run: %1.").arg(why), hint, download_directory);
+        fail(Message::translated(&EngineWorker::tr, QT_TR_NOOP("The operation could not run: %1."),
+                                 {why}),
+             hint, download_directory);
         return;
     }
 
@@ -658,86 +735,101 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     OperationSummary summary;
     summary.success =
         outcome->code == OutcomeCode::completed && outcome->items_failed == 0 && !missing_files;
-    summary.outcome = to_qstring(adl::arinc615a::to_string(outcome->code));
+    summary.outcome = Wording::outcome(outcome->code);
     summary.statuses_received = outcome->statuses_received;
     summary.statuses_lost = outcome->statuses_lost;
     if (outcome->code == OutcomeCode::completed && outcome->items_failed != 0) {
         const int failed = static_cast<int>(outcome->items_failed);
-        summary.outcome = is_download
-                              ? (failed == 1 ? tr("completed, 1 file failed")
-                                             : tr("completed, %1 files failed").arg(failed))
-                              : (failed == 1 ? tr("completed, 1 load failed")
-                                             : tr("completed, %1 loads failed").arg(failed));
+        summary.outcome =
+            is_download ? Message::translated(&EngineWorker::tr,
+                                              QT_TR_NOOP("completed, %n file(s) failed"), {}, failed)
+                        : Message::translated(&EngineWorker::tr,
+                                              QT_TR_NOOP("completed, %n load(s) failed"), {}, failed);
         if (is_download) {
-            summary.hint = download_hint();
+            summary.hint = Hint::download();
         }
     }
     if (missing_files) {
         const int missing = static_cast<int>(outcome->files_requested - outcome->files_received);
-        summary.outcome = missing == 1 ? tr("completed, 1 file missing")
-                                       : tr("completed, %1 files missing").arg(missing);
-        summary.hint = download_hint();
+        summary.outcome = Message::translated(
+            &EngineWorker::tr, QT_TR_NOOP("completed, %n file(s) missing"), {}, missing);
+        summary.hint = Hint::download();
     }
     if (outcome->code == OutcomeCode::aborted_by_operator) {
-        summary.detail = outcome->abort_confirmed
-                             ? tr("The target confirmed that it stopped.")
-                             : tr("The target did not confirm that it stopped.");
+        summary.detail =
+            outcome->abort_confirmed
+                ? Message::translated(&EngineWorker::tr,
+                                      QT_TR_NOOP("The target confirmed that it stopped."))
+                : Message::translated(&EngineWorker::tr,
+                                      QT_TR_NOOP("The target did not confirm that it stopped."));
         if (!outcome->abort_confirmed) {
-            summary.hint =
-                tr("The target may still be loading; ask it what it is doing before trying "
-                   "again.");
+            summary.hint = Hint::abort_unconfirmed();
         }
     }
     if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation)) {
-        const int served_count = static_cast<int>(outcome->files_served);
-        const QString served = served_count == 1
-                                   ? tr("The target read 1 file.")
-                                   : tr("The target read %1 files.").arg(served_count);
-        summary.detail =
-            summary.detail.isEmpty() ? served : served + QLatin1Char(' ') + summary.detail;
+        const Message served = Message::translated(
+            &EngineWorker::tr, QT_TR_NOOP("The target read %n file(s)."), {},
+            static_cast<int>(outcome->files_served));
+        summary.detail = summary.detail.isEmpty()
+                             ? served
+                             : Message::sequence({served, Message::verbatim(QStringLiteral(" ")),
+                                                  summary.detail});
     }
     if (is_download) {
         summary.files_requested = outcome->files_requested;
         summary.files_received = outcome->files_received;
         summary.download_directory = download_directory;
-        const QString received = tr("Files received: %1 of %2 requested.")
-                                     .arg(outcome->files_received)
-                                     .arg(outcome->files_requested);
-        summary.detail =
-            summary.detail.isEmpty() ? received : received + QLatin1Char(' ') + summary.detail;
+        const Message received = Message::translated(
+            &EngineWorker::tr, QT_TR_NOOP("Files received: %1 of %2 requested."),
+            {Message::verbatim(QString::number(outcome->files_received)),
+             Message::verbatim(QString::number(outcome->files_requested))});
+        summary.detail = summary.detail.isEmpty()
+                             ? received
+                             : Message::sequence({received, Message::verbatim(QStringLiteral(" ")),
+                                                  summary.detail});
     }
     Q_EMIT log_line({summary.success ? Severity::info : Severity::error,
-                     tr("Finished: %1.").arg(summary.outcome)});
+                     Message::translated(&EngineWorker::tr, QT_TR_NOOP("Finished: %1."),
+                                         {summary.outcome})});
     Q_EMIT finished(summary);
 }
 
 void EngineWorker::read_media_set(const QString& path) {
     const adl::profiling::Zone zone{"app: read media set job"};
-    Q_EMIT log_line({Severity::info, tr("Reading the media set in %1...").arg(path)});
+    Q_EMIT log_line({Severity::info,
+                     Message::translated(&EngineWorker::tr,
+                                         QT_TR_NOOP("Reading the media set in %1..."),
+                                         {Message::verbatim(path)})});
     const MediaSetSummary summary = read_media_set_summary(path, &index_);
     Q_EMIT media_set_read(summary);
 
     OperationSummary result;
     result.success = summary.error.isEmpty();
     if (result.success) {
-        result.outcome = tr("media set read");
+        result.outcome =
+            Message::translated(&EngineWorker::tr, QT_TR_NOOP("media set read"));
         const int loads = static_cast<int>(summary.loads.size());
         Q_EMIT log_line(
             {Severity::info,
-             loads == 1 ? tr("Read media set %1: 1 load.").arg(summary.part_number)
-                        : tr("Read media set %1: %2 loads.").arg(summary.part_number).arg(loads)});
+             Message::translated(&EngineWorker::tr, QT_TR_NOOP("Read media set %1: %n load(s)."),
+                                 {Message::verbatim(summary.part_number)}, loads)});
     } else {
-        result.outcome = summary.error;
-        result.hint = media_set_hint();
-        Q_EMIT log_line(
-            {Severity::error, tr("The media set could not be read: %1.").arg(summary.error)});
+        result.outcome = Message::verbatim(summary.error);
+        result.hint = Hint::media_set();
+        Q_EMIT log_line({Severity::error,
+                         Message::translated(&EngineWorker::tr,
+                                             QT_TR_NOOP("The media set could not be read: %1."),
+                                             {Message::verbatim(summary.error)})});
     }
     Q_EMIT finished(result);
 }
 
 void EngineWorker::validate_media_set(const QString& path) {
     const adl::profiling::Zone zone{"app: check media set job"};
-    Q_EMIT log_line({Severity::info, tr("Checking the media set in %1...").arg(path)});
+    Q_EMIT log_line({Severity::info,
+                     Message::translated(&EngineWorker::tr,
+                                         QT_TR_NOOP("Checking the media set in %1..."),
+                                         {Message::verbatim(path)})});
     // Read afresh, with a new index: files changed on disk since the set was read are what the
     // check (and the next upload) see.
     const MediaSetSummary summary = read_media_set_summary(path, &index_);
@@ -758,20 +850,25 @@ void EngineWorker::validate_media_set(const QString& path) {
     OperationSummary result;
     result.success = report.error.isEmpty();
     if (result.success) {
-        result.outcome = tr("media set checked");
+        result.outcome =
+            Message::translated(&EngineWorker::tr, QT_TR_NOOP("media set checked"));
+        // A sentence can carry only one count, so the loads and the files are phrases of their
+        // own and the sentence holds them.
         Q_EMIT log_line(
             {Severity::info,
-             report.loads == 1 && report.files == 1
-                 ? tr("Checked media set %1: 1 load, 1 file.").arg(summary.part_number)
-                 : tr("Checked media set %1: %2, %3.")
-                       .arg(summary.part_number)
-                       .arg(report.loads == 1 ? tr("1 load") : tr("%1 loads").arg(report.loads))
-                       .arg(report.files == 1 ? tr("1 file") : tr("%1 files").arg(report.files))});
+             Message::translated(
+                 &EngineWorker::tr, QT_TR_NOOP("Checked media set %1: %2, %3."),
+                 {Message::verbatim(summary.part_number),
+                  Message::translated(&EngineWorker::tr, QT_TR_NOOP("%n load(s)"), {}, report.loads),
+                  Message::translated(&EngineWorker::tr, QT_TR_NOOP("%n file(s)"), {},
+                                      report.files)})});
     } else {
-        result.outcome = summary.error;
-        result.hint = media_set_hint();
-        Q_EMIT log_line(
-            {Severity::error, tr("The media set could not be checked: %1.").arg(summary.error)});
+        result.outcome = Message::verbatim(summary.error);
+        result.hint = Hint::media_set();
+        Q_EMIT log_line({Severity::error,
+                         Message::translated(&EngineWorker::tr,
+                                             QT_TR_NOOP("The media set could not be checked: %1."),
+                                             {Message::verbatim(summary.error)})});
     }
     Q_EMIT finished(result);
 }

@@ -27,7 +27,8 @@ QQC.ComboBox {
     }
 
     indicator: Canvas {
-        x: control.width - width - Theme.space3
+        // At the end edge: the right in a left-to-right window, the left in a mirrored one.
+        x: control.mirrored ? Theme.space3 : control.width - width - Theme.space3
         y: control.topPadding + (control.availableHeight - height) / 2
         width: 10
         height: 6

@@ -37,6 +37,12 @@ ApplicationWindow {
     visible: true
     color: Theme.bg
 
+    // Right-to-left languages mirror the whole window: the rail, the header's actions, a row's
+    // order, a control's indicator. The language manager sets the application's layout direction;
+    // this follows it, and every item and popup below inherits it.
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
+
     palette.window: Theme.bg
     palette.windowText: Theme.text
     palette.base: Theme.neutral100
@@ -87,6 +93,10 @@ ApplicationWindow {
             enabled: window.app.running
             onClicked: window.app.stop()
             Accessible.name: qsTr("Stop the mock target")
+        }
+
+        LanguagePicker {
+            objectName: "languagePicker"
         }
 
         AppButton {
@@ -872,7 +882,7 @@ ApplicationWindow {
 
                 SectionHeader {
                     label: qsTr("Activity")
-                    summary: Theme.quantity(activityList.count, qsTr("line"), qsTr("lines"))
+                    summary: qsTr("%n line(s)", "", activityList.count)
                 }
 
                 RowLayout {
@@ -915,7 +925,7 @@ ApplicationWindow {
 
                 SectionHeader {
                     label: qsTr("Stored files")
-                    summary: Theme.quantity(storedList.count, qsTr("file"), qsTr("files"))
+                    summary: qsTr("%n file(s)", "", storedList.count)
                 }
 
                 RowLayout {

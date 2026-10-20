@@ -3,7 +3,8 @@
 #
 #   core/   the logic without a window: the engine's worker thread, the models, LoaderModel
 #   qml/    the window, its design tokens (Theme.qml) and the components they draw
-#   main.cpp, language_manager   the process: the window, and the language it is in
+#   main.cpp   the process: the window, and the language it is in (adl::ui::LanguageManager,
+#              shared with the other two applications)
 #
 # Qt code lives here and nowhere else.
 
@@ -56,37 +57,25 @@ target_link_libraries(adl_app_qml
 qt_add_executable(adl_app
     main.cpp
     frame_profiler.cpp
-    frame_profiler.hpp
-    language_manager.cpp
-    language_manager.hpp)
+    frame_profiler.hpp)
 
-# The catalogue: lrelease compiles the .ts into a .qm and embeds it under :/i18n, which is where
-# LanguageManager loads it from. IMMEDIATE_CALL keeps the resource attachment in this directory
-# (a deferred call attaches it from the repo root, which CMake then has to wrap in a target of its
-# own). Adding a language is a .ts file here and its line in language_manager.cpp's table.
-# SOURCES names the QML and the C++ that carry translatable strings: lupdate scans exactly these.
-# -no-obsolete: an entry whose source string is gone is not kept as translation memory (git
-# history is that); a catalogue lists what the window says.
-qt_add_translations(adl_app_qml
-    IMMEDIATE_CALL
-    LUPDATE_OPTIONS -no-obsolete
-    TS_FILES
-        translations/adl_app_en.ts
-        translations/adl_app_de.ts
-        translations/adl_app_es.ts
-        translations/adl_app_fr.ts
-        translations/adl_app_he.ts
-        translations/adl_app_ja.ts
-        translations/adl_app_yi.ts
-        translations/adl_app_zh.ts
+# The catalogues (cmake/AdlUi.cmake explains the pipeline): the application's own strings, from its
+# QML and the C++ below; the shared components' strings are in src/ui/translations. Adding a
+# language is a .ts file in translations/ and in src/ui/translations, the language in
+# ADL_TRANSLATED_LANGUAGES and its line in src/ui/language_manager.cpp's table.
+adl_add_app_translations(adl_app_qml adl_app
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/translations"
+    SOURCE_TARGETS adl_app_core
     SOURCES
-        ${ADL_APP_QML_FILES}
-        core/src/engine_worker.cpp
-        core/src/host_access.cpp
-        core/src/loader_model.cpp
-        core/src/media_set_summary.cpp
-        core/src/models.cpp
-        core/src/notice_text.cpp)
+        qml/Main.qml
+        qml/UploadPanel.qml
+        qml/DownloadPanel.qml
+        qml/ActivityDock.qml
+        qml/FirstRunScreen.qml
+        qml/PreferencesDialog.qml
+        qml/MediaSetPropertiesDialog.qml
+        qml/TargetPropertiesDialog.qml
+        qml/AboutDialog.qml)
 
 target_compile_features(adl_app PRIVATE cxx_std_23)
 target_link_libraries(adl_app

@@ -10,8 +10,12 @@ QQC.TextField {
     property string unit: ""
 
     implicitHeight: Math.max(30, contentHeight + 10)
-    leftPadding: Theme.space3
-    rightPadding: unit.length > 0 ? unitLabel.implicitWidth + Theme.space4 : Theme.space3
+    // The room the unit takes at the end edge: the right in a left-to-right window, the left in a
+    // mirrored one.
+    readonly property real endPadding: unit.length > 0 ? unitLabel.implicitWidth + Theme.space4
+                                                       : Theme.space3
+    leftPadding: control.mirrored ? endPadding : Theme.space3
+    rightPadding: control.mirrored ? Theme.space3 : endPadding
     color: enabled ? Theme.text : Theme.textMuted
     placeholderTextColor: Theme.textMuted
     selectionColor: Theme.accentFill

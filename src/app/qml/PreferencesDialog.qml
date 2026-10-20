@@ -27,12 +27,6 @@ AppDialog {
     property bool draftAutoFind: false
     property bool draftValidateOnOpen: true
 
-    readonly property var languages: typeof languageManager !== "undefined"
-                                     && languageManager !== null
-                                     ? languageManager.availableLanguages()
-                                     : []
-    readonly property bool hasLanguages: languages.length > 0
-
     function load() {
         draftAddress = app.defaultTargetAddress;
         draftThwIdPos = app.defaultThwIdPos;
@@ -41,7 +35,6 @@ AppDialog {
         draftLogCapacity = app.logCapacity;
         draftAutoFind = app.autoFindBeforeOperation;
         draftValidateOnOpen = app.validateOnOpen;
-        languageBox.sync();
     }
 
     function apply() {
@@ -94,35 +87,13 @@ AppDialog {
                     text: qsTr("Language")
                     color: Theme.textMuted
                     font.pixelSize: Theme.fontSmall
-                    visible: dialog.hasLanguages
+                    visible: languageBox.visible
                 }
 
-                AppComboBox {
+                LanguagePicker {
                     id: languageBox
 
                     Layout.fillWidth: true
-                    visible: dialog.hasLanguages
-                    textRole: "name"
-                    valueRole: "code"
-                    model: dialog.languages
-                    Accessible.name: qsTr("Language")
-
-                    function sync() {
-                        if (typeof languageManager === "undefined" || languageManager === null)
-                            return;
-                        const current = languageManager.currentLanguage;
-                        for (let i = 0; i < dialog.languages.length; ++i) {
-                            if (dialog.languages[i].code === current) {
-                                currentIndex = i;
-                                return;
-                            }
-                        }
-                    }
-
-                    onActivated: {
-                        if (typeof languageManager !== "undefined" && languageManager !== null)
-                            languageManager.setLanguage(currentValue);
-                    }
                 }
             }
 

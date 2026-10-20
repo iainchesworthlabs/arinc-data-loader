@@ -58,18 +58,22 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
     });
     connect(
         worker_, &EngineWorker::validation_finished, this, [this](const ValidationReport& report) {
-            QString detail;
+            Message detail;
             if (report.error.isEmpty()) {
-                const QString loads =
-                    report.loads == 1 ? tr("1 load") : tr("%1 loads").arg(report.loads);
-                const QString files =
-                    report.files == 1 ? tr("1 file") : tr("%1 files").arg(report.files);
-                detail = tr("%1, %2, all check values verified").arg(loads, files);
+                // One count to a sentence: the loads and the files are phrases of their own.
+                detail = Message::translated(
+                    &LoaderModel::tr, QT_TR_NOOP("%1, %2, all check values verified"),
+                    {Message::translated(&LoaderModel::tr, QT_TR_NOOP("%n load(s)"), {},
+                                         report.loads),
+                     Message::translated(&LoaderModel::tr, QT_TR_NOOP("%n file(s)"), {},
+                                         report.files)});
                 if (!report.findings.isEmpty()) {
-                    detail += report.findings.size() == 1
-                                  ? tr("; 1 warning against the standard's recommendations")
-                                  : tr("; %1 warnings against the standard's recommendations")
-                                        .arg(report.findings.size());
+                    detail = Message::sequence(
+                        {detail,
+                         Message::translated(
+                             &LoaderModel::tr,
+                             QT_TR_NOOP("; %n warning(s) against the standard's recommendations"),
+                             {}, static_cast<int>(report.findings.size()))});
                 }
             }
             set_validation(report.error.isEmpty() ? 2 : 3, report.error, report.findings, detail);
@@ -111,6 +115,11 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
     // not hold the start-up up, and a set that is gone leaves nothing behind.
     QTimer::singleShot(0, this, [this] { restore_last_media_set(); });
     refresh_availability();
+}
+
+Message LoaderModel::no_target_selected() {
+    return Message::translated(&LoaderModel::tr,
+                               QT_TR_NOOP("No target is selected; looking for one first."));
 }
 
 LoaderModel::~LoaderModel() {
@@ -194,11 +203,15 @@ QString LoaderModel::mediaSetTitle() const {
     if (media_set_.path.isEmpty() || !media_set_.error.isEmpty()) {
         return {};
     }
-    const QString members =
-        media_set_.members == 1 ? tr("1 member") : tr("%1 members").arg(media_set_.members);
-    const QString loads =
-        media_set_.loads.size() == 1 ? tr("1 load") : tr("%1 loads").arg(media_set_.loads.size());
-    return tr("%1: %2, %3").arg(media_set_.part_number, members, loads);
+    // One count to a sentence: the members and the loads are phrases of their own.
+    return Message::translated(
+               &LoaderModel::tr, QT_TR_NOOP("%1: %2, %3"),
+               {Message::verbatim(media_set_.part_number),
+                Message::translated(&LoaderModel::tr, QT_TR_NOOP("%n member(s)"), {},
+                                    media_set_.members),
+                Message::translated(&LoaderModel::tr, QT_TR_NOOP("%n load(s)"), {},
+                                    static_cast<int>(media_set_.loads.size()))})
+        .text();
 }
 
 bool LoaderModel::canUpload() const {
@@ -384,6 +397,7 @@ void LoaderModel::set_job(Job job) {
     if (was_busy != busy()) {
         Q_EMIT busyChanged();
     }
+    Q_EMIT activityChanged();
     if (could_abort != canAbort()) {
         Q_EMIT canAbortChanged();
     }
@@ -457,7 +471,7 @@ void LoaderModel::on_finished(const OperationSummary& summary) {
     }
 }
 
-void LoaderModel::set_result(int state, const QString& text, const QString& detail) {
+void LoaderModel::set_result(int state, const Message& text, const Message& detail) {
     if (state == 0) {
         result_is_transfer_ = false;
         result_was_download_ = false;
@@ -468,15 +482,16 @@ void LoaderModel::set_result(int state, const QString& text, const QString& deta
     Q_EMIT resultChanged();
 }
 
-void LoaderModel::set_error(const QString& text, const QString& detail, const QString& hint) {
+void LoaderModel::set_error(const Message& text, const Message& detail, const Message& hint) {
     last_error_text_ = text;
     last_error_detail_ = detail;
     last_error_hint_ = hint;
+    Q_EMIT errorTextChanged();
     Q_EMIT errorChanged();
 }
 
 void LoaderModel::set_validation(int state, const QString& error, const QStringList& findings,
-                                 const QString& detail) {
+                                 const Message& detail) {
     validation_state_ = state;
     validation_error_ = error;
     validation_findings_ = findings;
@@ -494,7 +509,10 @@ void LoaderModel::run_pending_after_find(bool found) {
     if (targets_.rowCount() != 1) {
         // None or several: the FIND result stays on the screen, and the operation is not started.
         set_result(1, result_text_,
-                   tr("Choose the target from the list, then run the operation again."));
+                   Message::translated(
+                       &LoaderModel::tr,
+                       QT_TR_NOOP("Choose the target from the list, then run the operation "
+                                  "again.")));
         return;
     }
     selectTarget(0);
@@ -582,7 +600,7 @@ void LoaderModel::readInformation() {
             return;
         }
         pending_ = Pending::information;
-        events_.append({Severity::info, tr("No target is selected; looking for one first.")});
+        events_.append({Severity::info, no_target_selected()});
         QMetaObject::invokeMethod(worker_, &EngineWorker::find, Qt::QueuedConnection, QString{});
         return;
     }
@@ -605,7 +623,7 @@ void LoaderModel::uploadSelected() {
             return;
         }
         pending_ = Pending::upload;
-        events_.append({Severity::info, tr("No target is selected; looking for one first.")});
+        events_.append({Severity::info, no_target_selected()});
         QMetaObject::invokeMethod(worker_, &EngineWorker::find, Qt::QueuedConnection, QString{});
         return;
     }
@@ -628,7 +646,7 @@ void LoaderModel::downloadSelected() {
             return;
         }
         pending_ = Pending::download;
-        events_.append({Severity::info, tr("No target is selected; looking for one first.")});
+        events_.append({Severity::info, no_target_selected()});
         QMetaObject::invokeMethod(worker_, &EngineWorker::find, Qt::QueuedConnection, QString{});
         return;
     }
@@ -707,7 +725,7 @@ void LoaderModel::abort() {
     }
     abort_requested_ = true;
     worker_->request_abort();
-    Q_EMIT busyChanged();  // the activity text changes
+    Q_EMIT activityChanged();  // the activity text changes
     Q_EMIT canAbortChanged();
 }
 
@@ -731,10 +749,24 @@ void LoaderModel::dismissError() {
     if (last_error_text_.isEmpty() && last_error_detail_.isEmpty() && last_error_hint_.isEmpty()) {
         return;
     }
-    last_error_text_.clear();
-    last_error_detail_.clear();
-    last_error_hint_.clear();
+    last_error_text_ = {};
+    last_error_detail_ = {};
+    last_error_hint_ = {};
+    Q_EMIT errorTextChanged();
     Q_EMIT errorChanged();
+}
+
+void LoaderModel::retranslate() {
+    events_.retranslate();
+    targets_.retranslate();
+    configuration_.retranslate();
+    loads_.retranslate();
+    downloads_.retranslate();
+    Q_EMIT activityChanged();
+    Q_EMIT resultChanged();
+    Q_EMIT errorTextChanged();
+    Q_EMIT mediaSetChanged();
+    Q_EMIT validationChanged();
 }
 
 }  // namespace adl::app
