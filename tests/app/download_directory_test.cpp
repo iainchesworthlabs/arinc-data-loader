@@ -3,8 +3,8 @@
 #include <QTest>
 
 #include "adl/app/download_directory.hpp"
-#include "faulty_files.hpp"
 #include "fake_storage.hpp"
+#include "faulty_files.hpp"
 #include "test_classes.hpp"
 
 using namespace adl::app;

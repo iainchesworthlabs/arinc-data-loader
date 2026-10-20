@@ -16,7 +16,8 @@ namespace {
 bool is_device_name(std::string_view name) noexcept {
     std::string stem{name.substr(0, name.find('.'))};
     std::ranges::transform(stem, stem.begin(), lower);
-    constexpr std::array<std::string_view, 6> plain{"con", "prn", "aux", "nul", "conin$", "conout$"};
+    constexpr std::array<std::string_view, 6> plain{"con", "prn",    "aux",
+                                                    "nul", "conin$", "conout$"};
     if (std::ranges::find(plain, stem) != plain.end()) {
         return true;
     }

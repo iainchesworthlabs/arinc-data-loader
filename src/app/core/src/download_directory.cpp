@@ -88,10 +88,9 @@ std::expected<std::string, QString> make_download_directory(adl::platform::FileS
         return std::unexpected(QObject::tr("cannot create %1 (%2)")
                                    .arg(to_qstring(path), describe(made.error().code)));
     }
-    return std::unexpected(
-        QObject::tr("there are already %1 download directories for %2 in %3")
-            .arg(max_download_directories)
-            .arg(to_qstring(thw_id_pos), to_qstring(directory)));
+    return std::unexpected(QObject::tr("there are already %1 download directories for %2 in %3")
+                               .arg(max_download_directories)
+                               .arg(to_qstring(thw_id_pos), to_qstring(directory)));
 }
 
 bool remove_if_empty(adl::platform::FileSystem& files, std::string_view path) {

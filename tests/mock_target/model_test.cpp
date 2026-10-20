@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <thread>
 #include <cstring>
 #include <expected>
 #include <filesystem>
@@ -15,6 +14,7 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <QCoreApplication>
@@ -207,9 +207,9 @@ void MockModelTest::a_name_the_loader_sends_is_stored_only_if_it_is_plain_and_po
     QVERIFY(is_storable_name(std::string(254, 'a')));
     QVERIFY(!is_storable_name(std::string(255, 'a')));
     for (const char* name :
-         {"", ".", "..", "a/b", "a:b", "a:b:$DATA", "file.txt::$DATA", "NUL", "nul.txt", "CON",
-          "COM1", "lpt9.bin", "CONIN$", "trailing.", "a b", "a*b", "a|b", "a?b", "a<b", "c~d!",
-          "caf\xC3\xA9"}) {
+         {"",    ".",       "..",  "a/b",  "a:b",      "a:b:$DATA", "file.txt::$DATA",
+          "NUL", "nul.txt", "CON", "COM1", "lpt9.bin", "CONIN$",    "trailing.",
+          "a b", "a*b",     "a|b", "a?b",  "a<b",      "c~d!",      "caf\xC3\xA9"}) {
         QVERIFY2(!is_storable_name(name), name);
     }
     QVERIFY(!is_storable_name(std::string("nul\0byte", 8)));
@@ -280,8 +280,9 @@ void MockModelTest::starting_and_stopping_in_quick_succession_leaves_the_worker_
     QTRY_VERIFY_WITH_TIMEOUT(log_spy.count() > 0, 20000);
     bool listening = false;
     for (int i = 0; i < log_spy.count(); ++i) {
-        listening = listening || qvariant_cast<LogEntry>(log_spy.at(i).at(0))
-                                     .text.contains(QStringLiteral("listening"));
+        listening =
+            listening ||
+            qvariant_cast<LogEntry>(log_spy.at(i).at(0)).text.contains(QStringLiteral("listening"));
     }
     QTRY_VERIFY_WITH_TIMEOUT(listening || log_spy.count() > 1, 20000);
     model.stop();

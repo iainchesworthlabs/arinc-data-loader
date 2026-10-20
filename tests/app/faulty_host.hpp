@@ -5,8 +5,8 @@
 // refuses, a port that cannot be opened, a wait that fails).
 
 #include "adl/platform/host.hpp"
-#include "faulty_files.hpp"
 #include "fake_host.hpp"
+#include "faulty_files.hpp"
 
 namespace adl::test {
 

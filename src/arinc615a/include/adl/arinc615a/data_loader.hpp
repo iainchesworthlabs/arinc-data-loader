@@ -253,8 +253,8 @@ struct Outcome {
 inline constexpr std::size_t max_thw_id_pos_length = 240;
 
 // Whether `id` can be the <THW_ID_POS> of a LoaderConfig: not empty, at most
-// max_thw_id_pos_length characters, and none of a control character, a '/' or a backslash, which would
-// make the name of a protocol file a path. DataLoader::start refuses anything else with
+// max_thw_id_pos_length characters, and none of a control character, a '/' or a backslash, which
+// would make the name of a protocol file a path. DataLoader::start refuses anything else with
 // Error::invalid_value; a caller that makes something from the id first (a directory) asks
 // beforehand.
 [[nodiscard]] bool is_valid_thw_id_pos(std::string_view id) noexcept;

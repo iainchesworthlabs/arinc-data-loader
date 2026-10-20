@@ -84,9 +84,8 @@ TEST_CASE("device names are told with or without an extension", "[portable-name]
         CAPTURE(name);
         CHECK(is_device_name(name));
     }
-    for (const std::string_view name :
-         {"", "COM", "COM0", "COM10", "LPT0", "CONS", "NULL", "AUXX", "xCON", "CONIN", "CONIN$$",
-          "a.NUL", "x.con"}) {
+    for (const std::string_view name : {"", "COM", "COM0", "COM10", "LPT0", "CONS", "NULL", "AUXX",
+                                        "xCON", "CONIN", "CONIN$$", "a.NUL", "x.con"}) {
         CAPTURE(name);
         CHECK_FALSE(is_device_name(name));
     }

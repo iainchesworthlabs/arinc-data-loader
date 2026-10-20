@@ -89,10 +89,9 @@ std::expected<MediaSetIndex, std::string> MediaSetIndex::make(
                 std::string{adl::media_tree::to_string(directory.error().error)} + " (" +
                 file.pathname + file.file_name + ")");
         }
-        index.entries_.push_back(Entry{file.file_name,
-                                       adl::platform::to_platform_path(*directory / file.file_name),
-                                       file.crc, file.member_sequence_number, file.pathname,
-                                       std::nullopt});
+        index.entries_.push_back(
+            Entry{file.file_name, adl::platform::to_platform_path(*directory / file.file_name),
+                  file.crc, file.member_sequence_number, file.pathname, std::nullopt});
     }
     return index;
 }

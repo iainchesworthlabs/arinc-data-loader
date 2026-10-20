@@ -86,8 +86,8 @@ adl::gen::GenerateJob good_job(const std::filesystem::path& source,
     job.target_hardware_ids = {QStringLiteral("ACME")};
     job.output_directory = QString::fromStdU16String(output.u16string());
     job.files = {adl::gen::JobFile{QString::fromStdU16String(source.u16string()),
-                                   QStringLiteral("DATA.LUP"),
-                                   adl::gen::SourceFileModel::data_kind, 0}};
+                                   QStringLiteral("DATA.LUP"), adl::gen::SourceFileModel::data_kind,
+                                   0}};
     return job;
 }
 
@@ -96,12 +96,11 @@ adl::gen::GenerateOutcome run_job(adl::gen::GeneratorWorker& worker,
                                   const adl::gen::GenerateJob& job) {
     adl::gen::GenerateOutcome outcome;
     int finished = 0;
-    const auto connection = QObject::connect(
-        &worker, &adl::gen::GeneratorWorker::finished, &worker,
-        [&](const adl::gen::GenerateOutcome& result) {
-            outcome = result;
-            ++finished;
-        });
+    const auto connection = QObject::connect(&worker, &adl::gen::GeneratorWorker::finished, &worker,
+                                             [&](const adl::gen::GenerateOutcome& result) {
+                                                 outcome = result;
+                                                 ++finished;
+                                             });
     worker.generate(job);
     QObject::disconnect(connection);
     if (finished != 1) {

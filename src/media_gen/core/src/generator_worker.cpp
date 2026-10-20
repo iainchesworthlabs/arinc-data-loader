@@ -1,10 +1,10 @@
 #include "adl/gen/generator_worker.hpp"
 
 #include <cstddef>
-#include <new>
-#include <stdexcept>
 #include <filesystem>
 #include <fstream>
+#include <new>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -149,13 +149,11 @@ void GeneratorWorker::generate(const GenerateJob& job) {
         fail(outcome, tr("The computer ran out of memory while the media set was being made."),
              tr("Nothing was kept. Choose smaller files, or close other programs and try again."));
     } catch (const std::exception& error) {
-        fail(outcome, tr("The media set could not be made."),
-             QString::fromLocal8Bit(error.what()));
+        fail(outcome, tr("The media set could not be made."), QString::fromLocal8Bit(error.what()));
     }
 }
 
 void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
-
     // ---- 1. read every file, reporting how far the reading has got ----
     struct PendingFile {
         JobFile meta;

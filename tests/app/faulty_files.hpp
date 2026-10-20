@@ -64,7 +64,8 @@ public:
     adl::platform::Result<void> remove(std::string_view path) noexcept override {
         return inner_.remove(path);
     }
-    adl::platform::Result<void> rename(std::string_view from, std::string_view to) noexcept override {
+    adl::platform::Result<void> rename(std::string_view from,
+                                       std::string_view to) noexcept override {
         return inner_.rename(from, to);
     }
     adl::platform::Result<void> list(std::string_view directory,

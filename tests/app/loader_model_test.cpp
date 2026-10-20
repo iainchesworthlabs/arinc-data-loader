@@ -158,8 +158,8 @@ std::optional<std::vector<std::byte>> downloaded(adl::test::Rig& rig,
 // Whether the DNLD_DATA_HNPFMS_L_<number> directory under `directory` is there.
 bool downloaded_directory_exists(adl::test::Rig& rig, const std::filesystem::path& directory,
                                  unsigned number) {
-    const std::string path =
-        adl::platform::to_platform_path(directory) + "/DNLD_DATA_HNPFMS_L_" + std::to_string(number);
+    const std::string path = adl::platform::to_platform_path(directory) + "/DNLD_DATA_HNPFMS_L_" +
+                             std::to_string(number);
     return rig.loader_host.fake_files().stat(path).has_value();
 }
 

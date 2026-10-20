@@ -185,7 +185,8 @@ TEST_CASE("names a host treats specially are not safe", "[engine][files]") {
         CAPTURE(bad);
         CHECK_FALSE(is_safe_file_name(bad));
     }
-    for (const std::string_view fine : {"COMPORT.BIN", "NULL", "A B.TXT", "a.b.c", "x~1", ".hidden"}) {
+    for (const std::string_view fine :
+         {"COMPORT.BIN", "NULL", "A B.TXT", "a.b.c", "x~1", ".hidden"}) {
         CAPTURE(fine);
         CHECK(is_safe_file_name(fine));
     }

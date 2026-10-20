@@ -602,11 +602,11 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     // A download that received nothing (the target said no, never answered, was cancelled, or the
     // loader could not run at all) leaves no directory behind: the one made for it is removed if
     // it is empty, and left alone if anything is in it.
-    const bool directory_removed = !download_path.empty() && remove_if_empty(host.files(), download_path);
-    const QString download_directory =
-        download_path.empty() || directory_removed
-            ? QString{}
-            : QDir::toNativeSeparators(to_qstring(download_path));
+    const bool directory_removed =
+        !download_path.empty() && remove_if_empty(host.files(), download_path);
+    const QString download_directory = download_path.empty() || directory_removed
+                                           ? QString{}
+                                           : QDir::toNativeSeparators(to_qstring(download_path));
     QString removed_note;
     if (directory_removed) {
         removed_note = tr("Nothing was received, so the empty download directory %1 was removed.")
@@ -684,8 +684,9 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
         const QString changed = to_qstring(*media->changed_file());
         summary.success = false;
         summary.media_set_changed = true;
-        summary.detail = tr("The media set changed after it was checked: %1. (The upload ended: %2.)")
-                             .arg(changed, summary.outcome);
+        summary.detail =
+            tr("The media set changed after it was checked: %1. (The upload ended: %2.)")
+                .arg(changed, summary.outcome);
         summary.outcome = tr("the media set changed after it was checked");
         summary.hint = media_set_changed_hint();
     } else if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation)) {

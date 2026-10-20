@@ -55,7 +55,7 @@ public:
         std::string path;  // UTF-8, '/' separated, absolute if the root was
         std::uint16_t crc16 = 0;
         std::uint16_t member = 0;
-        std::string pathname;  // the directory in the member, as FILES.LUM has it
+        std::string pathname;                    // the directory in the member, as FILES.LUM has it
         std::optional<Fingerprint> fingerprint;  // empty: the index was made without the bytes
 
         // "DATA.BIN (member 2, \LOAD\)": a file as the operator can find it.
@@ -79,8 +79,7 @@ public:
     // or no longer what it was when the index was made, reading each one in full; empty if the
     // set is as it was checked. Files without a fingerprint are not looked at. Blocks for as
     // long as the set takes to read.
-    [[nodiscard]] std::optional<std::string> changed_file(
-        adl::platform::FileSystem& files) const;
+    [[nodiscard]] std::optional<std::string> changed_file(adl::platform::FileSystem& files) const;
 
     // The entry for a request: the file called `name`, and among several of that name the one
     // whose CRC is `crc16`. With one file of the name, a CRC that differs is not a reason to

@@ -215,7 +215,8 @@ void EngineWorkerTest::a_download_directory_that_cannot_be_made_is_reported() {
     worker.download_operator(target_address, QStringLiteral("HNPFMS_L"), downloads, 59);
     const OperationSummary summary = finished_with(finished);
     QVERIFY(!summary.success);
-    QVERIFY2(summary.outcome.contains(QStringLiteral("could not be used")), qPrintable(summary.outcome));
+    QVERIFY2(summary.outcome.contains(QStringLiteral("could not be used")),
+             qPrintable(summary.outcome));
     QVERIFY(summary.outcome.contains(QStringLiteral("cannot create")));
     QVERIFY(summary.hint.contains(QStringLiteral("download directory")));
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
