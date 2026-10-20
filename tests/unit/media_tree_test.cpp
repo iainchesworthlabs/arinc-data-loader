@@ -212,6 +212,57 @@ TEST_CASE("a file that cannot be written leaves nothing behind", "[media-tree]")
     CHECK_FALSE(fs::exists(root));
 }
 
+// A write that stops part of the way (a full disk, a name the file system refuses) must not leave
+// the first members behind as if they were a set. A name longer than any file system takes is a
+// failure that is the same on every platform, and arrives after the first member is written.
+TEST_CASE("a write that fails part of the way removes what it made", "[media-tree]") {
+    const std::vector<MediaMember> members = {
+        member_with(1, {file_at("\\", "GOOD.BIN"), file_at("\\a\\b\\", "DEEP.BIN")}),
+        member_with(2, {file_at("\\", std::string(300, 'N'))}),
+    };
+
+    SECTION("the root did not exist: it is not left either") {
+        TempDir dir;
+        const fs::path root = dir.path() / "new" / "tree";
+        const auto written = write_media_set_tree(root, members);
+        REQUIRE_FALSE(written.has_value());
+        CHECK(written.error().error == TreeError::cannot_write_file);
+        CHECK_FALSE(fs::exists(root));
+    }
+
+    SECTION("the root was there already: it is left as it was, empty") {
+        TempDir dir;
+        const fs::path root = dir.path() / "tree";
+        fs::create_directories(root);
+        std::ofstream(root / "mine.txt") << "not part of the set";
+        const auto written = write_media_set_tree(root, members);
+        REQUIRE_FALSE(written.has_value());
+        CHECK(fs::exists(root / "mine.txt"));
+        CHECK_FALSE(fs::exists(root / "member_001"));
+        CHECK_FALSE(fs::exists(root / "member_002"));
+    }
+
+    SECTION("an empty member directory that was there is left, empty") {
+        TempDir dir;
+        const fs::path root = dir.path() / "tree";
+        fs::create_directories(root / "member_001");
+        const auto written = write_media_set_tree(root, members);
+        REQUIRE_FALSE(written.has_value());
+        CHECK(fs::is_directory(root / "member_001"));
+        CHECK(fs::is_empty(root / "member_001"));
+        CHECK_FALSE(fs::exists(root / "member_002"));
+    }
+
+    SECTION("and the same set written again afterwards works") {
+        TempDir dir;
+        const fs::path root = dir.path() / "tree";
+        REQUIRE_FALSE(write_media_set_tree(root, members).has_value());
+        const std::vector<MediaMember> good = {members[0]};
+        REQUIRE(write_media_set_tree(root, good).has_value());
+        CHECK(same_members(sorted(read_media_set_tree(root).value()), sorted(good)));
+    }
+}
+
 TEST_CASE("names that are not usable on every platform are refused", "[media-tree]") {
     const auto error_for = [](const MediaFile& file) {
         TempDir dir;

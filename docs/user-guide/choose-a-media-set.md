@@ -40,10 +40,11 @@ Fix the set (or choose another) and press **Re-check**.
 ## Re-checking
 
 **Re-check** reads the whole set again, so changes made on disk after it was first read are
-caught. The loader does not notice changes by itself: a file changed or deleted *after* the check
-and before it is sent will arrive as it now is (the target's own check value test then rejects a
-changed file) or, if removed, be reported to the target as not found, which ends the operation.
-Re-check before an upload if you have been editing files.
+caught. What was checked is what is sent: when you press **Upload** the loader first reads the whole
+set once more and compares it with what the check saw, and again as the target asks for each file.
+A file edited, replaced or removed *after* the check is not sent. Nothing goes to the target, the
+result says "the media set changed after it was checked" and names the file, and the set counts as
+not checked again: press **Re-check**, then upload.
 
 ## Properties
 

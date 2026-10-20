@@ -49,6 +49,7 @@ class ControlsTest : public QObject {
 
 private Q_SLOTS:
     void a_request_and_a_choice_are_posted_and_forgotten();
+    void a_choice_the_loader_is_not_waiting_for_is_kept();
 };
 
 // The operator's preferences in QSettings.
@@ -63,6 +64,38 @@ private Q_SLOTS:
     void the_target_of_the_last_operation_is_remembered();
 };
 
+// The worker's jobs called directly: what the window never asks for, and every way an operation
+// can fail to run.
+class EngineWorkerTest : public QObject {
+    Q_OBJECT
+
+private Q_SLOTS:
+    void an_id_no_directory_can_be_named_after_makes_no_directory();
+    void a_download_the_target_denies_leaves_no_directory();
+    void a_download_from_a_silent_target_leaves_no_directory();
+    void a_download_that_received_a_file_keeps_its_directory();
+    void a_download_stopped_with_a_file_in_the_directory_keeps_it();
+    void a_request_the_loader_refuses_is_reported_and_leaves_no_directory();
+    void a_port_that_cannot_be_opened_is_reported_and_leaves_no_directory();
+    void a_network_wait_that_fails_is_reported_and_leaves_no_directory();
+    void a_download_directory_that_cannot_be_made_is_reported();
+};
+
+// Where a download is written: its numbered directory, and its removal when nothing arrived.
+class DownloadDirectoryTest : public QObject {
+    Q_OBJECT
+
+private Q_SLOTS:
+    void the_directory_is_named_after_the_target_and_a_number();
+    void only_an_id_that_can_name_a_directory_can_be_downloaded_from();
+    void a_chain_of_directories_is_made_and_a_directory_is_left_alone();
+    void a_chain_says_why_it_could_not_be_made();
+    void a_download_directory_takes_the_lowest_free_number();
+    void a_number_taken_between_looking_and_making_is_not_an_error();
+    void a_download_directory_says_why_it_could_not_be_made();
+    void only_an_empty_directory_is_removed();
+};
+
 // Finding the file the target asks for in a media set on disk.
 class MediaSourceTest : public QObject {
     Q_OBJECT
@@ -74,6 +107,10 @@ private Q_SLOTS:
     void one_file_of_a_name_is_served_whatever_the_crc();
     void no_such_file_is_not_found();
     void reads_at_offsets_and_gives_back_its_slots();
+    void a_file_changed_after_the_check_is_refused();
+    void the_whole_set_can_be_verified_before_an_upload();
+    void an_index_made_without_the_files_does_not_verify();
+    void a_listed_file_that_is_not_in_the_set_is_refused();
 };
 
 // Whole jobs through LoaderModel: the engine on its own thread, against the simulated target on
@@ -106,6 +143,8 @@ private Q_SLOTS:
     void a_set_is_uploadable_only_after_the_check_passes();
     void a_corrupted_set_fails_the_check_and_stays_refused();
     void check_media_set_revalidates_files_changed_on_disk();
+    void a_set_edited_after_the_check_is_not_uploaded();
+    void an_id_a_download_directory_cannot_be_named_after_is_refused();
     void findings_warn_but_do_not_block_the_upload();
     void with_validate_on_open_off_the_set_waits_for_a_check();
     void the_control_port_flows_into_the_loader();

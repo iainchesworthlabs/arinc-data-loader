@@ -70,7 +70,7 @@ The window's tests run offscreen (no desktop needed): the test's environment set
 
 The tags are `[crc]`, `[digest]`, `[integrity]`, `[check-value]`, `[part-number]`,
 `[naming]`, `[header]`, `[load]`, `[batch]`, `[media-files]`, `[media-set]`,
-`[label]`, `[media-tree]`, `[golden]`, `[compatibility]`, `[limits]`, `[robustness]` and
+`[label]`, `[media-tree]`, `[portable-name]`, `[golden]`, `[compatibility]`, `[limits]`, `[robustness]` and
 `[platform]`; `public_api_test.cpp` adds `[to-string]`, `[generic]` and `[listener]`. The 615A codec adds `[tftp]` (with `[options]`, `[wait]` and `[abort]`),
 `[find]`, `[protocol-files]` (with `[status]`, `[text]` and `[names]`), `[golden615a]` and
 `[robustness615a]`. The platform layer adds `[memory]`, `[error]`, `[time]`, `[network]`,
@@ -140,6 +140,7 @@ reason; the first pass is unaffected by it.
 | `batch_file_test.cpp` | The batch file layout, round trips, damage, the recommendations |
 | `media_files_test.cpp` | The three lists: layout, round trips with and without user data, sequence numbers, damage, the recommendations |
 | `media_set_test.cpp` | Building and reading media sets across members, the lists on each member, FILES.LUM's entries, partial reads, damage of every file, members of different sets, files of one name told apart by directory and CRC (section 3.2.4.2), findings |
+| `portable_name_test.cpp` | The one file name predicate the sink, the media tree, the application and the mock target share: a table of hostile names (separators, colons and streams, devices in any case and with extensions, trailing dots and spaces, wildcards, control characters, non-ASCII, a name with a NUL in it) refused the same on every platform |
 | `media_tree_test.cpp` | Every sample media set through a directory tree and back (and the set read from the disk verifies like the one in memory), the backslash pathnames as native paths, empty files and deep directories, binary content, names that cannot be files on every platform (device names, reserved characters, trailing dots, non-ASCII), sequence numbers outside 1 to 255, duplicate names whatever their case, nothing written when anything is invalid, never writing over a non-empty member, a stray entry or a link in a tree being refused, and damage on the disk being found when the set is read. The temporary directories come from `tests/support/temp_dir.hpp`. The link case makes a symbolic link, and where the account may not (an ordinary Windows account) a directory junction with `mklink /J`, which any account may make, so it runs on all three desktops and is skipped only when neither can be made |
 | `media_label_test.cpp` | The label text, its date format, the required items |
 | `golden_test.cpp` | The library's header file, batch file and list files against files written independently ([below](#golden-payloads)) |

@@ -2,9 +2,11 @@
 
 // A FileSource and FileSink over a directory of the platform's file system: the simplest
 // places for the load's files to be read from and the target's files to be written to. A
-// name the target (or the operation) gives is a name and nothing more: no separator, no
-// "..", no control character, 254 characters at most, so that no path of the target's choosing
-// reaches the file system.
+// name the target (or the operation) gives is a name and nothing more, and one every platform
+// takes for the same file (adl::arinc665::is_portable_file_name: no separator, no "..", no
+// control character, no colon that names a stream, no device name, no trailing dot or space),
+// 254 characters at most, so that no path of the target's choosing reaches the file system and
+// a download directory can be copied to any host.
 //
 // The sink writes each file under a temporary name and renames it when the whole file has
 // arrived, so a transfer that fails leaves no half file, and it never overwrites a file that
@@ -18,7 +20,8 @@
 
 namespace adl::arinc615a {
 
-// Whether `name` may be used as a file name inside a directory.
+// Whether `name` may be used as a file name inside a directory: portable, at most 254
+// characters, and not ending in ".part", the suffix a file has while it is being received.
 [[nodiscard]] bool is_safe_file_name(std::string_view name) noexcept;
 
 // Reads the files of a load from the directory, by name, through the platform's

@@ -16,7 +16,7 @@ FIND, the Information, Upload and Download operations are built. What the window
 | Name a target by hand | An IPv4 address and a `<THW_ID_POS>` can be typed, for a target that does not answer FIND (or over AFDX, which has no broadcast). |
 | Read information | The Information operation (5.4.2): the target's status files and its list of hardware and parts, with an abort button. |
 | Upload | The Upload operation (5.4.3): the ticked loads of the media set are loaded to the target. The target reads their header, data and support files from the media set on disk; the window shows how far the target's list has got and, beside each ticked load, its own percentage and status (and why, for one the target gave up on), from the upload status files. With the abort button. See [what the Upload operation needs](#what-the-upload-operation-needs-from-the-application). |
-| Download | The Download operation (5.4.4), in both modes. Media defined: the operator names the files the target is to send. Operator defined: the target's list of files is shown to be ticked, the choice goes back through the engine's deferred-selection route, and "Choose none" cancels the operation the way the standard says. The files land in a fresh `DNLD_DATA_<THW_ID_POS>_<number>` directory under the download directory (Preferences): the number is the lowest free one, and even an aborted download consumes its directory. Each file's row carries its own status and progress; the abort button covers downloads. See [what the Download operation needs](#what-the-download-operation-needs-from-the-application). |
+| Download | The Download operation (5.4.4), in both modes. Media defined: the operator names the files the target is to send. Operator defined: the target's list of files is shown to be ticked, the choice goes back through the engine's deferred-selection route, and "Choose none" cancels the operation the way the standard says. The files land in a fresh `DNLD_DATA_<THW_ID_POS>_<number>` directory under the download directory (Preferences): the number is the lowest free one. A download that receives no file (the target denies it or never answers, the operator cancels or aborts, the loader cannot run) leaves no directory behind; one that received anything keeps it. Each file's row carries its own status and progress; the abort button covers downloads. See [what the Download operation needs](#what-the-download-operation-needs-from-the-application). |
 | Preferences | Persistent settings, in a two-column modal page from the header's Preferences button: the last media set directory (restored quietly at start-up), a default target address and `<THW_ID_POS>` (prefilled), the loader's control port (anything but 59 is sent to the target as the `port` option, which is what lets the loader and a target share one machine), the download directory, whether FIND runs by itself before an operation with no chosen target (one answer is taken automatically; none or several leaves the choice to the operator), whether a chosen media set is checked at once, the activity log's capacity, and the language. The dialog edits a working copy: Save writes it, Cancel and Esc leave the stored values as they were. |
 | About | The `ADL` mark, what the window is for, and the build provenance the other ICL tools show: version, git describe, full commit, branch, build target, Qt version and a dirty-tree marker, generated at configure time; the licence and repository link. |
 | The window's look | The shared design system in `src/ui`: `Theme.qml` is the single source of truth for colour (Signal light and dark), type, spacing and geometry; the shared controls (`AppButton`, `AppCheckBox`, `AppTextField`, `AppComboBox`, `AppSpinBox`, `SegmentedControl`, `FocusRing`), the header and footer, the chips, the log and the dialogs draw from it. The three applications compile the same source; see [the design system](design-system.md). |
@@ -180,11 +180,21 @@ against a target:
 The engine's `DirectoryFileSource` (one flat directory) was not used because a media set is not one:
 it has a directory per member and directories inside them.
 
-**What was read is what is uploaded, until the operator reads again.** The index is made when the media
-set is read, and kept by the worker; the files themselves are opened when the target asks. A file
-changed or removed on disk after the set was read is not noticed by the application: a changed one
-arrives as it now is and the target's checksum check says so; a removed one is `not_found` for the
-target, which ends the operation. A media set that cannot be read leaves no index, and nothing to upload.
+**What was checked is what is uploaded.** The index is made when the media set is read, and kept by the
+worker. At that moment every file's bytes are in memory (the read verifies them), so the index also takes a
+*fingerprint* of each: its size and its SHA-1. A hash of the content, and not the file's size and
+modification time, because the platform's `FileSystem` interface has no modification time, a time can be put
+back or be too coarse to tell a second edit, and a changed byte always changes the hash; taking it costs
+nothing extra at that point, since the bytes are there. The fingerprint is checked twice. When an upload
+starts, before the target is contacted, the worker reads the whole set through the host's `FileSystem`
+and compares it (one more read of the set, as long as the check's own); a difference ends the job at once
+with "The media set changed after it was checked: DATA.LUP (member 1, \LOAD\)", the hint to check the media
+set again, and the check no longer stands (the upload stays refused until it is run again). And each time the
+target opens a file, `MediaTreeSource::open` compares that file again before a byte is served, so a file
+edited while the transfer runs is refused too (the target is given an access violation, and the operator is
+told the set changed, not that the target failed). A media set that cannot be read leaves no index, and
+nothing to upload. An index made without the bytes (the tests that only map names to paths) carries no
+fingerprints and verifies nothing.
 
 **How the operation is judged.** `success` is the engine's `completed` with no load the target reported
 as failed (`items_failed`); a completed operation with a failed load is shown as a failure ("completed,
@@ -197,10 +207,31 @@ A Download has no `FileSource`; it has a **`FileSink`** instead: `DirectoryFileS
 (`adl::arinc615a_runner`) writes the target's files into one directory, under a temporary name
 until the whole file has arrived, and never overwrites, which is exactly what 5.4.4.3 asks of
 the `DNLD_DATA_<THW_ID_POS>_<number>` directory. The application makes that directory when the
-download starts, under the download directory of the preferences: the number is the lowest free
-one from 1, the directory is reserved even if the operation is refused or aborted, and the
-parents are created on demand, through the platform's `FileSystem` (so the tests' fake storage
-receives the bytes).
+download starts, under the download directory of the preferences (`download_directory.hpp`): the number is
+the lowest free one from 1, and the parents are created on demand, through the platform's `FileSystem` (so
+the tests' fake storage receives the bytes).
+
+- **Nothing is made for an id that cannot be used.** The `<THW_ID_POS>` is checked before the first
+  directory is made, in the model (`canDownload`) and again in the worker: the engine's own predicate
+  (`is_valid_thw_id_pos`: 1 to 240 characters, no control character, slash or backslash) and, because the id
+  becomes part of a directory name, that `DNLD_DATA_<id>_1` is a name every platform can make (a colon, which
+  names a stream on NTFS, an asterisk or a trailing dot is refused). The model also treats an id the engine
+  refuses as no target at all.
+- **A download that received nothing leaves no directory.** When the runner returns, whether the target
+  denied the operation, never answered, the operator cancelled or aborted, or the loader could not run
+  (the request refused, the port taken, the wait failing), the directory is removed if it is empty, and the
+  summary then names no directory. A directory with anything in it, however little (a file, a part file,
+  something another program put there), is kept and reported, and `remove_if_empty` never touches anything
+  else. The download directory itself, which the operator chose, stays.
+- **Two loaders may race for a number.** Looking for a free number and making the directory are two
+  calls; if another copy takes the number in between, `make_directory` says `already_exists`, which is not
+  an error here: the next number is tried (and a file system that says so for every number ends the search
+  after 10 000 with a message, not a hang).
+- **The names the target chooses** are checked by `DirectoryFileSink` with one predicate shared with the
+  media tree and the mock target, `adl::arinc665::is_portable_file_name`, the same on every platform: no
+  separator, no colon (an NTFS stream), no device name (`CON`, `NUL`, `COM1`, `CONIN$`... with or without an
+  extension), no trailing dot or space, printable ASCII, 254 characters at most, and not ending in `.part`
+  (the sink's own temporary name). The media defined mode refuses such a name before the operation starts.
 
 **The operator's choice is a deferred engine call.** For an operator defined download the
 target writes its list of files (`<THW_ID_POS>.LNL`), and the standard leaves when the choice is
@@ -273,8 +304,13 @@ while a job is queued), a media defined Download whose files land byte for byte 
 ticked subset and with "Choose none" (the abort with the target's confirmation), an abort in the middle of
 an Upload and of a Download, both in the model and by the window's button (the engine held inside a file
 call, the target's confirmation and the error dialog asserted), a download with a failed
-item, an unsafe file name refused before anything is sent, and the gate (a choice posted once, cleared
-per job, the abort winning over a choice), `MediaTreeSource` and the index (two files of one name told
+item, an unsafe file name refused before anything is sent, the directory handling (`download_directory_test`:
+the numbering, the race for a number, each failing call of the file system, the removal of an empty
+directory and only of that) and the worker's jobs called directly with a host made to fail
+(`engine_worker_test`: an id no directory can be named after, a denied or silent target, the request refused,
+the port taken, the wait failing, each leaving no directory), a set edited after it was checked refused at
+the start of an upload and as the target opens the file, and the gate (a choice posted once, cleared per job,
+the abort winning over a choice, a choice made before the loader awaits it kept for the next poll), `MediaTreeSource` and the index (two files of one name told
 apart by the CRC, the fall-backs above, offsets, the limit on open files), the models (ticks, locking,
 progress, and the files of `FILES.LUM`), the address parser and the notice texts; the preferences
 (round-trip through `QSettings`, the control port reaching the engine as the `port` option, FIND before an

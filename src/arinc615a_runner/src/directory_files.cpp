@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "adl/arinc665/portable_name.hpp"
+
 namespace adl::arinc615a {
 namespace {
 
@@ -40,12 +42,8 @@ constexpr std::string_view temporary_suffix = ".part";
 }  // namespace
 
 bool is_safe_file_name(std::string_view name) noexcept {
-    if (name.empty() || name.size() > 254 || name == "." || name == "..") {
-        return false;
-    }
-    return std::ranges::none_of(name, [](char c) {
-        return static_cast<unsigned char>(c) < 0x20 || c == '/' || c == '\\' || c == 0x7F;
-    });
+    return name.size() <= 254 && !name.ends_with(temporary_suffix) &&
+           adl::arinc665::is_portable_file_name(name);
 }
 
 // ---- DirectoryFileSource --------------------------------------------------------------------

@@ -41,6 +41,38 @@ adl::arinc665::FilesList sample_list() {
     return list;
 }
 
+adl::arinc665::MediaFile media_file(std::string pathname, std::string name, std::string content) {
+    adl::arinc665::MediaFile file;
+    file.pathname = std::move(pathname);
+    file.name = std::move(name);
+    file.bytes.reserve(content.size());
+    for (const char c : content) {
+        file.bytes.push_back(static_cast<std::byte>(c));
+    }
+    return file;
+}
+
+// The files sample_list() lists, as the media set read from the disk holds them.
+std::vector<adl::arinc665::MediaMember> sample_members() {
+    adl::arinc665::MediaMember first;
+    first.sequence_number = 1;
+    first.files = {media_file("\\LOAD\\", "LOAD.LUH", "header"),
+                   media_file("\\LOAD\\A\\", "DATA.BIN", "from A"),
+                   media_file("\\LOAD\\B\\", "DATA.BIN", "from B")};
+    adl::arinc665::MediaMember second;
+    second.sequence_number = 2;
+    second.files = {media_file("\\", "DATA.BIN", "from member 2")};
+    return {first, second};
+}
+
+// The same files in the (in-memory) file system the upload reads from.
+void put_sample_files(adl::fake::MemoryFileSystem& files) {
+    files.put("/set/member_001/LOAD/LOAD.LUH", "header");
+    files.put("/set/member_001/LOAD/A/DATA.BIN", "from A");
+    files.put("/set/member_001/LOAD/B/DATA.BIN", "from B");
+    files.put("/set/member_002/DATA.BIN", "from member 2");
+}
+
 std::string read_all(MediaTreeSource& source, adl::arinc615a::SourceFile file) {
     std::vector<std::byte> buffer(static_cast<std::size_t>(file.size));
     const auto count = source.read(file.handle, 0, buffer);
@@ -179,4 +211,80 @@ void MediaSourceTest::reads_at_offsets_and_gives_back_its_slots() {
     QCOMPARE(static_cast<int>(too_many.error().error), static_cast<int>(IoError::io_error));
     source.close(handles.front());
     QVERIFY(source.open("LOAD.LUH", std::nullopt).has_value());
+}
+
+void MediaSourceTest::a_file_changed_after_the_check_is_refused() {
+    const auto members = sample_members();
+    const auto index = MediaSetIndex::make("/set", sample_list(), members);
+    QVERIFY(index.has_value());
+    adl::fake::MemoryFileSystem files;
+    put_sample_files(files);
+    MediaTreeSource source(files, *index);
+
+    // As it was checked, it is served, and nothing is reported.
+    auto file = source.open("DATA.BIN", crc16_option(0x2222));
+    QVERIFY(file.has_value());
+    QCOMPARE(read_all(source, *file), std::string("from B"));
+    source.close(file->handle);
+    QVERIFY(!source.changed_file().has_value());
+
+    // One byte differs, the size the same: the file is not uploaded.
+    files.put("/set/member_001/LOAD/B/DATA.BIN", "from C");
+    const auto refused = source.open("DATA.BIN", crc16_option(0x2222));
+    QVERIFY(!refused.has_value());
+    QCOMPARE(static_cast<int>(refused.error().error), static_cast<int>(IoError::access_denied));
+    QVERIFY(source.changed_file().has_value());
+    QVERIFY(source.changed_file()->find("DATA.BIN") != std::string::npos);
+
+    // The files that did not change are still served.
+    QVERIFY(source.open("DATA.BIN", crc16_option(0x1111)).has_value());
+
+    // A file that grew or shrank is refused as well, and so is one replaced by another of the
+    // same length that the check never saw.
+    files.put("/set/member_001/LOAD/LOAD.LUH", "header and more");
+    QVERIFY(!source.open("LOAD.LUH", std::nullopt).has_value());
+    files.put("/set/member_001/LOAD/LOAD.LUH", "head");
+    QVERIFY(!source.open("LOAD.LUH", std::nullopt).has_value());
+    files.put("/set/member_001/LOAD/LOAD.LUH", "header");
+    QVERIFY(source.open("LOAD.LUH", std::nullopt).has_value());  // put back: as it was checked
+}
+
+void MediaSourceTest::the_whole_set_can_be_verified_before_an_upload() {
+    const auto members = sample_members();
+    const auto index = MediaSetIndex::make("/set", sample_list(), members);
+    QVERIFY(index.has_value());
+    adl::fake::MemoryFileSystem files;
+    put_sample_files(files);
+    QVERIFY(!index->changed_file(files).has_value());
+
+    files.put("/set/member_002/DATA.BIN", "from member 3");
+    const auto changed = index->changed_file(files);
+    QVERIFY(changed.has_value());
+    QVERIFY(changed->find("DATA.BIN") != std::string::npos);
+    QVERIFY(changed->find("member 2") != std::string::npos);
+    files.put("/set/member_002/DATA.BIN", "from member 2");
+    QVERIFY(!index->changed_file(files).has_value());
+
+    // A file taken away is a change too.
+    QVERIFY(files.remove("/set/member_001/LOAD/A/DATA.BIN").has_value());
+    QVERIFY(index->changed_file(files).has_value());
+}
+
+void MediaSourceTest::an_index_made_without_the_files_does_not_verify() {
+    // The index alone (no bytes to take a fingerprint of) maps names to paths and nothing more.
+    const auto index = MediaSetIndex::make("/set", sample_list());
+    QVERIFY(index.has_value());
+    adl::fake::MemoryFileSystem files;
+    put_sample_files(files);
+    QVERIFY(!index->changed_file(files).has_value());
+    files.put("/set/member_001/LOAD/LOAD.LUH", "changed");
+    QVERIFY(!index->changed_file(files).has_value());
+}
+
+void MediaSourceTest::a_listed_file_that_is_not_in_the_set_is_refused() {
+    auto members = sample_members();
+    members[1].files.clear();  // FILES.LUM lists DATA.BIN on member 2, the disk has none
+    const auto index = MediaSetIndex::make("/set", sample_list(), members);
+    QVERIFY(!index.has_value());
+    QVERIFY(index.error().find("DATA.BIN") != std::string::npos);
 }

@@ -332,19 +332,19 @@ void LoadModel::begin_upload() {
 void LoadModel::apply_progress(const QList<LoadProgressRow>& progress) {
     const adl::profiling::Zone zone{"app: load progress to model"};
     for (const LoadProgressRow& update : progress) {
-        for (int i = 0; i < rows_.size(); ++i) {
-            Row& row = rows_[i];
-            if (row.load.header_file != update.header_file ||
-                row.load.part_number != update.part_number) {
-                continue;
-            }
-            row.ratio = update.ratio;
-            row.status = update.status;
-            row.problem = update.description;
-            row.failed = update.failed;
-            changed(i, i, {RatioRole, LoadStatusRole, FailedRole, ProblemRole});
-            break;
+        const auto found = std::ranges::find_if(rows_, [&](const Row& row) {
+            return row.load.header_file == update.header_file &&
+                   row.load.part_number == update.part_number;
+        });
+        if (found == rows_.end()) {
+            continue;
         }
+        found->ratio = update.ratio;
+        found->status = update.status;
+        found->problem = update.description;
+        found->failed = update.failed;
+        const int i = static_cast<int>(found - rows_.begin());
+        changed(i, i, {RatioRole, LoadStatusRole, FailedRole, ProblemRole});
     }
 }
 
@@ -525,18 +525,17 @@ void DownloadModel::begin_download() {
 void DownloadModel::apply_progress(const QList<FileProgressRow>& progress) {
     const adl::profiling::Zone zone{"app: download progress to model"};
     for (const FileProgressRow& update : progress) {
-        for (int i = 0; i < rows_.size(); ++i) {
-            Row& row = rows_[i];
-            if (row.name != update.name) {
-                continue;
-            }
-            row.ratio = update.ratio;
-            row.status = update.status;
-            row.problem = update.description;
-            row.failed = update.failed;
-            changed(i, i, {RatioRole, FileStatusRole, FailedRole, ProblemRole});
-            break;
+        const auto found =
+            std::ranges::find_if(rows_, [&](const Row& row) { return row.name == update.name; });
+        if (found == rows_.end()) {
+            continue;
         }
+        found->ratio = update.ratio;
+        found->status = update.status;
+        found->problem = update.description;
+        found->failed = update.failed;
+        const int i = static_cast<int>(found - rows_.begin());
+        changed(i, i, {RatioRole, FileStatusRole, FailedRole, ProblemRole});
     }
 }
 
