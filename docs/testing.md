@@ -114,8 +114,11 @@ not a blended figure.
 host access, and the generator's and the mock target's cores), with Qt's generated files (`moc_*`,
 `mocs_compilation`, `*_autogen`) left out. These are plain C++ with Qt types, driven by `app.tests`,
 the UI suite and the generator and mock target tests, and they were outside the gate for no better
-reason than that they need the Qt kit. The floor is lower than the libraries' and is set a little
-under what the suite measures (@APP_MEASURE@); raise it when the measure rises. The same script runs
+reason than that they need the Qt kit. The floor is lower than the libraries' (60% of lines, 30% of branches) and is meant to sit a little
+under what the suite measures: **those two figures are provisional**, set below an estimate because the
+Linux coverage run could not be made on the machine this was written on (its WSL file system failed); the
+first CI run prints the measured figures in the job summary and in `coverage/apps/summary.json`, and the
+floor is to be raised to just under them. Raise it again whenever the measure rises. The same script runs
 the pass (`cmake/CoverageReport.cmake`, `-DAPP_LINE_THRESHOLD=` and `-DAPP_BRANCH_THRESHOLD=`), its
 report is in `build/linux-gcc-coverage/coverage/apps`, and the pass **fails when it measures too
 little** (fewer than 1000 lines or 300 branches: a coverage build configured without the
