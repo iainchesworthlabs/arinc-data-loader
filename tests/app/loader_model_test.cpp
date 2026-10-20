@@ -495,6 +495,18 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
     QVERIFY(model.canUpload());  // and it can be done again
     QVERIFY(!model.canAbort());
 
+    // The receipt records the operation: the loads ticked when it started and when it ended, and
+    // neither moves when the operator changes the ticks afterwards.
+    QCOMPARE(model.resultLoadCount(), 1);
+    const QString finished_at = model.resultTime();
+    QVERIFY2(QDateTime::fromString(finished_at, QStringLiteral("yyyy-MM-dd HH:mm:ss")).isValid(),
+             qPrintable(finished_at));
+    QVERIFY(loads->setData(loads->index(0), false, LoadModel::CheckedRole));
+    QCOMPARE(model.selectedLoadCount(), 0);
+    QCOMPARE(model.resultLoadCount(), 1);
+    QCOMPARE(model.resultTime(), finished_at);
+    QVERIFY(loads->setData(loads->index(0), true, LoadModel::CheckedRole));
+
     // The target read the header and every file of the load, the right ones, and nothing else.
     std::vector<std::string> names;
     for (const auto& read : reads) {

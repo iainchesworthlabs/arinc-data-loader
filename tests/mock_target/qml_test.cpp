@@ -135,11 +135,62 @@ int main(int argc, char* argv[]) {
     }
     model.setLoopbackOnly(false);
 
+    // An armed fault injection is shown in the header and the footer, where the rail's own
+    // summary may be scrolled out of sight, and not at all when nothing is armed.
+    QQuickItem* header_chip = find_item(content, QStringLiteral("headerFaultChip"));
+    QQuickItem* footer_chip = find_item(content, QStringLiteral("footerFaultChip"));
+    QQuickItem* rail = find_item(content, QStringLiteral("rail"));
+    if (header_chip == nullptr || footer_chip == nullptr || rail == nullptr) {
+        std::fprintf(stderr, "the fault chips or the rail are not in the window\n");
+        return 1;
+    }
+    if (header_chip->isVisible() || footer_chip->isVisible()) {
+        std::fprintf(stderr, "a fault chip is shown with no injection armed\n");
+        return 1;
+    }
+    model.setSilent(true);
+    model.setWaitEveryRequest(true);
+    QCoreApplication::processEvents();
+    if (!header_chip->isVisible() || !footer_chip->isVisible()) {
+        std::fprintf(stderr, "an armed injection is not shown in the header and the footer\n");
+        return 1;
+    }
+    if (header_chip->property("text").toString() != QStringLiteral("2 faults injected")) {
+        std::fprintf(stderr, "the fault chip says '%s'\n",
+                     qPrintable(header_chip->property("text").toString()));
+        return 1;
+    }
+    // Pressing the chip scrolls the rail to the block that changes the injections.
+    QQuickItem* flickable = rail->property("contentItem").value<QQuickItem*>();
+    QMetaObject::invokeMethod(header_chip, "clicked");
+    QCoreApplication::processEvents();
+    if (flickable == nullptr || flickable->property("contentY").toDouble() <= 0.0) {
+        std::fprintf(stderr, "the fault chip did not scroll the rail to the injections\n");
+        return 1;
+    }
+    model.setSilent(false);
+    model.setWaitEveryRequest(false);
+    QCoreApplication::processEvents();
+    if (header_chip->isVisible() || footer_chip->isVisible()) {
+        std::fprintf(stderr, "a fault chip stayed after the injections were reset\n");
+        return 1;
+    }
+
     // What the operator does: start the target with the window's own button, watch the log
-    // fill, and stop it again with the window's own button.
+    // fill, and stop it again with the window's own button. The primary action follows the
+    // state: Start while stopped, Stop while serving.
+    if (!start->property("primary").toBool() || stop->property("primary").toBool()) {
+        std::fprintf(stderr, "Start is not the primary action while the target is stopped\n");
+        return 1;
+    }
     QMetaObject::invokeMethod(start, "click");
     if (!model.running()) {
         std::fprintf(stderr, "the window's Start button did not start the target\n");
+        return 1;
+    }
+    QCoreApplication::processEvents();
+    if (start->property("primary").toBool() || !stop->property("primary").toBool()) {
+        std::fprintf(stderr, "Stop is not the primary action while the target is serving\n");
         return 1;
     }
     auto* activity = qobject_cast<adl::mock::ActivityModel*>(model.activity());

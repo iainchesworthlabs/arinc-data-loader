@@ -89,7 +89,7 @@ ApplicationWindow {
         }
 
         FocusRing {
-            active: faultChip.visualFocus
+            active: faultChip.activeFocus
         }
     }
 
@@ -225,6 +225,8 @@ ApplicationWindow {
         // ---- configuration ----
         ScrollView {
             id: rail
+
+            objectName: "rail"
 
             Layout.preferredWidth: Theme.railWidth
             Layout.minimumWidth: Theme.railMinWidth

@@ -121,6 +121,7 @@ ApplicationWindow {
         subtitle: qsTr("ARINC 665 · media set, load, files, batch")
 
         StatusChip {
+            objectName: "statusChip"
             text: window.statusText
             tone: window.statusTone
         }
