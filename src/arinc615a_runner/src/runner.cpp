@@ -117,7 +117,7 @@ std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation
         return std::unexpected(
             RunError{RunError::Stage::start, started.error(), adl::platform::ErrorCode::other});
     }
-    sockets.execute(loader.commands());
+    sockets.execute(loader.take_commands());
 
     std::vector<std::byte> buffer(loader.datagram_buffer_bytes());
     std::array<UdpSocket*, DataLoader::max_slots + 1> waiting{};
@@ -168,15 +168,15 @@ std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation
                 } else {
                     loader.on_transfer_datagram(now, owners[i], from, bytes);
                 }
-                sockets.execute(loader.commands());
+                sockets.execute(loader.take_commands());
             }
         }
         if (options.controller != nullptr) {
             options.controller->on_poll(loader, now);
-            sockets.execute(loader.commands());
+            sockets.execute(loader.take_commands());
         }
         loader.on_timer(now);
-        sockets.execute(loader.commands());
+        sockets.execute(loader.take_commands());
     }
     return loader.outcome();
 }
