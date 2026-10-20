@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <QDir>
+#include <QPointer>
 #include <QSemaphore>
 #include <QSettings>
 #include <QSignalSpy>
@@ -154,6 +155,16 @@ std::optional<std::vector<std::byte>> downloaded(adl::test::Rig& rig,
         std::string{reinterpret_cast<const char*>(generic.data()), generic.size()} +
         "/DNLD_DATA_HNPFMS_L_" + std::to_string(number) + "/" + name;
     return rig.loader_host.fake_files().get(path);
+}
+
+// Whether the DNLD_DATA_HNPFMS_L_<number> directory under `directory` is there.
+bool downloaded_directory_exists(adl::test::Rig& rig, const std::filesystem::path& directory,
+                                 unsigned number) {
+    const std::u8string generic = directory.generic_u8string();
+    const std::string path =
+        std::string{reinterpret_cast<const char*>(generic.data()), generic.size()} +
+        "/DNLD_DATA_HNPFMS_L_" + std::to_string(number);
+    return rig.loader_host.fake_files().stat(path).has_value();
 }
 
 bool holds(adl::test::Rig& rig, const std::filesystem::path& directory, const std::string& name,
@@ -453,8 +464,13 @@ void LoaderModelTest::destroying_the_model_waits_for_the_engine() {
     hold.release();
     // The job is queued or running; the destructor aborts it and joins the thread. Nothing may
     // be left that calls back into the model, which AddressSanitizer would report.
+    QPointer<LoaderModel> watcher(model.get());
+    QVERIFY(model->busy());
     model.reset();
-    QVERIFY(true);
+    QVERIFY(watcher.isNull());
+    // The job did not run on after its model: the host's network is quiet, the target heard
+    // nothing more than the one request the aborted job may have sent.
+    QVERIFY(rig.target.log().init_requests_at.size() <= 1);
 }
 
 void LoaderModelTest::upload_sends_the_ticked_loads() {
@@ -1309,16 +1325,53 @@ void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() 
     QCOMPARE(rig.target.log().aborts_seen.size(), std::size_t{1});
     QVERIFY(log_contains(model, QStringLiteral("Finished: aborted by the operator")));
 
+    // Nothing was received, so the directory made for it was taken away again and the operator
+    // is not pointed at an empty one.
+    QVERIFY(!downloaded_directory_exists(rig, downloads.path(), 1));
+    QVERIFY(model.lastDownloadDirectory().isEmpty());
+
     // The cancellation of one job is not carried into the next: a media defined download runs
-    // to its end. (The cancelled download made DNLD_DATA_HNPFMS_L_1 when it started, so the
-    // next one is numbered 2: every download reserves its directory.)
+    // to its end, in the directory the cancelled one did not keep (number 1).
     rig.target.reset_operation();
     model.setDownloadMode(0);
     model.addDownloadFile(QStringLiteral("A.BIN"));
     model.downloadSelected();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QCOMPARE(model.resultState(), 1);
-    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 2));
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 1));
+}
+
+void LoaderModelTest::an_id_a_download_directory_cannot_be_named_after_is_refused() {
+    adl::test::Rig rig(download_plan());
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig));
+    model.setDownloadDirectory(download_dir_of(downloads));
+    model.setTargetAddress(QStringLiteral("10.0.0.2"));
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+
+    // An id the loader takes, and a directory is named after.
+    model.setThwIdPos(QStringLiteral("HNPFMS_L"));
+    QVERIFY(model.targetValid());
+    QVERIFY(model.canDownload());
+
+    // An id the loader refuses is not a target at all: not for a download, not for anything.
+    for (const char* id : {"a/b", "a\\b", "x\ty"}) {
+        model.setThwIdPos(QString::fromLatin1(id));
+        QVERIFY2(!model.targetValid(), id);
+        QVERIFY2(!model.canDownload(), id);
+        QVERIFY2(!model.canUpload(), id);
+    }
+
+    // An id the loader takes and no directory can be named after (a colon is an NTFS stream):
+    // the target is valid, a download from it is not, and pressing the button makes nothing.
+    model.setThwIdPos(QStringLiteral("HNP:FMS"));
+    QVERIFY(model.targetValid());
+    QVERIFY(!model.canDownload());
+    model.downloadSelected();
+    QVERIFY(!model.busy());
+    QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
+    QVERIFY(!std::filesystem::exists(downloads.path() / "DNLD_DATA_HNP:FMS_1"));
+    QVERIFY(!rig.loader_host.fake_files().stat(std::string{"/DNLD_DATA_HNP:FMS_1"}).has_value());
 }
 
 void LoaderModelTest::a_download_with_a_missing_file_ends_as_a_failure() {
@@ -1368,13 +1421,16 @@ void LoaderModelTest::abort_of_a_download_stops_it() {
     QVERIFY(model.resultDetail().contains(QStringLiteral("Files received: 0 of 1 requested.")));
     QVERIFY(log_contains(model, QStringLiteral("Finished: aborted by the operator")));
 
+    // It had received nothing, so it left no directory behind.
+    QVERIFY(!downloaded_directory_exists(rig, downloads.path(), 1));
+
     // The next download is not aborted by the last one's request.
     rig.target.reset_operation();
     model.downloadSelected();
     hold.release();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QCOMPARE(model.resultState(), 1);
-    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 2));
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 1));
 }
 
 // A FolderDialog's selectedFolder is a QUrl; assigned to the string property it arrives as

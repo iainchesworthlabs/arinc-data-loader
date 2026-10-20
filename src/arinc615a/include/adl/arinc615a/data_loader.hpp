@@ -248,12 +248,23 @@ struct Outcome {
 
 // ---- Set-up ----------------------------------------------------------------------------------
 
+// The longest <THW_ID_POS> the loader takes, so that the protocol files named after it
+// (<THW_ID_POS>.LCI and the others) stay within 254 characters.
+inline constexpr std::size_t max_thw_id_pos_length = 240;
+
+// Whether `id` can be the <THW_ID_POS> of a LoaderConfig: not empty, at most
+// max_thw_id_pos_length characters, and none of a control character, a '/' or a backslash, which would
+// make the name of a protocol file a path. DataLoader::start refuses anything else with
+// Error::invalid_value; a caller that makes something from the id first (a directory) asks
+// beforehand.
+[[nodiscard]] bool is_valid_thw_id_pos(std::string_view id) noexcept;
+
 // How the loader is set up: the target and the port the loader listens on, block
 // sizes, the time-outs and retries of Attachment 4, and the sizes of its buffers.
 struct LoaderConfig {
     // The target's TFTP control endpoint: its address and port 59.
     Endpoint target{{}, tftp_control_port};
-    // The <THW_ID_POS> of the target, as its protocol files are named (up to 240 characters).
+    // The <THW_ID_POS> of the target, as its protocol files are named (is_valid_thw_id_pos).
     std::string_view thw_id_pos;
     // The port the loader listens on for what the target starts. Anything but 59 is sent to the
     // target in the "port" option of the initialization request (5.3.2.3.8.6).

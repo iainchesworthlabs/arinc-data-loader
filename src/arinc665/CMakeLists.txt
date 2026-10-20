@@ -20,6 +20,7 @@ add_library(adl_arinc665 STATIC
     src/media_set.cpp
     src/naming.cpp
     src/part_number.cpp
+    src/portable_name.cpp
     src/sha1.cpp
     src/wire.cpp)
 add_library(adl::arinc665 ALIAS adl_arinc665)

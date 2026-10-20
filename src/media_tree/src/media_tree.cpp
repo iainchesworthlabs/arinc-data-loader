@@ -1,13 +1,14 @@
 #include "adl/media_tree/media_tree.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cstddef>
 #include <fstream>
 #include <set>
 #include <system_error>
 #include <tuple>
 #include <utility>
+
+#include "adl/arinc665/portable_name.hpp"
 
 #include <adl/profiling.hpp>
 
@@ -34,30 +35,6 @@ std::string lowered(std::string_view text) {
     return result;
 }
 
-// CON, PRN, AUX, NUL, COM1 to COM9 and LPT1 to LPT9, with or without an
-// extension: on Windows these are devices, whatever directory they are named in.
-bool is_device_name(std::string_view name) {
-    const std::string stem = lowered(name.substr(0, name.find('.')));
-    constexpr std::array<std::string_view, 4> plain{"con", "prn", "aux", "nul"};
-    if (std::find(plain.begin(), plain.end(), stem) != plain.end()) {
-        return true;
-    }
-    return stem.size() == 4 && (stem.starts_with("com") || stem.starts_with("lpt")) &&
-           stem[3] >= '1' && stem[3] <= '9';
-}
-
-// One directory or file name, as the header says.
-bool is_portable_name(std::string_view name) {
-    if (name.empty() || name == "." || name == ".." || name.back() == '.' || name.back() == ' ') {
-        return false;
-    }
-    constexpr std::string_view forbidden = "/\\:*?\"<>|";
-    const bool characters_ok = std::all_of(name.begin(), name.end(), [&](char c) {
-        return c >= 0x20 && c <= 0x7E && forbidden.find(c) == std::string_view::npos;
-    });
-    return characters_ok && !is_device_name(name);
-}
-
 // "\a\b\" as {"a", "b"}; "\" as {}.
 TreeResult<std::vector<std::string>> split_pathname(std::string_view pathname) {
     if (pathname.empty() || pathname.front() != '\\' || pathname.back() != '\\') {
@@ -68,7 +45,7 @@ TreeResult<std::vector<std::string>> split_pathname(std::string_view pathname) {
     while (start < pathname.size()) {
         const std::size_t end = pathname.find('\\', start);
         const std::string_view name = pathname.substr(start, end - start);
-        if (!is_portable_name(name)) {
+        if (!arinc665::is_portable_file_name(name)) {
             return fail(TreeError::invalid_pathname, fs::path{std::string{pathname}});
         }
         directories.emplace_back(name);
@@ -118,7 +95,7 @@ TreeResult<void> validate(std::span<const arinc665::MediaMember> members) {
             if (!directories) {
                 return std::unexpected(directories.error());
             }
-            if (!is_portable_name(file.name)) {
+            if (!arinc665::is_portable_file_name(file.name)) {
                 return fail(TreeError::invalid_file_name, fs::path{file.name});
             }
             if (!seen.insert(lowered(to_pathname(*directories) + file.name)).second) {
@@ -173,7 +150,7 @@ TreeResult<void> read_directory(const fs::path& directory, std::vector<std::stri
         }
         const fs::path path = it->path();
         const std::string name = path.filename().string();
-        if (!is_portable_name(name)) {
+        if (!arinc665::is_portable_file_name(name)) {
             return fail(TreeError::invalid_file_name, path);
         }
         const fs::file_status status = it->symlink_status(ec);

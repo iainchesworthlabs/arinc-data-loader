@@ -172,3 +172,39 @@ TEST_CASE("a handle that is not open is refused", "[engine][files]") {
     sink.discard(3);  // does nothing
     sink.discard(99);
 }
+
+// The target chooses the names of an operator defined download, so none of the names a host
+// treats specially may reach the file system, whichever host this is: the directory is portable.
+TEST_CASE("names a host treats specially are not safe", "[engine][files]") {
+    for (const std::string_view bad :
+         {"a:b", "a:b:$DATA", "file.txt::$DATA", "C:x", "NUL", "nul.txt", "CON", "con.log", "PRN",
+          "AUX", "COM1", "com9.bin", "LPT1", "lpt9.x", "CONIN$", "CONOUT$", "trailing.",
+          "trailing ", "a*b", "a?b", "a\"b", "a<b", "a>b", "a|b", "caf\xC3\xA9", "del\x7f",
+          // the suffix a file has while it is received
+          "x.part", "NOTES.part"}) {
+        CAPTURE(bad);
+        CHECK_FALSE(is_safe_file_name(bad));
+    }
+    for (const std::string_view fine : {"COMPORT.BIN", "NULL", "A B.TXT", "a.b.c", "x~1", ".hidden"}) {
+        CAPTURE(fine);
+        CHECK(is_safe_file_name(fine));
+    }
+}
+
+TEST_CASE("a sink writes nothing under a name a host treats specially", "[engine][files]") {
+    adl::fake::MemoryFileSystem files;
+    REQUIRE(files.make_directory("/dl"));
+    DirectoryFileSink sink(files, "/dl");
+    for (const std::string_view bad : {"a:b", "NUL", "con.txt", "COM1", "dot.", "pending.part"}) {
+        CAPTURE(bad);
+        const auto opened = sink.open(bad, std::nullopt);
+        REQUIRE_FALSE(opened);
+        CHECK(opened.error().error == IoError::access_denied);
+    }
+    std::size_t entries = 0;
+    REQUIRE(adl::platform::for_each_entry(files, "/dl", [&](std::string_view, auto) {
+        ++entries;
+        return true;
+    }));
+    CHECK(entries == 0);
+}

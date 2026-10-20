@@ -11,6 +11,7 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <string>
 
 #include <QList>
 #include <QObject>
@@ -136,13 +137,14 @@ private:
               const QString& download_directory = {});
     // Runs `operation` against the target and reports how it ended; the part the Information,
     // Upload and Download operations share. `listener`, `source` and `sink` live for the call;
-    // `download_directory` (when set) is the directory the files went into, for the summary.
+    // `download_path` (when set) is the directory made for a download's files (platform path):
+    // it is reported in the summary, or removed when nothing was received.
     // `media` (an upload's source) says if it refused a file that had changed since the check.
     void run_operation(adl::platform::Host& host, const adl::arinc615a::Address& target,
                        const QString& thw_id_pos, const adl::arinc615a::Operation& operation,
                        adl::arinc615a::OperationListener& listener,
                        adl::arinc615a::FileSource* source, adl::arinc615a::FileSink* sink,
-                       quint16 control_port, const QString& download_directory = {},
+                       quint16 control_port, const std::string& download_path = {},
                        const MediaTreeSource* media = nullptr);
     // The part the two Download modes share: the host, the DNLD_DATA directory and the runner.
     void run_download(const adl::arinc615a::Address& target, const QString& thw_id_pos,
