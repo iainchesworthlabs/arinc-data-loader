@@ -42,10 +42,10 @@ if(NOT DEFINED BRANCH_THRESHOLD)
 endif()
 # The applications' logic: a floor a little under what the suite measures (see pass 2).
 if(NOT DEFINED APP_LINE_THRESHOLD)
-    set(APP_LINE_THRESHOLD 60)
+    set(APP_LINE_THRESHOLD 80)
 endif()
 if(NOT DEFINED APP_BRANCH_THRESHOLD)
-    set(APP_BRANCH_THRESHOLD 30)
+    set(APP_BRANCH_THRESHOLD 66)
 endif()
 # Less than this in pass 2 means the pass looked at (almost) nothing.
 if(NOT DEFINED APP_MIN_LINES)
