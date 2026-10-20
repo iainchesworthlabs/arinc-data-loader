@@ -274,7 +274,8 @@ real time instead of as fast as the host allows.
 
 A smoke test of the platform layer on a Cortex-M3 under QEMU, built with the Zephyr SDK's own toolchain
 (GCC, picolibc, no exceptions), is `tools/ci/zephyr_qemu_smoke.sh`; it needs the SDK
-(`west sdk install --gnu-toolchains arm-zephyr-eabi`, then `ZEPHYR_SDK_INSTALL_DIR` pointing at it) as well as
+(`tools/ci/install_zephyr_sdk.sh <directory>`, which downloads and checks the pinned release files, then
+`ZEPHYR_SDK_INSTALL_DIR` pointing at the directory) as well as
 `ZEPHYR_BASE`, builds `tests/platform/zephyr_smoke` for `mps2/an385`, runs it in `qemu-system-arm` (the SDK's
 or the machine's) and exits 0 only if the program reported no failure.
 
