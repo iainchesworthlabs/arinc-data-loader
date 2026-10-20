@@ -63,16 +63,16 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
                 // One count to a sentence: the loads and the files are phrases of their own.
                 detail = Message::translated(
                     &LoaderModel::tr, QT_TR_NOOP("%1, %2, all check values verified"),
-                    {Message::translated(&LoaderModel::tr, QT_TR_NOOP("%n load(s)"), {},
+                    {Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n load(s)"), {},
                                          report.loads),
-                     Message::translated(&LoaderModel::tr, QT_TR_NOOP("%n file(s)"), {},
+                     Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n file(s)"), {},
                                          report.files)});
                 if (!report.findings.isEmpty()) {
                     detail = Message::sequence(
                         {detail,
                          Message::translated(
                              &LoaderModel::tr,
-                             QT_TR_NOOP("; %n warning(s) against the standard's recommendations"),
+                             QT_TR_N_NOOP("; %n warning(s) against the standard's recommendations"),
                              {}, static_cast<int>(report.findings.size()))});
                 }
             }
@@ -207,9 +207,9 @@ QString LoaderModel::mediaSetTitle() const {
     return Message::translated(
                &LoaderModel::tr, QT_TR_NOOP("%1: %2, %3"),
                {Message::verbatim(media_set_.part_number),
-                Message::translated(&LoaderModel::tr, QT_TR_NOOP("%n member(s)"), {},
+                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n member(s)"), {},
                                     media_set_.members),
-                Message::translated(&LoaderModel::tr, QT_TR_NOOP("%n load(s)"), {},
+                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n load(s)"), {},
                                     static_cast<int>(media_set_.loads.size()))})
         .text();
 }

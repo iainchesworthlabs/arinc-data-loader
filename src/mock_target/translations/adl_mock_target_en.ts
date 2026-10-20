@@ -6,25 +6,25 @@
     <message numerus="yes">
         <location filename="../qml/TargetWindow.qml" line="623"/>
         <source>%n ACTIVE</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n ACTIVE</numerusform>
+            <numerusform>%n ACTIVE</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location filename="../qml/TargetWindow.qml" line="885"/>
         <source>%n line(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n line</numerusform>
+            <numerusform>%n lines</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location filename="../qml/TargetWindow.qml" line="928"/>
         <source>%n file(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n file</numerusform>
+            <numerusform>%n files</numerusform>
         </translation>
     </message>
 </context>

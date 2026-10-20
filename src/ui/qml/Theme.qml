@@ -149,9 +149,16 @@ QtObject {
     readonly property real trackingTitle: -0.3 * fontScale
 
     // Archivo is bundled with each application and registered before the QML engine starts; the
-    // fallback keeps a build that has not registered it readable rather than blank.
+    // fallback keeps a build that has not registered it readable rather than blank. Archivo has no
+    // Hebrew letters, so a right-to-left window - the two right-to-left languages, Hebrew and
+    // Yiddish, are written in the Hebrew script - is set in the bundled Noto Sans Hebrew, which has
+    // Latin letters and digits too. (Chinese and Japanese come from the system's own fonts.)
     readonly property string headingFamily: {
-        return Qt.fontFamilies().indexOf("Archivo") >= 0 ? "Archivo" : Application.font.family;
+        const families = Qt.fontFamilies();
+        if (Qt.application.layoutDirection === Qt.RightToLeft
+                && families.indexOf("Noto Sans Hebrew") >= 0)
+            return "Noto Sans Hebrew";
+        return families.indexOf("Archivo") >= 0 ? "Archivo" : Application.font.family;
     }
     readonly property string monoFamily: {
         const installed = Qt.fontFamilies();

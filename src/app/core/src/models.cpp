@@ -227,9 +227,9 @@ QVariant LoadModel::data(const QModelIndex& index, int role) const {
             return Message::translated(
                        &LoadModel::tr, QT_TR_NOOP("%1 · %2, %3; for %4"),
                        {Message::verbatim(load.header_file),
-                        Message::translated(&LoadModel::tr, QT_TR_NOOP("%n data file(s)"), {},
+                        Message::translated(&LoadModel::tr, QT_TR_N_NOOP("%n data file(s)"), {},
                                             load.data_files),
-                        Message::translated(&LoadModel::tr, QT_TR_NOOP("%n support file(s)"), {},
+                        Message::translated(&LoadModel::tr, QT_TR_N_NOOP("%n support file(s)"), {},
                                             load.support_files),
                         targets})
                 .text();

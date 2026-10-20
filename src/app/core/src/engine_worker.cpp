@@ -350,7 +350,7 @@ public:
         Q_EMIT worker_.log_line(
             {Severity::info,
              Message::translated(&JobListener::tr,
-                                 QT_TR_NOOP("The target listed %n file(s) it can download."), {},
+                                 QT_TR_N_NOOP("The target listed %n file(s) it can download."), {},
                                  static_cast<int>(rows.size()))});
         Q_EMIT worker_.download_list(rows);
         // The operator chooses in the window; the choice comes back through the gate
@@ -505,7 +505,7 @@ void EngineWorker::find(const QString& destination) {
     summary.success = true;
     const int answer_count = static_cast<int>(found.size());
     summary.outcome =
-        Message::translated(&EngineWorker::tr, QT_TR_NOOP("%n target(s) answered"), {}, answer_count);
+        Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("%n target(s) answered"), {}, answer_count);
     Q_EMIT log_line(
         {Severity::info, Message::sequence({summary.outcome, Message::verbatim(QStringLiteral("."))})});
     Q_EMIT finished(summary);
@@ -573,7 +573,7 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
     JobListener listener(*this);
     Q_EMIT log_line({Severity::info,
                      Message::translated(&EngineWorker::tr,
-                                         QT_TR_NOOP("Uploading %n load(s) to %1 (%2)..."),
+                                         QT_TR_N_NOOP("Uploading %n load(s) to %1 (%2)..."),
                                          {Message::verbatim(address), Message::verbatim(thw_id_pos)},
                                          static_cast<int>(loads.size()))});
     run_operation(*lease->host, Address{*octets}, thw_id_pos,
@@ -614,7 +614,7 @@ void EngineWorker::download_media(const QString& address, const QString& thw_id_
     }
     Q_EMIT log_line({Severity::info,
                      Message::translated(&EngineWorker::tr,
-                                         QT_TR_NOOP("Downloading %n file(s) from %1 (%2)..."),
+                                         QT_TR_N_NOOP("Downloading %n file(s) from %1 (%2)..."),
                                          {Message::verbatim(address), Message::verbatim(thw_id_pos)},
                                          static_cast<int>(names.size()))});
     run_download(Address{*octets}, thw_id_pos,
@@ -742,9 +742,9 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
         const int failed = static_cast<int>(outcome->items_failed);
         summary.outcome =
             is_download ? Message::translated(&EngineWorker::tr,
-                                              QT_TR_NOOP("completed, %n file(s) failed"), {}, failed)
+                                              QT_TR_N_NOOP("completed, %n file(s) failed"), {}, failed)
                         : Message::translated(&EngineWorker::tr,
-                                              QT_TR_NOOP("completed, %n load(s) failed"), {}, failed);
+                                              QT_TR_N_NOOP("completed, %n load(s) failed"), {}, failed);
         if (is_download) {
             summary.hint = Hint::download();
         }
@@ -752,7 +752,7 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     if (missing_files) {
         const int missing = static_cast<int>(outcome->files_requested - outcome->files_received);
         summary.outcome = Message::translated(
-            &EngineWorker::tr, QT_TR_NOOP("completed, %n file(s) missing"), {}, missing);
+            &EngineWorker::tr, QT_TR_N_NOOP("completed, %n file(s) missing"), {}, missing);
         summary.hint = Hint::download();
     }
     if (outcome->code == OutcomeCode::aborted_by_operator) {
@@ -768,7 +768,7 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     }
     if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation)) {
         const Message served = Message::translated(
-            &EngineWorker::tr, QT_TR_NOOP("The target read %n file(s)."), {},
+            &EngineWorker::tr, QT_TR_N_NOOP("The target read %n file(s)."), {},
             static_cast<int>(outcome->files_served));
         summary.detail = summary.detail.isEmpty()
                              ? served
@@ -811,7 +811,7 @@ void EngineWorker::read_media_set(const QString& path) {
         const int loads = static_cast<int>(summary.loads.size());
         Q_EMIT log_line(
             {Severity::info,
-             Message::translated(&EngineWorker::tr, QT_TR_NOOP("Read media set %1: %n load(s)."),
+             Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("Read media set %1: %n load(s)."),
                                  {Message::verbatim(summary.part_number)}, loads)});
     } else {
         result.outcome = Message::verbatim(summary.error);
@@ -859,8 +859,8 @@ void EngineWorker::validate_media_set(const QString& path) {
              Message::translated(
                  &EngineWorker::tr, QT_TR_NOOP("Checked media set %1: %2, %3."),
                  {Message::verbatim(summary.part_number),
-                  Message::translated(&EngineWorker::tr, QT_TR_NOOP("%n load(s)"), {}, report.loads),
-                  Message::translated(&EngineWorker::tr, QT_TR_NOOP("%n file(s)"), {},
+                  Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("%n load(s)"), {}, report.loads),
+                  Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("%n file(s)"), {},
                                       report.files)})});
     } else {
         result.outcome = Message::verbatim(summary.error);

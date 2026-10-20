@@ -6,7 +6,7 @@
     <message>
         <location filename="../qml/AboutDialog.qml" line="+14"/>
         <source>ARINC Data Loader %1</source>
-        <translation type="unfinished"></translation>
+        <translation>טוען נתונים ARINC %1</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -16,33 +16,33 @@
     <message>
         <location line="+1"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>סגור</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
-        <translation type="unfinished"></translation>
+        <translation>קונסולת טעינה הנדסית לפי ARINC 615A ו-ARINC 665: ערכות מדיה, יעדים, הפעולות מידע, העלאה והורדה, והראיות למה שהתרחש.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Version</source>
-        <translation type="unfinished"></translation>
+        <translation>גרסה</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.</source>
-        <translation type="unfinished"></translation>
+        <translation>רכיבי צד שלישי - Qt (LGPL 3), גופן Archivo (SIL Open Font License 1.1) ואחרים - מפורטים, עם הרישיונות שלהם, תחת רישיונות.</translation>
     </message>
     <message>
         <location line="-55"/>
         <location line="+39"/>
         <source>Licences</source>
-        <translation type="unfinished"></translation>
+        <translation>רישיונות</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</source>
-        <translation type="unfinished"></translation>
+        <translation>תוכנה חופשית תחת GNU General Public License, גרסה 3 ואילך. היא מופצת ללא כל אחריות; ראו &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</translation>
     </message>
 </context>
 <context>
@@ -50,67 +50,67 @@
     <message>
         <location filename="../qml/ActivityDock.qml" line="+33"/>
         <source>ACTIVITY</source>
-        <translation type="unfinished"></translation>
+        <translation>פעילות</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>TARGET CONFIGURATION</source>
-        <translation type="unfinished"></translation>
+        <translation>תצורת יעד</translation>
     </message>
     <message>
         <location line="+53"/>
         <source>Clear</source>
-        <translation type="unfinished">נקה</translation>
+        <translation>נקה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Clear the activity log</source>
-        <translation type="unfinished">ניקוי יומן הפעילות</translation>
+        <translation>נקה את יומן הפעילות</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Read information</source>
-        <translation type="unfinished">קריאת מידע</translation>
+        <translation>קרא מידע</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Read the target information</source>
-        <translation type="unfinished">קריאת המידע של היעד</translation>
+        <translation>קרא את המידע מהיעד</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Hide</source>
-        <translation type="unfinished"></translation>
+        <translation>הסתר</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Show</source>
-        <translation type="unfinished"></translation>
+        <translation>הצג</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Collapse the evidence panel</source>
-        <translation type="unfinished"></translation>
+        <translation>כווץ את חלונית הראיות</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Expand the evidence panel</source>
-        <translation type="unfinished"></translation>
+        <translation>הרחב את חלונית הראיות</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>Target configuration</source>
-        <translation type="unfinished">תצורת היעד</translation>
+        <translation>תצורת יעד</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Nothing read yet</source>
-        <translation type="unfinished"></translation>
+        <translation>עדיין לא נקרא דבר</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Read information from the target to see its hardware and parts here.</source>
-        <translation type="unfinished"></translation>
+        <translation>יש לקרוא מידע מהיעד כדי לראות כאן את החומרה והחלקים שלו.</translation>
     </message>
 </context>
 <context>
@@ -118,7 +118,7 @@
     <message>
         <location filename="../core/src/engine_worker.cpp" line="+93"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
-        <translation type="unfinished">&quot;%1&quot; אינה כתובת IPv4.</translation>
+        <translation>&quot;%1&quot; אינה כתובת IPv4.</translation>
     </message>
 </context>
 <context>
@@ -126,17 +126,17 @@
     <message>
         <location line="+12"/>
         <source>%1 is not a directory</source>
-        <translation type="unfinished">%1 אינו תיקייה</translation>
+        <translation>%1 אינה ספרייה</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>cannot look at %1 (%2)</source>
-        <translation type="unfinished">לא ניתן לבחון את %1 (%2)</translation>
+        <translation>לא ניתן לגשת אל %1 (%2)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>cannot create %1 (%2)</source>
-        <translation type="unfinished">לא ניתן ליצור את %1 (%2)</translation>
+        <translation>לא ניתן ליצור את %1 (%2)</translation>
     </message>
 </context>
 <context>
@@ -159,9 +159,9 @@
     <message numerus="yes">
         <location line="+22"/>
         <source>%n file(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n קובץ</numerusform>
+            <numerusform>%n קבצים</numerusform>
         </translation>
     </message>
     <message>
@@ -183,9 +183,9 @@
         <location line="+92"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n קובץ מסומן</numerusform>
+            <numerusform>%n קבצים מסומנים</numerusform>
         </translation>
     </message>
     <message>
@@ -226,88 +226,88 @@
     <message>
         <location line="-218"/>
         <source>no target</source>
-        <translation type="unfinished">אין יעד</translation>
+        <translation>אין יעד</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+369"/>
         <source>Choose the download directory</source>
-        <translation type="unfinished">בחירת תיקיית ההורדות</translation>
+        <translation>בחר ספריית הורדה</translation>
     </message>
     <message>
         <location line="-339"/>
         <source>THE DOWNLOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>ההורדה</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Download from %1</source>
-        <translation type="unfinished"></translation>
+        <translation>הורדה מ-%1</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>RUNNING</source>
-        <translation type="unfinished"></translation>
+        <translation>פועל</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>READY</source>
-        <translation type="unfinished"></translation>
+        <translation>מוכן</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT READY</source>
-        <translation type="unfinished"></translation>
+        <translation>לא מוכן</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; directory.</source>
-        <translation type="unfinished"></translation>
+        <translation>כל הורדה כותבת ספריית DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; חדשה.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>מצב</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>MEDIA DEFINED</source>
-        <translation type="unfinished"></translation>
+        <translation>מוגדר על ידי המדיה</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>OPERATOR DEFINED</source>
-        <translation type="unfinished"></translation>
+        <translation>מוגדר על ידי המפעיל</translation>
     </message>
     <message>
         <location line="+26"/>
         <source>Name the files the target is to send; only those are requested.</source>
-        <translation type="unfinished"></translation>
+        <translation>יש לנקוב בשמות הקבצים שהיעד צריך לשלוח; רק הם יתבקשו.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>The target sends its list; tick the files to take, then send the choice back.</source>
-        <translation type="unfinished"></translation>
+        <translation>היעד שולח את הרשימה שלו; יש לסמן את הקבצים לקבלה ואז לשלוח את הבחירה בחזרה.</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Files</source>
-        <translation type="unfinished"></translation>
+        <translation>קבצים</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>File name, for example CONFIG.LDR</source>
-        <translation type="unfinished"></translation>
+        <translation>שם קובץ, לדוגמה CONFIG.LDR</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>No file named yet</source>
-        <translation type="unfinished"></translation>
+        <translation>עדיין לא צוין קובץ</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Name each file the target is to send. The target&apos;s own list is only used in the operator defined mode.</source>
-        <translation type="unfinished"></translation>
+        <translation>יש לנקוב בכל קובץ שהיעד צריך לשלוח. רשימת היעד עצמו משמשת רק במצב המוגדר על ידי המפעיל.</translation>
     </message>
     <message>
         <location line="+53"/>
@@ -317,83 +317,83 @@
     <message>
         <location line="+31"/>
         <source>The target&apos;s list</source>
-        <translation type="unfinished"></translation>
+        <translation>רשימת היעד</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Start the download: the target sends its list, tick what to take, and send the choice back.</source>
-        <translation type="unfinished"></translation>
+        <translation>התחל את ההורדה: היעד שולח את הרשימה שלו, יש לסמן מה לקחת ולשלוח את הבחירה בחזרה.</translation>
     </message>
     <message>
         <location line="+97"/>
         <source>Destination</source>
-        <translation type="unfinished"></translation>
+        <translation>מיקום שמירה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>LAST DOWNLOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>ההורדה האחרונה</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT WRITTEN YET</source>
-        <translation type="unfinished"></translation>
+        <translation>טרם נכתב</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>No download directory set</source>
-        <translation type="unfinished"></translation>
+        <translation>לא הוגדרה ספריית הורדה</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Change...</source>
-        <translation type="unfinished"></translation>
+        <translation>שנה...</translation>
     </message>
     <message>
         <location line="+8"/>
         <location line="+55"/>
         <source>Open folder</source>
-        <translation type="unfinished"></translation>
+        <translation>פתח ספרייה</translation>
     </message>
     <message>
         <location line="-53"/>
         <source>Open the last download directory</source>
-        <translation type="unfinished"></translation>
+        <translation>פתח את ספריית ההורדה האחרונה</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>The last download was written to %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>ההורדה האחרונה נכתבה אל %1.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>A new numbered directory is made for every download, even one that is aborted.</source>
-        <translation type="unfinished"></translation>
+        <translation>לכל הורדה נוצרת ספרייה ממוספרת חדשה, גם להורדה שהופסקה.</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>COMPLETE</source>
-        <translation type="unfinished"></translation>
+        <translation>הושלם</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>FAILED</source>
-        <translation type="unfinished"></translation>
+        <translation>נכשל</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Open the download folder</source>
-        <translation type="unfinished"></translation>
+        <translation>פתח את ספריית ההורדה</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Target %1 · %2</source>
-        <translation type="unfinished"></translation>
+        <translation>יעד %1 · %2</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>no directory</source>
-        <translation type="unfinished"></translation>
+        <translation>אין ספרייה</translation>
     </message>
 </context>
 <context>
@@ -407,72 +407,72 @@
     <message>
         <location line="-161"/>
         <source>FIRST RUN</source>
-        <translation type="unfinished"></translation>
+        <translation>הפעלה ראשונה</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Load a media set to a target.</source>
-        <translation type="unfinished"></translation>
+        <translation>טען ערכת מדיה אל יעד.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>The loader reads an ARINC 665 media set, checks every file and its check value, and moves the loads you tick to an ARINC 615A target. Nothing is sent until you ask it to.</source>
-        <translation type="unfinished"></translation>
+        <translation>הטוען קורא ערכת מדיה של ARINC 665, בודק כל קובץ ואת ערך הבדיקה שלו, ומעביר את ה-Loads שסומנו אל יעד ARINC 615A. דבר אינו נשלח עד שמבקשים זאת.</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Start loading</source>
-        <translation type="unfinished"></translation>
+        <translation>התחל טעינה</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Choose a media set...</source>
-        <translation type="unfinished"></translation>
+        <translation>בחר ערכת מדיה...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Choose the first media set</source>
-        <translation type="unfinished"></translation>
+        <translation>בחר את ערכת המדיה הראשונה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Opens the media set chooser and the workbench together</source>
-        <translation type="unfinished"></translation>
+        <translation>פותח יחד את בורר ערכות המדיה ואת סביבת העבודה</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Start loading opens the workbench with these defaults. A media set can be chosen there, or here.</source>
-        <translation type="unfinished"></translation>
+        <translation>התחלת הטעינה פותחת את סביבת העבודה עם ברירות המחדל האלה. ניתן לבחור ערכת מדיה שם או כאן.</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>ברירות מחדל</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Hide</source>
-        <translation type="unfinished"></translation>
+        <translation>הסתר</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Set up defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>הגדר ברירות מחדל</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Hide the default settings</source>
-        <translation type="unfinished"></translation>
+        <translation>הסתר את הגדרות ברירת המחדל</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show the default settings</source>
-        <translation type="unfinished"></translation>
+        <translation>הצג את הגדרות ברירת המחדל</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>These are the values the workbench starts from. They can be changed later in Preferences.</source>
-        <translation type="unfinished"></translation>
+        <translation>אלה הערכים שמהם סביבת העבודה מתחילה. ניתן לשנותם מאוחר יותר בהעדפות.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -518,77 +518,77 @@
     <message>
         <location line="+22"/>
         <source>WHAT THIS WINDOW DOES</source>
-        <translation type="unfinished"></translation>
+        <translation>מה החלון הזה עושה</translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Choose a media set</source>
-        <translation type="unfinished"></translation>
+        <translation>בחר ערכת מדיה</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>A directory with one directory per member. Its loads, files and findings are read and checked.</source>
-        <translation type="unfinished"></translation>
+        <translation>ספרייה עם ספרייה אחת לכל חבר. ה-Loads, הקבצים והממצאים שלה נקראים ונבדקים.</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Find the target</source>
-        <translation type="unfinished"></translation>
+        <translation>מצא את היעד</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>FIND broadcasts for three seconds. A target that does not answer can be named by IPv4 address and THW_ID_POS.</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND משדר למשך שלוש שניות. יעד שאינו עונה ניתן לציין לפי כתובת IPv4 ו-THW_ID_POS.</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Upload or download</source>
-        <translation type="unfinished"></translation>
+        <translation>העלאה או הורדה</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The operations run on the engine&apos;s own thread, with progress, an abort and an activity log that keeps what the target said.</source>
-        <translation type="unfinished"></translation>
+        <translation>הפעולות רצות בשרשור משלהן של המנוע, עם התקדמות, אפשרות הפסקה ויומן פעילות ששומר את מה שהיעד אמר.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>THE THREE TOOLS</source>
-        <translation type="unfinished"></translation>
+        <translation>שלושת הכלים</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>the loader</source>
-        <translation type="unfinished"></translation>
+        <translation>הטוען</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Reads a media set, talks to the target, and keeps the evidence.</source>
-        <translation type="unfinished"></translation>
+        <translation>קורא ערכת מדיה, מתקשר עם היעד, ושומר את הראיות.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>the media set generator</source>
-        <translation type="unfinished"></translation>
+        <translation>מחולל ערכות המדיה</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Turns files into the ARINC 665 tree this window opens.</source>
-        <translation type="unfinished"></translation>
+        <translation>הופך קבצים לעץ ARINC 665 שחלון זה פותח.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>the target</source>
-        <translation type="unfinished"></translation>
+        <translation>היעד</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Serves a 615A dialogue over real sockets, and can be made to misbehave.</source>
-        <translation type="unfinished"></translation>
+        <translation>מגיש דיאלוג 615A על גבי סוקטים אמיתיים, וניתן לגרום לו להתנהג שלא כראוי.</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The same system draws the media set generator and the mock target, so the three tools read alike.</source>
-        <translation type="unfinished"></translation>
+        <translation>אותה מערכת גרפית מציירת את מחולל ערכות המדיה ואת היעד המדומה, כך ששלושת הכלים נראים דומים.</translation>
     </message>
     <message>
         <location line="-385"/>
@@ -601,37 +601,37 @@
     <message>
         <location filename="../core/src/engine_worker.cpp" line="-72"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
-        <translation type="unfinished">בחרו את התיקייה שאליה נכתבה ערכת המדיה, וודאו שכל קובץ של הערכה עדיין נמצא בה.</translation>
+        <translation>יש לבחור את הספרייה שאליה נכתבה ערכת המדיה, ולוודא שכל קבצי הערכה עדיין בה.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
-        <translation type="unfinished">הטוען לא הצליח להשתמש ברשת או בפורט שלו. בדקו שאין עותק אחר של הטוען פועל, ושאין תוכנית אחרת תופסת את פורט הבקרה (העדפות).</translation>
+        <translation>הטוען לא הצליח להשתמש ברשת או ביציאה שלו. יש לוודא שאין עותק נוסף של הטוען שפועל, ושאף תוכנית אחרת אינה מחזיקה ביציאת הבקרה (העדפות).</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Enter the target&apos;s IPv4 address as four numbers of 0 to 255 separated by dots, for example 10.0.0.2.</source>
-        <translation type="unfinished">הזינו את כתובת ה-IPv4 של היעד כארבעה מספרים מ-0 עד 255 המופרדים בנקודות, לדוגמה 10.0.0.2.</translation>
+        <translation>יש להזין את כתובת ה-IPv4 של היעד כארבעה מספרים בין 0 ל-255 המופרדים בנקודות, לדוגמה 10.0.0.2.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
-        <translation type="unfinished">בחרו תיקיית הורדות שקיימת או שניתן ליצור אותה, וודאו שניתן לכתוב בה (העדפות).</translation>
+        <translation>יש לבחור ספריית הורדה שקיימת או שניתן ליצור, ולוודא שניתן לכתוב אליה (העדפות).</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed.</source>
-        <translation type="unfinished">היעד לא החזיר את כל הקבצים שהתבקשו. בדקו את השמות מול מה שהיעד יכול לספק, ושאלו אותו מדוע קובץ נכשל.</translation>
+        <translation>היעד לא החזיר את כל הקבצים שהתבקשו. יש לבדוק את השמות מול מה שהיעד יכול לספק, ולשאול אותו מדוע קובץ נכשל.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
-        <translation type="unfinished">ציינו את הקובץ כפי שהיעד מכיר אותו: שם פשוט באורך של עד 254 תווים, ללא נתיב.</translation>
+        <translation>יש לנקוב בקובץ כפי שהיעד מכיר אותו: שם פשוט של 254 תווים לכל היותר, ללא נתיב.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>The target may still be loading; ask it what it is doing before trying again.</source>
-        <translation type="unfinished">ייתכן שהיעד עדיין טוען; שאלו אותו מה הוא עושה לפני ניסיון נוסף.</translation>
+        <translation>ייתכן שהיעד עדיין טוען; יש לשאול אותו מה הוא עושה לפני שמנסים שוב.</translation>
     </message>
 </context>
 <context>
@@ -639,7 +639,7 @@
     <message>
         <location filename="../core/src/host_access.cpp" line="+24"/>
         <source>The system services could not be started (%1).</source>
-        <translation type="unfinished">לא ניתן היה להפעיל את שירותי המערכת (%1).</translation>
+        <translation>לא ניתן היה להפעיל את שירותי המערכת (%1).</translation>
     </message>
 </context>
 <context>
@@ -647,58 +647,61 @@
     <message>
         <location filename="../core/src/engine_worker.cpp" line="+122"/>
         <source>The target answered: %1</source>
-        <translation type="unfinished">היעד ענה: %1</translation>
+        <translation>היעד השיב: %1</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Status %1: %2</source>
-        <translation type="unfinished">מצב %1: %2</translation>
+        <translation>סטטוס %1: %2</translation>
     </message>
     <message>
         <location line="+11"/>
         <location line="+39"/>
         <source>Status %1: %2, %3% of the list</source>
-        <translation type="unfinished">מצב %1: %2, %3% מהרשימה</translation>
+        <translation>סטטוס %1: %2, %3% מהרשימה</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>The target failed load %1 (%2)%3</source>
-        <translation type="unfinished">היעד נכשל במטען %1 (%2)%3</translation>
+        <translation>היעד נכשל ב-Load %1 (%2)%3</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>The target failed file %1%2</source>
-        <translation type="unfinished">היעד נכשל בקובץ %1%2</translation>
+        <translation>היעד נכשל בקובץ %1%2</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>The target read %1 (%2 bytes)</source>
-        <translation type="unfinished">היעד קרא %1 (%2 בייטים)</translation>
+        <translation>היעד קרא את %1 (%2 בתים)</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Received %1 (%2 bytes)</source>
-        <translation type="unfinished">התקבל %1 (%2 בייטים)</translation>
+        <translation>התקבל %1 (%2 בתים)</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>serial number %1</source>
-        <translation type="unfinished">מספר סידורי %1</translation>
+        <translation>מספר סידורי %1</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The target listed its configuration.</source>
-        <translation type="unfinished">היעד הציג את התצורה שלו.</translation>
+        <translation>היעד פירט את התצורה שלו.</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+14"/>
         <source>The target listed %n file(s) it can download.</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>היעד פירט %n קובץ שניתן להוריד.</numerusform>
+            <numerusform>היעד פירט %n קבצים שניתן להוריד.</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+16"/>
         <source>, about %1 s left</source>
-        <translation type="unfinished">, נותרו כ-%1 שנ׳</translation>
+        <translation>, נותרו כ-%1 s</translation>
     </message>
 </context>
 <context>
@@ -729,72 +732,72 @@
     <message>
         <location line="-118"/>
         <source>Ready to address.</source>
-        <translation type="unfinished"></translation>
+        <translation>הכתובת מוכנה.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type an address or use FIND.</source>
-        <translation type="unfinished"></translation>
+        <translation>יש להקליד כתובת או להשתמש ב-FIND.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>MEDIA SET</source>
-        <translation type="unfinished"></translation>
+        <translation>ערכת מדיה</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>NOT CHOSEN</source>
-        <translation type="unfinished"></translation>
+        <translation>לא נבחרה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>CHECKING</source>
-        <translation type="unfinished"></translation>
+        <translation>בודק</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>CHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>נבדק</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>INVALID</source>
-        <translation type="unfinished"></translation>
+        <translation>לא תקין</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>UNCHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>לא נבדק</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Choose...</source>
-        <translation type="unfinished"></translation>
+        <translation>בחר...</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Change...</source>
-        <translation type="unfinished"></translation>
+        <translation>שנה...</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>No media set chosen</source>
-        <translation type="unfinished"></translation>
+        <translation>לא נבחרה ערכת מדיה</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Choose a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>יש לבחור ספרייה עם ספרייה אחת לכל חבר. היא נקראת ונבדקת לפני העלאה.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Re-check</source>
-        <translation type="unfinished"></translation>
+        <translation>בדוק שוב</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Check the media set again</source>
-        <translation type="unfinished"></translation>
+        <translation>בדוק שוב את ערכת המדיה</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -819,145 +822,145 @@
     <message>
         <location line="-377"/>
         <source>WORKING</source>
-        <translation type="unfinished"></translation>
+        <translation>עובד</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>SETUP</source>
-        <translation type="unfinished"></translation>
+        <translation>הגדרה</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+888"/>
         <source>READY</source>
-        <translation type="unfinished"></translation>
+        <translation>מוכן</translation>
     </message>
     <message>
         <location line="-888"/>
         <location line="+888"/>
         <source>NOT READY</source>
-        <translation type="unfinished"></translation>
+        <translation>לא מוכן</translation>
     </message>
     <message>
         <location line="-874"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
-        <translation type="unfinished"></translation>
+        <translation>העלאה דורשת ערכת מדיה שנבדקה, Load אחד מסומן לפחות ויעד.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Ready to download from %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>מוכן להורדה מ-%1.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Download needs a target, a destination and - in media defined mode - a file name.</source>
-        <translation type="unfinished"></translation>
+        <translation>הורדה דורשת יעד, מיקום שמירה, ובמצב המוגדר על ידי המדיה גם שם קובץ.</translation>
     </message>
     <message>
         <location line="+62"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
-        <translation type="unfinished"></translation>
+        <translation>ARINC 615A · ARINC 665 · קונסולת טעינה הנדסית</translation>
     </message>
     <message>
         <location line="+9"/>
         <location line="+94"/>
         <source>Preferences</source>
-        <translation type="unfinished">העדפות</translation>
+        <translation>העדפות</translation>
     </message>
     <message>
         <location line="-92"/>
         <source>Open preferences</source>
-        <translation type="unfinished"></translation>
+        <translation>פתח את ההעדפות</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>אודות</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>About the data loader</source>
-        <translation type="unfinished"></translation>
+        <translation>אודות טוען הנתונים</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Complete</source>
-        <translation type="unfinished"></translation>
+        <translation>הושלם</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed</source>
-        <translation type="unfinished"></translation>
+        <translation>נכשל</translation>
     </message>
     <message>
         <location line="+44"/>
         <source>v%1</source>
-        <translation type="unfinished"></translation>
+        <translation>v%1</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Media set properties</source>
-        <translation type="unfinished">מאפייני ערכת המדיה</translation>
+        <translation>מאפייני ערכת המדיה</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Target properties</source>
-        <translation type="unfinished">מאפייני היעד</translation>
+        <translation>מאפייני היעד</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>About ARINC Data Loader</source>
-        <translation type="unfinished">אודות ARINC Data Loader</translation>
+        <translation>אודות טוען נתונים ARINC</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>An operation is running</source>
-        <translation type="unfinished"></translation>
+        <translation>פעולה מתבצעת</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Stop and close</source>
-        <translation type="unfinished"></translation>
+        <translation>עצור וסגור</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Keep working</source>
-        <translation type="unfinished"></translation>
+        <translation>המשך לעבוד</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
-        <translation type="unfinished"></translation>
+        <translation>הסגירה כעת מבקשת מהיעד לעצור. ייתכן שהיעד יזדקק עד 13 שניות לאישור, והחלון יישאר פתוח עד שיאשר.</translation>
     </message>
     <message>
         <location line="+26"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>אישור</translation>
     </message>
     <message>
         <location line="+99"/>
         <source>TARGET</source>
-        <translation type="unfinished"></translation>
+        <translation>יעד</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>SET</source>
-        <translation type="unfinished"></translation>
+        <translation>הוגדר</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT SET</source>
-        <translation type="unfinished"></translation>
+        <translation>לא הוגדר</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Find</source>
-        <translation type="unfinished"></translation>
+        <translation>מצא</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>ADDRESS</source>
-        <translation type="unfinished"></translation>
+        <translation>כתובת</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -987,12 +990,12 @@
     <message>
         <location line="+10"/>
         <source>FOUND</source>
-        <translation type="unfinished"></translation>
+        <translation>נמצא</translation>
     </message>
     <message>
         <location line="+63"/>
         <source>SELECTED</source>
-        <translation type="unfinished"></translation>
+        <translation>נבחר</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1002,73 +1005,73 @@
     <message numerus="yes">
         <location line="+89"/>
         <source>%n member(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n חבר</numerusform>
+            <numerusform>%n חברים</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+2"/>
         <source>%n load(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
         </translation>
     </message>
     <message>
         <location line="+46"/>
         <source>LOADS</source>
-        <translation type="unfinished"></translation>
+        <translation>Loads</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>All</source>
-        <translation type="unfinished"></translation>
+        <translation>הכול</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Tick every load</source>
-        <translation type="unfinished"></translation>
+        <translation>סמן את כל ה-Loads</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>None</source>
-        <translation type="unfinished"></translation>
+        <translation>ללא</translation>
     </message>
     <message>
         <location line="+114"/>
         <source>Show fewer</source>
-        <translation type="unfinished"></translation>
+        <translation>הצג פחות</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show all warnings</source>
-        <translation type="unfinished"></translation>
+        <translation>הצג את כל האזהרות</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Reading and checking the set...</source>
-        <translation type="unfinished"></translation>
+        <translation>קורא ובודק את הערכה...</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Every file and check value was read and verified.</source>
-        <translation type="unfinished"></translation>
+        <translation>כל קובץ וערך בדיקה נקראו ואומתו.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>TRANSFER</source>
-        <translation type="unfinished"></translation>
+        <translation>העברה</translation>
     </message>
     <message>
         <location line="+164"/>
         <source>Downloading...</source>
-        <translation type="unfinished"></translation>
+        <translation>מוריד...</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Download from the target</source>
-        <translation type="unfinished">הורדה מהיעד</translation>
+        <translation>הורדה מהיעד</translation>
     </message>
     <message>
         <location line="-157"/>
@@ -1095,48 +1098,48 @@
     <message numerus="yes">
         <location line="-1001"/>
         <source>Ready: %n load(s) to %1</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>מוכן: %n Load אל %1</numerusform>
+            <numerusform>מוכן: %n Loads אל %1</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+748"/>
         <source>%n WARNING(S)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n אזהרה</numerusform>
+            <numerusform>%n אזהרות</numerusform>
         </translation>
     </message>
     <message>
         <location line="+114"/>
         <source>Transfer operation</source>
-        <translation type="unfinished"></translation>
+        <translation>פעולת העברה</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>RUNNING</source>
-        <translation type="unfinished"></translation>
+        <translation>פועל</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>COMPLETE</source>
-        <translation type="unfinished"></translation>
+        <translation>הושלם</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>FAILED</source>
-        <translation type="unfinished"></translation>
+        <translation>נכשל</translation>
     </message>
     <message>
         <location line="+105"/>
         <source>working</source>
-        <translation type="unfinished"></translation>
+        <translation>עובד</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Uploading...</source>
-        <translation type="unfinished"></translation>
+        <translation>מעלה...</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1179,7 +1182,7 @@
     <message>
         <location line="+1"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>סגור</translation>
     </message>
     <message>
         <location line="+16"/>
@@ -1200,13 +1203,13 @@
         <location line="+4"/>
         <location line="+32"/>
         <source>Loads</source>
-        <translation type="unfinished"></translation>
+        <translation>Loads</translation>
     </message>
     <message>
         <location line="-27"/>
         <location line="+68"/>
         <source>Files</source>
-        <translation type="unfinished"></translation>
+        <translation>קבצים</translation>
     </message>
     <message>
         <location line="-63"/>
@@ -1216,56 +1219,56 @@
     <message>
         <location line="+8"/>
         <source>No media set chosen</source>
-        <translation type="unfinished"></translation>
+        <translation>לא נבחרה ערכת מדיה</translation>
     </message>
     <message numerus="yes">
         <location line="+15"/>
         <source>%n load(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+41"/>
         <source>%n file(s) from FILES.LUM</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n קובץ מתוך FILES.LUM</numerusform>
+            <numerusform>%n קבצים מתוך FILES.LUM</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+101"/>
         <source>%n WARNING(S)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n אזהרה</numerusform>
+            <numerusform>%n אזהרות</numerusform>
         </translation>
     </message>
     <message>
         <location line="-92"/>
         <source>NAME</source>
-        <translation type="unfinished"></translation>
+        <translation>שם</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>MEMBER</source>
-        <translation type="unfinished"></translation>
+        <translation>חבר</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>PATH</source>
-        <translation type="unfinished"></translation>
+        <translation>נתיב</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>CRC</source>
-        <translation type="unfinished"></translation>
+        <translation>CRC</translation>
     </message>
     <message>
         <location line="+76"/>
         <source>Deviations from the standard&apos;s recommendations. They are shown, and do not block an upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>סטיות מהמלצות התקן. הן מוצגות ואינן חוסמות העלאה.</translation>
     </message>
 </context>
 <context>
@@ -1278,18 +1281,18 @@
     <message>
         <location line="+1"/>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>שמור</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>ביטול</translation>
     </message>
     <message>
         <location line="+43"/>
         <location line="+202"/>
         <source>Choose the download directory</source>
-        <translation type="unfinished">בחירת תיקיית ההורדות</translation>
+        <translation>בחר ספריית הורדה</translation>
     </message>
     <message>
         <location line="-187"/>
@@ -1304,37 +1307,37 @@
     <message>
         <location line="+15"/>
         <source>The window follows the desktop&apos;s light or dark scheme. Language applies at once; everything else on Save.</source>
-        <translation type="unfinished"></translation>
+        <translation>החלון עוקב אחר ערכת הנושא הבהירה או הכהה של שולחן העבודה. השפה חלה מיד; כל השאר עם השמירה.</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
-        <translation type="unfinished"></translation>
+        <translation>לפני פעולה ללא יעד שנבחר, הרץ FIND וקח את התשובה היחידה; אם אין תשובה או שיש כמה, הצג את התוצאה והמתן.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>A set has to pass the check before an upload. With this off, use &apos;Re-check&apos; in the media set rail.</source>
-        <translation type="unfinished"></translation>
+        <translation>ערכה חייבת לעבור את הבדיקה לפני העלאה. כשהאפשרות כבויה, יש להשתמש ב&apos;בדוק שוב&apos; בסרגל ערכת המדיה.</translation>
     </message>
     <message>
         <location line="+80"/>
         <source>Browse...</source>
-        <translation type="unfinished">עיון...</translation>
+        <translation>עיון...</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>The directory is where each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; directory is made.</source>
-        <translation type="unfinished"></translation>
+        <translation>הספרייה היא המקום שבו נוצרת כל ספריית DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt;.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Activity lines kept</source>
-        <translation type="unfinished"></translation>
+        <translation>שורות פעילות שנשמרות</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Save applies these choices. Cancel and Esc leave them as they were.</source>
-        <translation type="unfinished"></translation>
+        <translation>שמירה מחילה את הבחירות האלה. ביטול ו-Esc משאירים אותן כפי שהיו.</translation>
     </message>
     <message>
         <location line="-201"/>
@@ -1438,12 +1441,12 @@
     <message>
         <location line="+1"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>סגור</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Addressing</source>
-        <translation type="unfinished"></translation>
+        <translation>כתובות</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1495,7 +1498,7 @@
     <message>
         <location line="+13"/>
         <source>No target was chosen from a FIND answer. The address and THW_ID_POS are the values typed in the rail.</source>
-        <translation type="unfinished"></translation>
+        <translation>לא נבחר יעד מתשובת FIND. הכתובת וה-THW_ID_POS הם הערכים שהוקלדו בסרגל.</translation>
     </message>
 </context>
 <context>
@@ -1503,304 +1506,304 @@
     <message>
         <location filename="../qml/UploadPanel.qml" line="+22"/>
         <source>no target</source>
-        <translation type="unfinished">אין יעד</translation>
+        <translation>אין יעד</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>CHECKING</source>
-        <translation type="unfinished"></translation>
+        <translation>בודק</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>CHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>נבדק</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>INVALID</source>
-        <translation type="unfinished"></translation>
+        <translation>לא תקין</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>NOT CHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>לא נבדק</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>An operation is running</source>
-        <translation type="unfinished"></translation>
+        <translation>פעולה מתבצעת</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Checking the media set</source>
-        <translation type="unfinished"></translation>
+        <translation>בודק את ערכת המדיה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Choose a media set first</source>
-        <translation type="unfinished"></translation>
+        <translation>יש לבחור קודם ערכת מדיה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>The media set is not valid</source>
-        <translation type="unfinished"></translation>
+        <translation>ערכת המדיה אינה תקינה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Check the media set</source>
-        <translation type="unfinished">בדיקת ערכת המדיה</translation>
+        <translation>בדוק את ערכת המדיה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Tick at least one load</source>
-        <translation type="unfinished"></translation>
+        <translation>יש לסמן Load אחד לפחות</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Choose or find a target</source>
-        <translation type="unfinished"></translation>
+        <translation>יש לבחור יעד או למצוא אותו</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Ready to upload</source>
-        <translation type="unfinished"></translation>
+        <translation>מוכן להעלאה</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Wait for it to finish, or stop it from the action bar.</source>
-        <translation type="unfinished"></translation>
+        <translation>יש להמתין לסיומה, או לעצור אותה מסרגל הפעולות.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Every file and its check value is being read; an upload needs the check to pass.</source>
-        <translation type="unfinished"></translation>
+        <translation>כל קובץ וערך הבדיקה שלו נקראים כעת; העלאה דורשת שהבדיקה תעבור.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>A media set is a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>ערכת מדיה היא ספרייה עם ספרייה אחת לכל חבר. היא נקראת ונבדקת לפני העלאה.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Read the set again, or choose another directory.</source>
-        <translation type="unfinished"></translation>
+        <translation>יש לקרוא את הערכה שוב, או לבחור ספרייה אחרת.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>The set has to be read again and checked before it may be uploaded.</source>
-        <translation type="unfinished"></translation>
+        <translation>יש לקרוא את הערכה שוב ולבדוק אותה לפני שניתן להעלות אותה.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Use the check boxes in the media set rail. Nothing is sent until at least one load is ticked.</source>
-        <translation type="unfinished"></translation>
+        <translation>יש להשתמש בתיבות הסימון בסרגל ערכת המדיה. דבר אינו נשלח עד שמסומן Load אחד לפחות.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>FIND, or type the target&apos;s IPv4 address and THW_ID_POS.</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND, או הקלדת כתובת ה-IPv4 של היעד ו-THW_ID_POS.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>The target, the set, the ticked loads and the check are all in place.</source>
-        <translation type="unfinished"></translation>
+        <translation>היעד, הערכה, ה-Loads המסומנים והבדיקה כולם במקומם.</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>THE UPLOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>ההעלאה</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Upload 1 load to %1</source>
-        <translation type="unfinished"></translation>
+        <translation>העלה Load אחד אל %1</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Upload %1 loads to %2</source>
-        <translation type="unfinished"></translation>
+        <translation>העלה %1 Loads אל %2</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>RUNNING</source>
-        <translation type="unfinished"></translation>
+        <translation>פועל</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>READY</source>
-        <translation type="unfinished"></translation>
+        <translation>מוכן</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT READY</source>
-        <translation type="unfinished"></translation>
+        <translation>לא מוכן</translation>
     </message>
     <message numerus="yes">
         <location line="+8"/>
         <location line="+43"/>
         <source>%n member(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n חבר</numerusform>
+            <numerusform>%n חברים</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="-41"/>
         <location line="+127"/>
         <source>%n load(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="-76"/>
         <source>%n warning(s) from the check</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n אזהרה מהבדיקה</numerusform>
+            <numerusform>%n אזהרות מהבדיקה</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+248"/>
         <source>%n load(s) ticked</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Load מסומן</numerusform>
+            <numerusform>%n Loads מסומנים</numerusform>
         </translation>
     </message>
     <message>
         <location line="-298"/>
         <source>No media set selected</source>
-        <translation type="unfinished"></translation>
+        <translation>לא נבחרה ערכת מדיה</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Target</source>
-        <translation type="unfinished">יעד</translation>
+        <translation>יעד</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>FIND on start</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND בהפעלה</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+13"/>
         <source>Not chosen</source>
-        <translation type="unfinished"></translation>
+        <translation>לא נבחר</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>FIND or type an address</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND או הקלדת כתובת</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+23"/>
         <source>SET</source>
-        <translation type="unfinished"></translation>
+        <translation>הוגדר</translation>
     </message>
     <message>
         <location line="-21"/>
         <source>AUTO</source>
-        <translation type="unfinished"></translation>
+        <translation>אוטומטי</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>MISSING</source>
-        <translation type="unfinished"></translation>
+        <translation>חסר</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Media set</source>
-        <translation type="unfinished">ערכת מדיה</translation>
+        <translation>ערכת מדיה</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Choose a directory</source>
-        <translation type="unfinished"></translation>
+        <translation>בחר ספרייה</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Loads</source>
-        <translation type="unfinished"></translation>
+        <translation>Loads</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>%1 of %2 ticked</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 מתוך %2 מסומנים</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>NONE</source>
-        <translation type="unfinished"></translation>
+        <translation>אין</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>Choose media set</source>
-        <translation type="unfinished"></translation>
+        <translation>בחר ערכת מדיה</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Check the set</source>
-        <translation type="unfinished"></translation>
+        <translation>בדוק את הערכה</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Find targets</source>
-        <translation type="unfinished">איתור יעדים</translation>
+        <translation>מצא יעדים</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Payload</source>
-        <translation type="unfinished"></translation>
+        <translation>מטען</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>LOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>Load</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>CONTENTS</source>
-        <translation type="unfinished"></translation>
+        <translation>תוכן</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>STATUS</source>
-        <translation type="unfinished"></translation>
+        <translation>סטטוס</translation>
     </message>
     <message>
         <location line="+59"/>
         <location line="+56"/>
         <source>FAILED</source>
-        <translation type="unfinished"></translation>
+        <translation>נכשל</translation>
     </message>
     <message>
         <location line="-56"/>
         <source>TICKED</source>
-        <translation type="unfinished"></translation>
+        <translation>מסומן</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>No load is ticked. The media set rail lists every load and its check box.</source>
-        <translation type="unfinished"></translation>
+        <translation>אין Load מסומן. סרגל ערכת המדיה מפרט כל Load ואת תיבת הסימון שלו.</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>COMPLETE</source>
-        <translation type="unfinished"></translation>
+        <translation>הושלם</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Target %1 · %2 · %3</source>
-        <translation type="unfinished"></translation>
+        <translation>יעד %1 · %2 · %3</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>no media set</source>
-        <translation type="unfinished">אין ערכת מדיה</translation>
+        <translation>אין ערכת מדיה</translation>
     </message>
 </context>
 <context>
@@ -1809,234 +1812,234 @@
         <location filename="../core/src/wording.cpp" line="+18"/>
         <location line="+59"/>
         <source>running</source>
-        <translation type="unfinished"></translation>
+        <translation>פועל</translation>
     </message>
     <message>
         <location line="-57"/>
         <location line="+35"/>
         <source>completed</source>
-        <translation type="unfinished"></translation>
+        <translation>הושלם</translation>
     </message>
     <message>
         <location line="-33"/>
         <source>denied by the target</source>
-        <translation type="unfinished"></translation>
+        <translation>נדחה על ידי היעד</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>not supported by the target</source>
-        <translation type="unfinished"></translation>
+        <translation>אינו נתמך על ידי היעד</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+41"/>
         <source>aborted by the operator</source>
-        <translation type="unfinished"></translation>
+        <translation>הופסק על ידי המפעיל</translation>
     </message>
     <message>
         <location line="-39"/>
         <location line="+37"/>
         <source>aborted by the data loader</source>
-        <translation type="unfinished"></translation>
+        <translation>הופסק על ידי טוען הנתונים</translation>
     </message>
     <message>
         <location line="-35"/>
         <location line="+33"/>
         <source>aborted by the target</source>
-        <translation type="unfinished"></translation>
+        <translation>הופסק על ידי היעד</translation>
     </message>
     <message>
         <location line="-31"/>
         <source>unsupported protocol version</source>
-        <translation type="unfinished"></translation>
+        <translation>גרסת פרוטוקול לא נתמכת</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>a file transfer failed</source>
-        <translation type="unfinished"></translation>
+        <translation>העברת קובץ נכשלה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>data load protocol time-out</source>
-        <translation type="unfinished"></translation>
+        <translation>תם הזמן של פרוטוקול טעינת הנתונים</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>the target was silent longer than its exception timer</source>
-        <translation type="unfinished"></translation>
+        <translation>היעד שתק יותר מטיימר החריגה שלו</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+50"/>
         <source>protocol error</source>
-        <translation type="unfinished"></translation>
+        <translation>שגיאת פרוטוקול</translation>
     </message>
     <message>
         <location line="-48"/>
         <source>local error</source>
-        <translation type="unfinished"></translation>
+        <translation>שגיאה מקומית</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+54"/>
         <location line="+35"/>
         <source>unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>לא ידוע</translation>
     </message>
     <message>
         <location line="-83"/>
         <source>accepted</source>
-        <translation type="unfinished"></translation>
+        <translation>התקבל</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>in progress</source>
-        <translation type="unfinished"></translation>
+        <translation>בתהליך</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>in progress, with details</source>
-        <translation type="unfinished"></translation>
+        <translation>בתהליך, עם פרטים</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>denied</source>
-        <translation type="unfinished"></translation>
+        <translation>נדחה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>not supported</source>
-        <translation type="unfinished"></translation>
+        <translation>אינו נתמך</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>failed</source>
-        <translation type="unfinished"></translation>
+        <translation>נכשל</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>unknown status code</source>
-        <translation type="unfinished"></translation>
+        <translation>קוד סטטוס לא ידוע</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>succeeded</source>
-        <translation type="unfinished"></translation>
+        <translation>הצליח</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>timed out</source>
-        <translation type="unfinished"></translation>
+        <translation>תם הזמן</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>the peer sent an error</source>
-        <translation type="unfinished"></translation>
+        <translation>הצד השני שלח שגיאה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>the peer aborted</source>
-        <translation type="unfinished"></translation>
+        <translation>הצד השני הפסיק</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>the peer asked to wait</source>
-        <translation type="unfinished"></translation>
+        <translation>הצד השני ביקש להמתין</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>options refused</source>
-        <translation type="unfinished"></translation>
+        <translation>האפשרויות נדחו</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>transfer size mismatch</source>
-        <translation type="unfinished"></translation>
+        <translation>אי-התאמה בגודל ההעברה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>local file error</source>
-        <translation type="unfinished"></translation>
+        <translation>שגיאת קובץ מקומי</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>aborted</source>
-        <translation type="unfinished"></translation>
+        <translation>הופסק</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>status files lost</source>
-        <translation type="unfinished"></translation>
+        <translation>קובצי הסטטוס אבדו</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>status file repeated</source>
-        <translation type="unfinished"></translation>
+        <translation>קובץ סטטוס חזר על עצמו</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>status file out of order</source>
-        <translation type="unfinished"></translation>
+        <translation>קובץ סטטוס שלא לפי הסדר</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>status file transfer failed</source>
-        <translation type="unfinished"></translation>
+        <translation>העברת קובץ הסטטוס נכשלה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>checksum did not match</source>
-        <translation type="unfinished"></translation>
+        <translation>ערך הבדיקה לא תאם</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>checksum algorithm not supported</source>
-        <translation type="unfinished"></translation>
+        <translation>אלגוריתם ערך הבדיקה אינו נתמך</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>file not available</source>
-        <translation type="unfinished"></translation>
+        <translation>הקובץ אינו זמין</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>request refused</source>
-        <translation type="unfinished"></translation>
+        <translation>הבקשה נדחתה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>transfer failed</source>
-        <translation type="unfinished"></translation>
+        <translation>ההעברה נכשלה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>target asked to wait</source>
-        <translation type="unfinished"></translation>
+        <translation>היעד ביקש להמתין</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>options refused, asked again without them</source>
-        <translation type="unfinished"></translation>
+        <translation>האפשרויות נדחו, הבקשה נשלחה שוב בלעדיהן</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>port option not taken by the target</source>
-        <translation type="unfinished"></translation>
+        <translation>היעד לא קיבל את אפשרות היציאה</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>requested files missing</source>
-        <translation type="unfinished"></translation>
+        <translation>קבצים שהתבקשו חסרים</translation>
     </message>
     <message>
         <location line="+20"/>
         <source> (%1 s)</source>
-        <translation type="unfinished"> (%1 שנ׳)</translation>
+        <translation> (%1 s)</translation>
     </message>
     <message>
         <location line="+4"/>
         <source> (port %1)</source>
-        <translation type="unfinished"> (פורט %1)</translation>
+        <translation> (יציאה %1)</translation>
     </message>
 </context>
 <context>
@@ -2064,10 +2067,13 @@
         <source>FIND could not run (%1).</source>
         <translation>לא ניתן היה להריץ FIND (%1).</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+23"/>
         <source>%n target(s) answered</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n יעד ענה</numerusform>
+            <numerusform>%n יעדים ענו</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+21"/>
@@ -2084,10 +2090,13 @@
         <source>No load was chosen.</source>
         <translation>לא נבחר מטען.</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+26"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>מעלה %n Load אל %1 (%2)...</numerusform>
+            <numerusform>מעלה %n Loads אל %1 (%2)...</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+18"/>
@@ -2099,30 +2108,45 @@
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>&quot;%1&quot; אינו שם קובץ בטוח.</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+13"/>
         <source>Downloading %n file(s) from %1 (%2)...</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>מוריד %n קובץ מ-%1 (%2)...</numerusform>
+            <numerusform>מוריד %n קבצים מ-%1 (%2)...</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+128"/>
         <source>completed, %n file(s) failed</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>הושלם, %n קובץ נכשל</numerusform>
+            <numerusform>הושלם, %n קבצים נכשלו</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+2"/>
         <source>completed, %n load(s) failed</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>הושלם, %n Load נכשל</numerusform>
+            <numerusform>הושלם, %n Loads נכשלו</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+8"/>
         <source>completed, %n file(s) missing</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>הושלם, %n קובץ חסר</numerusform>
+            <numerusform>הושלם, %n קבצים חסרים</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+16"/>
         <source>The target read %n file(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>היעד קרא %n קובץ.</numerusform>
+            <numerusform>היעד קרא %n קבצים.</numerusform>
+        </translation>
     </message>
     <message>
         <location line="-135"/>
@@ -2157,7 +2181,7 @@
     <message>
         <location line="+139"/>
         <source>Checked media set %1: %2, %3.</source>
-        <translation type="unfinished"></translation>
+        <translation>נבדקה ערכת המדיה %1: %2, %3.</translation>
     </message>
     <message>
         <location line="-98"/>
@@ -2189,10 +2213,13 @@
         <source>media set read</source>
         <translation>ערכת המדיה נקראה</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+4"/>
         <source>Read media set %1: %n load(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>נקראה ערכת המדיה %1: %n Load.</numerusform>
+            <numerusform>נקראה ערכת המדיה %1: %n Loads.</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2209,15 +2236,21 @@
         <source>media set checked</source>
         <translation>ערכת המדיה נבדקה</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+8"/>
         <source>%n load(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+1"/>
         <source>%n file(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n קובץ</numerusform>
+            <numerusform>%n קבצים</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2230,22 +2263,28 @@
     <message>
         <location filename="../core/src/models.cpp" line="-313"/>
         <source>no target ID</source>
-        <translation type="unfinished"></translation>
+        <translation>אין מזהה יעד</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>%1 · %2, %3; for %4</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 · %2, %3; עבור %4</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+2"/>
         <source>%n data file(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n קובץ נתונים</numerusform>
+            <numerusform>%n קובצי נתונים</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+2"/>
         <source>%n support file(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n קובץ תמיכה</numerusform>
+            <numerusform>%n קובצי תמיכה</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+115"/>
@@ -2258,23 +2297,32 @@
     <message>
         <location filename="../core/src/loader_model.cpp" line="+65"/>
         <source>%1, %2, all check values verified</source>
-        <translation type="unfinished"></translation>
+        <translation>%1, %2, כל ערכי הבדיקה אומתו</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+1"/>
         <location line="+146"/>
         <source>%n load(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="-144"/>
         <source>%n file(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n קובץ</numerusform>
+            <numerusform>%n קבצים</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+7"/>
         <source>; %n warning(s) against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>; %n אזהרה מול המלצות התקן</numerusform>
+            <numerusform>; %n אזהרות מול המלצות התקן</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+61"/>
@@ -2316,12 +2364,15 @@
     <message>
         <location line="+58"/>
         <source>%1: %2, %3</source>
-        <translation type="unfinished"></translation>
+        <translation>%1: %2, %3</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+2"/>
         <source>%n member(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n חבר</numerusform>
+            <numerusform>%n חברים</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+304"/>

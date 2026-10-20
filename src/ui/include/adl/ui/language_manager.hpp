@@ -10,8 +10,9 @@
 namespace adl::ui {
 
 // Owns an application's translators, the persisted language preference, and what a language
-// switch touches: the installed translators and the layout direction (right to left for the
-// scripts that read that way), then QQmlEngine::retranslate() so the running window follows. The
+// switch touches: the installed translators, the layout direction (right to left for the
+// scripts that read that way) and the typeface (the Hebrew script needs its own), then
+// QQmlEngine::retranslate() so the running window follows. The
 // three applications share it, so one picker in one place behaves the same in each.
 //
 // Three catalogues are installed for a language: Qt's own (the standard dialogs), the shared
@@ -58,6 +59,9 @@ Q_SIGNALS:
 
 private:
     void installTranslators(const QString& code);
+    // The application's typeface for the language: Noto Sans Hebrew for Hebrew and Yiddish, which
+    // Archivo cannot draw.
+    void applyFont(const QString& code);
 
     QGuiApplication& app_;
     QQmlEngine& engine_;

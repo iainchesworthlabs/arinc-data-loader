@@ -130,7 +130,7 @@ endfunction()
 
 # ---- third-party notices ----------------------------------------------------
 # The file About > Licences shows and the build places beside the executables: what this build
-# ships from others (Qt under the LGPL, the Archivo typeface under the OFL, the runtime files
+# ships from others (Qt under the LGPL, the Archivo and Noto Sans Hebrew typefaces under the OFL, the runtime files
 # Qt's deployment tool adds, Tracy in a profiling build), each with the text of its terms. Written
 # once per configure by the first application that asks, from the versions CMake knows, and
 # embedded in every application as :/adl/notices/NOTICES.txt (notices/README.md says how to add a
@@ -174,6 +174,7 @@ function(adl_generate_ui_notices)
         FILES
             "LGPL3=${ADL_UI_NOTICES_DIR}/licences/LGPL-3.0.txt"
             "OFL=${ADL_UI_FONT_DIR}/OFL.txt"
+            "OFL_NOTO_HEBREW=${ADL_UI_FONT_DIR}/NotoSansHebrew-OFL.txt"
             "MESA_MIT=${ADL_UI_NOTICES_DIR}/licences/MIT-mesa.txt"
             "DXC_NCSA=${ADL_UI_NOTICES_DIR}/licences/NCSA-dxc.txt"
             "TRACY_BSD=${ADL_UI_NOTICES_DIR}/licences/BSD-3-Clause-Tracy.txt")
@@ -316,7 +317,12 @@ function(adl_add_ui_support target)
             "${ADL_UI_FONT_DIR}/Archivo-Medium.ttf"
             "${ADL_UI_FONT_DIR}/Archivo-SemiBold.ttf"
             "${ADL_UI_FONT_DIR}/Archivo-ExtraBold.ttf"
-            "${ADL_UI_FONT_DIR}/OFL.txt")
+            "${ADL_UI_FONT_DIR}/NotoSansHebrew-Regular.ttf"
+            "${ADL_UI_FONT_DIR}/NotoSansHebrew-Medium.ttf"
+            "${ADL_UI_FONT_DIR}/NotoSansHebrew-SemiBold.ttf"
+            "${ADL_UI_FONT_DIR}/NotoSansHebrew-ExtraBold.ttf"
+            "${ADL_UI_FONT_DIR}/OFL.txt"
+            "${ADL_UI_FONT_DIR}/NotoSansHebrew-OFL.txt")
     get_property(_adl_ui_qm_files GLOBAL PROPERTY ADL_UI_QM_FILES)
     set_source_files_properties(${_adl_ui_qm_files} PROPERTIES GENERATED TRUE)
     qt_add_resources(${target} "${target}_adl_ui_i18n"

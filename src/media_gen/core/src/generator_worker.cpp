@@ -366,19 +366,19 @@ void GeneratorWorker::generate(const GenerateJob& job) {
     // One count to a sentence: the files and the members are phrases of their own.
     outcome.detail = Message::translated(
         &GeneratorWorker::tr, QT_TR_NOOP("%1, %2, %3 bytes in %4, in %5."),
-        {Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("%n data file(s)"), {},
+        {Message::translated(&GeneratorWorker::tr, QT_TR_N_NOOP("%n data file(s)"), {},
                              outcome.data_files),
-         Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("%n support file(s)"), {},
+         Message::translated(&GeneratorWorker::tr, QT_TR_N_NOOP("%n support file(s)"), {},
                              outcome.support_files),
          Message::verbatim(QString::number(outcome.total_bytes)),
-         Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("%n member(s)"), {}, outcome.members),
+         Message::translated(&GeneratorWorker::tr, QT_TR_N_NOOP("%n member(s)"), {}, outcome.members),
          Message::verbatim(outcome.output_path)});
     if (!outcome.findings.isEmpty()) {
         outcome.detail = Message::sequence(
             {outcome.detail, Message::verbatim(QStringLiteral(" ")),
              Message::translated(
                  &GeneratorWorker::tr,
-                 QT_TR_NOOP("%n difference(s) from the standard's recommendations."), {},
+                 QT_TR_N_NOOP("%n difference(s) from the standard's recommendations."), {},
                  static_cast<int>(outcome.findings.size()))});
     }
     Q_EMIT progress(100);

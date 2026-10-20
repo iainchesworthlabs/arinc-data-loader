@@ -6,7 +6,7 @@
     <message>
         <location filename="../qml/AboutDialog.qml" line="+14"/>
         <source>ARINC Data Loader %1</source>
-        <translation type="unfinished"></translation>
+        <translation>ARINC Data Loader %1</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -16,33 +16,33 @@
     <message>
         <location line="+1"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Schließen</translation>
     </message>
     <message>
         <location line="+19"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eine Engineering-Ladekonsole für ARINC 615A und ARINC 665: Mediensets, Zielgeräte, die Operationen Information, Upload und Download sowie der Nachweis dessen, was geschehen ist.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Version</source>
-        <translation type="unfinished"></translation>
+        <translation>Version</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.</source>
-        <translation type="unfinished"></translation>
+        <translation>Komponenten von Drittanbietern - Qt (LGPL 3), die Schriftart Archivo (SIL Open Font License 1.1) und weitere - sind mit ihren Lizenzen unter „Lizenzen“ aufgeführt.</translation>
     </message>
     <message>
         <location line="-55"/>
         <location line="+39"/>
         <source>Licences</source>
-        <translation type="unfinished"></translation>
+        <translation>Lizenzen</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</source>
-        <translation type="unfinished"></translation>
+        <translation>Freie Software unter der GNU General Public License, Version 3 oder später. Sie wird OHNE JEDE GEWÄHRLEISTUNG vertrieben; siehe &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</translation>
     </message>
 </context>
 <context>
@@ -50,67 +50,67 @@
     <message>
         <location filename="../qml/ActivityDock.qml" line="+33"/>
         <source>ACTIVITY</source>
-        <translation type="unfinished"></translation>
+        <translation>AKTIVITÄT</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>TARGET CONFIGURATION</source>
-        <translation type="unfinished"></translation>
+        <translation>ZIELGERÄTEKONFIGURATION</translation>
     </message>
     <message>
         <location line="+53"/>
         <source>Clear</source>
-        <translation type="unfinished">Löschen</translation>
+        <translation>Leeren</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Clear the activity log</source>
-        <translation type="unfinished">Das Aktivitätsprotokoll löschen</translation>
+        <translation>Aktivitätsprotokoll leeren</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Read information</source>
-        <translation type="unfinished">Informationen lesen</translation>
+        <translation>Information lesen</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Read the target information</source>
-        <translation type="unfinished">Die Zielinformationen lesen</translation>
+        <translation>Information des Zielgeräts lesen</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Hide</source>
-        <translation type="unfinished"></translation>
+        <translation>Ausblenden</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Show</source>
-        <translation type="unfinished"></translation>
+        <translation>Einblenden</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Collapse the evidence panel</source>
-        <translation type="unfinished"></translation>
+        <translation>Nachweisbereich einklappen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Expand the evidence panel</source>
-        <translation type="unfinished"></translation>
+        <translation>Nachweisbereich ausklappen</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>Target configuration</source>
-        <translation type="unfinished">Zielkonfiguration</translation>
+        <translation>Zielgerätekonfiguration</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>Nothing read yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Noch nichts gelesen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Read information from the target to see its hardware and parts here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Information vom Zielgerät lesen, um dessen Hardware und Teile hier anzuzeigen.</translation>
     </message>
 </context>
 <context>
@@ -118,7 +118,7 @@
     <message>
         <location filename="../core/src/engine_worker.cpp" line="+93"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
-        <translation type="unfinished">&quot;%1&quot; ist keine IPv4-Adresse.</translation>
+        <translation>„%1“ ist keine IPv4-Adresse.</translation>
     </message>
 </context>
 <context>
@@ -126,17 +126,17 @@
     <message>
         <location line="+12"/>
         <source>%1 is not a directory</source>
-        <translation type="unfinished">%1 ist kein Verzeichnis</translation>
+        <translation>%1 ist kein Verzeichnis</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>cannot look at %1 (%2)</source>
-        <translation type="unfinished">%1 kann nicht eingesehen werden (%2)</translation>
+        <translation>Zugriff auf %1 nicht möglich (%2)</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>cannot create %1 (%2)</source>
-        <translation type="unfinished">%1 kann nicht erstellt werden (%2)</translation>
+        <translation>%1 kann nicht erstellt werden (%2)</translation>
     </message>
 </context>
 <context>
@@ -159,9 +159,9 @@
     <message numerus="yes">
         <location line="+22"/>
         <source>%n file(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Datei</numerusform>
+            <numerusform>%n Dateien</numerusform>
         </translation>
     </message>
     <message>
@@ -183,9 +183,9 @@
         <location line="+92"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Datei markiert</numerusform>
+            <numerusform>%n Dateien markiert</numerusform>
         </translation>
     </message>
     <message>
@@ -226,88 +226,88 @@
     <message>
         <location line="-218"/>
         <source>no target</source>
-        <translation type="unfinished">kein Ziel</translation>
+        <translation>kein Zielgerät</translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+369"/>
         <source>Choose the download directory</source>
-        <translation type="unfinished">Download-Verzeichnis wählen</translation>
+        <translation>Download-Verzeichnis wählen</translation>
     </message>
     <message>
         <location line="-339"/>
         <source>THE DOWNLOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>DER DOWNLOAD</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Download from %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Download von %1</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>RUNNING</source>
-        <translation type="unfinished"></translation>
+        <translation>LÄUFT</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>READY</source>
-        <translation type="unfinished"></translation>
+        <translation>BEREIT</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT READY</source>
-        <translation type="unfinished"></translation>
+        <translation>NICHT BEREIT</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; directory.</source>
-        <translation type="unfinished"></translation>
+        <translation>Jeder Download schreibt ein neues Verzeichnis DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Modus</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>MEDIA DEFINED</source>
-        <translation type="unfinished"></translation>
+        <translation>MEDIENDEFINIERT</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>OPERATOR DEFINED</source>
-        <translation type="unfinished"></translation>
+        <translation>BEDIENERDEFINIERT</translation>
     </message>
     <message>
         <location line="+26"/>
         <source>Name the files the target is to send; only those are requested.</source>
-        <translation type="unfinished"></translation>
+        <translation>Die Dateien benennen, die das Zielgerät senden soll; nur diese werden angefordert.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>The target sends its list; tick the files to take, then send the choice back.</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Zielgerät sendet seine Liste; die gewünschten Dateien markieren und die Auswahl zurücksenden.</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Dateien</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>File name, for example CONFIG.LDR</source>
-        <translation type="unfinished"></translation>
+        <translation>Dateiname, z. B. CONFIG.LDR</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>No file named yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Noch keine Datei benannt</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Name each file the target is to send. The target&apos;s own list is only used in the operator defined mode.</source>
-        <translation type="unfinished"></translation>
+        <translation>Jede Datei benennen, die das Zielgerät senden soll. Die eigene Liste des Zielgeräts wird nur im bedienerdefinierten Modus verwendet.</translation>
     </message>
     <message>
         <location line="+53"/>
@@ -317,83 +317,83 @@
     <message>
         <location line="+31"/>
         <source>The target&apos;s list</source>
-        <translation type="unfinished"></translation>
+        <translation>Liste des Zielgeräts</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Start the download: the target sends its list, tick what to take, and send the choice back.</source>
-        <translation type="unfinished"></translation>
+        <translation>Download starten: Das Zielgerät sendet seine Liste, die gewünschten Dateien markieren und die Auswahl zurücksenden.</translation>
     </message>
     <message>
         <location line="+97"/>
         <source>Destination</source>
-        <translation type="unfinished"></translation>
+        <translation>Speicherort</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>LAST DOWNLOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>LETZTER DOWNLOAD</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT WRITTEN YET</source>
-        <translation type="unfinished"></translation>
+        <translation>NOCH NICHT GESCHRIEBEN</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>No download directory set</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Download-Verzeichnis festgelegt</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Change...</source>
-        <translation type="unfinished"></translation>
+        <translation>Ändern...</translation>
     </message>
     <message>
         <location line="+8"/>
         <location line="+55"/>
         <source>Open folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Ordner öffnen</translation>
     </message>
     <message>
         <location line="-53"/>
         <source>Open the last download directory</source>
-        <translation type="unfinished"></translation>
+        <translation>Letztes Download-Verzeichnis öffnen</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>The last download was written to %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Der letzte Download wurde nach %1 geschrieben.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>A new numbered directory is made for every download, even one that is aborted.</source>
-        <translation type="unfinished"></translation>
+        <translation>Für jeden Download wird ein neues nummeriertes Verzeichnis angelegt, auch bei einem abgebrochenen.</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>COMPLETE</source>
-        <translation type="unfinished"></translation>
+        <translation>ABGESCHLOSSEN</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>FAILED</source>
-        <translation type="unfinished"></translation>
+        <translation>FEHLGESCHLAGEN</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Open the download folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Download-Ordner öffnen</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Target %1 · %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Zielgerät %1 · %2</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>no directory</source>
-        <translation type="unfinished"></translation>
+        <translation>kein Verzeichnis</translation>
     </message>
 </context>
 <context>
@@ -407,72 +407,72 @@
     <message>
         <location line="-161"/>
         <source>FIRST RUN</source>
-        <translation type="unfinished"></translation>
+        <translation>ERSTER START</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Load a media set to a target.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein Medienset auf ein Zielgerät laden.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>The loader reads an ARINC 665 media set, checks every file and its check value, and moves the loads you tick to an ARINC 615A target. Nothing is sent until you ask it to.</source>
-        <translation type="unfinished"></translation>
+        <translation>Der Loader liest ein Medienset nach ARINC 665, prüft jede Datei und ihren Prüfwert und überträgt die markierten Loads auf ein Zielgerät nach ARINC 615A. Gesendet wird erst auf Anforderung.</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Start loading</source>
-        <translation type="unfinished"></translation>
+        <translation>Laden starten</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Choose a media set...</source>
-        <translation type="unfinished"></translation>
+        <translation>Medienset wählen...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Choose the first media set</source>
-        <translation type="unfinished"></translation>
+        <translation>Erstes Medienset wählen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Opens the media set chooser and the workbench together</source>
-        <translation type="unfinished"></translation>
+        <translation>Öffnet die Medienset-Auswahl und den Arbeitsbereich gemeinsam</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Start loading opens the workbench with these defaults. A media set can be chosen there, or here.</source>
-        <translation type="unfinished"></translation>
+        <translation>„Laden starten“ öffnet den Arbeitsbereich mit diesen Standardwerten. Ein Medienset kann dort oder hier gewählt werden.</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Standardwerte</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Hide</source>
-        <translation type="unfinished"></translation>
+        <translation>Ausblenden</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Set up defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Standardwerte einrichten</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Hide the default settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Standardeinstellungen ausblenden</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show the default settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Standardeinstellungen anzeigen</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>These are the values the workbench starts from. They can be changed later in Preferences.</source>
-        <translation type="unfinished"></translation>
+        <translation>Mit diesen Werten startet der Arbeitsbereich. Sie lassen sich später in den Einstellungen ändern.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -518,77 +518,77 @@
     <message>
         <location line="+22"/>
         <source>WHAT THIS WINDOW DOES</source>
-        <translation type="unfinished"></translation>
+        <translation>WAS DIESES FENSTER TUT</translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Choose a media set</source>
-        <translation type="unfinished"></translation>
+        <translation>Medienset wählen</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>A directory with one directory per member. Its loads, files and findings are read and checked.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein Verzeichnis mit je einem Verzeichnis pro Mitglied. Seine Loads, Dateien und Befunde werden gelesen und geprüft.</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Find the target</source>
-        <translation type="unfinished"></translation>
+        <translation>Zielgerät finden</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>FIND broadcasts for three seconds. A target that does not answer can be named by IPv4 address and THW_ID_POS.</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND sendet drei Sekunden lang einen Broadcast. Ein Zielgerät, das nicht antwortet, kann über IPv4-Adresse und THW_ID_POS angegeben werden.</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Upload or download</source>
-        <translation type="unfinished"></translation>
+        <translation>Upload oder Download</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The operations run on the engine&apos;s own thread, with progress, an abort and an activity log that keeps what the target said.</source>
-        <translation type="unfinished"></translation>
+        <translation>Die Operationen laufen im eigenen Thread der Engine, mit Fortschritt, Abbruch und einem Aktivitätsprotokoll, das festhält, was das Zielgerät gesagt hat.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>THE THREE TOOLS</source>
-        <translation type="unfinished"></translation>
+        <translation>DIE DREI WERKZEUGE</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>the loader</source>
-        <translation type="unfinished"></translation>
+        <translation>der Loader</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Reads a media set, talks to the target, and keeps the evidence.</source>
-        <translation type="unfinished"></translation>
+        <translation>Liest ein Medienset, kommuniziert mit dem Zielgerät und hält den Nachweis fest.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>the media set generator</source>
-        <translation type="unfinished"></translation>
+        <translation>der Medienset-Generator</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Turns files into the ARINC 665 tree this window opens.</source>
-        <translation type="unfinished"></translation>
+        <translation>Wandelt Dateien in die Verzeichnisstruktur nach ARINC 665 um, die dieses Fenster öffnet.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>the target</source>
-        <translation type="unfinished"></translation>
+        <translation>der Zielgeräte-Simulator</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Serves a 615A dialogue over real sockets, and can be made to misbehave.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bedient einen 615A-Dialog über echte Sockets und kann gezielt Fehlverhalten zeigen.</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The same system draws the media set generator and the mock target, so the three tools read alike.</source>
-        <translation type="unfinished"></translation>
+        <translation>Dasselbe System zeichnet den Medienset-Generator und den Zielgeräte-Simulator, daher sehen die drei Werkzeuge gleich aus.</translation>
     </message>
     <message>
         <location line="-385"/>
@@ -601,37 +601,37 @@
     <message>
         <location filename="../core/src/engine_worker.cpp" line="-72"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
-        <translation type="unfinished">Wählen Sie das Verzeichnis, in das der Mediensatz geschrieben wurde, und stellen Sie sicher, dass jede Datei des Satzes noch darin vorhanden ist.</translation>
+        <translation>Das Verzeichnis wählen, in das das Medienset geschrieben wurde, und sicherstellen, dass alle Dateien des Sets noch darin liegen.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
-        <translation type="unfinished">Der Lader konnte das Netzwerk oder seinen Port nicht nutzen. Prüfen Sie, ob keine andere Kopie des Laders läuft und ob kein anderes Programm den Steuerport belegt (Einstellungen).</translation>
+        <translation>Der Loader konnte das Netzwerk oder seinen Port nicht verwenden. Prüfen, ob keine andere Instanz des Loaders läuft und kein anderes Programm den Steuerport belegt (Einstellungen).</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Enter the target&apos;s IPv4 address as four numbers of 0 to 255 separated by dots, for example 10.0.0.2.</source>
-        <translation type="unfinished">Geben Sie die IPv4-Adresse des Ziels als vier durch Punkte getrennte Zahlen von 0 bis 255 ein, zum Beispiel 10.0.0.2.</translation>
+        <translation>Die IPv4-Adresse des Zielgeräts als vier durch Punkte getrennte Zahlen von 0 bis 255 eingeben, z. B. 10.0.0.2.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
-        <translation type="unfinished">Wählen Sie ein Download-Verzeichnis, das existiert oder erstellt werden kann, und stellen Sie sicher, dass es beschreibbar ist (Einstellungen).</translation>
+        <translation>Ein Download-Verzeichnis wählen, das existiert oder angelegt werden kann und beschreibbar ist (Einstellungen).</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed.</source>
-        <translation type="unfinished">Das Ziel hat nicht jede angeforderte Datei zurückgegeben. Prüfen Sie die Namen anhand der Dateien, die das Ziel liefern kann, und fragen Sie es, warum eine Datei fehlgeschlagen ist.</translation>
+        <translation>Das Zielgerät hat nicht alle angeforderten Dateien zurückgegeben. Die Namen mit dem abgleichen, was das Zielgerät liefern kann, und beim Zielgerät nachfragen, warum eine Datei fehlgeschlagen ist.</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
-        <translation type="unfinished">Geben Sie die Datei so an, wie das Ziel sie kennt: ein reiner Name mit höchstens 254 Zeichen, ohne Pfad.</translation>
+        <translation>Die Datei so benennen, wie das Zielgerät sie kennt: ein einfacher Name mit höchstens 254 Zeichen, ohne Pfad.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>The target may still be loading; ask it what it is doing before trying again.</source>
-        <translation type="unfinished">Das Ziel lädt möglicherweise noch; fragen Sie es, was es gerade tut, bevor Sie es erneut versuchen.</translation>
+        <translation>Das Zielgerät lädt möglicherweise noch; vor einem neuen Versuch bei ihm nachfragen, was es gerade tut.</translation>
     </message>
 </context>
 <context>
@@ -639,7 +639,7 @@
     <message>
         <location filename="../core/src/host_access.cpp" line="+24"/>
         <source>The system services could not be started (%1).</source>
-        <translation type="unfinished">Die Systemdienste konnten nicht gestartet werden (%1).</translation>
+        <translation>Die Systemdienste konnten nicht gestartet werden (%1).</translation>
     </message>
 </context>
 <context>
@@ -647,58 +647,61 @@
     <message>
         <location filename="../core/src/engine_worker.cpp" line="+122"/>
         <source>The target answered: %1</source>
-        <translation type="unfinished">Das Ziel antwortete: %1</translation>
+        <translation>Das Zielgerät antwortete: %1</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Status %1: %2</source>
-        <translation type="unfinished">Status %1: %2</translation>
+        <translation>Status %1: %2</translation>
     </message>
     <message>
         <location line="+11"/>
         <location line="+39"/>
         <source>Status %1: %2, %3% of the list</source>
-        <translation type="unfinished">Status %1: %2, %3% der Liste</translation>
+        <translation>Status %1: %2, %3 % der Liste</translation>
     </message>
     <message>
         <location line="-13"/>
         <source>The target failed load %1 (%2)%3</source>
-        <translation type="unfinished">Das Ziel hat Ladeeinheit %1 nicht geladen (%2)%3</translation>
+        <translation>Load %1 ist auf dem Zielgerät fehlgeschlagen (%2)%3</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>The target failed file %1%2</source>
-        <translation type="unfinished">Das Ziel hat Datei %1 nicht geliefert%2</translation>
+        <translation>Datei %1 ist auf dem Zielgerät fehlgeschlagen%2</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>The target read %1 (%2 bytes)</source>
-        <translation type="unfinished">Das Ziel hat %1 gelesen (%2 Bytes)</translation>
+        <translation>Das Zielgerät hat %1 gelesen (%2 Bytes)</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Received %1 (%2 bytes)</source>
-        <translation type="unfinished">%1 empfangen (%2 Bytes)</translation>
+        <translation>%1 empfangen (%2 Bytes)</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>serial number %1</source>
-        <translation type="unfinished">Seriennummer %1</translation>
+        <translation>Seriennummer %1</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The target listed its configuration.</source>
-        <translation type="unfinished">Das Ziel hat seine Konfiguration aufgelistet.</translation>
+        <translation>Das Zielgerät hat seine Konfiguration aufgelistet.</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+14"/>
         <source>The target listed %n file(s) it can download.</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>Das Zielgerät hat %n Datei aufgelistet, die heruntergeladen werden kann.</numerusform>
+            <numerusform>Das Zielgerät hat %n Dateien aufgelistet, die heruntergeladen werden können.</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+16"/>
         <source>, about %1 s left</source>
-        <translation type="unfinished">, noch etwa %1 s</translation>
+        <translation>, noch ca. %1 s</translation>
     </message>
 </context>
 <context>
@@ -729,72 +732,72 @@
     <message>
         <location line="-118"/>
         <source>Ready to address.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bereit zur Adressierung.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type an address or use FIND.</source>
-        <translation type="unfinished"></translation>
+        <translation>Adresse eingeben oder FIND verwenden.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>MEDIA SET</source>
-        <translation type="unfinished"></translation>
+        <translation>MEDIENSET</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>NOT CHOSEN</source>
-        <translation type="unfinished"></translation>
+        <translation>NICHT GEWÄHLT</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>CHECKING</source>
-        <translation type="unfinished"></translation>
+        <translation>WIRD GEPRÜFT</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>CHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>GEPRÜFT</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>INVALID</source>
-        <translation type="unfinished"></translation>
+        <translation>UNGÜLTIG</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>UNCHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>UNGEPRÜFT</translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Choose...</source>
-        <translation type="unfinished"></translation>
+        <translation>Wählen...</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Change...</source>
-        <translation type="unfinished"></translation>
+        <translation>Ändern...</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>No media set chosen</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Medienset gewählt</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Choose a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein Verzeichnis mit je einem Verzeichnis pro Mitglied wählen. Es wird vor einem Upload gelesen und geprüft.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>Re-check</source>
-        <translation type="unfinished"></translation>
+        <translation>Erneut prüfen</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Check the media set again</source>
-        <translation type="unfinished"></translation>
+        <translation>Medienset erneut prüfen</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -819,145 +822,145 @@
     <message>
         <location line="-377"/>
         <source>WORKING</source>
-        <translation type="unfinished"></translation>
+        <translation>IN ARBEIT</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>SETUP</source>
-        <translation type="unfinished"></translation>
+        <translation>EINRICHTUNG</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+888"/>
         <source>READY</source>
-        <translation type="unfinished"></translation>
+        <translation>BEREIT</translation>
     </message>
     <message>
         <location line="-888"/>
         <location line="+888"/>
         <source>NOT READY</source>
-        <translation type="unfinished"></translation>
+        <translation>NICHT BEREIT</translation>
     </message>
     <message>
         <location line="-874"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein Upload erfordert ein geprüftes Medienset, mindestens einen markierten Load und ein Zielgerät.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Ready to download from %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bereit zum Download von %1.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Download needs a target, a destination and - in media defined mode - a file name.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein Download erfordert ein Zielgerät, einen Speicherort und - im mediendefinierten Modus - einen Dateinamen.</translation>
     </message>
     <message>
         <location line="+62"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
-        <translation type="unfinished"></translation>
+        <translation>ARINC 615A · ARINC 665 · Engineering-Ladekonsole</translation>
     </message>
     <message>
         <location line="+9"/>
         <location line="+94"/>
         <source>Preferences</source>
-        <translation type="unfinished">Einstellungen</translation>
+        <translation>Einstellungen</translation>
     </message>
     <message>
         <location line="-92"/>
         <source>Open preferences</source>
-        <translation type="unfinished"></translation>
+        <translation>Einstellungen öffnen</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>Info</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>About the data loader</source>
-        <translation type="unfinished"></translation>
+        <translation>Über den Data Loader</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Complete</source>
-        <translation type="unfinished"></translation>
+        <translation>Abgeschlossen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehlgeschlagen</translation>
     </message>
     <message>
         <location line="+44"/>
         <source>v%1</source>
-        <translation type="unfinished"></translation>
+        <translation>v%1</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Media set properties</source>
-        <translation type="unfinished">Eigenschaften des Mediensatzes</translation>
+        <translation>Medienset-Eigenschaften</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Target properties</source>
-        <translation type="unfinished">Zieleigenschaften</translation>
+        <translation>Zielgerät-Eigenschaften</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>About ARINC Data Loader</source>
-        <translation type="unfinished">Über ARINC Data Loader</translation>
+        <translation>Über ARINC Data Loader</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>An operation is running</source>
-        <translation type="unfinished"></translation>
+        <translation>Eine Operation läuft</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Stop and close</source>
-        <translation type="unfinished"></translation>
+        <translation>Stoppen und schließen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Keep working</source>
-        <translation type="unfinished"></translation>
+        <translation>Weiterarbeiten</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
-        <translation type="unfinished"></translation>
+        <translation>Beim Schließen wird das Zielgerät zum Stoppen aufgefordert. Es kann bis zu 13 Sekunden dauern, bis das Zielgerät dies bestätigt; das Fenster bleibt bis dahin geöffnet.</translation>
     </message>
     <message>
         <location line="+26"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location line="+99"/>
         <source>TARGET</source>
-        <translation type="unfinished"></translation>
+        <translation>ZIELGERÄT</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>SET</source>
-        <translation type="unfinished"></translation>
+        <translation>GESETZT</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT SET</source>
-        <translation type="unfinished"></translation>
+        <translation>NICHT GESETZT</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Find</source>
-        <translation type="unfinished"></translation>
+        <translation>Suchen</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>ADDRESS</source>
-        <translation type="unfinished"></translation>
+        <translation>ADRESSE</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -987,12 +990,12 @@
     <message>
         <location line="+10"/>
         <source>FOUND</source>
-        <translation type="unfinished"></translation>
+        <translation>GEFUNDEN</translation>
     </message>
     <message>
         <location line="+63"/>
         <source>SELECTED</source>
-        <translation type="unfinished"></translation>
+        <translation>AUSGEWÄHLT</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1002,73 +1005,73 @@
     <message numerus="yes">
         <location line="+89"/>
         <source>%n member(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Mitglied</numerusform>
+            <numerusform>%n Mitglieder</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+2"/>
         <source>%n load(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
         </translation>
     </message>
     <message>
         <location line="+46"/>
         <source>LOADS</source>
-        <translation type="unfinished"></translation>
+        <translation>LOADS</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>All</source>
-        <translation type="unfinished"></translation>
+        <translation>Alle</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Tick every load</source>
-        <translation type="unfinished"></translation>
+        <translation>Alle Loads markieren</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>None</source>
-        <translation type="unfinished"></translation>
+        <translation>Keine</translation>
     </message>
     <message>
         <location line="+114"/>
         <source>Show fewer</source>
-        <translation type="unfinished"></translation>
+        <translation>Weniger anzeigen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show all warnings</source>
-        <translation type="unfinished"></translation>
+        <translation>Alle Warnungen anzeigen</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Reading and checking the set...</source>
-        <translation type="unfinished"></translation>
+        <translation>Medienset wird gelesen und geprüft...</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Every file and check value was read and verified.</source>
-        <translation type="unfinished"></translation>
+        <translation>Jede Datei und jeder Prüfwert wurde gelesen und verifiziert.</translation>
     </message>
     <message>
         <location line="+46"/>
         <source>TRANSFER</source>
-        <translation type="unfinished"></translation>
+        <translation>ÜBERTRAGUNG</translation>
     </message>
     <message>
         <location line="+164"/>
         <source>Downloading...</source>
-        <translation type="unfinished"></translation>
+        <translation>Download läuft...</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Download from the target</source>
-        <translation type="unfinished">Vom Ziel herunterladen</translation>
+        <translation>Download vom Zielgerät</translation>
     </message>
     <message>
         <location line="-157"/>
@@ -1095,48 +1098,48 @@
     <message numerus="yes">
         <location line="-1001"/>
         <source>Ready: %n load(s) to %1</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>Bereit: %n Load auf %1</numerusform>
+            <numerusform>Bereit: %n Loads auf %1</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+748"/>
         <source>%n WARNING(S)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n WARNUNG</numerusform>
+            <numerusform>%n WARNUNGEN</numerusform>
         </translation>
     </message>
     <message>
         <location line="+114"/>
         <source>Transfer operation</source>
-        <translation type="unfinished"></translation>
+        <translation>Übertragungsoperation</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>RUNNING</source>
-        <translation type="unfinished"></translation>
+        <translation>LÄUFT</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>COMPLETE</source>
-        <translation type="unfinished"></translation>
+        <translation>ABGESCHLOSSEN</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>FAILED</source>
-        <translation type="unfinished"></translation>
+        <translation>FEHLGESCHLAGEN</translation>
     </message>
     <message>
         <location line="+105"/>
         <source>working</source>
-        <translation type="unfinished"></translation>
+        <translation>arbeitet</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Uploading...</source>
-        <translation type="unfinished"></translation>
+        <translation>Upload läuft...</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1179,7 +1182,7 @@
     <message>
         <location line="+1"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Schließen</translation>
     </message>
     <message>
         <location line="+16"/>
@@ -1200,13 +1203,13 @@
         <location line="+4"/>
         <location line="+32"/>
         <source>Loads</source>
-        <translation type="unfinished"></translation>
+        <translation>Loads</translation>
     </message>
     <message>
         <location line="-27"/>
         <location line="+68"/>
         <source>Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Dateien</translation>
     </message>
     <message>
         <location line="-63"/>
@@ -1216,56 +1219,56 @@
     <message>
         <location line="+8"/>
         <source>No media set chosen</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Medienset gewählt</translation>
     </message>
     <message numerus="yes">
         <location line="+15"/>
         <source>%n load(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+41"/>
         <source>%n file(s) from FILES.LUM</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Datei aus FILES.LUM</numerusform>
+            <numerusform>%n Dateien aus FILES.LUM</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+101"/>
         <source>%n WARNING(S)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n WARNUNG</numerusform>
+            <numerusform>%n WARNUNGEN</numerusform>
         </translation>
     </message>
     <message>
         <location line="-92"/>
         <source>NAME</source>
-        <translation type="unfinished"></translation>
+        <translation>NAME</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>MEMBER</source>
-        <translation type="unfinished"></translation>
+        <translation>MITGLIED</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>PATH</source>
-        <translation type="unfinished"></translation>
+        <translation>PFAD</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>CRC</source>
-        <translation type="unfinished"></translation>
+        <translation>CRC</translation>
     </message>
     <message>
         <location line="+76"/>
         <source>Deviations from the standard&apos;s recommendations. They are shown, and do not block an upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>Abweichungen von den Empfehlungen der Norm. Sie werden angezeigt und blockieren keinen Upload.</translation>
     </message>
 </context>
 <context>
@@ -1278,18 +1281,18 @@
     <message>
         <location line="+1"/>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Speichern</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Abbrechen</translation>
     </message>
     <message>
         <location line="+43"/>
         <location line="+202"/>
         <source>Choose the download directory</source>
-        <translation type="unfinished">Download-Verzeichnis wählen</translation>
+        <translation>Download-Verzeichnis wählen</translation>
     </message>
     <message>
         <location line="-187"/>
@@ -1304,37 +1307,37 @@
     <message>
         <location line="+15"/>
         <source>The window follows the desktop&apos;s light or dark scheme. Language applies at once; everything else on Save.</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Fenster folgt dem hellen oder dunklen Farbschema des Desktops. Die Sprache gilt sofort; alles andere beim Speichern.</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
-        <translation type="unfinished"></translation>
+        <translation>Vor einer Operation ohne gewähltes Zielgerät FIND ausführen und die einzige Antwort übernehmen; antwortet keines oder antworten mehrere, das Ergebnis anzeigen und warten.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>A set has to pass the check before an upload. With this off, use &apos;Re-check&apos; in the media set rail.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein Set muss vor einem Upload die Prüfung bestehen. Ist dies aus, in der Medienset-Leiste „Erneut prüfen“ verwenden.</translation>
     </message>
     <message>
         <location line="+80"/>
         <source>Browse...</source>
-        <translation type="unfinished">Durchsuchen...</translation>
+        <translation>Durchsuchen...</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>The directory is where each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; directory is made.</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Verzeichnis ist der Ort, an dem jedes Verzeichnis DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; angelegt wird.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Activity lines kept</source>
-        <translation type="unfinished"></translation>
+        <translation>Aufbewahrte Aktivitätszeilen</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Save applies these choices. Cancel and Esc leave them as they were.</source>
-        <translation type="unfinished"></translation>
+        <translation>Speichern übernimmt diese Auswahl. Abbrechen und Esc lassen sie unverändert.</translation>
     </message>
     <message>
         <location line="-201"/>
@@ -1438,12 +1441,12 @@
     <message>
         <location line="+1"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Schließen</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Addressing</source>
-        <translation type="unfinished"></translation>
+        <translation>Adressierung</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1495,7 +1498,7 @@
     <message>
         <location line="+13"/>
         <source>No target was chosen from a FIND answer. The address and THW_ID_POS are the values typed in the rail.</source>
-        <translation type="unfinished"></translation>
+        <translation>Es wurde kein Zielgerät aus einer FIND-Antwort gewählt. Adresse und THW_ID_POS sind die in der Leiste eingegebenen Werte.</translation>
     </message>
 </context>
 <context>
@@ -1503,304 +1506,304 @@
     <message>
         <location filename="../qml/UploadPanel.qml" line="+22"/>
         <source>no target</source>
-        <translation type="unfinished">kein Ziel</translation>
+        <translation>kein Zielgerät</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>CHECKING</source>
-        <translation type="unfinished"></translation>
+        <translation>WIRD GEPRÜFT</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>CHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>GEPRÜFT</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>INVALID</source>
-        <translation type="unfinished"></translation>
+        <translation>UNGÜLTIG</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>NOT CHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>NICHT GEPRÜFT</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>An operation is running</source>
-        <translation type="unfinished"></translation>
+        <translation>Eine Operation läuft</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Checking the media set</source>
-        <translation type="unfinished"></translation>
+        <translation>Medienset wird geprüft</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Choose a media set first</source>
-        <translation type="unfinished"></translation>
+        <translation>Zuerst ein Medienset wählen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>The media set is not valid</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Medienset ist ungültig</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Check the media set</source>
-        <translation type="unfinished">Den Mediensatz prüfen</translation>
+        <translation>Medienset prüfen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Tick at least one load</source>
-        <translation type="unfinished"></translation>
+        <translation>Mindestens einen Load markieren</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Choose or find a target</source>
-        <translation type="unfinished"></translation>
+        <translation>Zielgerät wählen oder suchen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Ready to upload</source>
-        <translation type="unfinished"></translation>
+        <translation>Bereit zum Upload</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Wait for it to finish, or stop it from the action bar.</source>
-        <translation type="unfinished"></translation>
+        <translation>Auf den Abschluss warten oder über die Aktionsleiste stoppen.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Every file and its check value is being read; an upload needs the check to pass.</source>
-        <translation type="unfinished"></translation>
+        <translation>Jede Datei und ihr Prüfwert wird gelesen; ein Upload setzt eine bestandene Prüfung voraus.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>A media set is a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein Medienset ist ein Verzeichnis mit je einem Verzeichnis pro Mitglied. Es wird vor einem Upload gelesen und geprüft.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Read the set again, or choose another directory.</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Set erneut lesen oder ein anderes Verzeichnis wählen.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>The set has to be read again and checked before it may be uploaded.</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Set muss erneut gelesen und geprüft werden, bevor es hochgeladen werden darf.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Use the check boxes in the media set rail. Nothing is sent until at least one load is ticked.</source>
-        <translation type="unfinished"></translation>
+        <translation>Die Kontrollkästchen in der Medienset-Leiste verwenden. Gesendet wird erst, wenn mindestens ein Load markiert ist.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>FIND, or type the target&apos;s IPv4 address and THW_ID_POS.</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND verwenden oder IPv4-Adresse und THW_ID_POS des Zielgeräts eingeben.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>The target, the set, the ticked loads and the check are all in place.</source>
-        <translation type="unfinished"></translation>
+        <translation>Zielgerät, Set, markierte Loads und Prüfung sind vorhanden.</translation>
     </message>
     <message>
         <location line="+39"/>
         <source>THE UPLOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>DER UPLOAD</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Upload 1 load to %1</source>
-        <translation type="unfinished"></translation>
+        <translation>1 Load auf %1 hochladen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Upload %1 loads to %2</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 Loads auf %2 hochladen</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>RUNNING</source>
-        <translation type="unfinished"></translation>
+        <translation>LÄUFT</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>READY</source>
-        <translation type="unfinished"></translation>
+        <translation>BEREIT</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT READY</source>
-        <translation type="unfinished"></translation>
+        <translation>NICHT BEREIT</translation>
     </message>
     <message numerus="yes">
         <location line="+8"/>
         <location line="+43"/>
         <source>%n member(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Mitglied</numerusform>
+            <numerusform>%n Mitglieder</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="-41"/>
         <location line="+127"/>
         <source>%n load(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="-76"/>
         <source>%n warning(s) from the check</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Warnung aus der Prüfung</numerusform>
+            <numerusform>%n Warnungen aus der Prüfung</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location line="+248"/>
         <source>%n load(s) ticked</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n Load markiert</numerusform>
+            <numerusform>%n Loads markiert</numerusform>
         </translation>
     </message>
     <message>
         <location line="-298"/>
         <source>No media set selected</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Medienset ausgewählt</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Target</source>
-        <translation type="unfinished">Ziel</translation>
+        <translation>Zielgerät</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>FIND on start</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND beim Start</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+13"/>
         <source>Not chosen</source>
-        <translation type="unfinished"></translation>
+        <translation>Nicht gewählt</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>FIND or type an address</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND verwenden oder Adresse eingeben</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+23"/>
         <source>SET</source>
-        <translation type="unfinished"></translation>
+        <translation>GESETZT</translation>
     </message>
     <message>
         <location line="-21"/>
         <source>AUTO</source>
-        <translation type="unfinished"></translation>
+        <translation>AUTO</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>MISSING</source>
-        <translation type="unfinished"></translation>
+        <translation>FEHLT</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Media set</source>
-        <translation type="unfinished">Mediensatz</translation>
+        <translation>Medienset</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Choose a directory</source>
-        <translation type="unfinished"></translation>
+        <translation>Verzeichnis wählen</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Loads</source>
-        <translation type="unfinished"></translation>
+        <translation>Loads</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>%1 of %2 ticked</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 von %2 markiert</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>NONE</source>
-        <translation type="unfinished"></translation>
+        <translation>KEINE</translation>
     </message>
     <message>
         <location line="+60"/>
         <source>Choose media set</source>
-        <translation type="unfinished"></translation>
+        <translation>Medienset wählen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Check the set</source>
-        <translation type="unfinished"></translation>
+        <translation>Set prüfen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Find targets</source>
-        <translation type="unfinished">Ziele suchen</translation>
+        <translation>Zielgeräte suchen</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Payload</source>
-        <translation type="unfinished"></translation>
+        <translation>Nutzdaten</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>LOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>LOAD</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>CONTENTS</source>
-        <translation type="unfinished"></translation>
+        <translation>INHALT</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>STATUS</source>
-        <translation type="unfinished"></translation>
+        <translation>STATUS</translation>
     </message>
     <message>
         <location line="+59"/>
         <location line="+56"/>
         <source>FAILED</source>
-        <translation type="unfinished"></translation>
+        <translation>FEHLGESCHLAGEN</translation>
     </message>
     <message>
         <location line="-56"/>
         <source>TICKED</source>
-        <translation type="unfinished"></translation>
+        <translation>MARKIERT</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>No load is ticked. The media set rail lists every load and its check box.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Load ist markiert. Die Medienset-Leiste listet jeden Load mit seinem Kontrollkästchen auf.</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>COMPLETE</source>
-        <translation type="unfinished"></translation>
+        <translation>ABGESCHLOSSEN</translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Target %1 · %2 · %3</source>
-        <translation type="unfinished"></translation>
+        <translation>Zielgerät %1 · %2 · %3</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>no media set</source>
-        <translation type="unfinished">kein Mediensatz</translation>
+        <translation>kein Medienset</translation>
     </message>
 </context>
 <context>
@@ -1809,234 +1812,234 @@
         <location filename="../core/src/wording.cpp" line="+18"/>
         <location line="+59"/>
         <source>running</source>
-        <translation type="unfinished"></translation>
+        <translation>läuft</translation>
     </message>
     <message>
         <location line="-57"/>
         <location line="+35"/>
         <source>completed</source>
-        <translation type="unfinished"></translation>
+        <translation>abgeschlossen</translation>
     </message>
     <message>
         <location line="-33"/>
         <source>denied by the target</source>
-        <translation type="unfinished"></translation>
+        <translation>vom Zielgerät abgelehnt</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>not supported by the target</source>
-        <translation type="unfinished"></translation>
+        <translation>vom Zielgerät nicht unterstützt</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+41"/>
         <source>aborted by the operator</source>
-        <translation type="unfinished"></translation>
+        <translation>vom Bediener abgebrochen</translation>
     </message>
     <message>
         <location line="-39"/>
         <location line="+37"/>
         <source>aborted by the data loader</source>
-        <translation type="unfinished"></translation>
+        <translation>vom Data Loader abgebrochen</translation>
     </message>
     <message>
         <location line="-35"/>
         <location line="+33"/>
         <source>aborted by the target</source>
-        <translation type="unfinished"></translation>
+        <translation>vom Zielgerät abgebrochen</translation>
     </message>
     <message>
         <location line="-31"/>
         <source>unsupported protocol version</source>
-        <translation type="unfinished"></translation>
+        <translation>nicht unterstützte Protokollversion</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>a file transfer failed</source>
-        <translation type="unfinished"></translation>
+        <translation>eine Dateiübertragung ist fehlgeschlagen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>data load protocol time-out</source>
-        <translation type="unfinished"></translation>
+        <translation>Zeitüberschreitung im Datenlade-Protokoll</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>the target was silent longer than its exception timer</source>
-        <translation type="unfinished"></translation>
+        <translation>das Zielgerät war länger still als sein Ausnahme-Timer</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+50"/>
         <source>protocol error</source>
-        <translation type="unfinished"></translation>
+        <translation>Protokollfehler</translation>
     </message>
     <message>
         <location line="-48"/>
         <source>local error</source>
-        <translation type="unfinished"></translation>
+        <translation>lokaler Fehler</translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+54"/>
         <location line="+35"/>
         <source>unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>unbekannt</translation>
     </message>
     <message>
         <location line="-83"/>
         <source>accepted</source>
-        <translation type="unfinished"></translation>
+        <translation>akzeptiert</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>in progress</source>
-        <translation type="unfinished"></translation>
+        <translation>in Arbeit</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>in progress, with details</source>
-        <translation type="unfinished"></translation>
+        <translation>in Arbeit, mit Details</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>denied</source>
-        <translation type="unfinished"></translation>
+        <translation>abgelehnt</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>not supported</source>
-        <translation type="unfinished"></translation>
+        <translation>nicht unterstützt</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>failed</source>
-        <translation type="unfinished"></translation>
+        <translation>fehlgeschlagen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>unknown status code</source>
-        <translation type="unfinished"></translation>
+        <translation>unbekannter Statuscode</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>succeeded</source>
-        <translation type="unfinished"></translation>
+        <translation>erfolgreich</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>timed out</source>
-        <translation type="unfinished"></translation>
+        <translation>Zeitüberschreitung</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>the peer sent an error</source>
-        <translation type="unfinished"></translation>
+        <translation>die Gegenstelle hat einen Fehler gesendet</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>the peer aborted</source>
-        <translation type="unfinished"></translation>
+        <translation>die Gegenstelle hat abgebrochen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>the peer asked to wait</source>
-        <translation type="unfinished"></translation>
+        <translation>die Gegenstelle hat um Warten gebeten</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>options refused</source>
-        <translation type="unfinished"></translation>
+        <translation>Optionen abgelehnt</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>transfer size mismatch</source>
-        <translation type="unfinished"></translation>
+        <translation>Übertragungsgröße stimmt nicht überein</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>local file error</source>
-        <translation type="unfinished"></translation>
+        <translation>lokaler Dateifehler</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>aborted</source>
-        <translation type="unfinished"></translation>
+        <translation>abgebrochen</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>status files lost</source>
-        <translation type="unfinished"></translation>
+        <translation>Statusdateien verloren</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>status file repeated</source>
-        <translation type="unfinished"></translation>
+        <translation>Statusdatei wiederholt</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>status file out of order</source>
-        <translation type="unfinished"></translation>
+        <translation>Statusdatei in falscher Reihenfolge</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>status file transfer failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Übertragung der Statusdatei fehlgeschlagen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>checksum did not match</source>
-        <translation type="unfinished"></translation>
+        <translation>Prüfsumme stimmt nicht überein</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>checksum algorithm not supported</source>
-        <translation type="unfinished"></translation>
+        <translation>Prüfsummenalgorithmus nicht unterstützt</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>file not available</source>
-        <translation type="unfinished"></translation>
+        <translation>Datei nicht verfügbar</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>request refused</source>
-        <translation type="unfinished"></translation>
+        <translation>Anforderung abgelehnt</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>transfer failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Übertragung fehlgeschlagen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>target asked to wait</source>
-        <translation type="unfinished"></translation>
+        <translation>Zielgerät hat um Warten gebeten</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>options refused, asked again without them</source>
-        <translation type="unfinished"></translation>
+        <translation>Optionen abgelehnt, erneut ohne sie angefragt</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>port option not taken by the target</source>
-        <translation type="unfinished"></translation>
+        <translation>Port-Option vom Zielgerät nicht übernommen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>requested files missing</source>
-        <translation type="unfinished"></translation>
+        <translation>angeforderte Dateien fehlen</translation>
     </message>
     <message>
         <location line="+20"/>
         <source> (%1 s)</source>
-        <translation type="unfinished"> (%1 s)</translation>
+        <translation> (%1 s)</translation>
     </message>
     <message>
         <location line="+4"/>
         <source> (port %1)</source>
-        <translation type="unfinished"> (Port %1)</translation>
+        <translation> (Port %1)</translation>
     </message>
 </context>
 <context>
@@ -2064,10 +2067,13 @@
         <source>FIND could not run (%1).</source>
         <translation>FIND konnte nicht ausgeführt werden (%1).</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+23"/>
         <source>%n target(s) answered</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Zielgerät hat geantwortet</numerusform>
+            <numerusform>%n Zielgeräte haben geantwortet</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+21"/>
@@ -2084,10 +2090,13 @@
         <source>No load was chosen.</source>
         <translation>Es wurde keine Ladeeinheit gewählt.</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+26"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Load wird auf %1 (%2) hochgeladen...</numerusform>
+            <numerusform>%n Loads werden auf %1 (%2) hochgeladen...</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+18"/>
@@ -2099,30 +2108,45 @@
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>&quot;%1&quot; ist kein sicherer Dateiname.</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+13"/>
         <source>Downloading %n file(s) from %1 (%2)...</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Datei wird von %1 (%2) heruntergeladen...</numerusform>
+            <numerusform>%n Dateien werden von %1 (%2) heruntergeladen...</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+128"/>
         <source>completed, %n file(s) failed</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>abgeschlossen, %n Datei fehlgeschlagen</numerusform>
+            <numerusform>abgeschlossen, %n Dateien fehlgeschlagen</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+2"/>
         <source>completed, %n load(s) failed</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>abgeschlossen, %n Load fehlgeschlagen</numerusform>
+            <numerusform>abgeschlossen, %n Loads fehlgeschlagen</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+8"/>
         <source>completed, %n file(s) missing</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>abgeschlossen, %n Datei fehlt</numerusform>
+            <numerusform>abgeschlossen, %n Dateien fehlen</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+16"/>
         <source>The target read %n file(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>Das Zielgerät hat %n Datei gelesen.</numerusform>
+            <numerusform>Das Zielgerät hat %n Dateien gelesen.</numerusform>
+        </translation>
     </message>
     <message>
         <location line="-135"/>
@@ -2157,7 +2181,7 @@
     <message>
         <location line="+139"/>
         <source>Checked media set %1: %2, %3.</source>
-        <translation type="unfinished"></translation>
+        <translation>Medienset %1 geprüft: %2, %3.</translation>
     </message>
     <message>
         <location line="-98"/>
@@ -2189,10 +2213,13 @@
         <source>media set read</source>
         <translation>Mediensatz gelesen</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+4"/>
         <source>Read media set %1: %n load(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>Medienset %1 gelesen: %n Load.</numerusform>
+            <numerusform>Medienset %1 gelesen: %n Loads.</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2209,15 +2236,21 @@
         <source>media set checked</source>
         <translation>Mediensatz geprüft</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+8"/>
         <source>%n load(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+1"/>
         <source>%n file(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Datei</numerusform>
+            <numerusform>%n Dateien</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2230,22 +2263,28 @@
     <message>
         <location filename="../core/src/models.cpp" line="-313"/>
         <source>no target ID</source>
-        <translation type="unfinished"></translation>
+        <translation>keine Zielgeräte-ID</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>%1 · %2, %3; for %4</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 · %2, %3; für %4</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+2"/>
         <source>%n data file(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Datendatei</numerusform>
+            <numerusform>%n Datendateien</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+2"/>
         <source>%n support file(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Support-Datei</numerusform>
+            <numerusform>%n Support-Dateien</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+115"/>
@@ -2258,23 +2297,32 @@
     <message>
         <location filename="../core/src/loader_model.cpp" line="+65"/>
         <source>%1, %2, all check values verified</source>
-        <translation type="unfinished"></translation>
+        <translation>%1, %2, alle Prüfwerte verifiziert</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+1"/>
         <location line="+146"/>
         <source>%n load(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Load</numerusform>
+            <numerusform>%n Loads</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="-144"/>
         <source>%n file(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Datei</numerusform>
+            <numerusform>%n Dateien</numerusform>
+        </translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+7"/>
         <source>; %n warning(s) against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>; %n Warnung gegenüber den Empfehlungen der Norm</numerusform>
+            <numerusform>; %n Warnungen gegenüber den Empfehlungen der Norm</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+61"/>
@@ -2316,12 +2364,15 @@
     <message>
         <location line="+58"/>
         <source>%1: %2, %3</source>
-        <translation type="unfinished"></translation>
+        <translation>%1: %2, %3</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+2"/>
         <source>%n member(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>
+            <numerusform>%n Mitglied</numerusform>
+            <numerusform>%n Mitglieder</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+304"/>

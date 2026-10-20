@@ -1,5 +1,7 @@
 #include "adl/ui/language_manager.hpp"
 
+#include <QFont>
+#include <QFontDatabase>
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QSettings>
@@ -18,6 +20,10 @@ namespace {
 struct LanguageInfo {
     std::string_view code;
     std::string_view native_name;
+    // The typeface the window is set in. Archivo, the design's face, has no Hebrew letters; the
+    // Chinese and Japanese windows keep it for the Latin letters and take their characters from
+    // the system's CJK fonts.
+    std::string_view family;
 };
 
 // "en" first (only its plural catalogues: the source strings are already English), then every
@@ -25,15 +31,18 @@ struct LanguageInfo {
 // others in each application's translations directory (and src/ui/translations), adding it to
 // their TS_FILES lists in CMake and adding its line here. The translation text itself is a first,
 // machine-drafted version, to be reviewed by a speaker of the language.
+constexpr std::string_view kLatinFamily = "Archivo";
+constexpr std::string_view kHebrewFamily = "Noto Sans Hebrew";
+
 constexpr std::array<LanguageInfo, 8> kLanguages{{
-    {"en", "English"},
-    {"fr", "Français"},
-    {"es", "Español"},
-    {"de", "Deutsch"},
-    {"yi", "ייִדיש"},
-    {"he", "עברית"},
-    {"zh", "中文"},
-    {"ja", "日本語"},
+    {"en", "English", kLatinFamily},
+    {"fr", "Français", kLatinFamily},
+    {"es", "Español", kLatinFamily},
+    {"de", "Deutsch", kLatinFamily},
+    {"yi", "ייִדיש", kHebrewFamily},
+    {"he", "עברית", kHebrewFamily},
+    {"zh", "中文", kLatinFamily},
+    {"ja", "日本語", kLatinFamily},
 }};
 
 constexpr QLatin1StringView kSettingsKey{"language/code"};
@@ -65,6 +74,7 @@ void LanguageManager::applyInitialLanguage() {
     const QString initial = is_supported(saved) ? saved : language_for_locale(QLocale::system());
 
     installTranslators(initial);
+    applyFont(initial);
     app_.setLayoutDirection(QLocale(initial).textDirection());
     current_language_ = initial;
 }
@@ -95,6 +105,7 @@ bool LanguageManager::setLanguage(const QString& code) {
     }
 
     installTranslators(code);
+    applyFont(code);
     app_.setLayoutDirection(QLocale(code).textDirection());
     // Before retranslate(): the bindings it re-evaluates may read currentLanguage() and must
     // see the language being switched to.
@@ -106,6 +117,26 @@ bool LanguageManager::setLanguage(const QString& code) {
 
     Q_EMIT currentLanguageChanged();
     return true;
+}
+
+void LanguageManager::applyFont(const QString& code) {
+    const auto language = std::ranges::find_if(
+        kLanguages, [&code](const LanguageInfo& info) { return code == latin1(info.code); });
+    if (language == kLanguages.end()) {
+        return;
+    }
+    // Only a face that is registered: a build or a test that has not registered the bundled fonts
+    // keeps the font it has.
+    const QString family = QString::fromUtf8(language->family.data(),
+                                             static_cast<qsizetype>(language->family.size()));
+    if (!QFontDatabase::families().contains(family)) {
+        return;
+    }
+    QFont font = QGuiApplication::font();
+    if (font.family() != family) {
+        font.setFamily(family);
+        QGuiApplication::setFont(font);
+    }
 }
 
 void LanguageManager::installTranslators(const QString& code) {
