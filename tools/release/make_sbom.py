@@ -321,9 +321,11 @@ def main():
                 "supplier": NOASSERTION, "downloadLocation": port["download"] or NOASSERTION, "filesAnalyzed": False,
                 "homepage": port["homepage"] or NOASSERTION, "licenseConcluded": port["license"] or NOASSERTION,
                 "licenseDeclared": NOASSERTION, "copyrightText": NOASSERTION, "primaryPackagePurpose": "LIBRARY",
-                "comment": f"Installed by vcpkg on the {leg} leg for the tests. It is linked into the test programs "
-                           f"only; no package contains it."})
-            add_relationship(ident, "TEST_DEPENDENCY_OF", root)
+                "comment": f"Installed by vcpkg on the {leg} leg for the tests; it is in no package."})
+            # vcpkg's own helper ports (vcpkg-cmake, ...) drive the build of a port; the others are
+            # libraries the tests link.
+            kind = "BUILD_TOOL_OF" if port["name"].startswith("vcpkg-") else "TEST_DEPENDENCY_OF"
+            add_relationship(ident, kind, root)
 
     spdx = {
         "spdxVersion": "SPDX-2.3", "dataLicense": "CC0-1.0", "SPDXID": "SPDXRef-DOCUMENT",

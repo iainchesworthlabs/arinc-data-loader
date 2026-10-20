@@ -68,6 +68,11 @@ def vcpkg_packages(build_dir):
     for path in sorted(Path(build_dir).glob("vcpkg_installed/*/share/*/vcpkg.spdx.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
         for package in document.get("packages", []):
+            # A port's document also describes its binary package for the triplet ("catch2:x64-linux")
+            # and its upstream source ("catchorg/Catch2"); the port itself is the one that is named
+            # as its directory is.
+            if package.get("name") != path.parent.name:
+                continue
             packages.append(
                 {
                     "name": package.get("name"),
