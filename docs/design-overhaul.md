@@ -585,8 +585,8 @@ done; item 8 is done.
    reason; the receipt should say `CANCELLED` or `ABORTED BY OPERATOR` with the target's
    confirmation, not `FAILED`. Open: only `completed` counts as success, so an aborted job shows
    `FAILED` and opens the failure dialog; the target's confirmation appears only in the receipt
-   detail. The generator's `CANCELLED` chip is the one place the distinction is drawn, and it
-   reads the result text to do it.
+   detail. The generator's `CANCELLED` is the one place the distinction is drawn, from its own
+   result state (3), not from the text.
 3. **Target confirmation before an automatic FIND operation.** The preflight repeats the target,
    but a sole automatic FIND still starts without an explicit confirmation. A one-line
    "HNPFMS_L answered; use it?" confirmation for the auto path would close this. Open (the
