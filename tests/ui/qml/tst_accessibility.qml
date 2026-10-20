@@ -185,4 +185,18 @@ TestCase {
         appModel.controlPort = 59
     }
 
+
+    function test_24_leaving_a_field_does_not_write_its_old_text_over_the_model() {
+        // A FIND answer chosen with the mouse changes the address while the field still shows
+        // what was typed; moving the focus off the field must not put that text back.
+        const thw = find("thwIdPosField")
+        thw.text = "TYPED_1"
+        tryCompare(appModel, "thwIdPos", "TYPED_1")
+        thw.forceActiveFocus()
+        appModel.thwIdPos = "CHOSEN_2"
+        compare(appModel.thwIdPos, "CHOSEN_2")
+        find("findTargetsButton").forceActiveFocus()
+        wait(50)
+        compare(appModel.thwIdPos, "CHOSEN_2", "the field wrote its old text back on blur")
+    }
 }

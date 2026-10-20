@@ -30,11 +30,27 @@ QQC.TextField {
     selectByMouse: true
     opacity: enabled ? 1.0 : Theme.disabledOpacity
 
-    onTextEdited: control.textCommitted(control.text)
-    onEditingFinished: control.textCommitted(control.text)
+    // The text last handed to textCommitted. Leaving a field does not hand it over again when it
+    // has not changed since: a view's model may have moved on (a FIND answer chosen with the mouse
+    // changes the address while the field holds what was typed before), and the field's old text
+    // must not be written back over it.
+    property string _committed: ""
+
+    function _commit() {
+        control._committed = control.text;
+        control.textCommitted(control.text);
+    }
+
+    Component.onCompleted: control._committed = control.text
+
+    onTextEdited: control._commit()
+    onEditingFinished: {
+        if (control.text !== control._committed)
+            control._commit();
+    }
     onTextChanged: {
         if (!control.activeFocus)
-            control.textCommitted(control.text);
+            control._commit();
     }
 
     background: Rectangle {

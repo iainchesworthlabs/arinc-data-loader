@@ -89,11 +89,11 @@ TestCase {
         verify(plan.height >= 340, "the plan is only " + plan.height + " px high")
         // The dock can be opened, and it is a share of the window, not 260 px.
         dock.expanded = true
-        wait(50)
+        tryVerify(function() { return dock.height > 44 }, 2000)
         verify(dock.height >= 150 && dock.height <= 260, "an open dock is " + dock.height + " px")
         verify(plan.height >= 230, "the plan is only " + plan.height + " px high with the dock open")
         dock.expanded = false
-        wait(50)
+        tryVerify(function() { return dock.height === 44 }, 2000)
     }
 
     function test_04_the_plan_scrolls_and_says_so() {
@@ -131,7 +131,7 @@ TestCase {
 
     function test_06_download_destination_is_reachable_by_scrolling() {
         mouseClick(find(smallWindow, "transferDownload"))
-        wait(50)
+        tryVerify(function() { return find(smallWindow, "downloadScroll").visible }, 2000)
         const scroll = find(smallWindow, "downloadScroll")
         const flick = scroll.contentItem
         verify(flick.contentHeight > flick.height, "the download page fits; the test needs it to overflow")
@@ -141,13 +141,13 @@ TestCase {
         verify(flick.atYEnd)
         flick.contentY = 0
         mouseClick(find(smallWindow, "transferUpload"))
-        wait(50)
+        tryVerify(function() { return find(smallWindow, "uploadScroll").visible }, 2000)
     }
 
     function test_07_the_action_bar_and_status_bar_stay_visible_when_the_dock_is_open() {
         const dock = find(smallWindow, "activityDock")
         dock.expanded = true
-        wait(50)
+        tryVerify(function() { return dock.height > 44 }, 2000)
         verifyInside(find(smallWindow, "uploadButton"), smallWindow, "uploadButton")
         verifyInside(find(smallWindow, "statusState"), smallWindow, "statusState")
         dock.expanded = false
