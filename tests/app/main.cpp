@@ -52,6 +52,14 @@ int main(int argc, char* argv[]) {
         failed += QTest::qExec(&test, argc, argv);
     }
     {
+        DownloadDirectoryTest test;
+        failed += QTest::qExec(&test, argc, argv);
+    }
+    {
+        EngineWorkerTest test;
+        failed += QTest::qExec(&test, argc, argv);
+    }
+    {
         MediaSourceTest test;
         failed += QTest::qExec(&test, argc, argv);
     }

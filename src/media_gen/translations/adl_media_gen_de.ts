@@ -15,13 +15,13 @@
     </message>
     <message>
         <location filename="../qml/GeneratorWindow.qml" line="16"/>
-        <location filename="../qml/GeneratorWindow.qml" line="670"/>
+        <location filename="../qml/GeneratorWindow.qml" line="671"/>
         <source>READY</source>
         <translation>BEREIT</translation>
     </message>
     <message>
         <location filename="../qml/GeneratorWindow.qml" line="17"/>
-        <location filename="../qml/GeneratorWindow.qml" line="670"/>
+        <location filename="../qml/GeneratorWindow.qml" line="671"/>
         <source>INCOMPLETE</source>
         <translation>UNVOLLSTÄNDIG</translation>
     </message>
@@ -230,98 +230,98 @@
         <translation>LOAD-TYP</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="471"/>
+        <location filename="../qml/GeneratorWindow.qml" line="472"/>
         <source>Load type</source>
         <translation>Load-Typ</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="475"/>
+        <location filename="../qml/GeneratorWindow.qml" line="476"/>
         <source>LOAD CHECK VALUE</source>
         <translation>LOAD-PRÜFWERT</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="488"/>
+        <location filename="../qml/GeneratorWindow.qml" line="489"/>
         <source>Check value of the load header</source>
         <translation>Prüfwert des Load-Headers</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="492"/>
+        <location filename="../qml/GeneratorWindow.qml" line="493"/>
         <source>TARGET HARDWARE IDS</source>
         <translation>HARDWARE-IDS DES ZIELGERÄTS</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="525"/>
-        <location filename="../qml/GeneratorWindow.qml" line="917"/>
+        <location filename="../qml/GeneratorWindow.qml" line="526"/>
+        <location filename="../qml/GeneratorWindow.qml" line="918"/>
         <source>Remove</source>
         <translation>Entfernen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="528"/>
+        <location filename="../qml/GeneratorWindow.qml" line="529"/>
         <source>Remove target hardware ID %1</source>
         <translation>Hardware-ID %1 des Zielgeräts entfernen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="542"/>
+        <location filename="../qml/GeneratorWindow.qml" line="543"/>
         <source>ACME</source>
         <translation>ACME</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="548"/>
+        <location filename="../qml/GeneratorWindow.qml" line="549"/>
         <source>New target hardware ID</source>
         <translation>Neue Hardware-ID des Zielgeräts</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="552"/>
+        <location filename="../qml/GeneratorWindow.qml" line="553"/>
         <source>Add</source>
         <translation>Hinzufügen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="558"/>
+        <location filename="../qml/GeneratorWindow.qml" line="559"/>
         <source>Add target hardware ID</source>
         <translation>Hardware-ID des Zielgeräts hinzufügen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="584"/>
+        <location filename="../qml/GeneratorWindow.qml" line="585"/>
         <source>BATCH</source>
         <translation>BATCH</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="588"/>
+        <location filename="../qml/GeneratorWindow.qml" line="589"/>
         <source>Include a batch file</source>
         <translation>Batch-Datei einbeziehen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="589"/>
+        <location filename="../qml/GeneratorWindow.qml" line="590"/>
         <source>One BATCH file that names every load in the set.</source>
         <translation>Eine BATCH-Datei, die jeden Load des Sets benennt.</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="598"/>
+        <location filename="../qml/GeneratorWindow.qml" line="599"/>
         <source>ACM4C-0100-0200</source>
         <translation>ACM4C-0100-0200</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="601"/>
+        <location filename="../qml/GeneratorWindow.qml" line="602"/>
         <source>Batch part number</source>
         <translation>Teilenummer des Batches</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="607"/>
+        <location filename="../qml/GeneratorWindow.qml" line="608"/>
         <source>Written as %1.LUB</source>
         <translation>Wird als %1.LUB geschrieben</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="646"/>
+        <location filename="../qml/GeneratorWindow.qml" line="647"/>
         <source>THE MEDIA SET</source>
         <translation>DAS MEDIENSET</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="657"/>
+        <location filename="../qml/GeneratorWindow.qml" line="658"/>
         <source>New media set</source>
         <translation>Neues Medienset</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="676"/>
+        <location filename="../qml/GeneratorWindow.qml" line="677"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n Mitglied</numerusform>
@@ -329,8 +329,8 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="678"/>
-        <location filename="../qml/GeneratorWindow.qml" line="759"/>
+        <location filename="../qml/GeneratorWindow.qml" line="679"/>
+        <location filename="../qml/GeneratorWindow.qml" line="760"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n Datei</numerusform>
@@ -338,7 +338,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="679"/>
+        <location filename="../qml/GeneratorWindow.qml" line="680"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n Load</numerusform>
@@ -346,190 +346,190 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="692"/>
+        <location filename="../qml/GeneratorWindow.qml" line="693"/>
         <source>NO CHECK VALUES</source>
         <translation>KEINE PRÜFWERTE</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="698"/>
+        <location filename="../qml/GeneratorWindow.qml" line="699"/>
         <source>The set is written, but the loader cannot verify its files against the header. Choose a check value unless the format requires none.</source>
         <translation>Das Set wird geschrieben, aber der Loader kann seine Dateien nicht anhand des Headers verifizieren. Einen Prüfwert wählen, sofern das Format keinen verlangt.</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="725"/>
-        <location filename="../qml/GeneratorWindow.qml" line="933"/>
+        <location filename="../qml/GeneratorWindow.qml" line="726"/>
+        <location filename="../qml/GeneratorWindow.qml" line="934"/>
         <source>Add files...</source>
         <translation>Dateien hinzufügen...</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="728"/>
-        <location filename="../qml/GeneratorWindow.qml" line="936"/>
+        <location filename="../qml/GeneratorWindow.qml" line="729"/>
+        <location filename="../qml/GeneratorWindow.qml" line="937"/>
         <source>Add files to the media set</source>
         <translation>Dateien zum Medienset hinzufügen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="732"/>
+        <location filename="../qml/GeneratorWindow.qml" line="733"/>
         <source>Move up</source>
         <translation>Nach oben</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="735"/>
+        <location filename="../qml/GeneratorWindow.qml" line="736"/>
         <source>Move the chosen file up</source>
         <translation>Gewählte Datei nach oben verschieben</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="739"/>
+        <location filename="../qml/GeneratorWindow.qml" line="740"/>
         <source>Move down</source>
         <translation>Nach unten</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="744"/>
+        <location filename="../qml/GeneratorWindow.qml" line="745"/>
         <source>Move the chosen file down</source>
         <translation>Gewählte Datei nach unten verschieben</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="748"/>
+        <location filename="../qml/GeneratorWindow.qml" line="749"/>
         <source>Clear</source>
         <translation>Leeren</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="751"/>
+        <location filename="../qml/GeneratorWindow.qml" line="752"/>
         <source>Clear the file list</source>
         <translation>Dateiliste leeren</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="773"/>
+        <location filename="../qml/GeneratorWindow.qml" line="774"/>
         <source>NAME ON THE MEDIA SET</source>
         <translation>NAME IM MEDIENSET</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="782"/>
+        <location filename="../qml/GeneratorWindow.qml" line="783"/>
         <source>KIND</source>
         <translation>ART</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="791"/>
+        <location filename="../qml/GeneratorWindow.qml" line="792"/>
         <source>CHECK VALUE</source>
         <translation>PRÜFWERT</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="801"/>
+        <location filename="../qml/GeneratorWindow.qml" line="802"/>
         <source>SIZE</source>
         <translation>GRÖSSE</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="830"/>
+        <location filename="../qml/GeneratorWindow.qml" line="831"/>
         <source>Files of the media set</source>
         <translation>Dateien des Mediensets</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="870"/>
+        <location filename="../qml/GeneratorWindow.qml" line="871"/>
         <source>Name of %1 on the media set</source>
         <translation>Name von %1 im Medienset</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="891"/>
+        <location filename="../qml/GeneratorWindow.qml" line="892"/>
         <source>Kind of %1</source>
         <translation>Art von %1</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="900"/>
+        <location filename="../qml/GeneratorWindow.qml" line="901"/>
         <source>Check value of %1</source>
         <translation>Prüfwert von %1</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="920"/>
+        <location filename="../qml/GeneratorWindow.qml" line="921"/>
         <source>Remove %1</source>
         <translation>%1 entfernen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="929"/>
+        <location filename="../qml/GeneratorWindow.qml" line="930"/>
         <source>No files chosen</source>
         <translation>Keine Dateien gewählt</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="930"/>
+        <location filename="../qml/GeneratorWindow.qml" line="931"/>
         <source>Data files are the load&apos;s payload; support files carry it, for example CONFIG.LDR. The order is the order the target reads them.</source>
         <translation>Datendateien sind die Nutzdaten des Loads; Support-Dateien begleiten sie, z. B. CONFIG.LDR. Die Reihenfolge ist die Reihenfolge, in der das Zielgerät sie liest.</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="975"/>
+        <location filename="../qml/GeneratorWindow.qml" line="976"/>
         <source>COMPLETE</source>
         <translation>ABGESCHLOSSEN</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="977"/>
+        <location filename="../qml/GeneratorWindow.qml" line="978"/>
         <source>CANCELLED</source>
         <translation>ABGEBROCHEN</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="977"/>
+        <location filename="../qml/GeneratorWindow.qml" line="978"/>
         <source>FAILED</source>
         <translation>FEHLGESCHLAGEN</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="996"/>
+        <location filename="../qml/GeneratorWindow.qml" line="997"/>
         <source>Open folder</source>
         <translation>Ordner öffnen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="998"/>
+        <location filename="../qml/GeneratorWindow.qml" line="999"/>
         <source>Open the generated media set</source>
         <translation>Erzeugtes Medienset öffnen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1051"/>
-        <location filename="../qml/GeneratorWindow.qml" line="1053"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1052"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1054"/>
         <source>Building and verifying the media set...</source>
         <translation>Medienset wird erzeugt und verifiziert...</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1054"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1055"/>
         <source>Reading the files... %1%</source>
         <translation>Dateien werden gelesen... %1 %</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1057"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1058"/>
         <source>Ready: 1 file to write and verify</source>
         <translation>Bereit: 1 Datei wird geschrieben und verifiziert</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1058"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1059"/>
         <source>Ready: %1 files to write and verify</source>
         <translation>Bereit: %1 Dateien werden geschrieben und verifiziert</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1060"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1061"/>
         <source>Complete the required fields: part numbers, header file, output directory and at least one file.</source>
         <translation>Die Pflichtfelder ausfüllen: Teilenummern, Header-Datei, Ausgabeverzeichnis und mindestens eine Datei.</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1080"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1081"/>
         <source>working</source>
         <translation>arbeitet</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1090"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1091"/>
         <source>Cancel</source>
         <translation>Abbrechen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1092"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1093"/>
         <source>Cancel the generation</source>
         <translation>Erzeugung abbrechen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1098"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1099"/>
         <source>Generating...</source>
         <translation>Wird erzeugt...</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1099"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1100"/>
         <source>Generate media set</source>
         <translation>Medienset erzeugen</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1102"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1103"/>
         <source>Generate the media set</source>
         <translation>Das Medienset erzeugen</translation>
     </message>
@@ -600,88 +600,128 @@
 <context>
     <name>adl::gen::GeneratorWorker</name>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="87"/>
+        <location filename="../core/src/generator_worker.cpp" line="133"/>
         <source>Operational software</source>
         <translation>Betriebssoftware</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="89"/>
+        <location filename="../core/src/generator_worker.cpp" line="135"/>
         <source>Navigation database</source>
         <translation>Navigationsdatenbank</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="91"/>
+        <location filename="../core/src/generator_worker.cpp" line="137"/>
         <source>Aeronautical database</source>
         <translation>Aeronautische Datenbank</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="93"/>
+        <location filename="../core/src/generator_worker.cpp" line="139"/>
         <source>Test software</source>
         <translation>Testsoftware</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="102"/>
+        <location filename="../core/src/generator_worker.cpp" line="166"/>
         <source>Cannot read %1.</source>
         <translation>%1 kann nicht gelesen werden.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="143"/>
-        <location filename="../core/src/generator_worker.cpp" line="172"/>
-        <location filename="../core/src/generator_worker.cpp" line="278"/>
-        <location filename="../core/src/generator_worker.cpp" line="331"/>
+        <location filename="../core/src/generator_worker.cpp" line="225"/>
+        <location filename="../core/src/generator_worker.cpp" line="266"/>
+        <location filename="../core/src/generator_worker.cpp" line="375"/>
+        <location filename="../core/src/generator_worker.cpp" line="426"/>
+        <location filename="../core/src/generator_worker.cpp" line="451"/>
         <source>Cancelled.</source>
         <translation>Abgebrochen.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="144"/>
-        <location filename="../core/src/generator_worker.cpp" line="173"/>
-        <location filename="../core/src/generator_worker.cpp" line="279"/>
-        <location filename="../core/src/generator_worker.cpp" line="332"/>
+        <location filename="../core/src/generator_worker.cpp" line="226"/>
+        <location filename="../core/src/generator_worker.cpp" line="267"/>
+        <location filename="../core/src/generator_worker.cpp" line="376"/>
         <source>Nothing was written.</source>
         <translation>Es wurde nichts geschrieben.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="203"/>
+        <location filename="../core/src/generator_worker.cpp" line="297"/>
         <source>No data files chosen.</source>
         <translation>Keine Datendateien gewählt.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="212"/>
+        <location filename="../core/src/generator_worker.cpp" line="306"/>
         <source>The load could not be built: %1.</source>
         <translation>Der Load konnte nicht erstellt werden: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="271"/>
+        <location filename="../core/src/generator_worker.cpp" line="365"/>
         <source>The media set could not be built: %1.</source>
         <translation>Das Medienset konnte nicht erstellt werden: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="323"/>
+        <location filename="../core/src/generator_worker.cpp" line="158"/>
         <source>The media set could not be written below %1.</source>
         <translation>Das Medienset konnte nicht unterhalb von %1 geschrieben werden.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="340"/>
+        <location filename="../core/src/generator_worker.cpp" line="115"/>
+        <source>Nothing was kept: what had been written was removed.</source>
+        <translation>Nichts wurde behalten: Was geschrieben worden war, wurde entfernt.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="119"/>
+        <source>What had been written could not be removed, and is still in %1.</source>
+        <translation>Was geschrieben worden war, konnte nicht entfernt werden und befindet sich noch in %1.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="151"/>
+        <source>%1 is too large to be read into memory.</source>
+        <translation>%1 ist zu groß, um in den Speicher gelesen zu werden.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="187"/>
+        <source>The computer ran out of memory while the media set was being made.</source>
+        <translation>Dem Computer ging beim Erzeugen des Mediensets der Speicher aus.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="189"/>
+        <source>Nothing was kept. Choose smaller files, or close other programs and try again.</source>
+        <translation>Nichts wurde behalten. Wählen Sie kleinere Dateien oder schließen Sie andere Programme und versuchen Sie es erneut.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="194"/>
+        <source>The media set could not be made.</source>
+        <translation>Das Medienset konnte nicht erzeugt werden.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="247"/>
+        <source>Nothing was written. Choose smaller files, or close other programs and try again.</source>
+        <translation>Nichts wurde geschrieben. Wählen Sie kleinere Dateien oder schließen Sie andere Programme und versuchen Sie es erneut.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="407"/>
+        <source>Too many unfinished sets (%1.writing...) are there already.</source>
+        <translation>Es gibt bereits zu viele unfertige Sets (%1.writing...).</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="435"/>
         <source>The written media set could not be read back: %1 (%2).</source>
         <translation>Das geschriebene Medienset konnte nicht zurückgelesen werden: %1 (%2).</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="349"/>
+        <location filename="../core/src/generator_worker.cpp" line="445"/>
         <source>The written media set does not verify: %1.</source>
         <translation>Das geschriebene Medienset besteht die Verifizierung nicht: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="364"/>
+        <location filename="../core/src/generator_worker.cpp" line="513"/>
         <source>Media set %1 written and verified.</source>
         <translation>Medienset %1 geschrieben und verifiziert.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="368"/>
+        <location filename="../core/src/generator_worker.cpp" line="517"/>
         <source>%1, %2, %3 bytes in %4, in %5.</source>
         <translation>%1, %2, %3 Bytes in %4, in %5.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="369"/>
+        <location filename="../core/src/generator_worker.cpp" line="518"/>
         <source>%n data file(s)</source>
         <translation>
             <numerusform>%n Datendatei</numerusform>
@@ -689,7 +729,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="371"/>
+        <location filename="../core/src/generator_worker.cpp" line="520"/>
         <source>%n support file(s)</source>
         <translation>
             <numerusform>%n Support-Datei</numerusform>
@@ -697,7 +737,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="374"/>
+        <location filename="../core/src/generator_worker.cpp" line="523"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n Mitglied</numerusform>
@@ -705,7 +745,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="381"/>
+        <location filename="../core/src/generator_worker.cpp" line="531"/>
         <source>%n difference(s) from the standard&apos;s recommendations.</source>
         <translation>
             <numerusform>%n Abweichung von den Empfehlungen der Norm.</numerusform>

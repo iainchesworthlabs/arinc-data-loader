@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+93"/>
+        <location filename="../core/src/engine_worker.cpp" line="+112"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>“%1”不是IPv4地址。</translation>
     </message>
@@ -124,7 +124,7 @@
 <context>
     <name>DirectoryProblem</name>
     <message>
-        <location line="+12"/>
+        <location filename="../core/src/download_directory.cpp" line="+22"/>
         <source>%1 is not a directory</source>
         <translation>%1不是目录</translation>
     </message>
@@ -137,6 +137,11 @@
         <location line="+5"/>
         <source>cannot create %1 (%2)</source>
         <translation>无法创建%1（%2）</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>there are already %1 download directories for %2 in %3</source>
+        <translation>%3中已有%1个%2的下载目录</translation>
     </message>
 </context>
 <context>
@@ -597,12 +602,17 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-72"/>
+        <location filename="../core/src/engine_worker.cpp" line="-66"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>请选择介质集写入的目录，并确保该介质集的每个文件仍在其中。</translation>
     </message>
     <message>
         <location line="+6"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
+        <translation>介质集中的内容在检查后被编辑、替换或删除，因此没有上载任何内容。请重新检查介质集，然后再上载。</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>加载器无法使用网络或其端口。请检查是否有另一个加载器副本正在运行，以及是否有其他程序占用了控制端口（首选项）。</translation>
     </message>
@@ -622,7 +632,12 @@
         <translation>目标机没有返回所请求的全部文件。请对照目标机可提供的文件核对文件名，并询问目标机某个文件失败的原因。</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>请使用目标机自报的THW_ID_POS：1至240个字符，其中不得含有控制字符、斜杠、反斜杠，或目录名不能包含的字符（冒号、星号、问号、引号、尖括号或竖线）。</translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
         <translation>请按目标机识别的名称填写：不超过254个字符、不含路径的纯文件名。</translation>
     </message>
@@ -643,18 +658,18 @@
 <context>
     <name>JobListener</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+122"/>
+        <location filename="../core/src/engine_worker.cpp" line="+35"/>
         <source>The target answered: %1</source>
         <translation>目标机已应答：%1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>Status %1: %2</source>
         <translation>状态%1：%2</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <location line="+39"/>
+        <location line="+12"/>
+        <location line="+40"/>
         <source>Status %1: %2, %3% of the list</source>
         <translation>状态%1：%2，已完成列表的%3%</translation>
     </message>
@@ -664,7 +679,7 @@
         <translation>目标机报告加载件%1失败（%2）%3</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+40"/>
         <source>The target failed file %1%2</source>
         <translation>目标机报告文件%1失败%2</translation>
     </message>
@@ -674,7 +689,7 @@
         <translation>目标机已读取%1（%2字节）</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Received %1 (%2 bytes)</source>
         <translation>已接收%1（%2字节）</translation>
     </message>
@@ -684,7 +699,7 @@
         <translation>序列号%1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>The target listed its configuration.</source>
         <translation>目标机已列出其配置。</translation>
     </message>
@@ -2031,7 +2046,7 @@
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+538"/>
+        <location filename="../core/src/models.cpp" line="+539"/>
         <source>waiting</source>
         <translation>等待中</translation>
     </message>
@@ -2039,7 +2054,7 @@
 <context>
     <name>adl::app::EngineWorker</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+104"/>
+        <location filename="../core/src/engine_worker.cpp" line="+109"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>正在查找目标（广播，三秒）...</translation>
     </message>
@@ -2049,24 +2064,24 @@
         <translation>正在 %1 查找目标（三秒）...</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+9"/>
         <source>FIND could not run (%1).</source>
         <translation>FIND 无法运行（%1）。</translation>
     </message>
     <message numerus="yes">
-        <location line="+23"/>
+        <location line="+22"/>
         <source>%n target(s) answered</source>
         <translation>
             <numerusform>%n个目标机已应答</numerusform>
         </translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>正在向 %1（%2）请求其配置...</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+18"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>尚未读取媒体集，因此没有可上传的内容。</translation>
     </message>
@@ -2075,8 +2090,19 @@
         <source>No load was chosen.</source>
         <translation>未选择任何加载项。</translation>
     </message>
+    <message>
+        <location line="+29"/>
+        <source>The media set changed after it was checked: %1.</source>
+        <translation>介质集在检查后发生了变化：%1。</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+245"/>
+        <source>the media set changed after it was checked</source>
+        <translation>介质集在检查后发生了变化</translation>
+    </message>
     <message numerus="yes">
-        <location line="+26"/>
+        <location line="-234"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>正在向%1（%2）上载%n个加载件...</numerusform>
@@ -2088,7 +2114,7 @@
         <translation>未指定任何文件。</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>“%1”不是安全的文件名。</translation>
     </message>
@@ -2099,8 +2125,18 @@
             <numerusform>正在从%1（%2）下载%n个文件...</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+32"/>
+        <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
+        <translation>“%1”不是可进行下载的THW_ID_POS。</translation>
+    </message>
+    <message>
+        <location line="+71"/>
+        <source>Nothing was received, so the empty download directory %1 was removed.</source>
+        <translation>未收到任何内容，因此已删除空的下载目录%1。</translation>
+    </message>
     <message numerus="yes">
-        <location line="+128"/>
+        <location line="+54"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>已完成，%n个文件失败</numerusform>
@@ -2120,25 +2156,30 @@
             <numerusform>已完成，%n个文件缺失</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+22"/>
+        <source>The media set changed after it was checked: %1. (The upload ended: %2.)</source>
+        <translation>介质集在检查后发生了变化：%1。（上载已结束：%2。）</translation>
+    </message>
     <message numerus="yes">
-        <location line="+16"/>
+        <location line="+7"/>
         <source>The target read %n file(s).</source>
         <translation>
             <numerusform>目标机读取了%n个文件。</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-135"/>
+        <location line="-177"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>正在向 %1（%2）请求其可下载的文件...</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+27"/>
         <source>The download directory could not be used: %1.</source>
         <translation>下载目录无法使用：%1。</translation>
     </message>
     <message>
-        <location line="+52"/>
+        <location line="+71"/>
         <source>the request was refused (%1)</source>
         <translation>请求被拒绝（%1）</translation>
     </message>
@@ -2158,12 +2199,12 @@
         <translation>操作无法运行：%1。</translation>
     </message>
     <message>
-        <location line="+139"/>
+        <location line="+154"/>
         <source>Checked media set %1: %2, %3.</source>
         <translation>已检查介质集%1：%2，%3。</translation>
     </message>
     <message>
-        <location line="-98"/>
+        <location line="-112"/>
         <source>The target confirmed that it stopped.</source>
         <translation>目标已确认其停止。</translation>
     </message>
@@ -2173,22 +2214,22 @@
         <translation>目标未确认其停止。</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+32"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>已接收文件：%1，请求 %2。</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+14"/>
         <source>Finished: %1.</source>
         <translation>已完成：%1。</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>Reading the media set in %1...</source>
         <translation>正在读取 %1 中的媒体集...</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>media set read</source>
         <translation>媒体集已读取</translation>
     </message>
@@ -2210,19 +2251,19 @@
         <translation>正在检查 %1 中的媒体集...</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+22"/>
         <source>media set checked</source>
         <translation>媒体集已检查</translation>
     </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+7"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n个加载件</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+1"/>
+        <location line="+2"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n个文件</numerusform>
@@ -2261,7 +2302,7 @@
         </translation>
     </message>
     <message>
-        <location line="+115"/>
+        <location line="+116"/>
         <source>waiting</source>
         <translation>等待中</translation>
     </message>
@@ -2269,20 +2310,20 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+65"/>
+        <location filename="../core/src/loader_model.cpp" line="+67"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1，%2，所有校验值均已验证</translation>
     </message>
     <message numerus="yes">
         <location line="+1"/>
-        <location line="+146"/>
+        <location line="+148"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n个加载件</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-144"/>
+        <location line="-146"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n个文件</numerusform>
@@ -2333,7 +2374,7 @@
         <translation>正在检查媒体集...</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>%1: %2, %3</source>
         <translation>%1：%2，%3</translation>
     </message>
@@ -2345,12 +2386,12 @@
         </translation>
     </message>
     <message>
-        <location line="+304"/>
+        <location line="+313"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>请从列表中选择目标，然后再次运行操作。</translation>
     </message>
     <message>
-        <location line="-392"/>
+        <location line="-403"/>
         <source>No target is selected; looking for one first.</source>
         <translation>未选择目标；先查找一个目标。</translation>
     </message>
@@ -2358,7 +2399,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-324"/>
+        <location filename="../core/src/models.cpp" line="-326"/>
         <source>%1 at %2</source>
         <translation>%1（位于 %2）</translation>
     </message>

@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+93"/>
+        <location filename="../core/src/engine_worker.cpp" line="+112"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>«&#xa0;%1&#xa0;» n’est pas une adresse IPv4.</translation>
     </message>
@@ -124,7 +124,7 @@
 <context>
     <name>DirectoryProblem</name>
     <message>
-        <location line="+12"/>
+        <location filename="../core/src/download_directory.cpp" line="+22"/>
         <source>%1 is not a directory</source>
         <translation>%1 n’est pas un répertoire</translation>
     </message>
@@ -137,6 +137,11 @@
         <location line="+5"/>
         <source>cannot create %1 (%2)</source>
         <translation>impossible de créer %1 (%2)</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>there are already %1 download directories for %2 in %3</source>
+        <translation>il existe déjà %1 répertoires de téléchargement pour %2 dans %3</translation>
     </message>
 </context>
 <context>
@@ -599,12 +604,17 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-72"/>
+        <location filename="../core/src/engine_worker.cpp" line="-66"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>Choisissez le répertoire dans lequel le jeu de supports a été écrit et assurez-vous que tous les fichiers du jeu s’y trouvent toujours.</translation>
     </message>
     <message>
         <location line="+6"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
+        <translation>Un élément du jeu de supports a été modifié, remplacé ou supprimé après sa vérification&#xa0;; rien n’a donc été téléversé. Vérifiez à nouveau le jeu de supports, puis téléversez.</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>Le chargeur n’a pas pu utiliser le réseau ni son port. Vérifiez qu’aucune autre copie du chargeur ne s’exécute et qu’aucun autre programme n’occupe le port de contrôle (Préférences).</translation>
     </message>
@@ -624,7 +634,12 @@
         <translation>La cible n’a pas renvoyé tous les fichiers demandés. Comparez les noms avec ce que la cible peut fournir et demandez-lui pourquoi un fichier a échoué.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>Utilisez le THW_ID_POS de la cible tel qu’elle se nomme&#xa0;: de 1 à 240 caractères, dont aucun n’est un caractère de contrôle, une barre oblique, une barre oblique inverse ou un caractère qu’un nom de répertoire ne peut pas contenir (deux-points, astérisque, point d’interrogation, guillemets, chevrons ou barre verticale).</translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
         <translation>Indiquez le nom du fichier tel que la cible le connaît&#xa0;: un nom simple d’au plus 254 caractères, sans chemin.</translation>
     </message>
@@ -645,18 +660,18 @@
 <context>
     <name>JobListener</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+122"/>
+        <location filename="../core/src/engine_worker.cpp" line="+35"/>
         <source>The target answered: %1</source>
         <translation>La cible a répondu&#xa0;: %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>Status %1: %2</source>
         <translation>Statut %1&#xa0;: %2</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <location line="+39"/>
+        <location line="+12"/>
+        <location line="+40"/>
         <source>Status %1: %2, %3% of the list</source>
         <translation>Statut %1&#xa0;: %2, %3&#xa0;% de la liste</translation>
     </message>
@@ -666,7 +681,7 @@
         <translation>La cible a échoué sur le chargement %1 (%2)%3</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+40"/>
         <source>The target failed file %1%2</source>
         <translation>La cible a échoué sur le fichier %1%2</translation>
     </message>
@@ -676,7 +691,7 @@
         <translation>La cible a lu %1 (%2 octets)</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Received %1 (%2 bytes)</source>
         <translation>Reçu %1 (%2 octets)</translation>
     </message>
@@ -686,7 +701,7 @@
         <translation>numéro de série %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>The target listed its configuration.</source>
         <translation>La cible a listé sa configuration.</translation>
     </message>
@@ -2045,7 +2060,7 @@
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+538"/>
+        <location filename="../core/src/models.cpp" line="+539"/>
         <source>waiting</source>
         <translation>en attente</translation>
     </message>
@@ -2053,7 +2068,7 @@
 <context>
     <name>adl::app::EngineWorker</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+104"/>
+        <location filename="../core/src/engine_worker.cpp" line="+109"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>Recherche de cibles (diffusion, trois secondes)...</translation>
     </message>
@@ -2063,12 +2078,12 @@
         <translation>Recherche d&apos;une cible à %1 (trois secondes)...</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+9"/>
         <source>FIND could not run (%1).</source>
         <translation>FIND n&apos;a pas pu s&apos;exécuter (%1).</translation>
     </message>
     <message numerus="yes">
-        <location line="+23"/>
+        <location line="+22"/>
         <source>%n target(s) answered</source>
         <translation>
             <numerusform>%n cible a répondu</numerusform>
@@ -2076,12 +2091,12 @@
         </translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>Demande de configuration à %1 (%2)...</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+18"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>Aucun jeu de média n&apos;a été lu, il n&apos;y a donc rien à téléverser.</translation>
     </message>
@@ -2090,8 +2105,19 @@
         <source>No load was chosen.</source>
         <translation>Aucun chargement n&apos;a été choisi.</translation>
     </message>
+    <message>
+        <location line="+29"/>
+        <source>The media set changed after it was checked: %1.</source>
+        <translation>Le jeu de supports a changé après sa vérification&#xa0;: %1.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+245"/>
+        <source>the media set changed after it was checked</source>
+        <translation>le jeu de supports a changé après sa vérification</translation>
+    </message>
     <message numerus="yes">
-        <location line="+26"/>
+        <location line="-234"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>Téléversement de %n chargement vers %1 (%2)...</numerusform>
@@ -2104,7 +2130,7 @@
         <translation>Aucun fichier n&apos;a été nommé.</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>« %1 » n&apos;est pas un nom de fichier sûr.</translation>
     </message>
@@ -2116,8 +2142,18 @@
             <numerusform>Téléchargement de %n fichiers depuis %1 (%2)...</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+32"/>
+        <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
+        <translation>«&#xa0;%1&#xa0;» n’est pas un THW_ID_POS pour lequel un téléchargement peut être effectué.</translation>
+    </message>
+    <message>
+        <location line="+71"/>
+        <source>Nothing was received, so the empty download directory %1 was removed.</source>
+        <translation>Rien n’a été reçu&#xa0;; le répertoire de téléchargement vide %1 a donc été supprimé.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+128"/>
+        <location line="+54"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>terminé, %n fichier en échec</numerusform>
@@ -2140,8 +2176,13 @@
             <numerusform>terminé, %n fichiers manquants</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+22"/>
+        <source>The media set changed after it was checked: %1. (The upload ended: %2.)</source>
+        <translation>Le jeu de supports a changé après sa vérification&#xa0;: %1. (Le téléversement s’est terminé&#xa0;: %2.)</translation>
+    </message>
     <message numerus="yes">
-        <location line="+16"/>
+        <location line="+7"/>
         <source>The target read %n file(s).</source>
         <translation>
             <numerusform>La cible a lu %n fichier.</numerusform>
@@ -2149,17 +2190,17 @@
         </translation>
     </message>
     <message>
-        <location line="-135"/>
+        <location line="-177"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>Demande à %1 (%2) des fichiers qu&apos;elle peut télécharger...</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+27"/>
         <source>The download directory could not be used: %1.</source>
         <translation>Le répertoire de téléchargement n&apos;a pas pu être utilisé : %1.</translation>
     </message>
     <message>
-        <location line="+52"/>
+        <location line="+71"/>
         <source>the request was refused (%1)</source>
         <translation>la requête a été refusée (%1)</translation>
     </message>
@@ -2179,12 +2220,12 @@
         <translation>L&apos;opération n&apos;a pas pu s&apos;exécuter : %1.</translation>
     </message>
     <message>
-        <location line="+139"/>
+        <location line="+154"/>
         <source>Checked media set %1: %2, %3.</source>
         <translation>Jeu de supports %1 vérifié&#xa0;: %2, %3.</translation>
     </message>
     <message>
-        <location line="-98"/>
+        <location line="-112"/>
         <source>The target confirmed that it stopped.</source>
         <translation>La cible a confirmé son arrêt.</translation>
     </message>
@@ -2194,22 +2235,22 @@
         <translation>La cible n&apos;a pas confirmé son arrêt.</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+32"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>Fichiers reçus : %1 sur %2 demandés.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+14"/>
         <source>Finished: %1.</source>
         <translation>Terminé : %1.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>Reading the media set in %1...</source>
         <translation>Lecture du jeu de média dans %1...</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>media set read</source>
         <translation>jeu de média lu</translation>
     </message>
@@ -2232,12 +2273,12 @@
         <translation>Vérification du jeu de média dans %1...</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+22"/>
         <source>media set checked</source>
         <translation>jeu de média vérifié</translation>
     </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+7"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n chargement</numerusform>
@@ -2245,7 +2286,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+1"/>
+        <location line="+2"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n fichier</numerusform>
@@ -2287,7 +2328,7 @@
         </translation>
     </message>
     <message>
-        <location line="+115"/>
+        <location line="+116"/>
         <source>waiting</source>
         <translation>en attente</translation>
     </message>
@@ -2295,13 +2336,13 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+65"/>
+        <location filename="../core/src/loader_model.cpp" line="+67"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1, %2, toutes les valeurs de contrôle vérifiées</translation>
     </message>
     <message numerus="yes">
         <location line="+1"/>
-        <location line="+146"/>
+        <location line="+148"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n chargement</numerusform>
@@ -2309,7 +2350,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-144"/>
+        <location line="-146"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n fichier</numerusform>
@@ -2362,7 +2403,7 @@
         <translation>Vérification du jeu de média...</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>%1: %2, %3</source>
         <translation>%1&#xa0;: %2, %3</translation>
     </message>
@@ -2375,12 +2416,12 @@
         </translation>
     </message>
     <message>
-        <location line="+304"/>
+        <location line="+313"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>Choisissez la cible dans la liste, puis relancez l&apos;opération.</translation>
     </message>
     <message>
-        <location line="-392"/>
+        <location line="-403"/>
         <source>No target is selected; looking for one first.</source>
         <translation>Aucune cible n&apos;est sélectionnée ; recherche préalable d&apos;une cible.</translation>
     </message>
@@ -2388,7 +2429,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-324"/>
+        <location filename="../core/src/models.cpp" line="-326"/>
         <source>%1 at %2</source>
         <translation>%1 à %2</translation>
     </message>

@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+93"/>
+        <location filename="../core/src/engine_worker.cpp" line="+112"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>«%1» no es una dirección IPv4.</translation>
     </message>
@@ -124,7 +124,7 @@
 <context>
     <name>DirectoryProblem</name>
     <message>
-        <location line="+12"/>
+        <location filename="../core/src/download_directory.cpp" line="+22"/>
         <source>%1 is not a directory</source>
         <translation>%1 no es un directorio</translation>
     </message>
@@ -137,6 +137,11 @@
         <location line="+5"/>
         <source>cannot create %1 (%2)</source>
         <translation>no se puede crear %1 (%2)</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>there are already %1 download directories for %2 in %3</source>
+        <translation>ya hay %1 directorios de descarga para %2 en %3</translation>
     </message>
 </context>
 <context>
@@ -599,12 +604,17 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-72"/>
+        <location filename="../core/src/engine_worker.cpp" line="-66"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>Elegir el directorio en el que se escribió el conjunto de medios y comprobar que todos los archivos del conjunto siguen en él.</translation>
     </message>
     <message>
         <location line="+6"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
+        <translation>Algo del conjunto de medios se editó, reemplazó o eliminó después de comprobarlo, por lo que no se subió nada. Compruebe de nuevo el conjunto de medios y vuelva a subirlo.</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>El cargador no pudo usar la red o su puerto. Comprobar que no se esté ejecutando otra copia del cargador y que ningún otro programa ocupe el puerto de control (Preferencias).</translation>
     </message>
@@ -624,7 +634,12 @@
         <translation>El destino no devolvió todos los archivos solicitados. Comprobar los nombres con lo que el destino puede entregar y preguntarle por qué falló un archivo.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>Use el THW_ID_POS del destino tal como se nombra a sí mismo: de 1 a 240 caracteres, ninguno de ellos un carácter de control, una barra, una barra invertida o un carácter que un nombre de directorio no pueda contener (dos puntos, asterisco, signo de interrogación, comillas, corchetes angulares o barra vertical).</translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
         <translation>Indicar el archivo tal como lo conoce el destino: un nombre simple de 254 caracteres como máximo, sin ruta.</translation>
     </message>
@@ -645,18 +660,18 @@
 <context>
     <name>JobListener</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+122"/>
+        <location filename="../core/src/engine_worker.cpp" line="+35"/>
         <source>The target answered: %1</source>
         <translation>El destino respondió: %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>Status %1: %2</source>
         <translation>Estado %1: %2</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <location line="+39"/>
+        <location line="+12"/>
+        <location line="+40"/>
         <source>Status %1: %2, %3% of the list</source>
         <translation>Estado %1: %2, %3% de la lista</translation>
     </message>
@@ -666,7 +681,7 @@
         <translation>El destino falló en la carga %1 (%2)%3</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+40"/>
         <source>The target failed file %1%2</source>
         <translation>El destino falló en el archivo %1%2</translation>
     </message>
@@ -676,7 +691,7 @@
         <translation>El destino leyó %1 (%2 bytes)</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Received %1 (%2 bytes)</source>
         <translation>Recibido %1 (%2 bytes)</translation>
     </message>
@@ -686,7 +701,7 @@
         <translation>número de serie %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>The target listed its configuration.</source>
         <translation>El destino enumeró su configuración.</translation>
     </message>
@@ -2045,7 +2060,7 @@
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+538"/>
+        <location filename="../core/src/models.cpp" line="+539"/>
         <source>waiting</source>
         <translation>en espera</translation>
     </message>
@@ -2053,7 +2068,7 @@
 <context>
     <name>adl::app::EngineWorker</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+104"/>
+        <location filename="../core/src/engine_worker.cpp" line="+109"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>Buscando objetivos (difusión, tres segundos)...</translation>
     </message>
@@ -2063,12 +2078,12 @@
         <translation>Buscando un objetivo en %1 (tres segundos)...</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+9"/>
         <source>FIND could not run (%1).</source>
         <translation>FIND no pudo ejecutarse (%1).</translation>
     </message>
     <message numerus="yes">
-        <location line="+23"/>
+        <location line="+22"/>
         <source>%n target(s) answered</source>
         <translation>
             <numerusform>%n destino respondió</numerusform>
@@ -2076,12 +2091,12 @@
         </translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>Pidiendo su configuración a %1 (%2)...</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+18"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>No se ha leído ningún conjunto de medios, así que no hay nada que subir.</translation>
     </message>
@@ -2090,8 +2105,19 @@
         <source>No load was chosen.</source>
         <translation>No se ha elegido ninguna carga.</translation>
     </message>
+    <message>
+        <location line="+29"/>
+        <source>The media set changed after it was checked: %1.</source>
+        <translation>El conjunto de medios cambió después de comprobarlo: %1.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+245"/>
+        <source>the media set changed after it was checked</source>
+        <translation>el conjunto de medios cambió después de comprobarlo</translation>
+    </message>
     <message numerus="yes">
-        <location line="+26"/>
+        <location line="-234"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>Subiendo %n carga a %1 (%2)...</numerusform>
@@ -2104,7 +2130,7 @@
         <translation>No se ha indicado ningún fichero.</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>&quot;%1&quot; no es un nombre de fichero seguro.</translation>
     </message>
@@ -2116,8 +2142,18 @@
             <numerusform>Descargando %n archivos desde %1 (%2)...</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+32"/>
+        <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
+        <translation>«%1» no es un THW_ID_POS para el que se pueda hacer una descarga.</translation>
+    </message>
+    <message>
+        <location line="+71"/>
+        <source>Nothing was received, so the empty download directory %1 was removed.</source>
+        <translation>No se recibió nada, por lo que se eliminó el directorio de descarga vacío %1.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+128"/>
+        <location line="+54"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>completado, %n archivo falló</numerusform>
@@ -2140,8 +2176,13 @@
             <numerusform>completado, faltan %n archivos</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+22"/>
+        <source>The media set changed after it was checked: %1. (The upload ended: %2.)</source>
+        <translation>El conjunto de medios cambió después de comprobarlo: %1. (La subida terminó: %2.)</translation>
+    </message>
     <message numerus="yes">
-        <location line="+16"/>
+        <location line="+7"/>
         <source>The target read %n file(s).</source>
         <translation>
             <numerusform>El destino leyó %n archivo.</numerusform>
@@ -2149,17 +2190,17 @@
         </translation>
     </message>
     <message>
-        <location line="-135"/>
+        <location line="-177"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>Pidiendo a %1 (%2) los ficheros que puede descargar...</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+27"/>
         <source>The download directory could not be used: %1.</source>
         <translation>No se pudo usar el directorio de descargas: %1.</translation>
     </message>
     <message>
-        <location line="+52"/>
+        <location line="+71"/>
         <source>the request was refused (%1)</source>
         <translation>se rechazó la solicitud (%1)</translation>
     </message>
@@ -2179,12 +2220,12 @@
         <translation>La operación no pudo ejecutarse: %1.</translation>
     </message>
     <message>
-        <location line="+139"/>
+        <location line="+154"/>
         <source>Checked media set %1: %2, %3.</source>
         <translation>Conjunto de medios %1 comprobado: %2, %3.</translation>
     </message>
     <message>
-        <location line="-98"/>
+        <location line="-112"/>
         <source>The target confirmed that it stopped.</source>
         <translation>El objetivo confirmó que se detuvo.</translation>
     </message>
@@ -2194,22 +2235,22 @@
         <translation>El objetivo no confirmó que se detuviera.</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+32"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>Ficheros recibidos: %1 de %2 solicitados.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+14"/>
         <source>Finished: %1.</source>
         <translation>Finalizado: %1.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>Reading the media set in %1...</source>
         <translation>Leyendo el conjunto de medios en %1...</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>media set read</source>
         <translation>conjunto de medios leído</translation>
     </message>
@@ -2232,12 +2273,12 @@
         <translation>Comprobando el conjunto de medios en %1...</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+22"/>
         <source>media set checked</source>
         <translation>conjunto de medios comprobado</translation>
     </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+7"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n carga</numerusform>
@@ -2245,7 +2286,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+1"/>
+        <location line="+2"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n archivo</numerusform>
@@ -2287,7 +2328,7 @@
         </translation>
     </message>
     <message>
-        <location line="+115"/>
+        <location line="+116"/>
         <source>waiting</source>
         <translation>en espera</translation>
     </message>
@@ -2295,13 +2336,13 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+65"/>
+        <location filename="../core/src/loader_model.cpp" line="+67"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1, %2, todos los valores de comprobación verificados</translation>
     </message>
     <message numerus="yes">
         <location line="+1"/>
-        <location line="+146"/>
+        <location line="+148"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n carga</numerusform>
@@ -2309,7 +2350,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-144"/>
+        <location line="-146"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n archivo</numerusform>
@@ -2362,7 +2403,7 @@
         <translation>Comprobando el conjunto de medios...</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>%1: %2, %3</source>
         <translation>%1: %2, %3</translation>
     </message>
@@ -2375,12 +2416,12 @@
         </translation>
     </message>
     <message>
-        <location line="+304"/>
+        <location line="+313"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>Elija el objetivo de la lista y vuelva a ejecutar la operación.</translation>
     </message>
     <message>
-        <location line="-392"/>
+        <location line="-403"/>
         <source>No target is selected; looking for one first.</source>
         <translation>No hay ningún objetivo seleccionado; se busca uno primero.</translation>
     </message>
@@ -2388,7 +2429,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-324"/>
+        <location filename="../core/src/models.cpp" line="-326"/>
         <source>%1 at %2</source>
         <translation>%1 en %2</translation>
     </message>

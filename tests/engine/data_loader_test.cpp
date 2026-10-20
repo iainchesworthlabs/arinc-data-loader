@@ -1335,3 +1335,26 @@ TEST_CASE("an operation is started once", "[engine][runner]") {
     const auto again = rig.loader->start(rig.now(), InformationOperation{});
     REQUIRE_FALSE(again);
 }
+
+// The id an application makes a directory name from before it starts the loader: the predicate
+// is the loader's own, so the two cannot disagree.
+TEST_CASE("a THW_ID_POS is checked the way the loader checks it", "[engine][loader]") {
+    CHECK(is_valid_thw_id_pos("HNPFMS_L"));
+    CHECK(is_valid_thw_id_pos("A"));
+    CHECK(is_valid_thw_id_pos("with space"));
+    CHECK(is_valid_thw_id_pos(std::string(max_thw_id_pos_length, 'a')));
+    CHECK_FALSE(is_valid_thw_id_pos(std::string(max_thw_id_pos_length + 1, 'a')));
+    CHECK_FALSE(is_valid_thw_id_pos(""));
+    for (const std::string_view bad : {"a/b", "..\\x", "a\tb", "a\nb", "del\x7f"}) {
+        CAPTURE(bad);
+        CHECK_FALSE(is_valid_thw_id_pos(bad));
+    }
+    CHECK_FALSE(is_valid_thw_id_pos(std::string_view{"nul\0byte", 8}));
+
+    // And DataLoader::start refuses what it rejects.
+    Rig rig;
+    rig.config.thw_id_pos = "a/b";
+    const auto outcome = rig.run(InformationOperation{});
+    REQUIRE_FALSE(outcome);
+    CHECK(outcome.error().engine == Error::invalid_value);
+}

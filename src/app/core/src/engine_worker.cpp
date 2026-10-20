@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <variant>
 #include <vector>
@@ -13,6 +14,7 @@
 #include <QSet>
 
 #include "adl/app/address.hpp"
+#include "adl/app/download_directory.hpp"
 #include "adl/app/media_set_summary.hpp"
 #include "adl/app/text.hpp"
 #include "adl/app/wording.hpp"
@@ -22,6 +24,7 @@
 #include "adl/arinc615a/directory_files.hpp"
 #include "adl/arinc615a/find_client.hpp"
 #include "adl/arinc615a/limits.hpp"
+#include "adl/platform/paths.hpp"
 
 namespace adl::app {
 
@@ -42,6 +45,14 @@ public:
         return Message::translated(
             &Hint::tr, QT_TR_NOOP("Choose the directory the media set was written to, and make "
                                   "sure every file of the set is still in it."));
+    }
+
+    static Message media_set_changed() {
+        return Message::translated(
+            &Hint::tr,
+            QT_TR_NOOP("Something in the media set was edited, replaced or removed after "
+                       "it was checked, so nothing was uploaded. Check the media set "
+                       "again, then upload."));
     }
 
     static Message host() {
@@ -70,6 +81,15 @@ public:
                                   "why a file failed."));
     }
 
+    static Message thw_id_pos() {
+        return Message::translated(
+            &Hint::tr,
+            QT_TR_NOOP("Use the target's THW_ID_POS as it names itself: 1 to 240 characters, none "
+                       "of them a control character, a slash, a backslash or a character a "
+                       "directory name cannot hold (a colon, an asterisk, a question mark, quotes, "
+                       "angle brackets or a bar)."));
+    }
+
     static Message file_name() {
         return Message::translated(
             &Hint::tr, QT_TR_NOOP("Name the file as the target knows it: a plain name of at most "
@@ -95,98 +115,11 @@ public:
     }
 };
 
-// Problems with a directory, as the operator is told them. The platform's error code is its own
-// word and is not translated.
-class DirectoryProblem {
-    Q_DECLARE_TR_FUNCTIONS(DirectoryProblem)
-
-public:
-    static Message not_a_directory(std::string_view path) {
-        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("%1 is not a directory"),
-                                   {Message::verbatim(to_qstring(path))});
-    }
-
-    static Message cannot_look_at(std::string_view path, adl::platform::ErrorCode code) {
-        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("cannot look at %1 (%2)"),
-                                   {Message::verbatim(to_qstring(path)), error_code(code)});
-    }
-
-    static Message cannot_create(std::string_view path, adl::platform::ErrorCode code) {
-        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("cannot create %1 (%2)"),
-                                   {Message::verbatim(to_qstring(path)), error_code(code)});
-    }
-
-    static Message error_code(adl::platform::ErrorCode code) {
-        return Message::verbatim(QString::fromLatin1(adl::platform::to_string(code)));
-    }
-};
-
-// Makes `path` a directory, creating the directories on the way: the platform's
-// make_directory wants the parent to exist, and the operator's download directory may be a
-// path that is not there yet (the default Documents/ArincDownloads is made on demand).
-// Returns what to tell the operator, or nothing.
-std::optional<Message> make_directory_chain(adl::platform::FileSystem& files,
-                                            std::string_view path) {
-    using adl::platform::ErrorCode;
-    const auto existing = files.stat(path);
-    if (existing) {
-        if (existing->kind != adl::platform::FileKind::directory) {
-            return DirectoryProblem::not_a_directory(path);
-        }
-        return std::nullopt;
-    }
-    if (existing.error().code != ErrorCode::not_found) {
-        return DirectoryProblem::cannot_look_at(path, existing.error().code);
-    }
-    const std::size_t cut = path.rfind('/');
-    if (cut != std::string_view::npos && cut != 0) {
-        if (const auto problem = make_directory_chain(files, path.substr(0, cut))) {
-            return problem;
-        }
-    }
-    const auto made = files.make_directory(path);
-    if (!made) {
-        return DirectoryProblem::cannot_create(path, made.error().code);
-    }
-    return std::nullopt;
-}
-
-// The directory a download is written into: DNLD_DATA_<THW_ID_POS>_<number> under the operator's
-// download directory (5.4.4.3), the <number> being the lowest that does not exist yet, starting
-// at 1. The download directory itself is created when it is not there. Returns the platform path
-// (UTF-8, '/' separated) of the new directory, or what to tell the operator.
-std::expected<std::string, Message> make_download_directory(adl::platform::FileSystem& files,
-                                                            std::string_view directory,
-                                                            std::string_view thw_id_pos) {
-    using adl::platform::ErrorCode;
-    if (const auto problem = make_directory_chain(files, directory)) {
-        return std::unexpected(*problem);
-    }
-    for (unsigned number = 1;; ++number) {
-        const std::string name =
-            "DNLD_DATA_" + std::string{thw_id_pos} + "_" + std::to_string(number);
-        const std::string path = std::string{directory} + "/" + name;
-        const auto taken = files.stat(path);
-        if (taken) {
-            continue;  // whatever it is, the number is not free
-        }
-        if (taken.error().code != ErrorCode::not_found) {
-            return std::unexpected(DirectoryProblem::cannot_look_at(path, taken.error().code));
-        }
-        const auto made = files.make_directory(path);
-        if (!made) {
-            return std::unexpected(DirectoryProblem::cannot_create(path, made.error().code));
-        }
-        return path;
-    }
-}
-
 // A path as the operator typed it (a Qt string, in the platform's own form) as the '/'-separated
 // UTF-8 path the platform's FileSystem speaks.
 std::string to_platform_path(const QString& text) {
-    const std::filesystem::path path{QDir::toNativeSeparators(text).toStdU16String()};
-    const std::u8string generic = path.generic_u8string();
-    return {reinterpret_cast<const char*>(generic.data()), generic.size()};
+    return adl::platform::to_platform_path(
+        std::filesystem::path{QDir::toNativeSeparators(text).toStdU16String()});
 }
 
 // Turns what the engine reports into lines for the log, rows for the result and the progress of
@@ -435,7 +368,12 @@ void OperationGate::on_poll(adl::arinc615a::DataLoader& loader,
         for (const std::string& name : names) {
             views.push_back(name);
         }
-        static_cast<void>(loader.provide_selection(now, views));
+        if (!loader.provide_selection(now, views) && !loader.done()) {
+            // The loader is not waiting for a choice (the target's list has not arrived): the
+            // choice is not lost, it is offered again at the next poll.
+            post_selection(choice);
+            selection_issued_ = false;
+        }
     }
 }
 
@@ -494,8 +432,7 @@ void EngineWorker::find(const QString& destination) {
     }
 
     QList<FoundTarget> found;
-    for (std::size_t i = 0; i < *count; ++i) {
-        const adl::arinc615a::FindTarget& answer = answers[i];
+    for (const adl::arinc615a::FindTarget& answer : std::span{answers}.first(*count)) {
         FoundTarget target;
         target.address = format_ipv4(answer.from.address.octets);
         target.hardware_id = to_qstring(answer.hardware_id.view());
@@ -559,21 +496,40 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
     }
     // The request names each load by its header file and part number; the strings it views are
     // kept here for the length of the call.
-    std::vector<std::string> names;
-    names.reserve(static_cast<std::size_t>(loads.size()) * 2);
+    struct LoadNames {
+        std::string header_file;
+        std::string part_number;
+    };
+    std::vector<LoadNames> names;
+    names.reserve(static_cast<std::size_t>(loads.size()));
     for (const LoadSummary& load : loads) {
-        names.push_back(load.header_file.toStdString());
-        names.push_back(load.part_number.toStdString());
+        names.push_back({load.header_file.toStdString(), load.part_number.toStdString()});
     }
     std::vector<adl::arinc615a::LoadReference> references;
-    references.reserve(static_cast<std::size_t>(loads.size()));
-    for (std::size_t i = 0; i < names.size(); i += 2) {
-        references.push_back(adl::arinc615a::LoadReference{names[i], names[i + 1]});
+    references.reserve(names.size());
+    for (const LoadNames& load : names) {
+        references.push_back(adl::arinc615a::LoadReference{load.header_file, load.part_number});
     }
 
     auto lease = host_factory_();
     if (!lease) {
         fail(Message::verbatim(lease.error()), Hint::host());
+        return;
+    }
+    // What the operator checked is what is uploaded: a set edited since is refused here, before
+    // the target is contacted, and again as the target opens each file.
+    if (const auto changed = index_->changed_file(lease->host->files())) {
+        const Message text = Message::translated(
+            &EngineWorker::tr, QT_TR_NOOP("The media set changed after it was checked: %1."),
+            {Message::verbatim(to_qstring(*changed))});
+        Q_EMIT log_line({Severity::error, text});
+        OperationSummary summary;
+        summary.outcome = Message::translated(
+            &EngineWorker::tr, QT_TR_NOOP("the media set changed after it was checked"));
+        summary.detail = text;
+        summary.hint = Hint::media_set_changed();
+        summary.media_set_changed = true;
+        Q_EMIT finished(summary);
         return;
     }
     MediaTreeSource source(lease->host->files(), *index_);
@@ -585,7 +541,7 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos,
                              static_cast<int>(loads.size()))});
     run_operation(*lease->host, Address{*octets}, thw_id_pos,
                   adl::arinc615a::UploadOperation{adl::arinc615a::UploadRequest{references}},
-                  listener, &source, nullptr, control_port);
+                  listener, &source, nullptr, control_port, {}, &source);
 }
 
 void EngineWorker::download_media(const QString& address, const QString& thw_id_pos,
@@ -650,6 +606,16 @@ void EngineWorker::download_operator(const QString& address, const QString& thw_
 void EngineWorker::run_download(const Address& target, const QString& thw_id_pos,
                                 const adl::arinc615a::Operation& operation,
                                 const QString& download_directory, quint16 control_port) {
+    // The id names the directory the files go into, so it is checked before anything is made:
+    // the loader would refuse a bad one only after the directory was there.
+    if (!can_download_from(thw_id_pos.toStdString())) {
+        fail(Message::translated(
+                 &EngineWorker::tr,
+                 QT_TR_NOOP("\"%1\" is not a THW_ID_POS a download can be made for."),
+                 {Message::verbatim(thw_id_pos)}),
+             Hint::thw_id_pos());
+        return;
+    }
     auto lease = host_factory_();
     if (!lease) {
         fail(Message::verbatim(lease.error()), Hint::host());
@@ -667,7 +633,7 @@ void EngineWorker::run_download(const Address& target, const QString& thw_id_pos
     adl::arinc615a::DirectoryFileSink sink(lease->host->files(), *made);
     JobListener listener(*this);
     run_operation(*lease->host, target, thw_id_pos, operation, listener, nullptr, &sink,
-                  control_port, QDir::toNativeSeparators(to_qstring(*made)));
+                  control_port, *made);
 }
 
 void EngineWorker::run_operation(adl::platform::Host& host, const Address& target,
@@ -675,7 +641,8 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
                                  const adl::arinc615a::Operation& operation,
                                  adl::arinc615a::OperationListener& listener,
                                  adl::arinc615a::FileSource* source, adl::arinc615a::FileSink* sink,
-                                 quint16 control_port, const QString& download_directory) {
+                                 quint16 control_port, const std::string& download_path,
+                                 const MediaTreeSource* media) {
     const std::string thw = thw_id_pos.toStdString();
     adl::arinc615a::LoaderConfig config;
     config.target = adl::arinc615a::Endpoint{target, adl::arinc615a::tftp_control_port};
@@ -702,6 +669,24 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     }
     adl::arinc615a::Runner runner(host);
     const auto outcome = runner.run(*loader, operation, options);
+
+    // A download that received nothing (the target said no, never answered, was cancelled, or the
+    // loader could not run at all) leaves no directory behind: the one made for it is removed if
+    // it is empty, and left alone if anything is in it.
+    const bool directory_removed =
+        !download_path.empty() && remove_if_empty(host.files(), download_path);
+    const QString download_directory = download_path.empty() || directory_removed
+                                           ? QString{}
+                                           : QDir::toNativeSeparators(to_qstring(download_path));
+    Message removed_note;
+    if (directory_removed) {
+        removed_note = Message::translated(
+            &EngineWorker::tr,
+            QT_TR_NOOP("Nothing was received, so the empty download directory %1 was removed."),
+            {Message::verbatim(QDir::toNativeSeparators(to_qstring(download_path)))});
+        Q_EMIT log_line({Severity::info, removed_note});
+    }
+
     if (!outcome) {
         const auto& error = outcome.error();
         Message why;
@@ -775,7 +760,20 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
             summary.hint = Hint::abort_unconfirmed();
         }
     }
-    if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation)) {
+    if (media != nullptr && media->changed_file()) {
+        // The target was refused a file that is not what was checked; that, and not what the
+        // target made of the refusal, is why the upload did not complete.
+        const QString changed = to_qstring(*media->changed_file());
+        summary.success = false;
+        summary.media_set_changed = true;
+        summary.detail = Message::translated(
+            &EngineWorker::tr,
+            QT_TR_NOOP("The media set changed after it was checked: %1. (The upload ended: %2.)"),
+            {Message::verbatim(changed), summary.outcome});
+        summary.outcome = Message::translated(
+            &EngineWorker::tr, QT_TR_NOOP("the media set changed after it was checked"));
+        summary.hint = Hint::media_set_changed();
+    } else if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation)) {
         const Message served =
             Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("The target read %n file(s)."), {},
                                 static_cast<int>(outcome->files_served));
@@ -788,10 +786,14 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
         summary.files_requested = outcome->files_requested;
         summary.files_received = outcome->files_received;
         summary.download_directory = download_directory;
-        const Message received = Message::translated(
+        Message received = Message::translated(
             &EngineWorker::tr, QT_TR_NOOP("Files received: %1 of %2 requested."),
             {Message::verbatim(QString::number(outcome->files_received)),
              Message::verbatim(QString::number(outcome->files_requested))});
+        if (!removed_note.isEmpty()) {
+            received =
+                Message::sequence({received, Message::verbatim(QStringLiteral(" ")), removed_note});
+        }
         summary.detail = summary.detail.isEmpty()
                              ? received
                              : Message::sequence({received, Message::verbatim(QStringLiteral(" ")),

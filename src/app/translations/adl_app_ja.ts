@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+93"/>
+        <location filename="../core/src/engine_worker.cpp" line="+112"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>&quot;%1&quot;はIPv4アドレスではありません。</translation>
     </message>
@@ -124,7 +124,7 @@
 <context>
     <name>DirectoryProblem</name>
     <message>
-        <location line="+12"/>
+        <location filename="../core/src/download_directory.cpp" line="+22"/>
         <source>%1 is not a directory</source>
         <translation>%1はディレクトリではありません</translation>
     </message>
@@ -137,6 +137,11 @@
         <location line="+5"/>
         <source>cannot create %1 (%2)</source>
         <translation>%1を作成できません(%2)</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>there are already %1 download directories for %2 in %3</source>
+        <translation>%3には、%2用のダウンロードディレクトリがすでに%1個あります</translation>
     </message>
 </context>
 <context>
@@ -597,12 +602,17 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-72"/>
+        <location filename="../core/src/engine_worker.cpp" line="-66"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>メディアセットの書き込み先ディレクトリを選択し、セットのすべてのファイルがそこに残っていることを確認してください。</translation>
     </message>
     <message>
         <location line="+6"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
+        <translation>チェックの後にメディアセットの一部が編集、置換、または削除されたため、何もアップロードされませんでした。メディアセットをもう一度チェックしてから、アップロードしてください。</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>ローダーがネットワークまたはそのポートを使用できませんでした。ローダーの別のコピーが実行されていないこと、および他のプログラムが制御ポートを使用していないことを確認してください(環境設定)。</translation>
     </message>
@@ -622,7 +632,12 @@
         <translation>ターゲットが、要求されたすべてのファイルを返しませんでした。ターゲットが提供できるファイル名と照合し、ファイルが失敗した理由をターゲットに確認してください。</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>ターゲットが自ら名乗るとおりのTHW_ID_POSを使用してください。1〜240文字で、制御文字、スラッシュ、バックスラッシュ、およびディレクトリ名に使えない文字（コロン、アスタリスク、疑問符、引用符、山かっこ、縦線）を含めることはできません。</translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
         <translation>ターゲットが認識しているとおりにファイル名を指定してください。パスを含まない、254文字以内の単純な名前です。</translation>
     </message>
@@ -643,18 +658,18 @@
 <context>
     <name>JobListener</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+122"/>
+        <location filename="../core/src/engine_worker.cpp" line="+35"/>
         <source>The target answered: %1</source>
         <translation>ターゲットの応答：%1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>Status %1: %2</source>
         <translation>ステータス%1：%2</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <location line="+39"/>
+        <location line="+12"/>
+        <location line="+40"/>
         <source>Status %1: %2, %3% of the list</source>
         <translation>ステータス%1：%2、一覧の%3%</translation>
     </message>
@@ -664,7 +679,7 @@
         <translation>ターゲットでロード%1が失敗しました(%2)%3</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+40"/>
         <source>The target failed file %1%2</source>
         <translation>ターゲットでファイル%1が失敗しました%2</translation>
     </message>
@@ -674,7 +689,7 @@
         <translation>ターゲットが%1を読み取りました(%2バイト)</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Received %1 (%2 bytes)</source>
         <translation>%1を受信しました(%2バイト)</translation>
     </message>
@@ -684,7 +699,7 @@
         <translation>シリアル番号%1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>The target listed its configuration.</source>
         <translation>ターゲットが構成を一覧しました。</translation>
     </message>
@@ -2031,7 +2046,7 @@
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+538"/>
+        <location filename="../core/src/models.cpp" line="+539"/>
         <source>waiting</source>
         <translation>待機中</translation>
     </message>
@@ -2039,7 +2054,7 @@
 <context>
     <name>adl::app::EngineWorker</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+104"/>
+        <location filename="../core/src/engine_worker.cpp" line="+109"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>ターゲットを検索しています (ブロードキャスト、3 秒)...</translation>
     </message>
@@ -2049,24 +2064,24 @@
         <translation>%1 のターゲットを検索しています (3 秒)...</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+9"/>
         <source>FIND could not run (%1).</source>
         <translation>FIND を実行できませんでした (%1)。</translation>
     </message>
     <message numerus="yes">
-        <location line="+23"/>
+        <location line="+22"/>
         <source>%n target(s) answered</source>
         <translation>
             <numerusform>%n個のターゲットが応答しました</numerusform>
         </translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>%1 (%2) に構成情報を要求しています...</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+18"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>メディアセットが読み込まれていないため、アップロードするものはありません。</translation>
     </message>
@@ -2075,8 +2090,19 @@
         <source>No load was chosen.</source>
         <translation>ロードが選択されていません。</translation>
     </message>
+    <message>
+        <location line="+29"/>
+        <source>The media set changed after it was checked: %1.</source>
+        <translation>チェックの後にメディアセットが変更されました：%1。</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+245"/>
+        <source>the media set changed after it was checked</source>
+        <translation>チェックの後にメディアセットが変更されました</translation>
+    </message>
     <message numerus="yes">
-        <location line="+26"/>
+        <location line="-234"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>%n個のロードを%1(%2)にアップロード中...</numerusform>
@@ -2088,7 +2114,7 @@
         <translation>ファイル名が指定されていません。</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>&quot;%1&quot; は安全なファイル名ではありません。</translation>
     </message>
@@ -2099,8 +2125,18 @@
             <numerusform>%n個のファイルを%1(%2)からダウンロード中...</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+32"/>
+        <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
+        <translation>「%1」は、ダウンロードを行えるTHW_ID_POSではありません。</translation>
+    </message>
+    <message>
+        <location line="+71"/>
+        <source>Nothing was received, so the empty download directory %1 was removed.</source>
+        <translation>何も受信しなかったため、空のダウンロードディレクトリ%1を削除しました。</translation>
+    </message>
     <message numerus="yes">
-        <location line="+128"/>
+        <location line="+54"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>完了、%n個のファイルが失敗</numerusform>
@@ -2120,25 +2156,30 @@
             <numerusform>完了、%n個のファイルが欠落</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+22"/>
+        <source>The media set changed after it was checked: %1. (The upload ended: %2.)</source>
+        <translation>チェックの後にメディアセットが変更されました：%1。（アップロードは次の状態で終了しました：%2。）</translation>
+    </message>
     <message numerus="yes">
-        <location line="+16"/>
+        <location line="+7"/>
         <source>The target read %n file(s).</source>
         <translation>
             <numerusform>ターゲットが%n個のファイルを読み取りました。</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-135"/>
+        <location line="-177"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>%1 (%2) にダウンロード可能なファイルを要求しています...</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+27"/>
         <source>The download directory could not be used: %1.</source>
         <translation>ダウンロードディレクトリを使用できませんでした: %1。</translation>
     </message>
     <message>
-        <location line="+52"/>
+        <location line="+71"/>
         <source>the request was refused (%1)</source>
         <translation>要求が拒否されました (%1)</translation>
     </message>
@@ -2158,12 +2199,12 @@
         <translation>操作を実行できませんでした: %1。</translation>
     </message>
     <message>
-        <location line="+139"/>
+        <location line="+154"/>
         <source>Checked media set %1: %2, %3.</source>
         <translation>メディアセット%1をチェックしました：%2、%3。</translation>
     </message>
     <message>
-        <location line="-98"/>
+        <location line="-112"/>
         <source>The target confirmed that it stopped.</source>
         <translation>ターゲットは停止を確認しました。</translation>
     </message>
@@ -2173,22 +2214,22 @@
         <translation>ターゲットは停止を確認しませんでした。</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+32"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>受信ファイル: 要求数 %2 中 %1。</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+14"/>
         <source>Finished: %1.</source>
         <translation>完了: %1。</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>Reading the media set in %1...</source>
         <translation>%1 のメディアセットを読み込んでいます...</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>media set read</source>
         <translation>メディアセット読み込み完了</translation>
     </message>
@@ -2210,19 +2251,19 @@
         <translation>%1 のメディアセットをチェックしています...</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+22"/>
         <source>media set checked</source>
         <translation>メディアセットのチェック完了</translation>
     </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+7"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n個のロード</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+1"/>
+        <location line="+2"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n個のファイル</numerusform>
@@ -2261,7 +2302,7 @@
         </translation>
     </message>
     <message>
-        <location line="+115"/>
+        <location line="+116"/>
         <source>waiting</source>
         <translation>待機中</translation>
     </message>
@@ -2269,20 +2310,20 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+65"/>
+        <location filename="../core/src/loader_model.cpp" line="+67"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1、%2、すべてのチェック値を確認済み</translation>
     </message>
     <message numerus="yes">
         <location line="+1"/>
-        <location line="+146"/>
+        <location line="+148"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n個のロード</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-144"/>
+        <location line="-146"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n個のファイル</numerusform>
@@ -2333,7 +2374,7 @@
         <translation>メディアセットをチェックしています...</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>%1: %2, %3</source>
         <translation>%1：%2、%3</translation>
     </message>
@@ -2345,12 +2386,12 @@
         </translation>
     </message>
     <message>
-        <location line="+304"/>
+        <location line="+313"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>一覧からターゲットを選択し、操作を再実行してください。</translation>
     </message>
     <message>
-        <location line="-392"/>
+        <location line="-403"/>
         <source>No target is selected; looking for one first.</source>
         <translation>ターゲットが選択されていません。まず検索します。</translation>
     </message>
@@ -2358,7 +2399,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-324"/>
+        <location filename="../core/src/models.cpp" line="-326"/>
         <source>%1 at %2</source>
         <translation>%2 の %1</translation>
     </message>

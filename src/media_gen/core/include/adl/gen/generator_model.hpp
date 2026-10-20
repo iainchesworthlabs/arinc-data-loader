@@ -139,7 +139,7 @@ public:
 public Q_SLOTS:
     void chooseOutputDirectory(const QUrl& directory);
     void generate();
-    // Asks the generation that is running to stop. Nothing is written by a cancelled job.
+    // Asks the generation that is running to stop. A cancelled job leaves nothing behind.
     void cancel();
 
     // The operator's list operations, on the SourceFileModel.

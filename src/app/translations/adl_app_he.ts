@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+93"/>
+        <location filename="../core/src/engine_worker.cpp" line="+112"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>&quot;%1&quot; אינה כתובת IPv4.</translation>
     </message>
@@ -124,7 +124,7 @@
 <context>
     <name>DirectoryProblem</name>
     <message>
-        <location line="+12"/>
+        <location filename="../core/src/download_directory.cpp" line="+22"/>
         <source>%1 is not a directory</source>
         <translation>%1 אינה ספרייה</translation>
     </message>
@@ -137,6 +137,11 @@
         <location line="+5"/>
         <source>cannot create %1 (%2)</source>
         <translation>לא ניתן ליצור את %1 (%2)</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>there are already %1 download directories for %2 in %3</source>
+        <translation>כבר קיימות %1 ספריות הורדה עבור %2 ב-%3</translation>
     </message>
 </context>
 <context>
@@ -599,12 +604,17 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-72"/>
+        <location filename="../core/src/engine_worker.cpp" line="-66"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>יש לבחור את הספרייה שאליה נכתבה ערכת המדיה, ולוודא שכל קבצי הערכה עדיין בה.</translation>
     </message>
     <message>
         <location line="+6"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
+        <translation>משהו בערכת המדיה נערך, הוחלף או הוסר לאחר שנבדקה, ולכן דבר לא הועלה. יש לבדוק שוב את ערכת המדיה ואז להעלות.</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>הטוען לא הצליח להשתמש ברשת או ביציאה שלו. יש לוודא שאין עותק נוסף של הטוען שפועל, ושאף תוכנית אחרת אינה מחזיקה ביציאת הבקרה (העדפות).</translation>
     </message>
@@ -624,7 +634,12 @@
         <translation>היעד לא החזיר את כל הקבצים שהתבקשו. יש לבדוק את השמות מול מה שהיעד יכול לספק, ולשאול אותו מדוע קובץ נכשל.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>יש להשתמש ב-THW_ID_POS של היעד כפי שהוא מכנה את עצמו: 1 עד 240 תווים, אף אחד מהם אינו תו בקרה, לוכסן, לוכסן הפוך או תו ששם ספרייה אינו יכול להכיל (נקודתיים, כוכבית, סימן שאלה, מירכאות, סוגריים משולשים או קו אנכי).</translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
         <translation>יש לנקוב בקובץ כפי שהיעד מכיר אותו: שם פשוט של 254 תווים לכל היותר, ללא נתיב.</translation>
     </message>
@@ -645,18 +660,18 @@
 <context>
     <name>JobListener</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+122"/>
+        <location filename="../core/src/engine_worker.cpp" line="+35"/>
         <source>The target answered: %1</source>
         <translation>היעד השיב: %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>Status %1: %2</source>
         <translation>סטטוס %1: %2</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <location line="+39"/>
+        <location line="+12"/>
+        <location line="+40"/>
         <source>Status %1: %2, %3% of the list</source>
         <translation>סטטוס %1: %2, %3% מהרשימה</translation>
     </message>
@@ -666,7 +681,7 @@
         <translation>היעד נכשל ב-Load %1 (%2)%3</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+40"/>
         <source>The target failed file %1%2</source>
         <translation>היעד נכשל בקובץ %1%2</translation>
     </message>
@@ -676,7 +691,7 @@
         <translation>היעד קרא את %1 (%2 בתים)</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Received %1 (%2 bytes)</source>
         <translation>התקבל %1 (%2 בתים)</translation>
     </message>
@@ -686,7 +701,7 @@
         <translation>מספר סידורי %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>The target listed its configuration.</source>
         <translation>היעד פירט את התצורה שלו.</translation>
     </message>
@@ -2045,7 +2060,7 @@
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+538"/>
+        <location filename="../core/src/models.cpp" line="+539"/>
         <source>waiting</source>
         <translation>ממתין</translation>
     </message>
@@ -2053,7 +2068,7 @@
 <context>
     <name>adl::app::EngineWorker</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+104"/>
+        <location filename="../core/src/engine_worker.cpp" line="+109"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>מחפש יעדים (שידור, שלוש שניות)...</translation>
     </message>
@@ -2063,12 +2078,12 @@
         <translation>מחפש יעד בכתובת %1 (שלוש שניות)...</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+9"/>
         <source>FIND could not run (%1).</source>
         <translation>לא ניתן היה להריץ FIND (%1).</translation>
     </message>
     <message numerus="yes">
-        <location line="+23"/>
+        <location line="+22"/>
         <source>%n target(s) answered</source>
         <translation>
             <numerusform>%n יעד ענה</numerusform>
@@ -2076,12 +2091,12 @@
         </translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>מבקש מ-%1 (%2) את התצורה שלו...</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+18"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>לא נקראה ערכת מדיה, ולכן אין מה להעלות.</translation>
     </message>
@@ -2090,8 +2105,19 @@
         <source>No load was chosen.</source>
         <translation>לא נבחר מטען.</translation>
     </message>
+    <message>
+        <location line="+29"/>
+        <source>The media set changed after it was checked: %1.</source>
+        <translation>ערכת המדיה השתנתה לאחר שנבדקה: %1.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+245"/>
+        <source>the media set changed after it was checked</source>
+        <translation>ערכת המדיה השתנתה לאחר שנבדקה</translation>
+    </message>
     <message numerus="yes">
-        <location line="+26"/>
+        <location line="-234"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>מעלה %n Load אל %1 (%2)...</numerusform>
@@ -2104,7 +2130,7 @@
         <translation>לא צוין קובץ.</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>&quot;%1&quot; אינו שם קובץ בטוח.</translation>
     </message>
@@ -2116,8 +2142,18 @@
             <numerusform>מוריד %n קבצים מ-%1 (%2)...</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+32"/>
+        <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
+        <translation>&quot;%1&quot; אינו THW_ID_POS שניתן לבצע עבורו הורדה.</translation>
+    </message>
+    <message>
+        <location line="+71"/>
+        <source>Nothing was received, so the empty download directory %1 was removed.</source>
+        <translation>דבר לא התקבל, ולכן ספריית ההורדה הריקה %1 הוסרה.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+128"/>
+        <location line="+54"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>הושלם, %n קובץ נכשל</numerusform>
@@ -2140,8 +2176,13 @@
             <numerusform>הושלם, %n קבצים חסרים</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+22"/>
+        <source>The media set changed after it was checked: %1. (The upload ended: %2.)</source>
+        <translation>ערכת המדיה השתנתה לאחר שנבדקה: %1. (ההעלאה הסתיימה: %2.)</translation>
+    </message>
     <message numerus="yes">
-        <location line="+16"/>
+        <location line="+7"/>
         <source>The target read %n file(s).</source>
         <translation>
             <numerusform>היעד קרא %n קובץ.</numerusform>
@@ -2149,17 +2190,17 @@
         </translation>
     </message>
     <message>
-        <location line="-135"/>
+        <location line="-177"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>מבקש מ-%1 (%2) את הקבצים שניתן להוריד...</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+27"/>
         <source>The download directory could not be used: %1.</source>
         <translation>לא ניתן היה להשתמש בתיקיית ההורדות: %1.</translation>
     </message>
     <message>
-        <location line="+52"/>
+        <location line="+71"/>
         <source>the request was refused (%1)</source>
         <translation>הבקשה נדחתה (%1)</translation>
     </message>
@@ -2179,12 +2220,12 @@
         <translation>לא ניתן היה להריץ את הפעולה: %1.</translation>
     </message>
     <message>
-        <location line="+139"/>
+        <location line="+154"/>
         <source>Checked media set %1: %2, %3.</source>
         <translation>נבדקה ערכת המדיה %1: %2, %3.</translation>
     </message>
     <message>
-        <location line="-98"/>
+        <location line="-112"/>
         <source>The target confirmed that it stopped.</source>
         <translation>היעד אישר שעצר.</translation>
     </message>
@@ -2194,22 +2235,22 @@
         <translation>היעד לא אישר שעצר.</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+32"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>קבצים שהתקבלו: %1 מתוך %2 שהתבקשו.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+14"/>
         <source>Finished: %1.</source>
         <translation>הסתיים: %1.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>Reading the media set in %1...</source>
         <translation>קורא את ערכת המדיה מתוך %1...</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>media set read</source>
         <translation>ערכת המדיה נקראה</translation>
     </message>
@@ -2232,12 +2273,12 @@
         <translation>בודק את ערכת המדיה מתוך %1...</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+22"/>
         <source>media set checked</source>
         <translation>ערכת המדיה נבדקה</translation>
     </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+7"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n Load</numerusform>
@@ -2245,7 +2286,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+1"/>
+        <location line="+2"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n קובץ</numerusform>
@@ -2287,7 +2328,7 @@
         </translation>
     </message>
     <message>
-        <location line="+115"/>
+        <location line="+116"/>
         <source>waiting</source>
         <translation>ממתין</translation>
     </message>
@@ -2295,13 +2336,13 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+65"/>
+        <location filename="../core/src/loader_model.cpp" line="+67"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1, %2, כל ערכי הבדיקה אומתו</translation>
     </message>
     <message numerus="yes">
         <location line="+1"/>
-        <location line="+146"/>
+        <location line="+148"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n Load</numerusform>
@@ -2309,7 +2350,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-144"/>
+        <location line="-146"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n קובץ</numerusform>
@@ -2362,7 +2403,7 @@
         <translation>בודק את ערכת המדיה...</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>%1: %2, %3</source>
         <translation>%1: %2, %3</translation>
     </message>
@@ -2375,12 +2416,12 @@
         </translation>
     </message>
     <message>
-        <location line="+304"/>
+        <location line="+313"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>בחרו יעד מהרשימה, ואז הריצו את הפעולה שוב.</translation>
     </message>
     <message>
-        <location line="-392"/>
+        <location line="-403"/>
         <source>No target is selected; looking for one first.</source>
         <translation>לא נבחר יעד; מחפש יעד תחילה.</translation>
     </message>
@@ -2388,7 +2429,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-324"/>
+        <location filename="../core/src/models.cpp" line="-326"/>
         <source>%1 at %2</source>
         <translation>%1 בכתובת %2</translation>
     </message>

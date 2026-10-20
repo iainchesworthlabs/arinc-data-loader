@@ -4,7 +4,7 @@
 <context>
     <name>GeneratorWindow</name>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="676"/>
+        <location filename="../qml/GeneratorWindow.qml" line="677"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n member</numerusform>
@@ -12,8 +12,8 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="678"/>
-        <location filename="../qml/GeneratorWindow.qml" line="759"/>
+        <location filename="../qml/GeneratorWindow.qml" line="679"/>
+        <location filename="../qml/GeneratorWindow.qml" line="760"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n file</numerusform>
@@ -21,7 +21,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="679"/>
+        <location filename="../qml/GeneratorWindow.qml" line="680"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n load</numerusform>
@@ -32,7 +32,7 @@
 <context>
     <name>adl::gen::GeneratorWorker</name>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="369"/>
+        <location filename="../core/src/generator_worker.cpp" line="518"/>
         <source>%n data file(s)</source>
         <translation>
             <numerusform>%n data file</numerusform>
@@ -40,7 +40,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="371"/>
+        <location filename="../core/src/generator_worker.cpp" line="520"/>
         <source>%n support file(s)</source>
         <translation>
             <numerusform>%n support file</numerusform>
@@ -48,7 +48,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="374"/>
+        <location filename="../core/src/generator_worker.cpp" line="523"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n member</numerusform>
@@ -56,7 +56,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="381"/>
+        <location filename="../core/src/generator_worker.cpp" line="531"/>
         <source>%n difference(s) from the standard&apos;s recommendations.</source>
         <translation>
             <numerusform>%n difference from the standard&apos;s recommendations.</numerusform>

@@ -577,10 +577,11 @@ the Windows/macOS builds of the new QML. Those are in §11.
 Checked against the code on this branch: items 1 to 3 and 5 to 11 are still open; item 4 is partly
 done.
 
-1. **Bind "checked" to a time and a file identity.** Add the check time and a manifest/mtime
-   fingerprint to `MediaSetIndex`; mark the set stale when a file changed, and refuse or warn
-   before an upload. This is the largest remaining correctness gap. Open: the model records no
-   check time and no file identity.
+1. **Bind "checked" to a time and a file identity.** Done: `MediaSetIndex` takes a size and SHA-1
+   fingerprint of every file when the set is read and checked; the whole set is verified when an upload
+   starts and each file again as the target opens it, a changed set is refused with a message that it must
+   be checked again, and the check then no longer stands ([the application](app.md)). Not done: the model
+   still records no check *time*.
 2. **Distinguish abort/cancel from failure in the outcome model.** The engine knows the abort
    reason; the receipt should say `CANCELLED` or `ABORTED BY OPERATOR` with the target's
    confirmation, not `FAILED`. Open: only `completed` counts as success, so an aborted job shows

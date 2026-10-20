@@ -74,8 +74,20 @@ storage directory is called out as "still serves, not kept".
   first use, and waits on all of them with a deadline taken from the earliest pending timer.
 - **The model is the loader's worker pattern.** `MockTargetModel` lives on the window's thread,
   owns the engine's `QThread`, and everything the engine reports crosses as queued signals of
-  copied Qt values. Stopping is an atomic flag the run loop polls (a queued call cannot reach a
-  thread that is inside the loop).
+  copied Qt values. Stopping reaches the session through the link's flag, which the run loop polls (a
+  queued call cannot reach a thread that is inside the loop). The model counts the sessions it queues, and
+  a stop covers the sessions queued up to the moment it is asked for, under the mutex that also guards the
+  link a stop is delivered to: a stop that comes before the session has begun, while its link is being
+  made, while it runs, or while it is taken down is delivered once and to the right session, never to a link
+  that is being destroyed, and a stop between two quick starts is not lost (a single flag cleared by the next
+  start lost it, and left the second session serving with the window showing it stopped). A stress test
+  starts and stops the model 300 times with a different gap each time.
+- **What the target stores is named safely.** A file the loader sends is stored only under a plain name (letters,
+  digits and `. _ -`) that `adl::arinc665::is_portable_file_name` also accepts, so a colon, a device name
+  (`NUL`, `COM1`...) or a trailing dot is refused on every platform; the load's directory is its part number
+  with anything else turned into `_`, and a device name or trailing dot made harmless.
+- **The files a download serves are read when Start is pressed** (the session), not when a download
+  begins: a file put in `holds` afterwards is served after a stop and a start.
 - **The window** lets the operator edit the identity, the ports, the storage directory and the
   injections before pressing Start, and shows the operation, its progress, the log and the
   files an upload stored while it runs.

@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+93"/>
+        <location filename="../core/src/engine_worker.cpp" line="+112"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>&quot;%1&quot; איז ניט קײן IPv4־אַדרעס.</translation>
     </message>
@@ -124,7 +124,7 @@
 <context>
     <name>DirectoryProblem</name>
     <message>
-        <location line="+12"/>
+        <location filename="../core/src/download_directory.cpp" line="+22"/>
         <source>%1 is not a directory</source>
         <translation>%1 איז ניט קײן פּאַפּקע</translation>
     </message>
@@ -137,6 +137,11 @@
         <location line="+5"/>
         <source>cannot create %1 (%2)</source>
         <translation>מען קען ניט באַשאַפֿן %1 (%2)</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>there are already %1 download directories for %2 in %3</source>
+        <translation>עס זענען שױן פֿאַראַן %1 אַראָפּלאָד־פּאַפּקעס פֿאַר %2 אין %3</translation>
     </message>
 </context>
 <context>
@@ -599,12 +604,17 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-72"/>
+        <location filename="../core/src/engine_worker.cpp" line="-66"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>קלײַבט אויס די פּאַפּקע אין װעלכער דער מעדיע־סעט איז געשריבן געװאָרן, און זיכערט זיך אַז יעדע טעקע פֿונעם סעט איז נאָך דאָרט.</translation>
     </message>
     <message>
         <location line="+6"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
+        <translation>עפּעס אין מעדיע־סעט איז געביטן, אױסגעביטן אָדער אַװעקגענומען געװאָרן נאָך דער פּרוּפֿונג, דעריבער איז גאָרנישט ניט אַרױפֿגעלאָדן געװאָרן. פּרוּפֿט נאָך אַ מאָל דעם מעדיע־סעט און לאָדט דעמאָלט אַרױף.</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>דער לאָודער האָט ניט געקענט ניצן דאָס נעצװערק אָדער זײַן פּאָרט. פּרוּפֿט אַז קײן אַנדער עקזעמפּלאַר פֿונעם לאָודער לױפֿט ניט, און אַז קײן אַנדער פּראָגראַם האַלט ניט דעם קאָנטראָל־פּאָרט (פּרעפֿערענצן).</translation>
     </message>
@@ -624,7 +634,12 @@
         <translation>דער ציל האָט ניט צוריקגעגעבן יעדע טעקע װאָס מען האָט געבעטן. פּרוּפֿט די נעמען קעגן װאָס דער ציל קען געבן, און פֿרעגט אים פֿאַר װאָס אַ טעקע איז דורכגעפֿאַלן.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>ניצט דעם THW_ID_POS פֿון דעם ציל אַזױ װי ער רופֿט זיך אַלײן: פֿון 1 ביז 240 צײכנס, קײנס פֿון זײ איז ניט קײן קאָנטראָל־צײכן, קײן סלעש, קײן פֿאַרקערטער סלעש אָדער אַ צײכן װאָס אַ פּאַפּקע־נאָמען קען ניט אַנטהאַלטן (אַ צװײפּינטל, אַ שטערן, אַ פֿראַגצײכן, ציטירצײכנס, ווינקל־קלאַמערן אָדער אַ שטריך).</translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
         <translation>באַנענט די טעקע װי דער ציל װײסט זי: אַ פּשוטער נאָמען פֿון העכסטנס 254 צײכנס, אָן אַ װעג.</translation>
     </message>
@@ -645,18 +660,18 @@
 <context>
     <name>JobListener</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+122"/>
+        <location filename="../core/src/engine_worker.cpp" line="+35"/>
         <source>The target answered: %1</source>
         <translation>דער ציל האָט געענטפֿערט: %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>Status %1: %2</source>
         <translation>סטאַטוס %1: %2</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <location line="+39"/>
+        <location line="+12"/>
+        <location line="+40"/>
         <source>Status %1: %2, %3% of the list</source>
         <translation>סטאַטוס %1: %2, %3% פֿון דער רשימה</translation>
     </message>
@@ -666,7 +681,7 @@
         <translation>דער ציל איז דורכגעפֿאַלן אויף לאַסט %1 (%2)%3</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+40"/>
         <source>The target failed file %1%2</source>
         <translation>דער ציל איז דורכגעפֿאַלן אויף טעקע %1%2</translation>
     </message>
@@ -676,7 +691,7 @@
         <translation>דער ציל האָט געלייענט %1 (%2 בײַט)</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Received %1 (%2 bytes)</source>
         <translation>באַקומען %1 (%2 בײַט)</translation>
     </message>
@@ -686,7 +701,7 @@
         <translation>סעריע־נומער %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>The target listed its configuration.</source>
         <translation>דער ציל האָט אויסגערעכנט זײַן קאָנפֿיגוראַציע.</translation>
     </message>
@@ -2045,7 +2060,7 @@
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+538"/>
+        <location filename="../core/src/models.cpp" line="+539"/>
         <source>waiting</source>
         <translation>וואַרט</translation>
     </message>
@@ -2053,7 +2068,7 @@
 <context>
     <name>adl::app::EngineWorker</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+104"/>
+        <location filename="../core/src/engine_worker.cpp" line="+109"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>מען זוכט צילן (בראָדקאַסט, דרײַ סעקונדעס)...</translation>
     </message>
@@ -2063,12 +2078,12 @@
         <translation>מען זוכט אַ ציל אויף %1 (דרײַ סעקונדעס)...</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+9"/>
         <source>FIND could not run (%1).</source>
         <translation>FIND האָט ניט געקענט לויפֿן (%1).</translation>
     </message>
     <message numerus="yes">
-        <location line="+23"/>
+        <location line="+22"/>
         <source>%n target(s) answered</source>
         <translation>
             <numerusform>%n ציל האָט געענטפֿערט</numerusform>
@@ -2076,12 +2091,12 @@
         </translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>מען פֿרעגט %1 (%2) נאָך זײַן קאָנפֿיגוראַציע...</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+18"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>קיין מעדיע־סעט איז ניט געלייענט געוואָרן, דעריבער איז ניטאָ וואָס אַרויפֿצולאָדן.</translation>
     </message>
@@ -2090,8 +2105,19 @@
         <source>No load was chosen.</source>
         <translation>קיין לאַסט איז ניט אויסגעקליבן געוואָרן.</translation>
     </message>
+    <message>
+        <location line="+29"/>
+        <source>The media set changed after it was checked: %1.</source>
+        <translation>דער מעדיע־סעט האָט זיך געביטן נאָך דער פּרוּפֿונג: %1.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+245"/>
+        <source>the media set changed after it was checked</source>
+        <translation>דער מעדיע־סעט האָט זיך געביטן נאָך דער פּרוּפֿונג</translation>
+    </message>
     <message numerus="yes">
-        <location line="+26"/>
+        <location line="-234"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>מען לאָדט אַרױף %n לאַסט צו %1 (%2)...</numerusform>
@@ -2104,7 +2130,7 @@
         <translation>קיין טעקע איז ניט באַנענט געוואָרן.</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>&quot;%1&quot; איז ניט קיין זיכערער טעקע־נאָמען.</translation>
     </message>
@@ -2116,8 +2142,18 @@
             <numerusform>מען לאָדט אַראָפּ %n טעקעס פֿון %1 (%2)...</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+32"/>
+        <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
+        <translation>&quot;%1&quot; איז ניט קײן THW_ID_POS װאָס מען קען מאַכן אַן אַראָפּלאָדן פֿאַר.</translation>
+    </message>
+    <message>
+        <location line="+71"/>
+        <source>Nothing was received, so the empty download directory %1 was removed.</source>
+        <translation>גאָרנישט איז ניט אָנגענומען געװאָרן, דעריבער איז די לײדיקע אַראָפּלאָד־פּאַפּקע %1 אַװעקגענומען געװאָרן.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+128"/>
+        <location line="+54"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>פֿאַרענדיקט, %n טעקע דורכגעפֿאַלן</numerusform>
@@ -2140,8 +2176,13 @@
             <numerusform>פֿאַרענדיקט, %n טעקעס פֿעלן</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+22"/>
+        <source>The media set changed after it was checked: %1. (The upload ended: %2.)</source>
+        <translation>דער מעדיע־סעט האָט זיך געביטן נאָך דער פּרוּפֿונג: %1. (די אַרױפֿלאָדונג האָט זיך געענדיקט: %2.)</translation>
+    </message>
     <message numerus="yes">
-        <location line="+16"/>
+        <location line="+7"/>
         <source>The target read %n file(s).</source>
         <translation>
             <numerusform>דער ציל האָט געלייענט %n טעקע.</numerusform>
@@ -2149,17 +2190,17 @@
         </translation>
     </message>
     <message>
-        <location line="-135"/>
+        <location line="-177"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>מען פֿרעגט %1 (%2) נאָך די טעקעס וואָס ער קען אַראָפּלאָדן...</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+27"/>
         <source>The download directory could not be used: %1.</source>
         <translation>מען האָט ניט געקענט ניצן די אַראָפּלאָד־פּאַפּקע: %1.</translation>
     </message>
     <message>
-        <location line="+52"/>
+        <location line="+71"/>
         <source>the request was refused (%1)</source>
         <translation>די בקשה איז אָפּגעווויזן געוואָרן (%1)</translation>
     </message>
@@ -2179,12 +2220,12 @@
         <translation>די אָפּעראַציע האָט ניט געקענט לויפֿן: %1.</translation>
     </message>
     <message>
-        <location line="+139"/>
+        <location line="+154"/>
         <source>Checked media set %1: %2, %3.</source>
         <translation>געפּרוּפֿט מעדיע־סעט %1: %2, %3.</translation>
     </message>
     <message>
-        <location line="-98"/>
+        <location line="-112"/>
         <source>The target confirmed that it stopped.</source>
         <translation>דער ציל האָט באַשטעטיקט אַז ער האָט זיך אָפּגעשטעלט.</translation>
     </message>
@@ -2194,22 +2235,22 @@
         <translation>דער ציל האָט ניט באַשטעטיקט אַז ער האָט זיך אָפּגעשטעלט.</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+32"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>טעקעס עמפֿאַנגען: %1 פֿון %2 געבעטענע.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+14"/>
         <source>Finished: %1.</source>
         <translation>פֿאַרטיק: %1.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>Reading the media set in %1...</source>
         <translation>מען לייענט דעם מעדיע־סעט אין %1...</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>media set read</source>
         <translation>מעדיע־סעט געלייענט</translation>
     </message>
@@ -2232,12 +2273,12 @@
         <translation>מען פּרוּפֿט דעם מעדיע־סעט אין %1...</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+22"/>
         <source>media set checked</source>
         <translation>מעדיע־סעט געפּרוּפֿט</translation>
     </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+7"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n לאַסט</numerusform>
@@ -2245,7 +2286,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+1"/>
+        <location line="+2"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n טעקע</numerusform>
@@ -2287,7 +2328,7 @@
         </translation>
     </message>
     <message>
-        <location line="+115"/>
+        <location line="+116"/>
         <source>waiting</source>
         <translation>וואַרט</translation>
     </message>
@@ -2295,13 +2336,13 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+65"/>
+        <location filename="../core/src/loader_model.cpp" line="+67"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1, %2, אַלע פּרוּפֿ־װערטן באַשטעטיקט</translation>
     </message>
     <message numerus="yes">
         <location line="+1"/>
-        <location line="+146"/>
+        <location line="+148"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n לאַסט</numerusform>
@@ -2309,7 +2350,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-144"/>
+        <location line="-146"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n טעקע</numerusform>
@@ -2362,7 +2403,7 @@
         <translation>מען פּרוּפֿט דעם מעדיע־סעט...</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>%1: %2, %3</source>
         <translation>%1: %2, %3</translation>
     </message>
@@ -2375,12 +2416,12 @@
         </translation>
     </message>
     <message>
-        <location line="+304"/>
+        <location line="+313"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>קלײַבט אויס דעם ציל פֿון דער רשימה, און לויפֿט די אָפּעראַציע נאָך אַ מאָל.</translation>
     </message>
     <message>
-        <location line="-392"/>
+        <location line="-403"/>
         <source>No target is selected; looking for one first.</source>
         <translation>קיין ציל איז ניט אויסגעקליבן; מען זוכט קודם איינעם.</translation>
     </message>
@@ -2388,7 +2429,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-324"/>
+        <location filename="../core/src/models.cpp" line="-326"/>
         <source>%1 at %2</source>
         <translation>%1 אויף %2</translation>
     </message>

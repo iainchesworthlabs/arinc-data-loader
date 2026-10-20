@@ -520,7 +520,7 @@
 <context>
     <name>adl::mock::MockTargetModel</name>
     <message>
-        <location filename="../core/src/model.cpp" line="619"/>
+        <location filename="../core/src/model.cpp" line="624"/>
         <source>The TFTP and FIND ports must each be between 1 and 65535.</source>
         <translation>Les ports TFTP et FIND doivent chacun être compris entre 1 et 65535.</translation>
     </message>
@@ -528,27 +528,27 @@
 <context>
     <name>adl::mock::MockWorker</name>
     <message>
-        <location filename="../core/src/model.cpp" line="295"/>
+        <location filename="../core/src/model.cpp" line="300"/>
         <source>The storage directory is not set, so the upload is not stored.</source>
         <translation>Le répertoire de stockage n’est pas défini, le téléversement n’est donc pas conservé.</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="302"/>
+        <location filename="../core/src/model.cpp" line="307"/>
         <source>The storage directory could not be made: %1.</source>
         <translation>Le répertoire de stockage n’a pas pu être créé&#xa0;: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="311"/>
+        <location filename="../core/src/model.cpp" line="316"/>
         <source>The load&apos;s directory could not be made: %1.</source>
         <translation>Le répertoire du chargement n’a pas pu être créé&#xa0;: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="320"/>
+        <location filename="../core/src/model.cpp" line="325"/>
         <source>%1 was not stored: not a safe file name.</source>
         <translation>%1 n’a pas été stocké&#xa0;: nom de fichier non sûr.</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="330"/>
+        <location filename="../core/src/model.cpp" line="335"/>
         <source>%1 could not be written to the storage directory.</source>
         <translation>%1 n’a pas pu être écrit dans le répertoire de stockage.</translation>
     </message>

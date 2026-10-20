@@ -9,12 +9,13 @@
 // Everything the engine reports is copied into Qt values before the worker emits a signal, so
 // the signals are queued calls carrying copies, in order, to the window's thread.
 
-#include <atomic>
 #include <expected>
 #include <filesystem>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include <QAbstractListModel>
@@ -92,6 +93,15 @@ private:
     std::vector<StoredFileRow> rows_;
 };
 
+// Whether a file the loader sent can be stored under `name`: a plain name (letters, digits and
+// . _ -) that every platform takes for the same file, so a name from the wire cannot reach
+// outside the storage, name a stream, or open a device.
+[[nodiscard]] bool is_storable_name(std::string_view name) noexcept;
+
+// The directory a load is stored in, made from its part number: the same characters, anything
+// else replaced by '_'; never a name that is a device or ends in a dot.
+[[nodiscard]] std::string storage_directory_name(std::string_view part_number);
+
 // Makes the link a session runs over, on the worker's thread: the real one over
 // adl::platform, or a test's fake one. The error is for the operator.
 using LinkFactory = std::function<std::expected<std::unique_ptr<TargetLink>, QString>()>;
@@ -110,10 +120,12 @@ public:
     explicit MockWorker(LinkFactory factory, QObject* parent = nullptr);
     ~MockWorker() override;
 
-    // Thread safe. Asks the session that is running (or the next one to start) to stop.
+    // Thread safe. Asks the session that is running, and every session that has been queued and
+    // has not begun, to stop. A session queued after this call is not affected.
     void request_stop() noexcept;
-    // Forgets a stop left over from an earlier session. Called before a session is queued.
-    void clear_stop() noexcept;
+    // Counts a session that is about to be queued, so that a later request_stop() knows which
+    // sessions it covers. Called before every start_session is queued, never otherwise.
+    void session_queued() noexcept;
 
 public Q_SLOTS:
     // One session: makes the link, starts the engine with `config`, runs its loop until the
@@ -142,10 +154,16 @@ private:
     std::unique_ptr<Adapter> adapter_;
     // The link a stop request is delivered to. request_stop() runs on the GUI thread while the
     // session thread owns and destroys the link, so the pointer is only used, and only cleared,
-    // under this mutex: a stop never calls into a link that is being destroyed.
+    // under this mutex: a stop never calls into a link that is being destroyed. The same mutex
+    // guards the session numbers: sessions are queued, and run, in order, and a stop covers the
+    // sessions queued up to the moment it is asked for. (A single "stop wanted" flag cleared by
+    // the next start would lose a stop that came between two quick starts, and leave the second
+    // session running with the model showing it stopped.)
     std::mutex link_mutex_;
     TargetLink* current_link_ = nullptr;
-    std::atomic<bool> stop_wanted_{false};
+    std::uint64_t sessions_queued_ = 0;
+    std::uint64_t sessions_begun_ = 0;
+    std::uint64_t stopped_through_ = 0;
 };
 
 class MockTargetModel : public QObject {

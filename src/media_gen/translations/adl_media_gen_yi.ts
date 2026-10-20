@@ -15,13 +15,13 @@
     </message>
     <message>
         <location filename="../qml/GeneratorWindow.qml" line="16"/>
-        <location filename="../qml/GeneratorWindow.qml" line="670"/>
+        <location filename="../qml/GeneratorWindow.qml" line="671"/>
         <source>READY</source>
         <translation>גרײט</translation>
     </message>
     <message>
         <location filename="../qml/GeneratorWindow.qml" line="17"/>
-        <location filename="../qml/GeneratorWindow.qml" line="670"/>
+        <location filename="../qml/GeneratorWindow.qml" line="671"/>
         <source>INCOMPLETE</source>
         <translation>ניט פֿולשטענדיק</translation>
     </message>
@@ -230,98 +230,98 @@
         <translation>סאָרט לאַסט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="471"/>
+        <location filename="../qml/GeneratorWindow.qml" line="472"/>
         <source>Load type</source>
         <translation>סאָרט לאַסט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="475"/>
+        <location filename="../qml/GeneratorWindow.qml" line="476"/>
         <source>LOAD CHECK VALUE</source>
         <translation>פּרוּפֿ־װערט פֿון לאַסט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="488"/>
+        <location filename="../qml/GeneratorWindow.qml" line="489"/>
         <source>Check value of the load header</source>
         <translation>פּרוּפֿ־װערט פֿון דער לאַסט־קאָפּ</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="492"/>
+        <location filename="../qml/GeneratorWindow.qml" line="493"/>
         <source>TARGET HARDWARE IDS</source>
         <translation>ציל־האַרדװער־אידענטיפֿיקאַטאָרן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="525"/>
-        <location filename="../qml/GeneratorWindow.qml" line="917"/>
+        <location filename="../qml/GeneratorWindow.qml" line="526"/>
+        <location filename="../qml/GeneratorWindow.qml" line="918"/>
         <source>Remove</source>
         <translation>אַװעקנעמען</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="528"/>
+        <location filename="../qml/GeneratorWindow.qml" line="529"/>
         <source>Remove target hardware ID %1</source>
         <translation>אַװעקנעמען ציל־האַרדװער־אידענטיפֿיקאַטאָר %1</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="542"/>
+        <location filename="../qml/GeneratorWindow.qml" line="543"/>
         <source>ACME</source>
         <translation>ACME</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="548"/>
+        <location filename="../qml/GeneratorWindow.qml" line="549"/>
         <source>New target hardware ID</source>
         <translation>נײַער ציל־האַרדװער־אידענטיפֿיקאַטאָר</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="552"/>
+        <location filename="../qml/GeneratorWindow.qml" line="553"/>
         <source>Add</source>
         <translation>צולײגן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="558"/>
+        <location filename="../qml/GeneratorWindow.qml" line="559"/>
         <source>Add target hardware ID</source>
         <translation>צולײגן ציל־האַרדװער־אידענטיפֿיקאַטאָר</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="584"/>
+        <location filename="../qml/GeneratorWindow.qml" line="585"/>
         <source>BATCH</source>
         <translation>באַטש</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="588"/>
+        <location filename="../qml/GeneratorWindow.qml" line="589"/>
         <source>Include a batch file</source>
         <translation>אײַנשליסן אַ באַטש־טעקע</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="589"/>
+        <location filename="../qml/GeneratorWindow.qml" line="590"/>
         <source>One BATCH file that names every load in the set.</source>
         <translation>איין באַטש־טעקע װאָס נאָמענט יעדן לאַסט אין סעט.</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="598"/>
+        <location filename="../qml/GeneratorWindow.qml" line="599"/>
         <source>ACM4C-0100-0200</source>
         <translation>ACM4C-0100-0200</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="601"/>
+        <location filename="../qml/GeneratorWindow.qml" line="602"/>
         <source>Batch part number</source>
         <translation>טײל־נומער פֿון באַטש</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="607"/>
+        <location filename="../qml/GeneratorWindow.qml" line="608"/>
         <source>Written as %1.LUB</source>
         <translation>געשריבן װי %1.LUB</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="646"/>
+        <location filename="../qml/GeneratorWindow.qml" line="647"/>
         <source>THE MEDIA SET</source>
         <translation>דער מעדיע־סעט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="657"/>
+        <location filename="../qml/GeneratorWindow.qml" line="658"/>
         <source>New media set</source>
         <translation>נײַער מעדיע־סעט</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="676"/>
+        <location filename="../qml/GeneratorWindow.qml" line="677"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n מיטגליד</numerusform>
@@ -329,8 +329,8 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="678"/>
-        <location filename="../qml/GeneratorWindow.qml" line="759"/>
+        <location filename="../qml/GeneratorWindow.qml" line="679"/>
+        <location filename="../qml/GeneratorWindow.qml" line="760"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n טעקע</numerusform>
@@ -338,7 +338,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="679"/>
+        <location filename="../qml/GeneratorWindow.qml" line="680"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n לאַסט</numerusform>
@@ -346,190 +346,190 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="692"/>
+        <location filename="../qml/GeneratorWindow.qml" line="693"/>
         <source>NO CHECK VALUES</source>
         <translation>קײן פּרוּפֿ־װערטן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="698"/>
+        <location filename="../qml/GeneratorWindow.qml" line="699"/>
         <source>The set is written, but the loader cannot verify its files against the header. Choose a check value unless the format requires none.</source>
         <translation>דער סעט װערט געשריבן, נאָר דער לאָודער קען ניט באַשטעטיקן זײַנע טעקעס קעגן דער קאָפּ־טעקע. קלײַבט אויס אַ פּרוּפֿ־װערט סײַדן דאָס פֿאָרמאַט פֿאַרלאַנגט קײנעם ניט.</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="725"/>
-        <location filename="../qml/GeneratorWindow.qml" line="933"/>
+        <location filename="../qml/GeneratorWindow.qml" line="726"/>
+        <location filename="../qml/GeneratorWindow.qml" line="934"/>
         <source>Add files...</source>
         <translation>צולײגן טעקעס...</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="728"/>
-        <location filename="../qml/GeneratorWindow.qml" line="936"/>
+        <location filename="../qml/GeneratorWindow.qml" line="729"/>
+        <location filename="../qml/GeneratorWindow.qml" line="937"/>
         <source>Add files to the media set</source>
         <translation>צולײגן טעקעס צום מעדיע־סעט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="732"/>
+        <location filename="../qml/GeneratorWindow.qml" line="733"/>
         <source>Move up</source>
         <translation>אַרױפֿרוקן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="735"/>
+        <location filename="../qml/GeneratorWindow.qml" line="736"/>
         <source>Move the chosen file up</source>
         <translation>אַרױפֿרוקן די אויסגעקליבענע טעקע</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="739"/>
+        <location filename="../qml/GeneratorWindow.qml" line="740"/>
         <source>Move down</source>
         <translation>אַראָפּרוקן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="744"/>
+        <location filename="../qml/GeneratorWindow.qml" line="745"/>
         <source>Move the chosen file down</source>
         <translation>אַראָפּרוקן די אויסגעקליבענע טעקע</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="748"/>
+        <location filename="../qml/GeneratorWindow.qml" line="749"/>
         <source>Clear</source>
         <translation>אויסמעקן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="751"/>
+        <location filename="../qml/GeneratorWindow.qml" line="752"/>
         <source>Clear the file list</source>
         <translation>אויסמעקן די טעקע־רשימה</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="773"/>
+        <location filename="../qml/GeneratorWindow.qml" line="774"/>
         <source>NAME ON THE MEDIA SET</source>
         <translation>נאָמען אויפֿן מעדיע־סעט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="782"/>
+        <location filename="../qml/GeneratorWindow.qml" line="783"/>
         <source>KIND</source>
         <translation>סאָרט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="791"/>
+        <location filename="../qml/GeneratorWindow.qml" line="792"/>
         <source>CHECK VALUE</source>
         <translation>פּרוּפֿ־װערט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="801"/>
+        <location filename="../qml/GeneratorWindow.qml" line="802"/>
         <source>SIZE</source>
         <translation>גרײס</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="830"/>
+        <location filename="../qml/GeneratorWindow.qml" line="831"/>
         <source>Files of the media set</source>
         <translation>טעקעס פֿון מעדיע־סעט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="870"/>
+        <location filename="../qml/GeneratorWindow.qml" line="871"/>
         <source>Name of %1 on the media set</source>
         <translation>נאָמען פֿון %1 אויפֿן מעדיע־סעט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="891"/>
+        <location filename="../qml/GeneratorWindow.qml" line="892"/>
         <source>Kind of %1</source>
         <translation>סאָרט פֿון %1</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="900"/>
+        <location filename="../qml/GeneratorWindow.qml" line="901"/>
         <source>Check value of %1</source>
         <translation>פּרוּפֿ־װערט פֿון %1</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="920"/>
+        <location filename="../qml/GeneratorWindow.qml" line="921"/>
         <source>Remove %1</source>
         <translation>אַװעקנעמען %1</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="929"/>
+        <location filename="../qml/GeneratorWindow.qml" line="930"/>
         <source>No files chosen</source>
         <translation>קײן טעקעס ניט אויסגעקליבן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="930"/>
+        <location filename="../qml/GeneratorWindow.qml" line="931"/>
         <source>Data files are the load&apos;s payload; support files carry it, for example CONFIG.LDR. The order is the order the target reads them.</source>
         <translation>דאַטן־טעקעס זענען דער נוץ־אינהאַלט פֿון לאַסט; הילף־טעקעס באַגלייטן אים, למשל CONFIG.LDR. דער סדר איז דער סדר אין װעלכן דער ציל לייענט זײ.</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="975"/>
+        <location filename="../qml/GeneratorWindow.qml" line="976"/>
         <source>COMPLETE</source>
         <translation>פֿאַרענדיקט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="977"/>
+        <location filename="../qml/GeneratorWindow.qml" line="978"/>
         <source>CANCELLED</source>
         <translation>אַנולירט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="977"/>
+        <location filename="../qml/GeneratorWindow.qml" line="978"/>
         <source>FAILED</source>
         <translation>דורכגעפֿאַלן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="996"/>
+        <location filename="../qml/GeneratorWindow.qml" line="997"/>
         <source>Open folder</source>
         <translation>עפֿענען די פּאַפּקע</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="998"/>
+        <location filename="../qml/GeneratorWindow.qml" line="999"/>
         <source>Open the generated media set</source>
         <translation>עפֿענען דעם דערצײַגטן מעדיע־סעט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1051"/>
-        <location filename="../qml/GeneratorWindow.qml" line="1053"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1052"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1054"/>
         <source>Building and verifying the media set...</source>
         <translation>מען בױט און באַשטעטיקט דעם מעדיע־סעט...</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1054"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1055"/>
         <source>Reading the files... %1%</source>
         <translation>מען לייענט די טעקעס... %1%</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1057"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1058"/>
         <source>Ready: 1 file to write and verify</source>
         <translation>גרײט: 1 טעקע צו שרײַבן און באַשטעטיקן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1058"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1059"/>
         <source>Ready: %1 files to write and verify</source>
         <translation>גרײט: %1 טעקעס צו שרײַבן און באַשטעטיקן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1060"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1061"/>
         <source>Complete the required fields: part numbers, header file, output directory and at least one file.</source>
         <translation>פֿולשטענדיקט די פֿאַרלאַנגטע פֿעלדער: טײל־נומערן, קאָפּ־טעקע, אויסגאַב־פּאַפּקע און װײניקסטנס איין טעקע.</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1080"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1081"/>
         <source>working</source>
         <translation>אַרבעט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1090"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1091"/>
         <source>Cancel</source>
         <translation>אַנולירן</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1092"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1093"/>
         <source>Cancel the generation</source>
         <translation>אַנולירן די דערצײַגונג</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1098"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1099"/>
         <source>Generating...</source>
         <translation>מען דערצײַגט...</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1099"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1100"/>
         <source>Generate media set</source>
         <translation>דערצײַגן מעדיע־סעט</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1102"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1103"/>
         <source>Generate the media set</source>
         <translation>דערצײַגן דעם מעדיע־סעט</translation>
     </message>
@@ -600,88 +600,128 @@
 <context>
     <name>adl::gen::GeneratorWorker</name>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="87"/>
+        <location filename="../core/src/generator_worker.cpp" line="133"/>
         <source>Operational software</source>
         <translation>אָפּעראַטיװע סאָפֿטװער</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="89"/>
+        <location filename="../core/src/generator_worker.cpp" line="135"/>
         <source>Navigation database</source>
         <translation>נאַװיגאַציע־דאַטנבאַזע</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="91"/>
+        <location filename="../core/src/generator_worker.cpp" line="137"/>
         <source>Aeronautical database</source>
         <translation>אַעראָנאָטישע דאַטנבאַזע</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="93"/>
+        <location filename="../core/src/generator_worker.cpp" line="139"/>
         <source>Test software</source>
         <translation>טעסט־סאָפֿטװער</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="102"/>
+        <location filename="../core/src/generator_worker.cpp" line="166"/>
         <source>Cannot read %1.</source>
         <translation>מען קען ניט לייענען %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="143"/>
-        <location filename="../core/src/generator_worker.cpp" line="172"/>
-        <location filename="../core/src/generator_worker.cpp" line="278"/>
-        <location filename="../core/src/generator_worker.cpp" line="331"/>
+        <location filename="../core/src/generator_worker.cpp" line="225"/>
+        <location filename="../core/src/generator_worker.cpp" line="266"/>
+        <location filename="../core/src/generator_worker.cpp" line="375"/>
+        <location filename="../core/src/generator_worker.cpp" line="426"/>
+        <location filename="../core/src/generator_worker.cpp" line="451"/>
         <source>Cancelled.</source>
         <translation>אַנולירט.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="144"/>
-        <location filename="../core/src/generator_worker.cpp" line="173"/>
-        <location filename="../core/src/generator_worker.cpp" line="279"/>
-        <location filename="../core/src/generator_worker.cpp" line="332"/>
+        <location filename="../core/src/generator_worker.cpp" line="226"/>
+        <location filename="../core/src/generator_worker.cpp" line="267"/>
+        <location filename="../core/src/generator_worker.cpp" line="376"/>
         <source>Nothing was written.</source>
         <translation>גאָרנישט איז געשריבן געװאָרן.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="203"/>
+        <location filename="../core/src/generator_worker.cpp" line="297"/>
         <source>No data files chosen.</source>
         <translation>קײן דאַטן־טעקעס ניט אויסגעקליבן.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="212"/>
+        <location filename="../core/src/generator_worker.cpp" line="306"/>
         <source>The load could not be built: %1.</source>
         <translation>דער לאַסט האָט ניט געקענט געבױט װערן: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="271"/>
+        <location filename="../core/src/generator_worker.cpp" line="365"/>
         <source>The media set could not be built: %1.</source>
         <translation>דער מעדיע־סעט האָט ניט געקענט געבױט װערן: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="323"/>
+        <location filename="../core/src/generator_worker.cpp" line="158"/>
         <source>The media set could not be written below %1.</source>
         <translation>דער מעדיע־סעט האָט ניט געקענט געשריבן װערן אונטער %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="340"/>
+        <location filename="../core/src/generator_worker.cpp" line="115"/>
+        <source>Nothing was kept: what had been written was removed.</source>
+        <translation>גאָרנישט איז ניט אָפּגעהיט געװאָרן: װאָס איז געשריבן געװאָרן איז אַװעקגענומען געװאָרן.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="119"/>
+        <source>What had been written could not be removed, and is still in %1.</source>
+        <translation>װאָס איז געשריבן געװאָרן האָט מען ניט געקענט אַװעקנעמען, און עס געפֿינט זיך נאָך אין %1.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="151"/>
+        <source>%1 is too large to be read into memory.</source>
+        <translation>%1 איז צו גרױס כּדי עס זאָל געלייענט װערן אין זכּרון.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="187"/>
+        <source>The computer ran out of memory while the media set was being made.</source>
+        <translation>דעם קאָמפּיוטער איז אױסגעגאַנגען דער זכּרון בעת מען האָט געמאַכט דעם מעדיע־סעט.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="189"/>
+        <source>Nothing was kept. Choose smaller files, or close other programs and try again.</source>
+        <translation>גאָרנישט איז ניט אָפּגעהיט געװאָרן. קלײַבט קלענערע טעקעס, אָדער שליסט אַנדערע פּראָגראַמען און פּרוּװט נאָך אַ מאָל.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="194"/>
+        <source>The media set could not be made.</source>
+        <translation>מען האָט ניט געקענט מאַכן דעם מעדיע־סעט.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="247"/>
+        <source>Nothing was written. Choose smaller files, or close other programs and try again.</source>
+        <translation>גאָרנישט איז ניט געשריבן געװאָרן. קלײַבט קלענערע טעקעס, אָדער שליסט אַנדערע פּראָגראַמען און פּרוּװט נאָך אַ מאָל.</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="407"/>
+        <source>Too many unfinished sets (%1.writing...) are there already.</source>
+        <translation>עס זענען שױן פֿאַראַן צו פֿיל אומפֿאַרענדיקטע סעטן (%1.writing...).</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="435"/>
         <source>The written media set could not be read back: %1 (%2).</source>
         <translation>דער געשריבענער מעדיע־סעט האָט ניט געקענט צוריקגעלייענט װערן: %1 (%2).</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="349"/>
+        <location filename="../core/src/generator_worker.cpp" line="445"/>
         <source>The written media set does not verify: %1.</source>
         <translation>דער געשריבענער מעדיע־סעט װערט ניט באַשטעטיקט: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="364"/>
+        <location filename="../core/src/generator_worker.cpp" line="513"/>
         <source>Media set %1 written and verified.</source>
         <translation>מעדיע־סעט %1 געשריבן און באַשטעטיקט.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="368"/>
+        <location filename="../core/src/generator_worker.cpp" line="517"/>
         <source>%1, %2, %3 bytes in %4, in %5.</source>
         <translation>%1, %2, %3 בײַט אין %4, אין %5.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="369"/>
+        <location filename="../core/src/generator_worker.cpp" line="518"/>
         <source>%n data file(s)</source>
         <translation>
             <numerusform>%n דאַטן־טעקע</numerusform>
@@ -689,7 +729,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="371"/>
+        <location filename="../core/src/generator_worker.cpp" line="520"/>
         <source>%n support file(s)</source>
         <translation>
             <numerusform>%n הילף־טעקע</numerusform>
@@ -697,7 +737,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="374"/>
+        <location filename="../core/src/generator_worker.cpp" line="523"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n מיטגליד</numerusform>
@@ -705,7 +745,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="381"/>
+        <location filename="../core/src/generator_worker.cpp" line="531"/>
         <source>%n difference(s) from the standard&apos;s recommendations.</source>
         <translation>
             <numerusform>%n אָפּװײכונג פֿון די רעקאָמענדאַציעס פֿונעם סטאַנדאַרט.</numerusform>

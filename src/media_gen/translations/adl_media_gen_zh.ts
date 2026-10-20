@@ -15,13 +15,13 @@
     </message>
     <message>
         <location filename="../qml/GeneratorWindow.qml" line="16"/>
-        <location filename="../qml/GeneratorWindow.qml" line="670"/>
+        <location filename="../qml/GeneratorWindow.qml" line="671"/>
         <source>READY</source>
         <translation>就绪</translation>
     </message>
     <message>
         <location filename="../qml/GeneratorWindow.qml" line="17"/>
-        <location filename="../qml/GeneratorWindow.qml" line="670"/>
+        <location filename="../qml/GeneratorWindow.qml" line="671"/>
         <source>INCOMPLETE</source>
         <translation>不完整</translation>
     </message>
@@ -230,303 +230,303 @@
         <translation>加载件类型</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="471"/>
+        <location filename="../qml/GeneratorWindow.qml" line="472"/>
         <source>Load type</source>
         <translation>加载件类型</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="475"/>
+        <location filename="../qml/GeneratorWindow.qml" line="476"/>
         <source>LOAD CHECK VALUE</source>
         <translation>加载件校验值</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="488"/>
+        <location filename="../qml/GeneratorWindow.qml" line="489"/>
         <source>Check value of the load header</source>
         <translation>加载件头文件的校验值</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="492"/>
+        <location filename="../qml/GeneratorWindow.qml" line="493"/>
         <source>TARGET HARDWARE IDS</source>
         <translation>目标机硬件标识</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="525"/>
-        <location filename="../qml/GeneratorWindow.qml" line="917"/>
+        <location filename="../qml/GeneratorWindow.qml" line="526"/>
+        <location filename="../qml/GeneratorWindow.qml" line="918"/>
         <source>Remove</source>
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="528"/>
+        <location filename="../qml/GeneratorWindow.qml" line="529"/>
         <source>Remove target hardware ID %1</source>
         <translation>移除目标机硬件标识%1</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="542"/>
+        <location filename="../qml/GeneratorWindow.qml" line="543"/>
         <source>ACME</source>
         <translation>ACME</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="548"/>
+        <location filename="../qml/GeneratorWindow.qml" line="549"/>
         <source>New target hardware ID</source>
         <translation>新的目标机硬件标识</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="552"/>
+        <location filename="../qml/GeneratorWindow.qml" line="553"/>
         <source>Add</source>
         <translation>添加</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="558"/>
+        <location filename="../qml/GeneratorWindow.qml" line="559"/>
         <source>Add target hardware ID</source>
         <translation>添加目标机硬件标识</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="584"/>
+        <location filename="../qml/GeneratorWindow.qml" line="585"/>
         <source>BATCH</source>
         <translation>批处理</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="588"/>
+        <location filename="../qml/GeneratorWindow.qml" line="589"/>
         <source>Include a batch file</source>
         <translation>包含批处理文件</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="589"/>
+        <location filename="../qml/GeneratorWindow.qml" line="590"/>
         <source>One BATCH file that names every load in the set.</source>
         <translation>一个列出介质集中每个加载件的批处理文件。</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="598"/>
+        <location filename="../qml/GeneratorWindow.qml" line="599"/>
         <source>ACM4C-0100-0200</source>
         <translation>ACM4C-0100-0200</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="601"/>
+        <location filename="../qml/GeneratorWindow.qml" line="602"/>
         <source>Batch part number</source>
         <translation>批处理部件号</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="607"/>
+        <location filename="../qml/GeneratorWindow.qml" line="608"/>
         <source>Written as %1.LUB</source>
         <translation>将写为%1.LUB</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="646"/>
+        <location filename="../qml/GeneratorWindow.qml" line="647"/>
         <source>THE MEDIA SET</source>
         <translation>本介质集</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="657"/>
+        <location filename="../qml/GeneratorWindow.qml" line="658"/>
         <source>New media set</source>
         <translation>新建介质集</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="676"/>
+        <location filename="../qml/GeneratorWindow.qml" line="677"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n个成员</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="678"/>
-        <location filename="../qml/GeneratorWindow.qml" line="759"/>
+        <location filename="../qml/GeneratorWindow.qml" line="679"/>
+        <location filename="../qml/GeneratorWindow.qml" line="760"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n个文件</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="679"/>
+        <location filename="../qml/GeneratorWindow.qml" line="680"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n个加载件</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="692"/>
+        <location filename="../qml/GeneratorWindow.qml" line="693"/>
         <source>NO CHECK VALUES</source>
         <translation>无校验值</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="698"/>
+        <location filename="../qml/GeneratorWindow.qml" line="699"/>
         <source>The set is written, but the loader cannot verify its files against the header. Choose a check value unless the format requires none.</source>
         <translation>介质集仍会被写出，但加载器无法对照头文件验证其文件。除非格式不要求校验值，否则请选择一种校验值。</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="725"/>
-        <location filename="../qml/GeneratorWindow.qml" line="933"/>
+        <location filename="../qml/GeneratorWindow.qml" line="726"/>
+        <location filename="../qml/GeneratorWindow.qml" line="934"/>
         <source>Add files...</source>
         <translation>添加文件...</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="728"/>
-        <location filename="../qml/GeneratorWindow.qml" line="936"/>
+        <location filename="../qml/GeneratorWindow.qml" line="729"/>
+        <location filename="../qml/GeneratorWindow.qml" line="937"/>
         <source>Add files to the media set</source>
         <translation>向介质集添加文件</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="732"/>
+        <location filename="../qml/GeneratorWindow.qml" line="733"/>
         <source>Move up</source>
         <translation>上移</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="735"/>
+        <location filename="../qml/GeneratorWindow.qml" line="736"/>
         <source>Move the chosen file up</source>
         <translation>上移所选文件</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="739"/>
+        <location filename="../qml/GeneratorWindow.qml" line="740"/>
         <source>Move down</source>
         <translation>下移</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="744"/>
+        <location filename="../qml/GeneratorWindow.qml" line="745"/>
         <source>Move the chosen file down</source>
         <translation>下移所选文件</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="748"/>
+        <location filename="../qml/GeneratorWindow.qml" line="749"/>
         <source>Clear</source>
         <translation>清除</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="751"/>
+        <location filename="../qml/GeneratorWindow.qml" line="752"/>
         <source>Clear the file list</source>
         <translation>清空文件列表</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="773"/>
+        <location filename="../qml/GeneratorWindow.qml" line="774"/>
         <source>NAME ON THE MEDIA SET</source>
         <translation>介质集上的名称</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="782"/>
+        <location filename="../qml/GeneratorWindow.qml" line="783"/>
         <source>KIND</source>
         <translation>种类</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="791"/>
+        <location filename="../qml/GeneratorWindow.qml" line="792"/>
         <source>CHECK VALUE</source>
         <translation>校验值</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="801"/>
+        <location filename="../qml/GeneratorWindow.qml" line="802"/>
         <source>SIZE</source>
         <translation>大小</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="830"/>
+        <location filename="../qml/GeneratorWindow.qml" line="831"/>
         <source>Files of the media set</source>
         <translation>介质集的文件</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="870"/>
+        <location filename="../qml/GeneratorWindow.qml" line="871"/>
         <source>Name of %1 on the media set</source>
         <translation>%1在介质集上的名称</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="891"/>
+        <location filename="../qml/GeneratorWindow.qml" line="892"/>
         <source>Kind of %1</source>
         <translation>%1的种类</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="900"/>
+        <location filename="../qml/GeneratorWindow.qml" line="901"/>
         <source>Check value of %1</source>
         <translation>%1的校验值</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="920"/>
+        <location filename="../qml/GeneratorWindow.qml" line="921"/>
         <source>Remove %1</source>
         <translation>移除%1</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="929"/>
+        <location filename="../qml/GeneratorWindow.qml" line="930"/>
         <source>No files chosen</source>
         <translation>未选择文件</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="930"/>
+        <location filename="../qml/GeneratorWindow.qml" line="931"/>
         <source>Data files are the load&apos;s payload; support files carry it, for example CONFIG.LDR. The order is the order the target reads them.</source>
         <translation>数据文件是加载件的载荷；支持文件用于承载它，例如CONFIG.LDR。顺序即目标机读取它们的顺序。</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="975"/>
+        <location filename="../qml/GeneratorWindow.qml" line="976"/>
         <source>COMPLETE</source>
         <translation>完成</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="977"/>
+        <location filename="../qml/GeneratorWindow.qml" line="978"/>
         <source>CANCELLED</source>
         <translation>已取消</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="977"/>
+        <location filename="../qml/GeneratorWindow.qml" line="978"/>
         <source>FAILED</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="996"/>
+        <location filename="../qml/GeneratorWindow.qml" line="997"/>
         <source>Open folder</source>
         <translation>打开文件夹</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="998"/>
+        <location filename="../qml/GeneratorWindow.qml" line="999"/>
         <source>Open the generated media set</source>
         <translation>打开已生成的介质集</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1051"/>
-        <location filename="../qml/GeneratorWindow.qml" line="1053"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1052"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1054"/>
         <source>Building and verifying the media set...</source>
         <translation>正在构建并验证介质集...</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1054"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1055"/>
         <source>Reading the files... %1%</source>
         <translation>正在读取文件...%1%</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1057"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1058"/>
         <source>Ready: 1 file to write and verify</source>
         <translation>就绪：1个文件待写入并验证</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1058"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1059"/>
         <source>Ready: %1 files to write and verify</source>
         <translation>就绪：%1个文件待写入并验证</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1060"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1061"/>
         <source>Complete the required fields: part numbers, header file, output directory and at least one file.</source>
         <translation>请填写必填项：部件号、头文件、输出目录和至少一个文件。</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1080"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1081"/>
         <source>working</source>
         <translation>工作中</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1090"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1091"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1092"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1093"/>
         <source>Cancel the generation</source>
         <translation>取消生成</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1098"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1099"/>
         <source>Generating...</source>
         <translation>正在生成...</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1099"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1100"/>
         <source>Generate media set</source>
         <translation>生成介质集</translation>
     </message>
     <message>
-        <location filename="../qml/GeneratorWindow.qml" line="1102"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1103"/>
         <source>Generate the media set</source>
         <translation>生成该介质集</translation>
     </message>
@@ -597,109 +597,149 @@
 <context>
     <name>adl::gen::GeneratorWorker</name>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="87"/>
+        <location filename="../core/src/generator_worker.cpp" line="133"/>
         <source>Operational software</source>
         <translation>运行软件</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="89"/>
+        <location filename="../core/src/generator_worker.cpp" line="135"/>
         <source>Navigation database</source>
         <translation>导航数据库</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="91"/>
+        <location filename="../core/src/generator_worker.cpp" line="137"/>
         <source>Aeronautical database</source>
         <translation>航空数据库</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="93"/>
+        <location filename="../core/src/generator_worker.cpp" line="139"/>
         <source>Test software</source>
         <translation>测试软件</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="102"/>
+        <location filename="../core/src/generator_worker.cpp" line="166"/>
         <source>Cannot read %1.</source>
         <translation>无法读取%1。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="143"/>
-        <location filename="../core/src/generator_worker.cpp" line="172"/>
-        <location filename="../core/src/generator_worker.cpp" line="278"/>
-        <location filename="../core/src/generator_worker.cpp" line="331"/>
+        <location filename="../core/src/generator_worker.cpp" line="225"/>
+        <location filename="../core/src/generator_worker.cpp" line="266"/>
+        <location filename="../core/src/generator_worker.cpp" line="375"/>
+        <location filename="../core/src/generator_worker.cpp" line="426"/>
+        <location filename="../core/src/generator_worker.cpp" line="451"/>
         <source>Cancelled.</source>
         <translation>已取消。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="144"/>
-        <location filename="../core/src/generator_worker.cpp" line="173"/>
-        <location filename="../core/src/generator_worker.cpp" line="279"/>
-        <location filename="../core/src/generator_worker.cpp" line="332"/>
+        <location filename="../core/src/generator_worker.cpp" line="226"/>
+        <location filename="../core/src/generator_worker.cpp" line="267"/>
+        <location filename="../core/src/generator_worker.cpp" line="376"/>
         <source>Nothing was written.</source>
         <translation>未写入任何内容。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="203"/>
+        <location filename="../core/src/generator_worker.cpp" line="297"/>
         <source>No data files chosen.</source>
         <translation>未选择数据文件。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="212"/>
+        <location filename="../core/src/generator_worker.cpp" line="306"/>
         <source>The load could not be built: %1.</source>
         <translation>无法构建加载件：%1。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="271"/>
+        <location filename="../core/src/generator_worker.cpp" line="365"/>
         <source>The media set could not be built: %1.</source>
         <translation>无法构建介质集：%1。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="323"/>
+        <location filename="../core/src/generator_worker.cpp" line="158"/>
         <source>The media set could not be written below %1.</source>
         <translation>无法在%1之下写入介质集。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="340"/>
+        <location filename="../core/src/generator_worker.cpp" line="115"/>
+        <source>Nothing was kept: what had been written was removed.</source>
+        <translation>未保留任何内容：已写入的内容已被删除。</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="119"/>
+        <source>What had been written could not be removed, and is still in %1.</source>
+        <translation>已写入的内容无法删除，仍在%1中。</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="151"/>
+        <source>%1 is too large to be read into memory.</source>
+        <translation>%1太大，无法读入内存。</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="187"/>
+        <source>The computer ran out of memory while the media set was being made.</source>
+        <translation>创建介质集时计算机内存不足。</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="189"/>
+        <source>Nothing was kept. Choose smaller files, or close other programs and try again.</source>
+        <translation>未保留任何内容。请选择较小的文件，或关闭其他程序后重试。</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="194"/>
+        <source>The media set could not be made.</source>
+        <translation>无法创建介质集。</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="247"/>
+        <source>Nothing was written. Choose smaller files, or close other programs and try again.</source>
+        <translation>未写入任何内容。请选择较小的文件，或关闭其他程序后重试。</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="407"/>
+        <source>Too many unfinished sets (%1.writing...) are there already.</source>
+        <translation>未完成的集（%1.writing...）已经太多。</translation>
+    </message>
+    <message>
+        <location filename="../core/src/generator_worker.cpp" line="435"/>
         <source>The written media set could not be read back: %1 (%2).</source>
         <translation>无法读回已写入的介质集：%1（%2）。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="349"/>
+        <location filename="../core/src/generator_worker.cpp" line="445"/>
         <source>The written media set does not verify: %1.</source>
         <translation>已写入的介质集未通过验证：%1。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="364"/>
+        <location filename="../core/src/generator_worker.cpp" line="513"/>
         <source>Media set %1 written and verified.</source>
         <translation>介质集%1已写入并通过验证。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="368"/>
+        <location filename="../core/src/generator_worker.cpp" line="517"/>
         <source>%1, %2, %3 bytes in %4, in %5.</source>
         <translation>%1，%2，%3字节，共%4，位于%5。</translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="369"/>
+        <location filename="../core/src/generator_worker.cpp" line="518"/>
         <source>%n data file(s)</source>
         <translation>
             <numerusform>%n个数据文件</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="371"/>
+        <location filename="../core/src/generator_worker.cpp" line="520"/>
         <source>%n support file(s)</source>
         <translation>
             <numerusform>%n个支持文件</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="374"/>
+        <location filename="../core/src/generator_worker.cpp" line="523"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n个成员</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="381"/>
+        <location filename="../core/src/generator_worker.cpp" line="531"/>
         <source>%n difference(s) from the standard&apos;s recommendations.</source>
         <translation>
             <numerusform>与标准建议有%n处差异。</numerusform>

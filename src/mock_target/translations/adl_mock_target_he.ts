@@ -520,7 +520,7 @@
 <context>
     <name>adl::mock::MockTargetModel</name>
     <message>
-        <location filename="../core/src/model.cpp" line="619"/>
+        <location filename="../core/src/model.cpp" line="624"/>
         <source>The TFTP and FIND ports must each be between 1 and 65535.</source>
         <translation>יציאות TFTP ו-FIND חייבות להיות כל אחת בין 1 ל-65535.</translation>
     </message>
@@ -528,27 +528,27 @@
 <context>
     <name>adl::mock::MockWorker</name>
     <message>
-        <location filename="../core/src/model.cpp" line="295"/>
+        <location filename="../core/src/model.cpp" line="300"/>
         <source>The storage directory is not set, so the upload is not stored.</source>
         <translation>ספריית האחסון לא הוגדרה, ולכן ההעלאה אינה נשמרת.</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="302"/>
+        <location filename="../core/src/model.cpp" line="307"/>
         <source>The storage directory could not be made: %1.</source>
         <translation>לא ניתן היה ליצור את ספריית האחסון: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="311"/>
+        <location filename="../core/src/model.cpp" line="316"/>
         <source>The load&apos;s directory could not be made: %1.</source>
         <translation>לא ניתן היה ליצור את ספריית ה-Load: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="320"/>
+        <location filename="../core/src/model.cpp" line="325"/>
         <source>%1 was not stored: not a safe file name.</source>
         <translation>%1 לא נשמר: אינו שם קובץ בטוח.</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="330"/>
+        <location filename="../core/src/model.cpp" line="335"/>
         <source>%1 could not be written to the storage directory.</source>
         <translation>לא ניתן היה לכתוב את %1 לספריית האחסון.</translation>
     </message>

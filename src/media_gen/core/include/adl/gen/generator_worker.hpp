@@ -10,6 +10,8 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
+#include <string_view>
 
 #include <QList>
 #include <QObject>
@@ -83,9 +85,18 @@ public:
     explicit GeneratorWorker(QObject* parent = nullptr);
 
     // Thread safe. Asks the job that is running (or the next one to start) to stop. The worker
-    // checks the flag between files and between its steps, so a cancelled job writes nothing.
+    // checks the flag between files and between its steps, and a cancelled job leaves nothing
+    // behind: what it had written is removed.
     void request_cancel() noexcept { cancel_.store(true, std::memory_order_release); }
     void clear_cancel() noexcept { cancel_.store(false, std::memory_order_release); }
+
+    // For tests: called with the name of each place where a job can be cancelled ("read",
+    // "load", "write", "written", "verified"), and of the allocation of a file's buffer
+    // ("allocate"), on the worker's thread. A test cancels from it, or throws std::bad_alloc, to
+    // stop a job at exactly that place.
+    void set_checkpoint_hook(std::function<void(std::string_view)> hook) {
+        checkpoint_hook_ = std::move(hook);
+    }
 
 public Q_SLOTS:
     void generate(const adl::gen::GenerateJob& job);
@@ -101,11 +112,20 @@ private:
     [[nodiscard]] bool cancelled() const noexcept {
         return cancel_.load(std::memory_order_acquire);
     }
+    // A place where the job can be stopped: runs the hook, then says whether it was cancelled.
+    [[nodiscard]] bool checkpoint(std::string_view name) const {
+        if (checkpoint_hook_) {
+            checkpoint_hook_(name);
+        }
+        return cancelled();
+    }
+    void run(const GenerateJob& job, GenerateOutcome& outcome);
     void fail(GenerateOutcome& outcome, const adl::ui::Message& text,
               const adl::ui::Message& detail = {});
     [[nodiscard]] static adl::ui::Message cannot_read(const QString& path);
 
     std::atomic<bool> cancel_{false};
+    std::function<void(std::string_view)> checkpoint_hook_;
 };
 
 }  // namespace adl::gen

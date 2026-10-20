@@ -517,7 +517,7 @@
 <context>
     <name>adl::mock::MockTargetModel</name>
     <message>
-        <location filename="../core/src/model.cpp" line="619"/>
+        <location filename="../core/src/model.cpp" line="624"/>
         <source>The TFTP and FIND ports must each be between 1 and 65535.</source>
         <translation>TFTP和FIND端口都必须在1到65535之间。</translation>
     </message>
@@ -525,27 +525,27 @@
 <context>
     <name>adl::mock::MockWorker</name>
     <message>
-        <location filename="../core/src/model.cpp" line="295"/>
+        <location filename="../core/src/model.cpp" line="300"/>
         <source>The storage directory is not set, so the upload is not stored.</source>
         <translation>未设置存储目录，因此上载内容不会被存储。</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="302"/>
+        <location filename="../core/src/model.cpp" line="307"/>
         <source>The storage directory could not be made: %1.</source>
         <translation>无法创建存储目录：%1。</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="311"/>
+        <location filename="../core/src/model.cpp" line="316"/>
         <source>The load&apos;s directory could not be made: %1.</source>
         <translation>无法创建加载件的目录：%1。</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="320"/>
+        <location filename="../core/src/model.cpp" line="325"/>
         <source>%1 was not stored: not a safe file name.</source>
         <translation>%1未被存储：不是安全的文件名。</translation>
     </message>
     <message>
-        <location filename="../core/src/model.cpp" line="330"/>
+        <location filename="../core/src/model.cpp" line="335"/>
         <source>%1 could not be written to the storage directory.</source>
         <translation>无法把%1写入存储目录。</translation>
     </message>
