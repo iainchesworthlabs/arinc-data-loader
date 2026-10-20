@@ -35,8 +35,9 @@ using adl::platform::UdpSocket;
 // datagram, which is what UDP promises anyway and what the engine's time-outs are for.
 class Sockets {
 public:
-    Sockets(adl::platform::Network& network, Owned<UdpSocket> control) noexcept
-        : network_(network), control_(std::move(control)) {}
+    Sockets(adl::platform::Network& network, Owned<UdpSocket> control,
+            adl::platform::Ipv4Address local) noexcept
+        : network_(network), control_(std::move(control)), local_(local) {}
 
     void execute(std::span<const Command> commands) noexcept {
         for (const Command& command : commands) {
@@ -47,7 +48,8 @@ public:
                 case Command::Kind::send_from_slot: {
                     Owned<UdpSocket>& socket = slots_[command.slot];
                     if (!socket) {
-                        adl::platform::UdpOptions options;  // any address, any free port
+                        adl::platform::UdpOptions options;  // any free port
+                        options.local.address = local_;
                         if (auto opened = network_.open_udp(options)) {
                             socket = std::move(*opened);
                         } else {
@@ -88,6 +90,7 @@ public:
 private:
     adl::platform::Network& network_;
     Owned<UdpSocket> control_;
+    adl::platform::Ipv4Address local_;
     std::array<Owned<UdpSocket>, DataLoader::max_slots> slots_;
 };
 
@@ -104,14 +107,13 @@ std::expected<Outcome, RunError> Runner::run(DataLoader& loader, const Operation
     auto& clock = host_.clock();
 
     adl::platform::UdpOptions control_options;
-    control_options.local =
-        adl::platform::Endpoint{adl::platform::Ipv4Address::any(), loader.control_port()};
+    control_options.local = adl::platform::Endpoint{options.local_address, loader.control_port()};
     auto control = network.open_udp(control_options);
     if (!control) {
         return std::unexpected(
             RunError{RunError::Stage::control_socket, Error::invalid_value, control.error().code});
     }
-    Sockets sockets(network, std::move(*control));
+    Sockets sockets(network, std::move(*control), options.local_address);
 
     if (const auto started = loader.start(to_instant(clock.now()), operation); !started) {
         return std::unexpected(

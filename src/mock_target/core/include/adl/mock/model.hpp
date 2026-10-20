@@ -164,6 +164,9 @@ class MockTargetModel : public QObject {
     // The ports it listens on.
     Q_PROPERTY(int tftpPort READ tftpPort WRITE setTftpPort NOTIFY portsChanged)
     Q_PROPERTY(int findPort READ findPort WRITE setFindPort NOTIFY portsChanged)
+    // Listen on this computer only (127.0.0.1) rather than on every network interface. The
+    // operating system's firewall asks about a program only when it listens on the network.
+    Q_PROPERTY(bool loopbackOnly READ loopbackOnly WRITE setLoopbackOnly NOTIFY portsChanged)
 
     // How it works.
     Q_PROPERTY(int thinkTimeMs READ thinkTimeMs WRITE setThinkTimeMs NOTIFY behaviourChanged)
@@ -220,6 +223,8 @@ public:
     [[nodiscard]] int findPort() const noexcept { return find_port_; }
     void setTftpPort(int value);
     void setFindPort(int value);
+    [[nodiscard]] bool loopbackOnly() const noexcept { return loopback_only_; }
+    void setLoopbackOnly(bool value);
 
     [[nodiscard]] int thinkTimeMs() const noexcept { return think_time_ms_; }
     [[nodiscard]] int statusPeriodSec() const noexcept { return status_period_sec_; }
@@ -291,6 +296,7 @@ private:
 
     int tftp_port_ = 59;
     int find_port_ = 1001;
+    bool loopback_only_ = false;
 
     int think_time_ms_ = 1000;
     int status_period_sec_ = 4;

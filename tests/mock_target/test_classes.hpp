@@ -11,4 +11,5 @@ private Q_SLOTS:
     void start_stop_runs_the_engine();
     void an_upload_through_the_model_stores_the_files();
     void a_failing_link_reports_the_error();
+    void loopback_only_binds_the_link_to_loopback();
 };

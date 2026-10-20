@@ -617,6 +617,11 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
 
     adl::arinc615a::RunOptions options;
     options.controller = &controls_;
+    if (target.is_loopback()) {
+        // A target on this machine is reached over loopback alone, so the sockets need not listen
+        // on the network, and then no firewall asks whether to allow the program.
+        options.local_address = adl::platform::Ipv4Address::loopback();
+    }
     adl::arinc615a::Runner runner(host);
     const auto outcome = runner.run(*loader, operation, options);
     if (!outcome) {

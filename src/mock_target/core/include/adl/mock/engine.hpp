@@ -118,6 +118,9 @@ struct Config {
     unsigned find_copies = 1;
     std::uint16_t tftp_port = adl::arinc615a::tftp_control_port;
     std::uint16_t find_port = adl::arinc615a::find_port;
+    // The interface the target listens on. 127.0.0.1 serves a loader on the same machine and
+    // opens nothing to the network (and so raises no firewall prompt); 0.0.0.0 serves any.
+    adl::arinc615a::Address bind_address{};
 
     // ---- how it works ----
     adl::arinc615a::Duration think_time = std::chrono::seconds(1);
