@@ -177,7 +177,7 @@ QtObject {
     readonly property int selectedBorderWidth: 2
 
     // A progress bar's fill and track. The fill is the accentFill pair, not the raw accent
-    // (2.8:1 against the track); accentFill holds 4.4:1 in light and 5.3:1 in dark.
+    // (2.8:1 against the track); accentFill holds 4.4:1 in light and 4.2:1 in dark.
     readonly property color progressFill: accentFill
     readonly property color progressTrack: neutral300
 

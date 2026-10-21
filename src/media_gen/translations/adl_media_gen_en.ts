@@ -4,7 +4,7 @@
 <context>
     <name>GeneratorWindow</name>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="160"/>
+        <location filename="../qml/GeneratorWindow.qml" line="166"/>
         <source>%n required item(s) left</source>
         <translation>
             <numerusform>%n required item left</numerusform>
@@ -12,7 +12,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="677"/>
+        <location filename="../qml/GeneratorWindow.qml" line="683"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n member</numerusform>
@@ -20,8 +20,8 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="678"/>
-        <location filename="../qml/GeneratorWindow.qml" line="760"/>
+        <location filename="../qml/GeneratorWindow.qml" line="684"/>
+        <location filename="../qml/GeneratorWindow.qml" line="767"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n file</numerusform>
@@ -29,7 +29,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="679"/>
+        <location filename="../qml/GeneratorWindow.qml" line="685"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n load</numerusform>
@@ -37,7 +37,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/GeneratorWindow.qml" line="1045"/>
+        <location filename="../qml/GeneratorWindow.qml" line="1053"/>
         <source>%n file(s) will be written and verified</source>
         <translation>
             <numerusform>%n file will be written and verified</numerusform>

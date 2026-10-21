@@ -77,7 +77,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+113"/>
+        <location filename="../core/src/engine_worker.cpp" line="+114"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>“%1”不是IPv4地址。</translation>
     </message>
@@ -86,8 +86,8 @@
     <name>DirectoryProblem</name>
     <message>
         <location filename="../core/src/download_directory.cpp" line="+22"/>
-        <source>%1 is not a directory</source>
-        <translation>%1不是目录</translation>
+        <source>%1 is not a folder</source>
+        <translation>%1不是文件夹</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -100,9 +100,9 @@
         <translation>无法创建%1（%2）</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>there are already %1 download directories for %2 in %3</source>
-        <translation>%3中已有%1个%2的下载目录</translation>
+        <location line="+6"/>
+        <source>there are already %1 download folders for %2 in %3</source>
+        <translation>%3中已有%1个%2的下载文件夹</translation>
     </message>
 </context>
 <context>
@@ -304,12 +304,7 @@
         <translation>打开上次的下载文件夹</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>A new numbered folder is made for every download, even one that is aborted.</source>
-        <translation>每次下载都会新建一个带编号的文件夹，即使该次下载被中止。</translation>
-    </message>
-    <message>
-        <location line="+64"/>
+        <location line="+72"/>
         <source>no folder</source>
         <translation>无文件夹</translation>
     </message>
@@ -325,7 +320,12 @@
         <translation>上次下载已写入%1。</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+1"/>
+        <source>Each download writes into a new numbered folder; one that brings back no file leaves no folder behind.</source>
+        <translation>每次下载都会写入一个带编号的新文件夹；没有取回任何文件的下载不会留下文件夹。</translation>
+    </message>
+    <message>
+        <location line="+29"/>
         <source>COMPLETE</source>
         <translation>完成</translation>
     </message>
@@ -550,12 +550,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-60"/>
-        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
-        <translation>介质集中的内容在检查后被编辑、替换或删除，因此没有上载任何内容。请重新检查介质集，然后再上载。</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-53"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>加载器无法使用网络或其端口。请检查是否有另一个加载器副本正在运行，以及是否有其他程序占用了控制端口（首选项）。</translation>
     </message>
@@ -565,12 +560,17 @@
         <translation>请以点分隔的四个0到255的数字输入目标机的IPv4地址，例如10.0.0.2。</translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="-22"/>
         <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>请选择写入介质集的文件夹，并确认集内的每个文件仍在其中。</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+7"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so the upload was refused or stopped. If it was stopped part way, the target may already have read some of the files. Check the media set again, then upload.</source>
+        <translation>介质集中的内容在检查后被编辑、替换或删除，因此上载被拒绝或中断。如果是在中途中断，目标机可能已读取了其中一部分文件。请重新检查介质集，然后再上载。</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
         <translation>请选择已存在或可创建的下载文件夹，并确保可以写入（首选项）。</translation>
     </message>
@@ -581,8 +581,8 @@
     </message>
     <message>
         <location line="+8"/>
-        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
-        <translation>请使用目标机自报的THW_ID_POS：1至240个字符，其中不得含有控制字符、斜杠、反斜杠，或目录名不能包含的字符（冒号、星号、问号、引号、尖括号或竖线）。</translation>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a folder name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>请使用目标机自报的THW_ID_POS：1至240个字符，其中不得含有控制字符、斜杠、反斜杠，或文件夹名不能包含的字符（冒号、星号、问号、引号、尖括号或竖线）。</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -668,7 +668,7 @@
     <name>Main</name>
     <message>
         <location filename="../qml/Main.qml" line="+59"/>
-        <location line="+60"/>
+        <location line="+62"/>
         <location line="+136"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
@@ -679,7 +679,7 @@
         <translation>操作失败</translation>
     </message>
     <message>
-        <location line="+149"/>
+        <location line="+147"/>
         <source>e.g. 10.0.0.2</source>
         <translation>例如：10.0.0.2</translation>
     </message>
@@ -810,7 +810,7 @@
         <translation>下载需要目标机、保存位置，在介质定义模式下还需要文件名。</translation>
     </message>
     <message>
-        <location line="+64"/>
+        <location line="+66"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation>ARINC 615A · ARINC 665 · 工程加载控制台</translation>
     </message>
@@ -852,12 +852,12 @@
     </message>
     <message>
         <location line="+10"/>
-        <location line="+476"/>
+        <location line="+474"/>
         <source>Choose the media set folder</source>
         <translation>选择介质集文件夹</translation>
     </message>
     <message>
-        <location line="-456"/>
+        <location line="-454"/>
         <source>Media set properties</source>
         <translation>介质集属性</translation>
     </message>
@@ -882,7 +882,7 @@
         <translation>确定</translation>
     </message>
     <message>
-        <location line="+107"/>
+        <location line="+105"/>
         <source>TARGET</source>
         <translation>目标机</translation>
     </message>
@@ -1051,7 +1051,7 @@
         </translation>
     </message>
     <message>
-        <location line="+206"/>
+        <location line="+208"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
         <translation>ARINC 615A和ARINC 665工程加载控制台：介质集、目标机、信息、上载和下载操作，以及操作过程的记录。</translation>
     </message>
@@ -1066,7 +1066,7 @@
         <translation>现在关闭将中止该操作：会请求目标机停止，确认最多可能需要13秒，在此之前窗口将保持打开。</translation>
     </message>
     <message numerus="yes">
-        <location line="+591"/>
+        <location line="+589"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n条警告</numerusform>
@@ -1103,7 +1103,7 @@
         <translation>中止操作</translation>
     </message>
     <message>
-        <location line="-974"/>
+        <location line="-972"/>
         <source>Idle</source>
         <translation>空闲</translation>
     </message>
@@ -1545,18 +1545,8 @@
         <source>THE UPLOAD</source>
         <translation>本次上载</translation>
     </message>
-    <message>
-        <location line="+11"/>
-        <source>Upload 1 load to %1</source>
-        <translation>向%1上载1个加载件</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Upload %1 loads to %2</source>
-        <translation>向%2上载%1个加载件</translation>
-    </message>
     <message numerus="yes">
-        <location line="+18"/>
+        <location line="+27"/>
         <location line="+45"/>
         <source>%n member(s)</source>
         <translation>
@@ -1601,7 +1591,7 @@
         <translation>未选择介质集</translation>
     </message>
     <message>
-        <location line="-115"/>
+        <location line="-112"/>
         <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
         <translation>介质集是一个文件夹，其中每个成员对应一个文件夹。上载前会读取并检查它。</translation>
     </message>
@@ -1620,8 +1610,15 @@
         <source>Tick all loads</source>
         <translation>勾选所有加载件</translation>
     </message>
+    <message numerus="yes">
+        <location line="+71"/>
+        <source>Upload %n load(s) to %1</source>
+        <translation>
+            <numerusform>向%1上载%n个加载件</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+118"/>
+        <location line="+44"/>
         <source>Target</source>
         <translation>目标机</translation>
     </message>
@@ -1678,7 +1675,7 @@
         <translation>无</translation>
     </message>
     <message>
-        <location line="-149"/>
+        <location line="-146"/>
         <source>Choose media set</source>
         <translation>选择介质集</translation>
     </message>
@@ -1693,7 +1690,7 @@
         <translation>查找目标机</translation>
     </message>
     <message>
-        <location line="+219"/>
+        <location line="+216"/>
         <source>Payload</source>
         <translation>载荷</translation>
     </message>
@@ -2323,7 +2320,22 @@
         <translation>请从列表中选择目标，然后再次运行操作。</translation>
     </message>
     <message>
-        <location line="-408"/>
+        <location line="+14"/>
+        <source>The target that answered cannot be used: its THW_ID_POS is &quot;%1&quot;.</source>
+        <translation>应答的目标机无法使用：其THW_ID_POS为“%1”。</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>A download goes into a folder named for the THW_ID_POS, so the name cannot hold a colon, an asterisk, a question mark, quotes, angle brackets or a bar.</source>
+        <translation>下载会写入以THW_ID_POS命名的文件夹，因此该名称不能含有冒号、星号、问号、引号、尖括号或竖线。</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>A THW_ID_POS is 1 to 240 characters, none of them a control character, a slash or a backslash.</source>
+        <translation>THW_ID_POS为1至240个字符，其中不得含有控制字符、斜杠或反斜杠。</translation>
+    </message>
+    <message>
+        <location line="-433"/>
         <source>No target is selected; looking for one first.</source>
         <translation>未选择目标；先查找一个目标。</translation>
     </message>

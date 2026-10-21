@@ -173,6 +173,55 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // A name the standard allows but the folder tree refuses (a `*`) is marked on its row, with
+    // the rule, and the form is not ready; the right name makes it ready again.
+    files->setData(files->index(0), QStringLiteral("DATA*.LUP"),
+                   adl::gen::SourceFileModel::FileNameRole);
+    QCoreApplication::processEvents();
+    QQuickItem* row_message = find_item(window->contentItem(), QStringLiteral("rowMessage"));
+    if (row_message == nullptr || !row_message->isVisible() ||
+        !row_message->property("text").toString().contains(QStringLiteral("every system")) ||
+        model.canGenerate() || status_text() != QStringLiteral("INCOMPLETE")) {
+        std::fprintf(stderr, "a name the folder tree refuses is not marked on its row: %s\n",
+                     row_message == nullptr ? "no row message"
+                                            : qPrintable(row_message->property("text").toString()));
+        return 1;
+    }
+    files->setData(files->index(0), QStringLiteral("DATA.LUP"),
+                   adl::gen::SourceFileModel::FileNameRole);
+    QCoreApplication::processEvents();
+    if (!model.canGenerate() || row_message->isVisible()) {
+        std::fprintf(stderr, "the row kept its message after the name was put right\n");
+        return 1;
+    }
+
+    // The NO CHECK VALUES chip counts the table's Check value column too: with all three pickers
+    // at none it shows, and a check value on any file takes it away.
+    QQuickItem* no_check = find_item(window->contentItem(), QStringLiteral("noCheckValuesChip"));
+    if (no_check == nullptr || !no_check->isVisible()) {
+        std::fprintf(stderr, "the NO CHECK VALUES chip is missing with no check value anywhere\n");
+        return 1;
+    }
+    files->setData(files->index(0), 3, adl::gen::SourceFileModel::CheckTypeRole);
+    QCoreApplication::processEvents();
+    if (no_check->isVisible()) {
+        std::fprintf(stderr, "the NO CHECK VALUES chip ignores the Check value column\n");
+        return 1;
+    }
+    files->setData(files->index(0), 0, adl::gen::SourceFileModel::CheckTypeRole);
+    QCoreApplication::processEvents();
+    if (!no_check->isVisible()) {
+        std::fprintf(stderr, "the NO CHECK VALUES chip did not come back\n");
+        return 1;
+    }
+
+    // The footer's state mark is a ToneGlyph, as the loader's is: a dot while nothing runs.
+    QQuickItem* mark = find_item(window->contentItem(), QStringLiteral("statusMark"));
+    if (mark == nullptr || mark->property("glyph").toString() != QStringLiteral("dot")) {
+        std::fprintf(stderr, "the footer's state mark is not a dot while nothing runs\n");
+        return 1;
+    }
+
     // An incomplete form is INCOMPLETE and shows no complaint until Generate is pressed on it;
     // then the banner says what is missing, and nothing is written.
     model.setLoadPartNumber(QString());
@@ -250,6 +299,13 @@ int main(int argc, char* argv[]) {
         QCoreApplication::processEvents();
         if (picker_centre() > window->width() / 2.0) {
             std::fprintf(stderr, "the header did not mirror in %s\n", qPrintable(code));
+            return 1;
+        }
+        // Changing the language is not an edit of the form: the outcome of the run, and the
+        // Open folder button that goes with it, stay.
+        if (model.resultState() != 1 || model.outputPath().isEmpty() || !result->isVisible()) {
+            std::fprintf(stderr, "the language %s cleared the outcome of the run\n",
+                         qPrintable(code));
             return 1;
         }
         if (code == QStringLiteral("he") && argc > 2) {

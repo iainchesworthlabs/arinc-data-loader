@@ -15,4 +15,5 @@ private Q_SLOTS:
     void a_name_the_loader_sends_is_stored_only_if_it_is_plain_and_portable();
     void a_load_directory_is_never_a_device_or_a_dotted_name();
     void starting_and_stopping_in_quick_succession_leaves_the_worker_free();
+    void the_activity_roles_are_the_ones_the_log_view_reads();
 };

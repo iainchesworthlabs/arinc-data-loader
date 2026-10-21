@@ -134,7 +134,8 @@ struct Config {
     bool garbage_init = false;  // serve an initialization file of an invalid structure
 
     // ---- injections (all default to "behave") ----
-    bool corrupt_served = false;     // flip a bit in every served file
+    bool corrupt_served = false;     // flip a bit in the initialization file and in each held
+                                     // file a download writes back (nothing else is altered)
     bool wrong_checksum = false;     // a wrong check value option on what it writes
     unsigned drop_status_every = 0;  // lose every Nth status file (0: lose none)
     std::optional<std::size_t> abort_after_statuses;  // send 0x1003 after this many

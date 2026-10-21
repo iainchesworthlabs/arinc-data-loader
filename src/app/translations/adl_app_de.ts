@@ -77,7 +77,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+113"/>
+        <location filename="../core/src/engine_worker.cpp" line="+114"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>„%1“ ist keine IPv4-Adresse.</translation>
     </message>
@@ -86,8 +86,8 @@
     <name>DirectoryProblem</name>
     <message>
         <location filename="../core/src/download_directory.cpp" line="+22"/>
-        <source>%1 is not a directory</source>
-        <translation>%1 ist kein Verzeichnis</translation>
+        <source>%1 is not a folder</source>
+        <translation>%1 ist kein Ordner</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -100,9 +100,9 @@
         <translation>%1 kann nicht erstellt werden (%2)</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>there are already %1 download directories for %2 in %3</source>
-        <translation>in %3 gibt es bereits %1 Download-Verzeichnisse für %2</translation>
+        <location line="+6"/>
+        <source>there are already %1 download folders for %2 in %3</source>
+        <translation>in %3 gibt es bereits %1 Download-Ordner für %2</translation>
     </message>
 </context>
 <context>
@@ -306,12 +306,7 @@
         <translation>Letzten Download-Ordner öffnen</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>A new numbered folder is made for every download, even one that is aborted.</source>
-        <translation>Für jeden Download wird ein neuer nummerierter Ordner angelegt, auch für einen abgebrochenen.</translation>
-    </message>
-    <message>
-        <location line="+64"/>
+        <location line="+72"/>
         <source>no folder</source>
         <translation>kein Ordner</translation>
     </message>
@@ -327,7 +322,12 @@
         <translation>Der letzte Download wurde nach %1 geschrieben.</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+1"/>
+        <source>Each download writes into a new numbered folder; one that brings back no file leaves no folder behind.</source>
+        <translation>Jeder Download schreibt in einen neuen nummerierten Ordner; ein Download, der keine Datei zurückbringt, hinterlässt keinen Ordner.</translation>
+    </message>
+    <message>
+        <location line="+29"/>
         <source>COMPLETE</source>
         <translation>ABGESCHLOSSEN</translation>
     </message>
@@ -552,12 +552,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-60"/>
-        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
-        <translation>Etwas im Medienset wurde nach der Prüfung bearbeitet, ersetzt oder entfernt, daher wurde nichts hochgeladen. Prüfen Sie das Medienset erneut und laden Sie dann hoch.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-53"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>Der Loader konnte das Netzwerk oder seinen Port nicht verwenden. Prüfen, ob keine andere Instanz des Loaders läuft und kein anderes Programm den Steuerport belegt (Einstellungen).</translation>
     </message>
@@ -567,12 +562,17 @@
         <translation>Die IPv4-Adresse des Zielgeräts als vier durch Punkte getrennte Zahlen von 0 bis 255 eingeben, z. B. 10.0.0.2.</translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="-22"/>
         <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>Wählen Sie den Ordner, in den das Medienset geschrieben wurde, und stellen Sie sicher, dass noch jede Datei des Sets darin liegt.</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+7"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so the upload was refused or stopped. If it was stopped part way, the target may already have read some of the files. Check the media set again, then upload.</source>
+        <translation>Etwas im Medienset wurde nach der Prüfung bearbeitet, ersetzt oder entfernt, daher wurde der Upload abgelehnt oder abgebrochen. Wurde er mittendrin abgebrochen, hat das Zielgerät möglicherweise schon einige der Dateien gelesen. Prüfen Sie das Medienset erneut und laden Sie dann hoch.</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
         <translation>Wählen Sie einen Download-Ordner, der existiert oder angelegt werden kann, und stellen Sie sicher, dass er beschreibbar ist (Einstellungen).</translation>
     </message>
@@ -583,8 +583,8 @@
     </message>
     <message>
         <location line="+8"/>
-        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
-        <translation>Verwenden Sie die THW_ID_POS des Zielgeräts so, wie es sich selbst nennt: 1 bis 240 Zeichen, keines davon ein Steuerzeichen, ein Schrägstrich, ein umgekehrter Schrägstrich oder ein Zeichen, das ein Verzeichnisname nicht enthalten kann (Doppelpunkt, Stern, Fragezeichen, Anführungszeichen, spitze Klammern oder senkrechter Strich).</translation>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a folder name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>Verwenden Sie die THW_ID_POS des Zielgeräts so, wie es sich selbst nennt: 1 bis 240 Zeichen, keines davon ein Steuerzeichen, ein Schrägstrich, ein umgekehrter Schrägstrich oder ein Zeichen, das ein Ordnername nicht enthalten kann (Doppelpunkt, Stern, Fragezeichen, Anführungszeichen, spitze Klammern oder senkrechter Strich).</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -671,7 +671,7 @@
     <name>Main</name>
     <message>
         <location filename="../qml/Main.qml" line="+59"/>
-        <location line="+60"/>
+        <location line="+62"/>
         <location line="+136"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
@@ -682,7 +682,7 @@
         <translation>Der Vorgang ist fehlgeschlagen</translation>
     </message>
     <message>
-        <location line="+149"/>
+        <location line="+147"/>
         <source>e.g. 10.0.0.2</source>
         <translation>z. B. 10.0.0.2</translation>
     </message>
@@ -813,7 +813,7 @@
         <translation>Ein Download erfordert ein Zielgerät, einen Speicherort und - im mediendefinierten Modus - einen Dateinamen.</translation>
     </message>
     <message>
-        <location line="+64"/>
+        <location line="+66"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation>ARINC 615A · ARINC 665 · Engineering-Ladekonsole</translation>
     </message>
@@ -855,12 +855,12 @@
     </message>
     <message>
         <location line="+10"/>
-        <location line="+476"/>
+        <location line="+474"/>
         <source>Choose the media set folder</source>
         <translation>Medienset-Ordner wählen</translation>
     </message>
     <message>
-        <location line="-456"/>
+        <location line="-454"/>
         <source>Media set properties</source>
         <translation>Medienset-Eigenschaften</translation>
     </message>
@@ -885,7 +885,7 @@
         <translation>OK</translation>
     </message>
     <message>
-        <location line="+107"/>
+        <location line="+105"/>
         <source>TARGET</source>
         <translation>ZIELGERÄT</translation>
     </message>
@@ -1057,7 +1057,7 @@
         </translation>
     </message>
     <message>
-        <location line="+206"/>
+        <location line="+208"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
         <translation>Eine Engineering-Ladekonsole für ARINC 615A und ARINC 665: Mediensets, Zielgeräte, die Operationen Information, Upload und Download sowie der Nachweis dessen, was geschehen ist.</translation>
     </message>
@@ -1072,7 +1072,7 @@
         <translation>Das Schließen bricht den Vorgang jetzt ab: Das Zielgerät wird zum Anhalten aufgefordert und braucht bis zu 13 Sekunden für die Bestätigung; das Fenster bleibt bis dahin geöffnet.</translation>
     </message>
     <message numerus="yes">
-        <location line="+591"/>
+        <location line="+589"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n WARNUNG</numerusform>
@@ -1110,7 +1110,7 @@
         <translation>Den Vorgang abbrechen</translation>
     </message>
     <message>
-        <location line="-974"/>
+        <location line="-972"/>
         <source>Idle</source>
         <translation>Bereit</translation>
     </message>
@@ -1555,18 +1555,8 @@
         <source>THE UPLOAD</source>
         <translation>DER UPLOAD</translation>
     </message>
-    <message>
-        <location line="+11"/>
-        <source>Upload 1 load to %1</source>
-        <translation>1 Load auf %1 hochladen</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Upload %1 loads to %2</source>
-        <translation>%1 Loads auf %2 hochladen</translation>
-    </message>
     <message numerus="yes">
-        <location line="+18"/>
+        <location line="+27"/>
         <location line="+45"/>
         <source>%n member(s)</source>
         <translation>
@@ -1615,7 +1605,7 @@
         <translation>Kein Medienset ausgewählt</translation>
     </message>
     <message>
-        <location line="-115"/>
+        <location line="-112"/>
         <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
         <translation>Ein Medienset ist ein Ordner mit je einem Ordner pro Mitglied. Es wird vor einem Upload gelesen und geprüft.</translation>
     </message>
@@ -1634,8 +1624,16 @@
         <source>Tick all loads</source>
         <translation>Alle Loads markieren</translation>
     </message>
+    <message numerus="yes">
+        <location line="+71"/>
+        <source>Upload %n load(s) to %1</source>
+        <translation>
+            <numerusform>%n Load auf %1 hochladen</numerusform>
+            <numerusform>%n Loads auf %1 hochladen</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+118"/>
+        <location line="+44"/>
         <source>Target</source>
         <translation>Zielgerät</translation>
     </message>
@@ -1692,7 +1690,7 @@
         <translation>KEINE</translation>
     </message>
     <message>
-        <location line="-149"/>
+        <location line="-146"/>
         <source>Choose media set</source>
         <translation>Medienset wählen</translation>
     </message>
@@ -1707,7 +1705,7 @@
         <translation>Zielgeräte suchen</translation>
     </message>
     <message>
-        <location line="+219"/>
+        <location line="+216"/>
         <source>Payload</source>
         <translation>Nutzdaten</translation>
     </message>
@@ -2353,7 +2351,22 @@
         <translation>Wählen Sie das Ziel aus der Liste und führen Sie den Vorgang dann erneut aus.</translation>
     </message>
     <message>
-        <location line="-408"/>
+        <location line="+14"/>
+        <source>The target that answered cannot be used: its THW_ID_POS is &quot;%1&quot;.</source>
+        <translation>Das Zielgerät, das geantwortet hat, ist nicht verwendbar: Seine THW_ID_POS lautet &quot;%1&quot;.</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>A download goes into a folder named for the THW_ID_POS, so the name cannot hold a colon, an asterisk, a question mark, quotes, angle brackets or a bar.</source>
+        <translation>Ein Download wird in einen Ordner geschrieben, der nach der THW_ID_POS benannt ist; der Name darf daher weder Doppelpunkt, Stern, Fragezeichen, Anführungszeichen, spitze Klammern noch senkrechten Strich enthalten.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>A THW_ID_POS is 1 to 240 characters, none of them a control character, a slash or a backslash.</source>
+        <translation>Eine THW_ID_POS hat 1 bis 240 Zeichen, keines davon ein Steuerzeichen, ein Schrägstrich oder ein umgekehrter Schrägstrich.</translation>
+    </message>
+    <message>
+        <location line="-433"/>
         <source>No target is selected; looking for one first.</source>
         <translation>Kein Ziel ausgewählt; es wird zuerst eines gesucht.</translation>
     </message>

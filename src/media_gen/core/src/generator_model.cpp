@@ -335,9 +335,13 @@ void GeneratorModel::refresh_validation(bool edited) {
         check_text(media_set_part_number_,
                    adl::arinc665::check_media_set_part_number(media_set_part_number_.toStdString()),
                    tr("Enter the media set part number, for example ACM-SET-0001."));
-    const QString header_error = check_text(
+    QString header_error = check_text(
         header_file_name_, adl::arinc665::check_header_file_name(header_file_name_.toStdString()),
         tr("Enter the header file name, for example ACM47.LUH."));
+    if (header_error.isEmpty()) {
+        // The standard's rules pass; the folder tree the file is written to has a stricter one.
+        header_error = SourceFileModel::portable_name_message(header_file_name_);
+    }
 
     QString batch_error;
     if (include_batch_) {
@@ -351,6 +355,10 @@ void GeneratorModel::refresh_validation(bool edited) {
             const auto findings = adl::arinc665::check_batch_file_name(batch_file_name);
             if (!findings.empty()) {
                 batch_error = findings_text(findings);
+            } else {
+                // A manufacturer's code such as NUL gives the batch file NUL.LUB, a device name.
+                batch_error =
+                    SourceFileModel::portable_name_message(QString::fromStdString(batch_file_name));
             }
         }
     }
@@ -419,7 +427,8 @@ void GeneratorModel::on_finished(const GenerateOutcome& outcome) {
 
 void GeneratorModel::retranslate() {
     // The fields' messages are made by the validation; the result and the options are read again.
-    refresh_validation();
+    // The form has not been edited, so the outcome of the last run and its Open folder button stay.
+    refresh_validation(false);
     fill_load_type_model();
     files_.retranslate();
     Q_EMIT resultChanged();

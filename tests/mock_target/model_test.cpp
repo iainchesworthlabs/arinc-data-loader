@@ -288,3 +288,22 @@ void MockModelTest::starting_and_stopping_in_quick_succession_leaves_the_worker_
     model.stop();
     QVERIFY(links_made.load() <= rounds + rounds / 7 + 2);
 }
+
+void MockModelTest::the_activity_roles_are_the_ones_the_log_view_reads() {
+    // The shared LogView (src/ui/qml/LogView.qml) reads the severity, the text and the time by
+    // number: 257, 258 and 259, which are the loader's EventModel roles. A mock target whose
+    // roles were numbered otherwise would copy no time and write INFO for every line.
+    QCOMPARE(static_cast<int>(ActivityModel::SeverityRole), 257);
+    QCOMPARE(static_cast<int>(ActivityModel::TextRole), 258);
+    QCOMPARE(static_cast<int>(ActivityModel::TimeRole), 259);
+
+    ActivityModel log;
+    QCOMPARE(log.roleNames().value(257), QByteArrayLiteral("severity"));
+    QCOMPARE(log.roleNames().value(258), QByteArrayLiteral("message"));
+    QCOMPARE(log.roleNames().value(259), QByteArrayLiteral("time"));
+
+    log.append({2, QStringLiteral("12:34:56"), QStringLiteral("a warning")});
+    QCOMPARE(log.data(log.index(0), 257).toInt(), 2);
+    QCOMPARE(log.data(log.index(0), 258).toString(), QStringLiteral("a warning"));
+    QCOMPARE(log.data(log.index(0), 259).toString(), QStringLiteral("12:34:56"));
+}

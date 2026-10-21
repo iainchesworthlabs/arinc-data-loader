@@ -93,6 +93,18 @@ bool log_contains(LoaderModel& model, const QString& text) {
     return false;
 }
 
+// How many lines of the activity log contain `text`.
+int log_count(LoaderModel& model, const QString& text) {
+    const auto* events = qobject_cast<EventModel*>(model.events());
+    int count = 0;
+    for (int row = 0; row < events->rowCount(); ++row) {
+        if (events->data(events->index(row), EventModel::TextRole).toString().contains(text)) {
+            ++count;
+        }
+    }
+    return count;
+}
+
 // Reads the fixture's media set through the model and waits for it (the read, then the check
 // that follows it while validateOnOpen is on).
 void read_the_media_set(LoaderModel& model, const adl::test::UploadFixture& fixture) {
@@ -1146,6 +1158,71 @@ void LoaderModelTest::auto_find_with_several_targets_starts_nothing() {
     QCOMPARE(model2.resultText(), QStringLiteral("0 targets answered"));
     QVERIFY(!model2.targetValid());
     QCOMPARE(rig2.target.log().init_requests_at.size(), std::size_t{0});
+}
+
+void LoaderModelTest::auto_find_with_one_target_that_cannot_be_used_stops_with_a_message() {
+    enum class Operation { information, upload, download };
+    struct Case {
+        const char* hardware_id;
+        Operation operation;
+        const char* reason;  // a part of the detail the operator reads
+    };
+    // "HN*FMS" is a THW_ID_POS the loader accepts but cannot name a download folder after;
+    // "HN/FMS" is one it rejects for every operation.
+    const Case cases[] = {
+        {"HN*FMS", Operation::download, "folder named for the THW_ID_POS"},
+        {"HN/FMS", Operation::download, "1 to 240 characters"},
+        {"HN/FMS", Operation::upload, "1 to 240 characters"},
+        {"HN/FMS", Operation::information, "1 to 240 characters"},
+    };
+    for (const Case& test : cases) {
+        QTemporaryDir settings_dir;
+        auto settings = settings_in(settings_dir);
+        settings->setAutoFindBeforeOperation(true);
+        adl::test::UploadFixture fixture;
+        adl::test::SimPlan plan =
+            test.operation == Operation::download ? download_plan() : fixture.plan();
+        plan.find_answer =
+            adl::arinc615a::FindAnswer{test.hardware_id, "FMS", "L", "FMS LEFT", "HNP"};
+        adl::test::Rig rig(plan);
+        adl::test::TempDir downloads;
+        LoaderModel model(rig_host(rig), std::move(settings));
+        QSignalSpy errors(&model, &LoaderModel::errorChanged);
+        switch (test.operation) {
+            case Operation::download:
+                model.setDownloadDirectory(download_dir_of(downloads));
+                model.addDownloadFile(QStringLiteral("A.BIN"));
+                model.downloadSelected();
+                break;
+            case Operation::upload:
+                QVERIFY(fixture.write(rig));
+                read_the_media_set(model, fixture);
+                model.selectAllLoads(true);
+                model.uploadSelected();
+                break;
+            case Operation::information:
+                model.readInformation();
+                break;
+        }
+        QVERIFY(model.busy());
+
+        // The FIND ends, and the operation stops there: not a second FIND, and not silence.
+        QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+        QTest::qWait(300);  // a second FIND would be under way by now
+        QVERIFY(!model.busy());
+        QCOMPARE(log_count(model, QStringLiteral("looking for one first")), 1);
+        QCOMPARE(errors.count(), 1);
+        QCOMPARE(model.resultState(), 2);
+        QVERIFY2(model.lastErrorText().contains(QString::fromLatin1(test.hardware_id)),
+                 qPrintable(model.lastErrorText()));
+        QVERIFY2(model.lastErrorText().contains(QStringLiteral("cannot be used")),
+                 qPrintable(model.lastErrorText()));
+        QVERIFY2(model.lastErrorDetail().contains(QString::fromLatin1(test.reason)),
+                 qPrintable(model.lastErrorDetail()));
+        QCOMPARE(model.resultDetail(), model.lastErrorDetail());
+        QVERIFY(!model.targetValid() || test.operation == Operation::download);
+        QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
+    }
 }
 
 void LoaderModelTest::the_last_media_set_is_restored_after_startup() {

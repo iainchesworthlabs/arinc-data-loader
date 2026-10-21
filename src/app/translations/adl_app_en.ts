@@ -24,7 +24,7 @@
 <context>
     <name>JobListener</name>
     <message numerus="yes">
-        <location filename="../core/src/engine_worker.cpp" line="+292"/>
+        <location filename="../core/src/engine_worker.cpp" line="+293"/>
         <source>The target listed %n file(s) it can download.</source>
         <translation>
             <numerusform>The target listed %n file it can download.</numerusform>
@@ -97,7 +97,15 @@
 <context>
     <name>UploadPanel</name>
     <message numerus="yes">
-        <location filename="../qml/UploadPanel.qml" line="+194"/>
+        <location filename="../qml/UploadPanel.qml" line="+174"/>
+        <source>Upload %n load(s) to %1</source>
+        <translation>
+            <numerusform>Upload %n load to %1</numerusform>
+            <numerusform>Upload %n loads to %1</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+17"/>
         <location line="+45"/>
         <source>%n member(s)</source>
         <translation>

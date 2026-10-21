@@ -49,12 +49,14 @@ class ActivityModel : public QAbstractListModel {
     Q_OBJECT
 
 public:
+    // The shared LogView reads the roles by number, and the numbers are those of the loader's
+    // EventModel (Qt::UserRole + 1, + 2, + 3: severity, text, time). Keep them equal.
     enum Role {
-        SeverityRole = Qt::UserRole,
-        TimeRole,
+        SeverityRole = Qt::UserRole + 1,
         // Named "message" in QML because a delegate of a Label cannot carry a "text" role
         // (Label has a final property of that name).
         TextRole,
+        TimeRole,
     };
 
     explicit ActivityModel(QObject* parent = nullptr);

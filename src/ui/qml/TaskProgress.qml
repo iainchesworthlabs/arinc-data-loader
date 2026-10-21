@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls as QQC
 
-// A 4 px progress bar: the accentFill fill on a neutral300 track (4.4:1 in light, 5.3:1 in dark),
+// A 4 px progress bar: the accentFill fill on a neutral300 track (4.4:1 in light, 4.2:1 in dark),
 // with a still 30% mark under reduced motion or before a figure is known. It fills from the start
 // edge: the left in a left-to-right window, the right in a mirrored one (so the width follows
 // `position`, not `visualPosition`, which a mirrored bar already flips, and the bar is placed at

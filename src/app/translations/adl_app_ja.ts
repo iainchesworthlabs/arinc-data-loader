@@ -77,7 +77,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+113"/>
+        <location filename="../core/src/engine_worker.cpp" line="+114"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>&quot;%1&quot;はIPv4アドレスではありません。</translation>
     </message>
@@ -86,8 +86,8 @@
     <name>DirectoryProblem</name>
     <message>
         <location filename="../core/src/download_directory.cpp" line="+22"/>
-        <source>%1 is not a directory</source>
-        <translation>%1はディレクトリではありません</translation>
+        <source>%1 is not a folder</source>
+        <translation>%1はフォルダーではありません</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -100,9 +100,9 @@
         <translation>%1を作成できません(%2)</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>there are already %1 download directories for %2 in %3</source>
-        <translation>%3には、%2用のダウンロードディレクトリがすでに%1個あります</translation>
+        <location line="+6"/>
+        <source>there are already %1 download folders for %2 in %3</source>
+        <translation>%3には、%2用のダウンロードフォルダーがすでに%1個あります</translation>
     </message>
 </context>
 <context>
@@ -304,12 +304,7 @@
         <translation>直前のダウンロードフォルダーを開く</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>A new numbered folder is made for every download, even one that is aborted.</source>
-        <translation>ダウンロードのたびに番号付きの新しいフォルダーが作成されます。中止されたダウンロードでも同様です。</translation>
-    </message>
-    <message>
-        <location line="+64"/>
+        <location line="+72"/>
         <source>no folder</source>
         <translation>フォルダーなし</translation>
     </message>
@@ -325,7 +320,12 @@
         <translation>前回のダウンロードは%1に書き込まれました。</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+1"/>
+        <source>Each download writes into a new numbered folder; one that brings back no file leaves no folder behind.</source>
+        <translation>ダウンロードのたびに、番号付きの新しいフォルダーに書き込まれます。ファイルが1つも戻らなかったダウンロードは、フォルダーを残しません。</translation>
+    </message>
+    <message>
+        <location line="+29"/>
         <source>COMPLETE</source>
         <translation>完了</translation>
     </message>
@@ -550,12 +550,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-60"/>
-        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
-        <translation>チェックの後にメディアセットの一部が編集、置換、または削除されたため、何もアップロードされませんでした。メディアセットをもう一度チェックしてから、アップロードしてください。</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-53"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>ローダーがネットワークまたはそのポートを使用できませんでした。ローダーの別のコピーが実行されていないこと、および他のプログラムが制御ポートを使用していないことを確認してください(環境設定)。</translation>
     </message>
@@ -565,12 +560,17 @@
         <translation>ターゲットのIPv4アドレスを、0～255の4つの数値をドットで区切って入力してください(例：10.0.0.2)。</translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="-22"/>
         <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>メディアセットの書き込み先のフォルダーを選択し、セットのすべてのファイルがまだその中にあることを確認してください。</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+7"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so the upload was refused or stopped. If it was stopped part way, the target may already have read some of the files. Check the media set again, then upload.</source>
+        <translation>チェックの後にメディアセットの一部が編集、置換、または削除されたため、アップロードは拒否または中止されました。途中で中止された場合、ターゲットがすでに一部のファイルを読み取っている可能性があります。メディアセットをもう一度チェックしてから、アップロードしてください。</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
         <translation>存在する、または作成できるダウンロードフォルダーを選択し、書き込み可能であることを確認してください（設定）。</translation>
     </message>
@@ -581,8 +581,8 @@
     </message>
     <message>
         <location line="+8"/>
-        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
-        <translation>ターゲットが自ら名乗るとおりのTHW_ID_POSを使用してください。1〜240文字で、制御文字、スラッシュ、バックスラッシュ、およびディレクトリ名に使えない文字（コロン、アスタリスク、疑問符、引用符、山かっこ、縦線）を含めることはできません。</translation>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a folder name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>ターゲットが自ら名乗るとおりのTHW_ID_POSを使用してください。1〜240文字で、制御文字、スラッシュ、バックスラッシュ、およびフォルダー名に使えない文字（コロン、アスタリスク、疑問符、引用符、山かっこ、縦線）を含めることはできません。</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -668,7 +668,7 @@
     <name>Main</name>
     <message>
         <location filename="../qml/Main.qml" line="+59"/>
-        <location line="+60"/>
+        <location line="+62"/>
         <location line="+136"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
@@ -679,7 +679,7 @@
         <translation>操作に失敗しました</translation>
     </message>
     <message>
-        <location line="+149"/>
+        <location line="+147"/>
         <source>e.g. 10.0.0.2</source>
         <translation>例：10.0.0.2</translation>
     </message>
@@ -810,7 +810,7 @@
         <translation>ダウンロードには、ターゲット、保存先、およびメディア定義モードではファイル名が必要です。</translation>
     </message>
     <message>
-        <location line="+64"/>
+        <location line="+66"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation>ARINC 615A · ARINC 665 · エンジニアリング用ロードコンソール</translation>
     </message>
@@ -852,12 +852,12 @@
     </message>
     <message>
         <location line="+10"/>
-        <location line="+476"/>
+        <location line="+474"/>
         <source>Choose the media set folder</source>
         <translation>メディアセットのフォルダーを選択</translation>
     </message>
     <message>
-        <location line="-456"/>
+        <location line="-454"/>
         <source>Media set properties</source>
         <translation>メディアセットのプロパティ</translation>
     </message>
@@ -882,7 +882,7 @@
         <translation>OK</translation>
     </message>
     <message>
-        <location line="+107"/>
+        <location line="+105"/>
         <source>TARGET</source>
         <translation>ターゲット</translation>
     </message>
@@ -1051,7 +1051,7 @@
         </translation>
     </message>
     <message>
-        <location line="+206"/>
+        <location line="+208"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
         <translation>ARINC 615AおよびARINC 665に対応したエンジニアリング用ロードコンソールです。メディアセット、ターゲット、情報・アップロード・ダウンロードの各操作、および実行結果の証跡を扱います。</translation>
     </message>
@@ -1066,7 +1066,7 @@
         <translation>今閉じると操作が中止されます。ターゲットに停止が要求され、確認まで最大13秒かかることがあり、それまでウィンドウは開いたままになります。</translation>
     </message>
     <message numerus="yes">
-        <location line="+591"/>
+        <location line="+589"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>警告%n件</numerusform>
@@ -1103,7 +1103,7 @@
         <translation>操作を中止</translation>
     </message>
     <message>
-        <location line="-974"/>
+        <location line="-972"/>
         <source>Idle</source>
         <translation>待機中</translation>
     </message>
@@ -1545,18 +1545,8 @@
         <source>THE UPLOAD</source>
         <translation>アップロード</translation>
     </message>
-    <message>
-        <location line="+11"/>
-        <source>Upload 1 load to %1</source>
-        <translation>1個のロードを%1にアップロード</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Upload %1 loads to %2</source>
-        <translation>%1個のロードを%2にアップロード</translation>
-    </message>
     <message numerus="yes">
-        <location line="+18"/>
+        <location line="+27"/>
         <location line="+45"/>
         <source>%n member(s)</source>
         <translation>
@@ -1601,7 +1591,7 @@
         <translation>メディアセットが選択されていません</translation>
     </message>
     <message>
-        <location line="-115"/>
+        <location line="-112"/>
         <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
         <translation>メディアセットは、メンバーごとに1つのフォルダーを含むフォルダーです。アップロードの前に読み取られ、チェックされます。</translation>
     </message>
@@ -1620,8 +1610,15 @@
         <source>Tick all loads</source>
         <translation>すべてのロードにチェック</translation>
     </message>
+    <message numerus="yes">
+        <location line="+71"/>
+        <source>Upload %n load(s) to %1</source>
+        <translation>
+            <numerusform>%n個のロードを%1にアップロード</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+118"/>
+        <location line="+44"/>
         <source>Target</source>
         <translation>ターゲット</translation>
     </message>
@@ -1678,7 +1675,7 @@
         <translation>なし</translation>
     </message>
     <message>
-        <location line="-149"/>
+        <location line="-146"/>
         <source>Choose media set</source>
         <translation>メディアセットを選択</translation>
     </message>
@@ -1693,7 +1690,7 @@
         <translation>ターゲットを検索</translation>
     </message>
     <message>
-        <location line="+219"/>
+        <location line="+216"/>
         <source>Payload</source>
         <translation>ペイロード</translation>
     </message>
@@ -2323,7 +2320,22 @@
         <translation>一覧からターゲットを選択し、操作を再実行してください。</translation>
     </message>
     <message>
-        <location line="-408"/>
+        <location line="+14"/>
+        <source>The target that answered cannot be used: its THW_ID_POS is &quot;%1&quot;.</source>
+        <translation>応答したターゲットは使用できません。そのTHW_ID_POSは「%1」です。</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>A download goes into a folder named for the THW_ID_POS, so the name cannot hold a colon, an asterisk, a question mark, quotes, angle brackets or a bar.</source>
+        <translation>ダウンロードはTHW_ID_POSにちなんだ名前のフォルダーに保存されるため、名前にはコロン、アスタリスク、疑問符、引用符、山かっこ、縦線を含めることができません。</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>A THW_ID_POS is 1 to 240 characters, none of them a control character, a slash or a backslash.</source>
+        <translation>THW_ID_POSは1〜240文字で、制御文字、スラッシュ、バックスラッシュを含めることはできません。</translation>
+    </message>
+    <message>
+        <location line="-433"/>
         <source>No target is selected; looking for one first.</source>
         <translation>ターゲットが選択されていません。まず検索します。</translation>
     </message>
