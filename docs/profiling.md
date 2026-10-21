@@ -1,6 +1,6 @@
 # Profiling
 
-Tracy 0.14.1, as an opt-in build. A normal build links nothing and opens no listener; the client is
+Tracy 0.13.1, as an opt-in build. A normal build links nothing and opens no listener; the client is
 selected by one switch, and the same switch decides whether the instrumentation in the libraries,
 the application's engine and the window's frame loop is compiled in or expands to nothing.
 
@@ -12,7 +12,7 @@ cmake --build --preset windows-msvc-release
 That adds vcpkg's `profiling` manifest feature: the Tracy **client** (`Tracy::TracyClient`, a shared
 library) and, for the host, Tracy's command-line tools (`tracy-capture`, `tracy-csvexport`, …), so a
 trace can be recorded and dumped without the GUI profiler. The version is vcpkg's pinned port,
-0.14.1; the GUI profiler used to read a trace should be the same release.
+0.13.1; the GUI profiler used to read a trace should be the same release.
 
 **Do not ship it.** The client opens a TCP listener and answers UDP discovery broadcasts, which a
 loader on an aircraft network must not do. Release presets leave `ADL_ENABLE_TRACY` off.
@@ -77,7 +77,7 @@ Not instrumented, and why:
 
 ### With the GUI profiler
 
-Build with the switch, run the program, and start the Tracy profiler (0.14.1): it finds the client
+Build with the switch, run the program, and start the Tracy profiler (0.13.1): it finds the client
 by broadcast, or by address. The application is instrumented on demand (`TRACY_ON_DEMAND`), so it
 does nothing until the profiler connects.
 

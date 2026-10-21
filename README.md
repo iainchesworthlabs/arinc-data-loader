@@ -72,7 +72,7 @@ release key and listed with its checksums and bill of materials
     that say what went wrong and, where it is known, what to do about it. The window is in
     eight languages (Hebrew and Yiddish mirror the whole window; the translations are machine-drafted and not yet reviewed by speakers, see [docs/translations.md](docs/translations.md)), and a profiling
     build instruments the libraries, the engine and the window's frame loop with Tracy
-    0.14.1 ([docs/profiling.md](docs/profiling.md)).
+    0.13.1 ([docs/profiling.md](docs/profiling.md)).
   - **`adl_media_gen`**, the media set generator ([docs/media-gen.md](docs/media-gen.md)):
     files chosen from disk are turned into a valid ARINC 665 load and media set, written
     as the directory tree the loader opens, and verified by reading it back.
