@@ -66,7 +66,7 @@ AppDialog {
     FolderDialog {
         id: downloadDirectoryDialog
 
-        title: qsTr("Choose the download directory")
+        title: qsTr("Choose the download folder")
         onAccepted: dialog.draftDownloadDirectory = selectedFolder
     }
 
@@ -161,7 +161,7 @@ AppDialog {
 
                     Layout.fillWidth: true
                     text: dialog.draftAddress
-                    placeholderText: qsTr("10.0.0.2")
+                    placeholderText: qsTr("e.g. 10.0.0.2")
                     onTextEdited: dialog.draftAddress = text
                     Accessible.name: qsTr("Default target address")
                 }
@@ -177,9 +177,9 @@ AppDialog {
 
                     Layout.fillWidth: true
                     text: dialog.draftThwIdPos
-                    placeholderText: qsTr("HNPFMS_L")
+                    placeholderText: qsTr("e.g. HNPFMS_L")
                     onTextEdited: dialog.draftThwIdPos = text
-                    Accessible.name: qsTr("Default target hardware identifier and position")
+                    Accessible.name: qsTr("Default THW_ID_POS")
                 }
             }
 
@@ -226,7 +226,7 @@ AppDialog {
                 Text {
                     Layout.fillWidth: true
                     text: dialog.app.lastMediaSetDirectory.length > 0
-                          ? dialog.app.lastMediaSetDirectory : qsTr("none")
+                          ? dialog.app.lastMediaSetDirectory : qsTr("None")
                     color: Theme.textMuted
                     font.pixelSize: Theme.fontSmall
                     font.family: Theme.monoFamily
@@ -269,7 +269,7 @@ AppDialog {
             }
 
             Text {
-                text: qsTr("Download directory")
+                text: qsTr("Download folder")
                 color: Theme.textMuted
                 font.pixelSize: Theme.fontSmall
             }
@@ -284,19 +284,19 @@ AppDialog {
                     Layout.fillWidth: true
                     text: dialog.draftDownloadDirectory
                     onTextEdited: dialog.draftDownloadDirectory = text
-                    Accessible.name: qsTr("Download directory")
+                    Accessible.name: qsTr("Download folder")
                 }
 
                 AppButton {
-                    text: qsTr("Browse...")
+                    text: qsTr("Choose folder...")
                     onClicked: downloadDirectoryDialog.open()
-                    Accessible.name: qsTr("Choose the download directory")
+                    Accessible.name: qsTr("Choose the download folder")
                 }
             }
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("The directory is where each DNLD_DATA_<THW_ID_POS>_<number> directory is made.")
+                text: qsTr("Each DNLD_DATA_<THW_ID_POS>_<number> folder is made inside it.")
                 color: Theme.textMuted
                 font.pixelSize: Theme.fontSmall
                 wrapMode: Text.WordWrap

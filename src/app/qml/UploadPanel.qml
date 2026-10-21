@@ -61,11 +61,11 @@ Item {
         if (root.app.validationState === 1)
             return qsTr("Every file and its check value is being read; an upload needs the check to pass.");
         if (root.app.mediaSetPath.length === 0)
-            return qsTr("A media set is a directory with one directory per member. It is read and checked before an upload.");
+            return qsTr("A media set is a folder with one folder per member. It is read and checked before an upload.");
         if (root.app.validationState === 3)
             return root.app.validationError.length > 0
                    ? root.app.validationError
-                   : qsTr("Read the set again, or choose another directory.");
+                   : qsTr("Read the set again, or choose another folder.");
         if (root.app.validationState !== 2)
             return qsTr("The set has to be read again and checked before it may be uploaded.");
         if (root.app.selectedLoadCount === 0)
@@ -137,12 +137,6 @@ Item {
                         Layout.fillWidth: true
                         spacing: Theme.space2
 
-                        StatusChip {
-                            text: root.app.busy ? qsTr("RUNNING")
-                                                : root.app.canUpload ? qsTr("READY") : qsTr("NOT READY")
-                            tone: root.app.busy ? "accent" : root.app.canUpload ? "ok" : "warn"
-                        }
-
                         Text {
                             Layout.fillWidth: true
                             text: root.app.mediaSetPartNumber.length > 0
@@ -194,7 +188,7 @@ Item {
                         detail: root.app.mediaSetPartNumber.length > 0
                                 ? Theme.quantity(root.app.mediaSetMemberCount,
                                                  qsTr("member"), qsTr("members"))
-                                : qsTr("Choose a directory")
+                                : qsTr("Choose a folder")
                         chipText: root.checkText
                         tone: root.checkTone
                     }
@@ -450,11 +444,12 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: qsTr("Target %1 · %2 · %3")
+                            text: qsTr("%1 · Target %2 · %3 · %4")
+                                  .arg(root.app.resultTime)
                                   .arg(root.targetName)
                                   .arg(root.app.mediaSetPartNumber.length > 0
                                        ? root.app.mediaSetPartNumber : qsTr("no media set"))
-                                  .arg(Theme.quantity(root.app.selectedLoadCount,
+                                  .arg(Theme.quantity(root.app.resultLoadCount,
                                                       qsTr("load ticked"),
                                                       qsTr("loads ticked")))
                             color: Theme.textMuted

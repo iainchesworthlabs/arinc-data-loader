@@ -190,6 +190,14 @@ void GeneratorTest::generates_a_verified_media_set() {
     QCOMPARE(summary.loads[0].data_files, 1);
     QCOMPARE(summary.loads[0].support_files, 1);
     QVERIFY(summary.findings.isEmpty());
+
+    // The outcome describes the form that produced it: changing the form clears it.
+    model.setMemberCount(1);  // no change, so the outcome stays
+    QCOMPARE(model.resultState(), 1);
+    model.setBatchPartNumber(QStringLiteral("ACM4C-0100-0200"));
+    QCOMPARE(model.resultState(), 0);
+    QVERIFY(model.resultText().isEmpty());
+    QVERIFY(model.outputPath().isEmpty());
 }
 
 void GeneratorTest::refuses_an_invalid_form() {
@@ -342,7 +350,7 @@ void GeneratorTest::cancel_writes_nothing() {
     QTRY_VERIFY_WITH_TIMEOUT(model.progressPercent() > 0, 60000);
     model.cancel();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 60000);
-    QCOMPARE(model.resultState(), 2);
+    QCOMPARE(model.resultState(), 3);
     QCOMPARE(model.resultText(), QStringLiteral("Cancelled."));
     QVERIFY(!directory_exists(expected_root(output.path())));
     QVERIFY(model.outputPath().isEmpty());
@@ -399,7 +407,7 @@ void GeneratorTest::a_cancel_before_anything_is_written_says_nothing_was_written
         }
     });
     const auto outcome = run_job(worker, good_job(data, output.path()));
-    QCOMPARE(outcome.state, 2);
+    QCOMPARE(outcome.state, 3);  // cancelled, not failed
     QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
     QCOMPARE(outcome.detail, QStringLiteral("Nothing was written."));
     QCOMPARE(names_in(output.path()), QStringList{});
@@ -420,7 +428,7 @@ void GeneratorTest::a_cancel_after_the_tree_is_written_removes_it_and_says_so() 
     });
     const auto outcome = run_job(worker, good_job(data, output.path()));
     QVERIFY(tree_was_there);
-    QCOMPARE(outcome.state, 2);
+    QCOMPARE(outcome.state, 3);  // cancelled, not failed
     QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
     // It is not "nothing was written": something was, and has been taken away.
     QVERIFY2(!outcome.detail.contains(QStringLiteral("Nothing was written")),
@@ -441,7 +449,7 @@ void GeneratorTest::a_cancel_after_the_set_verified_removes_it_too() {
         }
     });
     const auto outcome = run_job(worker, good_job(data, output.path()));
-    QCOMPARE(outcome.state, 2);
+    QCOMPARE(outcome.state, 3);  // cancelled, not failed
     QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
     QVERIFY(outcome.detail.contains(QStringLiteral("removed")));
     QCOMPARE(names_in(output.path()), QStringList{});

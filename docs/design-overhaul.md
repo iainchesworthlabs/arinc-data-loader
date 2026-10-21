@@ -169,10 +169,10 @@ blocked for up to 13 seconds in the destructor, with no warning and no receipt.
 The new action bar keeps the job's activity line, a 4 px progress bar and the percentage, and the
 per-load rows in the rail and payload list carry their own status (a percentage, the load's status
 word and a progress bar). Closing during a job now opens a question, "An operation is running":
-"Keep working", or "Stop and close". The second path asks the target to abort and keeps the window
+"Keep working", or "Abort and close". The second path asks the target to abort and keeps the window
 open (with the normal "Stopping the operation..." state) until the engine is idle, then closes.
 The old behaviour (abort, then wait for the target to confirm, up to 13 seconds) is still what
-"Stop and close" does, but it is a deliberate answer to a question that says so.
+"Abort and close" does, but it is a deliberate answer to a question that says so.
 
 Still open: abort is still reported by the engine as a failure outcome (`success == false`), so
 the receipt says `FAILED` for an aborted job (its text names the outcome and its detail says
@@ -285,7 +285,7 @@ current code.
 | 2 | Editing the target left FIND selection, configuration and result from the old target. | N1 visibility of system status; ISO self-descriptiveness | C | `loader_model.cpp` setters; old `Main.qml` configuration panel | Resolved (`reconcile_target`, §8). |
 | 3 | "Checked" had no time and did not survive disk edits; findings were split across two lists. | N1/N5; ISO error tolerance | C | `loader_model.cpp` validation; old `Main.qml` findings | Partly. One findings list; the check still carries no time and does not notice later disk edits (§11, item 1). |
 | 4 | The primary action was at the end of a scroll and could be below the fold. | N6 recognition over recall; ISO suitability; S4 | C | old `Main.qml` ScrollView; 1100×760 window | Resolved (fixed action bar). |
-| 5 | Closing during a job silently aborted and blocked up to 13 s. | N3 user control; ISO controllability; S7 | C | old `Main.qml` close; `loader_model` destructor; docs/app.md | Resolved by the close question; "Stop and close" still waits for the target (§3.6). |
+| 5 | Closing during a job silently aborted and blocked up to 13 s. | N3 user control; ISO controllability; S7 | C | old `Main.qml` close; `loader_model` destructor; docs/app.md | Resolved by the close question; "Abort and close" still waits for the target (§3.6). |
 | 6 | No preflight or payload summary; ticks were an implicit promise. | N6/N8; ISO suitability; S8 | H | old `Main.qml` media set rail/operation panel | Resolved (preflight, next-step banner, payload list). |
 | 7 | Progress had no phase; abort had no receipt and was styled as failure. | N1; ISO self-descriptiveness; S3 | H | old `Main.qml` operation panel; `engine_worker.cpp` outcomes | Partly. Per-load status is shown; an abort is still reported as `FAILED` (§11, item 2). |
 | 8 | Download destination and directory naming were invisible before start; mode switch discarded the list. | N1/N3; ISO self-descriptiveness | H | old `DownloadPanel.qml`; `loader_model.cpp` setDownloadMode | Partly. The destination is shown and can be opened; the next directory number is not shown (§11, item 5), and switching mode still empties the list. |
@@ -507,7 +507,7 @@ true:
   (`LicencesDialog`, the same text as the `NOTICES.txt` placed beside the executables); all three
   applications have the same About and Licences pair
   ([after](images/app-about.png)).
-- **Close during a job asks first.** The dialog offers "Keep working" and "Stop and close"; the
+- **Close during a job asks first.** The dialog offers "Keep working" and "Abort and close"; the
   second asks the engine to abort and waits for it to be idle before closing.
 - **The generator no longer shows red errors on untouched fields.** The part numbers, header file
   name and output directory show an error only once the field has content; the action bar states
@@ -575,8 +575,8 @@ the Windows/macOS builds of the new QML. Those are in §11.
 
 ## 11. Remaining work, ranked
 
-Checked against the code on this branch: items 1 to 3 and 5 to 11 are still open; item 4 is partly
-done.
+Checked against the code on this branch: items 1 to 3, 5 to 7 and 9 to 11 are still open; item 4 is partly
+done; item 8 is done.
 
 1. **Bind "checked" to a time and a file identity.** Done: `MediaSetIndex` takes a size and SHA-1
    fingerprint of every file when the set is read and checked; the whole set is verified when an upload
@@ -587,8 +587,8 @@ done.
    reason; the receipt should say `CANCELLED` or `ABORTED BY OPERATOR` with the target's
    confirmation, not `FAILED`. Open: only `completed` counts as success, so an aborted job shows
    `FAILED` and opens the failure dialog; the target's confirmation appears only in the receipt
-   detail. The generator's `CANCELLED` chip is the one place the distinction is drawn, and it
-   reads the result text to do it.
+   detail. The generator's `CANCELLED` is the one place the distinction is drawn, from its own
+   result state (3), not from the text.
 3. **Target confirmation before an automatic FIND operation.** The preflight repeats the target,
    but a sole automatic FIND still starts without an explicit confirmation. A one-line
    "HNPFMS_L answered; use it?" confirmation for the auto path would close this. Open (the
@@ -609,9 +609,9 @@ done.
 7. **Keyboard and screen-reader pass.** The controls carry roles and names and a ring; no NVDA or
    Orca pass has been run. The activity log, stored-files list and file table need list-item names
    that include the row identity.
-8. **The generator's success receipt should clear on edit.** The engine's `resultState` survives a
-   field change; a dirty marker or a `resultChanged` reset on the next edit is needed. Open: the
-   result is reset only when a new generation starts.
+8. **The generator's success receipt clears on edit.** Done: `GeneratorModel` resets `resultState` to 0
+   (and the output path and findings) on any change to the form, so GENERATED and the banner do not outlive
+   the form they describe.
 9. **The mock target's Stop should be a state, not an instantaneous flag.** Today `running` clears
    before the engine loop returns; a `STOPPING` state and an "operation stopped" line would make
    the last frame truthful.

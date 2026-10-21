@@ -8,7 +8,7 @@ Download fetches files from the target into a folder on your computer. Switch th
 ## Where the files go
 
 Every download writes into a **new folder** named `DNLD_DATA_<THW_ID_POS>_<number>` inside the
-**download folder**, which is shown under **Destination** and set with **Change...** (or in
+**download folder**, which is shown under **Destination** and set with **Choose folder...** (or in
 [Preferences](preferences.md)). The number is the lowest free one starting at 1. A download that brings back no file (the
 target refuses it or never answers, you cancel or abort it, or the loader cannot run it) leaves no
 folder behind, so its number is free again; one that brought back even a single file keeps its

@@ -476,7 +476,7 @@ void LoaderModelTest::media_set_that_is_not_there_is_reported() {
     QCOMPARE(model.validationState(), 3);
     QCOMPARE(model.validationError(), model.mediaSetError());
     QVERIFY(model.lastErrorText().isEmpty() == false);
-    QVERIFY(model.lastErrorHint().contains(QStringLiteral("Choose the directory")));
+    QVERIFY(model.lastErrorHint().contains(QStringLiteral("Choose the folder")));
     QVERIFY(log_contains(model, QStringLiteral("could not be read")));
 }
 
@@ -536,6 +536,18 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
     QVERIFY2(model.resultDetail().contains(served), qPrintable(model.resultDetail()));
     QVERIFY(model.canUpload());  // and it can be done again
     QVERIFY(!model.canAbort());
+
+    // The receipt records the operation: the loads ticked when it started and when it ended, and
+    // neither moves when the operator changes the ticks afterwards.
+    QCOMPARE(model.resultLoadCount(), 1);
+    const QString finished_at = model.resultTime();
+    QVERIFY2(QDateTime::fromString(finished_at, QStringLiteral("yyyy-MM-dd HH:mm:ss")).isValid(),
+             qPrintable(finished_at));
+    QVERIFY(loads->setData(loads->index(0), false, LoadModel::CheckedRole));
+    QCOMPARE(model.selectedLoadCount(), 0);
+    QCOMPARE(model.resultLoadCount(), 1);
+    QCOMPARE(model.resultTime(), finished_at);
+    QVERIFY(loads->setData(loads->index(0), true, LoadModel::CheckedRole));
 
     // The target read the header and every file of the load, the right ones, and nothing else.
     std::vector<std::string> names;
@@ -788,7 +800,7 @@ void LoaderModelTest::a_failure_surfaces_for_the_dialog() {
     model.chooseMediaSet(QUrl::fromLocalFile(QDir::tempPath() + QStringLiteral("/no-such-set")));
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QCOMPARE(model.resultState(), 2);
-    QVERIFY(model.lastErrorHint().contains(QStringLiteral("Choose the directory")));
+    QVERIFY(model.lastErrorHint().contains(QStringLiteral("Choose the folder")));
 
     // And so has an address that is not one.
     model.findTargets(QStringLiteral("not an address"));
