@@ -1,7 +1,7 @@
 # Documentation
 
 Everything here is in the repository, next to the code it describes, and is published as a website at
-<https://iainchesworthlabs.github.io/arinc-data-loader/> ([how](ci.md#documentation-site)). The project overview
+<https://iainchesworthlabs.github.io/arinc-data-loader/> from the first release on ([how](ci.md#documentation-site)). The project overview
 is the [README](../README.md); what changed is the [changelog](../CHANGELOG.md).
 
 ## For people who use the programs
@@ -9,6 +9,7 @@ is the [README](../README.md); what changed is the [changelog](../CHANGELOG.md).
 | Page | What it is |
 | --- | --- |
 | [User's guide](user-guide/index.md) | Start here: what ARINC 615A and 665 are, installing, a ten-minute demonstration, every screen and setting, troubleshooting, where files go and what the programs cannot do |
+| [Verifying a release](verifying-releases.md) | For people who download a release: the checksums, the PGP signatures, the build attestations and the bill of materials, and how to check them |
 | [Screenshots](screenshots.md) | How the pictures in [`images/`](images) are made again from the real programs |
 
 ## For people who build, test and change the software
@@ -21,6 +22,7 @@ is the [README](../README.md); what changed is the [changelog](../CHANGELOG.md).
 | [Static analysis](static-analysis.md) | The nightly analysers, how to run them, the suppression rules |
 | [Profiling](profiling.md) | The opt-in Tracy build |
 | [Branch protection](branch-protection.md) | The repository rules and rulesets |
+| [Releasing](releasing.md) | For the maintainer: what a release contains, how it is cut, built, signed and published, and the one-time repository setup |
 | [Licensing](licensing.md) | The GPL, the third-party notices, how to add a component |
 | [Roadmap](roadmap.md) | What is built, what is planned, in order |
 

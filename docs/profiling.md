@@ -83,8 +83,9 @@ does nothing until the profiler connects.
 
 ### Headlessly (the CLI tools)
 
-The tools are installed by the host part of the feature, under
-`vcpkg_installed/<triplet>/tools/tracy/`:
+The tools are installed by the host part of the feature. vcpkg installs into the build tree, so they are
+under `<build tree>/vcpkg_installed/<triplet>/tools/tracy/` (`build/windows-msvc-release/` in the
+commands above):
 
 ```powershell
 # A workload with the window and its operations, offscreen, as the trace:
@@ -92,14 +93,14 @@ $env:QT_QPA_PLATFORM = "offscreen"
 $env:QT_QUICK_BACKEND = "software"
 
 # tracy-capture listens for the client, writes the trace, and stops when the client disconnects.
-vcpkg_installed\x64-windows\tools\tracy\tracy-capture.exe -o trace.tracy -f
+build\windows-msvc-release\vcpkg_installed\x64-windows\tools\tracy\tracy-capture.exe -o trace.tracy -f
 
 # In another shell, run the workload (the window test drives the first-run screen, a FIND, an
 # Information operation, a media set check, an Upload and a Download):
 build\windows-msvc-release\bin\adl_app_qml_test.exe
 
 # Then flatten the trace to CSV:
-vcpkg_installed\x64-windows\tools\tracy\tracy-csvexport.exe trace.tracy > trace.csv
+build\windows-msvc-release\vcpkg_installed\x64-windows\tools\tracy\tracy-csvexport.exe trace.tracy > trace.csv
 ```
 
 A capture holds zone begin/end pairs with their times; `tracy-csvexport` emits one row per zone
@@ -145,11 +146,12 @@ window test's capture for the frame loop.
 
 ### What the profile says
 
-- **The application is not the hotspot.** The engine thread does its whole job in fractions of a
+- **In this capture the application is not the hotspot.** The capture is small: a fixture of a few KiB,
+  20 frames, offscreen with the software renderer. The engine thread does its whole job in fractions of a
   millisecond against the simulated target; the GUI thread's actions (upload, download, read
-  information, check media set) are queued calls that return in microseconds. A long operation
-  leaves the window drawing at 60 Hz, which is what the design (engine on its own thread, signals
-  back) is for.
+  information, check media set) are queued calls that return in microseconds (the outliers are below).
+  A long operation has not been profiled, so whether the window keeps drawing at 60 Hz during one is
+  not shown here; it is what the design (engine on its own thread, signals back) is meant to give.
 - **The file system is.** Writing a set costs ~16 ms for a tiny one; reading one costs ~2 ms.
   Nothing in the parsing or the checksums is worth attention at this scale. For a real media set
   the read and the verification scale with bytes and files, and that is where the next trace

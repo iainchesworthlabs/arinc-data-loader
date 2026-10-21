@@ -25,7 +25,11 @@ ctest --preset windows-msvc-debug -R docs      # the link check of the Markdown 
 ctest --preset windows-msvc-debug -L unit      # one tier
 ctest --preset windows-msvc-debug -L integration
 ctest --preset windows-msvc-debug -L system
+ctest --preset windows-msvc-debug -L ui        # the tests that load or drive a window
 ```
+
+The `ui` label is a second label, beside the tier: the `ui.*` tests, `app.qml`, `media_gen.qml` and
+`mock.qml` carry it. They need the Qt kit.
 
 The same three tiers have build targets:
 
@@ -51,9 +55,9 @@ The main test programs are `adl_unit_tests` (the ARINC 665 library, the 615A cod
 tree and the samples), `adl_platform_tests` (the platform layer: its portable types, the fake
 platform and the conformance suite) and `adl_engine_tests` (the 615A engine, runner and the whole
 operations against a simulated target on the fake platform). With `ADL_BUILD_APP=ON` they are
-joined by `adl_app_tests` and `adl_ui_tests` (the application's logic and its window), `adl_mock_tests`,
-`adl_mock_model_test`, `adl_gen_tests`, the three offscreen QML programs, `adl_loopback_test` and
-the system smoke tests in `tests/system`.
+joined by `adl_app_tests` and `adl_ui_tests` (the application's logic and its window), `adl_window_state_tests`,
+`adl_mock_tests`, `adl_mock_model_test`, `adl_gen_tests`, the three offscreen QML programs, `adl_loopback_test`
+and the system smoke tests in `tests/system`.
 
 Two things a confined shell (a container where only the source tree is writable, or Windows'
 sandbox) trips over, neither of them a test failure:
@@ -90,9 +94,14 @@ The project minimum is **90% of lines and 80% of branches of the portable code**
 the suite and then enforces both figures with gcovr:
 
 ```sh
+pip install -r .github/requirements/coverage.txt
 cmake --preset linux-gcc-coverage
 cmake --build --preset linux-gcc-coverage --target coverage
 ```
+
+It needs gcovr (without it the configure warns and there is no `coverage` target) and, for the second
+pass below, the Qt kit: that pass fails when the applications were not built. CI configures with
+`-DADL_BUILD_APP=ON`, which turns a kit that cannot be found into an error at configure time.
 
 The report is written to `build/linux-gcc-coverage/coverage`: `index.html` (one
 page per source file), `summary.json` and `cobertura.xml`. The CI coverage job
@@ -166,6 +175,7 @@ reason; the first pass is unaffected by it.
 | `tests/app/loader_model_test.cpp` | Whole jobs through `LoaderModel` on its engine thread, against the simulated target on the fake platform: an Information operation (the result, the hardware and parts, the log in order, one request seen by the target), FIND (a target listed, then none), choosing a target, an abort before the target has accepted (made certain by holding the engine thread at the start of the job) and the next job running, a second job refused while one runs, a host that cannot start, a media set read from a directory and one that is not there, and the model destroyed while a job is queued; a target changed after a FIND and an Information (`reconcile_target`: the selection, the configuration and the receipt go, the log stays, a media set result is not a receipt and survives), `resultIsTransfer` and `resultWasDownload` for every kind of job (including a failed download); the application's own `system_host_factory` on the real host, with a download directory whose name is not ASCII (nothing answers on the loopback, the operation is stopped once the numbered directory exists on the real disk); the Upload operation: a media set written as a tree and read back, a load ticked and uploaded (the files the target read, the progress only going forward to 100, the log, the ticks locked meanwhile), what an upload needs before it can start (a media set, a tick, a valid target), a file the media set does not have (the target ends the operation), an abort before the target has accepted, and **an abort in the middle of an Upload and of a Download**: the target is slow (`work_time`), the engine's thread is held inside the file call that begins the second file ([below](#holding-a-transfer-half-way)), the model is aborted, and the target's confirmation (`The target confirmed that it stopped.`), the partial `files_read` / `files_written` and the progress already reported are asserted |
 | `tests/app/loader_model_test.cpp` (`MessageTest`, `a_language_switch_reaches_...`) | `Message`: verbatim text, placeholders replaced in one pass, a sequence, a count, and that the text follows the installed translator; and that a language switch (the French catalogue installed while a result, the log and a failure are on show) is read again by the model after `retranslate()`. |
 | `tests/app/media_source_test.cpp` | The index of a media set's files and the `FileSource` over it, on files in the fake platform's memory: paths below the member and directory, a pathname a tree cannot hold, two files of one name told apart by the CRC in the request, the fall-backs (one file of a name is served whatever the CRC; several and no fitting CRC is not found; several and no CRC is the first), a file in the lists and not on disk, reads at offsets and at the end, and the limit of open files |
+| `tests/app/controls_test.cpp`, `download_directory_test.cpp`, `engine_worker_test.cpp`, `settings_test.cpp` | More of the application's logic (QtTest, `app.tests`). The runner's controller: the operator's abort and the deferred file choice of an operator defined download are posted on the window's thread and read by the runner's, one `clear` forgets both, and a choice the loader is not yet waiting for is kept for the next poll. The download directory `DNLD_DATA_<THW_ID_POS>_<number>`: its name, the ids a directory cannot be named after, a chain of directories made and an existing one left alone, the lowest free number, a number taken between looking and making, why a directory could not be made, and that only an empty directory is removed. The engine worker's jobs called on one thread: a download the target denies, a silent target, a request the loader refuses, a port that cannot be opened and a network wait that fails each leave no download directory, and one that received a file keeps its directory. The settings: the defaults, what is written read back, numbers out of range kept as they were, the first run complete only once, and the last target remembered apart from the default one |
 | `tests/app/qml_test.cpp` (`app.qml`) | The window: `Main.qml` loaded offscreen with the real model, a FIND and an Information operation run through it against the simulated target, then a media set read, its load ticked through the window's own check box and an Upload started from the window's button, and any QML warning (a binding to a name that is not there, a property that cannot be overridden) failing the test. It can save pictures of the window: `adl_app_qml_test <workbench.png> <first-run.png> <right-to-left.png> <preferences.png> <about.png>` (each optional, in that order; `ADL_DARK=1` selects the dark scheme); the offscreen platform on Windows has no fonts unless `QT_QPA_FONTDIR` points at some |
 | `tests/ui/qml/tst_main_window.qml` (`ui.tst_main_window`) | The loader window through Qt Quick Test: the real `Main.qml` and `LoaderModel`, offscreen, with Qt Quick Test's own mouse and key events on the window's items. Typing a target, FIND and clicking the target it found, reading the information into the configuration list, choosing and re-checking a media set, ticking its loads through the check box and the All/None buttons, an upload started from the Upload button and checked against what the target read, both download modes (a media defined name, and the operator defined choice with its confirm button, unticked file by file through `downloadChoiceCheck`, and "Choose none" cancelling the download), a refused operation opening the error dialog and its OK dismissing it, **Abort in the middle of an upload and of a download** (the engine held half way through the transfer; the progress bar is shown, Abort cannot be pressed twice, the target confirms the stop, part of the load is across, and the error dialog is open - asserted, not "if it is visible"), and Clear emptying the activity log. `tst_dialogs.qml` (`ui.tst_dialogs`) opens Preferences, the media set and target properties and About, types into their fields and closes them through their standard buttons. **Preferences is transactional, and the tests say so**: every field is changed and, before Save, the model and the settings file still hold the old values; Save then writes all of them to both (read back through a second `LoaderModel` over the same ini); Cancel and Esc leave the model and the file as they were, and reopening the dialog shows the stored values, not the abandoned edit. `test_05` opens About and its Licences page. `tst_first_run.qml` (`ui.tst_first_run`) starts on a settings file with nothing in it: the first-run screen stands in front of the workbench, the defaults are typed into its own fields (address, `THW_ID_POS`, download directory), Start loading hands over, the workbench starts from them, and a new model over the same file finds the first run done and the same defaults. `tst_window_close.qml` (`ui.tst_window_close`) closes the window: idle, it closes without asking; with a job running it asks, "Keep working" leaves job and window alone, "Abort and close" aborts, waits for the job to end and then closes, and - when the job ended while the question was open, so no change of state is left to close the window - closes at once without aborting anything |
 | `tests/ui/qml/tst_right_to_left.qml` (`ui.tst_right_to_left`) | The right-to-left languages, switched through the real `LanguageManager`: in Hebrew and Yiddish the rail is on the right, the header actions and the segments swap, a check box keeps its box on the reading side of its label with its detail indented from the right, a spin box has its steppers on the left, a progress bar fills from the right, and English puts the window back; and which of the eight languages are right to left is the manager's answer. |
@@ -176,20 +186,30 @@ reason; the first pass is unaffected by it.
 | `tests/ui/qml/tst_tones.qml` (`ui.tst_tones`) | The status vocabulary: one glyph per tone, warn and fail not sharing an ink or surface, the log's four severity words, a chip's glyph, fill and border per tone, chip text at 11 px or more, the contrast of every tone's ink, the selection border, the progress fill, the disabled label and the focus ring in both schemes, reduced motion, and `Theme.fileUrl` |
 | `tests/system/smoke_app.cmake` (`system.*.starts`) | The built programs as processes: `adl_app`, `adl_media_gen` and `adl_mock_target` each start offscreen with `--smoke-test` and **must draw their window's first frame, print `smoke-test: first frame drawn` and exit 0** (an application that cannot load its QML or find a Qt plugin exits with an error, and one that never shows its window runs into the time-out - both fail). Their settings are redirected with `ADL_SETTINGS_DIR` to a directory under the build tree, and the test requires that the program wrote its ini file there, which proves the redirection took effect and the real registry key or configuration file was not used |
 | `tests/ui/window_state_test.cpp` (`ui.window_state`) | The window geometry the three programs share (`src/ui/window_state.cpp`), on a bare window on the offscreen platform: the default size and place when nothing is stored, a stored size and position coming back, a size below the minimum raised, a size larger than the screen allows brought inside it (less 48 and 80 pixels), a position on no screen ignored (and one that was never saved not used), a maximised window opening maximised, and what is written when the window closes (the maximised rectangle is not remembered as its size) |
-| `tests/unit/translations_test.cpp` and `translations.current.*` | The Qt Linguist catalogues of the three programs and the shared interface, read as files (so on every leg, Qt or not): no message unfinished or vanished, none empty, placeholders, plural forms, markup and identifiers kept, no sentence left in English, the same messages in all seven languages, the English plural catalogues complete. The `translations.current.*` tests (`cmake/CheckTranslations.cmake`) run lupdate over a copy of the catalogues and fail when they no longer match the sources, ignoring `<location>` lines. They check shape, not whether the translations are good ([translations](translations.md)). |
+| `tests/unit/translations_test.cpp` and `translations.current.*` | The Qt Linguist catalogues of the three programs and the shared interface, read as files (so on every leg, Qt or not): no message unfinished or vanished, none empty, placeholders, plural forms, markup and identifiers kept, no sentence left in English, the same messages in all seven translations (the eight languages are English and these), the English plural catalogues complete. The `translations.current.*` tests (`cmake/CheckTranslations.cmake`) run lupdate over a copy of the catalogues and fail when they no longer match the sources, ignoring `<location>` lines. They check shape, not whether the translations are good ([translations](translations.md)). |
 | `tests/app/window_state_test.cpp` (`app.tests`) | The placement rule of `src/ui/window_state.cpp` as plain functions: a stored coordinate read as signed even when the Windows registry kept it as an unsigned DWORD (a window on a monitor left of the primary one), and a title bar that must be reachable (96 by 24 px) on some screen's available area rather than one pixel of overlap |
+| `tests/media_gen/generator_test.cpp` (`media_gen.tests`) | The generator's model and worker (QtTest): the header file name following the load part number, a generated media set that verifies and that the loader's own reader (`read_media_set_summary`) accepts, a form that is refused (an invalid part number, a file name the naming rules refuse, duplicate names, no data files), data files placed round-robin over the members, the batch file when asked for, a cancel before anything is written (nothing is written), after the tree is written and after the set verified (what was written is removed, and the operator is told), a write that fails leaving no partial set, an allocation that fails ending the job cleanly, and the set appearing under its name in one step and never over one that exists |
+| `tests/media_gen/qml_test.cpp` (`media_gen.qml`) | The generator's window, `GeneratorWindow.qml`, loaded offscreen with the real model: the form is filled in and a generation is started from the window's own Generate button, which must end with a verified media set, and any QML warning fails the test. Given a second argument it saves a picture of the window |
+| `tests/mock_target/engine_test.cpp` (`mock.engine`) | The mock target's engine against the loader's real engine (`DataLoader` and `Runner`) on the fake network, to show that it is a target the loader can use: FIND answered with the configured identity, Information, an Upload that delivers every file byte for byte, both Download modes, an operator abort in the middle of an Upload and at the first status file, each confirmed, and the injections: a refused Upload, a silent target, a garbage initialization file, a wrong checksum option, a lost status file seen as a gap, the target's own abort after a number of status files, and a WAIT answer |
+| `tests/mock_target/model_test.cpp` (`mock.model`) | `MockTargetModel` on its worker thread over the fake platform: start and stop, an Upload through the model storing its files, a link that fails reporting the error, binding to the loopback address only when asked, a name the loader sends stored only if it is plain and portable (a load directory is never a device or a dotted name), and starting and stopping in quick succession leaving the worker free |
+| `tests/mock_target/qml_test.cpp` (`mock.qml`) | The mock target's window, `TargetWindow.qml`, loaded offscreen with the real model and started and stopped through its own buttons; any QML warning fails the test. Given a second argument it saves a picture of the window |
+| `tests/loopback/loopback_test.cpp` (`loopback.integration`) | The loader's real engine (`DataLoader` driven by `Runner`) against the mock target's engine over real UDP sockets on 127.0.0.1, the mock target's engine on a thread of its own: Information, an Upload byte for byte, a media defined and an operator defined Download, and an operator abort in the middle of an Upload. Every port is above 1024 and below the dynamic range, the mock target's status heartbeat is one second, and each scenario builds its own target, host and directories. FIND is not run: the standard fixes it to port 1001 on both ends |
 | `tools.write_payloads*` (CTest) | `adl_write_payloads` writes every scenario to a fresh directory and verifies it (the setup test `tools.write_payloads.clean` empties the directory first, since the program never overwrites), `--list` works, and an unknown scenario or a missing output directory is refused |
 | `tests/platform/check_fragments.cmake` | `platform.fragments`: each fragment satisfies the platform contract, on whichever host this runs |
 | `tests/platform/check_selector.cmake` | `platform.selector`: configures the project with `ADL_TARGET_PLATFORM` set, and checks that a platform with no code is refused with its reason, that QNX is refused until `ADL_ACCEPT_UNBUILT_PLATFORM` is on and then configures, and that a name that is not a platform lists the ones that are |
+| `tests/platform/check_vcpkg_root.cmake` | `platform.vcpkg_root`: which vcpkg checkout a configure uses (`cmake/VcpkgRoot.cmake`), in script mode against a fake upstream repository, with no network and without touching `deps/vcpkg`: the shared store (`ICL_VCPKG_STORE`, with `ADL_VCPKG_STORE` winning when both are set), a pin that sits in another fork, a pin that moved (the old build directory is told to configure `--fresh`), `ADL_VCPKG_ROOT` at another commit (a warning), a toolchain file that does not exist, and a `deps/vcpkg` link whose target is gone (said so, and never initialised over) |
 | `tools/checks/check_platform_isolation.ps1` | `platform.isolation`: no preprocessor conditionals or defines, no OS headers outside the platform section, no OS tests in CMake outside the selector |
 | `tools/checks/check_doc_links.ps1` | `docs.links`: every relative link and `#anchor` in every Markdown file resolves, and every picture a page shows exists (needs `pwsh`; no network, other sites' links are not followed) |
+| `tests/system/check_notices.cmake` | `system.notices`: `NOTICES.txt` and `LICENSE.txt` are beside the executables; `NOTICES.txt` names what the build ships (Qt at the version the build used, the typefaces, the standards' publisher), carries the text of the terms (the LGPL and the OFL) and what the platform adds, and has no `{{placeholder}}` left; `LICENSE.txt` is the GPL |
+| `tests/packaging/check_install.cmake` | `system.install_consumer`: the development package ([Releasing](releasing.md#the-development-package)). Its component is installed into a scratch prefix; the headers, the CMake package and `LICENSE.txt` are there; the exported targets name neither the source tree, the build tree nor a build-only target (`adl_warnings`, `adl_sanitizers`, `adl_coverage`, `adl_tracy`); and a small program built against it with `find_package(adl)` runs. It is registered only for an optimised build, because a Debug build's libraries carry the sanitizers, which a program using them must be built with too; so it runs in `release.yml` and not on the Debug legs |
 
 ## The UI suite
 
 `tests/ui` is the window's own suite, written with Qt Quick Test. Each
 `tests/ui/qml/tst_*.qml` file is a `TestCase`, and CTest runs one process per
-file (`ui.tst_main_window`, `ui.tst_dialogs`, `ui.tst_first_run`, `ui.tst_window_close`) so that a media set read in one
-cannot colour the next. `UiSetup` (`tests/ui/ui_setup.hpp`) creates the same rig
+file (`ui.tst_main_window`, `ui.tst_dialogs`, `ui.tst_first_run`, `ui.tst_window_close`, `ui.tst_right_to_left`,
+`ui.tst_keyboard`, `ui.tst_navigation`, `ui.tst_accessibility`, `ui.tst_layout` and `ui.tst_tones`) so that a media
+set read in one cannot colour the next. `ui.window_state` is a QtTest program of its own, beside them. `UiSetup` (`tests/ui/ui_setup.hpp`) creates the same rig
 the application's other tests use — the real `LoaderModel` on its engine thread,
 the simulated target on the fake platform, a media set written to disk and
 mirrored into the fake host — and hands the model and a small `Harness` to QML as
@@ -256,8 +276,9 @@ builds the same Catch2 sources as the desktop programs, from one list
 (`tests/platform/rtos_support/test_sources.cmake`): everything `adl_platform_tests` runs (the portable
 types, the memory types, the fake platform, the conformance suite against the real host of the port and
 against the fake) and everything `adl_engine_tests` runs (the 615A engine, the runner and whole operations
-against a simulated target on the fake platform: 222 test cases), and each has two test cases of its own
-(`stack_storage_test.cpp`: a thread on a stack the caller made, which only an RTOS port has). What differs is
+against a simulated target on the fake platform), and each has two test cases of its own
+(`stack_storage_test.cpp`: a thread on a stack the caller made, which only an RTOS port has). The Zephyr
+program's last line is `All tests passed (36288 assertions in 227 test cases)`, on `native_sim` and in QEMU. What differs is
 the host under test: the port, on Zephyr's `native_sim` or the FreeRTOS POSIX simulator. A test added to the lists of
 `tests/CMakeLists.txt` belongs in that file too, or the RTOS programs will not run it.
 
@@ -274,7 +295,7 @@ build/freertos-posix-sim/bin/adl_freertos_tests "[conformance]"           # Free
 `tests/platform/zephyr_smoke` is not part of this suite: a few checks (clock, memory, threads, a mutex, a
 queue, UDP) that run on a Cortex-M3 in QEMU, built with the Zephyr SDK's toolchain and no exceptions
 (`tools/ci/zephyr_qemu_smoke.sh`). The Zephyr test program itself also runs on a Cortex-A9 in QEMU with that
-toolchain (`tools/ci/zephyr_qemu_suite.sh`): the same 224 test cases.
+toolchain (`tools/ci/zephyr_qemu_suite.sh`): the same 227 test cases.
 
 Not run on the RTOS programs: the codec and ARINC 665 unit tests (`adl_unit_tests`; they test code the
 desktops already run), the application's tests, and the loopback integration test, which needs the Qt mock
@@ -316,13 +337,13 @@ that they match another implementation. Appendix G's packet examples are figures
 bytes in them, so there is nothing from the standard to check the TFTP layouts against beyond
 the `WAIT` and FIND examples and the RFCs.
 
-## Does the suite fail when the code is wrong?
+## Breaking the code on purpose
 
-It was checked by breaking the library on purpose and running it: a wrong pointer
-in the header, file resolution that ignores the CRC, check characters added where
-they are exclusive-ored, a Load CRC over the wrong part of the header, a Load
-Check Value that starts early, and text fields not padded to a word. Each was
-caught, the last by 53 test cases.
+To see whether the suite fails when the code is wrong, the code was broken on purpose and the tests run.
+The ARINC 665 library was broken in these ways: a wrong pointer in the header, file resolution that
+ignores the CRC, check characters added where they are exclusive-ored, a Load CRC over the wrong part of
+the header, a Load Check Value that starts early, and text fields not padded to a word. Each was caught,
+the last by 53 test cases.
 
 The 615A codec was checked the same way, with 25 deliberate breaks, one at a time: a block
 number that wraps to 0, another transfer mode, a WAIT text without its colon, lower-case
@@ -347,7 +368,7 @@ open or does not answer the first status file request, the protocol version not 
 for taken, a checksum mismatch failing the operation, the Information fast path lost, WAIT not waited for, no
 fallback when options are refused, `WAIT` answered with an error, completion that does not wait for a transfer
 still open, a FIND answer accepted late, repeated, or with no identifier, a list transfer that does not
-suspend the time-out, and the port option always sent. The first run left six alive (the block size a server
+suspend the time-out, and the port option always sent. Six survived the first run (the block size a server
 accepts, the time-out running while a status file or the list is arriving, a first counter of 1 reported, an
 abort that waits for the status file instead of ending the open transfers, completion that does not wait, the
 list transfer's suspension); each got a test, and each is now caught. One break still survives and is
@@ -416,15 +437,16 @@ what to expect of each, it checks every byte it reads.
   The simulated target has a TFTP of its own, but it is the same reading of the standard.
 - The application has been run through its tests only: against the simulated target, never a real one, and the window
   has been driven offscreen by Qt Quick Test, not looked at on a screen, at one size and in the light theme.
-  `app.tests`, `app.qml` and the `ui.*` tests (seven `ui.tst_*` suites among them) run on the three desktop legs, and the Linux
-  and macOS ones had not run when this was written.
+  `app.tests`, `app.qml` and the `ui.*` tests (ten `ui.tst_*` suites and `ui.window_state`) run on the three desktop legs.
 - No test runs a 615A operation against a real target. The loopback integration test
   (`loopback.integration`) does run whole operations over real sockets, but against the mock
   target's engine on the same machine; the runner otherwise runs on the fake platform, and the
   platforms' sockets are covered by the conformance suite. macOS has not run any of the engine's
   tests except in CI.
-- The codec and the engine are meant for a build without exceptions and RTTI, and no CI job builds them that
-  way. (They compile that way under g++ 15 with `-fno-exceptions -fno-rtti`, checked once by hand.)
+- The codec and the engine are meant for a build without exceptions and RTTI. The `Zephyr (QEMU, SDK toolchain)`
+  job builds them that way for a Cortex-M3 (the smoke program's `prj.conf` turns both off), but that program
+  does not run them, and no job builds them that way with the desktop compilers. (They compile that way under
+  g++ 15 with `-fno-exceptions -fno-rtti`, checked once by hand.)
 - The golden payloads come from the same reading of the standard as the library.
   Nothing has yet been checked against a load or a media set written by another
   tool.

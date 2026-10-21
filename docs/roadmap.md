@@ -29,8 +29,8 @@ to load.
 
 What is left:
 
-- **Check it against another tool.** The second implementation shares my reading
-  of the standard, so the places the standard is unclear
+- **Check it against another tool.** The second implementation shares the library's
+  reading of the standard, so the places the standard is unclear
   ([listed here](arinc665-coverage.md#places-the-standard-is-unclear)) need a load
   and a media set from an established tool, read here, and ours read there. The
   order the Load CRC takes the files in (header, data, support) is settled as a
@@ -73,12 +73,13 @@ UDP, with the Find, Information, Upload and Download operations. It loads what
 
 What is left of the 615A work:
 
-- **Check it against a real target or loader.** Both ends of every test are my reading of the standard.
+- **Check it against a real target or loader.** Both ends of every test are the same reading of the standard.
   The choices that are most likely to differ are listed in
   [the coverage page](arinc615a-coverage.md#places-the-standard-is-unclear) and
   [the codec page](arinc615a-codec.md#places-the-standard-is-unclear), the text length of a protocol file
   first.
-- **A CI job that builds the library with `-fno-exceptions -fno-rtti`**, which it is written for.
+- **A CI job that builds the library with `-fno-exceptions -fno-rtti` on a desktop compiler**, which it
+  is written for. The `Zephyr (QEMU, SDK toolchain)` job already builds it that way for a Cortex-M3.
 - **A target-side application.** The libraries build for the target's platform — the 615A engine is
   sans-I/O and the platform layer has a fragment per platform — but there is no program that answers
   `.LCI` and writes the status files: `adl_mock_target` does that only as a desktop demonstration
@@ -92,8 +93,7 @@ What is left from stage 1: the embedded ports are unbuilt or designs (section 6)
 ## 4. The application
 
 A Qt 6.12 application in `src/app` (Qt Quick), a thin layer over the libraries. Qt is not
-from vcpkg: it is the prebuilt kit found through `QT_ROOT_DIR` (the shared
-toolchain at `C:\Repos\common\qt\6.12.0`), by `cmake/FindQt6.cmake`; the platform
+from vcpkg: it is the prebuilt kit found through `QT_ROOT_DIR` by `cmake/FindQt6.cmake`; the platform
 fragments declare where each system keeps Qt and the two hooks the application needs
 (`adl_platform_configure_app`, `adl_platform_deploy_qt_runtime`). CI installs the kit with a pinned
 install script (every archive checked against a pinned SHA-256) on the three desktop legs, and builds the application with `-DADL_BUILD_APP=ON`. Built in
@@ -157,7 +157,6 @@ What is left of the application:
 - FIND over real sockets in the loopback test: the standard fixes FIND to port 1001 on both ends, and two
   sockets sharing a port on one machine is not reliable on every platform, so the loopback test covers the
   operations and names the target by hand; a FIND case may join it if the reuse behaviour proves portable.
-- Packaging (section 7 below), which is where `macdeployqt` comes in.
 
 ## 5. Profiling
 
@@ -205,16 +204,22 @@ alternatives, add FreeRTOS+TCP and a FAT file system as ports of
   and no `iostream`, which is the direction. The platform layer and the 615A
   engine are written to meet them: no exceptions, no RTTI, caller-supplied
   buffers, and a sans-I/O core (the 615A codec already is: it allocates nothing and
-  throws nothing, though building it with exceptions and RTTI off is not yet a CI job);
+  throws nothing, and the Zephyr job for a Cortex-M3 builds it with exceptions and RTTI off, though
+  no job does so with a desktop compiler);
 - a CI job that builds the library for the target with those constraints on, so
   that they hold.
 
 What the target's certification needs from the code is not decided here.
 
-## 7. Around the edges
+## 7. Around the edges (done)
 
-The Release presets in CI, packaging, and a `docs/` site. The coverage minimum
-(90% lines, 80% branches) is enforced now, as are the UI and system suites, so
-they are no longer on this list. clang-tidy is not here either: it runs nightly
-with MSVC Code Analysis, CodeQL and Clang's sanitizers
-([static-analysis.md](static-analysis.md)).
+The Release presets are built, tested and packaged by `release.yml` on the three
+desktops, which also writes the SBOM, signs, attests and drafts a release
+([Releasing](releasing.md)). The pages in `docs/` are built into a site, strictly,
+on every pull request, and published from `main` ([CI](ci.md#documentation-site)).
+The coverage minimum (90% lines, 80% branches) is enforced, as are the UI and
+system suites. clang-tidy runs nightly with MSVC Code Analysis, CodeQL and Clang's
+sanitizers ([static-analysis.md](static-analysis.md)). What a release does not
+contain (an installer, an Authenticode or Developer ID signature, icons for
+Windows and macOS) is listed in
+[Releasing](releasing.md#what-is-not-shipped-and-why).
