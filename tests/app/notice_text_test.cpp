@@ -34,4 +34,25 @@ void NoticeTextTest::leaves_the_rest_as_they_are() {
              QStringLiteral("checksum did not match: A.BIN"));
     QCOMPARE(notice_text(Notice::status_duplicate, {}, 0), QStringLiteral("status file repeated"));
     QCOMPARE(notice_text(Notice::request_refused, "X", 0), QStringLiteral("request refused: X"));
+    // The three that no other check named: a status file out of order, a checksum algorithm the
+    // loader cannot calculate (the number is the algorithm's, and is not shown), and the options
+    // the target refused.
+    QCOMPARE(notice_text(Notice::status_stale, {}, 7), QStringLiteral("status file out of order"));
+    QCOMPARE(notice_text(Notice::checksum_unsupported, "A.BIN", 9),
+             QStringLiteral("checksum algorithm not supported: A.BIN"));
+    QCOMPARE(notice_text(Notice::option_fallback, {}, 0),
+             QStringLiteral("options refused, asked again without them"));
+}
+
+void NoticeTextTest::every_notice_has_a_sentence_of_its_own() {
+    // Walks the whole enumeration: a notice added to the engine without a sentence would show
+    // as "unknown", and one that shares another's text could not be told from it.
+    QStringList sentences;
+    for (int value = 0; value <= static_cast<int>(Notice::files_missing); ++value) {
+        const QString text = notice_text(static_cast<Notice>(value), {}, 0);
+        QVERIFY2(!text.isEmpty() && text != QStringLiteral("unknown"), qPrintable(text));
+        QVERIFY2(!sentences.contains(text), qPrintable(text));
+        sentences.append(text);
+    }
+    QCOMPARE(sentences.size(), static_cast<int>(Notice::files_missing) + 1);
 }
