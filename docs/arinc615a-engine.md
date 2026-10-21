@@ -8,7 +8,7 @@ built, what the standard leaves unclear and what was chosen, and what has and ha
 [The coverage page](arinc615a-coverage.md) maps the standard onto it section by section. Section numbers
 are 615A-3's, which is not in the repository ([docs/specs](specs/README.md)).
 
-This is the loader's half of the protocol, which is what a ground tool or an airborne data loader needs.
+This is the loader's half of the protocol, for a ground tool or for embedding.
 The library has no target side: the targets that exist are the simulated target of `tests/engine` and the
 mock target application ([the mock target](mock-target.md)), both for tests and demonstrations. The Qt
 application, [the application](app.md), is a window over this engine.
@@ -27,9 +27,9 @@ application, [the application](app.md), is a window over this engine.
 | `runner.hpp` (runner library) | `Runner`: sockets, the wait, the clock, `RunController` |
 | `directory_files.hpp` (runner library) | `DirectoryFileSource` and `DirectoryFileSink` over a directory of the platform's files |
 
-A second TFTP implementation, `adl::arinc615a_mini` (`src/arinc615a_mini`), is not part of the engine. It is
-written separately from it, on the codec only, and is the TFTP of the simulated target of the tests and of the
-mock target application.
+A second TFTP implementation, `adl::arinc615a_mini` (`src/arinc615a_mini`), is not part of the engine. It is written separately from it, on the codec, and is the TFTP of the simulated target of the tests and of the
+mock target application. It uses the codec and the figures in `limits.hpp`, so the 2 s time-out, the retry count
+and the default block size are not independently checked.
 
 ### Sans-I/O
 
@@ -53,8 +53,7 @@ everything the target starts, so several slots are open at once. `Runner` waits 
 thread with `Network::wait_readable`.
 
 What the runner does is small enough to read in one sitting (`src/arinc615a_runner/src/runner.cpp`), which is
-the point: anything that can send a UDP datagram and tell the time can drive the engine, an RTOS port
-included, and a test can drive it with no network at all ([Testing](#what-has-been-checked-and-what-has-not)).
+the point: anything that can send a UDP datagram and tell the time can drive the engine, an RTOS port included (the FreeRTOS and Zephyr ports are experimental), and a test can drive it with no network at all ([Testing](#what-has-been-checked-and-what-has-not)).
 
 ### Memory, buffers and lifetimes
 
@@ -175,8 +174,9 @@ resolves what the standard leaves unclear:
   the table says nothing. The same 13 seconds are applied from the end of that transfer, because the
   standard also says status files are to be sent "within the maximum delay" "as soon as the list transfer
   step phase begins".
-- **While a status file, a list or the loader's own list is being transferred the time-out is not
-  running**; the TFTP time-out covers that transfer. A data file in flight does *not* suspend it (5.4.5.1
+- **While a status file, the loader's own list or the target's `.LNL` is being transferred the time-out is not
+  running** (the target's `.LCL` suspends it only when no status file has arrived yet); the TFTP time-out covers
+  that transfer. A data file in flight does *not* suspend it (5.4.5.1
   says status files are the heartbeat), so a target that needs longer than 13 seconds for one file has to
   send status files in parallel (6.3.2: "status file exchanges are relative to the whole transfer step") or
   announce it with the exception timer.
@@ -210,8 +210,8 @@ still open (the target gave up on that one), and the loader says nothing to the 
   **out of order**: neither is shown to the operator again. A counter ahead by more than one means status
   files were **lost**, and says how many (`Notice::status_counter_gap`).
 - **The status code** is what ends the operation: 0x0003 completes it (after the transfers still open for
-  the list or the files have ended), 0x1003 is an abort by the target (5.4.5.2), and 0x1004 and 0x1005
-  confirm an abort of ours. Anything else is "in progress". A status of an operation that completes before
+  the list or the files have ended), 0x1003 is an abort by the target (5.4.5.2), and 0x1004 and 0x1005 confirm an abort of ours (if the loader has not aborted, a target that reports one of them
+  ends the operation with that outcome). Anything else is "in progress". A status of an operation that completes before
   the loader has sent its list is a protocol error.
 - **A file that is not a valid structure is fatal** (6.3.1 and the other charts: "any invalid structure is
   considered a fatal error"). It ends the operation with `protocol_error` and whatever is open is aborted.
@@ -243,6 +243,8 @@ their own, so that a target that expects the answer from the port it wrote to se
 | before the operation has been accepted | error 4, illegal operation |
 | a protocol file that is not this operation's, a file nobody asked for, a read when nothing is being uploaded | error 2, access violation |
 | the list or a file already received | error 6, file already exists |
+| a media defined download's file before the list has been sent | error 4, illegal operation |
+| no sink is configured, or the sink refuses to open the file | error 2, access violation (error 3 when the sink has no space) |
 | no slot is free | error 3, "disk full or allocation exceeded", as 5.3.2.3.3 says the loader should |
 | the file is not there | error 1; a file that is there later: `WAIT:x` |
 | an abort is under way (anything but a status file) | `ABORT:XXXX` |
@@ -306,7 +308,5 @@ history is deterministic from a seed.
 real network or against a device: `loopback.integration` (`tests/loopback`) runs whole operations through the
 runner and the real host's sockets on 127.0.0.1, but against the mock target's engine, whose TFTP is
 `adl::arinc615a_mini` (the same reading of the standard), so it checks the sockets and the runner and not the
-choices; `adl::platform`'s conformance suite covers the sockets on their own; under `-fno-exceptions -fno-rtti` in CI (the engine is written for it and
-builds that way by hand, see [testing](testing.md#known-gaps)); the choices above that are marked as
-mine, of which 1 to 3 and the DLP-TO applications to `.LNO`, `.LCL` and `.LNL` are the first to confirm
+choices; `adl::platform`'s conformance suite covers the sockets on their own; the 615A tests under `-fno-exceptions -fno-rtti` (the `Zephyr (QEMU, SDK toolchain)` job builds the engine that way, see [testing](testing.md#known-gaps)); the choices above that are marked as the project's own, of which 1 to 3 and the DLP-TO applications to `.LNO`, `.LCL` and `.LNL` are the first to confirm
 against a real device.

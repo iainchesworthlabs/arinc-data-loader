@@ -14,11 +14,11 @@ optional **support files** (configuration and the like). Everything is protected
 values**, small numbers calculated from a file's contents (a CRC or a digest such as MD5 or
 SHA-1): if one byte changes, the check value no longer matches and the load is refused. One or
 more loads travel together on a **media set**, which is made of **members**, the individual disks
-(or, here, folders) of the set, each with three list files (`LOADS.LUM`, `FILES.LUM`,
-`BATCHES.LUM`) that say what is on that member. A **batch file** can name loads for several
-targets so that one operation loads a whole aircraft's worth. Parts are identified by **part
-numbers** with strict shapes, which is why the generator checks them as you type
-([the rules](make-a-media-set.md#the-rules-the-generator-enforces)).
+(or, here, folders) of the set, each with list files (`LOADS.LUM` and `FILES.LUM`, and `BATCHES.LUM` when the set has a batch file) that say what is on that member. A **batch file** names, for each target hardware
+ID, the loads that belong to it. The generator can write one; the loader reads and counts batch
+files but does not act on them (see [the limits](files-and-limits.md#limits)). Parts are
+identified by **part numbers** with strict shapes, which is why the generator checks them as you
+type ([the rules](make-a-media-set.md#the-rules-the-generator-enforces)).
 
 ## ARINC 615A: how a load gets into the equipment
 
@@ -44,7 +44,7 @@ manufacturer code).
 
 | Word | Meaning |
 | --- | --- |
-| Media set | The folder tree that holds one or more loads: one folder per member, each with its three list files |
+| Media set | The folder tree that holds one or more loads: one folder per member, each with its list files |
 | Member | One disk of a media set; here a folder called `member_001`, `member_002` and so on |
 | Load | One loadable thing: a header file plus its data and support files |
 | Part number | The identity of a load, a batch or a media set. A load's looks like `ACM47-1234-5678` |
@@ -52,7 +52,7 @@ manufacturer code).
 | Finding | Something in a media set that differs from what the standard recommends, but does not stop it being read; the loader shows these as warnings |
 | Target | The equipment being loaded (or the mock target that stands in for it) |
 | `THW_ID_POS` | How a target is addressed in file names: its hardware ID, an underscore and its position, for example `HNPFMS_L` for hardware `HNPFMS` at position `L`. A target with no position is just its hardware ID |
-| Control port | The UDP port the target's file server listens on: 59 in the standard. The loader and the target can share one machine if one of them uses another port |
+| Control port | A UDP port for the file transfers. The target listens for the loader's requests on port 59, which is the standard's number; the mock target calls this its *TFTP control port*. The loader has a control port of its own, 59 unless you change it in Preferences, which is where the target comes back to during an operation. The loader and the target can share one machine if the loader's is changed to another number; the loader always sends its requests to port 59 of the target |
 | FIND port | The UDP port FIND uses: 1001 |
 | Activity log | The loader's list of what the target said and what the loader noticed, with the time |
 | Receipt | The summary the loader shows after a transfer |

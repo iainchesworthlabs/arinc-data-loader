@@ -12,8 +12,11 @@ Every download writes into a **new folder** named `DNLD_DATA_<THW_ID_POS>_<numbe
 [Preferences](preferences.md)). The number is the lowest free one starting at 1. A download that brings back no file (the
 target refuses it or never answers, you cancel or abort it, or the loader cannot run it) leaves no
 folder behind, so its number is free again; one that brought back even a single file keeps its
-folder. A `<THW_ID_POS>` that cannot be part of a folder name (a colon, for example) cannot be
-downloaded from. A file is written under a temporary name and renamed when
+folder. A `<THW_ID_POS>` that cannot be part of a folder name (a colon, an asterisk, a question
+mark, a quote, an angle bracket, a bar or a character outside printable ASCII) cannot be downloaded
+from: **Download** stays dimmed with the usual text in the action bar ("Download needs a target, a
+destination and ..."), and no message names the identifier. (The other rules for an identifier are in
+[the limits](files-and-limits.md#limits).) A file is written under a temporary name and renamed when
 it has arrived whole, and an existing file is never overwritten. **Open folder** opens the folder
 of the last download.
 
@@ -25,15 +28,20 @@ The standard has two ways to choose what to fetch. Pick one with the **Mode** ch
 
 Type a file name in **File name** (for example `FLIGHT01.LOG`), press **Add**, and repeat. Each
 file you add appears in the list with a **Remove** button. Press **Download**: only these files
-are requested. A name must be a plain name of at most 254 characters, without a path or a slash;
-otherwise it is refused before anything is sent, with a message saying how to name the file.
+are requested. The list holds at most 256 names, and a name that is already in it is ignored. A
+name must be a plain name of at most 254 characters, without a path or a slash, and not ending in
+`.part`; otherwise it is refused before anything is sent, with a message saying how to name the
+file. Switching between **Media defined** and **Operator defined** empties the list.
 
 ### Operator defined: the target lists, you pick
 
 Press **Download** with nothing named. The loader asks the target for the list of files it can
 give, and the view changes to **The target's list**: every file with a check box, all ticked. Untick
-what you do not want, then press **Download selected** to send your choice back, or **Choose none**
-to cancel: that stops the operation, as the standard says, and the target confirms.
+what you do not want, then press **Download selected** to send your choice back. (**Download
+selected** is dimmed while nothing is ticked.) **Choose none** cancels instead: it stops the
+operation, as the standard says, and the target confirms. The loader does not treat that as a
+quiet cancel: the operation ends **FAILED** with the outcome "aborted by the operator", and the
+failure dialog opens. No folder is kept, because nothing was received.
 
 ![The target's list, one file unticked](../images/app-download-choice.png)
 

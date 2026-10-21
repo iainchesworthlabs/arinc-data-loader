@@ -31,6 +31,7 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 | `branch-name-check.yml` | gitflow branch naming; the source/target pairing | yes |
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
 | `changelog.yml` | a PR into `develop` adds a changelog fragment, or carries the `no-changelog` label | yes |
+| `docs.yml` | builds the documentation site strictly on every pull request and queue entry, and publishes it to GitHub Pages when `main` is pushed ([Documentation site](#documentation-site)) | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
 | `release.yml` | the Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on `release/*` branches and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | the nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
@@ -57,11 +58,14 @@ required checks after its first report (see the staging section in
 ## Nightly static analysis
 
 A schedule, and a manual dispatch, work only for a workflow on the default branch
-(`main`). These two workflows live on `develop` until the first release merge, so
-nothing runs nightly before then; the per-commit checks above are unaffected.
+(`main`). A workflow that is only on `develop` is not run on a schedule, and
+`gh workflow run` reports that it is not found. A file reaches `main` with a
+release (or a hotfix), so these two workflows start running nightly with the first
+release that carries them, and not before; the per-commit checks above do not
+depend on it.
 The same holds for everything GitHub reads only from the default branch: Dependabot
 (`.github/dependabot.yml`), `scorecard.yml`, the issue templates and `SECURITY.md`'s
-private-reporting link. None of them is active until `main` carries them.
+private-reporting link. None of them is active until `main` carries it.
 
 `static-analysis.yml` and `codeql.yml` run on a nightly schedule, not on a
 push or a pull request. They are not required checks: a red night is read in
@@ -72,11 +76,62 @@ and an optional SonarQube scan that is skipped until it is configured. The
 reason for each, the local presets and the suppression rules are in
 [Nightly static and dynamic analysis](static-analysis.md).
 
+## Documentation site
+
+The pages in `docs/` are built into a static site with MkDocs and Material (`mkdocs.yml` at the root of the
+repository) and, from the first release on, published to GitHub Pages at <https://iainchesworthlabs.github.io/arinc-data-loader/>. The
+Markdown stays the source and stays readable on GitHub; nothing in a page is written for the site.
+
+Locally:
+
+```sh
+python -m pip install --require-hashes -r .github/requirements/docs.txt
+mkdocs serve                                  # read it while editing
+mkdocs build --strict                         # what CI runs; writes ./site
+cmake --build <build dir> --target docs       # the same, into <build dir>/site
+```
+
+**What strict means here.** MkDocs' own strict mode fails on warnings, but it reports a link to a missing
+page, a link to a heading that is not there and a page missing from the navigation at a level that strict
+mode lets through. The `validation` block of `mkdocs.yml` raises all of them to warnings, so each fails the
+build. A page that is added to `docs/` must also be added to `nav` in `mkdocs.yml`.
+
+**Links out of `docs/`.** A page may link to the README, the changelog or a source file with a relative link
+(`../README.md`), which works on GitHub. The site has no such file, so `tools/docs/mkdocs_hooks.py` turns the
+link into one to the file on GitHub (`blob/main/...`, or `tree/main/...` for a folder). A link whose target
+does not exist is left alone, and the build fails on it.
+
+**What is not published.** The standards (`docs/specs/*.pdf`) are third-party documents ([Licensing](licensing.md));
+`exclude_docs` leaves them out and the build fails if a PDF is in the site.
+
+**In CI.** `.github/actions/docs-site` installs MkDocs from the hash-locked `.github/requirements/docs.txt`
+(`uv pip install --require-hashes --no-build`), builds strictly, and checks the result (the home page and the
+user's guide exist, no PDF, a minimum number of pages). Two workflows use it, so they cannot disagree:
+
+- `docs.yml`, job `Docs build (strict)`: on every pull request into `main` or `develop` and every merge queue
+  entry. It has no path filter, because a required check that does not run blocks the pull request. On a
+  push to `main` it packages the site and the job `Publish the site` deploys it with `actions/deploy-pages`.
+- `release.yml`, job `Docs (strict)`: the first job after *Prepare*, ahead of the three builds, so a release
+  with a broken page stops in a minute and not after an hour.
+
+**Publishing** uses Pages with the *GitHub Actions* source. A `gh-pages` branch is not an option here: the
+`branch-names` ruleset refuses a branch that is not a gitflow name. The deploying job runs in the
+`github-pages` environment (deployment branches: `main` only) and waits for the repository variable
+`PUBLISH_DOCS` to be `true`, so a repository that has not switched Pages on gets no failed run
+([Releasing](releasing.md#one-time-setup-done-once-per-repository)). Because a merge to `main` is a release
+(gitflow), the published site is the documentation of the latest release. There is one version of the site;
+old releases' pages are in the tag's tree on GitHub.
+
+**Not used.** Zensical, the successor to Material for MkDocs, reads the same `mkdocs.yml`. It was tried and
+does not run MkDocs hooks, so every link out of `docs/` fails its strict build. MkDocs is held below 2.0,
+which removes hooks and the theme API this configuration uses.
+
 ## The release workflow
 
 `release.yml` is described in [Releasing](releasing.md) and checked from the outside by
 [Verifying a release](verifying-releases.md). Where it sits among the others:
 
+- Its first job after *Prepare* is `Docs (strict)` (see above); the builds wait for it.
 - It is not a required check and carries no `merge_group` trigger. On a pull request it runs only
   when the change touches the packaging (`cmake/`, `packaging/`, `src/platforms/*/platform.cmake`,
   `tools/release/`, the Qt installer, the presets or the workflow itself), builds, tests, packages and
@@ -121,9 +176,9 @@ with the rulesets.
 
 | `Zephyr (native_sim)` | ubuntu-26.04 | The platform layer for Zephyr builds with the project's warning set and, with Zephyr 4.4.2's kernel, IPv4/UDP stack (over its loopback interface) and littlefs on simulated flash running as a host process, passes the platform conformance suite and the 615A engine tests (`tests/platform/zephyr`, through `tools/ci/zephyr_native_sim.sh`). **Not a required check.** |
 | `FreeRTOS (POSIX simulator)` | ubuntu-26.04 | The platform layer for FreeRTOS builds, and with FreeRTOS-Kernel V11.2.0's POSIX simulator port, lwIP 2.2.1's UDP sockets over its loopback interface and littlefs on a RAM block device, passes the same two suites (`tests/platform/freertos`, through `tools/ci/freertos_posix_sim.sh`). **Not a required check.** |
-| `Zephyr (QEMU, SDK toolchain)` | ubuntu-26.04 | The platform layer and the 665/615A libraries build with the Zephyr SDK's own GCC 14 and picolibc, without exceptions, for a Cortex-M3, and a smoke program (`tests/platform/zephyr_smoke`, through `tools/ci/zephyr_qemu_smoke.sh`) runs in QEMU: clock, memory, threads at every priority, a mutex, a queue and UDP over Zephyr's loopback interface. Then the whole test program (Catch2, the platform conformance suite and the 615A engine tests: 224 test cases) is built for the Cortex-A9 board `qemu_cortex_a9` with the same toolchain, with exceptions, and runs in the SDK's QEMU (`tools/ci/zephyr_qemu_suite.sh`). **Not a required check.** |
+| `Zephyr (QEMU, SDK toolchain)` | ubuntu-26.04 | The platform layer and the 665/615A libraries build with the Zephyr SDK's own GCC 14 and picolibc, without exceptions, for a Cortex-M3, and a smoke program (`tests/platform/zephyr_smoke`, through `tools/ci/zephyr_qemu_smoke.sh`) runs in QEMU: clock, memory, threads at every priority, a mutex, a queue and UDP over Zephyr's loopback interface. Then the whole test program (Catch2, the platform conformance suite and the 615A engine tests: 227 test cases and 36 288 assertions) is built for the Cortex-A9 board `qemu_cortex_a9` with the same toolchain, with exceptions, and runs in the SDK's QEMU (`tools/ci/zephyr_qemu_suite.sh`). **Not a required check.** |
 
-The three simulator jobs are new and are not in the rulesets: they join them after they have been green for a
+The three simulator jobs are not in the rulesets: they are to join them after they have been green for a
 while, the way `Scan dependency diff` did ([Branch protection](branch-protection.md#required-checks)). They
 take their tools as the other legs do, with the pins in the next section: CMake and Ninja from
 `lukka/get-cmake`, west from `.github/requirements/zephyr.txt`, Zephyr from `tests/platform/zephyr/west.yml`
@@ -136,15 +191,22 @@ What a build-and-test leg's ctest contains: the Catch2 suites (unit, engine, pla
 `mock.engine`), the application tests (`app.tests`, `mock.model`, `media_gen.tests`, QtTest), the QML
 loads of the three windows (`app.qml`, `mock.qml`, `media_gen.qml`: the window loaded offscreen, with
 the offscreen platform and the software renderer, so no GPU or display is needed), the Qt Quick Test
-suites `ui.tst_main_window`, `ui.tst_dialogs`, `ui.tst_keyboard`, `ui.tst_navigation`, `ui.tst_accessibility`, `ui.tst_layout` and `ui.tst_tones` (the window and its dialogs driven by mouse and key
-events on the real `Main.qml`), `loopback.integration` (the loader's runner over real sockets on
-127.0.0.1 against the mock target's engine), the system smoke tests that start the three application
-programs and `system.notices`, the `tools.write_payloads` tests, and the repository checks
-`platform.fragments` (every platform fragment satisfies the platform contract, on whichever host this
-is), `platform.selector`, `platform.isolation` (the same script as the `platform-isolation` job) and `docs.links`
-(every relative link and `#anchor` of the Markdown files resolves, pictures included); the last two need
-`pwsh`, which every hosted image has. The application, UI, loopback and system tests carry a
-time-out each, and the job has its own (45 minutes), so a hung test cannot hold a runner.
+suites `ui.tst_main_window`, `ui.tst_dialogs`, `ui.tst_first_run`, `ui.tst_window_close`,
+`ui.tst_right_to_left`, `ui.tst_keyboard`, `ui.tst_navigation`, `ui.tst_accessibility`, `ui.tst_layout` and
+`ui.tst_tones` (the window and its dialogs driven by mouse and key events on the real `Main.qml`),
+`ui.window_state` (the window geometry the three programs share, on a bare window), `loopback.integration`
+(the loader's runner over real sockets on 127.0.0.1 against the mock target's engine), the system smoke
+tests that start the three application programs and `system.notices`, the `tools.write_payloads` tests,
+the `translations.current.*` tests (lupdate over a copy of each set of catalogues; they fail when the
+catalogues no longer match the sources), and the repository checks `platform.fragments` (every platform
+fragment satisfies the platform contract, on whichever host this is), `platform.selector`,
+`platform.vcpkg_root` (which vcpkg checkout a configure uses, tried against a fake repository, with no
+network), `platform.isolation` (the same script as the `platform-isolation` job) and `docs.links` (every
+relative link and `#anchor` of the Markdown files resolves, pictures included); the last two need `pwsh`,
+which every hosted image has. The tests that load or drive a window carry the label `ui`
+(`ctest -L ui`). The application, UI, loopback and system tests carry a time-out each, and the job has its
+own (45 minutes), so a hung test cannot hold a runner. `system.install_consumer` is not on this list: it
+runs only against an optimised build, so only in `release.yml`.
 
 A leg whose build or tests fail uploads the CTest log (`Testing/Temporary/LastTest.log`, with every test's
 output rather than only the failures') and a JUnit report as the `ctest-logs-<preset>` artifact, for 14 days;
@@ -153,8 +215,7 @@ the fact instead of re-run.
 
 ### Toolchain choices
 
-- **No compiler install.** The code needs `<expected>` and `<format>`, which
-  libstdc++ has from GCC 13 and Apple's libc++ has in current Xcode, so each
+- **No compiler install.** The code is C++23 and uses `std::expected`, so each
   leg uses the compiler its image ships. The `Show the toolchain` step puts
   the exact version in the log.
 - **Debug presets.** CI builds the Debug presets because they carry the
@@ -174,12 +235,14 @@ the fact instead of re-run.
   source distribution. The install is retried twice, since download.qt.io is a mirror network, but a hash
   mismatch is not retried; the kit is cached under an exact key (version, architecture, and the hashes of
   the lock files and the script). On Linux the action installs the few system libraries a prebuilt Qt needs,
-  and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The Qt version is the action's
-  `version` input in `ci.yml` and `release.yml` (the same 6.12.0 as the labs' shared toolchain); the matrix
-  has the host and architecture names. The coverage job installs it too (Linux, `linux_gcc_64`) and builds the
-  applications, because its second pass measures their window-free logic; the UI suite runs on the three build legs.
+  and it sets `QT_ROOT_DIR`, which `cmake/FindQt6.cmake` looks in first. The Qt version (6.12.0) is the action's
+  `version` input in `ci.yml` (the build legs and the coverage job), `release.yml` and `static-analysis.yml`
+  (the MSVC Code Analysis job); the host and architecture names are given beside it. The coverage job installs
+  it too (Linux, `linux_gcc_64`) and builds the applications, because its second pass measures their
+  window-free logic; the UI suite runs on the three build legs.
 
-  **Moving to another Qt version** is deliberate and reviewed: change the `version` inputs, then, with the
+  **Moving to another Qt version** is deliberate and reviewed: change the `version` input in all four places
+  (two in `ci.yml`, one each in `release.yml` and `static-analysis.yml`), then, with the
   network and Python 3.10 or newer,
 
   ```sh
@@ -236,11 +299,12 @@ contexts equal the job display names above and in the two policy workflows.
 | `macOS (AppleClang)` | `ci.yml` | yes |
 | `Coverage (Linux, GCC)` | `ci.yml` | yes |
 | `Scan dependency diff` | `dependency-review.yml` | yes - added after it reported on a pull request on the public repository |
+| `Docs build (strict)` | `docs.yml` | yes - added with the documentation site |
 | `Changelog fragment` | `changelog.yml` | no - not yet required; see below |
 | `Analyze (C++)` | `codeql.yml` | no - informational |
-| `Zephyr (native_sim)` | `ci.yml` | no - new, not required until it has been green for a while |
-| `Zephyr (QEMU, SDK toolchain)` | `ci.yml` | no - new, not required until it has been green for a while |
-| `FreeRTOS (POSIX simulator)` | `ci.yml` | no - new, not required until it has been green for a while |
+| `Zephyr (native_sim)` | `ci.yml` | no - to be required once it has been green for a while |
+| `Zephyr (QEMU, SDK toolchain)` | `ci.yml` | no - to be required once it has been green for a while |
+| `FreeRTOS (POSIX simulator)` | `ci.yml` | no - to be required once it has been green for a while |
 
 Every workflow that produces a required check also triggers on `merge_group`,
 because the merge queue evaluates the required checks on its temporary
@@ -337,8 +401,9 @@ Python packages come from PyPI.
 | The Zephyr SDK (the Arm toolchain and QEMU of the QEMU job) | File names and SHA-256 in `tools/ci/zephyr_sdk.sha256` (1.0.1, which is what Zephyr v4.4.2's `SDK_VERSION` names; `install_zephyr_sdk.sh` refuses a mismatch) | By hand, with Zephyr |
 | FreeRTOS-Kernel, lwIP, littlefs, Catch2 (the simulator program) | URL and SHA-256 in `tests/platform/freertos/CMakeLists.txt` (V11.2.0, 2.2.1, v2.11.3, v3.15.3) | By hand |
 | py7zr and its dependencies (unpack Qt) | `==` with every wheel's SHA-256 in `.github/requirements/qt.txt`, compiled from `qt.in`, installed with `--require-hashes --no-build` | Dependabot (`pip`), weekly |
+| MkDocs, Material and their dependencies (build the documentation site) | `==` with every wheel's SHA-256 in `.github/requirements/docs.txt`, compiled from `docs.in` with a one-week cooldown (`--exclude-newer`; a security fix is exempt, as it is for Dependabot: `certifi` is held at the release that fixes GHSA-6q48-6c7w-9gw2), installed with `--require-hashes --no-build` | Dependabot (`pip`), weekly |
 | The Qt archives | The SHA-256 of each, in `.github/requirements/qt-archives.sha256` | By hand: `install_qt.py lock` |
-| Qt | `version` input of the `install-qt` step in `ci.yml` and `release.yml` (6.12.0) | By hand, with the labs' shared toolchain |
+| Qt | `version` input of the `install-qt` step in `ci.yml`, `release.yml` and `static-analysis.yml` (6.12.0) | By hand, together with the Qt archive pins |
 | CMake and Ninja (`lukka/get-cmake`) | `cmakeVersion` / `ninjaVersion`, exact, and one the pinned action's catalog lists | By hand, with the action |
 | vcpkg and the ports | The submodule commit and `builtin-baseline` | Dependabot (`vcpkg` + `gitsubmodule`, one monthly PR); by hand |
 | Runner images | The label (`ubuntu-24.04`, `ubuntu-26.04`, `windows-2025-vs2026`, `macos-26`) | By hand |
@@ -425,11 +490,15 @@ The three legs (Windows MSVC, Linux GCC, macOS AppleClang) have all run on
    The artifact names the file and line under the minimum; add the test that
    covers it, or remove the dead code.
 
-## Not here yet
+## What CI does not do
 
-The Release presets, and packaging the Qt application. Each is a new job or a
-flag flip, not a redesign. No embedded (RTOS) platform is built in CI;
-[platform abstraction](platform-abstraction.md) says where each stands. clang-tidy is no longer on this list: it is
-a nightly job, with the rest of the static analysis, in
-[static-analysis.md](static-analysis.md). A Release-only warning
-(`-Wnull-dereference`, for one) still first shows up locally.
+- **Run on a board.** The FreeRTOS and Zephyr ports run on simulators only. No job builds the QNX or
+  Green Hills INTEGRITY ports (their code has never been compiled), and VxWorks has no code
+  ([platform abstraction](platform-abstraction.md) says where each stands).
+- **Build the libraries without exceptions and RTTI with a desktop compiler.** The
+  `Zephyr (QEMU, SDK toolchain)` job builds them that way for a Cortex-M3, and its smoke program does not
+  run them; no job does it with MSVC, GCC or AppleClang on a desktop.
+- **Run the program against a real target or another implementation** ([Testing](testing.md#known-gaps)).
+
+The Release presets are built, tested and packaged by `release.yml` (see above), and clang-tidy and the rest
+of the static analysis run nightly ([static-analysis.md](static-analysis.md)).

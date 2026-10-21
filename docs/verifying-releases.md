@@ -5,11 +5,12 @@
 
 Every GitHub release carries, beside the packages:
 
-- `SHA256SUMS`, the SHA-256 of every other file in the release;
+- `SHA256SUMS`, the SHA-256 of every file in the release except the signatures and itself;
 - a detached PGP signature `<file>.asc` for **every** file, `SHA256SUMS` included, made with the
   project's release key;
-- a GitHub **build-provenance attestation** for every file, which says that the file was built by the
-  workflow `.github/workflows/release.yml` of this repository, from this commit, on GitHub's runners;
+- a GitHub **build-provenance attestation** for every file listed in `SHA256SUMS`, which says that the file
+  was built by the workflow `.github/workflows/release.yml` of this repository, from this commit, on
+  GitHub's runners (`SHA256SUMS` and the signatures have none);
 - the software bill of materials, `arinc-data-loader-<version>.spdx.json` (SPDX 2.3) and
   `arinc-data-loader-<version>.cdx.json` (CycloneDX 1.6), with the SPDX documents of the Qt modules it
   refers to.
@@ -90,8 +91,9 @@ iainchesworthlabs/arinc-data-loader --predicate-type https://spdx.dev/Document/v
 ## All of it at once
 
 [`tools/release/verify_release.sh`](../tools/release/verify_release.sh) does steps 1 to 3 on a
-directory of downloaded files (it needs `gpg`, `sha256sum` and `gh`), and is what the release
-workflow runs on its own output before it drafts the release:
+directory of downloaded files (it needs `gpg`, `sha256sum` and `gh`; if `sha256sum` is missing, as it may be
+on macOS where step 2 uses `shasum`, do the steps by hand), and is what the release workflow runs on its own
+output before it drafts the release:
 
 ```sh
 tools/release/verify_release.sh ./downloaded-release docs/release-signing-key.asc

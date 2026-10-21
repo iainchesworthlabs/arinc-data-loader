@@ -69,7 +69,8 @@ $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path -LiteralPath $Root).Path
 $platformRoot = Join-Path $Root 'src/platforms'
 if (-not (Test-Path -LiteralPath $platformRoot)) {
-    Write-Error "No src/platforms/ under '$Root'. Pass -Root <repo-root>."
+        # Not Write-Error: with -ErrorAction Stop it ends the script with exit 1 before the exit below runs.
+    [Console]::Error.WriteLine("No src/platforms/ under '$Root'. Pass -Root <repo-root>.")
     exit 2
 }
 

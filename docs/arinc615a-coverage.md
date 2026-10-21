@@ -12,8 +12,8 @@ files) exists only as the simulated target of the tests and the mock target appl
 
 ## In short
 
-- Everything the standard asks of a data loader in sections 5.3 to 6.4 and Attachments 2 to 4 is built: the
-  TFTP of 5.3.2 with its options, WAIT and ABORT; FIND; the Information, Upload (short and full load) and
+- Everything the standard asks of a data loader in sections 5.3 to 6.4 and Attachments 2 to 4 is built, except the download directory of 5.4.4.3, which the
+  application makes, and the display texts of Table 6.4.10-1: the TFTP of 5.3.2 with its options, WAIT and ABORT; FIND; the Information, Upload (short and full load) and
   Download (media defined and operator defined) operations with the status files, the time-outs and retries of
   Attachment 4, the abort paths of 5.4.5.2 and the protocol files of 6.4.
 - It is **sans-I/O**: the state machines hold no socket, thread, clock or file system, work on bytes, allocate
@@ -26,8 +26,10 @@ files) exists only as the simulated target of the tests and the mock target appl
   timer, refuses options, speaks another protocol version or writes a file that was not asked for.
 - **Nothing has been checked against another implementation**, a loader or a target, and the only whole
   operations over real sockets are run against the mock target's engine (see [Not yet
-  verified](#not-yet-verified)). The simulated target's TFTP is a
-  second, independent implementation, but both are my reading of the standard.
+  verified](#not-yet-verified)). The simulated target's TFTP (`adl::arinc615a_mini`) is a second implementation, written separately
+  from the engine's, but it uses the codec and the figures in `limits.hpp` (the time-outs, the retry count and
+  the default block size), so those are not independently checked, and both are the project's reading of the
+  standard.
 - Not built: hardware (sections 1 to 4, Attachments 1 and 5), and anything on the target's side.
 
 ## Section by section
@@ -61,12 +63,12 @@ files) exists only as the simulated target of the tests and the mock target appl
 | 5.4.4, 5.4.4.1 | Media defined download: `.LND` read, the list `.LNR` written by the loader, the target writes the files | `MediaDownloadOperation`; `FileSink`; the expected files are the ones listed | `data_loader_test` ("a media defined download", "a file nobody asked for is refused", "files missing at the end are reported") |
 | 5.4.4, 5.4.4.2 | Operator defined download: `.LNO` read, `.LNL` written by the target, `.LNA` by the loader | `OperatorDownloadOperation`; `OperationListener::on_download_list`, `FileSelection`, `provide_selection` | `data_loader_test` ("an operator defined download ...", "whose choice is made later", "an operator who chooses nothing") |
 | 5.4.4 | Checksum of downloaded data is for information and does not stop the export | as 5.3.2.3.8.5 | `data_loader_test` ("a wrong checksum is reported and the file is kept") |
-| 5.4.4.3 | The download directory `DNLD_DATA_<THW_ID_POS>_<number>`, `DNLD_INFO_...` | **not in the engine**: it is the application's with the sink; `DirectoryFileSink` writes to the directory it is given | `directory_files_test` |
+| 5.4.4.3 | The download directory `DNLD_DATA_<THW_ID_POS>_<number>`, `DNLD_INFO_...` | **not in the engine**: it is the application's with the sink, and only `DNLD_DATA_...` is made (`DNLD_INFO_...` is not built); `DirectoryFileSink` writes to the directory it is given | `directory_files_test` |
 | 5.4.5.1 | Status messages are the heartbeat, the abort, and the close of an operation | `on_*_status` of the listener; the DLP time-out; 0x0003 completes | `data_loader_test` ("thirteen seconds without a status file", "an Information operation with status files") |
 | 5.4.5.2 | Interruptions: the loader answers the target's status file write request with ABORT (codes 0x1004 or 0x1005) and the target echoes the code in its status file; the target aborts with 0x1003 | `DataLoader::abort`, `abort_status`; the target's 0x1003 | `data_loader_test` ("the operator's abort stops an upload", "an abort before the target has accepted", "an abort the target never confirms", "a target's own abort", "a download is aborted"), `operations_test` |
 | 6.1, 6.2 | The messages between the DLA and the DLP, and the protocol files each uses | `OperationListener` callbacks and `DataLoader`'s inputs, one for each message: [TH_Information_Initialization] `start`, [Information_Initialization_Response] `on_initialization`, [TH_Information] `on_configuration_list`, [Information_Status] `on_configuration_status`, [Load_List] the `UploadOperation`, [File_Not_Available] `Notice::file_not_available`, [Upload_Information_Status] `on_upload_status`, [Downloading_Media_Initialization] and [..._Operator_...] the two download operations, [Downloading_File_Receipt] `on_file_received`, [Downloading_Information_Status] `on_download_status`, [Downloading_File_List_Receipt] and [File_Selection] `on_download_list`, [Abort_Request] `abort` | `data_loader_test` |
 | 6.2.1.2 etc. | A WAIT in answer to the initialization read: the DLP retries after the wait | as 5.3.2.3.4 | `data_loader_test` |
-| 6.2.7.3 | The `.LUR` write starts after the `.LUS` that says "accepted, not yet started" | `apply_status` sends the list at 0x0001; the simulated target refuses a list that comes before | `data_loader_test` (every upload, and the mutation checks, see [testing](testing.md)) |
+| 6.2.7.3 | The `.LUR` write starts after the `.LUS` that says "accepted, not yet started" | `apply_status` sends the list at 0x0001; the simulated target refuses a list that comes before | `data_loader_test` (every upload; the simulated target of `tests/engine` refuses a list that comes before) |
 | 6.2.17 | On an abort request the loader refuses the target's next status file request with ABORT, and the target then writes a status file with 0x1004 or 0x1005 | as 5.4.5.2 | as 5.4.5.2 |
 | 6.3.1 | Information chart; "any invalid structure is a fatal error"; the status file at least once within the DLP time-out; WAIT lets the target reboot; the exception timer; with a fast `.LCL` the target may send no status; otherwise the last status file is 0x0003 | `DataLoader` | `data_loader_test` (the Information tests, the status and time-out tests), `operations_test` |
 | 6.3.2 | Upload chart; the loader is a TFTP server "without any hypothesis in the sequence" of requests; several reads at a time; file not available means WAIT | up to 8 slots; `FileSource::open` `not_available` gives `WAIT:x` | `data_loader_test` ("a file that is not there yet ..."), `operations_test` ("every transfer is in use") |
@@ -79,7 +81,7 @@ files) exists only as the simulated target of the tests and the mock target appl
 | 6.4.3 to 6.4.5, 6.4.7 | The exception timer: seconds of silence, only with status 2 and 4 | the window is `max(13 s, timer)`; `exception_timer_expired` | `operations_test` ("an exception timer longer than thirteen seconds"), `data_loader_test` (both exception tests) |
 | 6.4.10 | The status code table | `StatusCode`; each code's outcome in `apply_status` | `data_loader_test`, `operations_test` |
 | Att. 2 | Load scenarios (configuration query, upload, disk defined and operator defined downloads) | the four operations | `data_loader_test` |
-| Att. 3 | FIND packets and the 3 s window, 2 s answer | the codec and `FindClient` | `find_client_test`, `find_test` (codec) |
+| Att. 3 | FIND packets and the 3 s window | the codec and `FindClient` | `find_client_test`, `find_test` (codec) |
 | Att. 4, 4-3.1 | TFTP time-out 2 s | `tftp_timeout`; every exchange | `tftp_transfer_test` ("a request nobody answers is sent twice and then fails after four seconds", "a receiver that waits"), `operations_test` ("the request is repeated after two seconds") |
 | Att. 4, 4-3.2 | TFTP retry number 1: one more try of each exchange, no accumulation across exchanges | `tftp_retries`; the count restarts at each exchange | `tftp_transfer_test` ("lost ACKs are covered by the retry") |
 | Att. 4, 4-3.3 | Sorcerer's Apprentice: never resend the current data packet on a duplicate ACK | `on_ack` | `tftp_transfer_test` ("duplicated datagrams never make a sender resend a block", "a duplicate ACK is ignored by the sender") |
@@ -90,7 +92,7 @@ files) exists only as the simulated target of the tests and the mock target appl
 
 ## Places the standard is unclear
 
-The choices are mine. Each is isolated enough to change in one place, and each is a reason to check against a
+The choices are the project's. Each is isolated enough to change in one place, and each is a reason to check against a
 real device. [The engine page](arinc615a-engine.md) says how each is resolved; the list of the codec's
 ([here](arinc615a-codec.md#places-the-standard-is-unclear)) is separate.
 
@@ -98,8 +100,7 @@ real device. [The engine page](arinc615a-engine.md) says how each is resolved; t
    those two. `.LND→.LNS` and `.LNO→.LNS` (or `.LNO→.LNL` in the operator defined mode) get the 13 seconds.
 2. **The table of DLP time-outs leaves out several transfers**: `.LCI→.LCL` (6.3.1 allows it), the loader's
    own `.LUR`, `.LNR` and `.LNA`, and the target's `.LCL` and `.LNL`. After each the same 13 seconds are
-   applied. The time-out does not run during a status file's or a list's transfer, and does not stop for a
-   data file's.
+   applied. The time-out does not run during the transfer of a status file, of the loader's own list or of the target's `.LNL`, and does not stop for a data file's. The target's `.LCL` suspends it only when no status file has arrived yet.
 3. **5.3.2.3.8.4 (Part Number) and the first paragraph of 5.3.2.3.8.5 repeat the Timeout paragraph**, so
    there is no Part Number option, and the Checksum option is defined by the text that follows (also in
    [the codec's list](arinc615a-codec.md#places-the-standard-is-unclear)).
@@ -134,8 +135,9 @@ real device. [The engine page](arinc615a-engine.md) says how each is resolved; t
   sockets and the runner, not the choices above; no test runs an operation over a network or against a device.
   The real platforms' sockets are also covered by `adl::platform`'s conformance suite. macOS runs these tests
   only in its CI leg ([CI](ci.md)), not by hand.
-- **Under `-fno-exceptions -fno-rtti` in CI.** The library sources compile that way under g++ 15 with the
-  repository's warnings as errors, and the objects hold no reference to `typeinfo` or to a throw (checked once by
-  hand); there is no CI job.
+- **The tests under `-fno-exceptions -fno-rtti`.** The `Zephyr (QEMU, SDK toolchain)` job compiles this library
+  and the runner that way with the SDK's GCC and warnings as errors, but its smoke program runs only the platform
+  layer. The library sources also compile that way under g++ 15 on a desktop, and the objects hold no
+  reference to `typeinfo` or to a throw (checked once by hand). No job runs the 615A tests without exceptions.
 - **Timing on a real-time system.** The time-outs are tested on a clock that moves only when told to; how they
   behave on a desktop that can be late is unmeasured (the loader's 2 and 13 second figures are generous to it).

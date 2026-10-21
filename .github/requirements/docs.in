@@ -1,0 +1,17 @@
+# Input of docs.txt, the hash-locked tool the documentation workflow builds the site with
+# (mkdocs.yml at the repository root; docs/ci.md, "Documentation site"):
+#   uv pip compile --universal --generate-hashes --python-version 3.10 --exclude-newer 2026-10-14 \n#       --exclude-newer-package certifi=2026-10-22 docs.in --output-file docs.txt
+# (--exclude-newer: nothing published in the week before the lock was made, the cooldown Dependabot keeps;
+# a security fix is exempt from it, as it is for Dependabot: see certifi below.)
+# Dependabot's pip ecosystem for /.github/requirements keeps both files current.
+#
+# MkDocs stays on 1.6: 2.0 drops the plugin system and the theme API this site's configuration uses
+# (hooks, the `validation` block). Zensical, which reads the same mkdocs.yml, was tried and does not run
+# hooks, so a link from a page to a file outside docs/ fails its strict build.
+mkdocs>=1.6,<2
+mkdocs-material>=9.5,<10
+# mkdocs.yml names pymdownx.slugs.slugify directly, so it is listed here and not left to Material.
+pymdown-extensions>=10.2
+# certifi before 2026.10.19 bundles emSign root CAs with compromised intermediate CA keys
+# (GHSA-6q48-6c7w-9gw2, critical, published 2026-10-20); it comes in through requests, which mkdocs uses.
+certifi>=2026.10.19

@@ -3,7 +3,8 @@
 *For the maintainer. How a downloader checks a release is [Verifying a release](verifying-releases.md);
 what CI runs on every change is [CI](ci.md).*
 
-A release is a version tag on `main`. Pushing the tag runs `.github/workflows/release.yml`, which builds
+A release is a version tag on `main`. Pushing the tag runs `.github/workflows/release.yml`, which first
+builds the documentation site strictly, then builds
 and tests the Release configuration on Windows, Linux and macOS, packages it, writes the SBOM and the
 checksums, signs everything with the release key, attests it, and drafts a GitHub release. Nothing is
 published until the maintainer reads the draft and presses the button.
@@ -97,13 +98,16 @@ The branch model is gitflow ([Branch protection](branch-protection.md)): `releas
    It writes the dated section of `CHANGELOG.md` from the fragments in the Keep a Changelog
    categories, updates the comparison links and deletes the fragments. Read the result and edit it as
    prose if it needs it. Commit.
-4. **Push the branch.** A push to `release/*` runs the whole workflow as a **rehearsal**: it builds,
-   tests, packages, writes the SBOM, signs with the real key, attests and verifies, and publishes
+4. **Push the branch.** A push to `release/*` runs the whole workflow as a **rehearsal**: it builds the
+   documentation strictly, builds, tests, packages, writes the SBOM, signs with the real key, attests and verifies, and publishes
    nothing. Download the `release-signed` artifact from the run, check it
    ([Verifying a release](verifying-releases.md); `tools/release/verify_release.sh`), and try the packages
    on a clean machine. Fix on the branch and push again.
 5. **Pull request to `main`**, from the `release/*` branch, merged with a merge commit once the required
-   checks pass. (The changelog check does not apply to it.)
+   checks pass. (The changelog check does not apply to it.) The merge publishes the documentation site
+   ([Documentation site](ci.md#documentation-site)), so build the site on the release branch (`mkdocs serve`)
+   and read the pages that changed first: the site is the documentation of the latest release. (The
+   *Docs build (strict)* run of a pull request checks that the site builds; it does not keep the site.)
 6. **Tag.** On the merge commit of `main`:
 
    ```sh
@@ -133,8 +137,8 @@ Nothing needs to be tagged to see all of it work:
 
 A rehearsal's artifacts are kept for 30 days on the run. Its attestations are real, and public as any
 attestation of a public repository is, but they name a branch run and not a tag. GitHub starts a
-`workflow_dispatch` only for a workflow that exists on the default branch, so until the first release
-has put `release.yml` on `main`, the branch push is the way to rehearse.
+`workflow_dispatch` only for a workflow that exists on the default branch, so `gh workflow run release.yml`
+works only once a release has put `release.yml` on `main`; the branch push works from the start.
 
 ## One-time setup (done once per repository)
 
@@ -145,8 +149,11 @@ has put `release.yml` on `main`, the branch push is the way to rehearse.
 | Secret `RELEASE_GPG_PASSPHRASE` | in `release-signing` | Its passphrase |
 | Environment `release` | Settings, Environments | Required reviewer: the maintainer. Deployment tags: `v*` only. Holds no secrets; it gates *Draft the release* |
 | Label `no-changelog` | Issues, Labels | for the changelog check |
+| Pages | Settings, Pages | Source: *GitHub Actions* |
+| Environment `github-pages` | Settings, Environments | Deployment branches: `main` only. No secrets, no reviewer |
+| Variable `PUBLISH_DOCS` | Settings, Secrets and variables, Actions, Variables | `true`. Until it is set, `docs.yml` builds the site on `main` but does not publish it |
 
-`tools/repo/apply_release_environments.ps1` makes both environments and, with `-KeyFile` and
+`tools/repo/apply_release_environments.ps1` makes the two release environments (`release-signing` and `release`; `github-pages` is made by switching Pages on) and, with `-KeyFile` and
 `-PassphraseFile`, stores the two secrets (a dry run unless `-Apply` is given; the key and passphrase are
 read from files and go to `gh secret set` on its standard input). The label is `gh label create
 no-changelog`.

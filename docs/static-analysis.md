@@ -15,9 +15,10 @@ the morning, not a blocked pull request; the required checks stay the ones in
 [branch protection](branch-protection.md).
 
 GitHub starts a scheduled workflow, and registers a manually dispatched one, only
-from the repository's default branch, which is `main`. Until the first release
-merge puts these workflows on `main`, neither runs and `gh workflow run` reports
-that the workflow is not found; see [CI](ci.md#nightly-static-analysis).
+from the repository's default branch, which is `main`. A workflow that is not on
+`main` does not run, and `gh workflow run` reports that it is not found. These two
+reach `main` with the first release that carries them; see
+[CI](ci.md#nightly-static-analysis).
 
 ## Schedule
 
@@ -94,7 +95,7 @@ heap in the test, rather than raising the analyzer's threshold.
 
 ### Clang ASan/UBSan
 
-`linux-clang-debug` is a new preset, not a change to the per-commit legs: it
+`linux-clang-debug` is a preset of its own, not a change to the per-commit legs: it
 selects `clang++`, keeps the Debug sanitizer flags from
 `cmake/Sanitizers.cmake` (`-fsanitize=address,undefined
 -fno-sanitize-recover=all`) and runs the libraries' and tests' `ctest` suite.
@@ -208,8 +209,8 @@ job's log.
 - **CodeQL on the applications.** The lean CodeQL build has no Qt. The C++ that
   carries the protocol and the formats is the libraries and platform section,
   which it does build.
-- **Release-only warnings.** They are listed in
-  [CI, "Not here yet"](ci.md#not-here-yet), not here. The coverage minimum is
-  enforced by the coverage job, not by a nightly analyzer.
+- **Release-only warnings.** They are found by `release.yml`, which builds the
+  Release presets ([CI](ci.md#toolchain-choices)), not by a nightly analyzer. The
+  coverage minimum is enforced by the coverage job, not by a nightly analyzer.
 - **The Qt application under ASan on Linux.** The per-commit Linux leg builds it
   in Debug with GCC's sanitizers; the nightly Clang leg does not install Qt.

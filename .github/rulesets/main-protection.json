@@ -37,7 +37,8 @@
           { "context": "Linux (GCC)" },
           { "context": "macOS (AppleClang)" },
           { "context": "Coverage (Linux, GCC)" },
-          { "context": "Scan dependency diff" }
+          { "context": "Scan dependency diff" },
+          { "context": "Docs build (strict)" }
         ]
       }
     }

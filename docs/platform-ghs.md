@@ -14,7 +14,7 @@ Green Hills is the vendor, INTEGRITY the operating system, MULTI (with `ccppc`,
 
 | Platform | Status | What that means |
 | --- | --- | --- |
-| `ghs508` (INTEGRITY 5.0.8) | **unbuilt** | The port is written on the shared `posix/` sources plus a small INTEGRITY delta. No GHS toolchain or INTEGRITY 5.0.8 headers exist on this machine, so it has never been compiled |
+| `ghs508` (INTEGRITY 5.0.8) | **unbuilt** | The port is written on the shared `posix/` sources plus a small INTEGRITY delta. No GHS toolchain or INTEGRITY 5.0.8 headers were available when it was written, so it has never been compiled |
 | `ghs178b` (INTEGRITY-178B) | **unbuilt** | A native port written against the supplied tree's application API, following the timing pattern of the vendor's own ARINC 615A module. Two interfaces say `unsupported` on purpose: `Threading::spawn` and the whole `FileSystem` (see below). Never compiled |
 
 Neither is a desktop: no Qt, no installers, and the tests are not built for
@@ -23,8 +23,7 @@ them (`ADL_BUILD_TESTS=OFF`). The selector refuses both until
 
 ## The two source trees
 
-Both live outside the repository, under `C:\Repos\common\integrity\` on this
-machine, and are found at configure time (see
+Both live outside the repository, in the licensed installations of the vendor's products, and are found at configure time (see
 [Finding the distributions](#finding-the-distributions)). Nothing from them is
 vendored into the repository.
 
@@ -102,18 +101,17 @@ shape that is not POSIX. That module is the evidence the port builds on:
   `FileSystem` returns `unsupported` until the product names its storage.
 
 The two deliberate `unsupported`s (spawning a thread, and files) are the parts
-a product has to supply: the tree cannot, and pretending it can would be a lie
-to whoever compiles the port first.
+a product has to supply: the tree declares no API for them, so the port says `unsupported` and does not pretend.
 
 ## The shape
 
 ```text
 src/platforms/
-  ghs/            the Green Hills/INTEGRITY glue two ports share
-                  (error mapping, Time conversion, priority map); not a platform,
-                  listed like posix/ and exempt from the fragment rule
+  ghs/            the INTEGRITY-178B native helpers (error mapping, Time
+                  conversion, priority map); not a platform, listed like posix/
+                  and exempt from the fragment rule
   ghs/std/        the C++20/23 standard-header shims a GHS toolchain can be
-                  short of, one directory per header so that a toolchain which
+                  short of (either INTEGRITY toolchain can use them), one directory per header so that a toolchain which
                   lacks ONE header sees ONE shim (expected/, span/, bit/,
                   compare/, filesystem/)
   ghs508/         INTEGRITY 5.0.8: platform.cmake, os_ghs508.cpp,
@@ -214,8 +212,7 @@ The decision, stated once so it is never re-argued file by file:
   *library* is where the gap can appear, and that is the only gap the shims
   cover.
 - **A missing standard header gets a shim on the GHS side**, never a change to
-  an interface. The five headers the interfaces include that are C++20 or
-  newer — `<expected>`, `<span>`, `<bit>`, `<compare>`, `<filesystem>` — have
+  an interface. The five headers that the interfaces and the platform sources include and that are C++20 or newer — `<expected>`, `<span>`, `<bit>`, `<compare>`, `<filesystem>` — have
   shims in `src/platforms/ghs/std/` (GHS's extensionless-header convention),
   each providing exactly what this code base uses and no more, so a use that
   appears fails to compile against the shim, which is the point.
@@ -253,12 +250,12 @@ places; neither vendors anything.
 | Input | Meaning |
 | --- | --- |
 | `INTEGRITY_ROOT` | The INTEGRITY 5.x installation: the directory holding `include/INTEGRITY.h` and the GHS runtime libraries |
-| `INTEGRITY_BSP_ROOT` | The board package (`C:\Repos\common\integrity\int508`): `bsp/`, `target/`, the prebuilt `rsimp2a/` |
+| `INTEGRITY_BSP_ROOT` | The board package (the `int508` directory of the installation): `bsp/`, `target/`, the prebuilt `rsimp2a/` |
 | `INTEGRITY_BSP` | Board name, default `rsimp2a` |
 | `INTEGRITY_TARGET_CPU` | Default `ppc7455` |
 | `INTEGRITY_VERSION` | Default `5.0.8` (also derived from an `intNNN` root) |
 | `INTEGRITY_TOOLCHAIN_ROOT` | The MULTI installation holding `ccppc`/`cxppc` |
-| `INTEGRITY178_ROOT` | The 178B tree (`C:\Repos\common\integrity\int178B`) |
+| `INTEGRITY178_ROOT` | The 178B tree (the `int178B` directory of the installation) |
 | `INTEGRITY178_BSP` | Board, default `rsimp2a-bae` |
 | `INTEGRITY178_TARGET_CPU` | Default `ppc7400` |
 

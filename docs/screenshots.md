@@ -14,8 +14,9 @@ pwsh tools/docs/capture_screenshots.ps1 -WorkDir 'C:\demo'
 ```
 
 The scratch folder shows in the pictures (the media set's path appears in the footer and the rail),
-so the published ones were made with `C:\demo-rtl-and-translations` (a folder of that name; use any short one). It takes about 45 minutes for both colour schemes and
-writes about 60 pictures, 2.8 MB in all.
+so use a short one such as `C:\demo`. The pictures now in `docs/images` were made in a folder with a
+longer name, and that name shows in the footer and the rail of the loader's pictures. `docs/images`
+holds 64 pictures, about 6.9 MB in all.
 
 What it does:
 
@@ -27,7 +28,8 @@ What it does:
 3. Runs the failures: a refused upload, a target that is not there, a silent target with the window
    closed during the operation, and every fault the mock target can inject.
 4. Opens a broken copy of the set, the sample set with a warning, the loader in Hebrew (the window mirrors), in Japanese and in Chinese (the system's fonts), and the generator and the mock target in Hebrew.
-5. Does it twice, in the light colours and in the dark.
+5. Does it twice, in the light colours and in the dark; only the pictures marked for it in the script
+   are taken in the dark (there is no dark picture of the Hebrew, Japanese and Chinese windows).
 
 The pictures are the **client area of the window** (`PrintWindow`), so they carry no title bar
 and no other program. The windows are 1280 by 900 pixels; the generator is 1280 by 1200 and the mock
@@ -36,9 +38,11 @@ target 1280 by 1320 so that their whole rail is visible. File names are stable
 
 ## How the windows are driven
 
-`tools/docs/ui_automation.ps1` is the library: Windows UI Automation finds every control by the
-accessible name the program gave it (so the script reads like the guide: "press *Upload the ticked
-loads*"), presses buttons, types into fields the way an operator does, and drives the system's file
+`tools/docs/ui_automation.ps1` is the library: Windows UI Automation finds a control by the
+accessible name the program gave it or, for many of the loader's controls, by the object name the
+program gives it (a table in the script maps the phrase the script uses, so that it reads like the
+guide: "press *Upload the ticked loads*", to the object name or to the text now on the control),
+presses buttons, types into fields the way an operator does, and drives the system's file
 and folder dialogs through the clipboard (typing long paths into them loses characters). Keys are
 sent only while a window of the program under test, or one of its own dialogs, is in front; the
 script refuses to type into anything else.
@@ -62,23 +66,34 @@ Things to know:
   (`<work folder>/failure.png`). A firewall prompt for a program that opens a port has to be
   answered by you first, and the script cannot do it.
 - **Parts.** `-Only generator`, `demo`, `faults`, `sets` or `language` (several with commas:
-  `-Only 'faults,sets'`) run a part (the later ones reuse the media set the generator made); `-Scheme light` or `dark` runs one colour scheme; `-OutDir` and
-  `-WorkDir` move the output and the scratch folder (default `build/docs-screenshots`).
-- **Size.** A window comes out as a PNG of 100 to 180 KB. When Python with Pillow is installed
-  the script re-saves each with a 256-colour palette (`tools/docs/optimise_png.py`), which keeps
-  the flat colours and the text sharp at 40 to 70 KB; `-NoOptimise` leaves them as they were taken.
+  `-Only 'faults,sets'`) run a part (the later ones reuse the media set the generator made); the
+  default is all five. (The script's own help text for `-Only` still lists "generator, mock,
+  loader"; the five names above are the ones it accepts.) `-Scheme light` or `dark` runs one colour
+  scheme; `-OutDir` and `-WorkDir` move the output and the scratch folder (default
+  `build/docs-screenshots`).
+- **Programs.** `-BuildDir` is the directory that holds `adl_app.exe`, `adl_media_gen.exe`,
+  `adl_mock_target.exe` and `adl_write_payloads.exe`; the default is
+  `build/windows-msvc-release/bin`, which is where the Release preset puts them. The script stops
+  with a message if one of the four is missing.
+- **Size.** When Python with Pillow is installed the script re-saves each picture with a
+  256-colour palette (`tools/docs/optimise_png.py`), which keeps the flat colours and the text
+  sharp; `-NoOptimise` leaves them as they were taken. In `docs/images` 24 pictures are palette
+  images of 36 to 57 KB (the 19 dark ones, and the loader in Hebrew, Japanese and Chinese and the
+  generator and mock target in Hebrew) and 40 are truecolour images of 107 to 190 KB (the other
+  light ones).
 
 ## Pictures from the test programs
 
 The offscreen QML test programs can also save a window's picture
 (`adl_app_qml_test <workbench.png> <first-run.png> <right-to-left.png> <preferences.png> <about.png>`,
-`ADL_DARK=1` for the dark scheme; see [Testing](testing.md)). The right-to-left pictures of
-[Translations](translations.md#right-to-left) are made this way: the loader's, the generator's
-(`adl_gen_qml_test <window.png> <right-to-left.png>`) and the mock target's
-(`adl_mock_qml_test <window.png> <right-to-left.png>`) are the second picture each, drawn in Hebrew
-with Noto Sans Hebrew, and then compressed with `tools/docs/optimise_png.py`. They draw the windows over simulated data
-without a desktop, which is handy in CI, but they are not what the guide shows: the guide uses the
-real programs.
+`adl_gen_qml_test <window.png> <right-to-left.png>`,
+`adl_mock_qml_test <window.png> <right-to-left.png>`, and `ADL_DARK=1` for the dark scheme; see
+[Testing](testing.md)). The right-to-left picture of each program is the window drawn in Hebrew with
+Noto Sans Hebrew. These pictures draw the windows over simulated data without a desktop, which is
+handy in CI, but they are not what the guide and the pages show: those use the real programs. The
+Hebrew pictures in [Translations](translations.md#right-to-left) (`app-workbench-hebrew.png`,
+`gen-hebrew.png` and `mock-hebrew.png`) come from the capture script, in its `language` part
+(`Invoke-LanguagePass`), not from the test programs; so do the Japanese and Chinese ones.
 
 ## Adding a picture
 

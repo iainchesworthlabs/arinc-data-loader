@@ -31,7 +31,7 @@ endif()
 
 project(ArincDataLoader
     VERSION 0.1.0
-    DESCRIPTION "An ARINC 615A and 665 compliant data loader"
+    DESCRIPTION "An ARINC 615A and 665 data loader, written from the standards"
     HOMEPAGE_URL "https://github.com/iainchesworthlabs/arinc-data-loader"
     LANGUAGES CXX)
 
@@ -59,6 +59,7 @@ include(Sanitizers)
 include(Coverage)
 include(Tracy)
 include(AdlUi)
+include(Docs)
 
 # ---------------------------------------------------------------------------
 # Options
