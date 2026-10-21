@@ -46,8 +46,9 @@ abstraction](platform-abstraction.md#area-2-memory-memoryhpp)), and its shape fo
   page](arinc615a-engine.md#memory-buffers-and-lifetimes).) The codec builds no `adl::arinc665`
   model and uses that library for the check value numbers (`CheckValueType`) only; the engine's
   `checksum.hpp` also uses its `IntegrityChecker`.
-  What is *not* checked yet is the build under `-fno-exceptions -fno-rtti`: that is a CI job
-  on the roadmap.
+  The `Zephyr (QEMU, SDK toolchain)` job compiles this library, `adl::arinc665` and the runner under
+`-fno-exceptions -fno-rtti` with the SDK's GCC, but its smoke program runs only the platform layer: no job
+runs the 615A tests without exceptions.
 - **A decoder checks lengths before it believes them.** A count is trusted only as far as
   the bytes that follow it go, so a file claiming 65535 entries in ten bytes is `truncated`
   after one step, not a loop of 65535. `tests/unit/arinc615a_robustness_test.cpp` runs every
@@ -74,7 +75,7 @@ Packets are RFC 1350's, octet mode only, with the option extension of RFCs 2347,
   decodes any block number, 0 included; checking that the number is the expected one is the
   engine's.
 - **A DATA packet** holds up to 65464 bytes, the largest block size RFC 2348 allows.
-  A longer one is `Error::bad_length`.
+  Decoding a longer one is `Error::bad_length`; encoding one is `Error::field_too_large`.
 - **Options.** `read_transfer_options()` reads the ones the library knows from the options
   of a request or OACK and ignores the rest, as 5.3.2.3.8 asks: `blksize` (8 to 65464),
   `tsize` (any 64-bit size; a read request says 0), `timeout` (1 to 255 seconds), `port`
@@ -84,8 +85,9 @@ Packets are RFC 1350's, octet mode only, with the option extension of RFCs 2347,
   own.
 - **The checksum option** (5.3.2.3.8.5) is named for the algorithm: `<n>` is the number in
   ARINC 665-3's Table 5.1 (1 = 8-bit CRC to 5 = SHA-1, `adl::arinc665::CheckValueType`).
-  See the choices below for its value. An algorithm number the table does not have is an
-  option the library does not know, and is ignored. Validating a file against the checksum
+  See the choices below for its value. A well-formed algorithm number the table does not have is an
+  option the library does not know, and is ignored; a `checksum_<n>` whose `<n>` is not a decimal number is
+  `Error::bad_option`. Validating a file against the checksum
   is the engine's job and, by 5.3.2.3.8.5, must not fail the transfer.
 - **WAIT and ABORT** (5.3.2.3.4 to 5.3.2.3.7) are error packets with error code 0 whose text
   starts `WAIT:` and a number of seconds (0 to 65535), or `ABORT:` and four hexadecimal
@@ -94,7 +96,9 @@ Packets are RFC 1350's, octet mode only, with the option extension of RFCs 2347,
   `AbortMessage`, or an ordinary `TftpError`. Text that starts with `WAIT:` or `ABORT:` but
   has no good number after it is `Error::invalid_value`, not an ordinary error, so that the
   engine can tell a broken 615A message from a plain failure. The same texts under another
-  error code are ordinary errors.
+  error code are ordinary errors. The code after `ABORT:` is any four hexadecimal characters, not only the
+  ten of Table 6.4.10-1, and is carried as it stands; the engine reports a code it does not know as an abort
+  by the target.
 
 ## FIND (Attachment 3)
 
@@ -132,7 +136,7 @@ ABORT (section 6.4). `extension()` and `kind_of_file_name()` map the twelve kind
 
 ## Places the standard is unclear
 
-The choices below are mine. Each is isolated enough to change in one place, and each is a
+The choices below are the project's. Each is isolated enough to change in one place, and each is a
 reason to check the codec against a real target or loader. The independent writer
 (`tests/golden/make_golden_615a.py`) shares them.
 

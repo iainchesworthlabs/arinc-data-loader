@@ -6,8 +6,7 @@ operating system beside them. This page is the design: the four areas
 (files, memory, threads and time, networking and message passing), why each is
 shaped as it is, how each of the operating systems provides it, and what is
 and is not known to work. The two Green Hills INTEGRITY ports have their own
-review, [the GHS review](platform-ghs.md), because they were built against the
-vendor's source trees rather than its documentation.
+review, [the GHS review](platform-ghs.md), because they were written against the vendor's source trees rather than its documentation (and have never been compiled).
 
 [Platform isolation](platform-isolation.md) is the rule that keeps the operating
 system out of the rest of the source, and how to add a platform. This page is
@@ -19,8 +18,8 @@ Be clear about this before reading further.
 
 | Platform | Status | What that means |
 | --- | --- | --- |
-| Windows | **supported** | Built and tested by CI (MSVC, the Debug preset under AddressSanitizer; CI does not build Release), and by the author |
-| Linux | **supported** | Built and tested by CI (GCC, the Debug preset under AddressSanitizer and UBSan), and in a container by the author (GCC 15, Debug under AddressSanitizer and UBSan, and Release) |
+| Windows | **supported** | Built and tested by CI (MSVC, the Debug preset under AddressSanitizer on every change; the release workflow builds and tests the Release preset), and by the maintainer |
+| Linux | **supported** | Built and tested by CI (GCC, the Debug preset under AddressSanitizer and UBSan), and by the maintainer in a container (GCC 15, Debug under AddressSanitizer and UBSan, and Release) |
 | macOS | **supported, not tried by hand** | Written to the same pattern as Linux; CI has a leg that builds and tests it (AppleClang, the Debug preset under AddressSanitizer and UBSan), and it has not been run on a Mac by hand. The places most likely to need a fix are listed under [Risks](#gaps-and-risks) |
 | QNX Neutrino | **unbuilt** | Code exists (`src/platforms/qnx`, on top of the shared `posix/` sources) and has never been compiled against the QNX headers or run. The selector refuses it unless asked (`-DADL_ACCEPT_UNBUILT_PLATFORM=ON`) |
 | INTEGRITY 5.0.8 (GHS) | **unbuilt** | Code exists (`src/platforms/ghs508`, on top of `posix/`) and has never been compiled against the INTEGRITY headers or run; no GHS toolchain exists on this project's machines. [The GHS review](platform-ghs.md) lists the places INTEGRITY's POSIX may differ |
@@ -37,22 +36,21 @@ builds nothing for it from the top-level project: the image of an RTOS is built 
 
 Only the three desktops are built and tested on their own hardware. FreeRTOS and Zephyr run on
 simulators. For QNX, VxWorks and the INTEGRITY ports this page says what the operating system offers as
-the author understands it from its documentation, without having built against it (the two INTEGRITY
+the project understands it from its documentation, without having built against it (the two INTEGRITY
 ports are reviewed against the supplied source trees in [the GHS review](platform-ghs.md)). Every such
 statement is a claim to check against the vendor's headers when a port is compiled, and the tables mark
-where the author is unsure. The FreeRTOS and Zephyr columns below were claims until those ports were
+where the page is unsure. The FreeRTOS and Zephyr columns below were claims until those ports were
 written; [the section on them](#the-freertos-and-zephyr-ports) says where the code differs from what
 the tables proposed.
 
-The choice to ship QNX as unbuilt code and the other three as designs was the
-author's, not the owner's: QNX is POSIX, so a port is a few hundred lines on
+At first QNX was shipped as unbuilt code and the other three as designs. QNX is POSIX, so a port is a few hundred lines on
 top of what the desktops already share, while a VxWorks, FreeRTOS or Zephyr
 port is written against a particular configuration (VxWorks 178C's permitted
 API subset, FreeRTOS's choice of network stack and file system, Zephyr's
-Kconfig) that nobody here has. The Green Hills INTEGRITY ports (5.0.8 on the
+Kconfig) that the project did not have. The Green Hills INTEGRITY ports (5.0.8 on the
 POSIX sources, 178B native) followed when their source trees became available;
 [the GHS review](platform-ghs.md) is where they are described. FreeRTOS and
-Zephyr were then written, at the owner's request, against the one configuration
+Zephyr were then written against the one configuration
 each that a simulator provides, and are experimental. VxWorks is still a design.
 
 ## What 615A asks of a platform
@@ -110,7 +108,7 @@ is quoted.
   application and the next instant they want to be woken. They own no thread,
   socket or clock. That is what makes them portable (the core compiles
   anywhere), testable (feed it a script of packets and times, with no network
-  and no waiting) and certifiable (no hidden concurrency).
+  and no waiting) and easier to analyse (no hidden concurrency).
 - **A thin runner** (`adl::arinc615a_runner`) is the only code that calls the platform: wait on the sockets
   until the core's next deadline, hand it what arrived, send what it returned,
   read and write the file blocks it asked for. One thread runs it.
@@ -133,7 +131,7 @@ headers, compiled once per platform and per test; not worth it.
 ### Failure is a value; nothing throws
 
 Every operation returns `Result<T>` (`std::expected<T, adl::platform::Error>`),
-and every interface function is `noexcept`. An `Error` is a code from a small
+and every service interface function is `noexcept` (the free functions of `paths.hpp` are not). An `Error` is a code from a small
 fixed set (`timeout`, `not_found`, `no_space`, `address_in_use` ...) and the
 system's own number, kept for the log and never branched on. Each platform maps
 errno, `GetLastError`, `WSAGetLastError` or its RTOS's status onto the codes
@@ -151,9 +149,7 @@ There is no iostream.
 A socket, an open file, a thread, a lock or a queue is returned as an
 `Owned<T>` (`owned.hpp`): a `std::unique_ptr` whose deleter can hand the object
 back to the service that made it. On a desktop the deleter is empty and the
-handle simply deletes the object. A platform with no heap implements
-`Recycler<T>` over fixed slots and returns handles that point at it, so the
-interface does not force a heap on the platforms that cannot have one. This was
+handle simply deletes the object. A platform with no heap can implement `Recycler<T>` over fixed slots and return handles that point at it (no port does yet), so the interface does not force a heap on the platforms that cannot have one. This was
 decided now, with the interfaces, because it is the one choice that would change
 every signature later.
 
@@ -187,10 +183,8 @@ context, with a template wrapper, so that nothing is allocated for it.
   sends as a name and nothing more (`is_safe_file_name`: no separator, no `..`, no control
   character, 254 characters at most), and the engine accepts a write only for a file the
   operation asked for, so no path of a target's choosing reaches the file system.
-- It does **not** use `std::filesystem`: no path objects, iterators, error codes or
-  allocation, and nothing that an RTOS's library lacks. (`adl::media_tree`, which
-  writes a media set to a directory, does use it, and is not part of the
-  embedded story; the platform layer is the part that must be portable to it.)
+- The `FileSystem` interface does **not** use `std::filesystem`: no path objects, iterators, error codes or
+  allocation, and nothing that an RTOS's library lacks. (`adl::media_tree`, which writes a media set to a directory, and the helpers in `paths.hpp` do use it, and are not part of the embedded story; the platform layer is the part that must be portable to it.)
 - A target with **no file system** holds its loads some other way, such as flash
   blobs in a table. It serves the engine through a small adapter that implements
   `FileSystem` over that table; `tests/fake/fake_storage.hpp` (an in-memory file
@@ -272,8 +266,7 @@ start-up" is a design goal and not yet a fact:
 - **The platform layer allocates a handle per object**: a socket, an open file, a
   thread, a lock, a queue. A desktop `new`s it (without throwing). The data path
   allocates nothing: a read, a write, a send, a receive, a queue operation touch only
-  the caller's buffers. An RTOS port avoids the handle allocation with `Owned<T>`'s
-  recycler (above) and by creating what it can at start-up.
+  the caller's buffers. An RTOS port can avoid the handle allocation with `Owned<T>`'s recycler (above; the two ports do not yet) and by creating what it can at start-up.
 - **The fake allocates freely**: it is for tests.
 
 The route to none, for the embedded target, is the one the 615A engine takes: it
@@ -523,7 +516,7 @@ over real UDP, one thread serving several sockets) run on the real host only.
 
 ## The FreeRTOS and Zephyr ports
 
-Written on the owner's request, each against the one configuration a simulator provides. Read the tables
+Each is written against the one configuration a simulator provides. Read the tables
 above for what the operating systems offer; this section is what the code does, what ran, and what did
 not. Nothing here has run on a board.
 
@@ -541,8 +534,7 @@ not. Nothing here has run on a board.
 **What was verified.** Both test programs build with the project's warning set (`-Wall -Wextra -Wpedantic
 -Werror` and the rest, on the platform layer's own sources), and run the whole platform layer suite and
 the 615A engine tests: the same Catch2 sources the desktops run (`tests/conformance`, the fake and the
-engine tests; [testing](testing.md)) and a test of a thread on a stack the caller made, 224 test cases and about
-36 200 assertions, all passing. The
+engine tests; [testing](testing.md)) and a test of a thread on a stack the caller made, 227 test cases and about 36 300 assertions, all passing. The
 conformance cases run against the real host of the port and against the fake, so the fake and the port
 were held to each other, as on the desktops. Each program was run ten times in a row without a failure,
 and built with CMake 4.2 and 4.4.
@@ -557,7 +549,7 @@ picolibc and the SDK's libstdc++, and run in QEMU, in two programs:
   queue and a 1400 byte datagram through Zephyr's stack over its loopback interface.
 - The whole test program (`tests/platform/zephyr`, `tools/ci/zephyr_qemu_suite.sh`) on a Cortex-A9
   (`qemu_cortex_a9`, the SDK's `qemu-system-xilinx-aarch64`): Catch2, the conformance suite and the 615A
-  engine tests, **224 test cases and 36 225 assertions, all passing, the same counts as on native_sim**, ten
+  engine tests, **227 test cases and 36 288 assertions, all passing, the same counts as on native_sim**, ten
   runs of one build in a row without a failure, about five seconds of QEMU each. CI job `Zephyr (QEMU, SDK toolchain)`
   runs both.
 
@@ -726,5 +718,4 @@ The ones that matter most, in the order they are likely to bite:
 6. **No wall clock on most RTOS targets**; `DNLD_INFO` dates and log timestamps
    need a source from the product.
 7. **The standard is silent on threads, memory and priorities**, so the whole
-   threading model here is this project's choice, and the owner may want a different
-   one for a certified target.
+   threading model here is this project's choice, and a different one may be wanted for a certified target.

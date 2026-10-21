@@ -30,17 +30,16 @@ src/platforms/
   freertos/ zephyr/          experimental: built and tested on a simulator (docs/platform-abstraction.md)
   vxworks/                   a platform.cmake only: a design, no code
   posix/                     the implementations the POSIX systems share
-  ghs/                       the implementations the INTEGRITY platforms share
+  ghs/                       the INTEGRITY-178B native helpers, and the standard-header shims (ghs/std/)
   detail/                    portable helpers every platform links
   CMakeLists.txt             builds adl_platform from what the fragment names
 tests/platform/              the fragment and selector checks, and test cases only one platform can run;
-                             the programs that test freertos/ and zephyr/ (zephyr/, freertos/, rtos_support/)
+                             the programs that test freertos/ and zephyr/ (zephyr/, zephyr_smoke/, freertos/, rtos_support/)
 tests/conformance/           the same checks against the real host and the fake
 tests/fake/                  the fake platform
 ```
 
-When two platforms would otherwise copy an implementation, put it in the `posix/`
-directory (or `ghs/` for the INTEGRITY ones) beside them and let each platform's
+When two platforms would otherwise copy an implementation, put it in the `posix/` directory beside them (the INTEGRITY 5.0.8 port reuses it) and let each platform's
 `platform.cmake` name the file. Neither `posix/` nor `ghs/` is a platform, and
 neither needs a `platform.cmake` of its own. The POSIX
 systems differ in a few places (a condition variable's clock, thread priorities,
@@ -93,6 +92,7 @@ The contract:
 | Whether there is code to build and CI runs it (`supported`), CI runs it on a simulator only (`experimental`), the code has never been compiled (`unbuilt`), or there is only a design (`design-only`) | `ADL_PLATFORM_STATUS` | `cmake/Platform.cmake`, which refuses a build for the last, and for `unbuilt` unless `ADL_ACCEPT_UNBUILT_PLATFORM` is on |
 | Optional: where the platform's image is built, for a platform the top-level project does not build | `ADL_PLATFORM_PROJECT` | `cmake/Platform.cmake`, which refuses to configure and says where to go |
 | Where an installed Qt lives | `ADL_PLATFORM_QT_SEARCH_ROOTS`, `ADL_PLATFORM_QT_ARCH_DIRS` | `cmake/FindQt6.cmake` |
+| For a desktop only: where the programs and the documents are installed, which CPack generators make the runtime and the development package, and the hooks that install a program and configure packaging | `ADL_PLATFORM_INSTALL_BINDIR`, `ADL_PLATFORM_INSTALL_DOCDIR`, `ADL_PLATFORM_PACKAGE_RUNTIME_GENERATORS`, `ADL_PLATFORM_PACKAGE_DEVELOPMENT_GENERATORS`, `adl_platform_install_app(<target> <qml_dir>)`, `adl_platform_configure_packaging()` | `cmake/AdlInstall.cmake`, `cmake/AdlPackage.cmake`; checked by `cmake/PlatformContract.cmake` |
 | What makes a Qt application a program of this desktop (no console window on Windows, a bundle on macOS) | `adl_platform_configure_app(<target>)` | `src/app`, `src/media_gen` and `src/mock_target` `CMakeLists.txt` |
 | Qt's runtime beside a program, including the QML modules in `<qml_dir>` (`windeployqt` on Windows) | `adl_platform_deploy_qt_runtime(<target> <qml_dir>)` | the same three, and the `CMakeLists.txt` of `tests/app`, `tests/media_gen`, `tests/mock_target` and `tests/ui` |
 
@@ -115,9 +115,7 @@ they stay in `cmake/CompilerWarnings.cmake`, `Sanitizers.cmake` and
    Copy the closest existing platform's and change what differs.
 2. Add a branch for it in `cmake/Platform.cmake`, and its name to the choices of
    `ADL_TARGET_PLATFORM` if it is a cross build.
-3. If it has a test case only it can run, add `tests/platform/<name>/` for it (optional,
-   and none exists today: the checks in `tests/platform/` are CMake scripts that apply to
-   every platform).
+3. If it has a test case only it can run, add `tests/platform/<name>/` for it (optional: `freertos`, `zephyr` and `zephyr_smoke` are examples; the other checks in `tests/platform/` are CMake scripts that apply to every platform).
 
 That is the source tree. Three things outside it still carry platform names,
 because their formats cannot read a CMake variable: the configure, build and

@@ -58,7 +58,7 @@ standard says "should"). Section numbers are those of the 665-3 edition in
 | 2.2.3.1.16-.18 | Load Type Description, Load Type ID; absent when the pointer is 0 | `LoadType` | `header_file_test`, `limits_test` |
 | 2.2.3.1.20-.22 | Target HW IDs (count, each length and text) | `HeaderFile::target_hardware_ids` | `header_file_test`, `limits_test` |
 | 2.2.3.1.24-.29 | Target HW IDs with positions, each with its positions; the ID should be in the list | `TargetHardware`, `check_header_file` | `header_file_test`, `golden_test` |
-| 2.2.3.1.32-.42 | Data files: relative pointer, name, PN, length in words, CRC-16, length in bytes (64 bits), check value | `DataFile` | `header_file_test` ("length in words and in bytes"), `load_test`, `golden_test` |
+| 2.2.3.1.32-.42 | Data files: relative pointer, name, PN, length in words, CRC-16, length in bytes (64 bits), check value | `DataFile` | `header_file_test` ("a data file's length is given in words and in bytes"), `load_test`, `golden_test` |
 | 2.2.3.1.31 | At least one data file | **error** on writing and reading | `header_file_test`, `load_test` |
 | 2.2.3.1.37, .39 | A half-word at the end of a data file counts as a word; words and bytes must agree | `words_of`; disagreement is an **error** on reading | `header_file_test` |
 | 2.2.3.1.44-.54 | Support files: pointer, name, PN (may be empty), length in bytes (32 bits), CRC-16, check value | `SupportFile` | `header_file_test`, `load_test`, `golden_test` |
@@ -114,8 +114,7 @@ from another tool.
    in the order the header lists them (`load.cpp`, `load_check_value`/`load_crc`).
    The Load CRC covers the header but for its last two words (the Load CRC); the
    Load Check Value covers the header up to its own fields, so it leaves out the
-   Header File CRC and the Load CRC too. **Confirmed by the project owner as the
-   intended order** (header, data files, support files). That is a decision about
+   Header File CRC and the Load CRC too. **The maintainer confirmed this as the intended order** (header, data files, support files). That is a decision about
    what to build, not a check against another tool's files, so this remains the
    most likely place to disagree with one.
 2. **The support file entry.** Table 2.2.3-1 and the field descriptions give a
