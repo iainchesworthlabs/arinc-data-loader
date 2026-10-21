@@ -81,3 +81,5 @@ Open an issue on the project's GitHub repository with the bug report form. It as
 ### Where do I report a security problem?
 
 Privately, not as a public issue: open the repository's Security tab and choose "Report a vulnerability". Without a GitHub account, open an issue that says only that there is a security matter, with no details, and the maintainer will arrange a private channel. Do not attach a load, media set or capture taken from a real aircraft or a customer's equipment. The policy counts crashes and memory faults from crafted data, the same from a message sent to the loader's control port, a file name or path that makes the loader read or write outside its folder, and flaws in the build and release files. The programs do not authenticate a target or encrypt anything, because ARINC 615A over TFTP has neither, and a report that depends on that is a limit of the protocol. See [SECURITY.md](../SECURITY.md).
+
+<!-- documentation-only change, for a test of CI -->
