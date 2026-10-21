@@ -369,7 +369,7 @@ function Invoke-DemoPass {
         Wait-Idle $a 20000
         Save-Shot $app 'app-find-results' -Dark
         Fill-Field $a 'Target address' '127.0.0.1'
-        Fill-Field $a 'Target THW_ID_POS' 'HNPFMS_L'
+        Fill-Field $a 'Target hardware identifier and position' 'HNPFMS_L'
 
         # ---- the media set
         Choose-MediaSet $a $setDir
@@ -473,7 +473,9 @@ function Start-Loader {
     Start-Sleep -Milliseconds 800
     # The last media set comes back with the workbench, but not the operator's ticks.
     if (Test-Control -Window $a -Name 'Tick every load' -Type Button) {
-        Wait-Control $a -Name 'CHECKED' -TimeoutMs 20000 | Out-Null
+        # The word is in the window's language: in English it is waited for, in any other the read of
+        # the set is given time (the controls are found by their identifiers, which do not change).
+        try { Wait-Control $a -Name 'CHECKED' -TimeoutMs 8000 | Out-Null } catch { Start-Sleep -Seconds 4 }
         Click-Named $a 'Tick every load' Button
     }
     return $app
