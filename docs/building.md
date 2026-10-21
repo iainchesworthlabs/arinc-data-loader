@@ -37,8 +37,24 @@ machine-wide. If you cloned without `--recurse-submodules`, the first configure
 initialises it for you when it finds a `.git` directory; or do it yourself:
 
 ```sh
-git submodule update --init --depth 1 deps/vcpkg
+git submodule update --init deps/vcpkg
 ```
+
+The submodule is cloned with its whole history (about 125 MB), and not with `--depth 1`. The manifest's
+`builtin-baseline` (`vcpkg.json`) is a vcpkg commit other than the one the submodule pins, and vcpkg
+reads that commit and the older versions of each port out of the submodule's history. In a shallow
+submodule the first configure of a build with tests (the default, which needs Catch2) stops with
+"failed to `git show` versions/baseline.json". If `deps/vcpkg` is shallow already, deepen it and
+configure again:
+
+```sh
+git -C deps/vcpkg fetch --unshallow
+cmake --fresh --preset <name>
+```
+
+A clone made this way needs nothing else for a libraries-only build, and no shared store:
+`cmake --preset <name> -DADL_BUILD_APP=OFF` downloads and builds Catch2 on the first configure and
+needs no Qt.
 
 ## Sharing vcpkg between checkouts
 

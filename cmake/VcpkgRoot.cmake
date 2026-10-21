@@ -88,7 +88,9 @@ function(_adl_vcpkg_fail)
         "${what}\n"
         "\n"
         "Options, from the least to the most setup:\n"
-        "  * git submodule update --init --depth 1 deps/vcpkg      (one copy per checkout)\n"
+        "  * git submodule update --init deps/vcpkg      (one copy per checkout, with its full history:\n"
+        "    not --depth 1, since vcpkg reads the manifest baseline and the older port versions from it;\n"
+        "    if deps/vcpkg is shallow already, git -C deps/vcpkg fetch --unshallow)\n"
         "  * set ICL_VCPKG_STORE to a directory shared by your checkouts and repositories (a\n"
         "    copy per pinned vcpkg commit, made on first use; see docs/building.md)\n"
         "  * set ADL_VCPKG_ROOT to a vcpkg checkout you manage yourself\n")
@@ -275,9 +277,12 @@ function(adl_resolve_vcpkg source_dir)
         if(NOT EXISTS "${root}/${rel}")
             find_package(Git QUIET)
             if(GIT_FOUND AND EXISTS "${source_dir}/.git" AND NOT IS_SYMLINK "${root}")
+                # The whole history, not --depth 1: the manifest's builtin-baseline is a commit
+                # other than the pin, and vcpkg reads it and the older versions of each port out
+                # of this repository's history (docs/building.md, "Clone").
                 message(STATUS "Initialising vendored vcpkg submodule (deps/vcpkg)")
                 execute_process(
-                    COMMAND "${GIT_EXECUTABLE}" submodule update --init --depth 1 -- deps/vcpkg
+                    COMMAND "${GIT_EXECUTABLE}" submodule update --init -- deps/vcpkg
                     WORKING_DIRECTORY "${source_dir}"
                     RESULT_VARIABLE rc)
                 if(NOT rc EQUAL 0)
