@@ -185,8 +185,8 @@ simulators in CI**, and a selector that takes `-DADL_TARGET_PLATFORM`. The
 structure is meant to make each a new platform and not a new codebase. What is
 left for FreeRTOS and Zephyr is a board: run the suite on one, settle the
 priority plan against its network threads, put the loader and a target on a real
-link (FIND's broadcast, fragmentation of a 65 KB block), run on real flash, and
-build the libraries with the SDK's toolchain, and if the product has the
+link (FIND's broadcast, fragmentation of a 65 KB block), run on real flash, and, for FreeRTOS, build the libraries with a cross toolchain (the Zephyr job already builds
+them with its SDK's), and if the product has the
 alternatives, add FreeRTOS+TCP and a FAT file system as ports of
 `network_freertos.cpp` and `files_freertos.cpp`. For the rest:
 

@@ -79,7 +79,7 @@ reason for each, the local presets and the suppression rules are in
 ## Documentation site
 
 The pages in `docs/` are built into a static site with MkDocs and Material (`mkdocs.yml` at the root of the
-repository) and published to GitHub Pages at <https://iainchesworthlabs.github.io/arinc-data-loader/>. The
+repository) and, from the first release on, published to GitHub Pages at <https://iainchesworthlabs.github.io/arinc-data-loader/>. The
 Markdown stays the source and stays readable on GitHub; nothing in a page is written for the site.
 
 Locally:

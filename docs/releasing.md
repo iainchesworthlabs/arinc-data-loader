@@ -153,7 +153,7 @@ works only once a release has put `release.yml` on `main`; the branch push works
 | Environment `github-pages` | Settings, Environments | Deployment branches: `main` only. No secrets, no reviewer |
 | Variable `PUBLISH_DOCS` | Settings, Secrets and variables, Actions, Variables | `true`. Until it is set, `docs.yml` builds the site on `main` but does not publish it |
 
-`tools/repo/apply_release_environments.ps1` makes both environments and, with `-KeyFile` and
+`tools/repo/apply_release_environments.ps1` makes the two release environments (`release-signing` and `release`; `github-pages` is made by switching Pages on) and, with `-KeyFile` and
 `-PassphraseFile`, stores the two secrets (a dry run unless `-Apply` is given; the key and passphrase are
 read from files and go to `gh secret set` on its standard input). The label is `gh label create
 no-changelog`.

@@ -31,7 +31,7 @@ git clone --recurse-submodules https://github.com/iainchesworthlabs/arinc-data-l
 cd arinc-data-loader
 ```
 
-vcpkg is the git submodule `deps/vcpkg` (the labs' fork of vcpkg), so the
+vcpkg is the git submodule `deps/vcpkg` (a fork of vcpkg that the project's organisation keeps), so the
 dependency provider is pinned by the commit and nothing has to be installed
 machine-wide. If you cloned without `--recurse-submodules`, the first configure
 initialises it for you when it finds a `.git` directory; or do it yourself:
