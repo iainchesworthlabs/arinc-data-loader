@@ -17,7 +17,7 @@ it done.
 | --- | --- |
 | Name the media set | The media set part number, the number of members (1 to 255), the output folder, and two check value types for the lists: the one `FILES.LUM` records for **each file it lists**, and the one for **`FILES.LUM` itself** (`adl::arinc665::CheckValueType`: none, 8-bit CRC, 16-bit CRC, 32-bit CRC, MD5, SHA-1). |
 | Describe the load | The load part number, the header file name (defaulted to the part number's first three characters and `.LUH`, and following the part number until edited), the load type (none, or one of operational software, navigation database, aeronautical database and test software, with their codes), the load check value type, and the target hardware IDs the header file names (added and removed one at a time). |
-| Choose the files | A multi-select file dialog fills a table, in the order they were added (Move up and Move down change it; Clear and Remove take files out). Each row is a data file or a support file, with its name on the media set (editable, defaulting to the file's own name), the check value the header file records for it and its size. Names are checked against the standard's rules (`adl::arinc665`'s naming checks, which differ for data and support files) as they are typed, and a name used twice (in any case) is refused. At least one data file is needed. |
+| Choose the files | A multi-select file dialog fills a table, in the order they were added (Move up and Move down change it; Clear and Remove take files out). Each row is a data file or a support file, with its name on the media set (editable, defaulting to the file's own name), the check value the header file records for it and its size. Names are checked against the standard's rules (`adl::arinc665`'s naming checks, which differ for data and support files) and against the folder tree's stricter portable name rule (`is_portable_file_name`, which also refuses `* ? " < > |`, a trailing dot or space and device names) as they are typed, and a name used twice (in any case) is refused. The header file name and the batch file name are checked against both rules too. At least one data file is needed. |
 | A batch, optionally | A batch file naming the loads of the set (one target per hardware ID, each naming the set's load), with its own part number; its file name follows the same first-three-characters rule with `.LUB`. |
 | Generate | Reads the files, builds the load, places it (header and support files on the first member; with more than one member the data files are spread round-robin, each in a subfolder named after the load's part root directory), builds the members and writes the tree under the output folder in a fresh folder named after the media set part number (a counter is appended rather than overwrite). |
 | Verify | Reads the set back from the disk it was written to (`read_media_set_tree`, `read_media_set`): an error fails the generation; findings (where the set departs from the standard's recommendations) do not fail it. A set that reads back without an error is reported done. When there are findings, the result says how many differences from the standard's recommendations were found ("N difference(s) from the standard's recommendations"); the list itself is not shown in the window. |
@@ -45,8 +45,8 @@ The definition of the set does not scroll away with the file table; the file tab
 changes (the rail scrolls itself when the window is short). The action is always the filled button at
 the bottom right (`Generate media set`, and `Cancel` beside it while a job runs), and the check-value
 choice is visible as its own `NO CHECK VALUES` chip, once there are files, when the three pickers (each
-listed file, `FILES.LUM` itself and the load) are all `none`; it does not look at the per-file check
-values of the table. The window follows the desktop's light or dark scheme, and remembers its size
+listed file, `FILES.LUM` itself and the load) are all `none` and no row of the table has a check
+value (`SourceFileModel::anyCheckValue`). The window follows the desktop's light or dark scheme, and remembers its size
 and place.
 
 ### States and messages
@@ -63,7 +63,7 @@ note that the job was cancelled.
 
 `GeneratorModel::resultState` is 0 (no job yet), 1 (written and verified), 2 (failed) or 3 (the
 operator cancelled it; nothing was written). The window reads the state, not the text. Any later change to the form (a field, a file, the output folder) clears the outcome back to 0, so the
-header and banner never describe a form that is no longer on screen.
+header and banner never describe a form that is no longer on screen. Changing the language is not a change to the form: the outcome stays, in the new language, with its `Open folder` button.
 
 The file table's header and rows share one column model (the name takes the room that is left; kind,
 check value, size and `Remove` are fixed widths), so they stay aligned at any window width.
@@ -75,7 +75,8 @@ check value, size and `Remove` are fixed widths), so they stay aligned at any wi
   progress reported as bytes read, and a cancel that is an atomic flag polled between the steps.
 - **Inputs are validated before anything is written.** The part numbers, header file name,
   hardware IDs and file names are checked against the same functions the library uses
-  to report where a set departs from the standard, and Generate does not start
+  to report where a set departs from the standard (and, for a file name, against
+  `is_portable_file_name`, the rule `adl::media_tree` applies when it writes), and Generate does not start
   while any of them is wrong. Nothing is written until every input is valid, and nothing overwrites
   anything (`write_media_set_tree` refuses a non-empty member folder; the generator picks a
   fresh folder instead).

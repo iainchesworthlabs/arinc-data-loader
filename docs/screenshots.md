@@ -15,8 +15,10 @@ pwsh tools/docs/capture_screenshots.ps1 -WorkDir 'C:\demo'
 
 The scratch folder shows in the pictures (the media set's path appears in the footer and the rail),
 so use a short one such as `C:\demo`. The pictures now in `docs/images` were made in a folder with a
-longer name, and that name shows in the footer and the rail of the loader's pictures. `docs/images`
-holds 64 pictures, about 6.9 MB in all.
+longer name, and that name shows in the footer and the rail of the loader's pictures. They were
+also taken before the footer of the generator and the mock target got the same state mark as the
+loader's (a play mark or a dot, in place of a 6 px round dot), so their footers show the older
+mark. Neither has been retaken. `docs/images` holds 64 pictures, about 6.9 MB in all.
 
 What it does:
 
@@ -67,10 +69,9 @@ Things to know:
   answered by you first, and the script cannot do it.
 - **Parts.** `-Only generator`, `demo`, `faults`, `sets` or `language` (several with commas:
   `-Only 'faults,sets'`) run a part (the later ones reuse the media set the generator made); the
-  default is all five. (The script's own help text for `-Only` still lists "generator, mock,
-  loader"; the five names above are the ones it accepts.) `-Scheme light` or `dark` runs one colour
-  scheme; `-OutDir` and `-WorkDir` move the output and the scratch folder (default
-  `build/docs-screenshots`).
+  default is all five. The script's own help describes each part (`Get-Help` with the script's
+  path and `-Parameter Only`). `-Scheme light` or `dark` runs one colour scheme; `-OutDir` and
+  `-WorkDir` move the output and the scratch folder (default `build/docs-screenshots`).
 - **Programs.** `-BuildDir` is the directory that holds `adl_app.exe`, `adl_media_gen.exe`,
   `adl_mock_target.exe` and `adl_write_payloads.exe`; the default is
   `build/windows-msvc-release/bin`, which is where the Release preset puts them. The script stops

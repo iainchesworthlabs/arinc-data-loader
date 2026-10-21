@@ -32,7 +32,10 @@ target (the chip says **NOT SET**). The log says "No target is selected; looking
 exactly one target answers, it is taken and the operation starts. If none answers, or several do,
 nothing starts and no dialog opens: the answers are listed under **FOUND** and the log says, for
 example, "2 targets answered." Pick a target from the list, or type one, and start the operation
-again.
+again. If exactly one target answers but its `THW_ID_POS` is one the loader cannot use (a download
+also needs one that can name a folder: no colon, asterisk, question mark, quotes, angle brackets or
+bar), nothing starts and a failure dialog opens that gives the `THW_ID_POS` and the rule; the
+loader does not look again.
 
 ## Name a target by hand
 

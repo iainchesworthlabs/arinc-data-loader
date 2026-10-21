@@ -91,9 +91,8 @@ Rules:
 1. `accent` never carries a label. Signal light is 4.20:1 on white; `accentFill`/`accentText` is
    the measured pair (6.46:1 for the light fill, 6.04:1 for the dark one).
 2. No second hue. Status is a word, a glyph and a tone, not a traffic light, and never colour alone.
-3. The circles are the neutral dot glyph (a 4 px disc inside a 10 px mark, drawn by `ToneGlyph` in a
-   chip and in the loader's status bar) and the 6 px round dot at the start of the status bar of the
-   generator and the mock target. Everything else is square.
+3. The only circle is the neutral dot glyph (a 4 px disc inside a 10 px mark, drawn by `ToneGlyph`
+   in a chip and in the status bar of each window). Everything else is square.
 
 ## Type
 
@@ -140,7 +139,9 @@ chip) that grows with its label; the chrome bands under Geometry are fixed.
   rail and the work area, the border of a dialog and of the chosen row of a list; 3 px active-tab
   underline (the activity dock's tabs).
 - Window: all three open at 1280×900. The loader's minimum is 1000×620, so that the 76 px action
-  bar stays on screen on a 1366×768 display at 125% scaling and on a 1920×1080 display at 150%
+  bar stays on screen on a 1920×1080 display at 150% scaling (1280×720 logical pixels). A
+  1366×768 display at 125% has about 1093×614, which is short of the minimum height before the
+  taskbar is taken off, so there the bottom of the window is off the screen
   (the generator and the mock target keep 1120×760 until they are brought down too).
   `install_window_state()` (`src/ui/window_state.cpp`) restores the saved size, clamped between the
   minimum and the screen's available area less 48 px wide and 80 px high, and restores the saved
@@ -172,7 +173,7 @@ chip) that grows with its label; the chrome bands under Geometry are fixed.
 | `AppSpinBox` | 32 px, `neutral100`, mono value without digit grouping, two steppers side by side on the right (− then +), each 30 px wide and as tall as the box. The value editor carries the control's accessible name; 2 px focus ring. |
 | `SegmentedControl` | Row of 30 px floor, 90 px minimum segments; the chosen one `accentFill` with an `accentText` label, the rest transparent with a 1 px divider. Each segment is a button (`objectName` from the segment's `name`). One tab stop for the group (the chosen segment); Left/Right (swapped when mirrored), Up/Down, Home and End choose the neighbour and move the focus onto it, wrapping; a click on the chosen segment does not clear it. `tabs: true` draws it as a 42 px tab strip (the activity dock): no boxes, the chosen tab underlined by 3 px of accent, roles `PageTabList` and `PageTab`. |
 | `AppHeader` | 64 px on `surface`, 4×30 accent bar, mark (`appCode`, 22 px ExtraBold: `ADL`, `GEN` or `MOCK`), product name and uppercase mono 10 subtitle, right-hand actions, 2 px bottom rule. |
-| `AppStatusBar` | 28 px on `surface`, 1 px top rule; the window supplies the children left to right. The loader puts a 10 px state mark (a `ToneGlyph`: busy, cross, check or dot) and a mono 11 state word first; the generator and the mock target put a 6 px round dot (a `Rectangle`, not a `ToneGlyph`: accent while working or serving, `neutral600` otherwise) and their own mono 11 text first. Each window puts `v<version>` last. |
+| `AppStatusBar` | 28 px on `surface`, 1 px top rule; the window supplies the children left to right. The loader puts a 10 px state mark (a `ToneGlyph`: busy, cross, check or dot) and a mono 11 state word first; the generator and the mock target put a 10 px state mark too (a `ToneGlyph`: busy while generating or serving, dot otherwise) and their own mono 11 text first. Each window puts `v<version>` last. |
 | `RailBlock` | mono 11 `accentInk` ordinal, uppercase DemiBold 11 label with 1.3 px tracking, 2 px rule, content column at 12 px gaps. |
 | `SectionHeader` | optional mono 12 ordinal, uppercase bold 12 label, 2 px rule (`rule: false` hides it), mono 12 summary; title and summary elide. Used in the dialogs, the upload and download panels and the mock target's right-hand pane. |
 | `Card` | `surface`, 1 px border, 16 px padding; default box, `flat` or `framed`. No window uses it at present. |
@@ -182,7 +183,7 @@ chip) that grows with its label; the chrome bands under Geometry are fixed.
 | `EmptyState` | `neutral100`, 1 px border, 24×2 accent rule, 15 px title, one sentence, actions. |
 | `TaskProgress` | 4 px `progressTrack` track, `progressFill` fill; indeterminate is a 30% segment that sweeps, and stays at the left, still, under reduced motion. |
 | `BusyMark` | three 5 px `neutral600` squares phased; still at full strength under reduced motion. |
-| `LogView` | mono 11 time in a 62 px column (`showTime`), then the severity as a word (INFO, NOTE, WARN, ERROR) with the tone glyph for a warning or an error, then the 12 px message in the tone's page ink. A tab stop with a 2 px ring: Up, Down, Page Up, Page Down, Home and End scroll it, Ctrl+C copies every line as `time  SEVERITY  message` (in the loader; see the note below the table). Follows the end until the operator scrolls away from it; says "No activity yet." when empty. |
+| `LogView` | mono 11 time in a 62 px column (`showTime`), then the severity as a word (INFO, NOTE, WARN, ERROR) with the tone glyph for a warning or an error, then the 12 px message in the tone's page ink. A tab stop with a 2 px ring: Up, Down, Page Up, Page Down, Home and End scroll it, Ctrl+C copies every line as `time  SEVERITY  message` (Cmd+C on a Mac). Follows the end until the operator scrolls away from it; says "No activity yet." when empty. |
 | `FocusRing` | 2 px `focusRing`, 2 px outside the control, z 100. Fields, combos, spin boxes, check boxes, buttons, segments, FIND answers and the scrolling lists all draw it; a list that clips draws it inside its edge. |
 | `AppDialog` | 2 px `text` border on `surface`, 24 px padding, 640 px wide unless the dialog sets a width, 56 px heading band with a 2 px rule, 64 px footer with one primary and an optional secondary to its left. Content is a named `content` property. `standardButton(role)` maps the affirmative roles to the primary and Cancel and No to the secondary, for the window tests. It opens with the focus inside it: on `initialFocusItem` (the first field), else on the primary, or on the secondary with `initialFocus: "secondary"`. Return or Enter in the body presses the primary unless `enterAccepts` is false; Esc closes it; on close the focus returns to the control that opened it. |
 | `ToneGlyph` | A 12 px canvas that draws the tone's shape: `check`, `warning` (triangle with a bar), `cross`, `busy` (play mark) or `dot`. Drawn as paths, since no bundled face carries them. |
@@ -194,11 +195,11 @@ chip) that grows with its label; the chrome bands under Geometry are fixed.
 | `AboutDialog` | The one About page: the wordmark, one paragraph (`blurb`), the build provenance, the licence statement, the repository link and a Licences button that opens `LicencesDialog` (`showLicences`). A window passes `appCode`, `appName` and `blurb`, and may put an extra section inside it. |
 | `LicencesDialog` | An `AppDialog` ("Third-party licences", Close) showing the embedded `NOTICES.txt` in a read-only mono 12 text area, at most 780×660. Opened from About > Licences in all three windows; says so in a sentence if the build carries no notices. |
 
-`LogView` copies by role number: severity, text and time are the loader's `EventModel` roles
-`Qt::UserRole` + 1, + 2 and + 3. The mock target's `ActivityModel` numbers its roles from
-`Qt::UserRole` (severity, time, text), so in the mock target Ctrl+C leaves out the time and writes
-INFO for every line. The list on screen is not affected, since it reads the roles by name. Only the
-loader's copy is tested (`tst_navigation.qml`).
+`LogView` copies by role number: severity, text and time are the roles `Qt::UserRole` + 1, + 2 and
++ 3, which the loader's `EventModel` and the mock target's `ActivityModel` both use (the list on
+screen reads them by name). A model that feeds a `LogView` has to number its roles the same way.
+The loader's copy is tested in `tst_navigation.qml`, the mock target's in `adl_mock_qml_test`, and
+both models' role numbers in `models_test.cpp` and the mock target's `model_test.cpp`.
 
 Rules for composition:
 
@@ -302,7 +303,7 @@ keep their own names (`outputDirectory`); this is what the person reads.
 
 | Say | Not | Where it applies |
 |---|---|---|
-| **folder** | directory | Anything on the computer's file system the person chooses or opens: the output folder, the download folder, the storage folder, the media set folder ("one folder per member"). The standard's own words (the part root directory) stay when quoting the standard. Three messages of the loader still say directory: "%1 is not a directory" and "there are already %1 download directories for %2 in %3" (`src/app/core/src/download_directory.cpp`), and the `THW_ID_POS` hint "... a character a directory name cannot hold" (`src/app/core/src/engine_worker.cpp`). |
+| **folder** | directory | Anything on the computer's file system the person chooses or opens: the output folder, the download folder, the storage folder, the media set folder ("one folder per member"). The standard's own words (the part root directory) stay when quoting the standard. |
 | **Choose folder...** | Browse, Change, Choose directory, Choose output directory | The button that opens a file or folder dialog. One verb, **Choose**, whether or not a value is set. A list that grows says **Add files...**. |
 | **hardware ID** | hardware identifier | A target's hardware ID as the standard names it (the generator's "Target hardware IDs", the mock target's "Hardware ID", the FIND answer). |
 | **THW_ID_POS** | hardware ID and position | The loader's address string, `<hardware ID>_<position>` (`HNPFMS_L`), where the person types or reads it whole. |

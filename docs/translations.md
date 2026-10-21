@@ -71,10 +71,9 @@ dialogs (the file and folder pickers follow the system's language).
 1. Write it with `qsTr()` (QML) or, in C++, with `tr()` of a class with `Q_OBJECT` or
    `Q_DECLARE_TR_FUNCTIONS`; text that outlives the moment is a `Message`. A count is a `%n`
    message with "(s)" for the plural, with the count given. Do not build a plural with
-   `n == 1 ? a : b`. One place builds a plural that way: the headline of the Upload view
-   (`src/app/qml/UploadPanel.qml`) chooses between two plain messages, "Upload 1 load to %1" and
-   "Upload %1 loads to %2", by `selectedLoadCount === 1`. Each is translated on its own and
-   neither follows the plural forms of the language. It is an exception, not a pattern to copy.
+   `n == 1 ? a : b`: two plain messages are translated on their own and neither follows the plural
+   forms of the language. The headline of the Upload view is one such message,
+   `qsTr("Upload %n load(s) to %1", "", n)`.
 2. `cmake --build <dir> --target update_translations` extracts every catalogue. A new or reworded
    string arrives `unfinished`.
 3. Give it its translation in the seven languages (and its two forms in `_en.ts` if it is plural),

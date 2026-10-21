@@ -52,7 +52,7 @@ exist.
 | find (button) | Rechercher (FIND est conservé) |
 | output folder | dossier de sortie |
 | storage folder | dossier de stockage |
-| directory vs folder | dossier (the English says "folder" in the applications, with three exceptions in the loader whose source text says "directory"; `adl_app_fr.ts` translates those three with « répertoire »: "%1 is not a directory", "there are already %1 download directories for %2 in %3" and the `THW_ID_POS` hint) |
+| directory vs folder | dossier (the English says "folder" throughout the applications, and `adl_app_fr.ts` has « dossier » for it everywhere) |
 | typography | NBSP avant : ; ? ! % et à l’intérieur de « », apostrophe typographique ’, infinitif pour les boutons |
 
 ## German (`de`)
@@ -117,7 +117,7 @@ exist.
 | media set | conjunto de medios |
 | member | miembro |
 | batch | lote |
-| target | destino (21 messages of the loader catalogue say "objetivo" instead, for example "Buscar objetivos") |
+| target | destino |
 | mock target | destino simulado (nombre del programa sin traducir: ARINC Mock Target) |
 | loader | cargador |
 | generator | generador |
@@ -125,7 +125,7 @@ exist.
 | upload | subida / subir |
 | download | descarga / descargar |
 | Information (operation) | Información |
-| abort | abortar (see the note below the table) |
+| abort | abortar (cancel is cancelar) |
 | status | estado |
 | status file | archivo de estado |
 | check value | valor de comprobación |
@@ -137,7 +137,7 @@ exist.
 | log | registro |
 | activity log | registro de actividad |
 | preferences | Preferencias |
-| file | archivo (9 messages of the loader catalogue say "fichero" instead) |
+| file | archivo |
 | directory | directorio |
 | folder | carpeta |
 | tick (check box) | marcar / casilla |
@@ -158,17 +158,9 @@ exist.
 | typeface | tipografía |
 | firewall | cortafuegos |
 
-Where `adl_app_es.ts` differs from the table:
-
-- **abort and cancel are not distinct.** The loader's "Abort" button and "Abort the operation" are
-  "Cancelar" and "Cancelar la operación", the same word as "Cancel". "Abortar" is the verb in
-  "Abort and close" ("Abortar y cerrar") and in the mock target's fault-injection labels, and the
-  outcomes say "abortado". The [design system](design-system.md#words) asks for different words for
-  Cancel and Abort.
-- **target** is "objetivo" in 21 loader messages (the table says "destino"), for example
-  "Find targets" is "Buscar objetivos".
-- **file** is "fichero" in 9 loader messages (the table says "archivo"), for example "Choose none of
-  the files" is "No elegir ningún fichero".
+Abort and cancel are different words, as the [design system](design-system.md#words) asks: the
+loader's "Abort" button and "Abort the operation" are "Abortar" and "Abortar la operación" (and
+"Abort and close" is "Abortar y cerrar"), and "Cancel" is "Cancelar".
 
 ## Hebrew (`he`)
 
@@ -188,7 +180,7 @@ Where `adl_app_es.ts` differs from the table:
 | upload | העלאה |
 | download | הורדה |
 | Information (operation) | מידע |
-| abort / aborted | הפסקה / הופסק (see the note below the table) |
+| abort / aborted | הפסקה / הופסק (the verb is הפסק; cancel is ביטול) |
 | cancel | ביטול |
 | status | סטטוס |
 | mode | מצב |
@@ -214,11 +206,9 @@ Where `adl_app_es.ts` differs from the table:
 | peer | הצד השני |
 | think time | זמן חשיבה |
 
-Where `adl_app_he.ts` differs from the table: the loader's "Abort" button and "Abort the operation"
-are ביטול and ביטול הפעולה, the same word as "Cancel" (ביטול), so abort and cancel are not distinct
-there. The table's word (הפסקה, as הפסק or הופסק) is used in "Abort and close" (הפסק וסגור), in the
-mock target's fault-injection labels, and in the outcomes (הופסק for "aborted"). The
-[design system](design-system.md#words) asks for different words for Cancel and Abort.
+Abort and cancel are different words, as the [design system](design-system.md#words) asks: the
+loader's "Abort" button and "Abort the operation" are הפסק and הפסק את הפעולה (and "Abort and close"
+is הפסק וסגור), and "Cancel" is ביטול.
 
 ## Yiddish (`yi`)
 
