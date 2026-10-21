@@ -14,8 +14,11 @@ network. The two standards are not in the repository (see
 Version 0.1.0, a preliminary release. The libraries, the data loader and its two companion
 applications work end to end against each other on one machine, and the libraries are tested
 against simulated targets and over loopback sockets. **Nothing has been checked against a real
-target, a real loader, or another tool's media sets**, and there is no installer yet (the programs
-are built from source). What exists:
+target, a real loader, or another tool's media sets**. There is no installer: each
+[release](https://github.com/iainchesworthlabs/arinc-data-loader/releases) carries a portable
+package for Windows (x86-64), Linux (x86-64) and macOS (Apple silicon), signed with the project's
+release key and listed with its checksums and bill of materials
+([Verifying a release](docs/verifying-releases.md)), or the programs can be built from source. What exists:
 
 - **`adl::arinc665`**, a library with no GUI and no operating system code, that
   writes and reads everything ARINC 665-3 defines: loads (header, data and

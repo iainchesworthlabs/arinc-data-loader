@@ -52,8 +52,12 @@ details: the advisory is where that is agreed.
 
 ## Supported versions
 
-There has been no release yet. When there is one, this section will say which
-versions receive fixes. Until 1.0, only the latest release does.
+| Version | Receives fixes |
+| --- | --- |
+| 0.1.x (the latest release) | Yes |
+| anything older | No |
+
+Until 1.0, only the latest release receives fixes. Version 0.1.0 is a preliminary release.
 
 ## Signed releases
 

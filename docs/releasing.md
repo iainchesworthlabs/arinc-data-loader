@@ -84,10 +84,9 @@ The branch model is gitflow ([Branch protection](branch-protection.md)): `releas
 
 1. **Branch.** `git switch -c release/0.1.0 develop`
 2. **Version.** Set the version in `CMakeLists.txt` (`project(ArincDataLoader VERSION 0.1.0 ...)`) and in
-   `vcpkg.json`. (The applications take theirs from CMake.) Nothing else carries it.
-   For the first release also change the two places that say there is no package yet:
-   `README.md` ("no installer yet") and `docs/user-guide/installing.md` ("no installer or download
-   package yet"), to point at the release's packages and [Verifying a release](verifying-releases.md).
+   `vcpkg.json`. (The applications take theirs from CMake.) Nothing else carries it. In prose,
+   `SECURITY.md`'s table of supported versions and the `find_package(adl 0.1 ...)` example above name
+   the minor version: change them when the minor version changes.
 3. **Changelog.** Write `changelog.d/summary.md` if the release needs an introduction, then
 
    ```sh
@@ -114,7 +113,8 @@ The branch model is gitflow ([Branch protection](branch-protection.md)): `releas
 
 7. **Approve.** The run is the same as the rehearsal, then waits for you at *Draft the release*
    (the `release` environment asks for your approval). Approve it when the *Verify* job is green. The
-   workflow creates a **draft** release with the notes from `CHANGELOG.md` and every file above.
+   workflow creates a **draft** release with the notes from `CHANGELOG.md` (its relative links are
+   written out as links to the tagged files, which a release page cannot resolve) and every file above.
 8. **Publish the draft** on the Releases page after reading it. Pre-release status is already set.
 9. **Back-merge.** Merge `release/0.1.0` (or `main`) into `develop` with a pull request, so the
    assembled changelog and the version reach `develop`.

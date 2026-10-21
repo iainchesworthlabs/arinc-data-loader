@@ -2,14 +2,31 @@
 
 ## Getting the programs
 
-There is no installer or download package yet. The programs are built from the source code, once,
-on the machine that will use them; [Building](../building.md) lists what is needed (CMake, Ninja,
-a C++23 compiler and the Qt 6.12 libraries) and gives the commands. A Release build is the one to
-use for work: `windows-msvc-release` on Windows, `linux-gcc-release` on Linux and
-`macos-clang-release` on a Mac. The Debug builds are for developers and, on Windows, cannot open
-the system's file dialogs (see [Building](../building.md#presets)).
+There is no installer. Each [release on GitHub](https://github.com/iainchesworthlabs/arinc-data-loader/releases)
+carries a portable package that holds the programs and the Qt files they need, so nothing has to be
+installed first:
 
-The build produces these programs in `build/<preset>/bin`:
+| System | Package | To start |
+| --- | --- | --- |
+| Windows (x86-64) | `arinc-data-loader-<version>-windows-x86_64.zip` | Unpack the folder and double-click `adl_app.exe` (or `adl_media_gen.exe`, `adl_mock_target.exe`) |
+| Linux (x86-64) | `arinc-data-loader-<version>-linux-x86_64.tar.gz` | Unpack, then run `bin/adl_app` (the archive also holds `.desktop` files and icons for a launcher) |
+| macOS 14.4 or later (Apple silicon) | `arinc-data-loader-<version>-macos-arm64.dmg` | Open the disk image and drag the applications onto the `Applications` link |
+
+The packages are **not signed for any operating system's store**: Windows SmartScreen, macOS
+Gatekeeper and similar checks may warn the first time a program starts, because the project has no
+certificate they would trust. What a download can be checked against instead (a PGP signature, a
+checksum list, a build attestation and a bill of materials) is in
+[Verifying a release](../verifying-releases.md); do that before the first start if the warning matters
+to you.
+
+The other way is to build the programs from the source code, once, on the machine that will use
+them; [Building](../building.md) lists what is needed (CMake, Ninja, a C++23 compiler and the Qt 6.12
+libraries) and gives the commands. A Release build is the one to use for work: `windows-msvc-release`
+on Windows, `linux-gcc-release` on Linux and `macos-clang-release` on a Mac. The Debug builds are for
+developers and, on Windows, cannot open the system's file dialogs (see
+[Building](../building.md#presets)).
+
+A build produces these programs in `build/<preset>/bin`, and a package holds the same four:
 
 | File | Program |
 | --- | --- |
@@ -19,8 +36,8 @@ The build produces these programs in `build/<preset>/bin`:
 | `adl_write_payloads` | A command-line tool that writes sample media sets to a folder, for trying other loaders |
 
 On Windows the build copies the Qt libraries next to the programs, so each can be started from
-anywhere: double-click it, or run it from a shell. On Linux they find Qt the way the build did; on a
-Mac they are application bundles and are not yet packaged for moving to another Mac.
+anywhere: double-click it, or run it from a shell. A Linux build finds Qt the way the build did (the
+Linux package carries its own Qt). On a Mac the programs are application bundles, with Qt inside.
 
 Starting a program opens its window; there are no command-line options. Closing the window ends the
 program (if the loader is busy it asks first, see
