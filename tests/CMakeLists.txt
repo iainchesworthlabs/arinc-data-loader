@@ -193,6 +193,18 @@ add_test(NAME platform.selector
         -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_selector.cmake")
 set_tests_properties(platform.selector PROPERTIES LABELS "system")
 
+# Which vcpkg checkout a configure uses (cmake/VcpkgRoot.cmake): the shared
+# store, a root you name, a toolchain you pass, and what is said when the
+# submodule path is a dead link. Script mode against a fake upstream repository;
+# no network, and the real deps/vcpkg is not touched.
+add_test(NAME platform.vcpkg_root
+    COMMAND "${CMAKE_COMMAND}"
+        "-DREPO_ROOT=${PROJECT_SOURCE_DIR}"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/vcpkg_root"
+        "-DGENERATOR=${CMAKE_GENERATOR}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_vcpkg_root.cmake")
+set_tests_properties(platform.vcpkg_root PROPERTIES LABELS "system")
+
 # No preprocessor conditionals or defines, no OS headers outside the platform
 # section, no OS tests in CMake outside the selector. CI runs it as its own job
 # too; this is the same check, so a developer sees it fail locally.
