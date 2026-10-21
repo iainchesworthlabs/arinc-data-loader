@@ -191,8 +191,9 @@ repository set up from this one.
 ### The simulator jobs are not required yet
 
 `Zephyr (native_sim)`, `Zephyr (QEMU, SDK toolchain)` and `FreeRTOS (POSIX simulator)` (`ci.yml`)
-run on every pull request and are **not** in `required_status_checks`: they download Zephyr, FreeRTOS, lwIP and littlefs at run
-time, and a required check that fails because a mirror was down blocks every pull request. Add
+run on every pull request that changes more than documentation and are **not** in `required_status_checks`: they download Zephyr, FreeRTOS, lwIP and littlefs at run
+time, and a required check that fails because a mirror was down blocks every pull request. They are skipped by `if:` on a change to documentation alone,
+so before one is added it has to report on such a change, as the build legs do ([CI](ci.md#documentation-only-changes)). Add
 `{ "context": "Zephyr (native_sim)" }`, `{ "context": "Zephyr (QEMU, SDK toolchain)" }` and
 `{ "context": "FreeRTOS (POSIX simulator)" }` to both ruleset files, as for `Scan dependency diff`, once each has been green on a run of pull requests and a merge
 queue entry (they also run on `merge_group`, as every job of `ci.yml` does), and run `apply_rulesets.ps1
@@ -212,6 +213,12 @@ Two rules keep the queue honest:
 - **A workflow that produces no required check must not carry
   `merge_group`**, or every queue entry burns a full run of it for nothing.
   `codeql.yml`, `static-analysis.yml` and `scorecard.yml` do not.
+
+A third rule keeps a pull request from waiting for ever: **a required check is never skipped with `if:`.** A
+job skipped by `if:` reports under the raw text of its `name:` expression, not under the name it would have
+had, so a required check that comes from it never reports. `ci.yml` therefore runs the required jobs on a
+change to documentation alone and has them do nothing ([CI](ci.md#documentation-only-changes)); a job that is
+made a required check has to be built the same way.
 
 A queue entry has no head branch name, PR title or PR body of its own, so
 `Validate gitflow branch name` and `Validate commit and PR text` skip their job

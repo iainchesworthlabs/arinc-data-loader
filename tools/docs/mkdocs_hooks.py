@@ -6,12 +6,14 @@ relative link whose target is a file or folder of the repository that is not a p
 `<repo_url>/blob/main/<path>` (`tree/main` for a folder). A target that does not exist is left alone,
 so MkDocs' own validation (mkdocs.yml, `validation`) reports it and the strict build fails.
 
-Fenced code is not touched.
+Fenced code is not touched. The hook also adds the loader's icon to the site (`on_files`).
 """
 
 import os
 import posixpath
 import re
+
+from mkdocs.structure.files import File
 
 BRANCH = "main"
 
@@ -48,6 +50,18 @@ def _rewrite(line, page_dir, docs_dir, repo_root, repo_url, page_uris):
         return f"{opening}{repo_url}/{kind}/{BRANCH}/{in_repo}{anchor or ''}{closing}"
 
     return _LINK.sub(replace, line)
+
+
+def on_files(files, config):
+    """The site's logo and favicon (mkdocs.yml, theme) are the loader's icon.
+
+    It is taken from where the Linux package takes it, so there is one copy of it, and added to the site
+    as images/icon.svg. MkDocs only publishes what is under docs/.
+    """
+    repo_root = os.path.dirname(os.path.normpath(config["docs_dir"]))
+    icon = os.path.join(repo_root, "packaging", "linux", "icons", "adl_app.svg")
+    files.append(File.generated(config, "images/icon.svg", abs_src_path=icon))
+    return files
 
 
 def on_page_markdown(markdown, page, config, files):
