@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstddef>
 #include <expected>
+#include <mutex>
 #include <set>
 #include <string>
 #include <utility>
@@ -51,8 +52,14 @@ Harness::Harness(QObject* parent)
       gated_(std::make_unique<adl::test::GatedHost>(rig_->loader_host)),
       model_(std::make_unique<adl::app::LoaderModel>(
           [this]() -> std::expected<adl::app::HostLease, QString> {
-              if (hold_.load()) {
-                  released_.acquire();
+              {
+                  std::unique_lock lock(hold_mutex_);
+                  if (hold_) {
+                      held_ = true;
+                      hold_changed_.notify_all();
+                      hold_changed_.wait(lock, [this] { return !hold_; });
+                      held_ = false;
+                  }
               }
               adl::app::HostLease lease;
               lease.host = gated_.get();
@@ -302,7 +309,13 @@ void Harness::makeTargetRefuse() {
 }
 
 void Harness::holdNextJob() {
-    hold_.store(true);
+    const std::scoped_lock lock(hold_mutex_);
+    hold_ = true;
+}
+
+bool Harness::jobHeld() const {
+    const std::scoped_lock lock(hold_mutex_);
+    return held_;
 }
 
 void Harness::makeTargetSlow() {
@@ -326,11 +339,11 @@ bool Harness::gateReached() const {
 
 void Harness::releaseJob() {
     gated_->release();
-    // Only a held job has anything to release: an unconditional release would leave a token in
-    // the semaphore that makes the next hold pass straight through.
-    if (hold_.exchange(false)) {
-        released_.release();
+    {
+        const std::scoped_lock lock(hold_mutex_);
+        hold_ = false;
     }
+    hold_changed_.notify_all();
 }
 
 }  // namespace adl::ui_test

@@ -44,6 +44,9 @@ TestCase {
         harness.holdNextJob()
         appModel.readInformation()
         tryVerify(function() { return appModel.busy }, 10000)
+        // The engine's thread is at the hold, not merely on its way: whatever the test does next
+        // (the abort, the release) happens with the job certainly not yet started.
+        tryVerify(function() { return harness.jobHeld() }, 20000)
     }
 
     function initTestCase() {
