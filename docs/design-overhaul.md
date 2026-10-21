@@ -3,21 +3,20 @@
 This is the human-factors analysis and the design direction behind the redesign of the three Qt
 applications in `src/app`, `src/media_gen` and `src/mock_target`. It records what was wrong, why it
 matters for the people who load software onto avionics targets, what the new window is for, and
-what remains open. The implementation is commit `dbb6e4a` on `feature/design-overhaul`, now part of
-the history of the branches that followed it; the before-state citations are to
-`feature/data-loader-ui` at `a33a9c8`, its parent and the last design pass before this one. The
-prose describes the windows as they are in the code now; where an item from the original analysis
-has been closed, or is still open, it says so.
+what remains open. The implementation is commit `dbb6e4a`; the before-state citations are to its
+parent, `a33a9c8`. The prose describes the windows as they are in the code now; where an item from
+the original analysis has been closed, or is still open, it says so.
 
-The short version: the applications were correct little engines wrapped in three unrelated forms.
-They exposed the engine's nouns as a wall of controls, put the action at the end of a scroll, hid
-the consequence of a choice, and looked like three different products. This pass gives them one
-task-shaped information architecture and one design system borrowed from ICL Forge, so the loader,
-the generator and the mock target read as three instruments in the same rack.
+The short version: the applications worked, but they were three unrelated forms. They listed the
+engine's terms as a long set of controls, put the action at the end of a scroll, did not show what a
+choice would do, and looked like three different products. This pass gives them one layout built
+around the task and one design system taken from ICL Forge (a separate application whose code is not
+in this repository, so the comparisons with it on this page cannot be checked here), so that the
+loader, the generator and the mock target look like one family.
 
 ## 1. What these tools are for
 
-The people using them are not consumers following a funnel. They are:
+The people using them are not consumers of a general-purpose app. They are:
 
 - **Load operators** on a bench or flight line, repeating a procedure under time pressure:
   choose a media set, confirm it is the right one, confirm the target is the right unit, tick the
@@ -30,17 +29,17 @@ The people using them are not consumers following a funnel. They are:
   proving the loader copes. They need the difference between "behaving" and "injecting a fault" to
   be visible at a glance; a demo that quietly runs with a stale injection is a false result.
 
-These are engineering instruments. The design target is not "friendly"; it is **legible,
-predictable, fast and hard to get wrong**. That is a different bar from a consumer app, and it is
-the bar ICL Forge's window is built to.
+These are engineering tools. The design aim is not "friendly". It is that the tools are **easy to
+read, behave the same way each time, are quick to use and are hard to use wrongly**. That is a
+different aim from a consumer app, and ICL Forge's window is built to the same one.
 
 ## 2. Method
 
 The analysis used four kinds of evidence:
 
 1. **The running windows.** The before-state screenshots in
-   [`design/screenshots`](design/screenshots) were captured from the `feature/data-loader-ui`
-   build: the first run, the workbench with a real media set loaded, the generator after a
+   [`design/screenshots`](design/screenshots) were captured from the build before the redesign
+   (`a33a9c8`): the first run, the workbench with a real media set loaded, the generator after a
    successful generation, and the mock target. The after-state pictures are the current
    windows, in [`images`](images): the same four surfaces, taken from the real programs by a script
    ([how](screenshots.md)) and regenerated when a window changes, so they show the windows as they are
@@ -64,9 +63,9 @@ Download against the simulated target. The QML tests were run with every engine 
 
 ## 3. What was wrong
 
-### 3.1 Startup was a form, not an opening statement
+### 3.1 Startup was a form, not an explanation
 
-The `feature/data-loader-ui` first run
+The first run before the redesign
 ([before](design/screenshots/before-first-run.png)) is two rounded cards: "Before the first
 operation" asks for an address, a `THW_ID_POS` and a download directory before the operator has
 seen what the application does; "What this window does" explains the product in a second card.
@@ -75,26 +74,25 @@ statement of what the tool is for, and no way to open the workbench without answ
 The current first run ([after](images/app-first-run.png)) is the family's shape: a
 statement, one primary, one optional route, and the mental model beside it.
 
-Why it matters: the first screen is where an operator learns the model of the tool. A settings
-form teaches "this program is a form I fill in"; a statement plus a concrete first action teaches
-"this program does a job". For a bench tool that distinction survives every later screen.
+Why it matters: the first screen is where an operator learns what the tool is. A settings form
+presents the program as something to fill in; a statement of what it does, with a concrete first
+action, presents it as a tool for a job.
 
-### 3.2 The workbench exposed the engine instead of the task
+### 3.2 The workbench was organised around the engine, not the task
 
 The before workbench ([before](design/screenshots/before-workbench.png),
 [after](images/app-workbench-ready.png)) was a scroll of titled groups: Media set, Target,
-Download, Operation. The groups were not a sequence and did not share a grammar. `Download` sat
+Download, Operation. The groups were not a sequence and did not follow one pattern. `Download` sat
 between `Target` and `Operation` and could be pushed below the fold by a long media set;
 `Operation` — the only place Upload and Abort lived — was the last thing in the scroll. At the
 1100×760 default the Upload button was partly below the visible area. A disabled button at the
-bottom of a scroll is not a disabled button; it is a missing button.
+bottom of a scroll is not seen at all, so the operator cannot tell that it is disabled.
 
-The new workbench is a two-pane instrument: a context rail that stays beside the work (target, then
-media set; it scrolls inside its own column) and a work area with a fixed transfer strip (the
-Upload/Download switch and a state chip), a plan with its preflight, the activity dock and a fixed
-76 px action bar. The primary action is always in the same place, and Download has a first-class
-mode instead of a card below the fold. The window opens at 1280×900 and will not shrink below
-1120×760.
+The new workbench has two panes: a context rail that stays beside the work (target, then media set;
+it scrolls inside its own column) and a work area with a fixed transfer strip (the Upload/Download
+switch), a plan with its preflight, the activity dock and a fixed 76 px action bar. The primary
+action is always in the same place, and Download is its own mode instead of a card below the fold.
+The window opens at 1280×900 and will not shrink below 1000×620.
 
 ### 3.3 Target identity was never confirmed
 
@@ -104,9 +102,10 @@ either field afterwards left the FIND row selected and the old target's configur
 Only `readInformation` cleared the configuration. With automatic FIND on, a sole answer was taken
 and the operation started without a confirmation step.
 
-This is the highest-consequence defect in the suite. An upload to the wrong unit is not a typo; it
-is a configuration change on an aircraft. The redesign does not add a mandatory modal on every
-upload (that trains people to dismiss modals), but it does make identity a first-class object:
+This is one of the most serious defects found (severity C in section 4). An upload to the wrong unit
+changes the configuration of an aircraft. The redesign does not add a modal question to every
+upload, because people learn to dismiss a question that is asked every time. It shows the target's
+identity as a value in several places instead:
 
 - the target rail always shows `THW_ID_POS` and the address as the two values the operation will
   use, with a `SET` / `NOT SET` chip;
@@ -130,29 +129,32 @@ the files are opened from disk when the target asks for them. A set edited after
 displayed "checked" and uploaded the new bytes. The check's findings were a second list that the
 loader window did not bind, while the media set's findings were shown separately.
 
-The redesign cannot make the file system transactional, but it makes the claim honest:
+The redesign cannot make the file system transactional. It changes what the window says about the
+check:
 
 - a `CHECKED` chip sits on the set (and on the Media set tile of the upload preflight), and the
-  rail says "Every file and check value was read and verified" instead of a green sentence with
-  no provenance;
+  rail says "Every file and check value was read and verified" instead of a green sentence that
+  did not say what had been checked;
 - the findings are shown once, under the set, as a `WARNINGS` chip with a count, the first three
   lines and a "Show all warnings" expander, and the same list is used in the media set properties
   dialog;
 - a failed read clears the claim and says why: the validation state is `INVALID`, so an upload is
   refused (`canUpload` needs a passed check).
 
-Still open: the `CHECKED` claim carries no time, and a set edited on disk after the check still
-reads as checked. A timestamp and an mtime/manifest guard are listed as a model follow-up in §11;
-they need a file identity in `MediaSetIndex`, not a QML change.
+Still open: the check records no time, and nothing watches the disk, so `CHECKED` stays on screen
+until the next upload or `Re-check`; an upload of a changed set is refused (`MediaSetIndex` takes a
+size and SHA-1 fingerprint of every file when the set is checked, and the upload compares them,
+§11 item 1).
 
-### 3.5 The payload was invisible
+### 3.5 The payload was not shown
 
 The before window showed loads as a check box and a paragraph. There was no preflight that said
 "this target, this set, these loads, this check". `Tick all` plus Upload was the whole plan.
 
 The new Upload view opens with a `THE UPLOAD` eyebrow, a headline naming the count and the target
-("Upload 2 loads to HNPFMS_L") and a readiness chip with the set summary. Under it come a
-three-tile preflight (Target, Media set, Loads, each with a chip), a next-step banner that says
+("Upload 2 loads to HNPFMS_L") and a line with the media set's part number, member count and load
+count. Under it come a three-tile preflight (Target, Media set, Loads, each with a chip), a
+next-step banner that says
 either "Ready to upload" or what is missing and offers the button that fixes it (Choose media set,
 Check the set, Find targets), a payload list of the ticked loads (columns load, contents, status),
 and a receipt after the operation. The left rail is still where the ticks are made, so the
@@ -178,8 +180,8 @@ Still open: abort is still reported by the engine as a failure outcome (`success
 the receipt says `FAILED` for an aborted job (its text names the outcome and its detail says
 whether the target confirmed the stop), and the failure dialog opens as for any failure. Changing
 that is a model change: the engine has the abort reason, the window does not. §11 records it. The
-generator already tells a cancelled job from a failed one (a `CANCELLED` chip), by reading its
-result text.
+generator already tells a cancelled job from a failed one (a `CANCELLED` chip), from its result
+state (3).
 
 ### 3.7 There was no receipt
 
@@ -190,35 +192,36 @@ engineer trying to reproduce a load had to reconstruct it from the log.
 The new receipt is owned by the transfer: it is set only when an Information, Upload or Download
 operation ends (`resultIsTransfer`), and it is cleared when the next job begins or the target
 changes. The Upload view shows it (an Information result appears there too) as a `COMPLETE` or
-`FAILED` chip, the engine's result text and detail, and a line "Target X · set · N loads ticked".
-The Download view has its own receipt with the chip, result text, detail, a line naming the target
-and the download directory, and `Open folder`. Those closing lines are built from the window's
-current state when it is drawn, not stored with the result, so ticking or unticking a load after a
-run changes the count the Upload receipt shows; the receipt carries no time of its own. The
-activity dock keeps the full evidence, including what the target said and what the loader did,
+`FAILED` chip, the engine's result text and detail, and a line "time · Target X · set · N loads
+ticked". The model stores the time the job ended (`resultTime`) and the number of loads that were
+ticked when it started (`resultLoadCount`) with the result, so ticking or unticking a load after a
+run does not change them. The target and the media set shown beside them are the current ones, taken
+from the window's state when it is drawn. The Download view has its own receipt with the chip, result
+text, detail, a line naming the target and the download directory, and `Open folder`; it has no time.
+The activity dock keeps the full evidence, including what the target said and what the loader did,
 with timestamps.
 
-### 3.8 Download was destination-opaque
+### 3.8 Download did not show where the files would go
 
 The before Download panel showed the download directory only after a download had run, had no
 statement of which directory would be created, no "open folder", and switched mode by discarding
 the list. `Choose none` cancelled instantly.
 
 The new Download view names the destination before the action, says that each download creates a
-new `DNLD_DATA_<THW_ID_POS>_<n>` directory (even one that is aborted), offers `Change...` and
-`Open folder` (once there is a last download), and states the consequence of each mode. It still
+new `DNLD_DATA_<THW_ID_POS>_<n>` directory (even one that is aborted), offers `Choose folder...`
+and `Open folder` (once there is a last download), and states the consequence of each mode. It still
 cannot show the next number without a model property; §11 lists that. The media-defined list is a
 list of named files with per-file status and `Remove`; the operator-defined list is the target's
 own list with a check box and a progress bar per file, enabled while the choice is pending, and
 `Choose none` / `Download selected` appear with it. Switching mode still starts the new mode with
 an empty list.
 
-### 3.9 The generator was a long form, not a media set
+### 3.9 The generator was a long single-column form
 
 The generator's before window ([before](design/screenshots/before-media-gen.png),
 [after](images/gen-complete.png)) was a single column of group boxes: Media set,
 Load, Batch, Files, Generate. The action was at the end, and the file table had no room. More
-importantly, the form greeted a new operator with red "Enter the ..." errors on every untouched
+importantly, the form showed a new operator red "Enter the ..." errors on every untouched
 field, and every check value defaulted to `none`, so "written and verified" could mean "written
 and not verifiable".
 
@@ -231,7 +234,7 @@ the part numbers, the header file name and the output directory are no longer sh
 that has never been touched; the action bar says what is missing.
 
 The generator's success detail is now prose with real plurals (one data file, two support files),
-and the output path is a first-class value with `Open folder` on the result banner.
+and the output path is shown as its own value, with `Open folder` on the result banner.
 
 ### 3.10 The mock target had no mode awareness
 
@@ -254,13 +257,12 @@ so a mode cannot change under a live dialogue.
 The before windows shared no design system: the loader had rounded blue cards from the UI pass, the
 generator and mock target were plain Fusion group boxes with different red validation text, and the
 three used different words for the same thing (`THW_ID_POS`, "Hardware ID" + "Position", "Target
-hardware IDs"). That is the "styles are different" the request named. The new windows share
-`src/ui`: one `Theme.qml`, one button, one field, one chip, one log, one header, one footer and
-one dialog (the segmented control is used by the loader only). The screenshots show the family
-resemblance immediately; the consistency is structural, not a coincidence of three copies. The
-words are not all unified: the mock target still takes a hardware ID and a position and derives
-`THW_ID_POS` from them, the loader takes `THW_ID_POS` whole, and the generator lists "target
-hardware IDs".
+hardware IDs"). The new windows share `src/ui`: one `Theme.qml`, one button, one field, one chip,
+one log, one header, one footer and one dialog (the segmented control is used by the loader only).
+The screenshots show the family resemblance; the three windows share the same files, not three
+copies of them. The words are not all unified: the mock target still takes a hardware ID and a
+position and derives `THW_ID_POS` from them, the loader takes `THW_ID_POS` whole, and the generator
+lists "target hardware IDs".
 
 ### 3.12 The visual system did not match ICL Forge
 
@@ -283,7 +285,7 @@ current code.
 |---|---|---|---|---|---|
 | 1 | Target identity was editable and implicit; a restored target could be used without confirmation. | N5 error prevention; ISO 9241-110 error tolerance; Shneiderman S5 | C | `loader_model.cpp` restore/set target; old `Main.qml` target panel; `TargetPropertiesDialog.qml` | Mitigated. Identity is on the rail, the preflight tile and the footer; a restored target and a sole automatic FIND answer are still used without confirmation (§11, item 3). |
 | 2 | Editing the target left FIND selection, configuration and result from the old target. | N1 visibility of system status; ISO self-descriptiveness | C | `loader_model.cpp` setters; old `Main.qml` configuration panel | Resolved (`reconcile_target`, §8). |
-| 3 | "Checked" had no time and did not survive disk edits; findings were split across two lists. | N1/N5; ISO error tolerance | C | `loader_model.cpp` validation; old `Main.qml` findings | Partly. One findings list; the check still carries no time and does not notice later disk edits (§11, item 1). |
+| 3 | "Checked" had no time and did not survive disk edits; findings were split across two lists. | N1/N5; ISO error tolerance | C | `loader_model.cpp` validation; old `Main.qml` findings | Partly. One findings list; the check still carries no time and nothing watches the disk, but an upload of a changed set is refused (§11, item 1). |
 | 4 | The primary action was at the end of a scroll and could be below the fold. | N6 recognition over recall; ISO suitability; S4 | C | old `Main.qml` ScrollView; 1100×760 window | Resolved (fixed action bar). |
 | 5 | Closing during a job silently aborted and blocked up to 13 s. | N3 user control; ISO controllability; S7 | C | old `Main.qml` close; `loader_model` destructor; docs/app.md | Resolved by the close question; "Abort and close" still waits for the target (§3.6). |
 | 6 | No preflight or payload summary; ticks were an implicit promise. | N6/N8; ISO suitability; S8 | H | old `Main.qml` media set rail/operation panel | Resolved (preflight, next-step banner, payload list). |
@@ -292,7 +294,7 @@ current code.
 | 9 | Preferences said OK/Cancel but wrote every change immediately; Cancel restored nothing. | N4 consistency; ISO conformity; S1/S6 | H | old `PreferencesDialog.qml`; model setters | Resolved (Preferences edits a working copy; Save writes it). |
 | 10 | The generator showed required-field errors on an untouched form and defaulted all check values to none. | N5/N10; ISO suitability | H | old `GeneratorWindow.qml`; `generator_model.hpp` | Mostly. Errors wait for content; check values still default to `none`, flagged by a chip. |
 | 11 | The mock target had no running badge, no active-injection summary, and no derived `THW_ID_POS`. | N1/N2; ISO self-descriptiveness | H | old `TargetWindow.qml`; `mock/model.cpp` | Resolved. |
-| 12 | Logs were colour-only, noisy, and different in each app; no filter, copy or export. | N1/N9; ISO self-descriptiveness | M | old `LogView.qml` in app and mock | Partly. One shared `LogView`; severity is still the accent plus the words of the message; there is still no filter, copy or export, and §11 does not list it. |
+| 12 | Logs were colour-only, noisy, and different in each app; no filter, copy or export. | N1/N9; ISO self-descriptiveness | M | old `LogView.qml` in app and mock | Partly. One shared `LogView`; each line carries a severity word (INFO, NOTE, WARN, ERROR) and, for a warning or an error, a glyph; in the loader Ctrl+C copies the whole log; there is still no filter and no export (§11, item 11). |
 | 13 | Three vocabularies for one concept and three error/cancel idioms across the suite. | N2/N4; ISO conformity/learnability | M | old `Main.qml`, `TargetWindow.qml`, `GeneratorWindow.qml` | Largely resolved; a few terms still differ (§3.11). |
 | 14 | First run was a mandatory form, not an explanation; it could not be revisited. | N5/N10; ISO learnability | M | old `FirstRunScreen.qml`; `loader_model.cpp` `firstRunComplete` | Resolved for the form. There is still no way to reopen the first-run screen. |
 | 15 | No text-size setting; type was literal in many views; focus and keyboard coverage were declared, not proven. | WCAG 1.4.4/2.4.7; ISO individualisation | M | old QML; docs/app.md "not checked" | Partly. No literal pixel size remains in the QML and the window tests drive the keyboard path; there is still no text-size or motion preference (§11, item 6) and no screen-reader pass (§11, item 7). |
@@ -305,10 +307,9 @@ layer and a small number of model-level reconciliations. The design does not cha
 
 ### 5.1 The idea
 
-**A Modernist engineering console.** One accent, no decoration, every surface square, every
-section numbered, every number monospaced, one primary action per state. The window is a rack
-instrument: it tells you what it is, what it is connected to, what it will do, and what it just
-did. It does not chat.
+**One plain, square style for all three windows.** One accent, no decoration, square surfaces,
+numbered sections, numbers and identifiers in a monospaced face, and one primary action per state.
+Each window shows what it is, what it is connected to, what it will do and what it just did.
 
 The reference is ICL Forge's `Theme.qml` and its workbench: Signal red on warm neutrals, Archivo
 ExtraBold for statements, a mono face for identifiers and ordinals (11 px for ordinals, rail labels
@@ -325,31 +326,32 @@ bottom action bar.
 3. **The primary never scrolls.** In the loader and the generator it lives in a fixed bar at the
    bottom of the work area; the mock target has no action bar and keeps Start in the header. If
    the content is too tall, the content scrolls.
-4. **Objects, not form fields.** A media set, a target, a load and a run are objects with identity,
-   state and evidence. They are shown as such, not as a grid of labels.
+4. **Things, not form fields.** A media set, a target, a load and a run each have an identity, a
+   state and evidence. They are shown that way, not as a grid of labels.
 5. **Preflight, then transfer, then receipt.** Every operation has the same three beats. The
    receipt is owned by the transfer and is cleared when the target changes or the next job begins.
 6. **Identity is repeated, never assumed.** `THW_ID_POS` and the address appear in the rail, the
    preflight, the action sentence and the receipt.
-7. **Density with rhythm.** Engineers want information; they do not want a wall. Numbered rails,
-   2 px rules and a strict type scale make density scannable.
-8. **Severity is a word plus a tone.** Success is neutral, a dot and the word; warnings and failures
+7. **Dense but ordered.** Engineers want the information on screen, but not as an unbroken block.
+   Numbered rails, 2 px rules and a fixed type scale keep a dense window easy to scan.
+8. **Severity is a word plus a tone.** Success is neutral, a check and the word; warnings and failures
    are the accent, and the word says which. Colour alone never carries a state.
-9. **Keyboard is a first-class path.** Every action is reachable by Tab, Space/Return/Enter, arrows for
-   segments; focus is a 2 px ring two pixels outside the control.
+9. **The keyboard reaches every control.** This is the rule the controls are built to: every action
+   is reachable by Tab, Space/Return/Enter and arrows for segments, and focus is a 2 px ring two
+   pixels outside the control. How far each window meets it is in §11, item 7.
 10. **Same family, one system.** The three windows share one token file and one component set.
     An `ADL`, `GEN` or `MOCK` mark is the only permitted difference of identity.
 
-### 5.3 What we deliberately did not do
+### 5.3 What was left out on purpose
 
 - No rounded cards, gradients, shadows or glass. ICL Forge is flat and square; a rounded card in
   this suite reads as a different product.
 - No second accent. Warnings, errors, selected segments, progress and the wordmark all draw from
-  one red ramp; success is neutral. A green "ok" token would be a second semantic colour and would
-  make the family look like a monitoring dashboard.
+  one red ramp; success is neutral. A green "ok" token would be a second status colour, and the
+  windows would look like a monitoring dashboard.
 - No wizard that hides fields. The generator and loader are for engineers; a step-by-step wizard
-  would make the common case slower and the expert case impossible. We used numbered sections and
-  a fixed action bar instead.
+  would make the common case slower and the expert case impossible. Numbered sections and a fixed
+  action bar are used instead.
 - No toast notifications. The activity log and the receipt are the record; a toast is not.
 
 ## 6. Information architecture
@@ -359,11 +361,11 @@ bottom action bar.
 ```
 ┌ ADL  ARINC Data Loader ────────────────────────────── [READY] Preferences About ┐
 ├───────────────────────────┬──────────────────────────────────────────────────────┤
-│ 01 TARGET                 │ TRANSFER  [ Upload | Download ]          [COMPLETE] │
+│ 01 TARGET                 │ TRANSFER  [ Upload | Download ]                      │
 │   status · address · THW  │                                                      │
 │   FIND results            │ THE UPLOAD                                           │
 │   properties              │ Upload 1 load to HNPFMS_L                            │
-│                           │ [READY] ACM-SET-0001 · 2 members · 1 load             │
+│                           │ ACM-SET-0001 · 2 members · 1 load                    │
 │ 02 MEDIA SET              │                                                      │
 │   path · part · members   │ [ TARGET ] [ MEDIA SET ] [ LOADS ]                   │
 │   check chip · re-check   │                                                      │
@@ -385,9 +387,8 @@ bottom action bar.
 The rail is 388 px wide by preference (348 to 460) and scrolls itself; target is always above media
 set because it is the higher-consequence object. The work area has one transfer switch
 (Upload/Download) because the two share the target and the log but not the plan. The activity dock
-is collapsible (a quarter of the window, 150 to 260 px, open; a 44 px header when collapsed, and it starts
-collapsed in a window shorter than 700 px); when it is collapsed the plan gets the
-height. In the action bar, `Read information` shows in Upload mode only and `Abort` only while a
+is collapsible (26% of the window height, 150 to 260 px, open; a 44 px header when collapsed, and it
+starts collapsed in a window shorter than 700 px); when it is collapsed the plan gets the height. In the action bar, `Read information` shows in Upload mode only and `Abort` only while a
 job runs; the Download mode swaps `Upload` for `Download`. In Download mode the work area shows
 `THE DOWNLOAD`, the mode switch (Media defined / Operator defined), the files, the destination and
 the receipt instead of the preflight and payload.
@@ -395,11 +396,11 @@ the receipt instead of the preflight and payload.
 ### 6.2 Generator (`adl_media_gen`)
 
 ```
-┌ GEN  ARINC Media Set Generator ───────────────────────── [READY] About ┐
+┌ GEN  ARINC Media Set Generator ──────────── [READY] [Language] About ┐
 ├───────────────────────────┬──────────────────────────────────────────┤
 │ 01 MEDIA SET              │ THE MEDIA SET                            │
 │   part · members          │ ACM-SET-0001                             │
-│   check values            │ [READY] 1 member · 2 files · 1 load       │
+│   check values            │ 1 member · 2 files · 1 load              │
 │   output                  │                                          │
 │                           │ Add files... Move up Move down Clear     │
 │ 02 LOAD                   │ NAME | KIND | CHECK VALUE | SIZE |       │
@@ -423,10 +424,10 @@ size and `Remove`; the `NO CHECK VALUES` chip appears under the headline when it
 ### 6.3 Mock target (`adl_mock_target`)
 
 ```
-┌ MOCK  ARINC Mock Target ──────────── [STOPPED] [Start] [Stop] About ┐
+┌ MOCK  ARINC Mock Target ─ [STOPPED] [Start] [Stop] [Language] About ┐
 ├───────────────────────────┬─────────────────────────────────────────┤
 │ 01 IDENTITY               │ OPERATION                               │
-│   fields · derived THW    │ Stopped                                 │
+│   fields · derived THW    │ Not started                             │
 │ 02 PORTS                  │                                         │
 │ 03 STORAGE                │ ACTIVITY                                │
 │ 04 BEHAVIOUR              │  14:38:54 listening ...                 │
@@ -434,14 +435,14 @@ size and `Remove`; the `NO CHECK VALUES` chip appears under the headline when it
 │   [N ACTIVE] Reset all    │ STORED FILES                            │
 │   wait/refuse/drop/...    │  NAME                              BYTES │
 ├───────────────────────────┴─────────────────────────────────────────┤
-│ ● Stopped · TFTP 59 · FIND 1001 · HNPFMS_L                 v0.1.0   │
+│ ● Not listening · TFTP 59 · FIND 1001 · HNPFMS_L           v0.1.0   │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 Fault injection is its own numbered block with an active count and a reset; while any injection is
-armed its summary turns into a warning surface (`accent100` fill, `accent300` border), so it is not
-an innocent form. Start/Stop live in the header so the run state is always one glance away. This
-rail is a little wider than the others (396 px preferred, 352 to 460).
+armed its summary turns into a warning surface (`accent100` fill, `accent300` border), so the block
+cannot be mistaken for an ordinary form. Start/Stop live in the header, so the run state is always
+in view. The rail has the same widths as the other two windows' rails.
 
 ## 7. The design system
 
@@ -449,15 +450,24 @@ The implementation lives in `src/ui`:
 
 - `qml/Theme.qml` — Signal palette, type scale, spacing, focus, motion.
 - `qml/AppButton.qml`, `AppCheckBox.qml`, `AppComboBox.qml`, `AppSpinBox.qml`,
-  `AppTextField.qml`, `SegmentedControl.qml` — the standard controls.
+  `AppTextField.qml`, `SegmentedControl.qml`, `LanguagePicker.qml` — the standard controls.
 - `qml/AppHeader.qml`, `AppStatusBar.qml`, `Card.qml`, `RailBlock.qml`, `SectionHeader.qml`,
   `StatusChip.qml`, `StatTile.qml`, `CheckTile.qml`, `EmptyState.qml`, `TaskProgress.qml`,
-  `BusyMark.qml`, `LogView.qml`, `FocusRing.qml`, `AppDialog.qml`, `LicencesDialog.qml` — the
-  surfaces. (`Card` is not used by any window at present.)
-- `fonts.cpp`, `fonts/` — Archivo (SIL OFL 1.1), registered before the QML engine starts.
+  `BusyMark.qml`, `LogView.qml`, `FocusRing.qml`, `AppBanner.qml`, `ToneGlyph.qml`,
+  `ToneMessage.qml`, `AppScrollBar.qml`, `AppDialog.qml`, `AboutDialog.qml`,
+  `LicencesDialog.qml` — the surfaces. (`Card` is not used by any window at present.)
+- `qml/KeyScroll.qml`, `RevealOnFocus.qml` — keyboard helpers: the scroll keys of a read-only list,
+  and scrolling a page to the control that has the focus.
+- `fonts.cpp`, `fonts/` — Archivo and Noto Sans Hebrew (both SIL OFL 1.1), registered before the QML
+  engine starts.
 - `window_state.cpp` — window geometry persistence.
 - `version.cpp` — the build provenance and the embedded third-party notices the About and
   Licences dialogs show.
+- `language_manager.cpp` — the language manager (translators, layout direction, typeface);
+  `message.cpp` — `Message`, a phrase translated when it is read
+  ([translations](translations.md)).
+- `settings_location.cpp` — `ADL_SETTINGS_DIR`, which moves the settings into an ini file.
+- `smoke_test.cpp` — the `--smoke-test` flag ([the application](app.md#where-the-settings-are-kept)).
 
 The files are source-shared, not a separate QML module: each application's `qt_add_qml_module`
 includes them with a root resource alias, so a view names `Theme.accentFill` without an import and
@@ -467,8 +477,9 @@ font-resource work and the notices (`adl_add_ui_support`).
 The full token and component reference is [`docs/design-system.md`](design-system.md). The three
 rules that matter most:
 
-1. **Zero radius.** Nothing is rounded except the neutral status dot (a 4 px disc in the 10 px tone
-   mark of a chip, the status bar and a log line).
+1. **Zero radius.** Nothing is rounded except the neutral status dot: a 4 px disc in the 10 px tone
+   mark of a chip and of the loader's status bar, and a 6 px round dot at the start of the status
+   bar of the generator and the mock target.
 2. **One accent, two roles.** `accent` is for shapes; `accentFill`/`accentText` is for a labelled
    surface. A label never sits on the raw Signal-light accent (4.2:1 on white); the fill is the
    deeper `#b82009` that clears 4.5:1 (6.46:1).
@@ -484,17 +495,16 @@ true:
   selection, the target configuration and a transfer receipt. The log is kept. This closes the
   "old target's configuration on screen" defect.
 - **`LoaderModel::resultIsTransfer` / `resultWasDownload`**: a media set read or check no longer
-  looks like a completed transfer in the mode strip or the receipt, and a download's receipt is
-  shown in the Download view rather than under the Upload plan. The header chip now says
-  `READY` / `NOT READY` unless the last job was an Information/Upload/Download (then `COMPLETE` or
-  `FAILED`, and `RUNNING` while a job runs; `SETUP` on the first run), and the status bar says the
-  same, so they cannot disagree.
+  looks like a completed transfer in the header chip, the status bar or the receipt, and a
+  download's receipt is shown in the Download view rather than under the Upload plan. The header
+  chip now says `READY` / `NOT READY` unless the last job was an Information/Upload/Download (then
+  `COMPLETE` or `FAILED`, and `RUNNING` while a job runs; `SETUP` on the first run), and the status
+  bar is built from the same state, so they cannot disagree.
 - **Window geometry** is restored and saved in C++ (`window_state.cpp`) for all three windows. A
   restored size is kept inside the minimum and the screen's available area (less 48 px wide and
   80 px high), and a saved position is used only if it still meets a screen. The old windows
   always opened at 1100×760 in the same place; these open at 1280×900 (the loader's minimum is
-  1000×620, the others' 1120×760) until a
-  size has been saved.
+  1000×620, the others' 1120×760) until a size has been saved.
 - **First run is no longer a mandatory form.** `Start loading` opens the workbench; the defaults
   are optional and folded away; choosing a media set from the first run also completes it.
 - **Preferences are transactional and a page, not a floating form.** The dialog edits a working
@@ -502,7 +512,7 @@ true:
   immediate choice and says so. The two-column layout keeps every setting visible without a
   scroll, and the window behind it is dimmed, so it reads as a modal page rather than a panel over
   a live console ([after](images/app-preferences.png)).
-- **The About page carries the build provenance** the other ICL tools show: version, git describe,
+- **The About page carries the build provenance**: version, git describe,
   full commit, branch, build target, Qt version and a dirty-tree marker, generated at configure
   time by `cmake/AdlUi.cmake` and exposed as `appVersionDetails`. The licence statement and the
   repository link sit beside it, and a `Licences` button opens the third-party notices
@@ -524,41 +534,38 @@ true:
 
 ## 9. Verification
 
-- The three windows load with **zero QML warnings**: `adl_app_qml_test`, `adl_gen_qml_test` and
-  `adl_mock_qml_test` were rebuilt against the new modules and run with the offscreen platform and
-  software renderer. The application test now also opens Preferences and About and fails if either
-  dialog does not open, so the modal page and the provenance block are covered.
+This section says what the tests are written to cover. It does not record the result of a run
+([testing](testing.md) says how the tests are run).
+
+- The three window tests, `adl_app_qml_test`, `adl_gen_qml_test` and `adl_mock_qml_test`, load the
+  compiled QML modules with the offscreen platform and the software renderer, and fail on any QML
+  warning. The application test also opens Preferences and About and fails if either dialog does
+  not open, so the modal page and the provenance block are loaded.
 - The application test drives the real model through first run, FIND, Information, a media set
-  read and check, an Upload and a media-defined Download, and asserts the outcomes. It passes.
-- The Qt Quick Test UI suite added by `feature/test-suite-coverage-ui` now drives this window
-  rather than the earlier one: `ui.tst_main_window` clicks the real Find, Read information,
-  Re-check, All/None, Upload, Abort and Download controls, and `ui.tst_dialogs` opens
-  Preferences, the media set and target properties, About and Licences and drives their fields
-  and standard buttons. Both pass. The Preferences tests assert the transactional behaviour: with
-  every field edited, the model and the settings file still hold the old values until Save, Save
-  writes all of them (and a new model over the same file reads them back), and Cancel and Esc
-  leave both as they were.
+  read and check, an Upload and a media-defined Download, and asserts the outcomes.
+- The Qt Quick Test UI suite (added in commit `fbaac09`) drives this window: `ui.tst_main_window`
+  clicks the real Find, Read information, Re-check, All/None, Upload, Abort and Download controls,
+  and `ui.tst_dialogs` opens Preferences, the media set and target properties, About and Licences
+  and drives their fields and standard buttons. The Preferences tests assert the transactional
+  behaviour: with every field edited, the model and the settings file still hold the old values
+  until Save, Save writes all of them (and a new model over the same file reads them back), and
+  Cancel and Esc leave both as they were.
 - The generator test fills the form, starts a generation through the window's own button, and
-  asserts a verified set; it passes.
-- The mock target test starts and stops the target through the window's own buttons; it passes.
+  asserts a verified set.
+- The mock target test starts and stops the target through the window's own buttons.
 - The before screenshots in [`design/screenshots`](design/screenshots) are the record of the surfaces
   as they were; the current ones are in [`images`](images).
 
 ### Performance
 
-The tests run in a Debug build; **the release build is the one to judge by feel**, and the
-difference is measurable. A scripted 240-step resize at 1200×900 on the RTX 4090 machine cost
-about **0.6–0.7 s of CPU in Release** and **1.9 s in Debug** over the same 6 s wall time, both with
-0 ms CPU idle over 2 s. The renderer is D3D11, threaded render loop, max frame latency 2.
+The tests run in a Debug build. No timing of the release build is recorded in the repository, and
+none is claimed here.
 
-Two QML costs were removed in this pass: a checkbox whose label width fed its own implicit width
-(a resize-time binding feedback), and one `positionViewAtEnd` call per log line (now coalesced to
-one per frame). Preferences no longer builds a scrolling form that can overflow its dialog, and
-the dialogs draw one scrim item rather than a full-window overlay per popup. Frame times during a
-scripted resize are still around 18–22 ms at 1200×900 on this machine, so a 60 Hz live resize is
-layout-bound; the release build is the honest comparison, and the remaining work is to move the
-heaviest nested layouts (the rail and the payload table) to fixed lanes if that becomes the
-priority.
+Two QML costs were removed in this pass (commit `34363fb`): a check box whose label width fed its
+own implicit width, which fed back into the layout during a resize, and one `positionViewAtEnd`
+call per log line, which the log now replaces with one queued scroll (`LogView.qml`, `Qt.callLater`).
+Preferences no longer builds a scrolling form that can overflow its dialog, and each window draws
+one scrim item rather than a full-window overlay per popup.
 
 Not verified in this pass: a screen reader, a real target over a real network, 175% text size, and
 the Windows/macOS builds of the new QML. Those are in §11.
@@ -577,8 +584,8 @@ the Windows/macOS builds of the new QML. Those are in §11.
 
 ## 11. Remaining work, ranked
 
-Checked against the code on this branch: items 1 to 3, 5 to 7 and 9 to 11 are still open; item 4 is partly
-done; item 8 is done.
+Checked against the code on this branch: items 2, 3, 5 to 7, 9 and 10 are still open; items 1, 4 and
+11 are partly done; item 8 is done.
 
 1. **Bind "checked" to a time and a file identity.** Done: `MediaSetIndex` takes a size and SHA-1
    fingerprint of every file when the set is read and checked; the whole set is verified when an upload
@@ -607,12 +614,14 @@ done; item 8 is done.
    removed rather than left unset, and a preference would bring a factor back; reduced motion
    follows the platform (`Application.styleHints.accessibility`, Qt 6.12). Open: the loader's
    Preferences has no such control.
-7. **Keyboard and screen-reader pass.** The loader is keyboard-complete (dialogs open on a field or
-   button, FIND answers and the dock tabs are arrow-key groups, the logs and lists scroll and copy,
-   a 2 px ring everywhere) and its names carry the visible text; the Qt Quick tests in
-   `tests/ui/qml/tst_keyboard.qml` hold that. The generator and the mock target have not had the
-   same pass, and no NVDA or Orca run has been made. The activity log, stored-files list and file
-   table need list-item names that include the row identity.
+7. **Keyboard and screen-reader pass.** Keyboard use of the loader is covered by the Qt Quick tests
+   `tests/ui/qml/tst_keyboard.qml` and `tst_navigation.qml` (dialogs open on a field or button, FIND
+   answers and the dock tabs are arrow-key groups, the lists scroll, the activity log copies, a 2 px
+   ring on every control), and the accessible name of each loader button is its visible text. The
+   generator and the mock target have not had the same pass (several of their controls have an
+   accessible name longer than the text on screen), and no NVDA or Orca run has been made; no
+   screen reader has been tried. The activity log, stored-files list and file table need list-item
+   names that include the row identity.
 8. **The generator's success receipt clears on edit.** Done: `GeneratorModel` resets `resultState` to 0
    (and the output path and findings) on any change to the form, so GENERATED and the banner do not outlive
    the form they describe.
@@ -621,8 +630,11 @@ done; item 8 is done.
    the last frame truthful.
 10. **Real target and real hardware.** The windows have not been driven against a real 615A target;
     the loopback integration test exercises the engine and the mock target, not the window.
-11. **Log filter, copy and export.** Finding 12 asked for them; `LogView` and the activity dock
-    offer `Clear` only. This item was not in the original list.
+11. **Log filter, copy and export.** Finding 12 asked for them. Partly done: Ctrl+C in a `LogView`
+    copies the whole log as `time  SEVERITY  message` lines (in the loader; in the mock target the
+    copy leaves out the time and shows INFO for every line, see
+    [the design system](design-system.md#components)). There is still no filter and no export, and
+    the activity dock offers `Clear` only. This item was not in the original list.
 
 ## 12. Acceptance criteria for the next pass
 
@@ -633,8 +645,7 @@ The next pass is done when:
 - A media set changed on disk after a check cannot be uploaded as "checked" without an explicit
   re-check or a warning naming the changed file.
 - Closing during a job always states what will happen and never blocks invisibly.
-- The three windows can be placed side by side and a person cannot tell which one was written
-  first.
+- The three windows can be placed side by side and read as one family.
 - The QML suites pass with every warning an error, at 100% and 175% text size, in light and dark,
   and a keyboard-only walk of the primary path succeeds.
 
@@ -645,9 +656,10 @@ The next pass is done when:
 - `src/app/qml/UploadPanel.qml` — the upload plan, preflight, payload, receipt.
 - `src/app/qml/DownloadPanel.qml` — the download modes, files and destination.
 - `src/app/qml/ActivityDock.qml` — activity and target configuration.
-- `src/app/qml/FirstRunScreen.qml` — the opening statement.
-- `src/app/qml/PreferencesDialog.qml`, `AboutDialog.qml`, `MediaSetPropertiesDialog.qml`,
-  `TargetPropertiesDialog.qml` — the loader's dialogs; `src/ui/qml/LicencesDialog.qml` is shared.
+- `src/app/qml/FirstRunScreen.qml` — the first-run screen.
+- `src/app/qml/PreferencesDialog.qml`, `MediaSetPropertiesDialog.qml`,
+  `TargetPropertiesDialog.qml` — the loader's own dialogs; the About and Licences dialogs
+  (`src/ui/qml/AboutDialog.qml`, `LicencesDialog.qml`) are shared.
 - `src/media_gen/qml/GeneratorWindow.qml` — the generator.
 - `src/mock_target/qml/TargetWindow.qml` — the mock target.
 - [`docs/design-system.md`](design-system.md) — the token and component reference.
@@ -656,7 +668,7 @@ The next pass is done when:
 ## 14. Building and looking at it
 
 ```sh
-. C:\Repos\common\env.ps1
+# Set QT_ROOT_DIR first (see building.md).
 cmake --preset windows-msvc-debug
 cmake --build --preset windows-msvc-debug
 ctest --preset windows-msvc-debug
