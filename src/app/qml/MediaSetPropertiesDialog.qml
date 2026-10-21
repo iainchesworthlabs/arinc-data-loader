@@ -69,7 +69,7 @@ AppDialog {
 
         SectionHeader {
             label: qsTr("Loads")
-            summary: Theme.quantity(dialog.app.loadCount, qsTr("load"), qsTr("loads"))
+            summary: qsTr("%n load(s)", "", dialog.app.loadCount)
         }
 
         ListView {
@@ -128,8 +128,7 @@ AppDialog {
 
         SectionHeader {
             label: qsTr("Files")
-            summary: Theme.quantity(dialog.app.fileCount,
-                                    qsTr("file from FILES.LUM"), qsTr("files from FILES.LUM"))
+            summary: qsTr("%n file(s) from FILES.LUM", "", dialog.app.fileCount)
         }
 
         RowLayout {
@@ -248,8 +247,7 @@ AppDialog {
             spacing: Theme.space2
 
             StatusChip {
-                text: Theme.quantity(dialog.app.mediaSetFindings.length,
-                                     qsTr("WARNING"), qsTr("WARNINGS"))
+                text: qsTr("%n WARNING(S)", "", dialog.app.mediaSetFindings.length)
                 tone: "warn"
             }
 

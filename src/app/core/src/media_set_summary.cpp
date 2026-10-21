@@ -24,7 +24,7 @@ MediaSetSummary read_media_set_summary(const QString& path,
     const std::filesystem::path root{path.toStdU16String()};
     auto members = adl::media_tree::read_media_set_tree(root);
     if (!members) {
-        summary.error = QObject::tr("%1 (%2)").arg(
+        summary.error = QStringLiteral("%1 (%2)").arg(
             to_qstring(adl::media_tree::to_string(members.error().error)),
             QString::fromStdU16String(members.error().path.u16string()));
         return summary;
@@ -69,7 +69,7 @@ MediaSetSummary read_media_set_summary(const QString& path,
     }
     for (const auto& finding : set->findings) {
         summary.findings.append(
-            QObject::tr("%1: %2").arg(to_qstring(finding.clause), to_qstring(finding.message)));
+            QStringLiteral("%1: %2").arg(to_qstring(finding.clause), to_qstring(finding.message)));
     }
     return summary;
 }

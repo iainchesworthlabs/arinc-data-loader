@@ -30,11 +30,12 @@
 
 #include "adl/app/loader_model.hpp"
 #include "adl/app/models.hpp"
+#include "adl/app/wording.hpp"
 #include "adl/ui/fonts.hpp"
+#include "adl/ui/language_manager.hpp"
 #include "adl/ui/version.hpp"
 #include "bytes.hpp"
 #include "frame_profiler.hpp"
-#include "language_manager.hpp"
 #include "rig.hpp"
 #include "scratch_settings.hpp"
 #include "upload_fixture.hpp"
@@ -126,11 +127,14 @@ int main(int argc, char* argv[]) {
     std::optional<QQmlApplicationEngine> engine{std::in_place};
     // The window's Preferences read the language manager, exactly as the application's do: the
     // test registers a real one, so a binding that reads it cannot be the difference.
-    adl::app::LanguageManager language_manager(application, *engine);
+    adl::ui::LanguageManager language_manager(application, *engine, QStringLiteral("adl_app"));
     language_manager.applyInitialLanguage();
     // The window under test starts in English whatever this machine's locale is; the languages
     // it ships are switched through at the end, and English is put back.
     language_manager.setLanguage(QStringLiteral("en"));
+    // What the model holds as phrases follows the language, as in the application's main().
+    QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &model,
+                     &adl::app::LoaderModel::retranslate);
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
     adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
 
@@ -365,6 +369,21 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // The two scripts that read right to left are Hebrew and Yiddish; Qt's own locale data has to
+    // agree, because the layout direction is taken from it.
+    if (QLocale(QStringLiteral("yi")).textDirection() != Qt::RightToLeft ||
+        QLocale(QStringLiteral("he")).textDirection() != Qt::RightToLeft) {
+        std::fprintf(stderr, "Qt does not know Yiddish and Hebrew as right-to-left languages\n");
+        return 1;
+    }
+    for (const QString& code : {QStringLiteral("en"), QStringLiteral("fr"), QStringLiteral("es"),
+                                QStringLiteral("de"), QStringLiteral("zh"), QStringLiteral("ja")}) {
+        if (QLocale(code).textDirection() != Qt::LeftToRight) {
+            std::fprintf(stderr, "Qt takes %s for a right-to-left language\n", qPrintable(code));
+            return 1;
+        }
+    }
+
     // Every catalogue the window ships: the running window is retranslated, the layout direction
     // follows the script (right to left for Hebrew and Yiddish), and the text really changes -
     // which also proves the .qm resource was found and installed.
@@ -388,6 +407,24 @@ int main(int argc, char* argv[]) {
         if (QCoreApplication::translate("PreferencesDialog", "Preferences") ==
             QStringLiteral("Preferences")) {
             std::fprintf(stderr, "the %s catalogue was not loaded\n", qPrintable(code));
+            return 1;
+        }
+        // The typeface follows the script: Archivo has no Hebrew letters, so Hebrew and Yiddish are
+        // set in the bundled Noto Sans Hebrew (the picture below shows it).
+        const QString family = QGuiApplication::font().family();
+        const bool hebrew_script = right_to_left;
+        if ((family == QStringLiteral("Noto Sans Hebrew")) != hebrew_script) {
+            std::fprintf(stderr, "the window's typeface for %s is %s\n", qPrintable(code),
+                         qPrintable(family));
+            return 1;
+        }
+        // What the engine says is translated too, not only the QML: an outcome of the 615A
+        // library reads in the language of the moment.
+        if (code != QStringLiteral("en") &&
+            adl::app::Wording::outcome(adl::arinc615a::OutcomeCode::denied).text() ==
+                QStringLiteral("denied by the target")) {
+            std::fprintf(stderr, "the engine's wording is not translated in %s\n",
+                         qPrintable(code));
             return 1;
         }
         // With a third argument, what the window looks like right to left is kept too: Hebrew

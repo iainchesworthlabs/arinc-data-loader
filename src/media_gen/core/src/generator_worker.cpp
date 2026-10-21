@@ -33,6 +33,7 @@ using adl::arinc665::MediaSetSpec;
 using adl::arinc665::PartNumber;
 using adl::arinc665::PlacedBatch;
 using adl::arinc665::PlacedLoad;
+using adl::ui::Message;
 
 // The media set's part root directory (section 3.2.4.1.1): the load part number without its
 // hyphens, which the standard recommends, with the backslashes the placement takes.
@@ -102,16 +103,23 @@ public:
 
     // Removes the directory and what is in it, and says in words, for the operator, whether
     // anything is left.
-    [[nodiscard]] QString discard() {
+    [[nodiscard]] Message discard() {
         std::error_code error;
         std::filesystem::remove_all(path_, error);
         const bool gone = !std::filesystem::exists(path_, error);
         const QString where = path_to_qstring(path_);
         path_.clear();
-        return gone ? GeneratorWorker::tr("Nothing was kept: what had been written was removed.")
-                    : GeneratorWorker::tr(
-                          "What had been written could not be removed, and is still in %1.")
-                          .arg(where);
+        // The context is the worker's: the words are the generator's, not this helper's.
+        return gone ? Message::translated(
+                          &GeneratorWorker::tr,
+                          QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker",
+                                            "Nothing was kept: what had been written was removed."))
+                    : Message::translated(
+                          &GeneratorWorker::tr,
+                          QT_TRANSLATE_NOOP(
+                              "adl::gen::GeneratorWorker",
+                              "What had been written could not be removed, and is still in %1."),
+                          {Message::verbatim(where)});
     }
 
 private:
@@ -122,17 +130,44 @@ private:
 
 const QList<LoadTypeOption>& load_type_options() {
     static const QList<LoadTypeOption> options = {
-        {GeneratorWorker::tr("Operational software"), QStringLiteral("OPS"), 0x0001},
-        {GeneratorWorker::tr("Navigation database"), QStringLiteral("NDB"), 0x0002},
-        {GeneratorWorker::tr("Aeronautical database"), QStringLiteral("ADB"), 0x0003},
-        {GeneratorWorker::tr("Test software"), QStringLiteral("TST"), 0x0004},
+        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Operational software"),
+         QStringLiteral("OPS"), 0x0001},
+        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Navigation database"),
+         QStringLiteral("NDB"), 0x0002},
+        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Aeronautical database"),
+         QStringLiteral("ADB"), 0x0003},
+        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Test software"), QStringLiteral("TST"),
+         0x0004},
     };
     return options;
 }
 
 GeneratorWorker::GeneratorWorker(QObject* parent) : QObject(parent) {}
 
-void GeneratorWorker::fail(GenerateOutcome& outcome, const QString& text, const QString& detail) {
+namespace {
+
+Message too_large(const QString& path) {
+    return Message::translated(
+        &GeneratorWorker::tr,
+        QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "%1 is too large to be read into memory."),
+        {Message::verbatim(path)});
+}
+
+Message not_written_below(const QString& directory) {
+    return Message::translated(&GeneratorWorker::tr,
+                               QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker",
+                                                 "The media set could not be written below %1."),
+                               {Message::verbatim(directory)});
+}
+
+}  // namespace
+
+Message GeneratorWorker::cannot_read(const QString& path) {
+    return Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Cannot read %1."),
+                               {Message::verbatim(path)});
+}
+
+void GeneratorWorker::fail(GenerateOutcome& outcome, const Message& text, const Message& detail) {
     outcome.state = 2;
     outcome.text = text;
     outcome.detail = detail;
@@ -140,10 +175,12 @@ void GeneratorWorker::fail(GenerateOutcome& outcome, const QString& text, const 
     Q_EMIT finished(outcome);
 }
 
-void GeneratorWorker::stop(GenerateOutcome& outcome, const QString& detail) {
+void GeneratorWorker::stop(GenerateOutcome& outcome, const Message& detail) {
     outcome.state = 3;
-    outcome.text = tr("Cancelled.");
-    outcome.detail = detail.isNull() ? tr("Nothing was written.") : detail;
+    outcome.text = Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Cancelled."));
+    outcome.detail = detail.isEmpty() ? Message::translated(&GeneratorWorker::tr,
+                                                            QT_TR_NOOP("Nothing was written."))
+                                      : detail;
     Q_EMIT progress(-1);
     Q_EMIT finished(outcome);
 }
@@ -154,10 +191,18 @@ void GeneratorWorker::generate(const GenerateJob& job) {
     try {
         run(job, outcome);
     } catch (const std::bad_alloc&) {
-        fail(outcome, tr("The computer ran out of memory while the media set was being made."),
-             tr("Nothing was kept. Choose smaller files, or close other programs and try again."));
+        fail(outcome,
+             Message::translated(
+                 &GeneratorWorker::tr,
+                 QT_TR_NOOP("The computer ran out of memory while the media set was being made.")),
+             Message::translated(&GeneratorWorker::tr,
+                                 QT_TR_NOOP("Nothing was kept. Choose smaller files, or close "
+                                            "other programs and try again.")));
     } catch (const std::exception& error) {
-        fail(outcome, tr("The media set could not be made."), QString::fromLocal8Bit(error.what()));
+        fail(outcome,
+             Message::translated(&GeneratorWorker::tr,
+                                 QT_TR_NOOP("The media set could not be made.")),
+             Message::verbatim(QString::fromLocal8Bit(error.what())));
     }
 }
 
@@ -177,7 +222,7 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
         std::error_code error;
         const auto size = std::filesystem::file_size(to_path(file.source_path), error);
         if (error) {
-            fail(outcome, tr("Cannot read %1.").arg(file.source_path));
+            fail(outcome, cannot_read(file.source_path));
             return;
         }
         sizes.push_back(static_cast<qint64>(size));
@@ -193,7 +238,7 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
         const JobFile& meta = job.files.at(i);
         std::ifstream stream(to_path(meta.source_path), std::ios::binary);
         if (!stream) {
-            fail(outcome, tr("Cannot read %1.").arg(meta.source_path));
+            fail(outcome, cannot_read(meta.source_path));
             return;
         }
         PendingFile entry;
@@ -203,18 +248,19 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
             static_cast<void>(checkpoint("allocate"));
             entry.bytes.resize(static_cast<std::size_t>(size));
         } catch (const std::length_error&) {
-            fail(outcome, tr("%1 is too large to be read into memory.").arg(meta.source_path));
+            fail(outcome, too_large(meta.source_path));
             return;
         } catch (const std::bad_alloc&) {
-            fail(outcome, tr("%1 is too large to be read into memory.").arg(meta.source_path),
-                 tr("Nothing was written. Choose smaller files, or close other programs and try "
-                    "again."));
+            fail(outcome, too_large(meta.source_path),
+                 Message::translated(&GeneratorWorker::tr,
+                                     QT_TR_NOOP("Nothing was written. Choose smaller files, or "
+                                                "close other programs and try again.")));
             return;
         }
         stream.read(reinterpret_cast<char*>(entry.bytes.data()),
                     static_cast<std::streamsize>(size));
         if (!stream) {
-            fail(outcome, tr("Cannot read %1.").arg(meta.source_path));
+            fail(outcome, cannot_read(meta.source_path));
             return;
         }
         bytes_read += size;
@@ -234,7 +280,7 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
     load_spec.part_number = PartNumber{job.load_part_number.toStdString()};
     if (job.load_type_index >= 0 && job.load_type_index < load_type_options().size()) {
         const LoadTypeOption& option = load_type_options().at(job.load_type_index);
-        load_spec.load_type = LoadType{option.description.toStdString(), option.id};
+        load_spec.load_type = LoadType{std::string{option.description}, option.id};
     }
     for (const QString& id : job.target_hardware_ids) {
         load_spec.target_hardware_ids.push_back(id.toStdString());
@@ -255,15 +301,17 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
         }
     }
     if (load_spec.data_files.empty()) {
-        fail(outcome, tr("No data files chosen."));
+        fail(outcome,
+             Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("No data files chosen.")));
         return;
     }
     load_spec.load_check_type = check_type(job.load_check_type);
 
     auto load = adl::arinc665::build_load(load_spec);
     if (!load) {
-        fail(outcome, tr("The load could not be built: %1.")
-                          .arg(to_qstring(adl::arinc665::to_string(load.error()))));
+        fail(outcome, Message::translated(
+                          &GeneratorWorker::tr, QT_TR_NOOP("The load could not be built: %1."),
+                          {Message::verbatim(to_qstring(adl::arinc665::to_string(load.error())))}));
         return;
     }
 
@@ -319,8 +367,10 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
 
     auto members = adl::arinc665::build_media_set(media_set);
     if (!members) {
-        fail(outcome, tr("The media set could not be built: %1.")
-                          .arg(to_qstring(adl::arinc665::to_string(members.error()))));
+        fail(outcome,
+             Message::translated(
+                 &GeneratorWorker::tr, QT_TR_NOOP("The media set could not be built: %1."),
+                 {Message::verbatim(to_qstring(adl::arinc665::to_string(members.error())))}));
         return;
     }
 
@@ -336,9 +386,9 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
     std::error_code error;
     std::filesystem::create_directories(base, error);
     if (error || !std::filesystem::is_directory(base, error)) {
-        fail(outcome, tr("The media set could not be written below %1.").arg(job.output_directory),
-             tr("%1 (%2)").arg(job.output_directory,
-                               QString::fromLocal8Bit(error.message().c_str())));
+        fail(outcome, not_written_below(job.output_directory),
+             Message::verbatim(QStringLiteral("%1 (%2)").arg(
+                 job.output_directory, QString::fromLocal8Bit(error.message().c_str()))));
         return;
     }
     PartialTree partial;
@@ -351,26 +401,27 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
         if (std::filesystem::create_directory(candidate, error)) {
             partial.claim(candidate);
         } else if (error) {
-            fail(outcome,
-                 tr("The media set could not be written below %1.").arg(job.output_directory),
-                 tr("%1 (%2)").arg(path_to_qstring(candidate),
-                                   QString::fromLocal8Bit(error.message().c_str())));
+            fail(outcome, not_written_below(job.output_directory),
+                 Message::verbatim(QStringLiteral("%1 (%2)").arg(
+                     path_to_qstring(candidate), QString::fromLocal8Bit(error.message().c_str()))));
             return;
         }
     }
     if (!partial.claimed()) {
-        fail(outcome, tr("The media set could not be written below %1.").arg(job.output_directory),
-             tr("Too many unfinished sets (%1.writing...) are there already.")
-                 .arg(job.media_set_part_number));
+        fail(outcome, not_written_below(job.output_directory),
+             Message::translated(&GeneratorWorker::tr,
+                                 QT_TR_NOOP("Too many unfinished sets (%1.writing...) are there "
+                                            "already."),
+                                 {Message::verbatim(job.media_set_part_number)}));
         return;
     }
     const auto written = adl::media_tree::write_media_set_tree(partial.path(), *members);
     if (!written) {
-        const QString what =
-            tr("%1 (%2)").arg(path_to_qstring(written.error().path),
-                              to_qstring(adl::media_tree::to_string(written.error().error)));
-        fail(outcome, tr("The media set could not be written below %1.").arg(job.output_directory),
-             what + QLatin1Char(' ') + partial.discard());
+        const Message what = Message::verbatim(QStringLiteral("%1 (%2)").arg(
+            path_to_qstring(written.error().path),
+            to_qstring(adl::media_tree::to_string(written.error().error))));
+        fail(outcome, not_written_below(job.output_directory),
+             Message::sequence({what, Message::verbatim(QStringLiteral(" ")), partial.discard()}));
         return;
     }
 
@@ -383,17 +434,20 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
     const auto on_disk = adl::media_tree::read_media_set_tree(partial.path());
     if (!on_disk) {
         fail(outcome,
-             tr("The written media set could not be read back: %1 (%2).")
-                 .arg(to_qstring(adl::media_tree::to_string(on_disk.error().error)),
-                      path_to_qstring(on_disk.error().path)),
+             Message::translated(
+                 &GeneratorWorker::tr,
+                 QT_TR_NOOP("The written media set could not be read back: %1 (%2)."),
+                 {Message::verbatim(to_qstring(adl::media_tree::to_string(on_disk.error().error))),
+                  Message::verbatim(path_to_qstring(on_disk.error().path))}),
              partial.discard());
         return;
     }
     const auto set = adl::arinc665::read_media_set(*on_disk);
     if (!set) {
         fail(outcome,
-             tr("The written media set does not verify: %1.")
-                 .arg(to_qstring(adl::arinc665::to_string(set.error()))),
+             Message::translated(
+                 &GeneratorWorker::tr, QT_TR_NOOP("The written media set does not verify: %1."),
+                 {Message::verbatim(to_qstring(adl::arinc665::to_string(set.error())))}),
              partial.discard());
         return;
     }
@@ -404,7 +458,7 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
 
     // ---- 6. give the set its name: the first of the names that is free ----
     std::filesystem::path root;
-    QString rename_error;
+    Message rename_error;
     for (int attempt = 1; attempt <= 100; ++attempt) {
         const QString directory_name =
             attempt == 1 ? job.media_set_part_number
@@ -412,13 +466,13 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
         const std::filesystem::path candidate = base / to_path(directory_name);
         const bool exists = std::filesystem::exists(candidate, error);
         if (error) {
-            rename_error = path_to_qstring(candidate);
+            rename_error = Message::verbatim(path_to_qstring(candidate));
             break;
         }
         if (exists) {
             const bool empty = std::filesystem::is_empty(candidate, error);
             if (error) {
-                rename_error = path_to_qstring(candidate);
+                rename_error = Message::verbatim(path_to_qstring(candidate));
                 break;
             }
             if (!empty) {
@@ -436,14 +490,16 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
         if (std::filesystem::exists(candidate)) {
             continue;  // appeared while we looked: take the next name
         }
-        rename_error = tr("%1 (%2)").arg(path_to_qstring(candidate),
-                                         QString::fromLocal8Bit(error.message().c_str()));
+        rename_error = Message::verbatim(QStringLiteral("%1 (%2)").arg(
+            path_to_qstring(candidate), QString::fromLocal8Bit(error.message().c_str())));
         break;
     }
     if (root.empty()) {
-        fail(outcome, tr("The media set could not be written below %1.").arg(job.output_directory),
-             rename_error.isEmpty() ? partial.discard()
-                                    : rename_error + QLatin1Char(' ') + partial.discard());
+        fail(outcome, not_written_below(job.output_directory),
+             rename_error.isEmpty()
+                 ? partial.discard()
+                 : Message::sequence(
+                       {rename_error, Message::verbatim(QStringLiteral(" ")), partial.discard()}));
         return;
     }
 
@@ -456,26 +512,27 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
     for (const adl::arinc665::Finding& finding : set->findings) {
         outcome.findings.append(findings_line(finding));
     }
-    const QString data_files_text =
-        outcome.data_files == 1 ? tr("1 data file") : tr("%1 data files").arg(outcome.data_files);
-    const QString support_files_text = outcome.support_files == 1
-                                           ? tr("1 support file")
-                                           : tr("%1 support files").arg(outcome.support_files);
-    const QString members_text =
-        outcome.members == 1 ? tr("1 member") : tr("%1 members").arg(outcome.members);
-    outcome.text = tr("Media set %1 written and verified.").arg(job.media_set_part_number);
-    outcome.detail = tr("%1, %2, %3 bytes in %4, in %5.")
-                         .arg(data_files_text)
-                         .arg(support_files_text)
-                         .arg(outcome.total_bytes)
-                         .arg(members_text)
-                         .arg(outcome.output_path);
+    outcome.text =
+        Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Media set %1 written and verified."),
+                            {Message::verbatim(job.media_set_part_number)});
+    // One count to a sentence: the files and the members are phrases of their own.
+    outcome.detail = Message::translated(
+        &GeneratorWorker::tr, QT_TR_NOOP("%1, %2, %3 bytes in %4, in %5."),
+        {Message::translated(&GeneratorWorker::tr, QT_TR_N_NOOP("%n data file(s)"), {},
+                             outcome.data_files),
+         Message::translated(&GeneratorWorker::tr, QT_TR_N_NOOP("%n support file(s)"), {},
+                             outcome.support_files),
+         Message::verbatim(QString::number(outcome.total_bytes)),
+         Message::translated(&GeneratorWorker::tr, QT_TR_N_NOOP("%n member(s)"), {},
+                             outcome.members),
+         Message::verbatim(outcome.output_path)});
     if (!outcome.findings.isEmpty()) {
-        const QString findings_text =
-            outcome.findings.size() == 1 ? tr("1 difference from the standard's recommendations.")
-                                         : tr("%1 differences from the standard's recommendations.")
-                                               .arg(outcome.findings.size());
-        outcome.detail += QStringLiteral(" ") + findings_text;
+        outcome.detail = Message::sequence(
+            {outcome.detail, Message::verbatim(QStringLiteral(" ")),
+             Message::translated(
+                 &GeneratorWorker::tr,
+                 QT_TR_N_NOOP("%n difference(s) from the standard's recommendations."), {},
+                 static_cast<int>(outcome.findings.size()))});
     }
     Q_EMIT progress(100);
     Q_EMIT finished(outcome);

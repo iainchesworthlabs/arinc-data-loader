@@ -12,12 +12,12 @@
 #include "adl/app/loader_model.hpp"
 #include "adl/ui/build_info.hpp"
 #include "adl/ui/fonts.hpp"
+#include "adl/ui/language_manager.hpp"
 #include "adl/ui/settings_location.hpp"
 #include "adl/ui/smoke_test.hpp"
 #include "adl/ui/version.hpp"
 #include "adl/ui/window_state.hpp"
 #include "frame_profiler.hpp"
-#include "language_manager.hpp"
 
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
@@ -48,8 +48,11 @@ int main(int argc, char* argv[]) {
 
     // Declared after the engine (it holds a reference to it) and destroyed after it has been
     // reset at the end of main.
-    adl::app::LanguageManager language_manager(application, *engine);
+    adl::ui::LanguageManager language_manager(application, *engine, QStringLiteral("adl_app"));
     language_manager.applyInitialLanguage();
+    // What the model holds as phrases (results, failures, log lines) follows a language switch.
+    QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &model,
+                     &adl::app::LoaderModel::retranslate);
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
     adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
 

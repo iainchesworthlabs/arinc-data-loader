@@ -280,7 +280,8 @@ void Harness::addEvent(int severity, const QString& text) {
     if (events == nullptr) {
         return;
     }
-    events->append(adl::app::EventEntry{static_cast<adl::app::Severity>(severity), text});
+    events->append(adl::app::EventEntry{static_cast<adl::app::Severity>(severity),
+                                        adl::app::Message::verbatim(text)});
 }
 
 int Harness::eventCount() const {

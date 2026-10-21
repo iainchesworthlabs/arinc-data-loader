@@ -35,11 +35,19 @@ add_executable(adl_unit_tests
     unit/public_api_test.cpp
     unit/robustness_test.cpp
     unit/tftp_options_test.cpp
-    unit/tftp_test.cpp)
+    unit/tftp_test.cpp
+    unit/translations_test.cpp)
 
 target_include_directories(adl_unit_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support"
     "${CMAKE_CURRENT_SOURCE_DIR}/golden")
+
+# The Qt Linguist catalogues the translation rules read as files (they need no Qt).
+target_compile_definitions(adl_unit_tests PRIVATE
+    ADL_UI_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/src/ui/translations"
+    ADL_APP_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/src/app/translations"
+    ADL_MEDIA_GEN_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/src/media_gen/translations"
+    ADL_MOCK_TARGET_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/src/mock_target/translations")
 
 target_link_libraries(adl_unit_tests
     PRIVATE

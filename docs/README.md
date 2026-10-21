@@ -40,6 +40,7 @@ Everything here is in the repository, next to the code it describes. The project
 | [The mock target](mock-target.md) | The mock target, for developers |
 | [Design overhaul](design-overhaul.md) | The human-factors analysis behind the three windows, before and after |
 | [Design system](design-system.md) | The shared look: tokens, components, keyboard |
+| [Translations](translations.md) | The eight languages, how a language is switched and the window mirrored for Hebrew and Yiddish, adding a string, the typefaces; [the glossaries](translation-glossaries.md) the drafts chose |
 | [Specifications](specs/README.md) | Where the standards go (they are not in the repository) |
 
 The pictures are in [`images/`](images) (the current windows) and [`design/screenshots`](design/screenshots)

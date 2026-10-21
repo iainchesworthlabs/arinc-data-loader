@@ -64,7 +64,7 @@ QVariant SourceFileModel::data(const QModelIndex& index, int role) const {
         case CheckTypeRole:
             return row.check_type;
         case SizeRole:
-            return row.size;
+            return row.size < 0 ? tr("unknown") : human_size(row.size);
         case MessageRole:
             return row.message;
         default:
@@ -150,7 +150,7 @@ void SourceFileModel::addFiles(const QList<QUrl>& urls) {
         std::error_code error;
         const auto size =
             std::filesystem::file_size(std::filesystem::path{path.toStdU16String()}, error);
-        row.size = error ? tr("unknown") : human_size(static_cast<qint64>(size));
+        row.size = error ? -1 : static_cast<qint64>(size);
         beginInsertRows({}, rowCount(), rowCount());
         rows_.append(std::move(row));
         endInsertRows();
@@ -230,6 +230,13 @@ int SourceFileModel::data_file_count() const noexcept {
 bool SourceFileModel::all_valid() const noexcept {
     return std::all_of(rows_.begin(), rows_.end(),
                        [](const Row& row) { return row.message.isEmpty(); });
+}
+
+void SourceFileModel::retranslate() {
+    revalidate();
+    if (rowCount() > 0) {
+        Q_EMIT dataChanged(index(0), index(rowCount() - 1), {SizeRole});
+    }
 }
 
 void SourceFileModel::revalidate() {

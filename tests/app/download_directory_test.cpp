@@ -63,27 +63,27 @@ void DownloadDirectoryTest::a_chain_says_why_it_could_not_be_made() {
     memory.put("/data/file", "x");
     auto chain = make_directory_chain(files, "/data/file");
     QVERIFY(!chain.has_value());
-    QVERIFY(chain.error().contains(QStringLiteral("is not a directory")));
+    QVERIFY(chain.error().text().contains(QStringLiteral("is not a directory")));
     chain = make_directory_chain(files, "/data/file/below");
     QVERIFY(!chain.has_value());
-    QVERIFY(chain.error().contains(QStringLiteral("is not a directory")));
+    QVERIFY(chain.error().text().contains(QStringLiteral("is not a directory")));
 
     // A path that cannot be looked at.
     files.stat_fails["/locked"] = ErrorCode::permission_denied;
     chain = make_directory_chain(files, "/locked");
     QVERIFY(!chain.has_value());
-    QVERIFY(chain.error().contains(QStringLiteral("cannot look at /locked")));
+    QVERIFY(chain.error().text().contains(QStringLiteral("cannot look at /locked")));
 
     // A directory that cannot be made, the last one and one on the way.
     files.make_directory_fails["/full/sub"] = ErrorCode::no_space;
     chain = make_directory_chain(files, "/full/sub");
     QVERIFY(!chain.has_value());
-    QVERIFY(chain.error().contains(QStringLiteral("cannot create /full/sub")));
+    QVERIFY(chain.error().text().contains(QStringLiteral("cannot create /full/sub")));
     files.make_directory_fails.clear();
     files.make_directory_fails["/blocked"] = ErrorCode::permission_denied;
     chain = make_directory_chain(files, "/blocked/below/more");
     QVERIFY(!chain.has_value());
-    QVERIFY(chain.error().contains(QStringLiteral("cannot create /blocked")));
+    QVERIFY(chain.error().text().contains(QStringLiteral("cannot create /blocked")));
     QVERIFY(!is_directory(memory, "/blocked/below"));
 
     // Another loader made the directory first: it is there, which is what was wanted. If what
@@ -101,7 +101,7 @@ void DownloadDirectoryTest::a_chain_says_why_it_could_not_be_made() {
     QVERIFY(make_directory_chain(files, "/race").has_value());
     chain = make_directory_chain(files, "/race-file");
     QVERIFY(!chain.has_value());
-    QVERIFY(chain.error().contains(QStringLiteral("cannot create /race-file")));
+    QVERIFY(chain.error().text().contains(QStringLiteral("cannot create /race-file")));
 }
 
 void DownloadDirectoryTest::a_download_directory_takes_the_lowest_free_number() {
@@ -155,18 +155,18 @@ void DownloadDirectoryTest::a_download_directory_says_why_it_could_not_be_made()
     memory.put("/file", "x");
     auto made = make_download_directory(files, "/file", "T");
     QVERIFY(!made.has_value());
-    QVERIFY(made.error().contains(QStringLiteral("is not a directory")));
+    QVERIFY(made.error().text().contains(QStringLiteral("is not a directory")));
 
     // A number that cannot be looked at, or made.
     files.stat_fails["/dl/DNLD_DATA_T_1"] = ErrorCode::io_error;
     made = make_download_directory(files, "/dl", "T");
     QVERIFY(!made.has_value());
-    QVERIFY(made.error().contains(QStringLiteral("cannot look at /dl/DNLD_DATA_T_1")));
+    QVERIFY(made.error().text().contains(QStringLiteral("cannot look at /dl/DNLD_DATA_T_1")));
     files.stat_fails.clear();
     files.make_directory_fails["/dl/DNLD_DATA_T_1"] = ErrorCode::no_space;
     made = make_download_directory(files, "/dl", "T");
     QVERIFY(!made.has_value());
-    QVERIFY(made.error().contains(QStringLiteral("cannot create /dl/DNLD_DATA_T_1")));
+    QVERIFY(made.error().text().contains(QStringLiteral("cannot create /dl/DNLD_DATA_T_1")));
     QVERIFY(!is_directory(memory, "/dl/DNLD_DATA_T_1"));
 
     // A file system that says every number is taken does not keep the loader looking forever.
@@ -174,7 +174,7 @@ void DownloadDirectoryTest::a_download_directory_says_why_it_could_not_be_made()
     files.make_directory_always_exists = true;
     made = make_download_directory(files, "/dl", "T");
     QVERIFY(!made.has_value());
-    QVERIFY(made.error().contains(QStringLiteral("download directories")));
+    QVERIFY(made.error().text().contains(QStringLiteral("download directories")));
 }
 
 void DownloadDirectoryTest::only_an_empty_directory_is_removed() {

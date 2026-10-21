@@ -97,6 +97,12 @@ Archivo (SIL OFL 1.1) is bundled and registered before the engine starts (`regis
 fallback if registration fails. Identifiers, numbers and ordinals are Cascadia Mono → Consolas →
 monospace.
 
+Archivo has no Hebrew letters. In Hebrew and Yiddish `LanguageManager` makes the bundled **Noto Sans
+Hebrew** (SIL OFL 1.1; four static weights cut from the variable font) the application font and
+`Theme.headingFamily` follows the layout direction, so a right-to-left window is set in it
+throughout (it has Latin letters and digits too). Chinese and Japanese are drawn in the system's own
+CJK fonts; none is bundled ([translations](translations.md#typefaces)).
+
 | Token | Base px | Use |
 |---|---|---|
 | `fontDisplay` | 40 | first-run statement, about mark |
@@ -200,6 +206,15 @@ Rules for composition:
 - A destructive or mode-changing choice is disabled while the mode is live (the mock target's
   injections while serving), and its state is a chip, not a colour.
 
+## Right to left
+
+A window root sets `LayoutMirroring.enabled` from `Qt.application.layoutDirection` and
+`childrenInherit`, which is all a layout, a row, an anchor or a layout margin needs. A component
+places by anchors, layouts or `mirrored` and never by a literal `x` from the left: `TaskProgress`
+fills from the start edge, `AppCheckBox`'s note, `AppComboBox`'s chevron, `AppSpinBox`'s steppers and
+`AppTextField`'s unit sit at the start or end edge by `mirrored`. `LanguagePicker` is the shared
+language box. `tst_right_to_left.qml` checks the result ([translations](translations.md#right-to-left)).
+
 ## Focus, keyboard and motion
 
 - Every control is a tab stop when it can be pressed; a disabled control is not. The keyboard can
@@ -285,11 +300,14 @@ what happened or where.
   files with aliases (`ArincDataLoader`, `ArincMediaGen` and `ArincMockTarget`).
   `adl_prepare_ui_qml()` must run in the app's directory before `qt_add_qml_module`;
   source-file properties are directory-scoped. It also marks `Theme.qml` as a singleton.
-- `adl_add_ui_support(target)` adds the Archivo resources, the third-party notices
-  (`:/adl/notices/NOTICES.txt`, written once per configure by `adl_generate_ui_notices()`),
-  `fonts.cpp`, `window_state.cpp` and `version.cpp` (the About provenance), and the include
-  directories, including the generated `build_info.hpp`.
-- Fonts: `Archivo-Regular/Medium/SemiBold/ExtraBold.ttf`, licence `OFL.txt` beside them, in
+- `adl_add_ui_support(target)` adds the Archivo and Noto Sans Hebrew resources, the third-party
+  notices (`:/adl/notices/NOTICES.txt`, written once per configure by `adl_generate_ui_notices()`),
+  the shared interface's compiled catalogue (`adl_generate_ui_translations()`), `fonts.cpp`,
+  `language_manager.cpp`, `window_state.cpp` and `version.cpp` (the About provenance), and the
+  include directories, including the generated `build_info.hpp`. An application's own catalogues
+  come from `adl_add_app_translations()`.
+- Fonts: `Archivo-Regular/Medium/SemiBold/ExtraBold.ttf` with `OFL.txt`, and
+  `NotoSansHebrew-Regular/Medium/SemiBold/ExtraBold.ttf` with `NotoSansHebrew-OFL.txt`, in
   `src/ui/fonts`.
 - Window geometry uses `QSettings` (the application's default settings) under `window/x`,
   `window/y`, `window/width`, `window/height`, `window/maximized` and `window/placed`, written when

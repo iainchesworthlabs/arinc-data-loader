@@ -49,6 +49,13 @@ QHash<int, QByteArray> TargetModel::roleNames() const {
             {ManufacturerRole, "manufacturer"}, {ThwIdPosRole, "thwIdPos"}};
 }
 
+void TargetModel::retranslate() {
+    if (!targets_.isEmpty()) {
+        Q_EMIT dataChanged(index(0), index(static_cast<int>(targets_.size()) - 1),
+                           {Qt::DisplayRole});
+    }
+}
+
 void TargetModel::reset(QList<FoundTarget> targets) {
     beginResetModel();
     targets_ = std::move(targets);
@@ -73,7 +80,7 @@ QVariant EventModel::data(const QModelIndex& index, int role) const {
     switch (role) {
         case Qt::DisplayRole:
         case TextRole:
-            return line.entry.text;
+            return line.entry.text.text();
         case SeverityRole:
             return static_cast<int>(line.entry.severity);
         case TimeRole:
@@ -100,6 +107,12 @@ void EventModel::append(const EventEntry& entry) {
     beginInsertRows({}, row, row);
     lines_.append({entry, QDateTime::currentDateTime()});
     endInsertRows();
+}
+
+void EventModel::retranslate() {
+    if (!lines_.isEmpty()) {
+        Q_EMIT dataChanged(index(0), index(static_cast<int>(lines_.size()) - 1));
+    }
 }
 
 void EventModel::clear() {
@@ -159,11 +172,11 @@ QVariant ConfigurationModel::data(const QModelIndex& index, int role) const {
     switch (role) {
         case Qt::DisplayRole:
         case TitleRole:
-            return row.title;
+            return row.title.text();
         case LevelRole:
             return static_cast<int>(row.level);
         case DetailRole:
-            return row.detail;
+            return row.detail.text();
         default:
             return {};
     }
@@ -174,6 +187,12 @@ QHash<int, QByteArray> ConfigurationModel::roleNames() const {
             {LevelRole, "level"},
             {TitleRole, "title"},
             {DetailRole, "detail"}};
+}
+
+void ConfigurationModel::retranslate() {
+    if (!rows_.isEmpty()) {
+        Q_EMIT dataChanged(index(0), index(static_cast<int>(rows_.size()) - 1));
+    }
 }
 
 void ConfigurationModel::reset(QList<HardwareRow> rows) {
@@ -201,26 +220,27 @@ QVariant LoadModel::data(const QModelIndex& index, int role) const {
         case HeaderFileRole:
             return load.header_file;
         case DetailRole: {
-            const QString data_files =
-                load.data_files == 1 ? tr("1 data file") : tr("%1 data files").arg(load.data_files);
-            const QString support_files = load.support_files == 1
-                                              ? tr("1 support file")
-                                              : tr("%1 support files").arg(load.support_files);
-            const QString targets = load.target_hardware_ids.isEmpty()
-                                        ? tr("no target ID")
-                                        : load.target_hardware_ids.join(QStringLiteral(", "));
-            return tr("%1 · %2, %3; for %4")
-                .arg(load.header_file)
-                .arg(data_files)
-                .arg(support_files)
-                .arg(targets);
+            // One count to a sentence: the two numbers of files are phrases of their own.
+            const Message targets =
+                load.target_hardware_ids.isEmpty()
+                    ? Message::translated(&LoadModel::tr, QT_TR_NOOP("no target ID"))
+                    : Message::verbatim(load.target_hardware_ids.join(QStringLiteral(", ")));
+            return Message::translated(
+                       &LoadModel::tr, QT_TR_NOOP("%1 · %2, %3; for %4"),
+                       {Message::verbatim(load.header_file),
+                        Message::translated(&LoadModel::tr, QT_TR_N_NOOP("%n data file(s)"), {},
+                                            load.data_files),
+                        Message::translated(&LoadModel::tr, QT_TR_N_NOOP("%n support file(s)"), {},
+                                            load.support_files),
+                        targets})
+                .text();
         }
         case CheckedRole:
             return row.checked;
         case RatioRole:
             return row.ratio;
         case LoadStatusRole:
-            return row.status;
+            return row.status.text();
         case FailedRole:
             return row.failed;
         case ProblemRole:
@@ -282,6 +302,12 @@ void LoadModel::reset(QList<LoadSummary> loads) {
     Q_EMIT selection_changed();
 }
 
+void LoadModel::retranslate() {
+    if (!rows_.isEmpty()) {
+        Q_EMIT dataChanged(index(0), index(static_cast<int>(rows_.size()) - 1));
+    }
+}
+
 void LoadModel::changed(int first, int last, const QList<int>& roles) {
     Q_EMIT dataChanged(index(first), index(last), roles);
 }
@@ -319,7 +345,8 @@ QList<LoadSummary> LoadModel::checked_loads() const {
 void LoadModel::begin_upload() {
     for (Row& row : rows_) {
         row.ratio = row.checked ? 0 : -1;
-        row.status = row.checked ? tr("waiting") : QString();
+        row.status =
+            row.checked ? Message::translated(&LoadModel::tr, QT_TR_NOOP("waiting")) : Message();
         row.problem.clear();
         row.failed = false;
     }
@@ -370,7 +397,7 @@ QVariant DownloadModel::data(const QModelIndex& index, int role) const {
         case RatioRole:
             return row.ratio;
         case FileStatusRole:
-            return row.status;
+            return row.status.text();
         case FailedRole:
             return row.failed;
         case ProblemRole:
@@ -509,7 +536,7 @@ void DownloadModel::begin_download() {
     for (Row& row : rows_) {
         if (!choice_mode_ || row.checked) {
             row.ratio = 0;
-            row.status = tr("waiting");
+            row.status = Message::translated(&DownloadModel::tr, QT_TR_NOOP("waiting"));
             row.problem.clear();
             row.failed = false;
         }
@@ -536,6 +563,12 @@ void DownloadModel::apply_progress(const QList<FileProgressRow>& progress) {
         found->failed = update.failed;
         const int i = static_cast<int>(found - rows_.begin());
         changed(i, i, {RatioRole, FileStatusRole, FailedRole, ProblemRole});
+    }
+}
+
+void DownloadModel::retranslate() {
+    if (!rows_.isEmpty()) {
+        Q_EMIT dataChanged(index(0), index(static_cast<int>(rows_.size()) - 1));
     }
 }
 

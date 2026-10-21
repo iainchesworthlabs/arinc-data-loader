@@ -13,7 +13,9 @@
 #include <QEventLoop>
 #include <QGuiApplication>
 #include <QImage>
+#include <QPointF>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QQmlError>
 #include <QQuickItem>
 #include <QQuickStyle>
@@ -25,6 +27,7 @@
 #include "adl/gen/generator_model.hpp"
 #include "adl/gen/source_file_model.hpp"
 #include "adl/ui/fonts.hpp"
+#include "adl/ui/language_manager.hpp"
 #include "temp_dir.hpp"
 
 namespace {
@@ -73,8 +76,8 @@ QUrl url_of(const std::filesystem::path& path) {
 
 int main(int argc, char* argv[]) {
     QGuiApplication application(argc, argv);
-    if (argc > 2) {
-        std::fprintf(stderr, "usage: adl_gen_qml_test [picture.png]\n");
+    if (argc > 3) {
+        std::fprintf(stderr, "usage: adl_gen_qml_test [picture.png [right-to-left.png]]\n");
         return 2;
     }
     adl::ui::register_fonts();
@@ -115,6 +118,13 @@ int main(int argc, char* argv[]) {
                              ++complaints;
                          }
                      });
+    // The picker in the header reads the language manager, exactly as the application's does.
+    adl::ui::LanguageManager language_manager(application, engine, QStringLiteral("adl_media_gen"));
+    language_manager.setLanguage(QStringLiteral("fr"));  // English by way of another: a change
+    language_manager.setLanguage(QStringLiteral("en"));
+    QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &model,
+                     &adl::gen::GeneratorModel::retranslate);
+    engine.rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
     engine.setInitialProperties(
         {{QStringLiteral("app"), QVariant::fromValue(&model)},
          // ADL_DARK=1 renders in the dark scheme (the window sets a dark palette, which is what
@@ -214,6 +224,46 @@ int main(int argc, char* argv[]) {
     }
     if (argc > 1 && !picture.save(QString::fromLocal8Bit(argv[1]))) {
         std::fprintf(stderr, "the picture could not be saved\n");
+        return 1;
+    }
+
+    // The language picker is in the header and the header mirrors with the language: in Hebrew
+    // the picker is on the left of the window, in English on the right. A second argument keeps
+    // a picture of the mirrored window.
+    QQuickItem* picker = find_item(window->contentItem(), QStringLiteral("languagePicker"));
+    if (picker == nullptr) {
+        std::fprintf(stderr, "the window has no language picker\n");
+        return 1;
+    }
+    const auto picker_centre = [&] {
+        return picker->mapToScene(QPointF{picker->width() / 2, 0}).x();
+    };
+    if (picker_centre() < window->width() / 2.0) {
+        std::fprintf(stderr, "the language picker is not on the right in English\n");
+        return 1;
+    }
+    for (const QString& code : {QStringLiteral("he"), QStringLiteral("yi")}) {
+        if (!language_manager.setLanguage(code)) {
+            std::fprintf(stderr, "the language %s is not accepted\n", qPrintable(code));
+            return 1;
+        }
+        QCoreApplication::processEvents();
+        if (picker_centre() > window->width() / 2.0) {
+            std::fprintf(stderr, "the header did not mirror in %s\n", qPrintable(code));
+            return 1;
+        }
+        if (code == QStringLiteral("he") && argc > 2) {
+            const QImage mirrored = window->grabWindow();
+            if (mirrored.isNull() || !mirrored.save(QString::fromLocal8Bit(argv[2]))) {
+                std::fprintf(stderr, "the right-to-left picture could not be saved\n");
+                return 1;
+            }
+        }
+    }
+    language_manager.setLanguage(QStringLiteral("en"));
+    QCoreApplication::processEvents();
+    if (picker_centre() < window->width() / 2.0) {
+        std::fprintf(stderr, "English did not put the header back\n");
         return 1;
     }
 

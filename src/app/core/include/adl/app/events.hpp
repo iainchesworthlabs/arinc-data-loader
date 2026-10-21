@@ -2,13 +2,18 @@
 
 // The plain values that cross from the engine's thread to the window: every one is a copy
 // (the engine hands out views that die with the call), made of Qt strings so a queued signal
-// can carry it. Nothing here knows about the engine.
+// can carry it. Nothing here knows about the engine. What the application says in its own words
+// is a Message, translated when it is read so a language switch reaches what is already shown;
+// what comes from the target or the libraries (names, identifiers, the target's descriptions) is
+// a QString and stays as it was given.
 
 #include <QList>
 #include <QMetaType>
 #include <QString>
 #include <QStringList>
 #include <QtGlobal>
+
+#include "adl/app/message.hpp"
 
 namespace adl::app {
 
@@ -17,7 +22,7 @@ enum class Severity : int { info = 0, notice = 1, warning = 2, error = 3 };
 // One line of the activity log.
 struct EventEntry {
     Severity severity = Severity::info;
-    QString text;
+    Message text;
 };
 
 // A target that answered FIND.
@@ -39,8 +44,8 @@ struct FoundTarget {
 struct HardwareRow {
     enum class Level : int { hardware = 0, part = 1 };
     Level level = Level::hardware;
-    QString title;
-    QString detail;
+    Message title;
+    Message detail;
 };
 
 // How a job ended. `success` is the operation's own verdict (the target said it was
@@ -50,9 +55,9 @@ struct HardwareRow {
 // abort the target did not confirm). Empty when there is nothing honest to say.
 struct OperationSummary {
     bool success = false;
-    QString outcome;
-    QString detail;
-    QString hint;
+    Message outcome;
+    Message detail;
+    Message hint;
     quint32 statuses_received = 0;
     quint32 statuses_lost = 0;
     // A download: the files the operation asked for, the files that arrived, and the directory
@@ -113,7 +118,7 @@ struct LoadProgressRow {
     QString header_file;
     QString part_number;
     int ratio = 0;  // percent, 0 to 100
-    QString status;
+    Message status;
     QString description;
     bool failed = false;  // the target gave up on this load
 };
@@ -124,7 +129,7 @@ struct LoadProgressRow {
 struct FileProgressRow {
     QString name;
     int ratio = 0;  // percent: 100 when the file has arrived, 0 while the target is at it
-    QString status;
+    Message status;
     QString description;
     bool failed = false;  // the target gave up on this file
 };

@@ -66,16 +66,16 @@ void EngineWorkerTest::an_id_no_directory_can_be_named_after_makes_no_directory(
         QSignalSpy finished(&worker, &EngineWorker::finished);
         worker.download_operator(target_address, QString::fromLatin1(id), downloads, 59);
         const OperationSummary media = finished_with(finished);
-        QVERIFY2(!media.success && media.outcome.contains(QStringLiteral("THW_ID_POS")),
-                 qPrintable(media.outcome));
-        QVERIFY(!media.hint.isEmpty());
+        QVERIFY2(!media.success && media.outcome.text().contains(QStringLiteral("THW_ID_POS")),
+                 qPrintable(media.outcome.text()));
+        QVERIFY(!media.hint.text().isEmpty());
 
         QSignalSpy finished_again(&worker, &EngineWorker::finished);
         worker.download_media(target_address, QString::fromLatin1(id),
                               QStringList{QStringLiteral("A.BIN")}, downloads, 59);
         const OperationSummary operator_defined = finished_with(finished_again);
         QVERIFY(!operator_defined.success);
-        QVERIFY(operator_defined.outcome.contains(QStringLiteral("THW_ID_POS")));
+        QVERIFY(operator_defined.outcome.text().contains(QStringLiteral("THW_ID_POS")));
     }
     // Not even the download directory was made, and the target was never asked.
     QVERIFY(!rig.loader_host.fake_files().stat("/downloads").has_value());
@@ -90,11 +90,12 @@ void EngineWorkerTest::a_download_the_target_denies_leaves_no_directory() {
 
     const OperationSummary summary = finished_with(finished);
     QVERIFY(!summary.success);
-    QCOMPARE(summary.outcome, QStringLiteral("denied by the target"));
+    QCOMPARE(summary.outcome.text(), QStringLiteral("denied by the target"));
     // Nothing came, so there is no directory to point at, and none is left behind. The download
     // directory itself was the operator's choice (made on demand) and stays.
     QVERIFY(summary.download_directory.isEmpty());
-    QVERIFY2(summary.detail.contains(QStringLiteral("removed")), qPrintable(summary.detail));
+    QVERIFY2(summary.detail.text().contains(QStringLiteral("removed")),
+             qPrintable(summary.detail.text()));
     QCOMPARE(entries_of(rig.loader_host.fake_files(), "/downloads"), QStringList{});
 }
 
@@ -123,7 +124,7 @@ void EngineWorkerTest::a_download_that_received_a_file_keeps_its_directory() {
                           QStringList{QStringLiteral("A.BIN")}, downloads, 59);
 
     const OperationSummary summary = finished_with(finished);
-    QVERIFY2(summary.success, qPrintable(summary.outcome));
+    QVERIFY2(summary.success, qPrintable(summary.outcome.text()));
     QVERIFY(summary.download_directory.contains(QStringLiteral("DNLD_DATA_HNPFMS_L_1")));
     QCOMPARE(entries_of(rig.loader_host.fake_files(), "/downloads"),
              QStringList{QStringLiteral("DNLD_DATA_HNPFMS_L_1")});
@@ -158,14 +159,14 @@ void EngineWorkerTest::a_request_the_loader_refuses_is_reported_and_leaves_no_di
     worker.read_information(target_address, QStringLiteral("HNPFMS_L"), 0);
     OperationSummary summary = finished_with(finished);
     QVERIFY(!summary.success);
-    QVERIFY2(summary.outcome.contains(QStringLiteral("the request was refused")),
-             qPrintable(summary.outcome));
+    QVERIFY2(summary.outcome.text().contains(QStringLiteral("the request was refused")),
+             qPrintable(summary.outcome.text()));
 
     QSignalSpy finished_download(&worker, &EngineWorker::finished);
     worker.download_operator(target_address, QStringLiteral("HNPFMS_L"), downloads, 0);
     summary = finished_with(finished_download);
     QVERIFY(!summary.success);
-    QVERIFY(summary.outcome.contains(QStringLiteral("the request was refused")));
+    QVERIFY(summary.outcome.text().contains(QStringLiteral("the request was refused")));
     QVERIFY(summary.download_directory.isEmpty());
     QCOMPARE(entries_of(rig.loader_host.fake_files(), "/downloads"), QStringList{});
 }
@@ -180,10 +181,11 @@ void EngineWorkerTest::a_port_that_cannot_be_opened_is_reported_and_leaves_no_di
     worker.download_operator(target_address, QStringLiteral("HNPFMS_L"), downloads, 59);
     const OperationSummary summary = finished_with(finished);
     QVERIFY(!summary.success);
-    QVERIFY2(summary.outcome.contains(QStringLiteral("the loader's port could not be opened")),
-             qPrintable(summary.outcome));
-    QVERIFY(summary.outcome.contains(QStringLiteral("address in use")));
-    QVERIFY(summary.hint.contains(QStringLiteral("control port")));  // the host hint
+    QVERIFY2(
+        summary.outcome.text().contains(QStringLiteral("the loader's port could not be opened")),
+        qPrintable(summary.outcome.text()));
+    QVERIFY(summary.outcome.text().contains(QStringLiteral("address in use")));
+    QVERIFY(summary.hint.text().contains(QStringLiteral("control port")));  // the host hint
     QVERIFY(summary.download_directory.isEmpty());
     QCOMPARE(entries_of(rig.loader_host.fake_files(), "/downloads"), QStringList{});
 }
@@ -198,8 +200,8 @@ void EngineWorkerTest::a_network_wait_that_fails_is_reported_and_leaves_no_direc
     worker.download_operator(target_address, QStringLiteral("HNPFMS_L"), downloads, 59);
     const OperationSummary summary = finished_with(finished);
     QVERIFY(!summary.success);
-    QVERIFY2(summary.outcome.contains(QStringLiteral("waiting for the network failed")),
-             qPrintable(summary.outcome));
+    QVERIFY2(summary.outcome.text().contains(QStringLiteral("waiting for the network failed")),
+             qPrintable(summary.outcome.text()));
     QVERIFY(summary.download_directory.isEmpty());
     QCOMPARE(entries_of(rig.loader_host.fake_files(), "/downloads"), QStringList{});
 }
@@ -215,9 +217,9 @@ void EngineWorkerTest::a_download_directory_that_cannot_be_made_is_reported() {
     worker.download_operator(target_address, QStringLiteral("HNPFMS_L"), downloads, 59);
     const OperationSummary summary = finished_with(finished);
     QVERIFY(!summary.success);
-    QVERIFY2(summary.outcome.contains(QStringLiteral("could not be used")),
-             qPrintable(summary.outcome));
-    QVERIFY(summary.outcome.contains(QStringLiteral("cannot create")));
-    QVERIFY(summary.hint.contains(QStringLiteral("download folder")));
+    QVERIFY2(summary.outcome.text().contains(QStringLiteral("could not be used")),
+             qPrintable(summary.outcome.text()));
+    QVERIFY(summary.outcome.text().contains(QStringLiteral("cannot create")));
+    QVERIFY(summary.hint.text().contains(QStringLiteral("download folder")));
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
 }

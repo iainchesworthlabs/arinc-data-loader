@@ -29,7 +29,8 @@ QQC.ComboBox {
     }
 
     indicator: Canvas {
-        x: control.width - width - Theme.space3
+        // At the end edge: the right in a left-to-right window, the left in a mirrored one.
+        x: control.mirrored ? Theme.space3 : control.width - width - Theme.space3
         y: control.topPadding + (control.availableHeight - height) / 2
         width: 10
         height: 6
@@ -58,15 +59,15 @@ QQC.ComboBox {
     delegate: QQC.ItemDelegate {
         id: item
 
-        required property var modelData
         required property int index
 
         width: control.width
         highlighted: control.highlightedIndex === index
 
         contentItem: Text {
-            text: control.textRole.length > 0 && typeof item.modelData === "object"
-                  ? item.modelData[control.textRole] : item.modelData
+            // textAt() reads the row whatever the model is: a list of strings, of objects with a
+            // role, or an item model such as a QStringListModel.
+            text: control.textAt(item.index)
             color: Theme.text
             font.pixelSize: Theme.fontBody
             elide: Text.ElideRight

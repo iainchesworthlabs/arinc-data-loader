@@ -40,7 +40,7 @@ void ModelsTest::event_model_keeps_the_newest_lines() {
     EventModel model;
     QCOMPARE(model.capacity(), EventModel::default_capacity);
     for (int i = 0; i < model.capacity() + 5; ++i) {
-        model.append({Severity::notice, QString::number(i)});
+        model.append({Severity::notice, Message::verbatim(QString::number(i))});
     }
     QCOMPARE(model.rowCount(), model.capacity());
     QCOMPARE(model.data(model.index(0), EventModel::TextRole).toString(), QStringLiteral("5"));
@@ -59,7 +59,7 @@ void ModelsTest::event_model_capacity_is_per_instance() {
     model.set_capacity(4);
     QCOMPARE(model.capacity(), 4);
     for (int i = 0; i < 6; ++i) {
-        model.append({Severity::info, QString::number(i)});
+        model.append({Severity::info, Message::verbatim(QString::number(i))});
     }
     QCOMPARE(model.rowCount(), 4);
     QCOMPARE(model.data(model.index(0), EventModel::TextRole).toString(), QStringLiteral("2"));
@@ -74,9 +74,10 @@ void ModelsTest::event_model_capacity_is_per_instance() {
 
 void ModelsTest::configuration_model_replaces_its_rows() {
     ConfigurationModel model;
-    model.reset(
-        {{HardwareRow::Level::hardware, QStringLiteral("FMS LEFT"), QStringLiteral("serial")},
-         {HardwareRow::Level::part, QStringLiteral("ACM47"), QStringLiteral("FMS 1")}});
+    model.reset({{HardwareRow::Level::hardware, Message::verbatim(QStringLiteral("FMS LEFT")),
+                  Message::verbatim(QStringLiteral("serial"))},
+                 {HardwareRow::Level::part, Message::verbatim(QStringLiteral("ACM47")),
+                  Message::verbatim(QStringLiteral("FMS 1"))}});
     QCOMPARE(model.rowCount(), 2);
     QCOMPARE(model.data(model.index(0), ConfigurationModel::LevelRole).toInt(), 0);
     QCOMPARE(model.data(model.index(1), ConfigurationModel::LevelRole).toInt(), 1);
@@ -209,7 +210,7 @@ void ModelsTest::load_model_shows_the_progress_of_the_ticked_loads() {
     row.header_file = QStringLiteral("B.LUH");
     row.part_number = QStringLiteral("ACM47-0002-0002");
     row.ratio = 40;
-    row.status = QStringLiteral("in progress");
+    row.status = Message::verbatim(QStringLiteral("in progress"));
     LoadProgressRow stranger = row;  // a load the model does not have
     stranger.header_file = QStringLiteral("Z.LUH");
     model.apply_progress({stranger, row});
@@ -221,7 +222,7 @@ void ModelsTest::load_model_shows_the_progress_of_the_ticked_loads() {
     QCOMPARE(model.data(model.index(0), LoadModel::RatioRole).toInt(), -1);
 
     row.ratio = 10;
-    row.status = QStringLiteral("failed");
+    row.status = Message::verbatim(QStringLiteral("failed"));
     row.description = QStringLiteral("no room");
     row.failed = true;
     model.apply_progress({row});
@@ -302,7 +303,7 @@ void ModelsTest::download_model_ticks_the_targets_list_and_keeps_the_choice() {
     FileProgressRow row;
     row.name = QStringLiteral("A.BIN");
     row.ratio = 100;
-    row.status = QStringLiteral("in progress");
+    row.status = Message::verbatim(QStringLiteral("in progress"));
     FileProgressRow stranger = row;
     stranger.name = QStringLiteral("Z.BIN");
     model.apply_progress({stranger, row});
@@ -312,7 +313,7 @@ void ModelsTest::download_model_ticks_the_targets_list_and_keeps_the_choice() {
     QVERIFY(!model.data(model.index(0), DownloadModel::FailedRole).toBool());
 
     row.ratio = 0;
-    row.status = QStringLiteral("failed");
+    row.status = Message::verbatim(QStringLiteral("failed"));
     row.description = QStringLiteral("no room");
     row.failed = true;
     model.apply_progress({row});

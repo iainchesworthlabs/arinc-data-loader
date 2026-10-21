@@ -652,12 +652,48 @@ function Invoke-LanguagePass {
         Start-Sleep -Milliseconds 600
         Select-ComboIndex (Find-Control -Window $a -Type ComboBox) 0
         Send-Raw('{ESC}')
+        Stop-AdlApp $app
+        $app = $null
+
+        # The loader in Japanese and in Chinese: neither script is in Archivo or in anything the
+        # programs bundle, so these show the system's own fonts. The language is stored the way
+        # the language manager stores it, and a window found by its identifiers (the accessible
+        # names are in the language of the window).
+        foreach ($shot in @(@{ Code = 'ja'; Name = 'app-workbench-japanese' }, @{ Code = 'zh'; Name = 'app-workbench-chinese' })) {
+            Set-ProgramLanguage $keys.loader $shot.Code
+            $app = Start-Loader
+            Start-Sleep -Milliseconds 800
+            Save-Shot $app $shot.Name
+            Stop-AdlApp $app
+            $app = $null
+        }
+        Set-ProgramLanguage $keys.loader 'en'
+
+        # The generator and the mock target in Hebrew: the header (with its language box) and the
+        # whole window mirror.
+        foreach ($shot in @(@{ Exe = 'adl_media_gen'; Key = $keys.gen; Height = 1200; Name = 'gen-hebrew' },
+                            @{ Exe = 'adl_mock_target'; Key = $keys.mock; Height = 1320; Name = 'mock-hebrew' })) {
+            Set-ProgramLanguage $shot.Key 'he'
+            $app = Start-Program $shot.Exe $shot.Height
+            Get-AdlWindow $app | Out-Null
+            Start-Sleep -Milliseconds 1500
+            Save-Shot $app $shot.Name
+            Stop-AdlApp $app
+            $app = $null
+            Set-ProgramLanguage $shot.Key 'en'
+        }
     } catch {
         Save-Failure $app
         throw
     } finally {
-        Stop-AdlApp $app
+        if ($app) { Stop-AdlApp $app }
     }
+}
+
+# The language a program starts in, as its language manager stores it.
+function Set-ProgramLanguage {
+    param([string]$Key, [string]$Code)
+    & reg add "$Key\language" /v code /t REG_SZ /d $Code /f | Out-Null
 }
 
 # The loader's settings as the demonstration leaves them, for running a later part on its own.

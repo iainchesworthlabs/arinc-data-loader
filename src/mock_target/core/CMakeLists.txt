@@ -23,6 +23,7 @@ target_compile_definitions(adl_mock_core PUBLIC QT_NO_KEYWORDS)
 target_link_libraries(adl_mock_core
     PUBLIC
         Qt6::Core
+        adl::ui_message
         adl::arinc615a
         adl::arinc615a_mini
         adl::arinc665

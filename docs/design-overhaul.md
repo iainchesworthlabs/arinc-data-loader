@@ -447,7 +447,7 @@ rail is a little wider than the others (396 px preferred, 352 to 460).
 
 The implementation lives in `src/ui`:
 
-- `qml/Theme.qml` — Signal palette, type scale, spacing, focus, motion, quantity helper.
+- `qml/Theme.qml` — Signal palette, type scale, spacing, focus, motion.
 - `qml/AppButton.qml`, `AppCheckBox.qml`, `AppComboBox.qml`, `AppSpinBox.qml`,
   `AppTextField.qml`, `SegmentedControl.qml` — the standard controls.
 - `qml/AppHeader.qml`, `AppStatusBar.qml`, `Card.qml`, `RailBlock.qml`, `SectionHeader.qml`,
@@ -595,12 +595,10 @@ done; item 8 is done.
    but a sole automatic FIND still starts without an explicit confirmation. A one-line
    "HNPFMS_L answered; use it?" confirmation for the auto path would close this. Open (the
    automatic path is the "Find the target automatically" preference, off by default).
-4. **Finish the translation catalogues.** The new QML and the changed C++ strings are now in the
-   eight `adl_app` `.ts` files (515 messages each, synchronised), but in each of the seven
-   non-English files 367 of them are still marked unfinished, so that text falls back to English.
-   The generator and the mock target have no catalogues. Translate and review the unfinished
-   strings, and add the plural forms where `qsTr` plurals are used (the mock
-   target's `%n ACTIVE`, once it has a catalogue).
+4. **Finish the translation catalogues.** Done in the right-to-left and translations change: all
+   three programs have catalogues, every message has a translation in the seven languages and
+   counts are real plurals (see [translations](translations.md)); what remains is review by
+   speakers, the translations being machine drafts.
 5. **Download directory preview.** Add the next free `DNLD_DATA_<THW_ID_POS>_<n>` to the model so
    the destination can be named before start, and make the aborted-directory consumption visible.
    Open: the view says a numbered directory is made for every download, but not which number.

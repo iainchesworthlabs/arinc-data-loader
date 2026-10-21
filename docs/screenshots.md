@@ -26,7 +26,7 @@ What it does:
    choosing and checking the set, Information, Upload, both Downloads, the dialogs.
 3. Runs the failures: a refused upload, a target that is not there, a silent target with the window
    closed during the operation, and every fault the mock target can inject.
-4. Opens a broken copy of the set, the sample set with a warning, and the loader in Hebrew.
+4. Opens a broken copy of the set, the sample set with a warning, the loader in Hebrew (the window mirrors), in Japanese and in Chinese (the system's fonts), and the generator and the mock target in Hebrew.
 5. Does it twice, in the light colours and in the dark.
 
 The pictures are the **client area of the window** (`PrintWindow`), so they carry no title bar
@@ -72,7 +72,11 @@ Things to know:
 
 The offscreen QML test programs can also save a window's picture
 (`adl_app_qml_test <workbench.png> <first-run.png> <right-to-left.png> <preferences.png> <about.png>`,
-`ADL_DARK=1` for the dark scheme; see [Testing](testing.md)). They draw the windows over simulated data
+`ADL_DARK=1` for the dark scheme; see [Testing](testing.md)). The right-to-left pictures of
+[Translations](translations.md#right-to-left) are made this way: the loader's, the generator's
+(`adl_gen_qml_test <window.png> <right-to-left.png>`) and the mock target's
+(`adl_mock_qml_test <window.png> <right-to-left.png>`) are the second picture each, drawn in Hebrew
+with Noto Sans Hebrew, and then compressed with `tools/docs/optimise_png.py`. They draw the windows over simulated data
 without a desktop, which is handy in CI, but they are not what the guide shows: the guide uses the
 real programs.
 

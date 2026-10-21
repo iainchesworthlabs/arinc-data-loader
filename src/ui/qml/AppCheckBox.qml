@@ -55,6 +55,7 @@ Item {
             Rectangle {
                 id: box
 
+                objectName: "checkBox"
                 width: 16
                 height: 16
                 anchors.verticalCenter: parent.verticalCenter
@@ -92,6 +93,7 @@ Item {
             Text {
                 id: label
 
+                objectName: "checkLabel"
                 anchors.verticalCenter: parent.verticalCenter
 
                 width: Math.max(0, root.width - 26)
@@ -105,7 +107,8 @@ Item {
         Text {
             visible: root.note.length > 0
             width: Math.max(0, root.width - 26)
-            x: 26
+            // Under the label, which is 26 px in from the start edge (the box and its gap).
+            x: LayoutMirroring.enabled ? 0 : 26
             text: root.note
             color: Theme.textMuted
             font.pixelSize: Theme.fontSmall

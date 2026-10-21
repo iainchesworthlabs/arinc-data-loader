@@ -1,6 +1,6 @@
 #include "adl/app/download_directory.hpp"
 
-#include <QObject>
+#include <QCoreApplication>
 
 #include "adl/app/text.hpp"
 #include "adl/arinc615a/data_loader.hpp"
@@ -12,9 +12,39 @@ namespace {
 
 using adl::platform::ErrorCode;
 
-[[nodiscard]] QString describe(ErrorCode code) {
-    return QString::fromLatin1(adl::platform::to_string(code));
-}
+// What is said of a directory that cannot be made. The platform's error code is its own word and
+// is not translated.
+class DirectoryProblem {
+    Q_DECLARE_TR_FUNCTIONS(DirectoryProblem)
+
+public:
+    static Message not_a_directory(std::string_view path) {
+        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("%1 is not a directory"),
+                                   {Message::verbatim(to_qstring(path))});
+    }
+
+    static Message cannot_look_at(std::string_view path, ErrorCode code) {
+        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("cannot look at %1 (%2)"),
+                                   {Message::verbatim(to_qstring(path)), error_code(code)});
+    }
+
+    static Message cannot_create(std::string_view path, ErrorCode code) {
+        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("cannot create %1 (%2)"),
+                                   {Message::verbatim(to_qstring(path)), error_code(code)});
+    }
+
+    static Message too_many(std::string_view thw_id_pos, std::string_view directory) {
+        return Message::translated(
+            &DirectoryProblem::tr,
+            QT_TR_NOOP("there are already %1 download directories for %2 in %3"),
+            {Message::verbatim(QString::number(max_download_directories)),
+             Message::verbatim(to_qstring(thw_id_pos)), Message::verbatim(to_qstring(directory))});
+    }
+
+    static Message error_code(ErrorCode code) {
+        return Message::verbatim(QString::fromLatin1(adl::platform::to_string(code)));
+    }
+};
 
 }  // namespace
 
@@ -27,18 +57,17 @@ bool can_download_from(std::string_view thw_id_pos) {
            adl::arinc665::is_portable_file_name(download_directory_name(thw_id_pos, 1));
 }
 
-std::expected<void, QString> make_directory_chain(adl::platform::FileSystem& files,
+std::expected<void, Message> make_directory_chain(adl::platform::FileSystem& files,
                                                   std::string_view path) {
     const auto existing = files.stat(path);
     if (existing) {
         if (existing->kind != adl::platform::FileKind::directory) {
-            return std::unexpected(QObject::tr("%1 is not a directory").arg(to_qstring(path)));
+            return std::unexpected(DirectoryProblem::not_a_directory(path));
         }
         return {};
     }
     if (existing.error().code != ErrorCode::not_found) {
-        return std::unexpected(QObject::tr("cannot look at %1 (%2)")
-                                   .arg(to_qstring(path), describe(existing.error().code)));
+        return std::unexpected(DirectoryProblem::cannot_look_at(path, existing.error().code));
     }
     const std::size_t cut = path.rfind('/');
     if (cut != std::string_view::npos && cut != 0) {
@@ -55,13 +84,12 @@ std::expected<void, QString> make_directory_chain(adl::platform::FileSystem& fil
                 return {};
             }
         }
-        return std::unexpected(QObject::tr("cannot create %1 (%2)")
-                                   .arg(to_qstring(path), describe(made.error().code)));
+        return std::unexpected(DirectoryProblem::cannot_create(path, made.error().code));
     }
     return {};
 }
 
-std::expected<std::string, QString> make_download_directory(adl::platform::FileSystem& files,
+std::expected<std::string, Message> make_download_directory(adl::platform::FileSystem& files,
                                                             std::string_view directory,
                                                             std::string_view thw_id_pos) {
     if (auto chain = make_directory_chain(files, directory); !chain) {
@@ -75,8 +103,7 @@ std::expected<std::string, QString> make_download_directory(adl::platform::FileS
             continue;  // whatever it is, the number is not free
         }
         if (taken.error().code != ErrorCode::not_found) {
-            return std::unexpected(QObject::tr("cannot look at %1 (%2)")
-                                       .arg(to_qstring(path), describe(taken.error().code)));
+            return std::unexpected(DirectoryProblem::cannot_look_at(path, taken.error().code));
         }
         const auto made = files.make_directory(path);
         if (made) {
@@ -85,12 +112,9 @@ std::expected<std::string, QString> make_download_directory(adl::platform::FileS
         if (made.error().code == ErrorCode::already_exists) {
             continue;  // another loader took this number since the look: the next one
         }
-        return std::unexpected(QObject::tr("cannot create %1 (%2)")
-                                   .arg(to_qstring(path), describe(made.error().code)));
+        return std::unexpected(DirectoryProblem::cannot_create(path, made.error().code));
     }
-    return std::unexpected(QObject::tr("there are already %1 download directories for %2 in %3")
-                               .arg(max_download_directories)
-                               .arg(to_qstring(thw_id_pos), to_qstring(directory)));
+    return std::unexpected(DirectoryProblem::too_many(thw_id_pos, directory));
 }
 
 bool remove_if_empty(adl::platform::FileSystem& files, std::string_view path) {

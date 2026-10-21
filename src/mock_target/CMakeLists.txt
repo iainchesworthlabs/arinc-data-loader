@@ -6,12 +6,13 @@
 #   core/       the logic without a window: the 615A target engine, the TargetLink seam over the
 #               platform's sockets, and MockTargetModel on a worker thread
 #   qml/        the window
+#   translations/   the window's Qt Linguist catalogues, one per language
 #   main.cpp
 #
 # The window is a static QML module of its own, as the data loader's is, so the window's test
 # links and loads exactly the compiled module the application does.
 
-find_package(Qt6 6.12 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2)
+find_package(Qt6 6.12 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 LinguistTools)
 
 # AUTOMOC and the policies of Qt 6.12 (QML modules get their resource prefix and their qmldir the
 # current way), for this directory only.
@@ -33,6 +34,14 @@ target_link_libraries(adl_mock_target_qml
         Qt6::Qml
         Qt6::Quick
         Qt6::QuickControls2)
+
+# The catalogues (cmake/AdlUi.cmake explains the pipeline): this window's own strings; the shared
+# components' strings are in src/ui/translations.
+adl_add_app_translations(adl_mock_target_qml adl_mock_target
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/translations"
+    SOURCE_TARGETS adl_mock_core
+    SOURCES
+        qml/TargetWindow.qml)
 
 qt_add_executable(adl_mock_target main.cpp)
 

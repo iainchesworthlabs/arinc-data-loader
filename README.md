@@ -67,7 +67,7 @@ are built from source). What exists:
     warnings), FIND, the Information, Upload and Download operations with progress and an abort,
     preferences that persist, properties for the media set and the target, and failures
     that say what went wrong and, where it is known, what to do about it. The window is in
-    eight languages (the Hebrew-script ones set the layout direction right to left, but the window's layout is not yet mirrored), and a profiling
+    eight languages (Hebrew and Yiddish mirror the whole window; the translations are machine-drafted and not yet reviewed by speakers, see [docs/translations.md](docs/translations.md)), and a profiling
     build instruments the libraries, the engine and the window's frame loop with Tracy
     0.14.1 ([docs/profiling.md](docs/profiling.md)).
   - **`adl_media_gen`**, the media set generator ([docs/media-gen.md](docs/media-gen.md)):

@@ -53,6 +53,9 @@ public:
     [[nodiscard]] int data_file_count() const noexcept;
     [[nodiscard]] bool all_valid() const noexcept;
 
+    // The language changed: the rows' sizes and messages are said again in the new one.
+    void retranslate();
+
 Q_SIGNALS:
     // Anything that could change whether a generation may start.
     void filesChanged();
@@ -63,7 +66,7 @@ private:
         QString file_name;
         QString kind = data_kind;
         int check_type = 0;  // CheckValueType::none
-        QString size;
+        qint64 size = -1;    // bytes, or -1 when it could not be read
         QString message;
     };
 

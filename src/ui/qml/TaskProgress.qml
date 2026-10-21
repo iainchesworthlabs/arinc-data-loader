@@ -2,7 +2,10 @@ import QtQuick
 import QtQuick.Controls as QQC
 
 // A 4 px progress bar: the accentFill fill on a neutral300 track (4.4:1 in light, 5.3:1 in dark),
-// with a still 30% mark under reduced motion or before a figure is known.
+// with a still 30% mark under reduced motion or before a figure is known. It fills from the start
+// edge: the left in a left-to-right window, the right in a mirrored one (so the width follows
+// `position`, not `visualPosition`, which a mirrored bar already flips, and the bar is placed at
+// the start edge itself).
 QQC.ProgressBar {
     id: control
 
@@ -22,12 +25,13 @@ QQC.ProgressBar {
 
         Rectangle {
             width: control.indeterminate ? track.width * 0.3
-                                         : Math.max(0, track.width * control.visualPosition)
+                                         : Math.max(0, track.width * control.position)
             height: 4
             color: Theme.progressFill
-            x: control.indeterminate
-               ? (track.width - width) * track.phase
-               : 0
+            // Where along the free space the bar sits, from the start edge: nowhere for a
+            // figure, travelling for the indeterminate one.
+            readonly property real fromStart: control.indeterminate ? track.phase : 0
+            x: (track.width - width) * (control.mirrored ? 1 - fromStart : fromStart)
         }
 
         NumberAnimation on phase {

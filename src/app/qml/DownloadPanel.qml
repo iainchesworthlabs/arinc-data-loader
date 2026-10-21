@@ -154,8 +154,7 @@ Item {
 
                     SectionHeader {
                         label: qsTr("Files")
-                        summary: Theme.quantity(mediaDownloadList.count,
-                                                qsTr("file"), qsTr("files"))
+                        summary: qsTr("%n file(s)", "", mediaDownloadList.count)
                     }
 
                     RowLayout {
@@ -281,9 +280,7 @@ Item {
 
                     SectionHeader {
                         label: qsTr("The target's list")
-                        summary: Theme.quantity(root.app.downloadSelectedCount,
-                                                qsTr("file ticked"),
-                                                qsTr("files ticked"))
+                        summary: qsTr("%n file(s) ticked", "", root.app.downloadSelectedCount)
                     }
 
                     Text {
@@ -321,8 +318,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: Theme.quantity(root.app.downloadSelectedCount,
-                                                 qsTr("file ticked"), qsTr("files ticked"))
+                            text: qsTr("%n file(s) ticked", "", root.app.downloadSelectedCount)
                             color: Theme.textMuted
                             font.pixelSize: Theme.fontBody
                             elide: Text.ElideRight

@@ -325,6 +325,7 @@ TestCase {
                "the LGPL text is missing")
         verify(text.text.indexOf("SIL OPEN FONT LICENSE") >= 0, "the OFL text is missing")
         verify(text.text.indexOf("Archivo") >= 0)
+        verify(text.text.indexOf("Noto Sans Hebrew") >= 0, "the Hebrew typeface is not credited")
         verify(text.text.indexOf("Qt 6.") >= 0, "the Qt version is missing")
         verify(text.text.indexOf("{{") < 0, "a placeholder was left in the notices")
         verify(text.text.indexOf("not compiled in") < 0, "the build embedded no notices")

@@ -7,6 +7,7 @@ QString FoundTarget::thw_id_pos() const {
 }
 
 void register_metatypes() {
+    qRegisterMetaType<Message>();
     qRegisterMetaType<EventEntry>();
     qRegisterMetaType<FoundTarget>();
     qRegisterMetaType<QList<FoundTarget>>();

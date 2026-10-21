@@ -26,6 +26,7 @@ set(_expected
     "GNU LESSER GENERAL PUBLIC LICENSE"
     "SIL OPEN FONT LICENSE"
     "Archivo"
+    "Noto Sans Hebrew"
     "version 3 or later"
     "Aeronautical Radio, Inc.")
 if(EXPECTED)

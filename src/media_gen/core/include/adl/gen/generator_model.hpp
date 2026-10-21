@@ -9,11 +9,13 @@
 
 #include <QObject>
 #include <QStringList>
+#include <QStringListModel>
 #include <QThread>
 #include <QUrl>
 
 #include "adl/gen/generator_worker.hpp"
 #include "adl/gen/source_file_model.hpp"
+#include "adl/ui/message.hpp"
 
 namespace adl::gen {
 
@@ -42,6 +44,9 @@ class GeneratorModel : public QObject {
     Q_PROPERTY(int loadCheckTypeIndex READ loadCheckTypeIndex WRITE setLoadCheckTypeIndex NOTIFY
                    loadCheckTypeIndexChanged)
     Q_PROPERTY(QString outputDirectory READ outputDirectory NOTIFY outputDirectoryChanged)
+    // The load types the combo offers, as a model so that a change of language updates its rows
+    // in place and the combo keeps its choice.
+    Q_PROPERTY(QObject* loadTypeModel READ loadTypeModel CONSTANT)
 
     // What is wrong with the form, empty field by field when nothing is.
     Q_PROPERTY(
@@ -120,12 +125,13 @@ public:
     [[nodiscard]] int progressPercent() const noexcept { return progress_percent_; }
 
     [[nodiscard]] int resultState() const noexcept { return result_state_; }
-    [[nodiscard]] QString resultText() const { return result_text_; }
-    [[nodiscard]] QString resultDetail() const { return result_detail_; }
+    [[nodiscard]] QString resultText() const { return result_text_.text(); }
+    [[nodiscard]] QString resultDetail() const { return result_detail_.text(); }
     [[nodiscard]] QString outputPath() const { return output_path_; }
     [[nodiscard]] QStringList validationFindings() const { return validation_findings_; }
 
     [[nodiscard]] QObject* files() { return &files_; }
+    [[nodiscard]] QObject* loadTypeModel() { return &load_type_model_; }
 
     // The options of the window's combos, in the order their indices take.
     [[nodiscard]] Q_INVOKABLE QStringList loadTypeOptions() const;
@@ -146,6 +152,9 @@ public Q_SLOTS:
 
     void addTargetHardwareId(const QString& id);
     void removeTargetHardwareId(int row);
+
+    // The language changed: the fields' messages, the result and the combo's rows are said again.
+    void retranslate();
 
 Q_SIGNALS:
     void loadPartNumberChanged();
@@ -178,13 +187,15 @@ private:
     // `edited` is false when the refresh follows the job itself, not a change to the form.
     void refresh_validation(bool edited = true);
     void on_finished(const GenerateOutcome& outcome);
-    void set_result(int state, const QString& text, const QString& detail);
+    void set_result(int state, const adl::ui::Message& text, const adl::ui::Message& detail);
+    void fill_load_type_model();
     void set_progress(int percent);
 
     GeneratorWorker* worker_ = nullptr;
     QThread thread_;
 
     SourceFileModel files_;
+    QStringListModel load_type_model_;
 
     QString load_part_number_;
     QString media_set_part_number_;
@@ -213,8 +224,8 @@ private:
     int progress_percent_ = -1;
 
     int result_state_ = 0;
-    QString result_text_;
-    QString result_detail_;
+    adl::ui::Message result_text_;
+    adl::ui::Message result_detail_;
     QString output_path_;
     QStringList validation_findings_;
 };

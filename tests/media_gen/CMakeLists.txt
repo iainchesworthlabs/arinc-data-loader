@@ -30,6 +30,11 @@ target_link_libraries(adl_gen_tests
         adl::sanitizers
         adl::coverage)
 
+# The compiled English catalogue (plural forms) is read from where the application's build puts it.
+target_compile_definitions(adl_gen_tests PRIVATE
+    ADL_I18N_DIR="${CMAKE_BINARY_DIR}/src/media_gen")
+add_dependencies(adl_gen_tests adl_media_gen_lrelease)
+
 adl_platform_deploy_qt_runtime(adl_gen_tests "")
 adl_deploy_sanitizer_runtime(adl_gen_tests)
 

@@ -11,6 +11,7 @@
 
 #include <QString>
 
+#include "adl/app/message.hpp"
 #include "adl/platform/files.hpp"
 
 namespace adl::app {
@@ -31,7 +32,7 @@ inline constexpr unsigned max_download_directories = 10'000;
 // wants the parent to exist, and the operator's download directory may be a path that is not
 // there yet (the default Documents/ArincDownloads is made on demand). A directory that is there
 // is left as it is. On failure, what to tell the operator.
-[[nodiscard]] std::expected<void, QString> make_directory_chain(adl::platform::FileSystem& files,
+[[nodiscard]] std::expected<void, Message> make_directory_chain(adl::platform::FileSystem& files,
                                                                 std::string_view path);
 
 // Makes the directory of a download under `directory` (which is created if it is not there):
@@ -39,7 +40,7 @@ inline constexpr unsigned max_download_directories = 10'000;
 // loader may look for a free number at once, so a number that is taken between looking and
 // making is not an error: the next one is tried. Returns the platform path (UTF-8, '/'
 // separated) of the new directory, or what to tell the operator.
-[[nodiscard]] std::expected<std::string, QString> make_download_directory(
+[[nodiscard]] std::expected<std::string, Message> make_download_directory(
     adl::platform::FileSystem& files, std::string_view directory, std::string_view thw_id_pos);
 
 // Removes `path` if it is a directory with nothing in it, and says whether it did. A directory

@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QPointer>
@@ -20,10 +21,12 @@
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTranslator>
 #include <QUrl>
 
 #include "adl/app/loader_model.hpp"
 #include "adl/app/media_set_summary.hpp"
+#include "adl/app/message.hpp"
 #include "adl/app/settings.hpp"
 #include "adl/arinc665/check_value.hpp"
 #include "adl/arinc665/media_set.hpp"
@@ -1868,4 +1871,97 @@ void LoaderModelTest::the_real_host_makes_a_download_directory_with_a_non_ascii_
     QVERIFY2(!QFileInfo(numbered).exists(), qPrintable(numbered));
     QVERIFY(QFileInfo(downloads).isDir());
     QVERIFY(log_contains(model, QStringLiteral("Downloading 1 file from 127.0.0.1")));
+}
+
+void LoaderModelTest::a_language_switch_reaches_the_result_the_log_and_the_failure_on_show() {
+    // The French catalogue, from where the application's build puts it (the English one is
+    // installed for the whole program by main()).
+    QTranslator french;
+    if (!french.load(QStringLiteral("adl_app_fr"), QStringLiteral(ADL_I18N_DIR))) {
+        QSKIP("the French catalogue has not been built");
+    }
+
+    adl::test::SimPlan plan;
+    plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
+    adl::test::Rig rig(plan);
+    LoaderModel model(rig_host(rig));
+    model.findTargets();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultText(), QStringLiteral("1 target answered"));
+    QVERIFY(log_contains(model, QStringLiteral("1 target answered.")));
+
+    // The language changes while the result and the log are on show: they are said again, and
+    // the model announces it.
+    QSignalSpy result_changed(&model, &LoaderModel::resultChanged);
+    QVERIFY(QCoreApplication::installTranslator(&french));
+    model.retranslate();
+    QCOMPARE(result_changed.count(), 1);
+    QCOMPARE(model.resultText(), QStringLiteral("1 cible a répondu"));
+    QVERIFY(log_contains(model, QStringLiteral("1 cible a répondu.")));
+    QVERIFY(!log_contains(model, QStringLiteral("1 target answered")));
+
+    // A failure on show follows too.
+    model.dismissError();
+    model.findTargets(QStringLiteral("not an address"));
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QVERIFY(model.lastErrorText().contains(QStringLiteral("n’est pas une adresse IPv4")));
+    QVERIFY(QCoreApplication::removeTranslator(&french));
+    model.retranslate();
+    QVERIFY(model.lastErrorText().contains(QStringLiteral("is not an IPv4 address")));
+    QVERIFY(!model.lastErrorHint().isEmpty());
+}
+
+void MessageTest::verbatim_text_is_never_translated() {
+    const Message message = Message::verbatim(QStringLiteral("completed %1"));
+    QCOMPARE(message.text(), QStringLiteral("completed %1"));
+    QVERIFY(!message.isEmpty());
+    QVERIFY(Message().isEmpty());
+    QVERIFY(Message::verbatim({}).isEmpty());
+}
+
+namespace {
+
+// A class with tr(), as the application's own are, whose texts these cases translate.
+class Words {
+    Q_DECLARE_TR_FUNCTIONS(Words)
+};
+
+}  // namespace
+
+void MessageTest::arguments_replace_the_placeholders_in_one_pass() {
+    // The second argument holds a placeholder of its own, which stays; the arguments may be used
+    // in any order or not at all.
+    const Message message = Message::translated(
+        &Words::tr, "%2 before %1",
+        {Message::verbatim(QStringLiteral("one")), Message::verbatim(QStringLiteral("%1 two"))});
+    QCOMPARE(message.text(), QStringLiteral("%1 two before one"));
+    const Message dropped = Message::translated(
+        &Words::tr, "only %2",
+        {Message::verbatim(QStringLiteral("a")), Message::verbatim(QStringLiteral("b"))});
+    QCOMPARE(dropped.text(), QStringLiteral("only b"));
+    // A placeholder past the arguments is text.
+    QCOMPARE(
+        Message::translated(&Words::tr, "100%3 of %1", {Message::verbatim(QStringLiteral("x"))})
+            .text(),
+        QStringLiteral("100%3 of x"));
+}
+
+void MessageTest::a_sequence_joins_its_parts() {
+    const Message message = Message::sequence({Message::verbatim(QStringLiteral("a")),
+                                               Message::translated(&Words::tr, "b"),
+                                               Message::verbatim(QStringLiteral("c"))});
+    QCOMPARE(message.text(), QStringLiteral("abc"));
+}
+
+void MessageTest::a_count_picks_the_plural_form() {
+    // No translator is installed here, so Qt shows the source with the number put in for %n.
+    const Message three = Message::translated(&Words::tr, "%n file(s)", {}, 3);
+    QCOMPARE(three.text(), QStringLiteral("3 file(s)"));
+}
+
+void MessageTest::the_text_follows_the_installed_translator() {
+    const Message message = Message::translated(&Words::tr, "Close");
+    QCOMPARE(message.text(), QStringLiteral("Close"));
+    QCOMPARE(Message::translated(&Words::tr, "no such text").text(),
+             QStringLiteral("no such text"));
 }

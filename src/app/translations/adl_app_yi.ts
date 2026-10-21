@@ -2,145 +2,113 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="yi">
 <context>
-    <name>AboutDialog</name>
-    <message>
-        <location filename="../qml/AboutDialog.qml" line="+14"/>
-        <source>ARINC Data Loader %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>About ARINC Data Loader</source>
-        <translation>וועגן ARINC Data Loader</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Close</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Version</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+30"/>
-        <source>Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-55"/>
-        <location line="+39"/>
-        <source>Licences</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>ActivityDock</name>
     <message>
-        <location filename="../qml/ActivityDock.qml" line="+33"/>
+        <location filename="../qml/ActivityDock.qml" line="+40"/>
         <source>ACTIVITY</source>
-        <translation type="unfinished"></translation>
+        <translation>טעטיקײט</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>TARGET CONFIGURATION</source>
-        <translation type="unfinished"></translation>
+        <translation>ציל־קאָנפֿיגוראַציע</translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+4"/>
+        <source>Evidence panel</source>
+        <translation>באַווײַז־פּאַנעל</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>Clear</source>
-        <translation type="unfinished">אויסמעקן</translation>
+        <translation>אויסמעקן</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Clear the activity log</source>
-        <translation type="unfinished">אויסמעקן דעם טעטיקייט־לאָג</translation>
+        <translation>אויסמעקן דעם טעטיקײט־לאָג</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Read information</source>
-        <translation type="unfinished">לייענען אינפֿאָרמאַציע</translation>
+        <translation>לייענען אינפֿאָרמאַציע</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Read the target information</source>
-        <translation type="unfinished">לייענען די ציל־אינפֿאָרמאַציע</translation>
+        <translation>לייענען די ציל־אינפֿאָרמאַציע</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Hide</source>
-        <translation type="unfinished"></translation>
+        <translation>באַהאַלטן</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Show</source>
-        <translation type="unfinished"></translation>
+        <translation>װײַזן</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Collapse the evidence panel</source>
-        <translation type="unfinished"></translation>
+        <translation>צונויפֿקלאַפּן דעם באַװײַז־פּאַנעל</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Expand the evidence panel</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+36"/>
-        <source>Target configuration</source>
-        <translation type="unfinished">ציל־קאָנפֿיגוראַציע</translation>
+        <translation>אויסשפּרײטן דעם באַװײַז־פּאַנעל</translation>
     </message>
     <message>
         <location line="+40"/>
+        <source>Target configuration</source>
+        <translation>ציל־קאָנפֿיגוראַציע</translation>
+    </message>
+    <message>
+        <location line="+57"/>
         <source>Nothing read yet</source>
-        <translation type="unfinished"></translation>
+        <translation>נאָך גאָרנישט ניט געלייענט</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Read information from the target to see its hardware and parts here.</source>
-        <translation type="unfinished"></translation>
+        <translation>לייענט אינפֿאָרמאַציע פֿונעם ציל כּדי צו זען זײַן האַרדװער און טײלן דאָ.</translation>
     </message>
 </context>
 <context>
-    <name>AppDialog</name>
+    <name>AddressProblem</name>
     <message>
-        <location filename="../../ui/qml/AppDialog.qml" line="+12"/>
-        <source>OK</source>
-        <translation type="unfinished"></translation>
+        <location filename="../core/src/engine_worker.cpp" line="+113"/>
+        <source>&quot;%1&quot; is not an IPv4 address.</source>
+        <translation>&quot;%1&quot; איז ניט קײן IPv4־אַדרעס.</translation>
     </message>
 </context>
 <context>
-    <name>CheckTile</name>
+    <name>DirectoryProblem</name>
     <message>
-        <location filename="../../ui/qml/CheckTile.qml" line="+45"/>
-        <source>Not set</source>
-        <translation type="unfinished"></translation>
+        <location filename="../core/src/download_directory.cpp" line="+22"/>
+        <source>%1 is not a directory</source>
+        <translation>%1 איז ניט קײן פּאַפּקע</translation>
     </message>
-</context>
-<context>
-    <name>DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+512"/>
-        <source>waiting</source>
-        <translation type="unfinished">וואַרט</translation>
+        <location line="+5"/>
+        <source>cannot look at %1 (%2)</source>
+        <translation>מען קען ניט קוקן אויף %1 (%2)</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>cannot create %1 (%2)</source>
+        <translation>מען קען ניט באַשאַפֿן %1 (%2)</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>there are already %1 download directories for %2 in %3</source>
+        <translation>עס זענען שױן פֿאַראַן %1 אַראָפּלאָד־פּאַפּקעס פֿאַר %2 אין %3</translation>
     </message>
 </context>
 <context>
     <name>DownloadPanel</name>
     <message>
-        <location filename="../qml/DownloadPanel.qml" line="+121"/>
+        <location filename="../qml/DownloadPanel.qml" line="+123"/>
         <source>Media defined</source>
         <translation>מעדיע־באַשטימט</translation>
     </message>
@@ -154,8 +122,16 @@
         <source>Download mode</source>
         <translation>אַראָפּלאָד־מאָדוס</translation>
     </message>
+    <message numerus="yes">
+        <location line="+22"/>
+        <source>%n file(s)</source>
+        <translation>
+            <numerusform>%n טעקע</numerusform>
+            <numerusform>%n טעקעס</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+38"/>
+        <location line="+15"/>
         <source>Download file name</source>
         <translation>טעקע־נאָמען פֿונעם אַראָפּלאָד</translation>
     </message>
@@ -169,8 +145,17 @@
         <source>Add the file name to the download</source>
         <translation>צולייגן דעם טעקע־נאָמען צום אַראָפּלאָד</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+103"/>
+        <location line="+38"/>
+        <source>%n file(s) ticked</source>
+        <translation>
+            <numerusform>%n טעקע אָנגעצײכנט</numerusform>
+            <numerusform>%n טעקעס אָנגעצײכנט</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location line="-29"/>
         <source>Waiting for the target&apos;s list of files...</source>
         <translation>מען וואַרט אויף דער טעקע־רשימה פֿונעם ציל...</translation>
     </message>
@@ -195,949 +180,577 @@
         <translation>אַראָפּלאָדן די אָנגעצייכנטע טעקעס</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+43"/>
         <source>Download %1</source>
         <translation>אַראָפּלאָדן %1</translation>
     </message>
     <message>
-        <location line="-113"/>
+        <location line="-120"/>
         <source>Remove</source>
         <translation>אַוועקנעמען</translation>
     </message>
     <message>
-        <location line="-219"/>
+        <location line="-220"/>
         <source>no target</source>
-        <translation type="unfinished">קיין ציל</translation>
+        <translation>קײן ציל</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <location line="+373"/>
-        <source>Choose the download directory</source>
-        <translation type="unfinished">אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="-343"/>
+        <location line="+50"/>
         <source>THE DOWNLOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>דער אַראָפּלאָד</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Download from %1</source>
-        <translation type="unfinished"></translation>
+        <translation>אַראָפּלאָדן פֿון %1</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>RUNNING</source>
-        <translation type="unfinished"></translation>
+        <location line="-47"/>
+        <location line="+393"/>
+        <source>Choose the download folder</source>
+        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; directory.</source>
-        <translation type="unfinished"></translation>
+        <location line="-332"/>
+        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; folder.</source>
+        <translation>יעדע אַראָפּלאָדן שרײַבט אַ נײַע פּאַפּקע DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>מאָדוס</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>MEDIA DEFINED</source>
-        <translation type="unfinished"></translation>
+        <translation>מעדיע־באַשטימט</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>OPERATOR DEFINED</source>
-        <translation type="unfinished"></translation>
+        <translation>אָפּעראַטאָר־באַשטימט</translation>
     </message>
     <message>
         <location line="+26"/>
         <source>Name the files the target is to send; only those are requested.</source>
-        <translation type="unfinished"></translation>
+        <translation>נאָמענט די טעקעס װאָס דער ציל זאָל שיקן; בלױז די װערן געבעטן.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>The target sends its list; tick the files to take, then send the choice back.</source>
-        <translation type="unfinished"></translation>
+        <translation>דער ציל שיקט זײַן רשימה; צײכנט אָן די טעקעס װאָס מען זאָל נעמען, דערנאָך שיקט צוריק די אויסװאַל.</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Files</source>
-        <translation type="unfinished"></translation>
+        <translation>טעקעס</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>File name, for example CONFIG.LDR</source>
-        <translation type="unfinished"></translation>
+        <translation>טעקע־נאָמען, למשל CONFIG.LDR</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>No file named yet</source>
-        <translation type="unfinished"></translation>
+        <translation>נאָך קײן טעקע ניט באַנאָמען</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Name each file the target is to send. The target&apos;s own list is only used in the operator defined mode.</source>
-        <translation type="unfinished"></translation>
+        <translation>נאָמענט יעדע טעקע װאָס דער ציל זאָל שיקן. די רשימה פֿונעם ציל װערט גענוצט נאָר אין אָפּעראַטאָר־באַשטימטן מאָדוס.</translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+54"/>
         <source>Remove %1 from the download</source>
         <translation>אַוועקנעמען %1 פֿונעם אַראָפּלאָד</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+41"/>
         <source>The target&apos;s list</source>
-        <translation type="unfinished"></translation>
+        <translation>די רשימה פֿונעם ציל</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <location line="+40"/>
-        <source>file ticked</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-39"/>
-        <location line="+39"/>
-        <source>files ticked</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-29"/>
+        <location line="+11"/>
         <source>Start the download: the target sends its list, tick what to take, and send the choice back.</source>
-        <translation type="unfinished"></translation>
+        <translation>אָנהײבן דעם אַראָפּלאָד: דער ציל שיקט זײַן רשימה, צײכנט אָן װאָס מען זאָל נעמען, און שיקט צוריק די אויסװאַל.</translation>
     </message>
     <message>
-        <location line="+98"/>
+        <location line="+109"/>
         <source>Destination</source>
-        <translation type="unfinished"></translation>
+        <translation>באַשטימונגס־אָרט</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>LAST DOWNLOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>לעצטער אַראָפּלאָד</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT WRITTEN YET</source>
-        <translation type="unfinished"></translation>
+        <translation>נאָך ניט געשריבן</translation>
     </message>
     <message>
         <location line="+10"/>
-        <source>No download directory set</source>
-        <translation type="unfinished"></translation>
+        <source>No download folder set</source>
+        <translation>קײן אַראָפּלאָד־פּאַפּקע איז נישט באַשטימט</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>Change...</source>
-        <translation type="unfinished"></translation>
+        <source>Choose folder...</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Open the last download folder</source>
+        <translation>עפֿענען די לעצטע אַראָפּלאָד־פּאַפּקע</translation>
     </message>
     <message>
         <location line="+8"/>
+        <source>A new numbered folder is made for every download, even one that is aborted.</source>
+        <translation>פֿאַר יעדן אַראָפּלאָדן װערט געמאַכט אַ נײַע נומערירטע פּאַפּקע, אַפֿילו פֿאַר אַן אָפּגעבראָכענעם.</translation>
+    </message>
+    <message>
+        <location line="+64"/>
+        <source>no folder</source>
+        <translation>קײן פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="-74"/>
         <location line="+55"/>
         <source>Open folder</source>
-        <translation type="unfinished"></translation>
+        <translation>עפֿענען די פּאַפּקע</translation>
     </message>
     <message>
-        <location line="-53"/>
-        <source>Open the last download directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location line="-46"/>
         <source>The last download was written to %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>דער לעצטער אַראָפּלאָד איז געשריבן געװאָרן אין %1.</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>A new numbered directory is made for every download, even one that is aborted.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+30"/>
         <source>COMPLETE</source>
-        <translation type="unfinished"></translation>
+        <translation>פֿאַרענדיקט</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>FAILED</source>
-        <translation type="unfinished"></translation>
+        <translation>דורכגעפֿאַלן</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Open the download folder</source>
-        <translation type="unfinished"></translation>
+        <translation>עפֿענען די אַראָפּלאָד־פּאַפּקע</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Target %1 · %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>no directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>EngineWorker</name>
-    <message>
-        <location filename="../core/src/engine_worker.cpp" line="+401"/>
-        <location line="+56"/>
-        <location line="+20"/>
-        <location line="+48"/>
-        <location line="+39"/>
-        <source>&quot;%1&quot; is not an IPv4 address.</source>
-        <translation type="unfinished">&quot;%1&quot; איז ניט קיין IPv4־אַדרעס.</translation>
-    </message>
-    <message>
-        <location line="-149"/>
-        <source>Looking for targets (broadcast, three seconds)...</source>
-        <translation type="unfinished">מען זוכט צילן (בראָדקאַסט, דרײַ סעקונדעס)...</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Looking for a target at %1 (three seconds)...</source>
-        <translation type="unfinished">מען זוכט אַ ציל אויף %1 (דרײַ סעקונדעס)...</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>FIND could not run (%1).</source>
-        <translation type="unfinished">FIND האָט ניט געקענט לויפֿן (%1).</translation>
-    </message>
-    <message>
-        <location line="+23"/>
-        <source>1 target answered</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 targets answered</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>Asking %1 (%2) for its configuration...</source>
-        <translation type="unfinished">מען פֿרעגט %1 (%2) נאָך זײַן קאָנפֿיגוראַציע...</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>No media set has been read, so there is nothing to upload.</source>
-        <translation type="unfinished">קיין מעדיע־סעט איז ניט געלייענט געוואָרן, דעריבער איז ניטאָ וואָס אַרויפֿצולאָדן.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>No load was chosen.</source>
-        <translation type="unfinished">קיין לאַסט איז ניט אויסגעקליבן געוואָרן.</translation>
-    </message>
-    <message>
-        <location line="+27"/>
-        <source>Uploading 1 load to %1 (%2)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Uploading %1 loads to %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>No file was named.</source>
-        <translation type="unfinished">קיין טעקע איז ניט באַנענט געוואָרן.</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>&quot;%1&quot; is not a safe file name.</source>
-        <translation type="unfinished">&quot;%1&quot; איז ניט קיין זיכערער טעקע־נאָמען.</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Downloading 1 file from %1 (%2)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Downloading %1 files from %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <source>Asking %1 (%2) for the files it can download...</source>
-        <translation type="unfinished">מען פֿרעגט %1 (%2) נאָך די טעקעס וואָס ער קען אַראָפּלאָדן...</translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The download directory could not be used: %1.</source>
-        <translation type="unfinished">מען האָט ניט געקענט ניצן די אַראָפּלאָד־פּאַפּקע: %1.</translation>
-    </message>
-    <message>
-        <location line="+43"/>
-        <source>the request was refused (%1)</source>
-        <translation type="unfinished">די בקשה איז אָפּגעווויזן געוואָרן (%1)</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>the loader&apos;s port could not be opened (%1)</source>
-        <translation type="unfinished">מען האָט ניט געקענט עפֿנען דעם לאָודער־פּאָרט (%1)</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>waiting for the network failed (%1)</source>
-        <translation type="unfinished">מען האָט ניט געקענט וואַרטן אויף דאָס נעצווערק (%1)</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The operation could not run: %1.</source>
-        <translation type="unfinished">די אָפּעראַציע האָט ניט געקענט לויפֿן: %1.</translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>completed, 1 file failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, 1 load failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 loads failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>completed, 1 file missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The target confirmed that it stopped.</source>
-        <translation type="unfinished">דער ציל האָט באַשטעטיקט אַז ער האָט זיך אָפּגעשטעלט.</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target did not confirm that it stopped.</source>
-        <translation type="unfinished">דער ציל האָט ניט באַשטעטיקט אַז ער האָט זיך אָפּגעשטעלט.</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>The target may still be loading; ask it what it is doing before trying again.</source>
-        <translation type="unfinished">דער ציל קען נאָך לאָדן; פֿרעגט אים וואָס ער טוט איידער איר פּרוּווט נאָך אַ מאָל.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>The target read 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target read %1 files.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Files received: %1 of %2 requested.</source>
-        <translation type="unfinished">טעקעס עמפֿאַנגען: %1 פֿון %2 געבעטענע.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Finished: %1.</source>
-        <translation type="unfinished">פֿאַרטיק: %1.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Reading the media set in %1...</source>
-        <translation type="unfinished">מען לייענט דעם מעדיע־סעט אין %1...</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>media set read</source>
-        <translation type="unfinished">מעדיע־סעט געלייענט</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Read media set %1: 1 load.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Read media set %1: %2 loads.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The media set could not be read: %1.</source>
-        <translation type="unfinished">מען האָט ניט געקענט לייענען דעם מעדיע־סעט: %1.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Checking the media set in %1...</source>
-        <translation type="unfinished">מען פּרוּפֿט דעם מעדיע־סעט אין %1...</translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>media set checked</source>
-        <translation type="unfinished">מעדיע־סעט געפּרוּפֿט</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Checked media set %1: 1 load, 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Checked media set %1: %2, %3.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The media set could not be checked: %1.</source>
-        <translation type="unfinished">מען האָט ניט געקענט פּרוּפן דעם מעדיע־סעט: %1.</translation>
+        <translation>ציל %1 · %2</translation>
     </message>
 </context>
 <context>
     <name>FirstRunScreen</name>
     <message>
-        <location filename="../qml/FirstRunScreen.qml" line="+22"/>
-        <location line="+176"/>
-        <source>Choose the download directory</source>
-        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="-161"/>
+        <location filename="../qml/FirstRunScreen.qml" line="+41"/>
         <source>FIRST RUN</source>
-        <translation type="unfinished"></translation>
+        <translation>ערשטער אָנהײב</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Load a media set to a target.</source>
-        <translation type="unfinished"></translation>
+        <translation>לאָדן אַ מעדיע־סעט אויף אַ ציל.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>The loader reads an ARINC 665 media set, checks every file and its check value, and moves the loads you tick to an ARINC 615A target. Nothing is sent until you ask it to.</source>
-        <translation type="unfinished"></translation>
+        <translation>דער לאָודער לייענט אַ מעדיע־סעט לױט ARINC 665, פּרוּפֿט יעדע טעקע און איר פּרוּפֿ־װערט, און שיקט די לאַסטן װאָס איר צײכנט אָן צו אַ ציל לױט ARINC 615A. גאָרנישט װערט געשיקט ביז איר פֿאַרלאַנגט עס.</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+16"/>
         <source>Start loading</source>
-        <translation type="unfinished"></translation>
+        <translation>אָנהײבן לאָדן</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Choose a media set...</source>
-        <translation type="unfinished"></translation>
+        <translation>אויסקלײַבן אַ מעדיע־סעט...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Choose the first media set</source>
-        <translation type="unfinished"></translation>
+        <translation>אויסקלײַבן דעם ערשטן מעדיע־סעט</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Opens the media set chooser and the workbench together</source>
-        <translation type="unfinished"></translation>
+        <translation>עפֿנט צוזאַמען דעם מעדיע־סעט־אויסקלײַבער און דעם אַרבעטס־טיש</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Start loading opens the workbench with these defaults. A media set can be chosen there, or here.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+28"/>
         <source>Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>פֿאַרױסבאַשטימטע װערטן</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Hide</source>
-        <translation type="unfinished"></translation>
+        <translation>באַהאַלטן</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Set up defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>אײַנשטעלן פֿאַרױסבאַשטימטע װערטן</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Hide the default settings</source>
-        <translation type="unfinished"></translation>
+        <translation>באַהאַלטן די פֿאַרױסבאַשטימטע אײַנשטעלונגען</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show the default settings</source>
-        <translation type="unfinished"></translation>
+        <translation>װײַזן די פֿאַרױסבאַשטימטע אײַנשטעלונגען</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>These are the values the workbench starts from. They can be changed later in Preferences.</source>
-        <translation type="unfinished"></translation>
+        <translation>דאָס זענען די װערטן פֿון װעלכע דער אַרבעטס־טיש הײבט זיך אָן. מען קען זײ שפּעטער ענדערן אין פּרעפֿערענצן.</translation>
     </message>
     <message>
         <location line="+13"/>
+        <location line="+11"/>
         <source>Default address</source>
         <translation>פֿאַרויסבאַשטימטער אַדרעס</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+1"/>
         <source>Default target address</source>
         <translation>פֿאַרויסבאַשטימטער ציל־אַדרעס</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+11"/>
         <source>Default THW_ID_POS</source>
         <translation>פֿאַרויסבאַשטימטער THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>פֿאַרויסבאַשטימטער ציל־האַרדווער־אידענטיפֿיקאַטאָר און פּאָזיציע</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <location line="+14"/>
-        <source>Download directory</source>
-        <translation>אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Browse...</source>
-        <translation>בלעטערן...</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+45"/>
         <source>WHAT THIS WINDOW DOES</source>
-        <translation type="unfinished"></translation>
+        <translation>װאָס דאָס פֿענצטער טוט</translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Choose a media set</source>
-        <translation type="unfinished"></translation>
+        <translation>אויסקלײַבן אַ מעדיע־סעט</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>A directory with one directory per member. Its loads, files and findings are read and checked.</source>
-        <translation type="unfinished"></translation>
+        <location line="-231"/>
+        <location line="+180"/>
+        <source>Choose the download folder</source>
+        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="-109"/>
+        <source>Start loading opens the workbench. The default address and THW_ID_POS start empty, and downloads go to the folder shown under Defaults; set them there or later in Preferences. A media set can be chosen there, or here.</source>
+        <translation>סטאַרט לאָדן עפֿנט די אַרבעט־באַנק. די סטאַנדאַרט־אַדרעס און THW_ID_POS הייבן זיך אָן ליידיק, און אַראָפּלאָדן גייען אין דער פּאַפּקע װאָס װערט געוויזן אונטער סטאַנדאַרטן; באַשטימט זײ דאָרט אָדער שפּעטער אין פּרעפֿערענצן. אַ מעדיע־סעט קאָן מען אויסקלײַבן דאָרט, אָדער דאָ.</translation>
+    </message>
+    <message>
+        <location line="+65"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>צום בײַשפּיל: 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>צום בײַשפּיל: HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Default target hardware identifier and position</source>
+        <translation>סטאַנדאַרט־האַרדװער־אידענטיפֿיקאַטאָר און פּאָזיציע פֿון דעם ציל</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <location line="+14"/>
+        <source>Download folder</source>
+        <translation>אַראָפּלאָד־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע...</translation>
+    </message>
+    <message>
+        <location line="+63"/>
+        <source>A folder with one folder per member. Its loads, files and findings are read and checked.</source>
+        <translation>אַ פּאַפּקע מיט איין פּאַפּקע פֿאַר יעדן מיטגליד. אירע לאַסטן, טעקעס און באַפֿונטן װערן געלייענט און געפּרוּװט.</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Find the target</source>
-        <translation type="unfinished"></translation>
+        <translation>געפֿינען דעם ציל</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>FIND broadcasts for three seconds. A target that does not answer can be named by IPv4 address and THW_ID_POS.</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND שיקט דרײַ סעקונדעס לאַנג צו אַלעמען. אַ ציל װאָס ענטפֿערט ניט קען מען באַנאָמען מיט אַן IPv4־אַדרעס און THW_ID_POS.</translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Upload or download</source>
-        <translation type="unfinished"></translation>
+        <translation>אַרױפֿלאָדן אָדער אַראָפּלאָדן</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>The operations run on the engine&apos;s own thread, with progress, an abort and an activity log that keeps what the target said.</source>
-        <translation type="unfinished"></translation>
+        <translation>די אָפּעראַציעס לױפֿן אין דעם מאָטאָרס אײגענעם פֿאָדעם, מיט פֿאָרשריט, אַן אָפּבראָך און אַ טעטיקײט־לאָג װאָס האַלט װאָס דער ציל האָט געזאָגט.</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>THE THREE TOOLS</source>
-        <translation type="unfinished"></translation>
+        <translation>די דרײַ געצײַגן</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>the loader</source>
-        <translation type="unfinished"></translation>
+        <translation>דער לאָודער</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Reads a media set, talks to the target, and keeps the evidence.</source>
-        <translation type="unfinished"></translation>
+        <translation>לייענט אַ מעדיע־סעט, רעדט מיטן ציל, און האַלט דעם באַװײַז.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>the media set generator</source>
-        <translation type="unfinished"></translation>
+        <translation>דער מעדיע־סעט־גענעראַטאָר</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Turns files into the ARINC 665 tree this window opens.</source>
-        <translation type="unfinished"></translation>
+        <translation>פֿאַרװאַנדלט טעקעס אין דעם בױם לױט ARINC 665 װאָס דאָס פֿענצטער עפֿנט.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>the target</source>
-        <translation type="unfinished"></translation>
+        <translation>דער ציל</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Serves a 615A dialogue over real sockets, and can be made to misbehave.</source>
-        <translation type="unfinished"></translation>
+        <translation>באַדינט אַ דיאַלאָג לױט 615A איבער עכטע סאָקעטן, און מען קען אים מאַכן זיך שלעכט פֿירן.</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>The same system draws the media set generator and the mock target, so the three tools read alike.</source>
-        <translation type="unfinished"></translation>
+        <translation>דער זעלבער סיסטעם צײכנט דעם מעדיע־סעט־גענעראַטאָר און דעם סימולירטן ציל, דערפֿאַר זעען די דרײַ געצײַגן אױס גלײַך.</translation>
     </message>
     <message>
-        <location line="-385"/>
+        <location line="-387"/>
         <source>Start the loader</source>
         <translation>אָנהייבן דעם לאָודער</translation>
     </message>
 </context>
 <context>
-    <name>LicencesDialog</name>
+    <name>Hint</name>
     <message>
-        <location filename="../../ui/qml/LicencesDialog.qml" line="+12"/>
-        <source>This build carries no embedded notices file (:/adl/notices/NOTICES.txt was not compiled in); the NOTICES.txt beside the application and the repository&apos;s LICENSE say what it ships.</source>
-        <translation type="unfinished"></translation>
+        <location filename="../core/src/engine_worker.cpp" line="-60"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
+        <translation>עפּעס אין מעדיע־סעט איז געביטן, אױסגעביטן אָדער אַװעקגענומען געװאָרן נאָך דער פּרוּפֿונג, דעריבער איז גאָרנישט ניט אַרױפֿגעלאָדן געװאָרן. פּרוּפֿט נאָך אַ מאָל דעם מעדיע־סעט און לאָדט דעמאָלט אַרױף.</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
+        <translation>דער לאָודער האָט ניט געקענט ניצן דאָס נעצװערק אָדער זײַן פּאָרט. פּרוּפֿט אַז קײן אַנדער עקזעמפּלאַר פֿונעם לאָודער לױפֿט ניט, און אַז קײן אַנדער פּראָגראַם האַלט ניט דעם קאָנטראָל־פּאָרט (פּרעפֿערענצן).</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Enter the target&apos;s IPv4 address as four numbers of 0 to 255 separated by dots, for example 10.0.0.2.</source>
+        <translation>גיט אַרײַן דעם IPv4־אַדרעס פֿונעם ציל װי פֿיר נומערן פֿון 0 ביז 255, צעשײדט מיט פּונקטן, למשל 10.0.0.2.</translation>
+    </message>
+    <message>
+        <location line="-21"/>
+        <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
+        <translation>קלײַבט אויס די פּאַפּקע אין װעלכער דער מעדיע־סעט איז געשריבן געװאָרן, און זיכערט זיך אַז יעדע טעקע פֿון סעט געפֿינט זיך נאָך אין איר.</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
+        <translation>קלײַבט אויס אַן אַראָפּלאָד־פּאַפּקע װאָס עקזיסטירט אָדער מען קען מאַכן, און זיכערט זיך אַז מען קען אין איר שרײַבן (פּרעפֿערענצן).</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed.</source>
+        <translation>דער ציל האָט ניט צוריקגעגעבן יעדע טעקע װאָס מען האָט געבעטן. פּרוּפֿט די נעמען קעגן װאָס דער ציל קען געבן, און פֿרעגט אים פֿאַר װאָס אַ טעקע איז דורכגעפֿאַלן.</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>ניצט דעם THW_ID_POS פֿון דעם ציל אַזױ װי ער רופֿט זיך אַלײן: פֿון 1 ביז 240 צײכנס, קײנס פֿון זײ איז ניט קײן קאָנטראָל־צײכן, קײן סלעש, קײן פֿאַרקערטער סלעש אָדער אַ צײכן װאָס אַ פּאַפּקע־נאָמען קען ניט אַנטהאַלטן (אַ צװײפּינטל, אַ שטערן, אַ פֿראַגצײכן, ציטירצײכנס, ווינקל־קלאַמערן אָדער אַ שטריך).</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
+        <translation>באַנענט די טעקע װי דער ציל װײסט זי: אַ פּשוטער נאָמען פֿון העכסטנס 254 צײכנס, אָן אַ װעג.</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The target may still be loading; ask it what it is doing before trying again.</source>
+        <translation>דער ציל קען נאָך לאָדן; פֿרעגט אים װאָס ער טוט איידער איר פּרוּװט נאָך אַ מאָל.</translation>
+    </message>
+</context>
+<context>
+    <name>HostAccess</name>
+    <message>
+        <location filename="../core/src/host_access.cpp" line="+24"/>
+        <source>The system services could not be started (%1).</source>
+        <translation>די סיסטעם־סערװיסן האָבן ניט געקענט אָנגעהױבן װערן (%1).</translation>
+    </message>
+</context>
+<context>
+    <name>JobListener</name>
+    <message>
+        <location filename="../core/src/engine_worker.cpp" line="+35"/>
+        <source>The target answered: %1</source>
+        <translation>דער ציל האָט געענטפֿערט: %1</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Status %1: %2</source>
+        <translation>סטאַטוס %1: %2</translation>
     </message>
     <message>
         <location line="+12"/>
-        <source>Third-party licences</source>
-        <translation type="unfinished"></translation>
+        <location line="+40"/>
+        <source>Status %1: %2, %3% of the list</source>
+        <translation>סטאַטוס %1: %2, %3% פֿון דער רשימה</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Close</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+24"/>
-        <source>Third-party licence text</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>LoadModel</name>
-    <message>
-        <location filename="../core/src/models.cpp" line="-307"/>
-        <source>1 data file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 data files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>1 support file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1 support files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>no target ID</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>%1 · %2, %3; for %4</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+110"/>
-        <source>waiting</source>
-        <translation type="unfinished">וואַרט</translation>
-    </message>
-</context>
-<context>
-    <name>LoaderModel</name>
-    <message>
-        <location filename="../core/src/loader_model.cpp" line="+64"/>
-        <location line="+136"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-136"/>
-        <location line="+136"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-134"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1, %2, all check values verified</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>; 1 warning against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>; %1 warnings against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+56"/>
-        <source>Looking for targets...</source>
-        <translation type="unfinished">מען זוכט צילן...</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <location line="+3"/>
-        <location line="+4"/>
-        <source>Stopping the operation...</source>
-        <translation type="unfinished">מען שטעלט אָפּ די אָפּעראַציע...</translation>
-    </message>
-    <message>
-        <location line="-6"/>
-        <source>Reading the target&apos;s configuration...</source>
-        <translation type="unfinished">מען לייענט די ציל־קאָנפֿיגוראַציע...</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Uploading to the target...</source>
-        <translation type="unfinished">מען לאָדט אַרויף צום ציל...</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Downloading from the target...</source>
-        <translation type="unfinished">מען לאָדט אַראָפּ פֿונעם ציל...</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Reading the media set...</source>
-        <translation type="unfinished">מען לייענט דעם מעדיע־סעט...</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Checking the media set...</source>
-        <translation type="unfinished">מען פּרוּפֿט דעם מעדיע־סעט...</translation>
-    </message>
-    <message>
-        <location line="+57"/>
-        <source>1 member</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>%1: %2, %3</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+296"/>
-        <source>Choose the target from the list, then run the operation again.</source>
-        <translation type="unfinished">קלײַבט אויס דעם ציל פֿון דער רשימה, און לויפֿט די אָפּעראַציע נאָך אַ מאָל.</translation>
-    </message>
-    <message>
-        <location line="+88"/>
-        <location line="+23"/>
-        <location line="+23"/>
-        <source>No target is selected; looking for one first.</source>
-        <translation type="unfinished">קיין ציל איז ניט אויסגעקליבן; מען זוכט קודם איינעם.</translation>
-    </message>
-</context>
-<context>
-    <name>LogView</name>
-    <message>
-        <location filename="../../ui/qml/LogView.qml" line="+52"/>
-        <source>Activity log</source>
-        <translation>טעטיקייט־לאָג</translation>
+        <location line="-13"/>
+        <source>The target failed load %1 (%2)%3</source>
+        <translation>דער ציל איז דורכגעפֿאַלן אויף לאַסט %1 (%2)%3</translation>
     </message>
     <message>
         <location line="+40"/>
-        <source>No activity yet.</source>
-        <translation type="unfinished"></translation>
+        <source>The target failed file %1%2</source>
+        <translation>דער ציל איז דורכגעפֿאַלן אויף טעקע %1%2</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>The target read %1 (%2 bytes)</source>
+        <translation>דער ציל האָט געלייענט %1 (%2 בײַט)</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Received %1 (%2 bytes)</source>
+        <translation>באַקומען %1 (%2 בײַט)</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>serial number %1</source>
+        <translation>סעריע־נומער %1</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>The target listed its configuration.</source>
+        <translation>דער ציל האָט אויסגערעכנט זײַן קאָנפֿיגוראַציע.</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+14"/>
+        <source>The target listed %n file(s) it can download.</source>
+        <translation>
+            <numerusform>דער ציל האָט אויסגערעכנט %n טעקע װאָס ער קען אַראָפּלאָדן.</numerusform>
+            <numerusform>דער ציל האָט אויסגערעכנט %n טעקעס װאָס ער קען אַראָפּלאָדן.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>, about %1 s left</source>
+        <translation>, נאָך אַרום %1 s</translation>
     </message>
 </context>
 <context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="+53"/>
-        <location line="+52"/>
+        <location filename="../qml/Main.qml" line="+59"/>
+        <location line="+60"/>
+        <location line="+136"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
-        <location line="+92"/>
-        <location line="+405"/>
-        <source>Choose the media set directory</source>
-        <translation>אויסקלײַבן די מעדיע־סעט־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="-323"/>
+        <location line="+51"/>
         <source>The operation failed</source>
         <translation>די אָפּעראַציע איז דורכגעפֿאַלן</translation>
     </message>
     <message>
-        <location line="+257"/>
-        <location line="+129"/>
+        <location line="+149"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>צום בײַשפּיל: 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>צום בײַשפּיל: HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+153"/>
+        <location line="+126"/>
         <source>Properties...</source>
         <translation>אייגנשאַפֿטן...</translation>
     </message>
     <message>
-        <location line="-119"/>
+        <location line="-116"/>
         <source>Ready to address.</source>
-        <translation type="unfinished"></translation>
+        <translation>גרײט פֿאַר אַן אַדרעס.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type an address or use FIND.</source>
-        <translation type="unfinished"></translation>
+        <translation>שרײַבט אַן אַדרעס אָדער ניצט FIND.</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>MEDIA SET</source>
-        <translation type="unfinished"></translation>
+        <translation>מעדיע־סעט</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>NOT CHOSEN</source>
-        <translation type="unfinished"></translation>
+        <translation>ניט אויסגעקליבן</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>CHECKING</source>
-        <translation type="unfinished"></translation>
+        <translation>װערט געפּרוּפֿט</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>CHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>געפּרוּפֿט</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>INVALID</source>
-        <translation type="unfinished"></translation>
+        <translation>ניט גילטיק</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>UNCHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>ניט געפּרוּפֿט</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>Choose...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Change...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="+26"/>
         <source>No media set chosen</source>
-        <translation type="unfinished"></translation>
+        <translation>קײן מעדיע־סעט ניט אויסגעקליבן</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Choose a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>member</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+24"/>
+        <location line="+44"/>
         <source>Re-check</source>
-        <translation type="unfinished"></translation>
+        <translation>איבערפּרוּפֿן</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Check the media set again</source>
-        <translation type="unfinished"></translation>
+        <translation>איבערפּרוּפֿן דעם מעדיע־סעט</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -1155,271 +768,262 @@
         <translation>אַרויפֿלאָדן לאַסט %1</translation>
     </message>
     <message>
-        <location line="-346"/>
+        <location line="-398"/>
         <source>Find targets</source>
         <translation>געפֿינען צילן</translation>
     </message>
     <message>
-        <location line="-373"/>
-        <source>WORKING</source>
-        <translation type="unfinished"></translation>
+        <location line="-404"/>
+        <source>SETUP</source>
+        <translation>אײַנשטעלונג</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>SETUP</source>
-        <translation type="unfinished"></translation>
+        <source>FAILED</source>
+        <translation>דורכגעפֿאַלן</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>COMPLETE</source>
+        <translation>פֿאַרענדיקט</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+885"/>
         <source>READY</source>
-        <translation type="unfinished"></translation>
+        <translation>גרײט</translation>
     </message>
     <message>
-        <location line="-885"/>
-        <location line="+885"/>
+        <location line="+0"/>
         <source>NOT READY</source>
-        <translation type="unfinished"></translation>
+        <translation>ניט גרײט</translation>
     </message>
     <message>
-        <location line="-872"/>
-        <source>Ready: 1 load to %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Ready: %1 loads to %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+17"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
-        <translation type="unfinished"></translation>
+        <translation>אַן אַרױפֿלאָד דאַרף אַ געפּרוּפֿטן מעדיע־סעט, װײניקסטנס איין אָנגעצײכנטן לאַסט און אַ ציל.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Ready to download from %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>גרײט צו אַראָפּלאָדן פֿון %1.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Download needs a target, a destination and - in media defined mode - a file name.</source>
-        <translation type="unfinished"></translation>
+        <translation>אַן אַראָפּלאָד דאַרף אַ ציל, אַ באַשטימונגס־אָרט און - אין מעדיע־באַשטימטן מאָדוס - אַ טעקע־נאָמען.</translation>
     </message>
     <message>
-        <location line="+56"/>
+        <location line="+64"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
-        <translation type="unfinished"></translation>
+        <translation>ARINC 615A · ARINC 665 · אינזשעניר־לאָד־קאָנסאָל</translation>
     </message>
     <message>
-        <location line="+9"/>
-        <location line="+94"/>
+        <location line="+10"/>
+        <location line="+100"/>
         <source>Preferences</source>
-        <translation type="unfinished">פּרעפֿערענצן</translation>
+        <translation>פּרעפֿערענצן</translation>
     </message>
     <message>
-        <location line="-92"/>
+        <location line="-98"/>
         <source>Open preferences</source>
-        <translation type="unfinished"></translation>
+        <translation>עפֿענען די פּרעפֿערענצן</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>װעגן</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>About the data loader</source>
-        <translation type="unfinished"></translation>
+        <translation>װעגן דעם דאַטן־לאָודער</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+22"/>
         <source>Complete</source>
-        <translation type="unfinished"></translation>
+        <translation>פֿאַרענדיקט</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed</source>
-        <translation type="unfinished"></translation>
+        <translation>דורכגעפֿאַלן</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+45"/>
         <source>v%1</source>
-        <translation type="unfinished"></translation>
+        <translation>v%1</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+10"/>
+        <location line="+476"/>
+        <source>Choose the media set folder</source>
+        <translation>אויסקלײַבן די מעדיע־סעט־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="-456"/>
         <source>Media set properties</source>
-        <translation type="unfinished">מעדיע־סעט־אייגנשאַפֿטן</translation>
+        <translation>מעדיע־סעט־אײגנשאַפֿטן</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Target properties</source>
-        <translation type="unfinished">ציל־אייגנשאַפֿטן</translation>
+        <translation>ציל־אײגנשאַפֿטן</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>About ARINC Data Loader</source>
-        <translation type="unfinished">וועגן ARINC Data Loader</translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+22"/>
         <source>An operation is running</source>
-        <translation type="unfinished"></translation>
+        <translation>אַן אָפּעראַציע לױפֿט</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Stop and close</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Keep working</source>
-        <translation type="unfinished"></translation>
+        <translation>װײַטער אַרבעטן</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+26"/>
+        <location line="+37"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
-        <location line="+98"/>
+        <location line="+107"/>
         <source>TARGET</source>
-        <translation type="unfinished"></translation>
+        <translation>ציל</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>SET</source>
-        <translation type="unfinished"></translation>
+        <translation>באַשטימט</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>NOT SET</source>
-        <translation type="unfinished"></translation>
+        <translation>ניט באַשטימט</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Find</source>
-        <translation type="unfinished"></translation>
+        <translation>געפֿינען</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>ADDRESS</source>
-        <translation type="unfinished"></translation>
+        <translation>אַדרעס</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+15"/>
         <source>Target address</source>
         <translation>ציל־אַדרעס</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+15"/>
         <source>THW_ID_POS</source>
         <translation>THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+1"/>
         <source>Target hardware identifier and position</source>
-        <translation>ציל־האַרדווער־אידענטיפֿיקאַטאָר און פּאָזיציע</translation>
+        <translation>האַרדװער־אידענטיפֿיקאַטאָר און פּאָזיציע פֿון דעם ציל</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>FOUND</source>
-        <translation type="unfinished"></translation>
+        <translation>געפֿונען</translation>
     </message>
     <message>
-        <location line="+63"/>
+        <location line="+114"/>
         <source>SELECTED</source>
-        <translation type="unfinished"></translation>
+        <translation>אויסגעקליבן</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+28"/>
         <source>Show the target properties</source>
         <translation>ווײַזן די ציל־אייגנשאַפֿטן</translation>
     </message>
     <message>
-        <location line="+138"/>
+        <location line="+60"/>
+        <source>Choose folder...</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Choose a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>קלײַבט אויס אַ פּאַפּקע מיט איין פּאַפּקע פֿאַר יעדן מיטגליד. זי װערט געלייענט און געפּרוּװט פֿאַר אַן אַרױפֿלאָדן.</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+20"/>
+        <source>%n member(s)</source>
+        <translation>
+            <numerusform>%n מיטגליד</numerusform>
+            <numerusform>%n מיטגלידער</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>%n load(s)</source>
+        <translation>
+            <numerusform>%n לאַסט</numerusform>
+            <numerusform>%n לאַסטן</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location line="+43"/>
         <source>LOADS</source>
-        <translation type="unfinished"></translation>
+        <translation>לאַסטן</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>All</source>
-        <translation type="unfinished"></translation>
+        <translation>אַלע</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Tick every load</source>
-        <translation type="unfinished"></translation>
+        <translation>אָנצײכענען יעדן לאַסט</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>None</source>
-        <translation type="unfinished"></translation>
+        <translation>קײנע</translation>
     </message>
     <message>
-        <location line="+85"/>
-        <source>WARNING</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>WARNINGS</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+111"/>
         <source>Show fewer</source>
-        <translation type="unfinished"></translation>
+        <translation>װײַזן װײניקער</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Show all warnings</source>
-        <translation type="unfinished"></translation>
+        <translation>װײַזן אַלע װאָרענונגען</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Reading and checking the set...</source>
-        <translation type="unfinished"></translation>
+        <translation>מען לייענט און פּרוּפֿט דעם סעט...</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Every file and check value was read and verified.</source>
-        <translation type="unfinished"></translation>
+        <translation>יעדע טעקע און פּרוּפֿ־װערט איז געלייענט און באַשטעטיקט געװאָרן.</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+44"/>
         <source>TRANSFER</source>
-        <translation type="unfinished"></translation>
+        <translation>איבערגעבונג</translation>
     </message>
     <message>
-        <location line="+164"/>
+        <location line="+156"/>
         <source>Downloading...</source>
-        <translation type="unfinished"></translation>
+        <translation>מען לאָדט אַראָפּ...</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Download from the target</source>
-        <translation type="unfinished">אַראָפּלאָדן פֿונעם ציל</translation>
+        <translation>אַראָפּלאָדן פֿונעם ציל</translation>
     </message>
     <message>
-        <location line="-157"/>
-        <location line="+154"/>
+        <location line="-149"/>
+        <location line="+146"/>
         <source>Download</source>
         <translation>אַראָפּלאָדן</translation>
     </message>
@@ -1434,40 +1038,61 @@
         <translation>לייענען די ציל־אינפֿאָרמאַציע</translation>
     </message>
     <message>
-        <location line="-138"/>
-        <location line="+145"/>
+        <location line="-130"/>
+        <location line="+137"/>
         <source>Upload</source>
         <translation>אַרויפֿלאָדן</translation>
     </message>
     <message>
-        <location line="-139"/>
-        <source>Transfer operation</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
+        <location line="-1084"/>
         <source>RUNNING</source>
-        <translation type="unfinished"></translation>
+        <translation>לױפֿט</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+20"/>
+        <source>Ready: %n load(s) to %1</source>
+        <translation>
+            <numerusform>גרײט: %n לאַסט צו %1</numerusform>
+            <numerusform>גרײט: %n לאַסטן צו %1</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>COMPLETE</source>
-        <translation type="unfinished"></translation>
+        <location line="+206"/>
+        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
+        <translation>אַן אינזשעניר־לאָד־קאָנסאָל לויט ARINC 615A און ARINC 665: מעדיע־סעטן, צילן, די אָפּעראַציעס אינפֿאָרמאַציע, אַרויפֿלאָדן און אַראָפּלאָדן, און דער באַווײַז פֿון וואָס איז געשען.</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>FAILED</source>
-        <translation type="unfinished"></translation>
+        <location line="+13"/>
+        <source>Abort and close</source>
+        <translation>אָפּברעכן און שליסן</translation>
     </message>
     <message>
-        <location line="+105"/>
+        <location line="+12"/>
+        <source>Closing now aborts the operation: the target is asked to stop and may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
+        <translation>שליסן יעצט בראָכט אָפּ די אָפּעראַציע: דער ציל װערט געבעטן זיך אָפּשטעלן און קען נעמען ביז 13 סעקונדעס עס באַשטעטיקן, און דאָס פֿענצטער בלײַבט אָפֿן ביז דעמאָלט.</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+591"/>
+        <source>%n WARNING(S)</source>
+        <translation>
+            <numerusform>%n װאָרענונג</numerusform>
+            <numerusform>%n װאָרענונגען</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location line="+111"/>
+        <source>Transfer operation</source>
+        <translation>איבערגעבונג־אָפּעראַציע</translation>
+    </message>
+    <message>
+        <location line="+109"/>
         <source>working</source>
-        <translation type="unfinished"></translation>
+        <translation>אַרבעט</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Uploading...</source>
-        <translation type="unfinished"></translation>
+        <translation>מען לאָדט אַרױף...</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1485,12 +1110,12 @@
         <translation>אָפּברעכן די אָפּעראַציע</translation>
     </message>
     <message>
-        <location line="-919"/>
+        <location line="-974"/>
         <source>Idle</source>
         <translation>אין רו</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>no target</source>
         <translation>קיין ציל</translation>
     </message>
@@ -1510,7 +1135,7 @@
     <message>
         <location line="+1"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>צומאַכן</translation>
     </message>
     <message>
         <location line="+16"/>
@@ -1531,78 +1156,72 @@
         <location line="+4"/>
         <location line="+32"/>
         <source>Loads</source>
-        <translation type="unfinished"></translation>
+        <translation>לאַסטן</translation>
     </message>
     <message>
         <location line="-27"/>
-        <location line="+68"/>
+        <location line="+86"/>
         <source>Files</source>
-        <translation type="unfinished"></translation>
+        <translation>טעקעס</translation>
     </message>
     <message>
-        <location line="-63"/>
+        <location line="-81"/>
         <source>Batches</source>
         <translation>באַטשן</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>No media set chosen</source>
-        <translation type="unfinished"></translation>
+        <translation>קײן מעדיע־סעט ניט אויסגעקליבן</translation>
     </message>
-    <message>
+    <message numerus="yes">
         <location line="+15"/>
-        <source>load</source>
-        <translation type="unfinished"></translation>
+        <source>%n load(s)</source>
+        <translation>
+            <numerusform>%n לאַסט</numerusform>
+            <numerusform>%n לאַסטן</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+59"/>
+        <source>%n file(s) from FILES.LUM</source>
+        <translation>
+            <numerusform>%n טעקע פֿון FILES.LUM</numerusform>
+            <numerusform>%n טעקעס פֿון FILES.LUM</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+119"/>
+        <source>%n WARNING(S)</source>
+        <translation>
+            <numerusform>%n װאָרענונג</numerusform>
+            <numerusform>%n װאָרענונגען</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+0"/>
-        <source>loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+42"/>
-        <source>file from FILES.LUM</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>files from FILES.LUM</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="-110"/>
         <source>NAME</source>
-        <translation type="unfinished"></translation>
+        <translation>נאָמען</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>MEMBER</source>
-        <translation type="unfinished"></translation>
+        <translation>מיטגליד</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>PATH</source>
-        <translation type="unfinished"></translation>
+        <translation>װעג</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>CRC</source>
-        <translation type="unfinished"></translation>
+        <translation>CRC</translation>
     </message>
     <message>
-        <location line="+71"/>
-        <source>WARNING</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>WARNINGS</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+94"/>
         <source>Deviations from the standard&apos;s recommendations. They are shown, and do not block an upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>אָפּװײכונגען פֿון די רעקאָמענדאַציעס פֿונעם סטאַנדאַרט. זײ װערן געװיזן, און פֿאַרשפּאַרן ניט קײן אַרױפֿלאָד.</translation>
     </message>
 </context>
 <context>
@@ -1615,102 +1234,115 @@
     <message>
         <location line="+1"/>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>אָפּהיטן</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>אַנולירן</translation>
     </message>
     <message>
-        <location line="+50"/>
-        <location line="+224"/>
-        <source>Choose the download directory</source>
-        <translation type="unfinished">אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="-209"/>
+        <location line="+60"/>
         <source>Appearance</source>
         <translation>אויסזען</translation>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+14"/>
         <source>Language</source>
         <translation>שפראך</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+15"/>
         <source>The window follows the desktop&apos;s light or dark scheme. Language applies at once; everything else on Save.</source>
-        <translation type="unfinished"></translation>
+        <translation>דאָס פֿענצטער פֿאָלגט דעם ליכטיקן אָדער טונקעלן סכעמע פֿון דעם דעסקטאָפּ. די שפּראַך װירקט גלײַך; אַלץ אַנדערש בײַם אָפּהיטן.</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="+35"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>צום בײַשפּיל: 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>צום בײַשפּיל: HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Default target hardware identifier and position</source>
+        <translation>סטאַנדאַרט־האַרדװער־אידענטיפֿיקאַטאָר און פּאָזיציע פֿון דעם ציל</translation>
+    </message>
+    <message>
+        <location line="+9"/>
         <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
-        <translation type="unfinished"></translation>
+        <translation>פֿאַר אַן אָפּעראַציע אָן אויסגעקליבענעם ציל, לאָזט לױפֿן FIND און נעמט דעם איינציקן ענטפֿער; אויב קײנער אָדער עטלעכע ענטפֿערן, װײַזט דאָס רעזולטאַט און װאַרט.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>A set has to pass the check before an upload. With this off, use &apos;Re-check&apos; in the media set rail.</source>
-        <translation type="unfinished"></translation>
+        <translation>אַ סעט מוז דורכגײן דעם פּרוּף פֿאַר אַן אַרױפֿלאָד. װען דאָס איז אויסגעשאַלטן, ניצט &apos;איבערפּרוּפֿן&apos; אין דעם מעדיע־סעט־שטרײַף.</translation>
     </message>
     <message>
-        <location line="+80"/>
-        <source>Browse...</source>
-        <translation type="unfinished">בלעטערן...</translation>
+        <location line="+18"/>
+        <source>None</source>
+        <translation>קײנע</translation>
+    </message>
+    <message>
+        <location line="+44"/>
+        <location line="+15"/>
+        <source>Download folder</source>
+        <translation>אַראָפּלאָד־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע...</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>The directory is where each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; directory is made.</source>
-        <translation type="unfinished"></translation>
+        <source>Each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; folder is made inside it.</source>
+        <translation>יעדע פּאַפּקע DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; װערט געמאַכט אינעם.</translation>
     </message>
     <message>
         <location line="+23"/>
+        <location line="+11"/>
         <source>Activity lines kept</source>
-        <translation type="unfinished"></translation>
+        <translation>געהאַלטענע טעטיקײט־שורות</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+13"/>
         <source>Save applies these choices. Cancel and Esc leave them as they were.</source>
-        <translation type="unfinished"></translation>
+        <translation>אָפּהיטן נעמט אָן די אויסװאַלן. אַנולירן און Esc לאָזן זײ װי זײ זענען געװען.</translation>
     </message>
     <message>
-        <location line="-201"/>
+        <location line="-207"/>
         <source>Target</source>
         <translation>ציל</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="-53"/>
+        <location line="+207"/>
+        <source>Choose the download folder</source>
+        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="-144"/>
+        <location line="+14"/>
         <source>Default address</source>
         <translation>פֿאַרויסבאַשטימטער אַדרעס</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Default target address</source>
         <translation>פֿאַרויסבאַשטימטער ציל־אַדרעס</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+12"/>
         <source>Default THW_ID_POS</source>
         <translation>פֿאַרויסבאַשטימטער THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>פֿאַרויסבאַשטימטער ציל־האַרדווער־אידענטיפֿיקאַטאָר און פּאָזיציע</translation>
-    </message>
-    <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>Find the target automatically</source>
         <translation>אויטאָמאַטיש געפֿינען דעם ציל</translation>
     </message>
@@ -1730,186 +1362,30 @@
         <translation>לעצטער מעדיע־סעט</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>none</source>
-        <translation>קיינע</translation>
-    </message>
-    <message>
-        <location line="+15"/>
+        <location line="+23"/>
         <source>Loader</source>
         <translation>לאָודער</translation>
     </message>
     <message>
         <location line="+10"/>
+        <location line="+13"/>
         <source>Control port</source>
         <translation>קאָנטראָל־פּאָרט</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+1"/>
         <source>Loader control port</source>
         <translation>לאָודער־קאָנטראָל־פּאָרט</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <location line="+15"/>
-        <source>Download directory</source>
-        <translation>אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="+25"/>
+        <location line="+45"/>
         <source>Log</source>
         <translation>לאָג</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Activity log capacity</source>
         <translation>קאַפּאַציטעט פֿון טעטיקייט־לאָג</translation>
-    </message>
-</context>
-<context>
-    <name>QObject</name>
-    <message>
-        <location filename="../core/src/engine_worker.cpp" line="-732"/>
-        <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
-        <translation>קלײַבט אויס די פּאַפּקע אין וועלכער דער מעדיע־סעט איז געשריבן געוואָרן, און זיכערט זיך אַז יעדע טעקע פֿונעם סעט איז נאָך דאָרט.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
-        <translation>דער לאָודער האָט ניט געקענט ניצן דאָס נעצווערק אָדער זײַן פּאָרט. פּרוּפֿט אַז קיין אַנדער עקזעמפּלאַר פֿונעם לאָודער לויפֿט ניט, און אַז קיין אַנדער פּראָגראַם האַלט ניט דעם קאָנטראָל־פּאָרט (פּרעפֿערענצן).</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Enter the target&apos;s IPv4 address as four numbers of 0 to 255 separated by dots, for example 10.0.0.2.</source>
-        <translation>גיט אַרײַן דעם IPv4־אַדרעס פֿונעם ציל ווי פֿיר נומערן פֿון 0 ביז 255, צעשיידט מיט פּונקטן, למשל 10.0.0.2.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
-        <translation>קלײַבט אויס אַן אַראָפּלאָד־פּאַפּקע וואָס עקזיסטירט אָדער קען באַשאַפֿן ווערן, און זיכערט זיך אַז מען קען דאָרט שרײַבן (פּרעפֿערענצן).</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed.</source>
-        <translation>דער ציל האָט ניט צוריקגעגעבן יעדע טעקע וואָס מען האָט געבעטן. פּרוּפֿט די נעמען קעגן וואָס דער ציל קען געבן, און פֿרעגט אים פֿאַר וואָס אַ טעקע איז דורכגעפֿאַלן.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Name the file as the target knows it: a plain name of at most 254 characters, without a path.</source>
-        <translation>באַנענט די טעקע ווי דער ציל ווייסט זי: אַ פּשוטער נאָמען פֿון העכסטנס 254 צייכנס, אָן אַ וועג.</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>%1 is not a directory</source>
-        <translation>%1 איז ניט קיין פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <location line="+40"/>
-        <source>cannot look at %1 (%2)</source>
-        <translation>מען קען ניט קוקן אויף %1 (%2)</translation>
-    </message>
-    <message>
-        <location line="-28"/>
-        <location line="+35"/>
-        <source>cannot create %1 (%2)</source>
-        <translation>מען קען ניט באַשאַפֿן %1 (%2)</translation>
-    </message>
-    <message>
-        <location line="+24"/>
-        <source>The target answered: %1</source>
-        <translation>דער ציל האָט געענטפֿערט: %1</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Status %1: %2</source>
-        <translation>סטאַטוס %1: %2</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <location line="+15"/>
-        <location line="+40"/>
-        <source>, about %1 s left</source>
-        <translation>, נאָך אַרום %1 סעק</translation>
-    </message>
-    <message>
-        <location line="-46"/>
-        <location line="+40"/>
-        <source>Status %1: %2, %3% of the list</source>
-        <translation>סטאַטוס %1: %2, %3% פֿון דער רשימה</translation>
-    </message>
-    <message>
-        <location line="-11"/>
-        <source>The target failed load %1 (%2)%3</source>
-        <translation>דער ציל איז דורכגעפֿאַלן אויף לאַסט %1 (%2)%3</translation>
-    </message>
-    <message>
-        <location line="+40"/>
-        <source>The target failed file %1%2</source>
-        <translation>דער ציל איז דורכגעפֿאַלן אויף טעקע %1%2</translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>The target read %1 (%2 bytes)</source>
-        <translation>דער ציל האָט געלייענט %1 (%2 בייטן)</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Received %1 (%2 bytes)</source>
-        <translation>עמפֿאַנגען %1 (%2 בייטן)</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>serial number %1</source>
-        <translation>סעריע־נומער %1</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>The target listed its configuration.</source>
-        <translation>דער ציל האָט אויסגערעכנט זײַן קאָנפֿיגוראַציע.</translation>
-    </message>
-    <message>
-        <location line="+14"/>
-        <source>The target listed 1 file it can download.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target listed %1 files it can download.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../core/src/host_access.cpp" line="+14"/>
-        <source>The system services could not be started (%1).</source>
-        <translation>די סיסטעם־סערוויסן האָבן ניט געקענט אָנגעהויבן ווערן (%1).</translation>
-    </message>
-    <message>
-        <location filename="../core/src/media_set_summary.cpp" line="+27"/>
-        <source>%1 (%2)</source>
-        <translation>%1 (%2)</translation>
-    </message>
-    <message>
-        <location line="+45"/>
-        <source>%1: %2</source>
-        <translation>%1: %2</translation>
-    </message>
-    <message>
-        <location filename="../core/src/notice_text.cpp" line="+25"/>
-        <source> (%1 s)</source>
-        <translation> (%1 סעק)</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source> (port %1)</source>
-        <translation> (פּאָרט %1)</translation>
-    </message>
-</context>
-<context>
-    <name>TargetModel</name>
-    <message>
-        <location filename="../core/src/models.cpp" line="-299"/>
-        <source>%1 at %2</source>
-        <translation type="unfinished">%1 אויף %2</translation>
     </message>
 </context>
 <context>
@@ -1922,12 +1398,12 @@
     <message>
         <location line="+1"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>צומאַכן</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Addressing</source>
-        <translation type="unfinished"></translation>
+        <translation>אַדרעסירונג</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1953,8 +1429,8 @@
     </message>
     <message>
         <location line="+23"/>
-        <source>Hardware identifier</source>
-        <translation>האַרדווער־אידענטיפֿיקאַטאָר</translation>
+        <source>Hardware ID</source>
+        <translation>האַרדװער־אידענטיפֿיקאַטאָר</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1962,345 +1438,561 @@
         <translation>סאָרט</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Position</source>
         <translation>פּאָזיציע</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Name</source>
         <translation>נאָמען</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Manufacturer code</source>
         <translation>פֿאַבריקאַנט־קאָד</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>No target was chosen from a FIND answer. The address and THW_ID_POS are the values typed in the rail.</source>
-        <translation type="unfinished"></translation>
+        <translation>קײן ציל איז ניט אויסגעקליבן געװאָרן פֿון אַן ענטפֿער אויף FIND. דער אַדרעס און THW_ID_POS זענען די װערטן װאָס זענען אַרײַנגעגעבן אין שטרײַף.</translation>
     </message>
 </context>
 <context>
     <name>UploadPanel</name>
     <message>
-        <location filename="../qml/UploadPanel.qml" line="+22"/>
+        <location filename="../qml/UploadPanel.qml" line="+24"/>
         <source>no target</source>
-        <translation type="unfinished">קיין ציל</translation>
+        <translation>קײן ציל</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>CHECKING</source>
-        <translation type="unfinished"></translation>
+        <translation>װערט געפּרוּפֿט</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>CHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>געפּרוּפֿט</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>INVALID</source>
-        <translation type="unfinished"></translation>
+        <translation>ניט גילטיק</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>NOT CHECKED</source>
-        <translation type="unfinished"></translation>
+        <translation>ניט געפּרוּפֿט</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+34"/>
         <source>An operation is running</source>
-        <translation type="unfinished"></translation>
+        <translation>אַן אָפּעראַציע לױפֿט</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Checking the media set</source>
-        <translation type="unfinished"></translation>
+        <translation>מען פּרוּפֿט דעם מעדיע־סעט</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Choose a media set first</source>
-        <translation type="unfinished"></translation>
+        <translation>קלײַבט פֿריִער אויס אַ מעדיע־סעט</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>The media set is not valid</source>
-        <translation type="unfinished"></translation>
+        <translation>דער מעדיע־סעט איז ניט גילטיק</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Check the media set</source>
-        <translation type="unfinished">פּרוּפט דעם מעדיע־סעט</translation>
+        <translation>פּרוּפֿט דעם מעדיע־סעט</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Tick at least one load</source>
-        <translation type="unfinished"></translation>
+        <translation>צײכנט אָן װײניקסטנס איין לאַסט</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Choose or find a target</source>
-        <translation type="unfinished"></translation>
+        <translation>קלײַבט אויס אָדער געפֿינט אַ ציל</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Ready to upload</source>
-        <translation type="unfinished"></translation>
+        <translation>גרײט צו אַרױפֿלאָדן</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+6"/>
         <source>Wait for it to finish, or stop it from the action bar.</source>
-        <translation type="unfinished"></translation>
+        <translation>װאַרט ביז עס פֿאַרענדיקט זיך, אָדער שטעלט עס אָפּ פֿון דער אַקציע־לײַסט.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Every file and its check value is being read; an upload needs the check to pass.</source>
-        <translation type="unfinished"></translation>
+        <translation>יעדע טעקע און איר פּרוּפֿ־װערט װערט געלייענט; אַן אַרױפֿלאָד דאַרף אַז דער פּרוּף זאָל דורכגײן.</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>A media set is a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation type="unfinished"></translation>
+        <location line="+8"/>
+        <source>The set has to be read again and checked before it may be uploaded.</source>
+        <translation>דער סעט מוז װערן געלייענט נאָך אַ מאָל און געפּרוּפֿט איידער מען מעג אים אַרױפֿלאָדן.</translation>
     </message>
     <message>
         <location line="+4"/>
-        <source>Read the set again, or choose another directory.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>The set has to be read again and checked before it may be uploaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Use the check boxes in the media set rail. Nothing is sent until at least one load is ticked.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
         <source>FIND, or type the target&apos;s IPv4 address and THW_ID_POS.</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND, אָדער שרײַבט דעם IPv4־אַדרעס פֿונעם ציל און THW_ID_POS.</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>The target, the set, the ticked loads and the check are all in place.</source>
-        <translation type="unfinished"></translation>
+        <translation>דער ציל, דער סעט, די אָנגעצײכנטע לאַסטן און דער פּרוּף זענען אַלע גרײט.</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+70"/>
         <source>THE UPLOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>דער אַרױפֿלאָד</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Upload 1 load to %1</source>
-        <translation type="unfinished"></translation>
+        <translation>אַרױפֿלאָדן 1 לאַסט צו %1</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Upload %1 loads to %2</source>
-        <translation type="unfinished"></translation>
+        <translation>אַרױפֿלאָדן %1 לאַסטן צו %2</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+18"/>
+        <location line="+45"/>
+        <source>%n member(s)</source>
+        <translation>
+            <numerusform>%n מיטגליד</numerusform>
+            <numerusform>%n מיטגלידער</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="-43"/>
+        <location line="+128"/>
+        <source>%n load(s)</source>
+        <translation>
+            <numerusform>%n לאַסט</numerusform>
+            <numerusform>%n לאַסטן</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+15"/>
-        <source>RUNNING</source>
-        <translation type="unfinished"></translation>
+        <location line="-84"/>
+        <source>Choose a folder</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע</translation>
     </message>
-    <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
+    <message numerus="yes">
         <location line="+9"/>
-        <location line="+45"/>
-        <source>member</source>
-        <translation type="unfinished"></translation>
+        <source>%n warning(s) from the check</source>
+        <translation>
+            <numerusform>%n װאָרענונג פֿונעם פּרוּף</numerusform>
+            <numerusform>%n װאָרענונגען פֿונעם פּרוּף</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="-45"/>
-        <location line="+45"/>
-        <source>members</source>
-        <translation type="unfinished"></translation>
+        <location line="+241"/>
+        <source>%1 · Target %2 · %3 · %4</source>
+        <translation>%1 · ציל %2 · %3 · %4</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+5"/>
+        <source>%n load(s) ticked</source>
+        <translation>
+            <numerusform>%n לאַסט אָנגעצײכנט</numerusform>
+            <numerusform>%n לאַסטן אָנגעצײכנט</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="-42"/>
-        <location line="+131"/>
-        <source>load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-131"/>
-        <location line="+131"/>
-        <source>loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-130"/>
+        <location line="-298"/>
         <source>No media set selected</source>
-        <translation type="unfinished"></translation>
+        <translation>קײן מעדיע־סעט ניט אויסגעקליבן</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="-115"/>
+        <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>אַ מעדיע־סעט איז אַ פּאַפּקע מיט איין פּאַפּקע פֿאַר יעדן מיטגליד. ער װערט געלייענט און געפּרוּװט פֿאַר אַן אַרױפֿלאָדן.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Read the set again, or choose another folder.</source>
+        <translation>לייענט איבער דעם סעט, אָדער קלײַבט אויס אַן אַנדערע פּאַפּקע.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Use the check boxes in the media set rail, or tick every load here. Nothing is sent until at least one load is ticked.</source>
+        <translation>ניצט די קעסטלעך אין דער מעדיע־סעט־שינע, אָדער צייכנט דאָ אָן יעדע לאַסט. גאָרנישט װערט נישט געשיקט ביז כאָטש איין לאַסט איז אָנגעצייכנט.</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Tick all loads</source>
+        <translation>אָנצײכענען אַלע לאַסטן</translation>
+    </message>
+    <message>
+        <location line="+118"/>
         <source>Target</source>
-        <translation type="unfinished">ציל</translation>
+        <translation>ציל</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>FIND on start</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND בײַם אָנהײב</translation>
     </message>
     <message>
         <location line="+0"/>
         <location line="+13"/>
         <source>Not chosen</source>
-        <translation type="unfinished"></translation>
+        <translation>ניט אויסגעקליבן</translation>
     </message>
     <message>
         <location line="-11"/>
         <source>FIND or type an address</source>
-        <translation type="unfinished"></translation>
+        <translation>FIND אָדער שרײַבט אַן אַדרעס</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+26"/>
+        <location line="+23"/>
         <source>SET</source>
-        <translation type="unfinished"></translation>
+        <translation>באַשטימט</translation>
     </message>
     <message>
-        <location line="-24"/>
+        <location line="-21"/>
         <source>AUTO</source>
-        <translation type="unfinished"></translation>
+        <translation>אויטאָ</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>MISSING</source>
-        <translation type="unfinished"></translation>
+        <translation>פֿעלט</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Media set</source>
-        <translation type="unfinished">מעדיע־סעט</translation>
+        <translation>מעדיע־סעט</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Choose a directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+11"/>
         <source>Loads</source>
-        <translation type="unfinished"></translation>
+        <translation>לאַסטן</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>%1 of %2 ticked</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 פֿון %2 אָנגעצײכנט</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>warning from the check</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>warnings from the check</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
         <source>NONE</source>
-        <translation type="unfinished"></translation>
+        <translation>קײנע</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="-149"/>
         <source>Choose media set</source>
-        <translation type="unfinished"></translation>
+        <translation>אויסקלײַבן מעדיע־סעט</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Check the set</source>
-        <translation type="unfinished"></translation>
+        <translation>פּרוּפֿן דעם סעט</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Find targets</source>
-        <translation type="unfinished">געפֿינען צילן</translation>
+        <translation>געפֿינען צילן</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+219"/>
         <source>Payload</source>
-        <translation type="unfinished"></translation>
+        <translation>נוץ־אינהאַלט</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+10"/>
         <source>LOAD</source>
-        <translation type="unfinished"></translation>
+        <translation>לאַסט</translation>
     </message>
     <message>
         <location line="+8"/>
         <source>CONTENTS</source>
-        <translation type="unfinished"></translation>
+        <translation>אינהאַלט</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>STATUS</source>
-        <translation type="unfinished"></translation>
+        <translation>סטאַטוס</translation>
     </message>
     <message>
         <location line="+59"/>
-        <location line="+56"/>
+        <location line="+54"/>
         <source>FAILED</source>
-        <translation type="unfinished"></translation>
+        <translation>דורכגעפֿאַלן</translation>
     </message>
     <message>
-        <location line="-56"/>
+        <location line="-54"/>
         <source>TICKED</source>
-        <translation type="unfinished"></translation>
+        <translation>אָנגעצײכנט</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+25"/>
         <source>No load is ticked. The media set rail lists every load and its check box.</source>
-        <translation type="unfinished"></translation>
+        <translation>קײן לאַסט איז ניט אָנגעצײכנט. דער מעדיע־סעט־שטרײַף רעכנט אויס יעדן לאַסט און זײַן צײכן־קעסטל.</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>COMPLETE</source>
-        <translation type="unfinished"></translation>
+        <translation>פֿאַרענדיקט</translation>
     </message>
     <message>
-        <location line="+27"/>
-        <source>Target %1 · %2 · %3</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+31"/>
         <source>no media set</source>
-        <translation type="unfinished">קיין מעדיע־סעט</translation>
+        <translation>קײן מעדיע־סעט</translation>
+    </message>
+</context>
+<context>
+    <name>Wording</name>
+    <message>
+        <location filename="../core/src/wording.cpp" line="+18"/>
+        <location line="+59"/>
+        <source>running</source>
+        <translation>לױפֿט</translation>
+    </message>
+    <message>
+        <location line="-57"/>
+        <location line="+35"/>
+        <source>completed</source>
+        <translation>פֿאַרענדיקט</translation>
+    </message>
+    <message>
+        <location line="-33"/>
+        <source>denied by the target</source>
+        <translation>פֿאַרװערט פֿון דעם ציל</translation>
     </message>
     <message>
         <location line="+2"/>
-        <source>load ticked</source>
-        <translation type="unfinished"></translation>
+        <source>not supported by the target</source>
+        <translation>ניט אונטערגעשטיצט פֿון דעם ציל</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>loads ticked</source>
-        <translation type="unfinished"></translation>
+        <location line="+2"/>
+        <location line="+41"/>
+        <source>aborted by the operator</source>
+        <translation>אָפּגעבראָכן פֿון דעם אָפּעראַטאָר</translation>
+    </message>
+    <message>
+        <location line="-39"/>
+        <location line="+37"/>
+        <source>aborted by the data loader</source>
+        <translation>אָפּגעבראָכן פֿון דעם דאַטן־לאָודער</translation>
+    </message>
+    <message>
+        <location line="-35"/>
+        <location line="+33"/>
+        <source>aborted by the target</source>
+        <translation>אָפּגעבראָכן פֿון דעם ציל</translation>
+    </message>
+    <message>
+        <location line="-31"/>
+        <source>unsupported protocol version</source>
+        <translation>ניט אונטערגעשטיצטע פּראָטאָקאָל־װערסיע</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>a file transfer failed</source>
+        <translation>אַן איבערגעבונג פֿון אַ טעקע איז דורכגעפֿאַלן</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>data load protocol time-out</source>
+        <translation>טײַמאַוט פֿונעם דאַטן־לאָד־פּראָטאָקאָל</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>the target was silent longer than its exception timer</source>
+        <translation>דער ציל איז געװען שטיל לענגער װי זײַן אויסנאַם־טײַמער</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+50"/>
+        <source>protocol error</source>
+        <translation>פּראָטאָקאָל־טעות</translation>
+    </message>
+    <message>
+        <location line="-48"/>
+        <source>local error</source>
+        <translation>לאָקאַלער טעות</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+54"/>
+        <location line="+35"/>
+        <source>unknown</source>
+        <translation>אומבאַקאַנט</translation>
+    </message>
+    <message>
+        <location line="-83"/>
+        <source>accepted</source>
+        <translation>אָנגענומען</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>in progress</source>
+        <translation>אין פּראָצעס</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>in progress, with details</source>
+        <translation>אין פּראָצעס, מיט פּרטים</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>denied</source>
+        <translation>פֿאַרװערט</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>not supported</source>
+        <translation>ניט אונטערגעשטיצט</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>failed</source>
+        <translation>דורכגעפֿאַלן</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>unknown status code</source>
+        <translation>אומבאַקאַנטער סטאַטוס־קאָד</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>succeeded</source>
+        <translation>געלונגען</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>timed out</source>
+        <translation>צײַט אויסגעגאַנגען</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>the peer sent an error</source>
+        <translation>די אַנדערע זײַט האָט געשיקט אַ טעות</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>the peer aborted</source>
+        <translation>די אַנדערע זײַט האָט אָפּגעבראָכן</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>the peer asked to wait</source>
+        <translation>די אַנדערע זײַט האָט געבעטן צו װאַרטן</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>options refused</source>
+        <translation>אָפּציעס אָפּגעזאָגט</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>transfer size mismatch</source>
+        <translation>גרײס פֿון דער איבערגעבונג שטימט ניט</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>local file error</source>
+        <translation>לאָקאַלער טעקע־טעות</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>aborted</source>
+        <translation>אָפּגעבראָכן</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>status files lost</source>
+        <translation>סטאַטוס־טעקעס פֿאַרלאָרן</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status file repeated</source>
+        <translation>סטאַטוס־טעקע איבערגעחזרט</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status file out of order</source>
+        <translation>סטאַטוס־טעקע אין אַ פֿאַלשן סדר</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>status file transfer failed</source>
+        <translation>איבערגעבונג פֿון סטאַטוס־טעקע דורכגעפֿאַלן</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>checksum did not match</source>
+        <translation>פּרוּפֿ־סומע האָט ניט געשטימט</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>checksum algorithm not supported</source>
+        <translation>פּרוּפֿ־סומע־אַלגאָריטם ניט אונטערגעשטיצט</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>file not available</source>
+        <translation>טעקע ניט פֿאַראַן</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>request refused</source>
+        <translation>פֿאַרלאַנג אָפּגעזאָגט</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>transfer failed</source>
+        <translation>איבערגעבונג דורכגעפֿאַלן</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>target asked to wait</source>
+        <translation>דער ציל האָט געבעטן צו װאַרטן</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>options refused, asked again without them</source>
+        <translation>אָפּציעס אָפּגעזאָגט, װידער געבעטן אָן זײ</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>port option not taken by the target</source>
+        <translation>פּאָרט־אָפּציע ניט אָנגענומען פֿון דעם ציל</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>requested files missing</source>
+        <translation>געבעטענע טעקעס פֿעלן</translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source> (%1 s)</source>
+        <translation> (%1 s)</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source> (port %1)</source>
+        <translation> (פּאָרט %1)</translation>
     </message>
 </context>
 <context>
     <name>adl::app::DownloadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="+489"/>
+        <location filename="../core/src/models.cpp" line="+539"/>
         <source>waiting</source>
         <translation>וואַרט</translation>
     </message>
@@ -2308,36 +2000,35 @@
 <context>
     <name>adl::app::EngineWorker</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+95"/>
-        <location line="+56"/>
-        <location line="+20"/>
-        <location line="+48"/>
-        <location line="+39"/>
-        <source>&quot;%1&quot; is not an IPv4 address.</source>
-        <translation>&quot;%1&quot; איז ניט קיין IPv4־אַדרעס.</translation>
-    </message>
-    <message>
-        <location line="-149"/>
+        <location filename="../core/src/engine_worker.cpp" line="+109"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
         <translation>מען זוכט צילן (בראָדקאַסט, דרײַ סעקונדעס)...</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Looking for a target at %1 (three seconds)...</source>
         <translation>מען זוכט אַ ציל אויף %1 (דרײַ סעקונדעס)...</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>FIND could not run (%1).</source>
         <translation>FIND האָט ניט געקענט לויפֿן (%1).</translation>
     </message>
+    <message numerus="yes">
+        <location line="+22"/>
+        <source>%n target(s) answered</source>
+        <translation>
+            <numerusform>%n ציל האָט געענטפֿערט</numerusform>
+            <numerusform>%n צילן האָבן געענטפֿערט</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+42"/>
+        <location line="+22"/>
         <source>Asking %1 (%2) for its configuration...</source>
         <translation>מען פֿרעגט %1 (%2) נאָך זײַן קאָנפֿיגוראַציע...</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+18"/>
         <source>No media set has been read, so there is nothing to upload.</source>
         <translation>קיין מעדיע־סעט איז ניט געלייענט געוואָרן, דעריבער איז ניטאָ וואָס אַרויפֿצולאָדן.</translation>
     </message>
@@ -2347,67 +2038,101 @@
         <translation>קיין לאַסט איז ניט אויסגעקליבן געוואָרן.</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+29"/>
+        <source>The media set changed after it was checked: %1.</source>
+        <translation>דער מעדיע־סעט האָט זיך געביטן נאָך דער פּרוּפֿונג: %1.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+246"/>
+        <source>the media set changed after it was checked</source>
+        <translation>דער מעדיע־סעט האָט זיך געביטן נאָך דער פּרוּפֿונג</translation>
+    </message>
+    <message numerus="yes">
+        <location line="-235"/>
+        <source>Uploading %n load(s) to %1 (%2)...</source>
+        <translation>
+            <numerusform>מען לאָדט אַרױף %n לאַסט צו %1 (%2)...</numerusform>
+            <numerusform>מען לאָדט אַרױף %n לאַסטן צו %1 (%2)...</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location line="+18"/>
         <source>No file was named.</source>
         <translation>קיין טעקע איז ניט באַנענט געוואָרן.</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>&quot;%1&quot; is not a safe file name.</source>
         <translation>&quot;%1&quot; איז ניט קיין זיכערער טעקע־נאָמען.</translation>
     </message>
-    <message>
-        <location line="-92"/>
-        <source>1 target answered</source>
-        <translation type="unfinished"></translation>
+    <message numerus="yes">
+        <location line="+13"/>
+        <source>Downloading %n file(s) from %1 (%2)...</source>
+        <translation>
+            <numerusform>מען לאָדט אַראָפּ %n טעקע פֿון %1 (%2)...</numerusform>
+            <numerusform>מען לאָדט אַראָפּ %n טעקעס פֿון %1 (%2)...</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+0"/>
-        <source>%1 targets answered</source>
-        <translation type="unfinished"></translation>
+        <location line="+33"/>
+        <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
+        <translation>&quot;%1&quot; איז ניט קײן THW_ID_POS װאָס מען קען מאַכן אַן אַראָפּלאָדן פֿאַר.</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+125"/>
+        <source>completed, %n file(s) failed</source>
+        <translation>
+            <numerusform>פֿאַרענדיקט, %n טעקע דורכגעפֿאַלן</numerusform>
+            <numerusform>פֿאַרענדיקט, %n טעקעס דורכגעפֿאַלן</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>completed, %n load(s) failed</source>
+        <translation>
+            <numerusform>פֿאַרענדיקט, %n לאַסט דורכגעפֿאַלן</numerusform>
+            <numerusform>פֿאַרענדיקט, %n לאַסטן דורכגעפֿאַלן</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+8"/>
+        <source>completed, %n file(s) missing</source>
+        <translation>
+            <numerusform>פֿאַרענדיקט, %n טעקע פֿעלט</numerusform>
+            <numerusform>פֿאַרענדיקט, %n טעקעס פֿעלן</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+65"/>
-        <source>Uploading 1 load to %1 (%2)...</source>
-        <translation type="unfinished"></translation>
+        <location line="+22"/>
+        <source>The media set changed after it was checked: %1. (The upload ended: %2.)</source>
+        <translation>דער מעדיע־סעט האָט זיך געביטן נאָך דער פּרוּפֿונג: %1. (די אַרױפֿלאָדונג האָט זיך געענדיקט: %2.)</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+7"/>
+        <source>The target read %n file(s).</source>
+        <translation>
+            <numerusform>דער ציל האָט געלייענט %n טעקע.</numerusform>
+            <numerusform>דער ציל האָט געלייענט %n טעקעס.</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Uploading %1 loads to %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+37"/>
-        <source>Downloading 1 file from %1 (%2)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Downloading %1 files from %2 (%3)...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
+        <location line="-178"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>מען פֿרעגט %1 (%2) נאָך די טעקעס וואָס ער קען אַראָפּלאָדן...</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>The download directory could not be used: %1.</source>
-        <translation>מען האָט ניט געקענט ניצן די אַראָפּלאָד־פּאַפּקע: %1.</translation>
-    </message>
-    <message>
-        <location line="+43"/>
+        <location line="+99"/>
         <source>the request was refused (%1)</source>
         <translation>די בקשה איז אָפּגעווויזן געוואָרן (%1)</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+5"/>
         <source>the loader&apos;s port could not be opened (%1)</source>
         <translation>מען האָט ניט געקענט עפֿנען דעם לאָודער־פּאָרט (%1)</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>waiting for the network failed (%1)</source>
         <translation>מען האָט ניט געקענט וואַרטן אויף דאָס נעצווערק (%1)</translation>
     </message>
@@ -2417,137 +2142,91 @@
         <translation>די אָפּעראַציע האָט ניט געקענט לויפֿן: %1.</translation>
     </message>
     <message>
-        <location line="+21"/>
-        <source>completed, 1 file failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, 1 load failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 loads failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>completed, 1 file missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>completed, %1 files missing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The target read 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>The target read %1 files.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+32"/>
-        <source>Read media set %1: 1 load.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Read media set %1: %2 loads.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+37"/>
-        <source>Checked media set %1: 1 load, 1 file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+154"/>
         <source>Checked media set %1: %2, %3.</source>
-        <translation type="unfinished"></translation>
+        <translation>געפּרוּפֿט מעדיע־סעט %1: %2, %3.</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-86"/>
+        <location line="-112"/>
         <source>The target confirmed that it stopped.</source>
         <translation>דער ציל האָט באַשטעטיקט אַז ער האָט זיך אָפּגעשטעלט.</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-128"/>
+        <source>The download folder could not be used: %1.</source>
+        <translation>מען האָט נישט געקענט באַניצן די אַראָפּלאָד־פּאַפּקע: %1.</translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>Nothing was received, so the empty download folder %1 was removed.</source>
+        <translation>גאָרנישט איז נישט אָנגענומען געװאָרן, דעריבער איז די ליידיקע אַראָפּלאָד־פּאַפּקע %1 אַװעקגענומען געװאָרן.</translation>
+    </message>
+    <message>
+        <location line="+73"/>
         <source>The target did not confirm that it stopped.</source>
         <translation>דער ציל האָט ניט באַשטעטיקט אַז ער האָט זיך אָפּגעשטעלט.</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>The target may still be loading; ask it what it is doing before trying again.</source>
-        <translation>דער ציל קען נאָך לאָדן; פֿרעגט אים וואָס ער טוט איידער איר פּרוּווט נאָך אַ מאָל.</translation>
-    </message>
-    <message>
-        <location line="+16"/>
+        <location line="+32"/>
         <source>Files received: %1 of %2 requested.</source>
         <translation>טעקעס עמפֿאַנגען: %1 פֿון %2 געבעטענע.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+14"/>
         <source>Finished: %1.</source>
         <translation>פֿאַרטיק: %1.</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+8"/>
         <source>Reading the media set in %1...</source>
         <translation>מען לייענט דעם מעדיע־סעט אין %1...</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
         <source>media set read</source>
         <translation>מעדיע־סעט געלייענט</translation>
     </message>
+    <message numerus="yes">
+        <location line="+4"/>
+        <source>Read media set %1: %n load(s).</source>
+        <translation>
+            <numerusform>מעדיע־סעט %1 געלייענט: %n לאַסט.</numerusform>
+            <numerusform>מעדיע־סעט %1 געלייענט: %n לאַסטן.</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+10"/>
+        <location line="+7"/>
         <source>The media set could not be read: %1.</source>
         <translation>מען האָט ניט געקענט לייענען דעם מעדיע־סעט: %1.</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+10"/>
         <source>Checking the media set in %1...</source>
         <translation>מען פּרוּפֿט דעם מעדיע־סעט אין %1...</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>media set checked</source>
         <translation>מעדיע־סעט געפּרוּפֿט</translation>
     </message>
+    <message numerus="yes">
+        <location line="+7"/>
+        <source>%n load(s)</source>
+        <translation>
+            <numerusform>%n לאַסט</numerusform>
+            <numerusform>%n לאַסטן</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>%n file(s)</source>
+        <translation>
+            <numerusform>%n טעקע</numerusform>
+            <numerusform>%n טעקעס</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+13"/>
+        <location line="+7"/>
         <source>The media set could not be checked: %1.</source>
         <translation>מען האָט ניט געקענט פּרוּפן דעם מעדיע־סעט: %1.</translation>
     </message>
@@ -2555,37 +2234,33 @@
 <context>
     <name>adl::app::LoadModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-307"/>
-        <source>1 data file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 data files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>1 support file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1 support files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location filename="../core/src/models.cpp" line="-313"/>
         <source>no target ID</source>
-        <translation type="unfinished"></translation>
+        <translation>קײן אידענטיפֿיקאַטאָר פֿון ציל</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>%1 · %2, %3; for %4</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 · %2, %3; פֿאַר %4</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>%n data file(s)</source>
+        <translation>
+            <numerusform>%n דאַטן־טעקע</numerusform>
+            <numerusform>%n דאַטן־טעקעס</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>%n support file(s)</source>
+        <translation>
+            <numerusform>%n הילף־טעקע</numerusform>
+            <numerusform>%n הילף־טעקעס</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+110"/>
+        <location line="+116"/>
         <source>waiting</source>
         <translation>וואַרט</translation>
     </message>
@@ -2593,44 +2268,37 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="-567"/>
-        <location line="+136"/>
-        <source>1 load</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-136"/>
-        <location line="+136"/>
-        <source>%1 loads</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-134"/>
-        <source>1 file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location filename="../core/src/loader_model.cpp" line="+68"/>
         <source>%1, %2, all check values verified</source>
-        <translation type="unfinished"></translation>
+        <translation>%1, %2, אַלע פּרוּפֿ־װערטן באַשטעטיקט</translation>
     </message>
-    <message>
-        <location line="+3"/>
-        <source>; 1 warning against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
+    <message numerus="yes">
         <location line="+1"/>
-        <source>; %1 warnings against the standard&apos;s recommendations</source>
-        <translation type="unfinished"></translation>
+        <location line="+148"/>
+        <source>%n load(s)</source>
+        <translation>
+            <numerusform>%n לאַסט</numerusform>
+            <numerusform>%n לאַסטן</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="-146"/>
+        <source>%n file(s)</source>
+        <translation>
+            <numerusform>%n טעקע</numerusform>
+            <numerusform>%n טעקעס</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location line="+7"/>
+        <source>; %n warning(s) against the standard&apos;s recommendations</source>
+        <translation>
+            <numerusform>; %n װאָרענונג קעגן די רעקאָמענדאַציעס פֿונעם סטאַנדאַרט</numerusform>
+            <numerusform>; %n װאָרענונגען קעגן די רעקאָמענדאַציעס פֿונעם סטאַנדאַרט</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+56"/>
+        <location line="+61"/>
         <source>Looking for targets...</source>
         <translation>מען זוכט צילן...</translation>
     </message>
@@ -2667,29 +2335,25 @@
         <translation>מען פּרוּפֿט דעם מעדיע־סעט...</translation>
     </message>
     <message>
-        <location line="+57"/>
-        <source>1 member</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>%1 members</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+60"/>
         <source>%1: %2, %3</source>
-        <translation type="unfinished"></translation>
+        <translation>%1: %2, %3</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+2"/>
+        <source>%n member(s)</source>
+        <translation>
+            <numerusform>%n מיטגליד</numerusform>
+            <numerusform>%n מיטגלידער</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+296"/>
+        <location line="+318"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>קלײַבט אויס דעם ציל פֿון דער רשימה, און לויפֿט די אָפּעראַציע נאָך אַ מאָל.</translation>
     </message>
     <message>
-        <location line="+88"/>
-        <location line="+23"/>
-        <location line="+23"/>
+        <location line="-408"/>
         <source>No target is selected; looking for one first.</source>
         <translation>קיין ציל איז ניט אויסגעקליבן; מען זוכט קודם איינעם.</translation>
     </message>
@@ -2697,7 +2361,7 @@
 <context>
     <name>adl::app::TargetModel</name>
     <message>
-        <location filename="../core/src/models.cpp" line="-299"/>
+        <location filename="../core/src/models.cpp" line="-326"/>
         <source>%1 at %2</source>
         <translation>%1 אויף %2</translation>
     </message>

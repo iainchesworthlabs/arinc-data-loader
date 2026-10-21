@@ -76,6 +76,12 @@ ApplicationWindow {
     visible: true
     color: Theme.bg
 
+    // Right-to-left languages mirror the whole window: the rail, the header's actions, a row's
+    // order, a control's indicator. The language manager sets the application's layout direction;
+    // this follows it, and every item and popup below inherits it.
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
+
     palette.window: Theme.bg
     palette.windowText: Theme.text
     palette.base: Theme.neutral100
@@ -126,6 +132,10 @@ ApplicationWindow {
             tone: window.statusTone
         }
 
+        LanguagePicker {
+            objectName: "languagePicker"
+        }
+
         AppButton {
             text: qsTr("About")
             onClicked: aboutDialog.open()
@@ -147,8 +157,7 @@ ApplicationWindow {
                      ? qsTr("Building and verifying...")
                      : qsTr("Reading files... %1%").arg(window.app.progressPercent))
                   : window.needs.length > 0
-                    ? Theme.quantity(window.needs.length, qsTr("required item left"),
-                                   qsTr("required items left"))
+                    ? qsTr("%n required item(s) left", "", window.needs.length)
                     : window.app.resultState === 1 ? qsTr("Written and verified")
                     : window.app.resultState !== 0 ? qsTr("Nothing was written")
                                                    : qsTr("All required items are filled in")
@@ -462,7 +471,8 @@ ApplicationWindow {
 
                     AppComboBox {
                         Layout.fillWidth: true
-                        model: window.app.loadTypeOptions()
+                        model: window.app.loadTypeModel
+                        textRole: "display"
                         currentIndex: window.app.loadTypeIndex + 1
                         enabled: !window.app.busy
                         onActivated: window.app.loadTypeIndex = currentIndex - 1
@@ -664,9 +674,9 @@ ApplicationWindow {
                 Text {
                     Layout.fillWidth: true
                     text: qsTr("%1 · %2 · %3")
-                          .arg(Theme.quantity(window.app.memberCount, qsTr("member"), qsTr("members")))
-                          .arg(Theme.quantity(filesList.count, qsTr("file"), qsTr("files")))
-                          .arg(Theme.quantity(1, qsTr("load"), qsTr("loads")))
+                          .arg(qsTr("%n member(s)", "", window.app.memberCount))
+                          .arg(qsTr("%n file(s)", "", filesList.count))
+                          .arg(qsTr("%n load(s)", "", 1))
                     color: Theme.textMuted
                     font.pixelSize: Theme.fontBody
                     elide: Text.ElideRight
@@ -747,7 +757,7 @@ ApplicationWindow {
                     }
 
                     Text {
-                        text: Theme.quantity(filesList.count, qsTr("file"), qsTr("files"))
+                        text: qsTr("%n file(s)", "", filesList.count)
                         color: Theme.textMuted
                         font.pixelSize: Theme.fontSmall
                         font.family: Theme.monoFamily
@@ -1032,9 +1042,8 @@ ApplicationWindow {
                                            ? qsTr("Building and verifying the media set...")
                                            : qsTr("Reading the files... %1%").arg(window.app.progressPercent))
                                       : window.app.canGenerate
-                                        ? filesList.count === 1 ? qsTr("1 file will be written and verified")
-                                              : qsTr("%1 files will be written and verified")
-                                                    .arg(filesList.count)
+                                        ? qsTr("%n file(s) will be written and verified", "",
+                                               filesList.count)
                                         : window.pristine
                                           ? qsTr("Nothing entered yet. Fill in the form and add the files.")
                                           : qsTr("Still needed: %1.").arg(window.needs.join(", "))

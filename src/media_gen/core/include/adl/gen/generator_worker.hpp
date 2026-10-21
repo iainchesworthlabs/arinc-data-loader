@@ -18,6 +18,8 @@
 #include <QString>
 #include <QStringList>
 
+#include "adl/ui/message.hpp"
+
 namespace adl::gen {
 
 // One file the operator chose, as the worker takes it. `kind` is SourceFileModel's "data" or
@@ -53,8 +55,8 @@ struct GenerateJob {
 // not stop a generation.
 struct GenerateOutcome {
     int state = 0;
-    QString text;
-    QString detail;
+    adl::ui::Message text;
+    adl::ui::Message detail;
     QString output_path;   // where the set was written, when it was
     QStringList findings;  // "clause: message"
     int members = 0;
@@ -65,8 +67,11 @@ struct GenerateOutcome {
 
 // The load types the window offers. The Load Type ID is assigned by the system designer, not by
 // the standard, so these are the examples the ARINC 665 world uses.
+//
+// `description` is the English text that is written into the load's header file, whatever
+// language the window is in; the window shows it through GeneratorWorker::tr().
 struct LoadTypeOption {
-    QString description;
+    const char* description;
     QString code;
     std::uint16_t id;
 };
@@ -115,9 +120,12 @@ private:
         return cancelled();
     }
     void run(const GenerateJob& job, GenerateOutcome& outcome);
-    void fail(GenerateOutcome& outcome, const QString& text, const QString& detail = {});
-    // Ends the job as cancelled: the operator asked for it, so it is not a failure.
-    void stop(GenerateOutcome& outcome, const QString& detail = {});
+    void fail(GenerateOutcome& outcome, const adl::ui::Message& text,
+              const adl::ui::Message& detail = {});
+    // Ends the job as cancelled: the operator asked for it, so it is not a failure. `detail` is
+    // what to say besides; empty, it says that nothing was written.
+    void stop(GenerateOutcome& outcome, const adl::ui::Message& detail = {});
+    [[nodiscard]] static adl::ui::Message cannot_read(const QString& path);
 
     std::atomic<bool> cancel_{false};
     std::function<void(std::string_view)> checkpoint_hook_;

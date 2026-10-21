@@ -170,6 +170,19 @@ private Q_SLOTS:
     void a_media_set_result_is_not_a_transfer_and_survives_a_changed_target();
     void a_download_result_is_a_transfer_and_a_download_even_when_it_fails();
     void the_real_host_makes_a_download_directory_with_a_non_ascii_name();
+    void a_language_switch_reaches_the_result_the_log_and_the_failure_on_show();
+};
+
+// Message: a phrase that is translated when it is read.
+class MessageTest : public QObject {
+    Q_OBJECT
+
+private Q_SLOTS:
+    void verbatim_text_is_never_translated();
+    void arguments_replace_the_placeholders_in_one_pass();
+    void a_sequence_joins_its_parts();
+    void a_count_picks_the_plural_form();
+    void the_text_follows_the_installed_translator();
 };
 
 // Where a window is put back: the signed coordinate and the reachable title bar.

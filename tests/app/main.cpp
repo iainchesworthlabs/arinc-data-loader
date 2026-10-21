@@ -2,6 +2,7 @@
 
 #include <QCoreApplication>
 #include <QTest>
+#include <QTranslator>
 
 #include "scratch_settings.hpp"
 #include "test_classes.hpp"
@@ -15,6 +16,12 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setOrganizationName(QStringLiteral("adl-tests"));
     QCoreApplication::setApplicationName(QStringLiteral("adl_app_tests"));
     adl::test::scratch_settings();
+    // English has a catalogue of its own for the plural forms ("%n load(s)" is "1 load" or "2
+    // loads" only through it); the application installs it, and so does the logic under test.
+    QTranslator english;
+    if (english.load(QStringLiteral("adl_app_en"), QStringLiteral(ADL_I18N_DIR))) {
+        QCoreApplication::installTranslator(&english);
+    }
     int failed = 0;
     {
         AddressTest test;
@@ -50,6 +57,10 @@ int main(int argc, char* argv[]) {
     }
     {
         LoaderModelTest test;
+        failed += QTest::qExec(&test, argc, argv);
+    }
+    {
+        MessageTest test;
         failed += QTest::qExec(&test, argc, argv);
     }
     {

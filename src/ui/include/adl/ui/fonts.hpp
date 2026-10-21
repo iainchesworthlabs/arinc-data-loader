@@ -2,7 +2,8 @@
 
 namespace adl::ui {
 
-// Registers the bundled Archivo faces and makes Archivo the application's default typeface.
+// Registers the bundled Archivo faces and makes Archivo the application's default typeface, and
+// registers the Noto Sans Hebrew faces LanguageManager switches to for Hebrew and Yiddish.
 // Call after the QGuiApplication is constructed and before the QML engine loads: Theme.qml
 // probes Qt.fontFamilies() for the family, and every standard control follows the application
 // font.

@@ -21,7 +21,7 @@ FIND, the Information, Upload and Download operations are built. What the window
 | About | The `ADL` mark, what the window is for, and the build provenance the other ICL tools show: version, git describe, full commit, branch, build target, Qt version and a dirty-tree marker, generated at configure time; the licence and repository link. |
 | The window's look | The shared design system in `src/ui`: `Theme.qml` is the single source of truth for colour (Signal light and dark), type, spacing and geometry; the shared controls (`AppButton`, `AppCheckBox`, `AppTextField`, `AppComboBox`, `AppSpinBox`, `SegmentedControl`, `FocusRing`), the header and footer, the chips, the log and the dialogs draw from it. The three applications compile the same source; see [the design system](design-system.md). |
 | The first launch | A first-run statement before the workbench: what the window is for, one primary that opens the workbench, an optional route to choose a media set, and the defaults folded away. Passing it once is stored (its fields are the preferences), so every later launch goes straight to the workbench. |
-| The language | The window's own text goes through `qsTr`/`tr`, and there is a catalogue per language: English (the source), French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese (`src/app/translations/adl_app_<code>.ts`, compiled by `qt_add_translations`). `LanguageManager` installs the catalogue for the persisted language (the system locale, then English, on a first run), sets the layout direction (right to left for Hebrew and Yiddish) and retranslates the running window when Preferences switches it. **The window's layout is not mirrored for the right-to-left scripts**: the application's layout direction is set, which right-aligns text such as the log lines, but no QML item sets `LayoutMirroring`, so the rail stays on the left and the header buttons keep their order (seen in [the screenshot](images/app-workbench-hebrew.png)); the window test checks the direction, not the mirroring. **Only 148 of the 515 messages are translated** in each of the seven non-English catalogues (367 are still marked unfinished, so they show in English), and the translations that exist are a first, mechanical draft to be reviewed by speakers. Some text is never translated because it does not come from the window: the names of engine notices and outcomes (`adl::arinc615a::to_string`), the findings of the ARINC 665 library (`clause: message`), and whatever the target itself sends. The generator and the mock target have no catalogue and no language choice; they are English only. |
+| The language | All text goes through `qsTr`/`tr`, and the loader, the generator and the mock target offer the same eight languages (English, the source; French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese) through one shared `adl::ui::LanguageManager` and its picker (the loader's is in Preferences). It installs the catalogues for the persisted language (the system locale, then English, on a first run), sets the layout direction and the typeface, and retranslates the running window, **including what the engine said earlier**: results, failures, log lines and the checks' details are `Message`s translated when they are read. Hebrew and Yiddish **mirror the whole window** (`LayoutMirroring` on the window root) and are set in the bundled Noto Sans Hebrew. Counts are real plurals (`%n`, with numerus forms). **Every message has a translation in every language, and all seven are machine-drafted first versions that no speaker has reviewed.** Not translated: the findings of the ARINC 665 library and the names of its errors, platform error codes, whatever the target sends, and the mock target's 615A engine log. [Translations](translations.md) has the details. |
 | The target that was used | The address and `<THW_ID_POS>` an operation last started against are stored, and put back into the window at start-up, so a session starts where the last one left off. The Preferences defaults fill the fields on a first run, and again whenever the operator clears one. |
 | The activity log | What the target said (its answer, each status file) and the engine's notices (a lost or repeated status file, a refused request, a checksum that did not match, a WAIT), with the time, oldest first. |
 | The outcome | How the operation ended (the engine's `OutcomeCode`), and for an abort whether the target confirmed that it had stopped. Failures also open a dialog once, with the outcome, the detail and, where the application knows one, a hint (a host that could not start, an address that is not an address, a media set that could not be read, an abort the target did not confirm); a status bar carries the current state, the target and the media set. |
@@ -54,13 +54,14 @@ choice asks the target to abort and waits for it.
 
 ```text
 src/app/
-  main.cpp            creates the QGuiApplication, one LoaderModel and the QML engine
-  language_manager    the translators, the persisted language, retranslate and the layout direction
+  main.cpp            creates the QGuiApplication, one LoaderModel, the QML engine and the language manager
   frame_profiler      the window's frame loop for a profiling build (docs/profiling.md)
   qml/                Main.qml (the shell), UploadPanel.qml, DownloadPanel.qml, ActivityDock.qml,
                       FirstRunScreen.qml, and the preferences, media set properties, target
                       properties and about dialogs (the licences dialog is in src/ui)
-  translations/       the eight catalogues (adl_app_<code>.ts), compiled into the window's module
+  translations/       the catalogues (adl_app_<code>.ts for the seven languages, adl_app_en.ts for the
+                      English plural forms), compiled into the window's module; the shared
+                      components' are in src/ui/translations. LanguageManager is src/ui's.
   core/               adl_app_core: everything but the window, Qt Core only
     engine_worker     the engine on its own thread, the abort and the deferred download choice
     loader_model      what the QML talks to: properties and a few invokable functions
@@ -322,8 +323,12 @@ QML warning an error, driven through a FIND, an Information operation, a media s
 media defined Download (the load ticked and the buttons pressed through the window's own items), in the
 light and the dark scheme. Also checked: the first-run screen hands over to the workbench only once (a
 stored preference); the last operation's target comes back in a new model over the same settings; and the
-language manager starts in English, then installs each of the eight catalogues in turn, retranslates the
-running window, and sets the layout direction the script asks for.
+language manager starts in English, then installs each of the seven catalogues in turn, retranslates the
+running window and the model's phrases (an engine outcome is said in the new language), sets the layout
+direction and the typeface the script asks for, and that Qt calls exactly Hebrew and Yiddish right to left;
+the right-to-left window itself is `tst_right_to_left.qml` (the rail, the header, a segmented control,
+a check box, a spin box and a progress bar mirror), and `tests/unit/translations_test.cpp` and the
+`translations.current.*` tests hold the catalogues to the sources ([Translations](translations.md)).
 
 Not checked: an Upload against a real target (and so which checksum a real target sends for each file,
 see above), an Upload whose files are in two directories of one name end to end (the source is tested
@@ -334,7 +339,7 @@ integration test against the mock target, [mock target](mock-target.md), not by 
 at scales other than 100% (it has been driven on a real Windows desktop in both schemes by a script, see
 [the screenshots](screenshots.md), against the mock target on the same machine: FIND finds nothing there,
 the operations work); keyboard use and a screen
-reader beyond the accessible names the controls carry; the translations' wording (the eight catalogues are
-a first, mechanical draft: the tests prove a catalogue is installed, the window retranslated and the application's layout
-direction set, not that the layout mirrors or that a speaker would accept the text); and the first-run screen's download-directory picker
+reader beyond the accessible names the controls carry; the translations' wording (the seven catalogues are
+a machine-drafted first version: the tests prove that every message has a translation of the right shape, that a catalogue
+is installed and the window retranslated and mirrored, not that a speaker would accept the text); and the first-run screen's download-directory picker
 (it is a Qt `FolderDialog`, the media set's own picker is the tested one).

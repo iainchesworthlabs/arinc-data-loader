@@ -408,8 +408,8 @@ void GeneratorTest::a_cancel_before_anything_is_written_says_nothing_was_written
     });
     const auto outcome = run_job(worker, good_job(data, output.path()));
     QCOMPARE(outcome.state, 3);  // cancelled, not failed
-    QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
-    QCOMPARE(outcome.detail, QStringLiteral("Nothing was written."));
+    QCOMPARE(outcome.text.text(), QStringLiteral("Cancelled."));
+    QCOMPARE(outcome.detail.text(), QStringLiteral("Nothing was written."));
     QCOMPARE(names_in(output.path()), QStringList{});
 }
 
@@ -429,11 +429,12 @@ void GeneratorTest::a_cancel_after_the_tree_is_written_removes_it_and_says_so() 
     const auto outcome = run_job(worker, good_job(data, output.path()));
     QVERIFY(tree_was_there);
     QCOMPARE(outcome.state, 3);  // cancelled, not failed
-    QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
+    QCOMPARE(outcome.text.text(), QStringLiteral("Cancelled."));
     // It is not "nothing was written": something was, and has been taken away.
-    QVERIFY2(!outcome.detail.contains(QStringLiteral("Nothing was written")),
-             qPrintable(outcome.detail));
-    QVERIFY2(outcome.detail.contains(QStringLiteral("removed")), qPrintable(outcome.detail));
+    QVERIFY2(!outcome.detail.text().contains(QStringLiteral("Nothing was written")),
+             qPrintable(outcome.detail.text()));
+    QVERIFY2(outcome.detail.text().contains(QStringLiteral("removed")),
+             qPrintable(outcome.detail.text()));
     QVERIFY(outcome.output_path.isEmpty());
     QCOMPARE(names_in(output.path()), QStringList{});
 }
@@ -450,8 +451,8 @@ void GeneratorTest::a_cancel_after_the_set_verified_removes_it_too() {
     });
     const auto outcome = run_job(worker, good_job(data, output.path()));
     QCOMPARE(outcome.state, 3);  // cancelled, not failed
-    QCOMPARE(outcome.text, QStringLiteral("Cancelled."));
-    QVERIFY(outcome.detail.contains(QStringLiteral("removed")));
+    QCOMPARE(outcome.text.text(), QStringLiteral("Cancelled."));
+    QVERIFY(outcome.detail.text().contains(QStringLiteral("removed")));
     QCOMPARE(names_in(output.path()), QStringList{});
 }
 
@@ -466,11 +467,13 @@ void GeneratorTest::a_write_that_fails_leaves_no_partial_set() {
     adl::gen::GeneratorWorker worker;
     const auto outcome = run_job(worker, job);
     QCOMPARE(outcome.state, 2);
-    QVERIFY2(outcome.text.contains(QStringLiteral("could not be")), qPrintable(outcome.text));
+    QVERIFY2(outcome.text.text().contains(QStringLiteral("could not be")),
+             qPrintable(outcome.text.text()));
     QVERIFY(outcome.output_path.isEmpty());
     // What had been made was taken away, and the operator is told so.
     QCOMPARE(names_in(output.path()), QStringList{});
-    QVERIFY2(outcome.detail.contains(QStringLiteral("removed")), qPrintable(outcome.detail));
+    QVERIFY2(outcome.detail.text().contains(QStringLiteral("removed")),
+             qPrintable(outcome.detail.text()));
 }
 
 void GeneratorTest::a_file_that_cannot_be_allocated_ends_the_job_cleanly() {
@@ -485,7 +488,8 @@ void GeneratorTest::a_file_that_cannot_be_allocated_ends_the_job_cleanly() {
     });
     const auto outcome = run_job(worker, good_job(data, output.path()));
     QCOMPARE(outcome.state, 2);
-    QVERIFY2(outcome.text.contains(QStringLiteral("too large")), qPrintable(outcome.text));
+    QVERIFY2(outcome.text.text().contains(QStringLiteral("too large")),
+             qPrintable(outcome.text.text()));
     QCOMPARE(names_in(output.path()), QStringList{});
 }
 
@@ -502,7 +506,8 @@ void GeneratorTest::any_other_allocation_failure_ends_the_job_cleanly() {
     });
     auto outcome = run_job(worker, good_job(data, output.path()));
     QCOMPARE(outcome.state, 2);
-    QVERIFY2(outcome.text.contains(QStringLiteral("out of memory")), qPrintable(outcome.text));
+    QVERIFY2(outcome.text.text().contains(QStringLiteral("out of memory")),
+             qPrintable(outcome.text.text()));
     QCOMPARE(names_in(output.path()), QStringList{});
 
     worker.set_checkpoint_hook([](std::string_view place) {
@@ -512,7 +517,7 @@ void GeneratorTest::any_other_allocation_failure_ends_the_job_cleanly() {
     });
     outcome = run_job(worker, good_job(data, output.path()));
     QCOMPARE(outcome.state, 2);
-    QVERIFY(outcome.detail.contains(QStringLiteral("something unexpected")));
+    QVERIFY(outcome.detail.text().contains(QStringLiteral("something unexpected")));
 }
 
 void GeneratorTest::the_set_appears_under_its_name_in_one_step() {
