@@ -38,7 +38,7 @@ Start **ARINC Media Set Generator**. Fill in the form:
 | Members | `1` |
 | Each listed file | `32-bit CRC` |
 | FILES.LUM itself | `16-bit CRC` |
-| Choose output directory... | your `output` folder |
+| Choose folder... (under OUTPUT) | your `output` folder |
 | Load part number | `ACM47-1234-5678` (the check characters `47` are right for this number) |
 | Header file | leave `ACM47.LUH` |
 | Load type | `Operational software (OPS, ID 0x0001)` |
@@ -61,7 +61,7 @@ More about every field is in [Make a media set](make-a-media-set.md). You can cl
 
 ## 3. Start the mock target
 
-Start **ARINC Mock Target**. Press **Choose directory...** and pick your `target` folder (that is
+Start **ARINC Mock Target**. Press **Choose folder...** and pick your `target` folder (that is
 where it keeps uploads, and where `holds` is). Leave the rest as it is and press **Start**: the chip
 turns **SERVING** and the log says `listening: FIND on port 1001, TFTP on port 59`.
 
@@ -83,7 +83,7 @@ The workbench opens with nothing chosen.
 
 The mock target is on the same computer as the loader and already uses port 59, so the loader must
 use another port. Press **Preferences**, set **Control port** to `5900` and, if you like, the
-**Download directory**, and press **Save**.
+**Download folder**, and press **Save**.
 
 ![Preferences](../images/app-preferences.png)
 
@@ -100,7 +100,7 @@ Type the target by hand: **Address** `127.0.0.1` (this computer) and **THW_ID_PO
 
 ## 6. Choose the media set
 
-Press **Choose...** and pick `output\ACM-SET-0001` (the folder that contains `member_001`). The
+Press **Choose folder...** and pick `output\ACM-SET-0001` (the folder that contains `member_001`). The
 loader reads and checks it, the chip goes **CHECKED**, and the load appears in the rail. Tick it
 (or press **All**).
 
@@ -126,7 +126,7 @@ data files and the support file one by one, and reports its progress in status f
 
 ![An upload in progress](../images/app-upload-running.png)
 
-When it ends the strip says **COMPLETE** and each load is at 100%.
+When it ends the header says **COMPLETE** and each load is at 100%.
 
 ![The upload has completed](../images/app-upload-complete.png)
 
@@ -154,7 +154,7 @@ press **Add**, then `MAINT.DAT` and **Add**.
 
 ![Two files named for a download](../images/app-download-ready.png)
 
-Press **Download**. Each file arrives, and the strip says **COMPLETE**.
+Press **Download**. Each file arrives, and the header says **COMPLETE**.
 
 ![The download is complete](../images/app-download-complete.png)
 

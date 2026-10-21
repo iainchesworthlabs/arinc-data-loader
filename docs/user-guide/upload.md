@@ -39,7 +39,7 @@ up on a load, why. The log fills with what the target said and with each file th
 
 ## When it ends
 
-The strip says **COMPLETE** or **FAILED**, and a **receipt** appears under the payload:
+The header says **COMPLETE** or **FAILED**, and a **receipt** appears under the payload:
 
 ![A finished upload and its receipt](../images/app-upload-complete.png)
 

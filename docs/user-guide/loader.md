@@ -8,7 +8,7 @@ shows how the workbench is laid out; the tasks have their own pages.
 ## The header
 
 At the top: the **ADL** mark and the name, a **readiness chip** (**SETUP** on the first-run screen,
-**NOT READY**, **READY**, **RUNNING** while a job runs, then **COMPLETE** or **FAILED** until the next one; the transfer strip and the status bar say the same), and the buttons
+**NOT READY**, **READY**, **RUNNING** while a job runs, then **COMPLETE** or **FAILED** until the next one; the status bar at the bottom says the same), and the buttons
 [Preferences](preferences.md) and **About**.
 
 ## The rail (left): what you are working with
@@ -32,7 +32,7 @@ never does.
 **02 Media set** is what to upload, see [Choose and check a media set](choose-a-media-set.md).
 
 - A chip says **NOT CHOSEN**, **CHECKING**, **CHECKED**, **INVALID** or **UNCHECKED**.
-- **Choose...** (**Change...** once one is chosen) picks the folder; **Re-check** reads and checks
+- **Choose folder...** picks the folder; **Re-check** reads and checks
   it again; **Properties...** shows everything in it.
 - **LOADS** lists the loads in the set, each with a check box; **All** and **None** tick and
   untick every one. The ticked loads are what an upload sends. While an upload runs, each ticked
@@ -41,8 +41,9 @@ never does.
 
 ## The work area (right)
 
-A strip at the top, **TRANSFER**, has the switch **Upload / Download** and a chip (**READY**,
-**NOT READY**, **RUNNING**, **COMPLETE**, **FAILED**). The switch cannot be changed while a job runs.
+A strip at the top, **TRANSFER**, has the switch **Upload / Download**. The switch cannot be
+changed while a job runs. Whether the loader can work is said once, by the chip in the header; the
+panels say what is missing, and a finished transfer says how it ended in its receipt.
 
 - **Upload** shows the plan ("Upload 1 load to HNPFMS_L"), the three **preflight tiles**
   (Target, Media set, Loads; each with a chip that says whether it is in place), a banner that
@@ -79,7 +80,7 @@ If a job is running, closing the window asks first.
 
 ![The question asked when the window is closed during an operation](../images/app-close-dialog.png)
 
-**Keep working** closes the question. **Stop and close** asks the target to abort and closes when it
+**Keep working** closes the question. **Abort and close** asks the target to abort and closes when it
 confirms, which can take up to 13 seconds.
 
 ## What a first start looks like

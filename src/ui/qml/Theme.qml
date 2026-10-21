@@ -205,6 +205,10 @@ QtObject {
     readonly property int space8: 32
     readonly property int gap: 12
     readonly property int pad: 16
+    // The left rail of the three workbench windows: one width, one range.
+    readonly property int railWidth: 388
+    readonly property int railMinWidth: 348
+    readonly property int railMaxWidth: 460
     // Zero radius is deliberate: do not round a surface or a control.
     readonly property int radius: 0
     readonly property int radiusCard: 0

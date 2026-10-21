@@ -6,6 +6,11 @@ import QtQuick.Controls as QQC
 // border change alone was 2.1:1 against the unfocused border in light and 1.3:1 in dark), and the
 // border takes the ring colour as well. `unit` draws a muted suffix inside the box.
 //
+// A placeholder is an example, not a value: it is drawn in the heading face, in italics and in
+// the muted tone, never in the mono face that real identifiers and numbers use, so a hint such
+// as "e.g. 10.0.0.2" cannot be taken for something that was entered. Write the hint as "e.g. ..."
+// at the call site.
+//
 // `textCommitted` is what a view binds to write the text to its model. It fires on every edit, when
 // the field is left or accepted, and when the text is set from outside while the field is not
 // being typed in (UI Automation's value pattern and voice control set the text this way, which
@@ -21,7 +26,8 @@ QQC.TextField {
     leftPadding: Theme.space3
     rightPadding: unit.length > 0 ? unitLabel.implicitWidth + Theme.space4 : Theme.space3
     color: enabled ? Theme.text : Theme.textMuted
-    placeholderTextColor: Theme.textMuted
+    // The control's own placeholder would use the mono face; the example below replaces it.
+    placeholderTextColor: "transparent"
     selectionColor: Theme.accentFill
     selectedTextColor: Theme.accentText
     font.pixelSize: Theme.fontBody
@@ -62,6 +68,23 @@ QQC.TextField {
 
     FocusRing {
         active: control.activeFocus
+    }
+
+    Text {
+        id: placeholderLabel
+
+        visible: control.text.length === 0 && control.preeditText.length === 0
+        anchors.left: parent.left
+        anchors.leftMargin: control.leftPadding
+        anchors.right: parent.right
+        anchors.rightMargin: control.rightPadding
+        anchors.verticalCenter: parent.verticalCenter
+        text: control.placeholderText
+        color: Theme.textMuted
+        font.pixelSize: Theme.fontBody
+        font.family: Theme.headingFamily
+        font.italic: true
+        elide: Text.ElideRight
     }
 
     Text {

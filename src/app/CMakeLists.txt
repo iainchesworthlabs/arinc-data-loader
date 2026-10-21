@@ -33,7 +33,6 @@ set(ADL_APP_QML_FILES
     qml/PreferencesDialog.qml
     qml/MediaSetPropertiesDialog.qml
     qml/TargetPropertiesDialog.qml
-    qml/AboutDialog.qml
     ${ADL_UI_QML_FILES})
 
 adl_prepare_ui_qml()

@@ -8,7 +8,7 @@ Download fetches files from the target into a folder on your computer. Switch th
 ## Where the files go
 
 Every download writes into a **new folder** named `DNLD_DATA_<THW_ID_POS>_<number>` inside the
-**download folder**, which is shown under **Destination** and set with **Change...** (or in
+**download folder**, which is shown under **Destination** and set with **Choose folder...** (or in
 [Preferences](preferences.md)). The number is the lowest free one starting at 1. A download that brings back no file (the
 target refuses it or never answers, you cancel or abort it, or the loader cannot run it) leaves no
 folder behind, so its number is free again; one that brought back even a single file keeps its
@@ -43,7 +43,7 @@ Each file shows its own status and a progress bar (a file is 0 until it has arri
 the protocol reports no figure in between), and the action bar shows the target's progress through
 its list. **Abort** stops it.
 
-When it ends, the strip says **COMPLETE** or **FAILED** and a receipt says how many files arrived
+When it ends, the header says **COMPLETE** or **FAILED** and a receipt says how many files arrived
 of how many were requested, and where.
 
 ![A finished download](../images/app-download-complete.png)

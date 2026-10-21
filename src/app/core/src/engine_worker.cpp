@@ -38,7 +38,7 @@ using adl::arinc615a::SelectionDecision;
 // honest: only these are known well enough to point anywhere.
 QString media_set_hint() {
     return QObject::tr(
-        "Choose the directory the media set was written to, and make sure every "
+        "Choose the folder the media set was written to, and make sure every "
         "file of the set is still in it.");
 }
 
@@ -63,7 +63,7 @@ QString address_hint() {
 
 QString download_directory_hint() {
     return QObject::tr(
-        "Choose a download directory that exists or can be created, and make "
+        "Choose a download folder that exists or can be created, and make "
         "sure it can be written (Preferences).");
 }
 
@@ -555,7 +555,7 @@ void EngineWorker::run_download(const Address& target, const QString& thw_id_pos
     const auto made = make_download_directory(
         lease->host->files(), to_platform_path(download_directory), thw_id_pos.toStdString());
     if (!made) {
-        fail(tr("The download directory could not be used: %1.").arg(made.error()),
+        fail(tr("The download folder could not be used: %1.").arg(made.error()),
              download_directory_hint());
         return;
     }
@@ -609,7 +609,7 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
                                            : QDir::toNativeSeparators(to_qstring(download_path));
     QString removed_note;
     if (directory_removed) {
-        removed_note = tr("Nothing was received, so the empty download directory %1 was removed.")
+        removed_note = tr("Nothing was received, so the empty download folder %1 was removed.")
                            .arg(QDir::toNativeSeparators(to_qstring(download_path)));
         Q_EMIT log_line({Severity::info, removed_note});
     }

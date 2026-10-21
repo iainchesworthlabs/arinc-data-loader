@@ -204,12 +204,12 @@ function Invoke-GeneratorPass {
 
         New-Item -ItemType Directory -Force $OutputRoot | Out-Null
         for ($try = 1; $try -le 4; $try++) {
-            Click-Named $w 'Choose the output directory' Button
+            Click-Named $w 'Choose the output folder' Button
             try { Send-DialogPath $OutputRoot -Pick } catch { Write-Warning $_.Exception.Message }
-            # The form is complete (the button is enabled) only when the output directory is set too.
-            if (Test-Enabled $w 'Generate the media set') { break }
+            # The form is complete (the header says READY) only when the output folder is set too.
+            try { Wait-Text $w 'READY' 4000 | Out-Null; break } catch { }
         }
-        if (-not (Test-Enabled $w 'Generate the media set')) { throw 'The generator is not ready: the output directory was not taken' }
+        try { Wait-Text $w 'READY' 2000 | Out-Null } catch { throw 'The generator is not ready: the output folder was not taken' }
         Save-Shot $p 'gen-ready' -Dark
 
         # A file that cannot be listed: the same name twice, and a name the standard refuses.
@@ -242,12 +242,12 @@ function Invoke-GeneratorPass {
 function Set-MockStorage {
     param($Window)
     for ($try = 1; $try -le 4; $try++) {
-        Click-Named $Window 'Choose the storage directory' Button
+        Click-Named $Window 'Choose the storage folder' Button
         try { Send-DialogPath $targetDir -Pick } catch { Write-Warning $_.Exception.Message }
-        # "Open folder" is enabled once a storage directory is set.
-        if (Test-Enabled $Window 'Open the storage directory') { return }
+        # "Open folder" is enabled once a storage folder is set.
+        if (Test-Enabled $Window 'Open the storage folder') { return }
     }
-    throw 'The mock target did not take its storage directory'
+    throw 'The mock target did not take its storage folder'
 }
 
 # The mock target, configured and serving. $Faults is a hashtable of the injections to set first.
@@ -313,7 +313,7 @@ function Wait-Idle {
 function Choose-MediaSet {
     param($Window, [string]$Folder)
     for ($try = 1; $try -le 4; $try++) {
-        Click-Named $Window 'Choose the media set directory' Button
+        Click-Named $Window 'Choose the media set folder' Button
         try { Send-DialogPath $Folder -Pick } catch { Write-Warning $_.Exception.Message }
         $watch = [System.Diagnostics.Stopwatch]::StartNew()
         while ($watch.ElapsedMilliseconds -lt 15000) {
@@ -330,7 +330,7 @@ function Set-LoaderPreferences {
     Click-Named $Window 'Open preferences' Button
     Start-Sleep -Milliseconds 500
     Set-SpinValue (Find-Control -Window $Window -Name 'Loader control port') $Port
-    Set-FieldText (Find-Control -Window $Window -Name 'Download directory' -Type Edit) $DownloadDirectory -Paste
+    Set-FieldText (Find-Control -Window $Window -Name 'Download folder' -Type Edit) $DownloadDirectory -Paste
 }
 
 function Invoke-DemoPass {
@@ -369,7 +369,7 @@ function Invoke-DemoPass {
         Wait-Idle $a 20000
         Save-Shot $app 'app-find-results' -Dark
         Fill-Field $a 'Target address' '127.0.0.1'
-        Fill-Field $a 'Target hardware identifier and position' 'HNPFMS_L'
+        Fill-Field $a 'Target THW_ID_POS' 'HNPFMS_L'
 
         # ---- the media set
         Choose-MediaSet $a $setDir

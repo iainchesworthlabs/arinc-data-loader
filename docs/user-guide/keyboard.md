@@ -35,7 +35,7 @@ anything (on the error dialog it acknowledges the failure, as **OK** does). **Re
 in a dialog presses its main button (Save, Close or OK; the filled one) unless you are on another
 button or a control that uses the key. The one exception is the question that appears when you
 close the loader during a transfer: it starts on **Keep working** and **Return** does not stop the
-transfer, so stopping takes a deliberate Tab to **Stop and close**. When a dialog closes, the focus
+transfer, so stopping takes a deliberate Tab to **Abort and close**. When a dialog closes, the focus
 goes back to the control you opened it from.
 
 The system's own folder and file choosers (the media set, the download folder, the generator's

@@ -4,7 +4,7 @@ import QtTest
 
 // Principle 9 for the loader's lists and groups: the FIND answers and the dock tabs as one-tab-stop
 // groups with arrow keys, the log and the configuration list scrolling by keyboard (and the log
-// copying), and the state the header, the strip and the status bar show agreeing with the next-step
+// copying), and the state the header and the status bar show agreeing with the next-step
 // banner.
 TestCase {
     id: testCase
@@ -228,10 +228,8 @@ TestCase {
 
     // ---- the status the window shows ----------------------------------------------
 
-    function test_30_the_header_and_the_strip_say_the_same_thing() {
+    function test_30_the_header_and_the_status_bar_say_the_same_thing() {
         const header = find("headerStatusChip")
-        const strip = find("stripStatusChip")
-        compare(header.text, strip.text)
 
         pointAtTheTarget()
         harness.makeTargetRefuse()
@@ -239,7 +237,6 @@ TestCase {
         tryCompare(appModel, "resultState", 2, 20000)
         tryVerify(function() { return !appModel.busy }, 20000)
         compare(header.text, "FAILED")
-        compare(strip.text, "FAILED")
         compare(header.glyph, "cross")
         compare(find("statusState").text, "Failed")
         find("errorDialog").close()

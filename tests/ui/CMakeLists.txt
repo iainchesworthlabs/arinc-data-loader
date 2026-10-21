@@ -23,7 +23,6 @@ set(ADL_UI_TEST_WINDOW_QML
     "${PROJECT_SOURCE_DIR}/src/app/qml/DownloadPanel.qml"
     "${PROJECT_SOURCE_DIR}/src/app/qml/ActivityDock.qml"
     "${PROJECT_SOURCE_DIR}/src/app/qml/FirstRunScreen.qml"
-    "${PROJECT_SOURCE_DIR}/src/app/qml/AboutDialog.qml"
     "${PROJECT_SOURCE_DIR}/src/app/qml/PreferencesDialog.qml"
     "${PROJECT_SOURCE_DIR}/src/app/qml/MediaSetPropertiesDialog.qml"
     "${PROJECT_SOURCE_DIR}/src/app/qml/TargetPropertiesDialog.qml"

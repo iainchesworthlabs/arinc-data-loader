@@ -75,7 +75,7 @@ copy of the loader is running, and that no other program holds the control port 
 
 ## The media set will not open, or says INVALID
 
-- **"Choose a directory with one directory per member."** Pick the folder that *contains*
+- **"Choose a folder with one folder per member."** Pick the folder that *contains*
   `member_001`, not `member_001` itself and not a folder above the set.
 - **INVALID** with a reason: the loader read the set and found a file that is missing, a file whose
   length or check value is wrong, or a list file that disagrees with the files. The reason is in the

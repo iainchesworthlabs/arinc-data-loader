@@ -23,7 +23,7 @@ Item {
     FolderDialog {
         id: downloadDirectoryDialog
 
-        title: qsTr("Choose the download directory")
+        title: qsTr("Choose the download folder")
         onAccepted: root.app.downloadDirectory = selectedFolder
     }
 
@@ -94,7 +94,7 @@ Item {
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Start loading opens the workbench with these defaults. A media set can be chosen there, or here.")
+                text: qsTr("Start loading opens the workbench. The default address and THW_ID_POS start empty, and downloads go to the folder shown under Defaults; set them there or later in Preferences. A media set can be chosen there, or here.")
                 color: Theme.textMuted
                 font.pixelSize: Theme.fontSmall
                 wrapMode: Text.WordWrap
@@ -159,7 +159,7 @@ Item {
                     AppTextField {
                         objectName: "firstRunAddress"
                         Layout.fillWidth: true
-                        placeholderText: qsTr("10.0.0.2")
+                        placeholderText: qsTr("e.g. 10.0.0.2")
                         text: root.app.defaultTargetAddress
                         onTextCommitted: (value) => root.app.defaultTargetAddress = value
                         Accessible.name: qsTr("Default address")
@@ -175,7 +175,7 @@ Item {
                     AppTextField {
                         objectName: "firstRunThwIdPos"
                         Layout.fillWidth: true
-                        placeholderText: qsTr("HNPFMS_L")
+                        placeholderText: qsTr("e.g. HNPFMS_L")
                         text: root.app.defaultThwIdPos
                         onTextCommitted: (value) => root.app.defaultThwIdPos = value
                         Accessible.name: qsTr("Default THW_ID_POS")
@@ -183,7 +183,7 @@ Item {
                     }
 
                     Text {
-                        text: qsTr("Download directory")
+                        text: qsTr("Download folder")
                         color: Theme.textMuted
                         font.pixelSize: Theme.fontSmall
                     }
@@ -197,13 +197,13 @@ Item {
                             Layout.fillWidth: true
                             text: root.app.downloadDirectory
                             onTextCommitted: (value) => root.app.downloadDirectory = value
-                            Accessible.name: qsTr("Download directory")
+                            Accessible.name: qsTr("Download folder")
                         }
 
                         AppButton {
-                            text: qsTr("Browse...")
+                            text: qsTr("Choose folder...")
                             onClicked: downloadDirectoryDialog.open()
-                            Accessible.description: qsTr("Choose the download directory")
+                            Accessible.description: qsTr("Choose the download folder")
                         }
                     }
                 }
@@ -264,7 +264,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("A directory with one directory per member. Its loads, files and findings are read and checked.")
+                        text: qsTr("A folder with one folder per member. Its loads, files and findings are read and checked.")
                         color: Theme.textMuted
                         font.pixelSize: Theme.fontSmall
                         wrapMode: Text.WordWrap

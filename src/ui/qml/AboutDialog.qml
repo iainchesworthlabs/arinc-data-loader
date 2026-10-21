@@ -2,21 +2,29 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-// What the program is. The version block is the same build provenance the other ICL tools show:
-// version, git describe, full commit, branch, build target and Qt version (appVersionDetails is
-// set by main.cpp from adl::ui::version_details(); the fallback is for a harness that does not
-// register it).
+// What a program is, the same page in all three: the wordmark, one paragraph, the build
+// provenance (version, git describe, full commit, branch, build target and Qt version; the
+// window passes appVersionDetails, which main.cpp sets from adl::ui::version_details()), the
+// licence statement and a Licences button that opens the third-party notices. A window with
+// something more to say puts it inside, below the licence block.
 AppDialog {
     id: dialog
 
-    readonly property string details: typeof appVersionDetails === "string"
-                                      ? appVersionDetails
-                                      : qsTr("ARINC Data Loader %1").arg(Qt.application.version)
+    // The wordmark ("ADL"), the product name and the one-paragraph description.
+    property string appCode: "ADL"
+    property string appName: ""
+    property string blurb: ""
+    // The window's provenance text; the fallback is for a harness that does not register it.
+    property string details: typeof appVersionDetails === "string"
+                             ? appVersionDetails
+                             : qsTr("%1 %2").arg(dialog.appName).arg(Qt.application.version)
+    default property alias extra: extraSection.data
 
-    // Licences opens the third-party notices; the window shows them (Main.qml).
+    // Licences opens the third-party notices; the window shows them.
     signal showLicences()
 
-    heading: qsTr("About ARINC Data Loader")
+    title: dialog.heading
+    heading: qsTr("About %1").arg(dialog.appName)
     primaryText: qsTr("Close")
     secondaryText: qsTr("Licences")
     width: 620
@@ -26,7 +34,7 @@ AppDialog {
         spacing: Theme.space3
 
         Text {
-            text: "ADL"
+            text: dialog.appCode
             color: Theme.accent
             font.pixelSize: Theme.fontDisplay
             font.family: Theme.headingFamily
@@ -36,7 +44,7 @@ AppDialog {
 
         Text {
             Layout.fillWidth: true
-            text: qsTr("An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.")
+            text: dialog.blurb
             color: Theme.textMuted
             font.pixelSize: Theme.fontBody
             wrapMode: Text.WordWrap
@@ -87,6 +95,13 @@ AppDialog {
             color: Theme.textMuted
             font.pixelSize: Theme.fontSmall
             onLinkActivated: (link) => Qt.openUrlExternally(link)
+        }
+
+        ColumnLayout {
+            id: extraSection
+
+            Layout.fillWidth: true
+            spacing: Theme.space3
         }
     }
 

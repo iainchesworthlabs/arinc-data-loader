@@ -49,7 +49,7 @@ with the three programs on one Windows machine.
   loader. Where the standard is open to more than one reading, the choices made are listed in
   [the ARINC 665 coverage](../arinc665-coverage.md#places-the-standard-is-unclear) and
   [the 615A codec notes](../arinc615a-codec.md#places-the-standard-is-unclear).
-- The way a target's hardware identifier and position are turned into `THW_ID_POS`
+- The way a target's hardware ID and position are turned into `THW_ID_POS`
   (`HNPFMS` at `L` becomes `HNPFMS_L`) follows the standard's examples and has not been confirmed
   with a real target. The field can be edited if a target expects something else.
 - Which check value a real target would ask for each file of an upload.
