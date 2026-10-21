@@ -21,11 +21,14 @@ add_executable(adl_app_tests
     notice_text_test.cpp
     settings_test.cpp
     test_classes.hpp
-    upload_fixture.hpp)
+    upload_fixture.hpp
+    window_state_test.cpp
+    "${PROJECT_SOURCE_DIR}/src/ui/window_state.cpp")
 
 target_include_directories(adl_app_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${PROJECT_SOURCE_DIR}/tests/support")
+    "${PROJECT_SOURCE_DIR}/tests/support"
+    "${PROJECT_SOURCE_DIR}/src/ui/include")
 target_link_libraries(adl_app_tests
     PRIVATE
         adl::app_core
@@ -33,6 +36,8 @@ target_link_libraries(adl_app_tests
         adl::arinc665
         adl::media_tree
         adl::samples
+        Qt6::Gui
+        Qt6::Quick
         Qt6::Test
         adl::warnings
         adl::sanitizers

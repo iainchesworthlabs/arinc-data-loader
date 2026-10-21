@@ -80,6 +80,11 @@ public:
     [[nodiscard]] Q_INVOKABLE int downloadCount() const;
     [[nodiscard]] Q_INVOKABLE QString eventText() const;
 
+    // Puts `count` found targets in the FIND list (10.0.0.2, 10.0.0.3, ...) without a FIND, and
+    // adds one line of the given severity (0 info, 1 notice, 2 warning, 3 error) to the log.
+    Q_INVOKABLE void showTargets(int count);
+    Q_INVOKABLE void addEvent(int severity, const QString& text);
+
     // Between test cases: the target is ready for another operation and behaves.
     Q_INVOKABLE void resetTarget();
     Q_INVOKABLE void resetDownloads();

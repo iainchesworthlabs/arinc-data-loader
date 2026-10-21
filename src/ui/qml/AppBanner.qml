@@ -5,12 +5,14 @@ import QtQuick.Layouts
 // one idiom for an error, a warning, a note or a confirmation that belongs to the window rather
 // than to a modal question. `text` is the sentence, `detail` an optional second line in mono
 // (a path, a clause, a count), and anything placed inside is an action on the right (Open folder,
-// Retry). The tone sets the rule at the left edge and the surface; the words do the rest.
+// Retry). The tone sets the rule at the left edge, the surface and a glyph, so a banner is never
+// told apart by colour alone (the tones are Theme's: error is `fail`, warning `warn`, success `ok`
+// and info `neutral`); the words do the rest.
 //
-//   error    something failed or cannot continue          accent surface, heavy rule
-//   warning  allowed, but the operator should look        accent outline, heavy rule
-//   info     a neutral note about what happened           neutral surface, light rule
-//   success  something finished as intended               neutral surface, dark rule
+//   error    something failed or cannot continue    cross, accent tint, heavy accent rule
+//   warning  allowed, but the operator should look  warning triangle, heavy rule in the warning ink
+//   info     a neutral note about what happened     no glyph, neutral surface, light rule
+//   success  something finished as intended        check, neutral surface, dark rule
 Rectangle {
     id: root
 
@@ -23,18 +25,25 @@ Rectangle {
 
     signal dismissed()
 
+    // The Theme tone this banner's tone stands for.
+    readonly property string themeTone: tone === "error" ? "fail"
+                                        : tone === "warning" ? "warn"
+                                        : tone === "success" ? "ok" : "neutral"
+
     readonly property color ruleColour: {
-        if (tone === "error" || tone === "warning")
+        if (tone === "error")
             return Theme.accentInk;
+        if (tone === "warning")
+            return Theme.warn;
         if (tone === "success")
-            return Theme.neutral900;
+            return Theme.ok;
         return Theme.divider;
     }
 
     implicitHeight: row.implicitHeight + Theme.space3 * 2
     color: tone === "error" ? Theme.accent100 : Theme.neutral100
     border.width: 1
-    border.color: tone === "error" || tone === "warning" ? Theme.accentInk : Theme.divider
+    border.color: tone === "error" ? Theme.accentInk : tone === "warning" ? Theme.warn : Theme.divider
     Accessible.role: Accessible.AlertMessage
     Accessible.name: root.detail.length > 0 ? root.text + " " + root.detail : root.text
 
@@ -55,6 +64,16 @@ Rectangle {
         anchors.topMargin: Theme.space3
         anchors.bottomMargin: Theme.space3
         spacing: Theme.space3
+
+        ToneGlyph {
+            visible: root.themeTone !== "neutral"
+            Layout.preferredWidth: 14
+            Layout.preferredHeight: 14
+            Layout.alignment: Qt.AlignTop
+            Layout.topMargin: 1
+            glyph: Theme.toneGlyph(root.themeTone)
+            color: Theme.toneTextInk(root.themeTone)
+        }
 
         ColumnLayout {
             Layout.fillWidth: true

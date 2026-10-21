@@ -28,52 +28,21 @@ Item {
                 anchors.rightMargin: Theme.space4
                 spacing: 0
 
-                Repeater {
-                    model: [
-                        { label: qsTr("ACTIVITY") },
-                        { label: qsTr("TARGET CONFIGURATION") }
+                // The two tabs are one control, like the transfer switch: one tab stop, Left/Right
+                // (and Up/Down, Home, End) move and choose, and a click on the chosen tab leaves it
+                // chosen.
+                SegmentedControl {
+                    objectName: "dockTabs"
+
+                    Layout.alignment: Qt.AlignBottom
+                    tabs: true
+                    segments: [
+                        { value: 0, label: qsTr("ACTIVITY"), name: "dockTabActivity" },
+                        { value: 1, label: qsTr("TARGET CONFIGURATION"), name: "dockTabConfiguration" }
                     ]
-
-                    delegate: Button {
-                        id: tab
-
-                        required property var modelData
-                        required property int index
-
-                        text: modelData.label
-                        checkable: true
-                        checked: root.tab === index
-                        padding: Theme.space3
-                        implicitHeight: 42
-                        Accessible.role: Accessible.RadioButton
-                        Accessible.name: modelData.label
-                        Accessible.checked: checked
-
-                        background: Rectangle {
-                            color: tab.hovered && !tab.checked ? Theme.neutral200 : "transparent"
-
-                            Rectangle {
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.bottom: parent.bottom
-                                height: 3
-                                visible: tab.checked
-                                color: Theme.accent
-                            }
-                        }
-
-                        contentItem: Text {
-                            text: tab.text
-                            color: tab.checked ? Theme.text : Theme.textMuted
-                            font.pixelSize: Theme.fontSmall
-                            font.family: Theme.headingFamily
-                            font.weight: Font.DemiBold
-                            font.letterSpacing: 0.6
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        onClicked: root.tab = index
-                    }
+                    selectedValue: root.tab
+                    onSegmentClicked: (value) => root.tab = value
+                    Accessible.name: qsTr("Evidence panel")
                 }
 
                 Item {
@@ -86,7 +55,7 @@ Item {
                     visible: root.tab === 0
                     text: qsTr("Clear")
                     onClicked: root.app.clearLog()
-                    Accessible.name: qsTr("Clear the activity log")
+                    Accessible.description: qsTr("Clear the activity log")
                 }
 
                 AppButton {
@@ -94,13 +63,13 @@ Item {
                     text: qsTr("Read information")
                     enabled: root.app.canReadInformation
                     onClicked: root.app.readInformation()
-                    Accessible.name: qsTr("Read the target information")
+                    Accessible.description: qsTr("Read the target information")
                 }
 
                 AppButton {
                     text: root.expanded ? qsTr("Hide") : qsTr("Show")
                     onClicked: root.expanded = !root.expanded
-                    Accessible.name: root.expanded ? qsTr("Collapse the evidence panel")
+                    Accessible.description: root.expanded ? qsTr("Collapse the evidence panel")
                                                       : qsTr("Expand the evidence panel")
                 }
             }
@@ -120,6 +89,8 @@ Item {
 
             Item {
                 LogView {
+                    objectName: "activityLog"
+
                     anchors.fill: parent
                     anchors.margins: Theme.space2
                     events: root.app.events
@@ -135,9 +106,22 @@ Item {
                     anchors.margins: Theme.space2
                     clip: true
                     model: root.app.configuration
-                    ScrollBar.vertical: ScrollBar {}
+                    boundsBehavior: Flickable.StopAtBounds
+                    activeFocusOnTab: true
+                    ScrollBar.vertical: AppScrollBar {}
                     Accessible.role: Accessible.List
                     Accessible.name: qsTr("Target configuration")
+                    Accessible.focusable: true
+
+                    // Read-only, so the keys that scroll it are its whole keyboard: Up, Down, Page Up,
+                    // Page Down, Home and End.
+                    Keys.onPressed: (event) => configurationKeys.handle(event)
+
+                    KeyScroll {
+                        id: configurationKeys
+
+                        flickable: configurationList
+                    }
 
                     delegate: ColumnLayout {
                         id: configurationRow
@@ -146,7 +130,7 @@ Item {
                         required property string title
                         required property string detail
 
-                        width: ListView.view.width
+                        width: ListView.view.width - Theme.space3
                         spacing: 0
 
                         Text {
@@ -171,6 +155,12 @@ Item {
                             wrapMode: Text.WordWrap
                         }
                     }
+                }
+
+                FocusRing {
+                    anchors.fill: configurationList
+                    anchors.margins: -Theme.focusRingOffset
+                    active: configurationList.activeFocus
                 }
 
                 EmptyState {

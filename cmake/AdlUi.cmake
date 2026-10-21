@@ -88,6 +88,7 @@ set(ADL_UI_QML_FILES
     "${ADL_UI_QML_DIR}/AppComboBox.qml"
     "${ADL_UI_QML_DIR}/AppDialog.qml"
     "${ADL_UI_QML_DIR}/AppHeader.qml"
+    "${ADL_UI_QML_DIR}/AppScrollBar.qml"
     "${ADL_UI_QML_DIR}/AppSpinBox.qml"
     "${ADL_UI_QML_DIR}/AppStatusBar.qml"
     "${ADL_UI_QML_DIR}/AppTextField.qml"
@@ -96,14 +97,18 @@ set(ADL_UI_QML_FILES
     "${ADL_UI_QML_DIR}/CheckTile.qml"
     "${ADL_UI_QML_DIR}/EmptyState.qml"
     "${ADL_UI_QML_DIR}/FocusRing.qml"
+    "${ADL_UI_QML_DIR}/KeyScroll.qml"
     "${ADL_UI_QML_DIR}/LicencesDialog.qml"
     "${ADL_UI_QML_DIR}/LogView.qml"
     "${ADL_UI_QML_DIR}/RailBlock.qml"
+    "${ADL_UI_QML_DIR}/RevealOnFocus.qml"
     "${ADL_UI_QML_DIR}/SectionHeader.qml"
     "${ADL_UI_QML_DIR}/SegmentedControl.qml"
     "${ADL_UI_QML_DIR}/StatTile.qml"
     "${ADL_UI_QML_DIR}/StatusChip.qml"
-    "${ADL_UI_QML_DIR}/TaskProgress.qml")
+    "${ADL_UI_QML_DIR}/TaskProgress.qml"
+    "${ADL_UI_QML_DIR}/ToneGlyph.qml"
+    "${ADL_UI_QML_DIR}/ToneMessage.qml")
 
 # A QML module's resource alias is its path relative to the module; these files live outside the
 # application's directory, so name each one explicitly or the qmldir would point at ../ui/qml.

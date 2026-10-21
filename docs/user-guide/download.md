@@ -43,7 +43,7 @@ Each file shows its own status and a progress bar (a file is 0 until it has arri
 the protocol reports no figure in between), and the action bar shows the target's progress through
 its list. **Abort** stops it.
 
-When it ends, the strip says **COMPLETE** or **FAILED** and a receipt says how many files arrived
+When it ends, the header says **COMPLETE** or **FAILED** and a receipt says how many files arrived
 of how many were requested, and where.
 
 ![A finished download](../images/app-download-complete.png)

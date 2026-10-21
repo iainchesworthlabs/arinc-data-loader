@@ -136,7 +136,7 @@ What a build-and-test leg's ctest contains: the Catch2 suites (unit, engine, pla
 `mock.engine`), the application tests (`app.tests`, `mock.model`, `media_gen.tests`, QtTest), the QML
 loads of the three windows (`app.qml`, `mock.qml`, `media_gen.qml`: the window loaded offscreen, with
 the offscreen platform and the software renderer, so no GPU or display is needed), the Qt Quick Test
-suites `ui.tst_main_window` and `ui.tst_dialogs` (the window and its dialogs driven by mouse and key
+suites `ui.tst_main_window`, `ui.tst_dialogs`, `ui.tst_keyboard`, `ui.tst_navigation`, `ui.tst_accessibility`, `ui.tst_layout` and `ui.tst_tones` (the window and its dialogs driven by mouse and key
 events on the real `Main.qml`), `loopback.integration` (the loader's runner over real sockets on
 127.0.0.1 against the mock target's engine), the system smoke tests that start the three application
 programs and `system.notices`, the `tools.write_payloads` tests, and the repository checks

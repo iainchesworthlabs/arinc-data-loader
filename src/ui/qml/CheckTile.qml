@@ -52,10 +52,15 @@ Rectangle {
 
             Text {
                 Layout.fillWidth: true
+                objectName: "checkTileDetail"
                 visible: root.detail.length > 0
                 text: root.detail
                 color: Theme.textMuted
                 font.pixelSize: Theme.fontSmall
+                // Two lines, then an ellipsis: "FIND or type an address" must not be cut to
+                // "FIND or type an a..." in a narrow tile.
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
                 elide: Text.ElideRight
             }
         }

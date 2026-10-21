@@ -1,0 +1,1 @@
+A window left on a monitor to the left of the main one is reopened there instead of being lost, and a window saved with only a sliver on screen is moved back so its title bar can be reached. "Open folder" opens the folder for paths with spaces, `#` or a drive letter in the loader, the generator and the mock target.

@@ -27,12 +27,13 @@ AppDialog {
     height: Math.min(660, Overlay.overlay ? Overlay.overlay.height - 60 : 660)
 
     // Focus on the text, so the arrow and page keys scroll it and Escape reaches the dialog.
-    onOpened: noticesText.forceActiveFocus()
+    initialFocusItem: noticesText
 
     content: ScrollView {
         Layout.fillWidth: true
         Layout.fillHeight: true
         clip: true
+        ScrollBar.vertical: AppScrollBar { inScrollView: true }
 
         TextArea {
             id: noticesText

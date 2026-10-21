@@ -13,7 +13,7 @@ QQC.Button {
     implicitWidth: Math.max(0, contentItem.implicitWidth + padding * 2)
     implicitHeight: Math.max(30, contentItem.implicitHeight + 12)
     hoverEnabled: true
-    opacity: enabled ? 1.0 : 0.45
+    opacity: enabled ? 1.0 : Theme.disabledOpacity
     Accessible.name: text
 
     // Enter and Return press the focused button, as Space does (the standard Button handles only

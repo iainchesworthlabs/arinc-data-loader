@@ -29,8 +29,13 @@ system (on Windows, *Settings > Personalisation > Colours > Choose your mode*). 
 
 ![The loader in the dark scheme](../images/app-upload-complete-dark.png)
 
-The colours are a deliberately small set: neutral greys and one red. Success is shown in the neutral
-colour and a word ("COMPLETE"), a warning or a failure in red and a word, so the meaning never
-depends on telling two colours apart.
+The colours are a deliberately small set: neutral greys and one red, and every state has a mark of
+its own as well as a word, so the meaning never depends on telling two colours apart:
+a check for success ("COMPLETE", in the neutral colour), a warning triangle for a warning, a cross on a
+filled red chip for a failure, a play mark while something runs. The activity log names its
+severity in words (INFO, NOTE, WARN, ERROR).
+
+The programs follow the desktop's "reduce motion" setting: with it on, the busy mark and the sweeping
+progress bar stand still.
 
 The programs have no text size setting of their own yet.

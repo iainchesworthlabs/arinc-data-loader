@@ -17,7 +17,9 @@ AppDialog {
     heading: qsTr("Preferences")
     primaryText: qsTr("Save")
     secondaryText: qsTr("Cancel")
-    width: 880
+    width: Math.min(880, Overlay.overlay ? Overlay.overlay.width - 48 : 880)
+    // The first field takes the first Tab; Return in any field saves.
+    initialFocusItem: languageBox.visible ? languageBox : defaultTargetAddressField
 
     property string draftAddress: ""
     property string draftThwIdPos: ""
@@ -157,13 +159,16 @@ AppDialog {
                 }
 
                 AppTextField {
+                    id: defaultTargetAddressField
+
                     objectName: "defaultTargetAddressField"
 
                     Layout.fillWidth: true
                     text: dialog.draftAddress
                     placeholderText: qsTr("e.g. 10.0.0.2")
-                    onTextEdited: dialog.draftAddress = text
-                    Accessible.name: qsTr("Default target address")
+                    onTextCommitted: (value) => dialog.draftAddress = value
+                    Accessible.name: qsTr("Default address")
+                    Accessible.description: qsTr("Default target address")
                 }
 
                 Text {
@@ -178,8 +183,9 @@ AppDialog {
                     Layout.fillWidth: true
                     text: dialog.draftThwIdPos
                     placeholderText: qsTr("e.g. HNPFMS_L")
-                    onTextEdited: dialog.draftThwIdPos = text
+                    onTextCommitted: (value) => dialog.draftThwIdPos = value
                     Accessible.name: qsTr("Default THW_ID_POS")
+                    Accessible.description: qsTr("Default target hardware identifier and position")
                 }
             }
 
@@ -263,8 +269,9 @@ AppDialog {
                     from: 1
                     to: 65535
                     value: dialog.draftControlPort
-                    onValueModified: dialog.draftControlPort = value
-                    Accessible.name: qsTr("Loader control port")
+                    onValueChanged: dialog.draftControlPort = value
+                    Accessible.name: qsTr("Control port")
+                    Accessible.description: qsTr("Loader control port")
                 }
             }
 
@@ -283,14 +290,14 @@ AppDialog {
 
                     Layout.fillWidth: true
                     text: dialog.draftDownloadDirectory
-                    onTextEdited: dialog.draftDownloadDirectory = text
+                    onTextCommitted: (value) => dialog.draftDownloadDirectory = value
                     Accessible.name: qsTr("Download folder")
                 }
 
                 AppButton {
                     text: qsTr("Choose folder...")
                     onClicked: downloadDirectoryDialog.open()
-                    Accessible.name: qsTr("Choose the download folder")
+                    Accessible.description: qsTr("Choose the download folder")
                 }
             }
 
@@ -329,8 +336,9 @@ AppDialog {
                     from: 100
                     to: 1000000
                     value: dialog.draftLogCapacity
-                    onValueModified: dialog.draftLogCapacity = value
-                    Accessible.name: qsTr("Activity log capacity")
+                    onValueChanged: dialog.draftLogCapacity = value
+                    Accessible.name: qsTr("Activity lines kept")
+                    Accessible.description: qsTr("Activity log capacity")
                 }
             }
 

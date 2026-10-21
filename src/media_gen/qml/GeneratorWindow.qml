@@ -985,7 +985,7 @@ ApplicationWindow {
                 AppButton {
                     visible: window.app.outputPath.length > 0
                     text: qsTr("Open folder")
-                    onClicked: Qt.openUrlExternally(window.app.outputPath)
+                    onClicked: Qt.openUrlExternally(Theme.fileUrl(window.app.outputPath))
                     Accessible.name: qsTr("Open the generated media set")
                 }
             }

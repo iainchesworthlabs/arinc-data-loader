@@ -52,5 +52,9 @@ int main(int argc, char* argv[]) {
         LoaderModelTest test;
         failed += QTest::qExec(&test, argc, argv);
     }
+    {
+        WindowStateTest test;
+        failed += QTest::qExec(&test, argc, argv);
+    }
     return failed;
 }
