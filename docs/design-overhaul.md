@@ -169,10 +169,10 @@ blocked for up to 13 seconds in the destructor, with no warning and no receipt.
 The new action bar keeps the job's activity line, a 4 px progress bar and the percentage, and the
 per-load rows in the rail and payload list carry their own status (a percentage, the load's status
 word and a progress bar). Closing during a job now opens a question, "An operation is running":
-"Keep working", or "Stop and close". The second path asks the target to abort and keeps the window
+"Keep working", or "Abort and close". The second path asks the target to abort and keeps the window
 open (with the normal "Stopping the operation..." state) until the engine is idle, then closes.
 The old behaviour (abort, then wait for the target to confirm, up to 13 seconds) is still what
-"Stop and close" does, but it is a deliberate answer to a question that says so.
+"Abort and close" does, but it is a deliberate answer to a question that says so.
 
 Still open: abort is still reported by the engine as a failure outcome (`success == false`), so
 the receipt says `FAILED` for an aborted job (its text names the outcome and its detail says
@@ -285,7 +285,7 @@ current code.
 | 2 | Editing the target left FIND selection, configuration and result from the old target. | N1 visibility of system status; ISO self-descriptiveness | C | `loader_model.cpp` setters; old `Main.qml` configuration panel | Resolved (`reconcile_target`, §8). |
 | 3 | "Checked" had no time and did not survive disk edits; findings were split across two lists. | N1/N5; ISO error tolerance | C | `loader_model.cpp` validation; old `Main.qml` findings | Partly. One findings list; the check still carries no time and does not notice later disk edits (§11, item 1). |
 | 4 | The primary action was at the end of a scroll and could be below the fold. | N6 recognition over recall; ISO suitability; S4 | C | old `Main.qml` ScrollView; 1100×760 window | Resolved (fixed action bar). |
-| 5 | Closing during a job silently aborted and blocked up to 13 s. | N3 user control; ISO controllability; S7 | C | old `Main.qml` close; `loader_model` destructor; docs/app.md | Resolved by the close question; "Stop and close" still waits for the target (§3.6). |
+| 5 | Closing during a job silently aborted and blocked up to 13 s. | N3 user control; ISO controllability; S7 | C | old `Main.qml` close; `loader_model` destructor; docs/app.md | Resolved by the close question; "Abort and close" still waits for the target (§3.6). |
 | 6 | No preflight or payload summary; ticks were an implicit promise. | N6/N8; ISO suitability; S8 | H | old `Main.qml` media set rail/operation panel | Resolved (preflight, next-step banner, payload list). |
 | 7 | Progress had no phase; abort had no receipt and was styled as failure. | N1; ISO self-descriptiveness; S3 | H | old `Main.qml` operation panel; `engine_worker.cpp` outcomes | Partly. Per-load status is shown; an abort is still reported as `FAILED` (§11, item 2). |
 | 8 | Download destination and directory naming were invisible before start; mode switch discarded the list. | N1/N3; ISO self-descriptiveness | H | old `DownloadPanel.qml`; `loader_model.cpp` setDownloadMode | Partly. The destination is shown and can be opened; the next directory number is not shown (§11, item 5), and switching mode still empties the list. |
@@ -507,7 +507,7 @@ true:
   (`LicencesDialog`, the same text as the `NOTICES.txt` placed beside the executables); all three
   applications have the same About and Licences pair
   ([after](images/app-about.png)).
-- **Close during a job asks first.** The dialog offers "Keep working" and "Stop and close"; the
+- **Close during a job asks first.** The dialog offers "Keep working" and "Abort and close"; the
   second asks the engine to abort and waits for it to be idle before closing.
 - **The generator no longer shows red errors on untouched fields.** The part numbers, header file
   name and output directory show an error only once the field has content; the action bar states
