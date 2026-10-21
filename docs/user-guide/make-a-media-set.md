@@ -155,7 +155,7 @@ ACM-SET-0001/
 ## The rules the generator enforces
 
 The generator uses the same checks the loader uses to judge a set, so a form with no red text
-makes a set the loader accepts. The read-back may still find differences from the standard's
+makes a set the loader accepts, except for the file-name rule that the form does not check (see [File names](#file-names)). The read-back may still find differences from the standard's
 recommendations (an odd-sized data file, for example); the loader shows those as warnings and they
 do not stop an upload. Most rules are from ARINC 665-3; the section is in brackets.
 
@@ -193,8 +193,9 @@ printable ASCII, none of the characters `~ / : \`, and not `.` or `..`. On top o
 | The batch file | Ends in `.LUB` (the window makes it for you) |
 
 The reserved extensions are `CRC`, `DIR`, `HDR`, `LDR`, `LCI`, `LCL`, `LCS`, `LNA`, `LND`, `LNL`,
-`LNO`, `LNR`, `LNS`, `LUB`, `LUH`, `LUI`, `LUM`, `LUP`, `LUR` and `LUS`. A data file called
-`REPORT.LUM`, for example, is refused.
+`LNO`, `LNR`, `LNS`, `LUB`, `LUH`, `LUI`, `LUM`, `LUP`, `LUR` and `LUS`. A data file called `REPORT.LUM`, for example, is refused.
+
+The form checks names against ARINC 665 only. The set is then written as a folder tree that has to be usable on every system, and that rule is stricter: a name that holds one of `* ? " < > |`, that ends in a dot or a space, or that is a device name (`CON`, `NUL`, `COM1` and so on) passes the form and then makes the generation fail. The chip says **FAILED** and the banner names the file. Use plain names.
 
 ### Target hardware IDs
 

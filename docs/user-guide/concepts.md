@@ -14,8 +14,7 @@ optional **support files** (configuration and the like). Everything is protected
 values**, small numbers calculated from a file's contents (a CRC or a digest such as MD5 or
 SHA-1): if one byte changes, the check value no longer matches and the load is refused. One or
 more loads travel together on a **media set**, which is made of **members**, the individual disks
-(or, here, folders) of the set, each with three list files (`LOADS.LUM`, `FILES.LUM`,
-`BATCHES.LUM`) that say what is on that member. A **batch file** names, for each target hardware
+(or, here, folders) of the set, each with list files (`LOADS.LUM` and `FILES.LUM`, and `BATCHES.LUM` when the set has a batch file) that say what is on that member. A **batch file** names, for each target hardware
 ID, the loads that belong to it. The generator can write one; the loader reads and counts batch
 files but does not act on them (see [the limits](files-and-limits.md#limits)). Parts are
 identified by **part numbers** with strict shapes, which is why the generator checks them as you
@@ -45,7 +44,7 @@ manufacturer code).
 
 | Word | Meaning |
 | --- | --- |
-| Media set | The folder tree that holds one or more loads: one folder per member, each with its three list files |
+| Media set | The folder tree that holds one or more loads: one folder per member, each with its list files |
 | Member | One disk of a media set; here a folder called `member_001`, `member_002` and so on |
 | Load | One loadable thing: a header file plus its data and support files |
 | Part number | The identity of a load, a batch or a media set. A load's looks like `ACM47-1234-5678` |

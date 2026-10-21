@@ -72,7 +72,7 @@ standard says "should"). Section numbers are those of the 665-3 edition in
 | 2.3.1, 2.3.1.1-.20 | Batch file: version, PN, comment, load-list blocks with a position, loads (header file name, load PN), CRC-16 | `BatchFile`, `encode_batch_file`, `decode_batch_file` | `batch_file_test`, `golden_test` |
 | 3.1 | Media set PN: at most 15 characters, no blanks, not ending in a hyphen, no I Q Z | `check_media_set_part_number` | `part_number_test` |
 | 3.2 | 1 to 255 members; X from 1 to Y | `MediaSetIdentity`; X = 0 or X > Y is an **error** | `media_files_test`, `media_set_test` |
-| 3.2.1 | LOADS.LUM, FILES.LUM and BATCHES.LUM in every member's root; all files listed in FILES.LUM but itself; files within four directories; a file wholly on one member | `build_media_set`, `read_media_set` | `media_set_test` |
+| 3.2.1 | LOADS.LUM, FILES.LUM and BATCHES.LUM in every member's root (this code writes BATCHES.LUM only when the set has a batch, and reads it as optional); all files listed in FILES.LUM but itself; files within four directories; a file wholly on one member | `build_media_set`, `read_media_set` | `media_set_test` |
 | 3.2.2 | Reserved extensions (Table 3.2.2-1) | `is_reserved_extension`, and the file name checks | `naming_test` |
 | 3.2.3.1, .1-.25 | LOADS.LUM: PN, X and Y, per load a PN, header file name, member, target IDs; user data; CRC-16 | `LoadsList`, `encode_loads_list`, `decode_loads_list` | `media_files_test`, `golden_test` |
 | 3.2.3.2, .1-.30 | FILES.LUM: per file a name, pathname, member, CRC-16, check value; user data; its own check value and CRC-16 | `FilesList`, `encode_files_list`, `decode_files_list` | `media_files_test`, `media_set_test`, `golden_test` |

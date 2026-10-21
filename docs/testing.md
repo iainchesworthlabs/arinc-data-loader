@@ -435,8 +435,7 @@ what to expect of each, it checks every byte it reads.
   protocol, a target or a loader; [the choices the codec made](arinc615a-codec.md#places-the-standard-is-unclear)
   and [the engine's](arinc615a-coverage.md#places-the-standard-is-unclear) are the first things to confirm.
   The simulated target has a TFTP of its own, but it is the same reading of the standard.
-- The application has been run through its tests only: against the simulated target, never a real one, and the window
-  has been driven offscreen by Qt Quick Test, not looked at on a screen, at one size and in the light theme.
+- The application has been run against the simulated target and the mock target, never a real one. The automated tests drive its window offscreen with Qt Quick Test, at one size and in the light theme. The window has also been driven on a real Windows desktop, in both colour schemes, by the script that takes the screenshots ([Screenshots](screenshots.md)); that is not part of the automated tests.
   `app.tests`, `app.qml` and the `ui.*` tests (ten `ui.tst_*` suites and `ui.window_state`) run on the three desktop legs.
 - No test runs a 615A operation against a real target. The loopback integration test
   (`loopback.integration`) does run whole operations over real sockets, but against the mock
