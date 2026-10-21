@@ -60,6 +60,9 @@ struct OperationSummary {
     quint32 files_requested = 0;
     quint32 files_received = 0;
     QString download_directory;
+    // An upload that was stopped because the media set on the disk is no longer what was
+    // checked: the set has to be checked again before it can be uploaded.
+    bool media_set_changed = false;
 };
 
 // One load of a media set.

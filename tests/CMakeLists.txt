@@ -28,6 +28,7 @@ add_executable(adl_unit_tests
     unit/media_set_test.cpp
     unit/media_tree_test.cpp
     unit/naming_test.cpp
+    unit/portable_name_test.cpp
     unit/part_number_test.cpp
     unit/paths_test.cpp
     unit/protocol_files_test.cpp

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cstring>
 #include <expected>
 #include <filesystem>
@@ -13,8 +14,10 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 
+#include <QCoreApplication>
 #include <QSignalSpy>
 #include <QTest>
 #include <QUrl>
@@ -195,4 +198,93 @@ void MockModelTest::loopback_only_binds_the_link_to_loopback() {
     QVERIFY(link != nullptr);
     QCOMPARE(link->local_address(), Address::loopback());
     model.stop();
+}
+
+void MockModelTest::a_name_the_loader_sends_is_stored_only_if_it_is_plain_and_portable() {
+    for (const char* name : {"APP.LUP", "HNPFMS_L.LCS", "a-b_c.1", "x", ".hidden"}) {
+        QVERIFY2(is_storable_name(name), name);
+    }
+    QVERIFY(is_storable_name(std::string(254, 'a')));
+    QVERIFY(!is_storable_name(std::string(255, 'a')));
+    for (const char* name :
+         {"",    ".",       "..",  "a/b",  "a:b",      "a:b:$DATA", "file.txt::$DATA",
+          "NUL", "nul.txt", "CON", "COM1", "lpt9.bin", "CONIN$",    "trailing.",
+          "a b", "a*b",     "a|b", "a?b",  "a<b",      "c~d!",      "caf\xC3\xA9"}) {
+        QVERIFY2(!is_storable_name(name), name);
+    }
+    QVERIFY(!is_storable_name(std::string("nul\0byte", 8)));
+}
+
+void MockModelTest::a_load_directory_is_never_a_device_or_a_dotted_name() {
+    QCOMPARE(storage_directory_name("ACM47-001"), std::string("ACM47-001"));
+    QCOMPARE(storage_directory_name("a b/c:d"), std::string("a_b_c_d"));
+    QCOMPARE(storage_directory_name(""), std::string("_"));
+    QCOMPARE(storage_directory_name("."), std::string("_"));
+    QCOMPARE(storage_directory_name(".."), std::string("._"));
+    QCOMPARE(storage_directory_name("NUL"), std::string("_NUL"));
+    QCOMPARE(storage_directory_name("com3"), std::string("_com3"));
+    QCOMPARE(storage_directory_name("CONOUT$"), std::string("CONOUT_"));
+    QCOMPARE(storage_directory_name("trailing."), std::string("trailing_"));
+    QCOMPARE(storage_directory_name(std::string(300, 'a')).size(), std::size_t{254});
+    for (const char* hostile : {"NUL", "aux.x", "..", "x.", "a:b", "COM1.txt"}) {
+        const std::string name = storage_directory_name(hostile);
+        QVERIFY2(is_storable_name(name), hostile);
+    }
+}
+
+// The Stop button is pressed on the window's thread while the worker's thread makes and
+// destroys the link (the race link_mutex_ closes). Sessions are started and stopped as fast as
+// the model allows, with a different gap each time, so a stop lands before the link exists,
+// while it is being made, while the loop runs and while it is being taken down. AddressSanitizer
+// reports a stop that reaches a link that is gone; here, the worker must also be free at the end.
+void MockModelTest::starting_and_stopping_in_quick_succession_leaves_the_worker_free() {
+    MockRig rig;
+    std::atomic<int> links_made{0};
+    MockTargetModel model([&]() -> std::expected<std::unique_ptr<TargetLink>, QString> {
+        links_made.fetch_add(1, std::memory_order_relaxed);
+        return std::unique_ptr<TargetLink>(
+            std::make_unique<FakeTargetLink>(rig.world, rig.network, rig.target_address));
+    });
+
+    constexpr int rounds = 300;
+    for (int round = 0; round < rounds; ++round) {
+        model.start();
+        QVERIFY(model.running());
+        switch (round % 5) {
+            case 0:
+                break;  // stopped at once, before the worker has picked the session up
+            case 1:
+                QCoreApplication::processEvents();
+                break;
+            case 2:
+                std::this_thread::sleep_for(std::chrono::microseconds(200));
+                break;
+            case 3:
+                QTest::qWait(1);
+                break;
+            default:
+                QTest::qWait(3);
+                break;
+        }
+        model.stop();
+        QVERIFY(!model.running());
+        if (round % 7 == 0) {
+            model.start();  // and again, before the stop has taken effect
+            model.stop();
+        }
+    }
+
+    // Every queued session has ended or been dropped by now, or the next one would not start.
+    QSignalSpy log_spy(&model, &MockTargetModel::logLine);
+    model.start();
+    QTRY_VERIFY_WITH_TIMEOUT(log_spy.count() > 0, 20000);
+    bool listening = false;
+    for (int i = 0; i < log_spy.count(); ++i) {
+        listening =
+            listening ||
+            qvariant_cast<LogEntry>(log_spy.at(i).at(0)).text.contains(QStringLiteral("listening"));
+    }
+    QTRY_VERIFY_WITH_TIMEOUT(listening || log_spy.count() > 1, 20000);
+    model.stop();
+    QVERIFY(links_made.load() <= rounds + rounds / 7 + 2);
 }

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -50,6 +51,24 @@ bool same_members(const std::vector<MediaMember>& a, const std::vector<MediaMemb
         }
     }
     return true;
+}
+
+// Makes `link` a link to the directory `target`. A symbolic link where the account may create one
+// (always on Linux and macOS; on Windows only with the privilege or in developer mode), and
+// otherwise a directory junction, which Windows lets any account make: the command prompt's
+// mklink does it. Where there is no mklink the command simply fails, and so does this. Returns
+// what went wrong, or an empty string.
+std::string make_directory_link(const fs::path& link, const fs::path& target) {
+    std::error_code ec;
+    fs::create_directory_symlink(target, link, ec);
+    if (!ec) {
+        return {};
+    }
+    const std::string command = "mklink /J \"" + link.string() + "\" \"" + target.string() + "\"";
+    if (std::system(command.c_str()) == 0 && fs::exists(link, ec)) {
+        return {};
+    }
+    return ec ? ec.message() : "neither a symbolic link nor a junction could be made";
 }
 
 MediaMember member_with(std::uint16_t sequence_number, std::vector<MediaFile> files) {
@@ -191,6 +210,57 @@ TEST_CASE("a file that cannot be written leaves nothing behind", "[media-tree]")
     REQUIRE_FALSE(written.has_value());
     CHECK(written.error().error == TreeError::invalid_file_name);
     CHECK_FALSE(fs::exists(root));
+}
+
+// A write that stops part of the way (a full disk, a name the file system refuses) must not leave
+// the first members behind as if they were a set. A name longer than any file system takes is a
+// failure that is the same on every platform, and arrives after the first member is written.
+TEST_CASE("a write that fails part of the way removes what it made", "[media-tree]") {
+    const std::vector<MediaMember> members = {
+        member_with(1, {file_at("\\", "GOOD.BIN"), file_at("\\a\\b\\", "DEEP.BIN")}),
+        member_with(2, {file_at("\\", std::string(300, 'N'))}),
+    };
+
+    SECTION("the root did not exist: it is not left either") {
+        TempDir dir;
+        const fs::path root = dir.path() / "new" / "tree";
+        const auto written = write_media_set_tree(root, members);
+        REQUIRE_FALSE(written.has_value());
+        CHECK(written.error().error == TreeError::cannot_write_file);
+        CHECK_FALSE(fs::exists(root));
+    }
+
+    SECTION("the root was there already: it is left as it was, empty") {
+        TempDir dir;
+        const fs::path root = dir.path() / "tree";
+        fs::create_directories(root);
+        std::ofstream(root / "mine.txt") << "not part of the set";
+        const auto written = write_media_set_tree(root, members);
+        REQUIRE_FALSE(written.has_value());
+        CHECK(fs::exists(root / "mine.txt"));
+        CHECK_FALSE(fs::exists(root / "member_001"));
+        CHECK_FALSE(fs::exists(root / "member_002"));
+    }
+
+    SECTION("an empty member directory that was there is left, empty") {
+        TempDir dir;
+        const fs::path root = dir.path() / "tree";
+        fs::create_directories(root / "member_001");
+        const auto written = write_media_set_tree(root, members);
+        REQUIRE_FALSE(written.has_value());
+        CHECK(fs::is_directory(root / "member_001"));
+        CHECK(fs::is_empty(root / "member_001"));
+        CHECK_FALSE(fs::exists(root / "member_002"));
+    }
+
+    SECTION("and the same set written again afterwards works") {
+        TempDir dir;
+        const fs::path root = dir.path() / "tree";
+        REQUIRE_FALSE(write_media_set_tree(root, members).has_value());
+        const std::vector<MediaMember> good = {members[0]};
+        REQUIRE(write_media_set_tree(root, good).has_value());
+        CHECK(same_members(sorted(read_media_set_tree(root).value()), sorted(good)));
+    }
 }
 
 TEST_CASE("names that are not usable on every platform are refused", "[media-tree]") {
@@ -407,10 +477,10 @@ TEST_CASE("a link in a tree is refused, not followed", "[media-tree]") {
     TempDir elsewhere;
     put_file(elsewhere.path() / "SECRET.BIN", "outside the tree");
     fs::create_directories(dir.path() / "member_001");
-    std::error_code ec;
-    fs::create_directory_symlink(elsewhere.path(), dir.path() / "member_001" / "link", ec);
-    if (ec) {
-        SKIP("this account cannot create symbolic links: " << ec.message());
+    const std::string why =
+        make_directory_link(dir.path() / "member_001" / "link", elsewhere.path());
+    if (!why.empty()) {
+        SKIP("this account can make neither a symbolic link nor a junction: " << why);
     }
 
     const auto read = read_media_set_tree(dir.path());

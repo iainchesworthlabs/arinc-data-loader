@@ -288,33 +288,171 @@ TestCase {
         verify(appModel.lastErrorText.length === 0)
     }
 
-    function test_08_abort_stops_a_running_upload() {
+    // The target is made slow, and the engine is held when the target asks for its second file:
+    // the first has been read, the transfer is certainly under way, and the operator presses
+    // Abort. The target confirms the stop, and the window says so in its dialog.
+    function test_08_abort_stops_an_upload_in_the_middle_of_the_transfer() {
         pointAtTheTarget()
         harness.resetTarget()
+        harness.makeTargetSlow()
         readTheMediaSet()
         click("tickAllLoadsButton")
+        const allFiles = harness.expectedUploadFiles().length
+        verify(allFiles >= 2)
 
-        // Hold the engine just before it takes the host, so the job is certainly still running
-        // when the Abort button is clicked, however fast the fake platform would be.
-        harness.holdNextJob()
+        harness.holdUploadAtSecondFile()
         click("uploadButton")
-        tryVerify(function() { return appModel.busy }, 10000)
-        verify(find("abortButton").enabled)
+        tryVerify(function() { return harness.gateReached() }, 20000)
+        verify(appModel.busy)
+        compare(harness.targetFilesReadCount(), 1)
+        // The progress bar is up while the job runs.
+        tryVerify(function() { return appModel.progress >= 0 }, 10000)
+        const bar = find("operationProgress")
+        verify(bar.visible, "the progress bar is not shown during the job")
+
+        const abort = find("abortButton")
+        verify(abort.enabled)
+        click("abortButton")
+        verify(!find("abortButton").enabled, "Abort can be pressed twice")
+        harness.releaseJob()
+        tryCompare(appModel, "resultState", 2, 20000)
+        tryVerify(function() { return !appModel.busy }, 20000)
+
+        // The target saw the abort and confirmed it; part of the load was across and part was not.
+        compare(harness.targetAbortsSeen(), 1)
+        verify(harness.targetFilesReadCount() >= 1)
+        verify(harness.targetFilesReadCount() < allFiles)
+        compare(appModel.resultText, "aborted by the operator")
+        verify(appModel.resultDetail.indexOf("The target confirmed that it stopped.") >= 0,
+               appModel.resultDetail)
+
+        // The aborted operation is a failure: the error dialog is open, whatever else happened.
+        const dialog = find("errorDialog")
+        tryVerify(function() { return dialog.visible }, 10000)
+        compare(dialog.text, "aborted by the operator")
+        verify(appModel.lastErrorDetail.indexOf("The target confirmed that it stopped.") >= 0,
+               appModel.lastErrorDetail)
+        compare(appModel.lastErrorHint, "")
+        const ok = dialog.standardButton(Dialog.Ok)
+        verify(ok !== null)
+        mouseClick(ok)
+        tryVerify(function() { return !dialog.visible })
+        compare(appModel.lastErrorText, "")
+    }
+
+    function test_08b_abort_stops_a_download_in_the_middle_of_the_transfer() {
+        pointAtTheTarget()
+        harness.resetTarget()
+        harness.makeTargetSlow()
+        harness.resetDownloads()
+        click("transferDownload")
+        click("downloadModeMedia")
+        typeText(find("downloadFileName"), "a.bin")
+        tryVerify(function() { return find("addDownloadButton").enabled })
+        click("addDownloadButton")
+        const name = find("downloadFileName")
+        name.text = ""
+        typeText(name, "b.bin")
+        tryVerify(function() { return find("addDownloadButton").enabled })
+        click("addDownloadButton")
+        compare(harness.downloadCount(), 2)
+
+        // Held as the second file begins to arrive: a.bin is on the disk, b.bin is not.
+        harness.holdDownloadAtSecondFile()
+        click("downloadButton")
+        tryVerify(function() { return harness.gateReached() }, 20000)
+        compare(harness.targetFilesWrittenCount(), 1)
         click("abortButton")
         harness.releaseJob()
         tryCompare(appModel, "resultState", 2, 20000)
         tryVerify(function() { return !appModel.busy }, 20000)
 
-        // The aborted operation is a failure, so the window's error dialog opened; acknowledge
-        // it so the next test starts with no dialog in the way.
+        compare(harness.targetAbortsSeen(), 1)
+        verify(appModel.resultWasDownload)
+        verify(appModel.resultDetail.indexOf("The target confirmed that it stopped.") >= 0,
+               appModel.resultDetail)
+        const number = lastDownloadNumber()
+        verify(harness.downloadedFileExists("a.bin", number))
+        verify(!harness.downloadedFileExists("b.bin", number))
+
         const dialog = find("errorDialog")
-        if (dialog.visible) {
-            const ok = dialog.standardButton(Dialog.Ok)
-            if (ok !== null) {
-                mouseClick(ok)
-                tryVerify(function() { return !dialog.visible })
-            }
-        }
+        tryVerify(function() { return dialog.visible }, 10000)
+        compare(dialog.text, "aborted by the operator")
+        mouseClick(dialog.standardButton(Dialog.Ok))
+        tryVerify(function() { return !dialog.visible })
+    }
+
+    // The target's list arrives; the operator unticks what is not wanted, and the choice that
+    // is sent back is what is ticked.
+    function test_12_the_operator_defined_choice_sends_only_what_is_ticked() {
+        pointAtTheTarget()
+        harness.resetTarget()
+        harness.resetDownloads()
+        click("transferDownload")
+        click("downloadModeOperator")
+        tryCompare(appModel, "downloadMode", 1)
+
+        click("downloadButton")
+        tryVerify(function() { return appModel.downloadChoicePending }, 20000)
+        compare(harness.downloadCount(), 2)
+        // The target's files are ticked to begin with.
+        tryCompare(appModel, "downloadSelectedCount", 2)
+
+        // Untick the first (a.bin) by clicking its check box: one file is left ticked.
+        const checks = harness.findItems(mainWindow, "downloadChoiceCheck")
+        compare(checks.length, 2)
+        verify(checks[0].enabled)
+        verify(checks[1].enabled)
+        // AppCheckBox.click() is the check box's own toggle (what a mouse click or the space bar
+        // does): the rows are inside the scrolled left column, so a mouse position could land on
+        // a neighbour.
+        checks[0].click()
+        tryCompare(appModel, "downloadSelectedCount", 1)
+        verify(find("confirmDownloadButton").enabled)
+
+        // Untick the other too: nothing is chosen, and confirming it is not allowed.
+        checks[1].click()
+        tryCompare(appModel, "downloadSelectedCount", 0)
+        verify(!find("confirmDownloadButton").enabled)
+
+        // Tick only the second again, and send the choice.
+        checks[1].click()
+        tryCompare(appModel, "downloadSelectedCount", 1)
+        click("confirmDownloadButton")
+        tryCompare(appModel, "resultState", 1, 20000)
+        tryVerify(function() { return !appModel.busy }, 20000)
+        const number = lastDownloadNumber()
+        verify(!harness.downloadedFileExists("a.bin", number))
+        verify(harness.downloadedFileExists("b.bin", number))
+        compare(harness.targetFilesWritten().join(","), "b.bin")
+    }
+
+    // "Choose none" cancels the download: the target is told to stop, nothing is written, and
+    // the window shows the failure.
+    function test_13_choose_none_cancels_the_operator_defined_download() {
+        pointAtTheTarget()
+        harness.resetTarget()
+        harness.resetDownloads()
+        click("transferDownload")
+        click("downloadModeOperator")
+        tryCompare(appModel, "downloadMode", 1)
+
+        click("downloadButton")
+        tryVerify(function() { return appModel.downloadChoicePending }, 20000)
+        const none = find("chooseNoneButton")
+        verify(none.visible)
+        click("chooseNoneButton")
+        tryCompare(appModel, "resultState", 2, 20000)
+        tryVerify(function() { return !appModel.busy }, 20000)
+
+        compare(appModel.resultText, "aborted by the operator")
+        compare(harness.targetFilesWrittenCount(), 0)
+        compare(harness.targetAbortsSeen(), 1)
+        verify(!appModel.downloadChoicePending)
+        const dialog = find("errorDialog")
+        tryVerify(function() { return dialog.visible }, 10000)
+        mouseClick(dialog.standardButton(Dialog.Ok))
+        tryVerify(function() { return !dialog.visible })
     }
 
     function test_09_clear_empties_the_activity_log() {

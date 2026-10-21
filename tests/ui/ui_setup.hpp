@@ -16,6 +16,7 @@
 
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/version.hpp"
+#include "scratch_settings.hpp"
 #include "ui_harness.hpp"
 
 namespace adl::ui_test {
@@ -30,6 +31,11 @@ public:
 public Q_SLOTS:
     void applicationAvailable() {
         QQuickStyle::setStyle(QStringLiteral("Fusion"));
+        // Whatever reads a QSettings without arguments reads a scratch directory, never the
+        // operator's real settings (the Harness's model has a settings file of its own).
+        QCoreApplication::setOrganizationName(QStringLiteral("adl-tests"));
+        QCoreApplication::setApplicationName(QStringLiteral("adl_ui_tests"));
+        scratch_ = std::make_unique<adl::test::ScratchSettings>();
         adl::ui::register_fonts();
         // The window's error MessageDialog is a native one on Windows, and a native modal dialog
         // spins its own event loop, which no Qt Quick Test can drive. The offscreen platform (and
@@ -51,6 +57,7 @@ public Q_SLOTS:
     void cleanupTestCase() { harness_.reset(); }
 
 private:
+    std::unique_ptr<adl::test::ScratchSettings> scratch_;
     std::unique_ptr<Harness> harness_;
 };
 

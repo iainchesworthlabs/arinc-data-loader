@@ -45,6 +45,79 @@ TestCase {
         wait(10)
     }
 
+    // The preferences as the model holds them now.
+    function modelPreferences() {
+        return {
+            "defaultTargetAddress": appModel.defaultTargetAddress,
+            "defaultThwIdPos": appModel.defaultThwIdPos,
+            "downloadDirectory": appModel.downloadDirectory,
+            "controlPort": appModel.controlPort,
+            "logCapacity": appModel.logCapacity,
+            "autoFindBeforeOperation": appModel.autoFindBeforeOperation,
+            "validateOnOpen": appModel.validateOnOpen
+        }
+    }
+
+    // What the settings file holds, read by a LoaderModel made over it afterwards.
+    function storedPreferences() {
+        const stored = harness.storedPreferences()
+        return {
+            "defaultTargetAddress": stored.defaultTargetAddress,
+            "defaultThwIdPos": stored.defaultThwIdPos,
+            "downloadDirectory": stored.downloadDirectory,
+            "controlPort": stored.controlPort,
+            "logCapacity": stored.logCapacity,
+            "autoFindBeforeOperation": stored.autoFindBeforeOperation,
+            "validateOnOpen": stored.validateOnOpen
+        }
+    }
+
+    // Empties a field the way an operator does (select all, delete). Assigning to `text` would
+    // replace the field's binding to the dialog's working copy, which the operator cannot do.
+    function clearField(item) {
+        if (item.window)
+            item.window.requestActivate()
+        item.forceActiveFocus()
+        item.selectAll()
+        keyClick(Qt.Key_Backspace)
+        compare(item.text, "")
+    }
+
+    // Any text, one key event for each character (a path has colons and separators).
+    function typeAnyText(item, text) {
+        item.forceActiveFocus()
+        for (let i = 0; i < text.length; ++i)
+            keyClick(text.charAt(i))
+        wait(10)
+    }
+
+    // Opens Preferences and changes every field it has, without saving.
+    function openPreferencesAndEdit() {
+        const dialog = find("preferencesDialog")
+        dialog.open()
+        tryVerify(function() { return dialog.visible })
+
+        const address = findIn(dialog, "defaultTargetAddressField")
+        clearField(address)
+        typeText(address, "10.9.8.7")
+
+        const thw = findIn(dialog, "defaultThwIdPosField")
+        clearField(thw)
+        typeText(thw, "test_1")
+
+        mouseClick(findIn(dialog, "validateOnOpenSwitch"))
+        mouseClick(findIn(dialog, "autoFindSwitch"))
+
+        const directory = findIn(dialog, "downloadDirectoryField")
+        clearField(directory)
+        typeAnyText(directory, harness.downloadDirectory())
+
+        const port = findIn(dialog, "controlPortSpin")
+        port.forceActiveFocus()
+        keyClick(Qt.Key_Up)   // Qt Quick Test sends keys to the active window
+        return dialog
+    }
+
     function pointAtTheTarget() {
         appModel.targetAddress = "10.0.0.2"
         appModel.thwIdPos = "HNPFMS_L"
@@ -82,50 +155,102 @@ TestCase {
         appModel.logCapacity = 2000
         appModel.defaultTargetAddress = ""
         appModel.defaultThwIdPos = ""
+        appModel.downloadDirectory = harness.initialDownloadDirectory()
         pointAtTheTarget()
         wait(10)
     }
 
-    function test_01_preferences_write_through_to_the_model() {
-        const dialog = find("preferencesDialog")
-        dialog.open()
-        tryVerify(function() { return dialog.visible })
+    // Preferences is transactional: the fields edit a working copy, and only Save writes it to
+    // the model and the settings file.
+    function test_01_preferences_are_written_only_by_save() {
+        const before = modelPreferences()
+        compare(before.defaultTargetAddress, "")
+        compare(before.validateOnOpen, true)
+        compare(before.autoFindBeforeOperation, false)
+        compare(before.controlPort, 59)
+        compare(storedPreferences().controlPort, 59)
 
-        const address = findIn(dialog, "defaultTargetAddressField")
-        address.text = ""
-        typeText(address, "10.9.8.7")
+        const dialog = openPreferencesAndEdit()
+        // The fields show what was typed ...
+        compare(findIn(dialog, "defaultTargetAddressField").text, "10.9.8.7")
+        compare(findIn(dialog, "defaultThwIdPosField").text, "test_1")
+        compare(findIn(dialog, "controlPortSpin").value, 60)
+        // ... and the model, and the file behind it, still hold everything as it was.
+        wait(50)
+        compare(modelPreferences(), before)
+        compare(storedPreferences().defaultTargetAddress, "")
+        compare(storedPreferences().controlPort, 59)
+        compare(storedPreferences().validateOnOpen, true)
 
-        const thw = findIn(dialog, "defaultThwIdPosField")
-        thw.text = ""
-        typeText(thw, "test_1")
-
-        const validate = findIn(dialog, "validateOnOpenSwitch")
-        mouseClick(validate)
-
-        const autoFind = findIn(dialog, "autoFindSwitch")
-        mouseClick(autoFind)
-
-        const directory = findIn(dialog, "downloadDirectoryField")
-        directory.text = harness.downloadDirectory()
-        directory.textEdited()
-
-        const port = findIn(dialog, "controlPortSpin")
-        port.forceActiveFocus()
-        keyClick(Qt.Key_Up)   // Qt Quick Test sends keys to the active window
-
-        // Preferences is transactional: the fields edit a working copy and only Save writes it
-        // through, which is what Cancel relies on.
         const ok = dialog.standardButton(Dialog.Ok)
         verify(ok !== null)
         mouseClick(ok)
         tryVerify(function() { return !dialog.visible })
 
+        // Save wrote all of it, to the model and to the file.
         tryCompare(appModel, "defaultTargetAddress", "10.9.8.7")
         tryCompare(appModel, "defaultThwIdPos", "test_1")
         tryCompare(appModel, "validateOnOpen", false)
         tryCompare(appModel, "autoFindBeforeOperation", true)
         tryCompare(appModel, "downloadDirectory", harness.downloadDirectory())
         tryCompare(appModel, "controlPort", 60)
+
+        const stored = storedPreferences()
+        compare(stored.defaultTargetAddress, "10.9.8.7")
+        compare(stored.defaultThwIdPos, "test_1")
+        compare(stored.validateOnOpen, false)
+        compare(stored.autoFindBeforeOperation, true)
+        compare(stored.downloadDirectory, harness.downloadDirectory())
+        compare(stored.controlPort, 60)
+    }
+
+    function test_02a_cancel_leaves_every_stored_value_alone() {
+        const before = modelPreferences()
+        const dialog = openPreferencesAndEdit()
+
+        const cancel = dialog.standardButton(Dialog.Cancel)
+        verify(cancel !== null)
+        mouseClick(cancel)
+        tryVerify(function() { return !dialog.visible })
+
+        wait(50)
+        compare(modelPreferences(), before)
+        compare(storedPreferences(), before)
+
+        // Opening it again shows the stored values, not the abandoned edit.
+        dialog.open()
+        tryVerify(function() { return dialog.visible })
+        compare(findIn(dialog, "defaultTargetAddressField").text, "")
+        compare(findIn(dialog, "defaultThwIdPosField").text, "")
+        compare(findIn(dialog, "downloadDirectoryField").text, harness.initialDownloadDirectory())
+        compare(findIn(dialog, "controlPortSpin").value, 59)
+        compare(findIn(dialog, "validateOnOpenSwitch").checked, true)
+        compare(findIn(dialog, "autoFindSwitch").checked, false)
+        const cancelAgain = dialog.standardButton(Dialog.Cancel)
+        mouseClick(cancelAgain)
+        tryVerify(function() { return !dialog.visible })
+    }
+
+    function test_02b_escape_leaves_every_stored_value_alone() {
+        const before = modelPreferences()
+        const dialog = openPreferencesAndEdit()
+
+        keyClick(Qt.Key_Escape)   // Qt Quick Test sends keys to the active window
+        tryVerify(function() { return !dialog.visible })
+
+        wait(50)
+        compare(modelPreferences(), before)
+        compare(storedPreferences(), before)
+
+        dialog.open()
+        tryVerify(function() { return dialog.visible })
+        compare(findIn(dialog, "defaultThwIdPosField").text, "")
+        compare(findIn(dialog, "defaultTargetAddressField").text, "")
+        compare(findIn(dialog, "controlPortSpin").value, 59)
+        compare(findIn(dialog, "validateOnOpenSwitch").checked, true)
+        compare(findIn(dialog, "autoFindSwitch").checked, false)
+        keyClick(Qt.Key_Escape)
+        tryVerify(function() { return !dialog.visible })
     }
 
     function test_02_media_set_properties_show_what_was_read() {

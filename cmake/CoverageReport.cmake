@@ -1,22 +1,30 @@
 # ---------------------------------------------------------------------------
 # CoverageReport.cmake
 #
-# Runs gcovr over the coverage build and enforces the project's minimum coverage:
-# at least 90% of lines and 80% of branches of the portable code in src/. It is the
-# one place those figures and the gcovr switches live; the `coverage` target and
-# the coverage CI job both call it.
+# Runs gcovr over the coverage build and enforces the project's minimum coverage in two passes.
+# It is the one place those figures and the gcovr switches live; the `coverage` target and the
+# coverage CI job both call it.
+#
+#   1. The portable code in src/: at least 90% of lines and 80% of branches.
+#   2. The applications' window-free logic (src/app/core, src/mock_target/core and
+#      src/media_gen/core: the models, the engine's worker, the settings, the generator's and the
+#      mock target's cores), at a lower floor set a little under what the suite measures. It needs
+#      the Qt kit, so the coverage build has to be configured with the applications on; a build
+#      without them measures too little, and the pass fails instead of passing on nothing.
 #
 #   cmake -DREPO_ROOT=<source root> -DBUILD_DIR=<coverage build dir>
 #         [-DLINE_THRESHOLD=90] [-DBRANCH_THRESHOLD=80]
+#         [-DAPP_LINE_THRESHOLD=..] [-DAPP_BRANCH_THRESHOLD=..]
+#         [-DAPP_MIN_LINES=..] [-DAPP_MIN_BRANCHES=..]
 #         [-DGCOVR=<gcovr>] [-DGCOV=<gcov that matches the compiler>]
 #         -P cmake/CoverageReport.cmake
 #
-# The report is written to <build dir>/coverage: index.html with one page per
-# source file, summary.json and cobertura.xml. --exclude-throw-branches and
-# --exclude-unreachable-branches are the standard's exclusions (a throwing
-# branch and a line the compiler proves unreachable are not testable), and the
-# gcov parse-error switches tolerate a negative counter (gcc bug 68080) while
-# naming it once instead of aborting the report.
+# The first report is written to <build dir>/coverage: index.html with one page per source file,
+# summary.json and cobertura.xml; the second to <build dir>/coverage/apps in the same form.
+# --exclude-throw-branches and --exclude-unreachable-branches are the standard's exclusions (a
+# throwing branch and a line the compiler proves unreachable are not testable), and the gcov
+# parse-error switches tolerate a negative counter (gcc bug 68080) while naming it once instead of
+# aborting the report.
 # ---------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.28)
 
@@ -32,6 +40,20 @@ endif()
 if(NOT DEFINED BRANCH_THRESHOLD)
     set(BRANCH_THRESHOLD 80)
 endif()
+# The applications' logic: a floor a little under what the suite measures (see pass 2).
+if(NOT DEFINED APP_LINE_THRESHOLD)
+    set(APP_LINE_THRESHOLD 80)
+endif()
+if(NOT DEFINED APP_BRANCH_THRESHOLD)
+    set(APP_BRANCH_THRESHOLD 66)
+endif()
+# Less than this in pass 2 means the pass looked at (almost) nothing.
+if(NOT DEFINED APP_MIN_LINES)
+    set(APP_MIN_LINES 1000)
+endif()
+if(NOT DEFINED APP_MIN_BRANCHES)
+    set(APP_MIN_BRANCHES 300)
+endif()
 
 if(NOT GCOVR)
     find_program(GCOVR NAMES gcovr)
@@ -45,34 +67,36 @@ endif()
 set(_output "${BUILD_DIR}/coverage")
 file(MAKE_DIRECTORY "${_output}")
 
-# The portable code only: the two format libraries, the engine and its runner, the media tree, the
-# samples, the payload writer, and the platform interfaces. The OS fragments under src/platforms
-# are not measured (each host builds a different set, and the conformance suite is what holds them
-# to the contract), and neither are the Qt applications, which have their own tests and UI suite.
-set(_arguments
+# The switches both passes share. The gcov that matches the compiler is passed when there is one.
+set(_common
     --root "${REPO_ROOT}"
-    --filter "${REPO_ROOT}/src/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|media_tree|samples|write_payloads|platforms/(interfaces|detail))/.*"
     --object-directory "${BUILD_DIR}"
     --exclude-throw-branches
     --exclude-unreachable-branches
     --gcov-ignore-errors=no_working_dir_found
     --gcov-ignore-parse-errors
     negative_hits.warn_once_per_file
-    --fail-under-line "${LINE_THRESHOLD}"
-    --fail-under-branch "${BRANCH_THRESHOLD}"
     --print-summary
-    --html-details "${_output}/index.html"
-    --json-summary "${_output}/summary.json"
     --json-summary-pretty
-    --cobertura "${_output}/cobertura.xml"
     --cobertura-pretty)
-
 if(GCOV)
-    list(INSERT _arguments 6 --gcov-executable "${GCOV}")
+    list(APPEND _common --gcov-executable "${GCOV}")
 endif()
 
+# ---- Pass 1: the portable code ------------------------------------------------------------------
+# The two format libraries, the engine and its runner, the media tree, the samples, the payload
+# writer, and the platform interfaces. The OS fragments under src/platforms are not measured (each
+# host builds a different set, and the conformance suite is what holds them to the contract), and
+# neither are the Qt windows: QML cannot be measured, which is why this gate is the libraries' and
+# not a blended figure.
 execute_process(
-    COMMAND "${GCOVR}" ${_arguments}
+    COMMAND "${GCOVR}" ${_common}
+        --filter "${REPO_ROOT}/src/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|media_tree|samples|write_payloads|platforms/(interfaces|detail))/.*"
+        --fail-under-line "${LINE_THRESHOLD}"
+        --fail-under-branch "${BRANCH_THRESHOLD}"
+        --html-details "${_output}/index.html"
+        --json-summary "${_output}/summary.json"
+        --cobertura "${_output}/cobertura.xml"
     WORKING_DIRECTORY "${REPO_ROOT}"
     RESULT_VARIABLE _result)
 
@@ -97,3 +121,48 @@ endif()
 
 message(STATUS "Coverage meets the minimum: ${LINE_THRESHOLD}% lines and "
                "${BRANCH_THRESHOLD}% branches. Report: ${_output}/index.html")
+
+# ---- Pass 2: the applications' window-free logic -----------------------------------------------
+# The cores of the three applications hold the logic the windows are thin layers over. These
+# directories are plain C++ (with Qt types), and the application tests, the UI suite and the
+# generator and mock target tests drive them. Qt's generated files (moc_*.cpp, *_autogen) are not
+# source and are left out. The floor is a little under what the suite measures today; raise it when
+# the measure rises.
+set(_app_output "${_output}/apps")
+file(MAKE_DIRECTORY "${_app_output}")
+execute_process(
+    COMMAND "${GCOVR}" ${_common}
+        --filter "${REPO_ROOT}/src/(app|mock_target|media_gen)/core/.*"
+        --exclude ".*/moc_[^/]*"
+        --exclude ".*/mocs_compilation[^/]*"
+        --exclude ".*_autogen/.*"
+        --fail-under-line "${APP_LINE_THRESHOLD}"
+        --fail-under-branch "${APP_BRANCH_THRESHOLD}"
+        --html-details "${_app_output}/index.html"
+        --json-summary "${_app_output}/summary.json"
+        --cobertura "${_app_output}/cobertura.xml"
+    WORKING_DIRECTORY "${REPO_ROOT}"
+    RESULT_VARIABLE _app_result)
+
+if(NOT _app_result EQUAL 0)
+    message(FATAL_ERROR
+        "The applications' logic is below its minimum (${APP_LINE_THRESHOLD}% lines, "
+        "${APP_BRANCH_THRESHOLD}% branches), or gcovr failed (${_app_result}). Is the coverage "
+        "build configured with the applications (Qt found, ADL_BUILD_APP on)? "
+        "The report is in ${_app_output}.")
+endif()
+
+# As above: a pass that measured nothing passes any threshold.
+file(READ "${_app_output}/summary.json" _app_summary)
+string(JSON _app_line_total GET "${_app_summary}" line_total)
+string(JSON _app_branch_total GET "${_app_summary}" branch_total)
+if(_app_line_total LESS ${APP_MIN_LINES} OR _app_branch_total LESS ${APP_MIN_BRANCHES})
+    message(FATAL_ERROR
+        "The applications' pass measured only ${_app_line_total} lines and ${_app_branch_total} "
+        "branches (at least ${APP_MIN_LINES} and ${APP_MIN_BRANCHES} are expected): the coverage "
+        "build was configured without the applications, the tests did not run, or the filter "
+        "matched too little. The report is in ${_app_output}.")
+endif()
+
+message(STATUS "The applications' logic meets its minimum: ${APP_LINE_THRESHOLD}% lines and "
+               "${APP_BRANCH_THRESHOLD}% branches. Report: ${_app_output}/index.html")
