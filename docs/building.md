@@ -385,6 +385,18 @@ The product tells the platform layer about the file system and the priority of t
 `adl::platform::freertos::set_environment` (`src/platforms/freertos/environment.hpp`), once, before
 `make_host()`. The simulator's `main` is `tests/platform/freertos/sim/main.cpp`.
 
+## The documentation site
+
+The pages in `docs/` are built into a website with MkDocs. Install it from the hash-locked requirements and
+build strictly, which is what CI does ([Documentation site](ci.md#documentation-site)):
+
+```sh
+python -m pip install --require-hashes -r .github/requirements/docs.txt
+mkdocs serve                                   # open http://127.0.0.1:8000 while you edit
+mkdocs build --strict                          # writes ./site
+cmake --build build/<preset> --target docs     # the same, into build/<preset>/site
+```
+
 ## Formatting
 
 The repository's `.clang-format` is applied with one pinned release:

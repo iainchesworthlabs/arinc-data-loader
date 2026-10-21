@@ -159,6 +159,7 @@ produce them:
 | `macOS (AppleClang)` | `ci.yml` | yes | yes |
 | `Coverage (Linux, GCC)` | `ci.yml` | yes | yes |
 | `Scan dependency diff` | `dependency-review.yml` | yes | yes |
+| `Docs build (strict)` | `docs.yml` | yes | yes |
 
 ### Staging of `Scan dependency diff`
 

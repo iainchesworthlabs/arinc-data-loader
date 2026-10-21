@@ -9,6 +9,9 @@ and support files, their check values, and the media set they travel on. ARINC
 network. The two standards are not in the repository (see
 [docs/specs](docs/specs/README.md)); the code cites them by section.
 
+The documentation, with a [user's guide](docs/user-guide/index.md), is published at
+<https://iainchesworthlabs.github.io/arinc-data-loader/>. The same pages are in [`docs/`](docs/README.md).
+
 ## Status
 
 Version 0.1.0, a preliminary release. The libraries, the data loader and its two companion

@@ -31,6 +31,7 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 | `branch-name-check.yml` | gitflow branch naming; the source/target pairing | yes |
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
 | `changelog.yml` | a PR into `develop` adds a changelog fragment, or carries the `no-changelog` label | yes |
+| `docs.yml` | builds the documentation site strictly on every pull request and queue entry, and publishes it to GitHub Pages when `main` is pushed ([Documentation site](#documentation-site)) | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
 | `release.yml` | the Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on `release/*` branches and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | the nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
@@ -72,11 +73,62 @@ and an optional SonarQube scan that is skipped until it is configured. The
 reason for each, the local presets and the suppression rules are in
 [Nightly static and dynamic analysis](static-analysis.md).
 
+## Documentation site
+
+The pages in `docs/` are built into a static site with MkDocs and Material (`mkdocs.yml` at the root of the
+repository) and published to GitHub Pages at <https://iainchesworthlabs.github.io/arinc-data-loader/>. The
+Markdown stays the source and stays readable on GitHub; nothing in a page is written for the site.
+
+Locally:
+
+```sh
+python -m pip install --require-hashes -r .github/requirements/docs.txt
+mkdocs serve                                  # read it while editing
+mkdocs build --strict                         # what CI runs; writes ./site
+cmake --build <build dir> --target docs       # the same, into <build dir>/site
+```
+
+**What strict means here.** MkDocs' own strict mode fails on warnings, but it reports a link to a missing
+page, a link to a heading that is not there and a page missing from the navigation at a level that strict
+mode lets through. The `validation` block of `mkdocs.yml` raises all of them to warnings, so each fails the
+build. A page that is added to `docs/` must also be added to `nav` in `mkdocs.yml`.
+
+**Links out of `docs/`.** A page may link to the README, the changelog or a source file with a relative link
+(`../README.md`), which works on GitHub. The site has no such file, so `tools/docs/mkdocs_hooks.py` turns the
+link into one to the file on GitHub (`blob/main/...`, or `tree/main/...` for a folder). A link whose target
+does not exist is left alone, and the build fails on it.
+
+**What is not published.** The standards (`docs/specs/*.pdf`) are third-party documents ([Licensing](licensing.md));
+`exclude_docs` leaves them out and the build fails if a PDF is in the site.
+
+**In CI.** `.github/actions/docs-site` installs MkDocs from the hash-locked `.github/requirements/docs.txt`
+(`uv pip install --require-hashes --no-build`), builds strictly, and checks the result (the home page and the
+user's guide exist, no PDF, a minimum number of pages). Two workflows use it, so they cannot disagree:
+
+- `docs.yml`, job `Docs build (strict)`: on every pull request into `main` or `develop` and every merge queue
+  entry. It has no path filter, because a required check that does not run blocks the pull request. On a
+  push to `main` it packages the site and the job `Publish the site` deploys it with `actions/deploy-pages`.
+- `release.yml`, job `Docs (strict)`: the first job after *Prepare*, ahead of the three builds, so a release
+  with a broken page stops in a minute and not after an hour.
+
+**Publishing** uses Pages with the *GitHub Actions* source. A `gh-pages` branch is not an option here: the
+`branch-names` ruleset refuses a branch that is not a gitflow name. The deploying job runs in the
+`github-pages` environment (deployment branches: `main` only) and waits for the repository variable
+`PUBLISH_DOCS` to be `true`, so a repository that has not switched Pages on gets no failed run
+([Releasing](releasing.md#one-time-setup-done-once-per-repository)). Because a merge to `main` is a release
+(gitflow), the published site is the documentation of the latest release. There is one version of the site;
+old releases' pages are in the tag's tree on GitHub.
+
+**Not used.** Zensical, the successor to Material for MkDocs, reads the same `mkdocs.yml`. It was tried and
+does not run MkDocs hooks, so every link out of `docs/` fails its strict build. MkDocs is held below 2.0,
+which removes hooks and the theme API this configuration uses.
+
 ## The release workflow
 
 `release.yml` is described in [Releasing](releasing.md) and checked from the outside by
 [Verifying a release](verifying-releases.md). Where it sits among the others:
 
+- Its first job after *Prepare* is `Docs (strict)` (see above); the builds wait for it.
 - It is not a required check and carries no `merge_group` trigger. On a pull request it runs only
   when the change touches the packaging (`cmake/`, `packaging/`, `src/platforms/*/platform.cmake`,
   `tools/release/`, the Qt installer, the presets or the workflow itself), builds, tests, packages and
@@ -236,6 +288,7 @@ contexts equal the job display names above and in the two policy workflows.
 | `macOS (AppleClang)` | `ci.yml` | yes |
 | `Coverage (Linux, GCC)` | `ci.yml` | yes |
 | `Scan dependency diff` | `dependency-review.yml` | yes - added after it reported on a pull request on the public repository |
+| `Docs build (strict)` | `docs.yml` | yes - added with the documentation site |
 | `Changelog fragment` | `changelog.yml` | no - not yet required; see below |
 | `Analyze (C++)` | `codeql.yml` | no - informational |
 | `Zephyr (native_sim)` | `ci.yml` | no - new, not required until it has been green for a while |
@@ -337,6 +390,7 @@ Python packages come from PyPI.
 | The Zephyr SDK (the Arm toolchain and QEMU of the QEMU job) | File names and SHA-256 in `tools/ci/zephyr_sdk.sha256` (1.0.1, which is what Zephyr v4.4.2's `SDK_VERSION` names; `install_zephyr_sdk.sh` refuses a mismatch) | By hand, with Zephyr |
 | FreeRTOS-Kernel, lwIP, littlefs, Catch2 (the simulator program) | URL and SHA-256 in `tests/platform/freertos/CMakeLists.txt` (V11.2.0, 2.2.1, v2.11.3, v3.15.3) | By hand |
 | py7zr and its dependencies (unpack Qt) | `==` with every wheel's SHA-256 in `.github/requirements/qt.txt`, compiled from `qt.in`, installed with `--require-hashes --no-build` | Dependabot (`pip`), weekly |
+| MkDocs, Material and their dependencies (build the documentation site) | `==` with every wheel's SHA-256 in `.github/requirements/docs.txt`, compiled from `docs.in` with a one-week cooldown (`--exclude-newer`), installed with `--require-hashes --no-build` | Dependabot (`pip`), weekly |
 | The Qt archives | The SHA-256 of each, in `.github/requirements/qt-archives.sha256` | By hand: `install_qt.py lock` |
 | Qt | `version` input of the `install-qt` step in `ci.yml` and `release.yml` (6.12.0) | By hand, with the labs' shared toolchain |
 | CMake and Ninja (`lukka/get-cmake`) | `cmakeVersion` / `ninjaVersion`, exact, and one the pinned action's catalog lists | By hand, with the action |

@@ -59,6 +59,7 @@ include(Sanitizers)
 include(Coverage)
 include(Tracy)
 include(AdlUi)
+include(Docs)
 
 # ---------------------------------------------------------------------------
 # Options

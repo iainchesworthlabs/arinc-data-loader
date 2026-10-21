@@ -1,7 +1,8 @@
 # Documentation
 
-Everything here is in the repository, next to the code it describes. The project overview is the
-[README](../README.md); what changed is the [changelog](../CHANGELOG.md).
+Everything here is in the repository, next to the code it describes, and is published as a website at
+<https://iainchesworthlabs.github.io/arinc-data-loader/> ([how](ci.md#documentation-site)). The project overview
+is the [README](../README.md); what changed is the [changelog](../CHANGELOG.md).
 
 ## For people who use the programs
 

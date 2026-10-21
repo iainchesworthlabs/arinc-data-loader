@@ -135,6 +135,10 @@ what to do instead of an `#ifdef`, and how to add a platform.
 - If you change what a window shows or does, change [the user's guide](docs/user-guide/index.md)
   with it, and make the pictures again ([docs/screenshots.md](docs/screenshots.md)). The
   `docs.links` test fails on a link or a picture that is not there.
+- The pages in `docs/` are also built into a website, strictly: a link to a page or a heading that is not
+  there fails the `Docs build (strict)` check. A new page goes into `nav` in `mkdocs.yml`. Build it before
+  you push with `mkdocs build --strict` or `cmake --build <dir> --target docs`
+  ([docs/ci.md](docs/ci.md#documentation-site)).
 - Do not commit a load, media set or capture taken from real equipment, or
   build output. The `.gitignore` already keeps build output out; do not work
   around it. Nor the ARINC standards: they are kept in `docs/specs/` for
