@@ -88,7 +88,8 @@ The branch model is gitflow ([Branch protection](branch-protection.md)): `releas
    `vcpkg.json`. (The applications take theirs from CMake.) Nothing else carries it. In prose,
    `SECURITY.md`'s table of supported versions and the `find_package(adl 0.1 ...)` example above name
    the minor version: change them when the minor version changes.
-3. **Changelog.** Write `changelog.d/summary.md` if the release needs an introduction, then
+3. **Changelog.** If the release needs an introduction, write it as a file called `summary.md` in the `changelog.d` folder
+   (the assembly takes it into the section and deletes it, so it is not there between releases), then
 
    ```sh
    pwsh ./tools/release/Changelog.ps1 -Mode Assemble -Version 0.1.0      # -WhatIf to look first
