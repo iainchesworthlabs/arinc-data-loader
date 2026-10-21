@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# pre-push hook: refuse to push a branch whose name is not a gitflow name.
+#
+# Allowed branch names:  main, develop, and
+#   feature/<name>  bugfix/<name>  release/<name>  hotfix/<name>  support/<name>
+#
+# Anything else - including a branch some tool named for itself - is refused
+# here, before it reaches the remote, and by the branch-names ruleset
+# (.github/rulesets/branch-names.json) and "Validate gitflow branch name" once
+# those apply (docs/branch-protection.md).
+#
+# Tags and branch deletions are not checked: deleting is how a badly named
+# branch is removed from the remote.
+#
+# Install once per clone:
+#   git config core.hooksPath tools/hooks
+
+# git passes the remote's name and URL as arguments and, on stdin, one line per
+# ref being pushed: <local ref> <local sha> <remote ref> <remote sha>.
+bad=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    case "$remote_ref" in
+        refs/heads/*) ;;
+        *) continue ;;
+    esac
+
+    # A push that deletes the remote branch has an all-zero local sha.
+    case "$local_sha" in
+        *[!0]*) ;;
+        *) continue ;;
+    esac
+
+    branch=${remote_ref#refs/heads/}
+    case "$branch" in
+        main|develop) ;;
+        feature/?*|bugfix/?*|release/?*|hotfix/?*|support/?*) ;;
+        *)
+            echo "pre-push: refusing to push '$branch': not a gitflow branch name." >&2
+            bad=1
+            ;;
+    esac
+done
+
+if [ "$bad" -ne 0 ]; then
+    echo "" >&2
+    echo "pre-push: branch names must be 'main', 'develop', or" >&2
+    echo "          feature/<name>, bugfix/<name>, release/<name>, hotfix/<name>, support/<name>." >&2
+    echo "          Rename the branch and push again:  git branch -m <new-name>" >&2
+    echo "          (or push it under a gitflow name:  git push <remote> <local>:feature/<name>)." >&2
+    exit 1
+fi
+
+exit 0

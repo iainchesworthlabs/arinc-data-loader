@@ -1,0 +1,4 @@
+# Pinned coverage tooling for the Coverage (Linux, GCC) CI job and for local use:
+#   pip install -r .github/requirements/coverage.txt
+# Dependabot's pip ecosystem for /.github/requirements keeps this current.
+gcovr==8.6

@@ -1,0 +1,72 @@
+---
+# Static analysis for the shipped code (src/), run nightly by
+# static-analysis.yml and by hand with the linux-gcc-tidy preset
+# (docs/static-analysis.md). The compiler warning set it complements is in
+# cmake/CompilerWarnings.cmake; those warnings are errors in every build, these
+# are the checks that need a whole program.
+#
+# The families are the ones that find defects: the Clang Static Analyzer, bug,
+# cert, concurrency, performance and portability. Style is not here - it is
+# .clang-format's and the compiler's - and the tests are not tidied: Catch2's
+# REQUIRE/CHECK macros expand to code these checks cannot see through
+# (tests/CMakeLists.txt clears the launcher). The checks switched off below are
+# off for a reason, not for a count:
+#
+#   bugprone-easily-swappable-parameters
+#       Two adjacent parameters of the same type are everywhere in a protocol
+#       codec (address and port, offset and length); the names are the check's
+#       only defence and they are already the defence.
+#   bugprone-exception-escape
+#       Every interface method is noexcept by contract, including the ones
+#       that allocate: an allocation failure terminates the operation rather
+#       than unwinding through it. The check cannot see that contract.
+#   bugprone-multi-level-implicit-pointer-conversion
+#       A block pool keeps its free-list link in the block itself, so memcpy
+#       takes the address of a std::byte*; the conversion is the pool's
+#       representation, and the check reports it through every translation unit
+#       that includes the interface.
+#   bugprone-signed-bitwise
+#       Shifts and masks in the wire, CRC and hash code mix unsigned values with
+#       the int literals of their shift counts; the signedness that matters is
+#       caught by -Wsign-conversion.
+#   clang-analyzer-optin.core.EnumCastOutOfRange
+#       The check assumes an enumerator's list is all the values the type can
+#       hold. StatusCode has a fixed std::uint16_t underlying type and ARINC
+#       615A-3 6.4.10 carries any 16-bit code in an ABORT message.
+#   performance-enum-size
+#       The wire enums name their underlying type for the field they are
+#       written into, not for the smallest type that holds today's enumerators.
+#   performance-no-int-to-ptr
+#       A memory region's address is a pointer-sized integer until the pool
+#       hands the storage out; that cast is the pool's interface.
+#   portability-avoid-pragma-once
+#       #pragma once is the project's include guard; the check prefers named
+#       guards, which this tree does not use.
+Checks: >
+  clang-analyzer-*,
+  bugprone-*,
+  cert-*,
+  concurrency-*,
+  performance-*,
+  portability-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-multi-level-implicit-pointer-conversion,
+  -bugprone-signed-bitwise,
+  -clang-analyzer-optin.core.EnumCastOutOfRange,
+  -performance-enum-size,
+  -performance-no-int-to-ptr,
+  -portability-avoid-pragma-once
+
+WarningsAsErrors: ''
+HeaderFilterRegex: 'src/.*'
+# A toolchain's own headers (the MSVC STL under a local Windows run) are not
+# this project's code, and a local build does not mark them as system headers.
+ExcludeHeaderFilterRegex: 'Program Files'
+FormatStyle: file
+
+CheckOptions:
+  # Ignoring an error that the interface reports is sometimes the contract:
+  # a cleanup after a failure cannot do better than try, and a best-effort send
+  # is one. The code casts those to void to say so.
+  bugprone-unused-return-value.AllowCastToVoid: true

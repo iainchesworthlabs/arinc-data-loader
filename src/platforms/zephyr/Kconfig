@@ -1,0 +1,76 @@
+# ARINC Data Loader platform layer for Zephyr (src/platforms/zephyr). Read by Zephyr
+# through zephyr/module.yml. docs/building.md says what an application sets besides this.
+
+menuconfig ADL_PLATFORM
+	bool "ARINC Data Loader platform layer"
+	depends on CPP && STD_CPP_VERSION >= 202302
+	depends on NETWORKING && NET_IPV4 && NET_UDP && NET_SOCKETS
+	depends on FILE_SYSTEM
+	select REQUIRES_FULL_LIBCPP
+	select NET_CONTEXT_REUSEADDR
+	select NET_CONTEXT_REUSEPORT
+	select NET_CONTEXT_RCVBUF
+	select NET_CONTEXT_SNDBUF
+	select THREAD_STACK_INFO
+	select DYNAMIC_THREAD
+	help
+	  Builds the clock, memory, file, thread, UDP and message queue services of
+	  the data loader on Zephyr's native APIs (k_*, fs_*, zsock_*). The loader is
+	  C++23, so the application must select a C++23 standard (CONFIG_CPP=y,
+	  CONFIG_STD_CPP23=y) and a toolchain with a C++23 standard library, and enable
+	  the network stack (IPv4, UDP, sockets) and a file system it mounts itself:
+	  they are dependencies and are not selected, because selecting NETWORKING
+	  from here makes a dependency loop through C++ and OpenThread.
+
+if ADL_PLATFORM
+
+config ADL_HEAP_BYTES
+	int "Heap for the loader's buffers (bytes)"
+	default 524288
+	range 4096 1073741824
+	help
+	  The memory provider's heap: where the engine's packet buffers and the
+	  media set in memory come from. A TFTP block can be 65464 bytes, and a
+	  transfer in flight needs a few of them. A static array, so it is in the
+	  image's .bss and is not taken from the system heap.
+
+config ADL_THREAD_STACK_BYTES
+	int "Stack of a thread spawned without a size (bytes)"
+	default 4096
+	range 1024 1048576
+	help
+	  The stack given to a thread whose spec asks for none. Stacks come from
+	  Zephyr's dynamic thread allocation unless the caller supplies its own.
+
+config ADL_FS_COHERENT_HANDLES
+	bool "Readers see what writers have written, at once"
+	default y
+	help
+	  The platform interface promises that a reader of a file sees what a
+	  writer has written by the time write() returned, through a handle
+	  opened before or after. A file system that caches (littlefs) gives
+	  that only to the handle that wrote, so this costs a sync after each
+	  write and a look at the file's size before each read, and a reader
+	  reopens a file that has grown. Turn it off to run at the file
+	  system's speed and with its guarantee: another handle sees the data
+	  after sync() or close(), and a reader opened early may not see
+	  later appends. The loader does not read a file while it is written.
+
+config ADL_WARNINGS_AS_ERRORS
+	bool "Treat warnings in the loader's sources as errors"
+	help
+	  The loader is built with -Wall -Wextra -Wpedantic -Werror and more on the compilers CI
+	  pins. Another compiler, or another optimisation level, can warn about code that is
+	  correct (GCC 14 at -O2 reports a possible null dereference in an inlined
+	  std::vector allocation), and a warning that stops the build is the wrong thing to hand an
+	  integrator. Off, the warnings are still printed. CI's configurations turn this on.
+
+config ADL_LIBRARIES
+	bool "ARINC 665 model and ARINC 615A engine libraries"
+	default y
+	help
+	  Builds the platform-free libraries of the loader (the ARINC 665 model, the
+	  615A codec and engine, and the runner that drives the engine over the
+	  platform layer) and links them into the image.
+
+endif # ADL_PLATFORM

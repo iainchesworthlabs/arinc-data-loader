@@ -1,0 +1,98 @@
+name: Install Qt
+description: >-
+  Installs the prebuilt Qt kit (not from vcpkg) with .github/actions/install-qt/install_qt.py, which
+  checks every archive against the SHA-256 pinned in .github/requirements/qt-archives.sha256 before it
+  unpacks it, caches the kit, and points QT_ROOT_DIR at it, which is where cmake/FindQt6.cmake looks
+  first. The only Python package it needs (py7zr) is installed from the hash-locked
+  .github/requirements/qt.txt. The job must have checked the repository out.
+
+inputs:
+  version:
+    description: Qt version. It needs pins in qt-archives.sha256.
+    required: true
+  host:
+    description: The kit's host (windows, linux or mac).
+    required: true
+  arch:
+    description: >-
+      The kit's architecture name (win64_msvc2022_64, linux_gcc_64 or clang_64). The host decides which
+      kit is installed; this names it in the cache key and in the log.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # An exact key: the kit changes only when the version, the architecture, the pinned archives or
+    # the installer does.
+    - name: Restore the Qt kit
+      id: cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ runner.temp }}/qt
+        key: qt-${{ inputs.version }}-${{ inputs.arch }}-${{ hashFiles('.github/requirements/qt.txt', '.github/requirements/qt-archives.sha256', '.github/actions/install-qt/install_qt.py') }}
+
+    - name: Install uv
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      with:
+        enable-cache: false
+
+    # download.qt.io is a mirror network and now and then refuses one request, so a failed install is
+    # tried again twice before the job is failed. A hash that does not match is not retried: it is
+    # the point of the pins, and install_qt.py exits with the reason.
+    #   --require-hashes   py7zr and what it needs are installed only if each wheel is the one locked
+    #   --no-build         from wheels only: a source distribution would run its own build script
+    - name: Install Qt (install_qt.py, archives checked against the pins)
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        QT_VERSION: ${{ inputs.version }}
+        QT_HOST: ${{ inputs.host }}
+      run: |
+        uv venv --python 3.13 "$RUNNER_TEMP/qt-venv"
+        if [ "$RUNNER_OS" = Windows ]; then
+          py="$RUNNER_TEMP/qt-venv/Scripts/python.exe"
+        else
+          py="$RUNNER_TEMP/qt-venv/bin/python"
+        fi
+        uv pip install --python "$py" --require-hashes --no-build --requirement .github/requirements/qt.txt
+        mkdir -p "$RUNNER_TEMP/qt"
+        for attempt in 1 2 3; do
+          status=0
+          "$py" -I "$GITHUB_ACTION_PATH/install_qt.py" install "$QT_VERSION" "$QT_HOST" "$RUNNER_TEMP/qt"             --pins .github/requirements/qt-archives.sha256 || status=$?
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          echo "installing Qt failed (attempt $attempt of 3)"
+          sleep $((attempt * 15))
+        done
+        exit 1
+
+    # What a prebuilt Qt needs from the system. Configuring against it asks for OpenGL's headers and
+    # libGL.so (Qt Gui and Qt Quick depend on them), and the xkbcommon, EGL and fontconfig
+    # development packages bring the libraries it is linked to. A hosted image has some already.
+    - name: Install what Qt needs from the system (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes --no-install-recommends           libgl-dev libegl-dev libxkbcommon-dev libfontconfig-dev libdbus-1-3 libglib2.0-0t64
+
+    # The kit's own directory is named after its architecture (gcc_64, msvc2022_64, macos), so it
+    # is found, not spelled out. The value is a path under RUNNER_TEMP, not anything a pull
+    # request can set.
+    - name: Point QT_ROOT_DIR at the kit
+      shell: bash
+      env:
+        QT_VERSION: ${{ inputs.version }}
+      run: | # zizmor: ignore[github-env] RUNNER_TEMP-derived, not attacker-influenced - see above
+        config="$(find "$RUNNER_TEMP/qt/$QT_VERSION" -path '*/lib/cmake/Qt6/Qt6Config.cmake' | head -n 1)"
+        if [ -z "$config" ]; then
+          echo "::error::no Qt $QT_VERSION kit under $RUNNER_TEMP/qt"
+          exit 1
+        fi
+        root="${config%/lib/cmake/Qt6/Qt6Config.cmake}"
+        # A Windows path with forward slashes, which CMake reads without a second look.
+        if command -v cygpath >/dev/null 2>&1; then root="$(cygpath -m "$root")"; fi
+        echo "QT_ROOT_DIR=$root" >> "$GITHUB_ENV"
+        echo "Qt kit: $root"

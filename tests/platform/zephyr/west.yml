@@ -1,0 +1,19 @@
+# The Zephyr workspace the native_sim test program is built in (tests/platform/zephyr,
+# docs/building.md). `west init -l --mf tests/platform/zephyr/west.yml .` in the repository
+# makes the directory above it the workspace; `west update` fetches Zephyr at the version the
+# program is verified with, and only the modules it needs.
+manifest:
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: v4.4.2
+      import:
+        name-allowlist:
+          - cmsis      # Cortex-A (the qemu_cortex_a9 suite run); cmsis_6 is Cortex-M
+          - cmsis_6
+          - littlefs
+  self:
+    path: arinc-data-loader

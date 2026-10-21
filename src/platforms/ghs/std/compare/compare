@@ -1,0 +1,184 @@
+// std::strong_ordering / std::weak_ordering / std::partial_ordering shim for
+// GHS builds whose standard library predates <compare> (C++20). The only use
+// in this code base is the defaulted operator<=> on adl::platform::Instant
+// (time.hpp); the compiler needs all three category types named to deduce the
+// common comparison category even when the answer is strong_ordering, so all
+// three exist here, strong_ordering complete and the other two enough for the
+// synthesis. Nothing else in the interfaces uses the categories' members; a
+// use that appears will fail to compile against the shim, which is the point.
+
+#pragma once
+
+namespace std {
+
+class strong_ordering {
+public:
+    static const strong_ordering less;
+    static const strong_ordering equal;
+    static const strong_ordering equivalent;
+    static const strong_ordering greater;
+
+    constexpr bool operator==(strong_ordering other) const noexcept {
+        return value_ == other.value_;
+    }
+    constexpr bool operator!=(strong_ordering other) const noexcept {
+        return value_ != other.value_;
+    }
+    constexpr bool operator<(strong_ordering other) const noexcept {
+        return value_ < other.value_;
+    }
+    constexpr bool operator<=(strong_ordering other) const noexcept {
+        return value_ <= other.value_;
+    }
+    constexpr bool operator>(strong_ordering other) const noexcept {
+        return value_ > other.value_;
+    }
+    constexpr bool operator>=(strong_ordering other) const noexcept {
+        return value_ >= other.value_;
+    }
+
+    // The comparisons the compiler's synthesized two-way operators use:
+    // (a <=> b) < 0 and friends, always against a literal zero. The standard
+    // spells these with a dedicated unspecified type; an int that must be 0
+    // is the shim's honest equivalent.
+    friend constexpr bool operator==(strong_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ == 0;
+    }
+    friend constexpr bool operator!=(strong_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ != 0;
+    }
+    friend constexpr bool operator<(strong_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ < 0;
+    }
+    friend constexpr bool operator<=(strong_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ <= 0;
+    }
+    friend constexpr bool operator>(strong_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ > 0;
+    }
+    friend constexpr bool operator>=(strong_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ >= 0;
+    }
+
+private:
+    constexpr explicit strong_ordering(int value) noexcept : value_(value) {}
+    int value_;
+};
+
+inline constexpr strong_ordering strong_ordering::less{-1};
+inline constexpr strong_ordering strong_ordering::equal{0};
+inline constexpr strong_ordering strong_ordering::equivalent{0};
+inline constexpr strong_ordering strong_ordering::greater{1};
+
+class weak_ordering {
+public:
+    static const weak_ordering less;
+    static const weak_ordering equivalent;
+    static const weak_ordering greater;
+
+    constexpr bool operator==(weak_ordering other) const noexcept {
+        return value_ == other.value_;
+    }
+    constexpr bool operator!=(weak_ordering other) const noexcept {
+        return value_ != other.value_;
+    }
+    constexpr bool operator<(weak_ordering other) const noexcept {
+        return value_ < other.value_;
+    }
+    constexpr bool operator<=(weak_ordering other) const noexcept {
+        return value_ <= other.value_;
+    }
+    constexpr bool operator>(weak_ordering other) const noexcept {
+        return value_ > other.value_;
+    }
+    constexpr bool operator>=(weak_ordering other) const noexcept {
+        return value_ >= other.value_;
+    }
+
+    friend constexpr bool operator==(weak_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ == 0;
+    }
+    friend constexpr bool operator!=(weak_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ != 0;
+    }
+    friend constexpr bool operator<(weak_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ < 0;
+    }
+    friend constexpr bool operator<=(weak_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ <= 0;
+    }
+    friend constexpr bool operator>(weak_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ > 0;
+    }
+    friend constexpr bool operator>=(weak_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ >= 0;
+    }
+
+private:
+    constexpr explicit weak_ordering(int value) noexcept : value_(value) {}
+    int value_;
+};
+
+inline constexpr weak_ordering weak_ordering::less{-1};
+inline constexpr weak_ordering weak_ordering::equivalent{0};
+inline constexpr weak_ordering weak_ordering::greater{1};
+
+class partial_ordering {
+public:
+    static const partial_ordering less;
+    static const partial_ordering equivalent;
+    static const partial_ordering greater;
+    static const partial_ordering unordered;
+
+    // Unordered compares equal to itself and orders below the rest, as the
+    // standard's tables have it.
+    constexpr bool operator==(partial_ordering other) const noexcept {
+        return value_ == other.value_;
+    }
+    constexpr bool operator!=(partial_ordering other) const noexcept {
+        return value_ != other.value_;
+    }
+    constexpr bool operator<(partial_ordering other) const noexcept {
+        return value_ != unordered_value_ && value_ < other.value_;
+    }
+    constexpr bool operator<=(partial_ordering other) const noexcept {
+        return value_ != unordered_value_ && value_ <= other.value_;
+    }
+    constexpr bool operator>(partial_ordering other) const noexcept {
+        return value_ != unordered_value_ && value_ > other.value_;
+    }
+    constexpr bool operator>=(partial_ordering other) const noexcept {
+        return value_ != unordered_value_ && value_ >= other.value_;
+    }
+
+    friend constexpr bool operator==(partial_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ == 0;
+    }
+    friend constexpr bool operator!=(partial_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ != 0;
+    }
+    friend constexpr bool operator<(partial_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ != unordered_value_ && v.value_ < 0;
+    }
+    friend constexpr bool operator<=(partial_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ != unordered_value_ && v.value_ <= 0;
+    }
+    friend constexpr bool operator>(partial_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ != unordered_value_ && v.value_ > 0;
+    }
+    friend constexpr bool operator>=(partial_ordering v, int zero) noexcept {
+        return zero == 0 && v.value_ != unordered_value_ && v.value_ >= 0;
+    }
+
+private:
+    constexpr explicit partial_ordering(int value) noexcept : value_(value) {}
+    static constexpr int unordered_value_ = 0x7fffffff;
+    int value_;
+};
+
+inline constexpr partial_ordering partial_ordering::less{-1};
+inline constexpr partial_ordering partial_ordering::equivalent{0};
+inline constexpr partial_ordering partial_ordering::greater{1};
+inline constexpr partial_ordering partial_ordering::unordered{unordered_value_};
+
+}  // namespace std

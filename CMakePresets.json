@@ -1,0 +1,323 @@
+{
+  "version": 8,
+  "cmakeMinimumRequired": {
+    "major": 4,
+    "minor": 0,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-msvc-base",
+      "hidden": true,
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    },
+    {
+      "name": "windows-msvc-debug",
+      "displayName": "Windows (MSVC, Debug)",
+      "inherits": [
+        "windows-msvc-base",
+        "debug"
+      ]
+    },
+    {
+      "name": "windows-msvc-release",
+      "displayName": "Windows (MSVC, Release)",
+      "inherits": [
+        "windows-msvc-base",
+        "release"
+      ]
+    },
+    {
+      "name": "windows-msvc-analyze",
+      "displayName": "Windows (MSVC, Code Analysis)",
+      "description": "Debug build with MSVC /analyze; static-analysis.yml builds it nightly",
+      "inherits": [
+        "windows-msvc-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_ENABLE_MSVC_ANALYSIS": "ON",
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ADL_BUILD_APP": "ON",
+        "ADL_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "linux-gcc-base",
+      "hidden": true,
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
+      }
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "Linux (GCC, Debug)",
+      "inherits": [
+        "linux-gcc-base",
+        "debug"
+      ]
+    },
+    {
+      "name": "linux-gcc-release",
+      "displayName": "Linux (GCC, Release)",
+      "inherits": [
+        "linux-gcc-base",
+        "release"
+      ]
+    },
+    {
+      "name": "linux-gcc-coverage",
+      "displayName": "Linux (GCC, Coverage)",
+      "inherits": [
+        "linux-gcc-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_ENABLE_COVERAGE": "ON",
+        "ADL_ENABLE_SANITIZERS": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-tidy",
+      "displayName": "Linux (GCC, clang-tidy)",
+      "description": "clang-tidy runs as the compiler launcher; static-analysis.yml builds it nightly",
+      "inherits": [
+        "linux-gcc-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_ENABLE_CLANG_TIDY": "ON",
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ADL_BUILD_APP": "OFF",
+        "ADL_BUILD_TESTS": "OFF",
+        "CMAKE_CXX_SCAN_FOR_MODULES": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-sonar",
+      "displayName": "Linux (GCC, Sonar compile commands)",
+      "description": "Configure only: writes the compile_commands.json the SonarQube job scans",
+      "inherits": [
+        "linux-gcc-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ADL_BUILD_APP": "OFF",
+        "ADL_BUILD_TESTS": "OFF",
+        "CMAKE_CXX_SCAN_FOR_MODULES": "OFF"
+      }
+    },
+    {
+      "name": "linux-clang-base",
+      "hidden": true,
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
+      }
+    },
+    {
+      "name": "linux-clang-debug",
+      "displayName": "Linux (Clang, Debug)",
+      "description": "Clang's ASan and UBSan over the libraries and tests; static-analysis.yml builds it nightly",
+      "inherits": [
+        "linux-clang-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_BUILD_APP": "OFF"
+      }
+    },
+    {
+      "name": "macos-clang-base",
+      "hidden": true,
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "arm64-osx",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "14.4"
+      }
+    },
+    {
+      "name": "macos-clang-debug",
+      "displayName": "macOS (Clang, Debug)",
+      "inherits": [
+        "macos-clang-base",
+        "debug"
+      ]
+    },
+    {
+      "name": "macos-clang-release",
+      "displayName": "macOS (Clang, Release)",
+      "inherits": [
+        "macos-clang-base",
+        "release"
+      ]
+    },
+    {
+      "name": "ghs-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADL_BUILD_TESTS": "OFF",
+        "ADL_BUILD_APP": "OFF",
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ADL_ACCEPT_UNBUILT_PLATFORM": "ON"
+      }
+    },
+    {
+      "name": "ghs508-ghs-base",
+      "hidden": true,
+      "inherits": [
+        "ghs-base"
+      ],
+      "toolchainFile": "${sourceDir}/cmake/toolchains/ghs-integrity508.cmake",
+      "cacheVariables": {
+        "ADL_TARGET_PLATFORM": "ghs508"
+      }
+    },
+    {
+      "name": "ghs508-ghs-debug",
+      "displayName": "INTEGRITY 5.0.8 (GHS, Debug)",
+      "inherits": [
+        "ghs508-ghs-base",
+        "debug"
+      ]
+    },
+    {
+      "name": "ghs508-ghs-release",
+      "displayName": "INTEGRITY 5.0.8 (GHS, Release)",
+      "inherits": [
+        "ghs508-ghs-base",
+        "release"
+      ]
+    },
+    {
+      "name": "ghs178b-ghs-base",
+      "hidden": true,
+      "inherits": [
+        "ghs-base"
+      ],
+      "toolchainFile": "${sourceDir}/cmake/toolchains/ghs-integrity178b.cmake",
+      "cacheVariables": {
+        "ADL_TARGET_PLATFORM": "ghs178b"
+      }
+    },
+    {
+      "name": "ghs178b-ghs-debug",
+      "displayName": "INTEGRITY-178B (GHS, Debug)",
+      "inherits": [
+        "ghs178b-ghs-base",
+        "debug"
+      ]
+    },
+    {
+      "name": "ghs178b-ghs-release",
+      "displayName": "INTEGRITY-178B (GHS, Release)",
+      "inherits": [
+        "ghs178b-ghs-base",
+        "release"
+      ]
+    }
+  ],
+  "buildPresets": [
+    { "name": "windows-msvc-debug", "configurePreset": "windows-msvc-debug" },
+    { "name": "windows-msvc-release", "configurePreset": "windows-msvc-release" },
+    { "name": "windows-msvc-analyze", "configurePreset": "windows-msvc-analyze" },
+    { "name": "linux-gcc-debug", "configurePreset": "linux-gcc-debug" },
+    { "name": "linux-gcc-release", "configurePreset": "linux-gcc-release" },
+    { "name": "linux-gcc-coverage", "configurePreset": "linux-gcc-coverage" },
+    { "name": "linux-gcc-tidy", "configurePreset": "linux-gcc-tidy" },
+    { "name": "linux-clang-debug", "configurePreset": "linux-clang-debug" },
+    { "name": "macos-clang-debug", "configurePreset": "macos-clang-debug" },
+    { "name": "macos-clang-release", "configurePreset": "macos-clang-release" },
+    { "name": "ghs508-ghs-debug", "configurePreset": "ghs508-ghs-debug" },
+    { "name": "ghs508-ghs-release", "configurePreset": "ghs508-ghs-release" },
+    { "name": "ghs178b-ghs-debug", "configurePreset": "ghs178b-ghs-debug" },
+    { "name": "ghs178b-ghs-release", "configurePreset": "ghs178b-ghs-release" }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      },
+      "environment": {
+        "TEMP": "${sourceDir}/build/${presetName}",
+        "TMP": "${sourceDir}/build/${presetName}",
+        "TMPDIR": "${sourceDir}/build/${presetName}",
+        "LSAN_OPTIONS": "suppressions=${sourceDir}/tests/lsan.supp:print_suppressions=0"
+      }
+    },
+    { "name": "windows-msvc-debug", "configurePreset": "windows-msvc-debug", "inherits": ["base"] },
+    { "name": "windows-msvc-release", "configurePreset": "windows-msvc-release", "inherits": ["base"] },
+    { "name": "linux-gcc-debug", "configurePreset": "linux-gcc-debug", "inherits": ["base"] },
+    { "name": "linux-gcc-release", "configurePreset": "linux-gcc-release", "inherits": ["base"] },
+    { "name": "linux-gcc-coverage", "configurePreset": "linux-gcc-coverage", "inherits": ["base"] },
+    { "name": "linux-clang-debug", "configurePreset": "linux-clang-debug", "inherits": ["base"] },
+    { "name": "macos-clang-debug", "configurePreset": "macos-clang-debug", "inherits": ["base"] },
+    { "name": "macos-clang-release", "configurePreset": "macos-clang-release", "inherits": ["base"] }
+  ]
+}

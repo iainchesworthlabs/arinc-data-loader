@@ -1,0 +1,5 @@
+# Pinned lint tooling for the clang-format CI job and for local use:
+#   pip install -r .github/requirements/lint.txt
+# Dependabot's pip ecosystem for /.github/requirements keeps this current.
+# Same release as the sibling projects, so one clang-format formats them all.
+clang-format==23.1.3

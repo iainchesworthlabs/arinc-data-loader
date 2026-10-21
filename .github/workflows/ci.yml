@@ -1,0 +1,677 @@
+name: CI
+
+# What each job proves, and which of them are required status checks:
+# docs/ci.md and docs/branch-protection.md. The job DISPLAY NAMES below are the
+# required-check contexts in .github/rulesets/*.json - rename one only together
+# with that file.
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  # develop has a merge queue (.github/rulesets/merge-queue-develop.json) and
+  # this workflow produces required checks, so it has to report on the queue's
+  # temporary gh-readonly-queue/... ref as well: GitHub only runs workflows
+  # that opt in there, and a required check that never reports holds the entry
+  # until its timeout.
+  merge_group:
+    branches: [develop]
+  # Manual runs can name the legs they want, so a fix to one platform does not
+  # pay for all of them (macOS minutes are billed at a multiple):
+  #   gh workflow run ci.yml --ref <branch> -f legs=macos
+  # Jobs of a dispatched run are renamed "dispatch - <name>", so a run that
+  # skips legs can never report a "skipped" (which counts as a pass) under a
+  # required check's name on the branch's head commit.
+  workflow_dispatch:
+    inputs:
+      legs:
+        description: >-
+          Comma-separated legs to run, no spaces: clang-format,
+          platform-isolation, windows, linux, macos, coverage, zephyr,
+          freertos - or "all".
+        type: string
+        default: all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.legs }}
+  # A push to develop or main runs to the end: it is the run that stores the
+  # vcpkg cache that pull requests restore from. Everything else is superseded
+  # by the next push.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main' }}
+
+# No job gets more than it names below.
+permissions: {}
+
+env:
+  VCPKG_DISABLE_METRICS: "1"
+
+jobs:
+  # The repository's .clang-format, one pinned release (the wheel pinned in
+  # .github/requirements/lint.txt, not whatever the runner image ships, so an
+  # image bump cannot change the formatting rules under an unchanged tree).
+  clang-format:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - clang-format' || 'clang-format' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',clang-format,') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Install clang-format (pinned)
+        run: |
+          uv venv "$RUNNER_TEMP/lint-venv"
+          uv pip install --python "$RUNNER_TEMP/lint-venv/bin/python" --requirement .github/requirements/lint.txt
+          echo "$RUNNER_TEMP/lint-venv/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/lint-venv/bin/clang-format" --version
+
+      # Any difference is a failure; --dry-run --Werror reports file:line.
+      - name: Check formatting (src/ and tests/)
+        shell: bash
+        run: |
+          mapfile -d '' files < <(find src tests -type f \( \
+            -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' -o -name '*.hh' \
+            -o -name '*.cxx' -o -name '*.hxx' -o -name '*.inl' -o -name '*.ipp' \) -print0)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::no C++ sources found under src/ and tests/"
+            exit 1
+          fi
+          echo "checking ${#files[@]} file(s) with $(clang-format --version)"
+          if ! clang-format --dry-run --Werror "${files[@]}"; then
+            echo "::error::formatting differs from .clang-format; run: clang-format -i <file>"
+            exit 1
+          fi
+
+  # The no-#ifdef rule (docs/platform-isolation.md): the operating system is a
+  # CMake decision, so no platform code, OS header or runtime OS test may sit
+  # outside src/platforms. Cheap, fast and deliberately not behind the build
+  # legs, so a violation is reported even while a porting leg is red.
+  platform-isolation:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - platform-isolation' || 'platform-isolation' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',platform-isolation,') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # pwsh ships on every hosted image; the check asks git which files are
+      # source, so it runs inside the checkout.
+      - name: Check for platform code outside the platform section
+        shell: pwsh
+        run: ./tools/checks/check_platform_isolation.ps1 -Root $PWD
+
+  # Picks the desktop build legs. A push, pull request or merge_group run
+  # always gets all three; only a manual dispatch can narrow it. The matrix
+  # lives here, as JSON, because a job-level `if` cannot see `matrix`.
+  #
+  # It also says whether a pull request or a queue entry changes anything but
+  # documentation (docs/ci.md, "Documentation-only changes"). If not, the jobs
+  # that build and test still run and still report under their own names - a
+  # required check that is skipped by an `if` never reports, and the pull
+  # request would wait for it for ever - but every step of theirs is skipped,
+  # so each finishes in seconds as a success.
+  plan:
+    name: Plan build legs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      # "false" when only documentation changed (.github/actions/changed-code).
+      # The jobs that build and test read it: the three build legs and the
+      # coverage job skip their steps and still report; the simulator jobs,
+      # which are not required checks, are skipped as a whole.
+      code: ${{ steps.changed.outputs.code }}
+    steps:
+      # The merge commit and its first parent are what the comparison needs,
+      # and the folders of the action and its script are all it reads.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            tools/ci
+
+      - name: Does anything but documentation change?
+        id: changed
+        uses: ./.github/actions/changed-code
+
+      - name: Select build legs
+        id: plan
+        shell: bash
+        env:
+          LEGS: ${{ github.event_name == 'workflow_dispatch' && inputs.legs || 'all' }}
+        run: |
+          # One leg per desktop platform, each on its own default compiler:
+          # MSVC on the VS 2026 image, the image's g++ on Ubuntu, AppleClang
+          # (Xcode) on the Apple-silicon macOS image. The triplet is the vcpkg
+          # triplet the preset selects; it names the binary cache. qt_host and qt_arch
+          # name the prebuilt Qt kit the application is built with (aqtinstall).
+          all='[
+            {"leg": "windows", "name": "Windows (MSVC)",     "os": "windows-2025-vs2026", "preset": "windows-msvc-debug", "triplet": "x64-windows", "qt_host": "windows", "qt_arch": "win64_msvc2022_64"},
+            {"leg": "linux",   "name": "Linux (GCC)",        "os": "ubuntu-26.04",        "preset": "linux-gcc-debug",    "triplet": "x64-linux",   "qt_host": "linux",   "qt_arch": "linux_gcc_64"},
+            {"leg": "macos",   "name": "macOS (AppleClang)", "os": "macos-26",            "preset": "macos-clang-debug",  "triplet": "arm64-osx",   "qt_host": "mac",     "qt_arch": "clang_64"}
+          ]'
+          case "$LEGS" in
+            *[[:space:]]*)
+              echo "::error::legs must be comma-separated with no spaces: '$LEGS'"
+              exit 1 ;;
+          esac
+          for leg in ${LEGS//,/ }; do
+            case "$leg" in
+              all|clang-format|platform-isolation|windows|linux|macos|coverage|zephyr|freertos) ;;
+              *) echo "::error::unknown leg '$leg' (clang-format, platform-isolation, windows, linux, macos, coverage, zephyr, freertos, all)"
+                 exit 1 ;;
+            esac
+          done
+          if [ -z "$LEGS" ] || [ "$LEGS" = all ]; then
+            selected=$(jq -c . <<<"$all")
+          else
+            selected=$(jq -c --arg legs ",${LEGS}," '[.[] | select(.leg as $leg | $legs | contains("," + $leg + ","))]' <<<"$all")
+          fi
+          count=$(jq 'length' <<<"$selected")
+          # A dispatch that names only clang-format, platform-isolation or
+          # coverage legitimately selects none.
+          echo "legs: $LEGS -> $count desktop leg(s)"
+          echo "matrix=$selected" >> "$GITHUB_OUTPUT"
+
+  # Configure, build and test one preset per desktop platform. The Debug
+  # presets turn on the sanitizers and every warning is an error, so a green
+  # leg means: the tree compiles warning-free on that compiler, and the unit
+  # tests, platform.fragments and platform.isolation pass under ASan (and
+  # UBSan where the compiler has it).
+  build-and-test:
+    name: ${{ github.event_name == 'workflow_dispatch' && format('dispatch - {0}', matrix.name) || matrix.name }}
+    needs: plan
+    # The matrix is empty when a dispatch names no desktop leg, which would
+    # otherwise be an error rather than a skip.
+    if: ${{ needs.plan.outputs.matrix != '[]' }}
+    # A change to documentation alone builds and tests nothing, so the job is
+    # given a Linux runner for the seconds it takes to say so, not a macOS or a
+    # Windows one.
+    runs-on: ${{ needs.plan.outputs.code == 'true' && matrix.os || 'ubuntu-24.04' }}
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+
+    steps:
+      # A change to documentation alone builds and tests nothing, and this job
+      # still reports under its own name: a job skipped by `if` reports under
+      # the raw text of its `name:` expression, so a required check skipped
+      # that way is never reported and the pull request waits for it for ever.
+      # Every step below is skipped instead (needs.plan.outputs.code, from
+      # .github/actions/changed-code) and the job is a success.
+      - name: Nothing to build or test (documentation only)
+        if: ${{ needs.plan.outputs.code != 'true' }}
+        shell: bash
+        run: echo "only documentation changed; nothing to do"
+
+      # fetch-depth: 0 is required, not just nice-to-have: with a
+      # builtin-baseline, vcpkg reads historical versions out of the
+      # deps/vcpkg submodule's git history, and checkout's default is a
+      # depth-1 submodule clone that does not have them.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      # vcpkg's `files` binary-cache provider plus actions/cache (its x-gha
+      # provider was removed). Keyed per triplet; see docs/ci.md.
+      - name: Restore vcpkg binaries
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        id: vcpkg-cache
+        uses: ./.github/actions/vcpkg-cache/restore
+        with:
+          triplet: ${{ matrix.triplet }}
+
+      - name: Install CMake 4 + Ninja
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      # Ninja needs cl.exe on PATH; the preset does not set up the VS
+      # environment itself.
+      - name: Set up MSVC environment (Windows)
+        if: ${{ needs.plan.outputs.code == 'true' && runner.os == 'Windows' }}
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+
+      # What the leg actually built with, in the log: the first thing to read
+      # when a compiler-specific failure shows up.
+      - name: Show the toolchain
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        shell: bash
+        run: |
+          cmake --version | head -n 1
+          ninja --version
+          case "$RUNNER_OS" in
+            Linux) g++ --version | head -n 1 ;;
+            macOS) c++ --version | head -n 1 ;;
+            Windows) cl 2>&1 | head -n 1 || true ;;
+          esac
+
+      # The prebuilt Qt kit (not vcpkg), found through QT_ROOT_DIR by
+      # cmake/FindQt6.cmake. Version pinned here, installer pinned in
+      # .github/requirements/qt.txt.
+      - name: Install Qt
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        uses: ./.github/actions/install-qt
+        with:
+          version: "6.12.0"
+          host: ${{ matrix.qt_host }}
+          arch: ${{ matrix.qt_arch }}
+
+      # ADL_BUILD_APP builds the Qt application and its tests (src/app, tests/app).
+      - name: Configure
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        shell: bash
+        env:
+          CMAKE_PRESET: ${{ matrix.preset }}
+        run: cmake --preset "$CMAKE_PRESET" -DADL_BUILD_APP=ON
+
+      - name: Build
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        shell: bash
+        env:
+          CMAKE_PRESET: ${{ matrix.preset }}
+        run: cmake --build --preset "$CMAKE_PRESET"
+
+      # The test preset errors out when no test is found, so an empty suite
+      # cannot pass.
+      - name: Test
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        shell: bash
+        env:
+          CMAKE_PRESET: ${{ matrix.preset }}
+        run: ctest --preset "$CMAKE_PRESET" --output-junit "$GITHUB_WORKSPACE/build/$CMAKE_PRESET/ctest-junit.xml"
+
+      # Only when the leg is red: the full CTest log (every test's output, not
+      # only what the job log shows for the failures) and the JUnit report, so a
+      # failure that does not reproduce locally leaves its evidence behind.
+      - name: Upload test logs
+        if: ${{ failure() && needs.plan.outputs.code == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ctest-logs-${{ matrix.preset }}
+          path: |
+            build/${{ matrix.preset }}/ctest-junit.xml
+            build/${{ matrix.preset }}/Testing/Temporary/LastTest.log
+            build/${{ matrix.preset }}/Testing/Temporary/LastTestsFailed.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Saved even when a later step fails: otherwise a red leg throws away
+      # every package vcpkg had already built. Only saves when packages were
+      # added since the restore - see .github/actions/vcpkg-cache.
+      - name: Save vcpkg binaries
+        if: ${{ always() && needs.plan.outputs.code == 'true' }}
+        uses: ./.github/actions/vcpkg-cache/save
+        with:
+          triplet: ${{ matrix.triplet }}
+          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+
+  # Line and branch coverage of the portable code (the libraries, the platform
+  # interfaces, the media tree, the samples, the runner and the payload writer),
+  # gated at the project minimum: 90% of lines and 80% of branches. The OS
+  # fragments are not in this figure: each host builds a different set, and the
+  # conformance suite is what holds them to the platform contract.
+  # cmake/CoverageReport.cmake holds the figures and the gcovr switches; this job
+  # only builds, tests and calls it. The report is uploaded either way, so a red
+  # gate still has the numbers to look at. A second pass measures the Qt applications'
+  # window-free logic (src/app/core, src/mock_target/core, src/media_gen/core) at a lower
+  # floor; the windows' QML cannot be measured and is exercised by the UI suite.
+  coverage:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Coverage (Linux, GCC)' || 'Coverage (Linux, GCC)' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',coverage,') }}
+    needs: plan
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      # A change to documentation alone builds and tests nothing; the job still
+      # reports under its own name and every other step is skipped - see
+      # build-and-test.
+      - name: Nothing to build or test (documentation only)
+        if: ${{ needs.plan.outputs.code != 'true' }}
+        shell: bash
+        run: echo "only documentation changed; nothing to do"
+
+      # fetch-depth: 0 for vcpkg's version resolution - see build-and-test.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Same triplet, same archives as the Linux (GCC) leg.
+      - name: Restore vcpkg binaries
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        id: vcpkg-cache
+        uses: ./.github/actions/vcpkg-cache/restore
+        with:
+          triplet: x64-linux
+
+      - name: Install CMake 4 + Ninja
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      - name: Install uv
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Install gcovr (pinned)
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        run: |
+          uv venv "$RUNNER_TEMP/cov-venv"
+          uv pip install --python "$RUNNER_TEMP/cov-venv/bin/python" --requirement .github/requirements/coverage.txt
+          echo "$RUNNER_TEMP/cov-venv/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/cov-venv/bin/gcovr" --version | head -n 1
+
+      # gcov has to be the one that goes with the compiler that built the
+      # objects: a mismatch reads as "version mismatch" or an empty report.
+      - name: Pick the matching gcov
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        shell: bash
+        run: |
+          g++ --version | head -n 1
+          major="$(g++ -dumpversion | cut -d. -f1)"
+          if command -v "gcov-$major" >/dev/null 2>&1; then
+            echo "GCOV=gcov-$major" >> "$GITHUB_ENV"
+          else
+            echo "GCOV=gcov" >> "$GITHUB_ENV"
+          fi
+
+      # The prebuilt Qt kit, as on the Linux (GCC) leg: the second coverage pass measures the
+      # applications' window-free logic (src/*/core), which needs the applications built.
+      - name: Install Qt
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        uses: ./.github/actions/install-qt
+        with:
+          version: "6.12.0"
+          host: linux
+          arch: linux_gcc_64
+
+      - name: Configure
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        run: cmake --preset linux-gcc-coverage -DADL_BUILD_APP=ON
+
+      - name: Build
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        run: cmake --build --preset linux-gcc-coverage
+
+      # A failing test fails the job before the coverage gate; the gate is for
+      # testable code that no test reaches.
+      - name: Test
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        run: ctest --preset linux-gcc-coverage
+
+      # One script owns the minimum and the gcovr switches (the same one the
+      # local `coverage` target calls): 90% lines, 80% branches, report in
+      # build/linux-gcc-coverage/coverage. It fails the job when either figure
+      # is below the minimum, and when the applications' pass measured too little.
+      - name: Coverage report and gates (libraries 90% lines and 80% branches, applications at their floor)
+        if: ${{ needs.plan.outputs.code == 'true' }}
+        env:
+          GCOVR: ${{ runner.temp }}/cov-venv/bin/gcovr
+        shell: bash
+        run: |
+          cmake -DREPO_ROOT="$PWD" \
+            -DBUILD_DIR="$PWD/build/linux-gcc-coverage" \
+            -DGCOV="$GCOV" -DGCOVR="$GCOVR" \
+            -P cmake/CoverageReport.cmake
+
+      - name: Summarise coverage
+        if: ${{ always() && needs.plan.outputs.code == 'true' && hashFiles('build/linux-gcc-coverage/coverage/summary.json') != '' }}
+        shell: bash
+        run: |
+          jq -r '"### Coverage of src/ (minimum: 90% lines, 80% branches)\n\n| | covered | total | percent |\n|---|---|---|---|\n| lines | \(.line_covered // 0) | \(.line_total // 0) | \(.line_percent // 0) |\n| branches | \(.branch_covered // 0) | \(.branch_total // 0) | \(.branch_percent // 0) |"' \
+            build/linux-gcc-coverage/coverage/summary.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: ${{ always() && needs.plan.outputs.code == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-report
+          path: build/linux-gcc-coverage/coverage
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Saved even when a later step fails - see build-and-test.
+      - name: Save vcpkg binaries
+        if: ${{ always() && needs.plan.outputs.code == 'true' }}
+        uses: ./.github/actions/vcpkg-cache/save
+        with:
+          triplet: x64-linux
+          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+
+  # The Zephyr platform (src/platforms/zephyr) on native_sim: Zephyr's kernel, its IPv4/UDP
+  # stack over its loopback interface and littlefs on simulated flash, built as a host process,
+  # running the platform conformance suite and the 615A engine tests (tests/platform/zephyr,
+  # tools/ci/zephyr_native_sim.sh). NOT a required check: it is new, and it joins the rulesets
+  # once it has been green for a while (docs/branch-protection.md, "Staging").
+  zephyr-native-sim:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Zephyr (native_sim)' || 'Zephyr (native_sim)' }}
+    # Not a required check, so a change to documentation alone skips the job as a whole. When it
+    # is made one, it needs what build-and-test has instead (docs/ci.md, "Documentation-only
+    # changes"): a skipped job never reports under the required name.
+    needs: plan
+    if: ${{ needs.plan.outputs.code == 'true' && (github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',zephyr,')) }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      # In a directory of its own: it is the manifest repository of the west workspace
+      # (tests/platform/zephyr/west.yml), and the workspace is its parent.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: arinc-data-loader
+          persist-credentials: false
+
+      # native_sim is built with the image's own g++ (Zephyr's "host" toolchain); the device
+      # tree compiler and gperf are what Zephyr's build asks of the machine besides that.
+      - name: Install Zephyr's host tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends device-tree-compiler gperf
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Install west (pinned)
+        run: |
+          uv venv "$RUNNER_TEMP/zephyr-venv"
+          uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement arinc-data-loader/.github/requirements/zephyr.txt
+          echo "$RUNNER_TEMP/zephyr-venv/bin" >> "$GITHUB_PATH"
+
+      # Zephyr at the version the manifest pins, and only the modules the program needs. The
+      # workspace is cached under a key made from the manifest, so a run that has it fetches nothing
+      # (docs/ci.md, "What is cached").
+      - name: Restore the Zephyr workspace
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .west
+            zephyr
+            modules
+          key: zephyr-workspace-${{ runner.os }}-${{ hashFiles('arinc-data-loader/tests/platform/zephyr/west.yml') }}
+
+      - name: Fetch Zephyr
+        run: |
+          [ -d .west ] || west init -l --mf tests/platform/zephyr/west.yml arinc-data-loader
+          west update --narrow --fetch-opt=--depth=1
+          uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement zephyr/scripts/requirements-base.txt
+
+      # What the leg actually built with, in the log.
+      - name: Show the toolchain
+        run: |
+          cmake --version | head -n 1
+          ninja --version
+          g++ --version | head -n 1
+          west --version
+          dtc --version
+          gperf --version | head -n 1
+
+      - name: Build and run on native_sim
+        env:
+          ZEPHYR_BASE: ${{ github.workspace }}/zephyr
+        run: bash arinc-data-loader/tools/ci/zephyr_native_sim.sh
+
+  # The Zephyr platform built with the Zephyr SDK's own toolchain (GCC, picolibc) and run in QEMU,
+  # in two programs: a smoke test for a Cortex-M3 without exceptions (tests/platform/zephyr_smoke,
+  # tools/ci/zephyr_qemu_smoke.sh), and the whole test program, Catch2 with the conformance suite
+  # and the 615A engine tests, for a Cortex-A9 (tests/platform/zephyr, tools/ci/zephyr_qemu_suite.sh).
+  # NOT a required check, for the reason the native_sim job is not.
+  zephyr-qemu:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Zephyr (QEMU, SDK toolchain)' || 'Zephyr (QEMU, SDK toolchain)' }}
+    needs: plan
+    if: ${{ needs.plan.outputs.code == 'true' && (github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',zephyr,')) }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: arinc-data-loader
+          persist-credentials: false
+
+      - name: Install Zephyr's host tools and QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends device-tree-compiler gperf qemu-system-arm
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Install west (pinned)
+        run: |
+          uv venv "$RUNNER_TEMP/zephyr-venv"
+          uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement arinc-data-loader/.github/requirements/zephyr.txt
+          echo "$RUNNER_TEMP/zephyr-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Restore the Zephyr workspace
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .west
+            zephyr
+            modules
+          key: zephyr-workspace-${{ runner.os }}-${{ hashFiles('arinc-data-loader/tests/platform/zephyr/west.yml') }}
+
+      - name: Fetch Zephyr
+        run: |
+          [ -d .west ] || west init -l --mf tests/platform/zephyr/west.yml arinc-data-loader
+          west update --narrow --fetch-opt=--depth=1
+          uv pip install --python "$RUNNER_TEMP/zephyr-venv/bin/python" --requirement zephyr/scripts/requirements-base.txt
+
+      # The SDK's Arm toolchain and host tools, cached under a key made from the pinned release files.
+      # Not `west sdk install`: that asks the GitHub releases API what exists, and the API refuses an
+      # unauthenticated address that has used its allowance (403 "rate limit exceeded"), which a shared
+      # runner's address does. install_zephyr_sdk.sh downloads the pinned files directly and checks them.
+      - name: Restore the Zephyr SDK
+        id: sdk-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/zephyr-sdk
+          key: zephyr-sdk-${{ runner.os }}-${{ hashFiles('arinc-data-loader/tools/ci/zephyr_sdk.sha256') }}
+
+      - name: Install the Zephyr SDK (Arm toolchain and host tools)
+        if: ${{ steps.sdk-cache.outputs.cache-hit != 'true' }}
+        env:
+          ZEPHYR_BASE: ${{ github.workspace }}/zephyr
+        run: bash arinc-data-loader/tools/ci/install_zephyr_sdk.sh "$RUNNER_TEMP/zephyr-sdk"
+
+      - name: Build the smoke test for the Cortex-M3 and run it in QEMU
+        env:
+          ZEPHYR_BASE: ${{ github.workspace }}/zephyr
+        run: |
+          export ZEPHYR_SDK_INSTALL_DIR="$RUNNER_TEMP/zephyr-sdk"
+          bash arinc-data-loader/tools/ci/zephyr_qemu_smoke.sh
+
+      - name: Build the test program for the Cortex-A9 and run it in QEMU
+        env:
+          ZEPHYR_BASE: ${{ github.workspace }}/zephyr
+        run: |
+          export ZEPHYR_SDK_INSTALL_DIR="$RUNNER_TEMP/zephyr-sdk"
+          bash arinc-data-loader/tools/ci/zephyr_qemu_suite.sh
+
+  # The FreeRTOS platform (src/platforms/freertos) on the kernel's POSIX simulator port: the
+  # real kernel in a Linux process, lwIP's UDP sockets over its loopback interface and littlefs
+  # on a RAM block device, running the platform conformance suite and the 615A engine tests
+  # (tests/platform/freertos, tools/ci/freertos_posix_sim.sh). NOT a required check, for the
+  # reason the Zephyr job is not.
+  freertos-posix-sim:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - FreeRTOS (POSIX simulator)' || 'FreeRTOS (POSIX simulator)' }}
+    needs: plan
+    if: ${{ needs.plan.outputs.code == 'true' && (github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',freertos,')) }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install CMake 4 + Ninja
+        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
+        with:
+          cmakeVersion: "4.4.2"
+          ninjaVersion: "1.13.2"
+
+      - name: Show the toolchain
+        run: |
+          cmake --version | head -n 1
+          ninja --version
+          g++ --version | head -n 1
+
+      # FreeRTOS, lwIP, littlefs and Catch2 are fetched at the versions and hashes pinned in
+      # tests/platform/freertos/CMakeLists.txt.
+      - name: Build and run on the FreeRTOS POSIX simulator
+        run: bash tools/ci/freertos_posix_sim.sh

@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in the loader libraries or the build is broken
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. If this is a security
+        vulnerability, please use
+        [private reporting](https://github.com/iainchesworthlabs/arinc-data-loader/security/advisories/new)
+        instead of a public issue.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: >
+        The release you are running. If you built from source, include the
+        commit hash instead.
+      placeholder: "0.1.0 (Windows)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Building from source / library only
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you expected instead, too. The smallest load or header file that reproduces it helps most.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Build output / logs
+      description: >
+        If this is a build failure, paste the CMake or compiler output.
+      render: shell

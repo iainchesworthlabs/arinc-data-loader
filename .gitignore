@@ -2,9 +2,13 @@
 /build/
 build*/
 cmake-build-*/
+# The output directory docs/building.md uses for adl_write_payloads: sample media
+# sets are generated, never committed.
+/out/
 /vcpkg_installed/
 compile_commands.json
 .cache/
+.sonar/
 .ninja_deps
 .ninja_log
 CMakeUserPresets.json
@@ -60,3 +64,6 @@ coverage*.info
 # Python bytecode (tooling scripts are run in place)
 __pycache__/
 *.pyc
+
+# The documentation site (cmake --build <dir> --target docs writes to the build tree; mkdocs build writes here).
+/site/

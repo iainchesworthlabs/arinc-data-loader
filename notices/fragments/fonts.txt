@@ -1,0 +1,25 @@
+Typefaces
+---------
+
+The programs embed the Archivo typeface (Regular, Medium, SemiBold and
+ExtraBold), Copyright 2020 The Archivo Project Authors
+(https://github.com/Omnibus-Type/Archivo), unmodified, as resources of each
+executable. It is licensed under the SIL Open Font License, Version 1.1,
+reproduced below as it ships with the faces.
+
+{{FILE:OFL}}
+
+Archivo has no Hebrew letters. The windows in Hebrew and Yiddish are set in the
+Noto Sans Hebrew typeface, Copyright 2022 The Noto Project Authors
+(https://github.com/notofonts/hebrew), also embedded as resources of each
+executable. The four faces (Regular, Medium, SemiBold and ExtraBold) are static
+instances of the weights the design uses, cut from the variable font the Noto
+Project publishes; the letters are not otherwise changed. It is licensed under
+the SIL Open Font License, Version 1.1, reproduced below as it ships with the
+faces.
+
+{{FILE:OFL_NOTO_HEBREW}}
+
+Archivo and Noto Sans Hebrew have no Chinese or Japanese characters: the windows
+show those languages in the system's own fonts, which are not part of this
+package.

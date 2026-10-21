@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "arinc-data-loader",
+  "version": "0.1.0",
+  "description": "An ARINC 615A and 665 data loader, written from the standards.",
+  "homepage": "https://github.com/iainchesworthlabs/arinc-data-loader",
+  "license": "GPL-3.0-or-later",
+  "builtin-baseline": "9e593bb18ea69cc5095e012465dcd675a822ed0d",
+  "dependencies": [],
+  "default-features": [],
+  "features": {
+    "tests": {
+      "description": "Dependencies for the unit test suite",
+      "dependencies": [
+        "catch2"
+      ]
+    },
+    "profiling": {
+      "description": "Tracy profiler instrumentation (ADL_ENABLE_TRACY) - opt-in, selected by -DADL_ENABLE_TRACY=ON, so a normal build never pulls it in",
+      "dependencies": [
+        {
+          "name": "tracy",
+          "default-features": false,
+          "features": [
+            "on-demand"
+          ]
+        },
+        {
+          "name": "tracy",
+          "host": true,
+          "default-features": false,
+          "features": [
+            "cli-tools"
+          ]
+        }
+      ]
+    }
+  }
+}

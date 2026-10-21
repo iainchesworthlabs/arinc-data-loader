@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# commit-msg hook: the commit message carries no attribution of any kind.
+#
+# Runs tools/policy/check_text_policy.ps1 over the message git is about to
+# record - the same script, and the same rule, that the "Validate commit and PR
+# text" check applies to every commit of a pull request
+# (docs/ci.md, "Commit and PR text policy").
+#
+# Install once per clone:
+#   git config core.hooksPath tools/hooks
+#
+# Needs PowerShell 7 (pwsh). Without it the hook says so and lets the commit
+# through; CI applies the rule regardless, so it is only a faster place to be
+# told.
+
+msg_file=$1
+if [ -z "$msg_file" ]; then
+    echo "commit-msg: git did not pass the message file; nothing was checked." >&2
+    exit 1
+fi
+
+# Locate the script from this hook's own path: the hook may be run from any
+# working directory, and from a worktree.
+hook_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd) || exit 1
+policy="$hook_dir/../policy/check_text_policy.ps1"
+
+if ! command -v pwsh >/dev/null 2>&1; then
+    echo "commit-msg: PowerShell 7 (pwsh) was not found on PATH, so the commit message" >&2
+    echo "            was NOT checked against the text policy (no attribution of any kind)." >&2
+    echo "            Install PowerShell 7 (https://aka.ms/powershell) to enable this check;" >&2
+    echo "            the pull request check applies the same rule." >&2
+    exit 0
+fi
+
+if [ ! -f "$policy" ]; then
+    echo "commit-msg: $policy is missing; the commit message was NOT checked." >&2
+    exit 0
+fi
+
+# Under Git for Windows the shell's paths (/c/...) mean nothing to a native
+# program.
+if command -v cygpath >/dev/null 2>&1; then
+    policy=$(cygpath -w "$policy")
+    msg_file=$(cygpath -w "$msg_file")
+fi
+
+if ! pwsh -NoLogo -NoProfile -NonInteractive -File "$policy" -GitMessage -Path "$msg_file" -Label "commit message"; then
+    echo "" >&2
+    echo "commit-msg: commit refused. Reword the message and commit again;" >&2
+    echo "            what you wrote is still in .git/COMMIT_EDITMSG (git commit -e -F .git/COMMIT_EDITMSG)." >&2
+    exit 1
+fi
+
+exit 0

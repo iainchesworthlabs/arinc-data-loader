@@ -1,0 +1,29 @@
+/* The site's colours are the programs' Signal palette (src/ui/qml/Theme.qml): the filled accent
+   on light, the lighter accent on dark. Nothing else is customised. */
+
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #b82009;
+  --md-primary-fg-color--light: #ec3013;
+  --md-primary-fg-color--dark: #8c1807;
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: #ffffffb3;
+  --md-accent-fg-color: #b82009;
+  --md-typeset-a-color: #b82009;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #ff5c40;
+  --md-primary-fg-color--light: #ff7a63;
+  --md-primary-fg-color--dark: #ec3013;
+  --md-primary-bg-color: #151313;
+  --md-primary-bg-color--light: #151313b3;
+  --md-accent-fg-color: #ff5c40;
+  --md-typeset-a-color: #ff5c40;
+}
+
+/* Screenshots are wide; keep them inside the column and give them an edge. */
+.md-typeset img {
+  max-width: 100%;
+  height: auto;
+}
