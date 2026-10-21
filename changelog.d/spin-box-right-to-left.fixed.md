@@ -1,0 +1,1 @@
+**Right-to-left: the number in a spin box** (`src/ui/qml/AppSpinBox.qml`): in a mirrored window the number sat against the end of the box, because the padding that kept it from the edge was on the physical left. The gap is now at the start edge in both directions.
