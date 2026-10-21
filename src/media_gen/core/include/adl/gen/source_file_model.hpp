@@ -4,8 +4,9 @@
 // about each: the path on disk, the name it will have on the media set (editable, defaults to
 // the source file's own name), whether it is a data or a support file, the check value type the
 // header file will record for it, its size, and what is wrong with the row, if anything. The
-// names are checked with the ARINC 665 naming rules and have to be unique, case-insensitively,
-// so the model revalidates every row whenever anything changes.
+// names are checked with the ARINC 665 naming rules and the portable name rule the folder tree
+// applies, and have to be unique, case-insensitively, so the model revalidates every row
+// whenever anything changes.
 
 #include <QAbstractListModel>
 #include <QList>
@@ -18,6 +19,9 @@ namespace adl::gen {
 
 class SourceFileModel : public QAbstractListModel {
     Q_OBJECT
+
+    // Whether any row asks for a check value in the header file (the Check value column).
+    Q_PROPERTY(bool anyCheckValue READ any_check_value NOTIFY filesChanged)
 
 public:
     enum Role {
@@ -52,6 +56,14 @@ public:
     [[nodiscard]] QList<JobFile> files() const;
     [[nodiscard]] int data_file_count() const noexcept;
     [[nodiscard]] bool all_valid() const noexcept;
+    [[nodiscard]] bool any_check_value() const noexcept;
+
+    // Empty when `name` can be written to the media set folder tree on every system; otherwise
+    // the rule it breaks. The tree refuses a name that adl::arinc665::is_portable_file_name
+    // refuses, which is stricter than ARINC 665's rules for a name (a `*` or a `?`, a dot or a
+    // space at the end, a device name such as CON): a name that passes only the standard's
+    // rules passes the form and then fails the generation. An empty name is not judged here.
+    [[nodiscard]] static QString portable_name_message(const QString& name);
 
     // The language changed: the rows' sizes and messages are said again in the new one.
     void retranslate();

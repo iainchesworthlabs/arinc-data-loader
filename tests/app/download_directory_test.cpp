@@ -63,10 +63,10 @@ void DownloadDirectoryTest::a_chain_says_why_it_could_not_be_made() {
     memory.put("/data/file", "x");
     auto chain = make_directory_chain(files, "/data/file");
     QVERIFY(!chain.has_value());
-    QVERIFY(chain.error().text().contains(QStringLiteral("is not a directory")));
+    QVERIFY(chain.error().text().contains(QStringLiteral("is not a folder")));
     chain = make_directory_chain(files, "/data/file/below");
     QVERIFY(!chain.has_value());
-    QVERIFY(chain.error().text().contains(QStringLiteral("is not a directory")));
+    QVERIFY(chain.error().text().contains(QStringLiteral("is not a folder")));
 
     // A path that cannot be looked at.
     files.stat_fails["/locked"] = ErrorCode::permission_denied;
@@ -155,7 +155,7 @@ void DownloadDirectoryTest::a_download_directory_says_why_it_could_not_be_made()
     memory.put("/file", "x");
     auto made = make_download_directory(files, "/file", "T");
     QVERIFY(!made.has_value());
-    QVERIFY(made.error().text().contains(QStringLiteral("is not a directory")));
+    QVERIFY(made.error().text().contains(QStringLiteral("is not a folder")));
 
     // A number that cannot be looked at, or made.
     files.stat_fails["/dl/DNLD_DATA_T_1"] = ErrorCode::io_error;
@@ -174,7 +174,7 @@ void DownloadDirectoryTest::a_download_directory_says_why_it_could_not_be_made()
     files.make_directory_always_exists = true;
     made = make_download_directory(files, "/dl", "T");
     QVERIFY(!made.has_value());
-    QVERIFY(made.error().text().contains(QStringLiteral("download directories")));
+    QVERIFY(made.error().text().contains(QStringLiteral("download folders")));
 }
 
 void DownloadDirectoryTest::only_an_empty_directory_is_removed() {

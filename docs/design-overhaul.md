@@ -208,7 +208,7 @@ statement of which directory would be created, no "open folder", and switched mo
 the list. `Choose none` cancelled instantly.
 
 The new Download view names the destination before the action, says that each download creates a
-new `DNLD_DATA_<THW_ID_POS>_<n>` directory (even one that is aborted), offers `Choose folder...`
+new `DNLD_DATA_<THW_ID_POS>_<n>` folder (one that brings back no file leaves no folder behind), offers `Choose folder...`
 and `Open folder` (once there is a last download), and states the consequence of each mode. It still
 cannot show the next number without a model property; §11 lists that. The media-defined list is a
 list of named files with per-file status and `Remove`; the operator-defined list is the target's
@@ -478,8 +478,7 @@ The full token and component reference is [`docs/design-system.md`](design-syste
 rules that matter most:
 
 1. **Zero radius.** Nothing is rounded except the neutral status dot: a 4 px disc in the 10 px tone
-   mark of a chip and of the loader's status bar, and a 6 px round dot at the start of the status
-   bar of the generator and the mock target.
+   mark of a chip and of the status bar of each window.
 2. **One accent, two roles.** `accent` is for shapes; `accentFill`/`accentText` is for a labelled
    surface. A label never sits on the raw Signal-light accent (4.2:1 on white); the fill is the
    deeper `#b82009` that clears 4.5:1 (6.46:1).

@@ -51,8 +51,9 @@ public:
         return Message::translated(
             &Hint::tr,
             QT_TR_NOOP("Something in the media set was edited, replaced or removed after "
-                       "it was checked, so nothing was uploaded. Check the media set "
-                       "again, then upload."));
+                       "it was checked, so the upload was refused or stopped. If it was "
+                       "stopped part way, the target may already have read some of the "
+                       "files. Check the media set again, then upload."));
     }
 
     static Message host() {
@@ -86,7 +87,7 @@ public:
             &Hint::tr,
             QT_TR_NOOP("Use the target's THW_ID_POS as it names itself: 1 to 240 characters, none "
                        "of them a control character, a slash, a backslash or a character a "
-                       "directory name cannot hold (a colon, an asterisk, a question mark, quotes, "
+                       "folder name cannot hold (a colon, an asterisk, a question mark, quotes, "
                        "angle brackets or a bar)."));
     }
 

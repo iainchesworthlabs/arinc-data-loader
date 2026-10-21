@@ -171,11 +171,8 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: root.app.selectedLoadCount === 1
-                              ? qsTr("Upload 1 load to %1").arg(root.targetName)
-                              : qsTr("Upload %1 loads to %2")
-                                    .arg(root.app.selectedLoadCount)
-                                    .arg(root.targetName)
+                        text: qsTr("Upload %n load(s) to %1", "", root.app.selectedLoadCount)
+                                  .arg(root.targetName)
                         color: Theme.text
                         font.pixelSize: Theme.fontHeadline
                         font.family: Theme.headingFamily

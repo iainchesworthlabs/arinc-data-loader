@@ -103,37 +103,37 @@
 <context>
     <name>LogView</name>
     <message>
-        <location filename="../qml/LogView.qml" line="26"/>
+        <location filename="../qml/LogView.qml" line="27"/>
         <source>ERROR</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="27"/>
+        <location filename="../qml/LogView.qml" line="28"/>
         <source>WARN</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="28"/>
+        <location filename="../qml/LogView.qml" line="29"/>
         <source>NOTE</source>
         <translation>注意</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="29"/>
+        <location filename="../qml/LogView.qml" line="30"/>
         <source>INFO</source>
         <translation>信息</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="101"/>
+        <location filename="../qml/LogView.qml" line="111"/>
         <source>Activity log</source>
         <translation>活动日志</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="102"/>
-        <source>Up and Down scroll; Ctrl+C copies every line</source>
-        <translation>上下键滚动；Ctrl+C复制所有行</translation>
+        <location filename="../qml/LogView.qml" line="112"/>
+        <source>Up and Down scroll; %1 copies every line</source>
+        <translation>上下键滚动；%1复制所有行</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="181"/>
+        <location filename="../qml/LogView.qml" line="192"/>
         <source>No activity yet.</source>
         <translation>尚无活动。</translation>
     </message>

@@ -59,8 +59,10 @@ ApplicationWindow {
     title: qsTr("ARINC Data Loader")
     width: 1280
     height: 900
-    // 1000 x 620 leaves the header, the action bar and the status bar on screen on a 1366 x 768
-    // display at 125% scaling and on a 1920 x 1080 display at 150%.
+    // 1000 x 620 leaves the header, the action bar and the status bar on screen on a 1920 x 1080
+    // display at 150% scaling (1280 x 720 logical pixels). A 1366 x 768 display at 125% has about
+    // 1093 x 614, short of the height before the taskbar is taken off; there the bottom of the
+    // window is off the screen.
     minimumWidth: 1000
     minimumHeight: 620
     visible: true

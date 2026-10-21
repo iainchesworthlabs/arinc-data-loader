@@ -22,6 +22,7 @@ on a Mac).
 | `Uploading 1 load to 127.0.0.1 (HNPFMS_L)...` / `Downloading 2 files from ...` | An upload or a media defined download started |
 | `Asking 127.0.0.1 (HNPFMS_L) for the files it can download...` | An operator defined download started |
 | `No target is selected; looking for one first.` | **Find the target automatically** is on and there was no usable target, so a FIND runs before the operation (see [Find a target](find-a-target.md#find-a-target-find)) |
+| `The target that answered cannot be used: its THW_ID_POS is "..."` | **Find the target automatically** is on, exactly one target answered, and its `THW_ID_POS` is one the loader cannot use (for a download, one that cannot name a folder). Nothing is started (see [Find a target](find-a-target.md#find-a-target-find)) |
 | `The target answered: accepted` | The target's answer to the request. *Accepted* is good; *denied* or *not supported* is a refusal, with the target's reason in brackets |
 | `Status 3: in progress, 50% of the list, about 6 s left` | A status file. The *counter* grows by one with every file the target writes. The percentage is how far the target's list of loads or files has got; the time is the target's own estimate, shown only when it gives one |
 | `The target read ACM47.LUH (220 bytes)` | During an upload, a file the target has read from the loader |
@@ -101,7 +102,7 @@ what to do, a hint in red. Press **OK** to close it. What the loader knows a hin
 | --- | --- |
 | The loader could not open the network or its port | The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences) |
 | The media set could not be read | Choose the folder the media set was written to, and make sure every file of the set is still in it |
-| The media set changed after it was checked (an upload) | Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload |
+| The media set changed after it was checked (an upload) | Something in the media set was edited, replaced or removed after it was checked, so the upload was refused or stopped. If it was stopped part way, the target may already have read some of the files. Check the media set again, then upload |
 | The download folder could not be used | Choose a download folder that exists or can be created, and make sure it can be written (Preferences) |
 | A download did not give back every file | The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed |
 | A file name for a media defined download is not safe | Name the file as the target knows it: a plain name of at most 254 characters, without a path |

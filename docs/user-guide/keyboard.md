@@ -23,7 +23,8 @@ that is untested).
   target and **Right** the next one.
 - The **activity log**, the **target configuration** and the lists in the media set properties are
   stops of their own: **Up**, **Down**, **Page Up**, **Page Down**, **Home** and **End** scroll them.
-  **Ctrl+C** (**Cmd+C** on a Mac) in the activity log copies every line, as "time  SEVERITY  message".
+  **Ctrl+C** (**Cmd+C** on a Mac) in the activity log (the loader's and the mock target's) copies
+  every line, as "time  SEVERITY  message".
 - A page that is longer than the window scrolls to follow the control you tab to.
 - In a drop-down list (a check value, the language, the refusal choice of the mock target) the
   arrow keys move through the entries, and **Return** or **Space** opens and confirms.

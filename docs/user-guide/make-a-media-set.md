@@ -66,8 +66,8 @@ one name in one place cannot be told apart.
 ![A name used twice is refused](../images/gen-file-error.png)
 
 Once files are chosen, the chip **NO CHECK VALUES** appears when the three choices *Each listed file*, *FILES.LUM itself*
-and *Load check value* are all *none* (it does not look at the **Check value** column of the
-table). The set would be written without any of those check values. Every file is still listed
+and *Load check value* are all *none* and no file has a check value in the **Check value** column of the
+table. The set would be written without any check value. Every file is still listed
 with a 16-bit CRC and the load carries a CRC of its own, and the loader checks those, but nothing
 stronger is recorded. Choose a check value unless the format you are following requires none.
 
@@ -155,7 +155,7 @@ ACM-SET-0001/
 ## The rules the generator enforces
 
 The generator uses the same checks the loader uses to judge a set, so a form with no red text
-makes a set the loader accepts, except for the file-name rule that the form does not check (see [File names](#file-names)). The read-back may still find differences from the standard's
+makes a set the loader accepts (the names are checked by two rules, see [File names](#file-names)). The read-back may still find differences from the standard's
 recommendations (an odd-sized data file, for example); the loader shows those as warnings and they
 do not stop an upload. Most rules are from ARINC 665-3; the section is in brackets.
 
@@ -195,7 +195,7 @@ printable ASCII, none of the characters `~ / : \`, and not `.` or `..`. On top o
 The reserved extensions are `CRC`, `DIR`, `HDR`, `LDR`, `LCI`, `LCL`, `LCS`, `LNA`, `LND`, `LNL`,
 `LNO`, `LNR`, `LNS`, `LUB`, `LUH`, `LUI`, `LUM`, `LUP`, `LUR` and `LUS`. A data file called `REPORT.LUM`, for example, is refused.
 
-The form checks names against ARINC 665 only. The set is then written as a folder tree that has to be usable on every system, and that rule is stricter: a name that holds one of `* ? " < > |`, that ends in a dot or a space, or that is a device name (`CON`, `NUL`, `COM1` and so on) passes the form and then makes the generation fail. The chip says **FAILED** and the banner names the file. Use plain names.
+The set is written as a folder tree that has to be usable on every system, and that rule is stricter than the standard's: a name that holds one of `* ? " < > |`, that ends in a dot or a space, or that is a device name (`CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`, `LPT1` to `LPT9`, in any case, with or without an extension) is refused when the tree is written. So the form checks every name against both rules, as you type: the names in the table, the header file name and the batch file name (which is made from the first three characters of the batch part number, so a manufacturer's code such as `NUL` cannot be used for a batch). A name that breaks the second rule is marked like any other, under its field, with the message *This name will not work on every system: avoid * ? " < > |, a dot or a space at the end, and device names such as CON or NUL.*, and the set cannot be generated until it is changed. Where a name breaks both, the message is the standard's, and the second appears once that is put right. A header file name made from a load part number whose manufacturer's code is a device name (`CON4A-1234-5678` gives `CON.LUH`) is marked in the same way; type another header file name, for example `CO1.LUH`.
 
 ### Target hardware IDs
 

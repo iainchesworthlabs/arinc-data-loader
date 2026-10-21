@@ -15,6 +15,9 @@
 #include <QtTest>
 
 #include "adl/app/media_set_summary.hpp"
+#include "adl/arinc665/naming.hpp"
+#include "adl/arinc665/part_number.hpp"
+#include "adl/arinc665/portable_name.hpp"
 #include "adl/gen/generator_model.hpp"
 #include "adl/gen/generator_worker.hpp"
 #include "adl/gen/source_file_model.hpp"
@@ -264,6 +267,142 @@ void GeneratorTest::refuses_duplicate_file_names() {
     QVERIFY(files->setData(files->index(1), QStringLiteral("DATA2.LUP"),
                            adl::gen::SourceFileModel::FileNameRole));
     QVERIFY(model.canGenerate());
+}
+
+void GeneratorTest::refuses_a_name_the_folder_tree_would_refuse() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    adl::gen::GeneratorModel model;
+    fill_form(model, output.path());
+    model.addFiles({url_of(data)});
+    QVERIFY(model.canGenerate());
+    auto* files = static_cast<adl::gen::SourceFileModel*>(model.files());
+    const auto message = [&] {
+        return files->data(files->index(0), adl::gen::SourceFileModel::MessageRole).toString();
+    };
+
+    // Names that ARINC 665's rules let through and that the media set folder tree refuses: the
+    // form says so on the row instead of letting the generation fail at write time.
+    const std::vector<std::string> refused = {"DATA*.LUP", "DATA?.LUP", "DATA\".LUP", "DATA<.LUP",
+                                              "DATA>.LUP", "DATA|.LUP", "DATA.LUP.",  "CON.LUP",
+                                              "nul",       "com1.LUP",  "LPT9"};
+    for (const std::string& name : refused) {
+        const QString qname = QString::fromStdString(name);
+        QVERIFY2(arinc665::check_data_file_name(name).empty(), qPrintable(qname));
+        QVERIFY2(!arinc665::is_portable_file_name(name), qPrintable(qname));
+        QVERIFY(files->setData(files->index(0), qname, adl::gen::SourceFileModel::FileNameRole));
+        QVERIFY2(message().contains(QStringLiteral("every system")), qPrintable(qname));
+        QVERIFY2(!model.canGenerate(), qPrintable(qname));
+        QVERIFY2(!model.filesError().isEmpty(), qPrintable(qname));
+    }
+    model.generate();
+    QCOMPARE(model.resultState(), 2);
+    QVERIFY(!directory_exists(expected_root(output.path())));
+
+    // The same rule holds for a support file, and a name that is fine is not marked.
+    QVERIFY(files->setData(files->index(0), QStringLiteral("support"),
+                           adl::gen::SourceFileModel::KindRole));
+    QVERIFY(files->setData(files->index(0), QStringLiteral("AUX.LDR"),
+                           adl::gen::SourceFileModel::FileNameRole));
+    QVERIFY(message().contains(QStringLiteral("every system")));
+    QVERIFY(files->setData(files->index(0), QStringLiteral("CONFIG.LDR"),
+                           adl::gen::SourceFileModel::FileNameRole));
+    QVERIFY(message().isEmpty());
+    QVERIFY(files->setData(files->index(0), QStringLiteral("data"),
+                           adl::gen::SourceFileModel::KindRole));
+    QVERIFY(files->setData(files->index(0), QStringLiteral("DATA.LUP"),
+                           adl::gen::SourceFileModel::FileNameRole));
+    QVERIFY(message().isEmpty());
+    QVERIFY(model.canGenerate());
+
+    // A name the standard refuses keeps its own, more specific, message.
+    QVERIFY(files->setData(files->index(0), QStringLiteral("DA:TA.LUP"),
+                           adl::gen::SourceFileModel::FileNameRole));
+    QVERIFY(message().contains(QStringLiteral("2.2.2")));
+}
+
+void GeneratorTest::refuses_a_header_or_batch_file_name_the_folder_tree_would_refuse() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    adl::gen::GeneratorModel model;
+    fill_form(model, output.path());
+    model.addFiles({url_of(data)});
+    QVERIFY(model.canGenerate());
+
+    // The header file's name: the standard asks for a manufacturer's code and .LUH, and a code
+    // such as CON makes a device name of it.
+    for (const char* name : {"CON.LUH", "ACM*.LUH"}) {
+        QVERIFY2(arinc665::check_header_file_name(name).empty(), name);
+        model.setHeaderFileName(QString::fromLatin1(name));
+        QVERIFY2(model.headerFileNameError().contains(QStringLiteral("every system")), name);
+        QVERIFY2(!model.canGenerate(), name);
+    }
+    model.setHeaderFileName(QStringLiteral("ACM.LUH"));
+    QVERIFY(model.headerFileNameError().isEmpty());
+    QVERIFY(model.canGenerate());
+
+    // The batch file is named for the first three characters of the batch part number.
+    const auto batch = arinc665::make_load_part_number("NUL", "0100-0200");
+    QVERIFY(batch.has_value());
+    model.setIncludeBatch(true);
+    model.setBatchPartNumber(QString::fromStdString(std::string{batch->view()}));
+    QVERIFY(model.batchPartNumberError().contains(QStringLiteral("every system")));
+    QVERIFY(!model.canGenerate());
+    model.setBatchPartNumber(QStringLiteral("ACM4C-0100-0200"));
+    QVERIFY(model.batchPartNumberError().isEmpty());
+    QVERIFY(model.canGenerate());
+}
+
+void GeneratorTest::a_change_of_language_keeps_the_outcome_of_the_run() {
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    adl::gen::GeneratorModel model;
+    fill_form(model, output.path());
+    model.addFiles({url_of(data)});
+    model.generate();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 30000);
+    QCOMPARE(model.resultState(), 1);
+    const QString path = model.outputPath();
+    const QString text = model.resultText();
+    QVERIFY(!path.isEmpty());
+    QVERIFY(!text.isEmpty());
+
+    // The language is not an edit of the form: the outcome, and the Open folder button that
+    // goes with the output path, stay.
+    model.retranslate();
+    QCOMPARE(model.resultState(), 1);
+    QCOMPARE(model.outputPath(), path);
+    QCOMPARE(model.resultText(), text);
+
+    // An edit of the form still clears it.
+    model.setBatchPartNumber(QStringLiteral("ACM4C-0100-0200"));
+    QCOMPARE(model.resultState(), 0);
+    QVERIFY(model.outputPath().isEmpty());
+}
+
+void GeneratorTest::any_check_value_follows_the_check_value_column() {
+    adl::test::TempDir sources;
+    const auto data = write_file(sources.path(), "DATA.LUP", "DATA DATA DATA!!");
+    const auto support = write_file(sources.path(), "CONFIG.LDR", "CONFIG 12345");
+    adl::gen::SourceFileModel files;
+    QVERIFY(!files.property("anyCheckValue").toBool());
+    QSignalSpy changes(&files, &adl::gen::SourceFileModel::filesChanged);
+
+    files.addFiles({url_of(data), url_of(support)});
+    QVERIFY(!files.property("anyCheckValue").toBool());
+    QVERIFY(files.setData(files.index(1), 2, adl::gen::SourceFileModel::CheckTypeRole));
+    QVERIFY(files.property("anyCheckValue").toBool());
+    QVERIFY(files.any_check_value());
+    QVERIFY(changes.count() >= 2);  // a change in the column is announced
+    files.remove(1);
+    QVERIFY(!files.any_check_value());
+    QVERIFY(files.setData(files.index(0), 5, adl::gen::SourceFileModel::CheckTypeRole));
+    QVERIFY(files.any_check_value());
+    QVERIFY(files.setData(files.index(0), 0, adl::gen::SourceFileModel::CheckTypeRole));
+    QVERIFY(!files.any_check_value());
 }
 
 void GeneratorTest::places_data_files_over_the_members() {

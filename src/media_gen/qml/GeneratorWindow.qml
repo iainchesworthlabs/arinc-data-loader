@@ -63,9 +63,12 @@ ApplicationWindow {
                                                   : app.resultState === 2 ? "fail"
                                                   : app.resultState === 3 ? "neutral"
                                                   : app.canGenerate ? "ok" : "neutral"
+    // No check value is asked for anywhere: not for the listed files, not for FILES.LUM, not for
+    // the load, and not for any file in the table's Check value column.
     readonly property bool noCheckValues: app.fileCheckTypeIndex === 0
                                           && app.filesListCheckTypeIndex === 0
                                           && app.loadCheckTypeIndex === 0
+                                          && !app.files.anyCheckValue
     readonly property bool modalOpen: aboutDialog.opened || licencesDialog.opened
 
     title: qsTr("ARINC Media Set Generator")
@@ -144,11 +147,14 @@ ApplicationWindow {
     }
 
     footer: AppStatusBar {
-        Rectangle {
-            width: 6
-            height: 6
-            radius: 3
-            color: window.app.busy ? Theme.accent : Theme.neutral600
+        // The state mark: the play mark while a set is being made and the dot otherwise, the same
+        // glyphs the header chip's tones use, so the status bar does not rely on a coloured dot.
+        ToneGlyph {
+            objectName: "statusMark"
+            Layout.preferredWidth: 10
+            Layout.preferredHeight: 10
+            glyph: window.app.busy ? "busy" : "dot"
+            color: window.app.busy ? Theme.accentInk : Theme.neutral700
         }
 
         Text {
@@ -690,13 +696,14 @@ ApplicationWindow {
                     spacing: Theme.space2
 
                     StatusChip {
+                        objectName: "noCheckValuesChip"
                         text: qsTr("NO CHECK VALUES")
                         tone: "warn"
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("With no check value the loader cannot verify these files against the header. Choose one unless the format requires none.")
+                        text: qsTr("With no check value, the files are protected only by the 16-bit CRCs every set carries, not by a stronger check value. Choose one unless the format requires none.")
                         color: Theme.accentInk
                         font.pixelSize: Theme.fontSmall
                         wrapMode: Text.WordWrap
@@ -887,11 +894,12 @@ ApplicationWindow {
 
                                 Text {
                                     Layout.fillWidth: true
+                                    objectName: "rowMessage"
                                     visible: fileRow.message.length > 0
                                     text: fileRow.message
                                     color: Theme.accentInk
                                     font.pixelSize: Theme.fontMicro
-                                    elide: Text.ElideRight
+                                    wrapMode: Text.WordWrap
                                 }
                             }
 

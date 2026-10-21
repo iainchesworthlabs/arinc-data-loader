@@ -8,6 +8,7 @@
 #include <QUrl>
 
 #include "adl/arinc665/naming.hpp"
+#include "adl/arinc665/portable_name.hpp"
 
 namespace adl::gen {
 
@@ -232,6 +233,20 @@ bool SourceFileModel::all_valid() const noexcept {
                        [](const Row& row) { return row.message.isEmpty(); });
 }
 
+bool SourceFileModel::any_check_value() const noexcept {
+    return std::any_of(rows_.begin(), rows_.end(),
+                       [](const Row& row) { return row.check_type != 0; });
+}
+
+QString SourceFileModel::portable_name_message(const QString& name) {
+    if (name.isEmpty() || adl::arinc665::is_portable_file_name(name.toStdString())) {
+        return {};
+    }
+    return tr(
+        "This name will not work on every system: avoid * ? \" < > |, a dot or a space at "
+        "the end, and device names such as CON or NUL.");
+}
+
 void SourceFileModel::retranslate() {
     revalidate();
     if (rowCount() > 0) {
@@ -260,6 +275,9 @@ void SourceFileModel::revalidate() {
                                       : adl::arinc665::check_support_file_name(text);
             if (!findings.empty()) {
                 row.message = findings_text(findings);
+            } else {
+                // The standard's rules pass; the folder tree's rule is stricter (see the header).
+                row.message = portable_name_message(name);
             }
         }
         if (row.message.isEmpty()) {

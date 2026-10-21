@@ -103,37 +103,37 @@
 <context>
     <name>LogView</name>
     <message>
-        <location filename="../qml/LogView.qml" line="26"/>
+        <location filename="../qml/LogView.qml" line="27"/>
         <source>ERROR</source>
         <translation>エラー</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="27"/>
+        <location filename="../qml/LogView.qml" line="28"/>
         <source>WARN</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="28"/>
+        <location filename="../qml/LogView.qml" line="29"/>
         <source>NOTE</source>
         <translation>注記</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="29"/>
+        <location filename="../qml/LogView.qml" line="30"/>
         <source>INFO</source>
         <translation>情報</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="101"/>
+        <location filename="../qml/LogView.qml" line="111"/>
         <source>Activity log</source>
         <translation>アクティビティログ</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="102"/>
-        <source>Up and Down scroll; Ctrl+C copies every line</source>
-        <translation>上下キーでスクロール、Ctrl+Cですべての行をコピー</translation>
+        <location filename="../qml/LogView.qml" line="112"/>
+        <source>Up and Down scroll; %1 copies every line</source>
+        <translation>上下キーでスクロール、%1ですべての行をコピー</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="181"/>
+        <location filename="../qml/LogView.qml" line="192"/>
         <source>No activity yet.</source>
         <translation>アクティビティはまだありません。</translation>
     </message>

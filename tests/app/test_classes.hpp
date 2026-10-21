@@ -32,6 +32,7 @@ private Q_SLOTS:
     void target_model_exposes_what_find_found();
     void event_model_keeps_the_newest_lines();
     void event_model_capacity_is_per_instance();
+    void event_model_roles_are_the_ones_the_log_view_reads();
     void configuration_model_replaces_its_rows();
     void load_model_describes_a_load();
     void load_model_keeps_the_operators_ticks();
@@ -150,6 +151,7 @@ private Q_SLOTS:
     void the_control_port_flows_into_the_loader();
     void auto_find_runs_before_an_upload_when_no_target_is_selected();
     void auto_find_with_several_targets_starts_nothing();
+    void auto_find_with_one_target_that_cannot_be_used_stops_with_a_message();
     void the_last_media_set_is_restored_after_startup();
     void a_missing_last_media_set_is_skipped_quietly();
     void the_log_capacity_preference_is_applied();

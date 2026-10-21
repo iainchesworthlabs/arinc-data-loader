@@ -77,7 +77,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+113"/>
+        <location filename="../core/src/engine_worker.cpp" line="+114"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>«&#xa0;%1&#xa0;» n’est pas une adresse IPv4.</translation>
     </message>
@@ -86,8 +86,8 @@
     <name>DirectoryProblem</name>
     <message>
         <location filename="../core/src/download_directory.cpp" line="+22"/>
-        <source>%1 is not a directory</source>
-        <translation>%1 n’est pas un répertoire</translation>
+        <source>%1 is not a folder</source>
+        <translation>%1 n’est pas un dossier</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -100,9 +100,9 @@
         <translation>impossible de créer %1 (%2)</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>there are already %1 download directories for %2 in %3</source>
-        <translation>il existe déjà %1 répertoires de téléchargement pour %2 dans %3</translation>
+        <location line="+6"/>
+        <source>there are already %1 download folders for %2 in %3</source>
+        <translation>il existe déjà %1 dossiers de téléchargement pour %2 dans %3</translation>
     </message>
 </context>
 <context>
@@ -306,12 +306,7 @@
         <translation>Ouvrir le dernier dossier de téléchargement</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>A new numbered folder is made for every download, even one that is aborted.</source>
-        <translation>Un nouveau dossier numéroté est créé pour chaque téléchargement, même abandonné.</translation>
-    </message>
-    <message>
-        <location line="+64"/>
+        <location line="+72"/>
         <source>no folder</source>
         <translation>aucun dossier</translation>
     </message>
@@ -327,7 +322,12 @@
         <translation>Le dernier téléchargement a été écrit dans %1.</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+1"/>
+        <source>Each download writes into a new numbered folder; one that brings back no file leaves no folder behind.</source>
+        <translation>Chaque téléchargement écrit dans un nouveau dossier numéroté&#xa0;; un téléchargement qui ne rapporte aucun fichier ne laisse aucun dossier.</translation>
+    </message>
+    <message>
+        <location line="+29"/>
         <source>COMPLETE</source>
         <translation>TERMINÉ</translation>
     </message>
@@ -552,12 +552,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-60"/>
-        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
-        <translation>Un élément du jeu de supports a été modifié, remplacé ou supprimé après sa vérification&#xa0;; rien n’a donc été téléversé. Vérifiez à nouveau le jeu de supports, puis téléversez.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-53"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>Le chargeur n’a pas pu utiliser le réseau ni son port. Vérifiez qu’aucune autre copie du chargeur ne s’exécute et qu’aucun autre programme n’occupe le port de contrôle (Préférences).</translation>
     </message>
@@ -567,12 +562,17 @@
         <translation>Saisissez l’adresse IPv4 de la cible sous la forme de quatre nombres de 0 à 255 séparés par des points, par exemple 10.0.0.2.</translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="-22"/>
         <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>Choisissez le dossier dans lequel le jeu de supports a été écrit et assurez-vous que tous les fichiers du jeu s’y trouvent toujours.</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+7"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so the upload was refused or stopped. If it was stopped part way, the target may already have read some of the files. Check the media set again, then upload.</source>
+        <translation>Un élément du jeu de supports a été modifié, remplacé ou supprimé après sa vérification, donc le téléversement a été refusé ou interrompu. S’il a été interrompu en cours de route, la cible a peut-être déjà lu certains des fichiers. Vérifiez à nouveau le jeu de supports, puis téléversez.</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
         <translation>Choisissez un dossier de téléchargement existant ou pouvant être créé, et assurez-vous qu’il est accessible en écriture (Préférences).</translation>
     </message>
@@ -583,8 +583,8 @@
     </message>
     <message>
         <location line="+8"/>
-        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
-        <translation>Utilisez le THW_ID_POS de la cible tel qu’elle se nomme&#xa0;: de 1 à 240 caractères, dont aucun n’est un caractère de contrôle, une barre oblique, une barre oblique inverse ou un caractère qu’un nom de répertoire ne peut pas contenir (deux-points, astérisque, point d’interrogation, guillemets, chevrons ou barre verticale).</translation>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a folder name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>Utilisez le THW_ID_POS de la cible tel qu’elle se nomme&#xa0;: de 1 à 240 caractères, dont aucun n’est un caractère de contrôle, une barre oblique, une barre oblique inverse ou un caractère qu’un nom de dossier ne peut pas contenir (deux-points, astérisque, point d’interrogation, guillemets, chevrons ou barre verticale).</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -671,7 +671,7 @@
     <name>Main</name>
     <message>
         <location filename="../qml/Main.qml" line="+59"/>
-        <location line="+60"/>
+        <location line="+62"/>
         <location line="+136"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
@@ -682,7 +682,7 @@
         <translation>L&apos;opération a échoué</translation>
     </message>
     <message>
-        <location line="+149"/>
+        <location line="+147"/>
         <source>e.g. 10.0.0.2</source>
         <translation>p. ex. 10.0.0.2</translation>
     </message>
@@ -813,7 +813,7 @@
         <translation>Le téléchargement nécessite une cible, une destination et, en mode défini par le support, un nom de fichier.</translation>
     </message>
     <message>
-        <location line="+64"/>
+        <location line="+66"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation>ARINC 615A · ARINC 665 · console de chargement d’ingénierie</translation>
     </message>
@@ -855,12 +855,12 @@
     </message>
     <message>
         <location line="+10"/>
-        <location line="+476"/>
+        <location line="+474"/>
         <source>Choose the media set folder</source>
         <translation>Choisir le dossier du jeu de supports</translation>
     </message>
     <message>
-        <location line="-456"/>
+        <location line="-454"/>
         <source>Media set properties</source>
         <translation>Propriétés du jeu de supports</translation>
     </message>
@@ -885,7 +885,7 @@
         <translation>OK</translation>
     </message>
     <message>
-        <location line="+107"/>
+        <location line="+105"/>
         <source>TARGET</source>
         <translation>CIBLE</translation>
     </message>
@@ -1057,7 +1057,7 @@
         </translation>
     </message>
     <message>
-        <location line="+206"/>
+        <location line="+208"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
         <translation>Une console de chargement d’ingénierie ARINC 615A et ARINC 665&#xa0;: jeux de supports, cibles, opérations Information, Téléversement et Téléchargement, et la preuve de ce qui s’est passé.</translation>
     </message>
@@ -1072,7 +1072,7 @@
         <translation>Fermer maintenant abandonne l’opération&#xa0;: la cible est invitée à s’arrêter et peut mettre jusqu’à 13 secondes à le confirmer, et la fenêtre reste ouverte jusque-là.</translation>
     </message>
     <message numerus="yes">
-        <location line="+591"/>
+        <location line="+589"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n AVERTISSEMENT</numerusform>
@@ -1110,7 +1110,7 @@
         <translation>Abandonner l&apos;opération</translation>
     </message>
     <message>
-        <location line="-974"/>
+        <location line="-972"/>
         <source>Idle</source>
         <translation>Inactif</translation>
     </message>
@@ -1555,18 +1555,8 @@
         <source>THE UPLOAD</source>
         <translation>LE TÉLÉVERSEMENT</translation>
     </message>
-    <message>
-        <location line="+11"/>
-        <source>Upload 1 load to %1</source>
-        <translation>Téléverser 1 chargement vers %1</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Upload %1 loads to %2</source>
-        <translation>Téléverser %1 chargements vers %2</translation>
-    </message>
     <message numerus="yes">
-        <location line="+18"/>
+        <location line="+27"/>
         <location line="+45"/>
         <source>%n member(s)</source>
         <translation>
@@ -1615,7 +1605,7 @@
         <translation>Aucun jeu de supports sélectionné</translation>
     </message>
     <message>
-        <location line="-115"/>
+        <location line="-112"/>
         <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
         <translation>Un jeu de supports est un dossier contenant un dossier par membre. Il est lu et vérifié avant un téléversement.</translation>
     </message>
@@ -1634,8 +1624,16 @@
         <source>Tick all loads</source>
         <translation>Cocher tous les chargements</translation>
     </message>
+    <message numerus="yes">
+        <location line="+71"/>
+        <source>Upload %n load(s) to %1</source>
+        <translation>
+            <numerusform>Téléverser %n chargement vers %1</numerusform>
+            <numerusform>Téléverser %n chargements vers %1</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+118"/>
+        <location line="+44"/>
         <source>Target</source>
         <translation>Cible</translation>
     </message>
@@ -1692,7 +1690,7 @@
         <translation>AUCUN</translation>
     </message>
     <message>
-        <location line="-149"/>
+        <location line="-146"/>
         <source>Choose media set</source>
         <translation>Choisir un jeu de supports</translation>
     </message>
@@ -1707,7 +1705,7 @@
         <translation>Rechercher des cibles</translation>
     </message>
     <message>
-        <location line="+219"/>
+        <location line="+216"/>
         <source>Payload</source>
         <translation>Charge utile</translation>
     </message>
@@ -2353,7 +2351,22 @@
         <translation>Choisissez la cible dans la liste, puis relancez l&apos;opération.</translation>
     </message>
     <message>
-        <location line="-408"/>
+        <location line="+14"/>
+        <source>The target that answered cannot be used: its THW_ID_POS is &quot;%1&quot;.</source>
+        <translation>La cible qui a répondu est inutilisable&#xa0;: son THW_ID_POS est «&#xa0;%1&#xa0;».</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>A download goes into a folder named for the THW_ID_POS, so the name cannot hold a colon, an asterisk, a question mark, quotes, angle brackets or a bar.</source>
+        <translation>Un téléchargement est écrit dans un dossier nommé d’après le THW_ID_POS, dont le nom ne peut donc contenir ni deux-points, ni astérisque, ni point d’interrogation, ni guillemets, ni chevrons, ni barre verticale.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>A THW_ID_POS is 1 to 240 characters, none of them a control character, a slash or a backslash.</source>
+        <translation>Un THW_ID_POS compte de 1 à 240 caractères, dont aucun n’est un caractère de contrôle, une barre oblique ou une barre oblique inverse.</translation>
+    </message>
+    <message>
+        <location line="-433"/>
         <source>No target is selected; looking for one first.</source>
         <translation>Aucune cible n&apos;est sélectionnée ; recherche préalable d&apos;une cible.</translation>
     </message>

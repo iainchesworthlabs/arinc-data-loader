@@ -222,7 +222,11 @@ the tests' fake storage receives the bytes).
   (`is_valid_thw_id_pos`: 1 to 240 characters, no control character, slash or backslash) and, because the id
   becomes part of a directory name, that `DNLD_DATA_<id>_1` is a name every platform can make (a colon, which
   names a stream on NTFS, an asterisk or a trailing dot is refused). The model also treats an id the engine
-  refuses as no target at all.
+  refuses as no target at all. When "Find the target automatically" is on and exactly one target
+  answers the FIND, its id is checked the same way before the operation is started again
+  (`run_pending_after_find`): one that cannot be used (for a download, one that cannot name the
+  directory) stops the operation with a failure dialog and a log line, instead of another FIND or
+  nothing at all.
 - **A download that received nothing leaves no directory.** When the runner returns, whether the target
   denied the operation, never answered, the operator cancelled or aborted, or the loader could not run
   (the request refused, the port taken, the wait failing), the directory is removed if it is empty, and the

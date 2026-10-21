@@ -72,6 +72,19 @@ void ModelsTest::event_model_capacity_is_per_instance() {
     QCOMPARE(model.capacity(), 1);
 }
 
+void ModelsTest::event_model_roles_are_the_ones_the_log_view_reads() {
+    // The shared LogView (src/ui/qml/LogView.qml) reads the severity, the text and the time by
+    // number: 257, 258 and 259. The mock target's ActivityModel has to number its roles the same
+    // way (tests/mock_target/model_test.cpp).
+    QCOMPARE(static_cast<int>(EventModel::SeverityRole), 257);
+    QCOMPARE(static_cast<int>(EventModel::TextRole), 258);
+    QCOMPARE(static_cast<int>(EventModel::TimeRole), 259);
+    EventModel model;
+    QCOMPARE(model.roleNames().value(257), QByteArrayLiteral("severity"));
+    QCOMPARE(model.roleNames().value(258), QByteArrayLiteral("message"));
+    QCOMPARE(model.roleNames().value(259), QByteArrayLiteral("time"));
+}
+
 void ModelsTest::configuration_model_replaces_its_rows() {
     ConfigurationModel model;
     model.reset({{HardwareRow::Level::hardware, Message::verbatim(QStringLiteral("FMS LEFT")),

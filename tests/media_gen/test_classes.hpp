@@ -12,6 +12,10 @@ private Q_SLOTS:
     void generates_a_verified_media_set();
     void refuses_an_invalid_form();
     void refuses_duplicate_file_names();
+    void refuses_a_name_the_folder_tree_would_refuse();
+    void refuses_a_header_or_batch_file_name_the_folder_tree_would_refuse();
+    void a_change_of_language_keeps_the_outcome_of_the_run();
+    void any_check_value_follows_the_check_value_column();
     void places_data_files_over_the_members();
     void cancel_writes_nothing();
     void writes_the_batch_when_asked();

@@ -19,7 +19,7 @@ class DirectoryProblem {
 
 public:
     static Message not_a_directory(std::string_view path) {
-        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("%1 is not a directory"),
+        return Message::translated(&DirectoryProblem::tr, QT_TR_NOOP("%1 is not a folder"),
                                    {Message::verbatim(to_qstring(path))});
     }
 
@@ -35,8 +35,7 @@ public:
 
     static Message too_many(std::string_view thw_id_pos, std::string_view directory) {
         return Message::translated(
-            &DirectoryProblem::tr,
-            QT_TR_NOOP("there are already %1 download directories for %2 in %3"),
+            &DirectoryProblem::tr, QT_TR_NOOP("there are already %1 download folders for %2 in %3"),
             {Message::verbatim(QString::number(max_download_directories)),
              Message::verbatim(to_qstring(thw_id_pos)), Message::verbatim(to_qstring(directory))});
     }
