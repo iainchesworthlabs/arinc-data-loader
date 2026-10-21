@@ -353,6 +353,8 @@ jobs:
           cp docs/release-signing-key.asc release/arinc-data-loader-release-key.pgp
           "$RUNNER_TEMP/sbom-venv/bin/python" -I tools/release/validate_sbom.py \
             "release/arinc-data-loader-$VERSION.spdx.json" "release/arinc-data-loader-$VERSION.cdx.json"
+          # Every typeface the programs embed must be in the bill of materials.
+          python3 -I tools/release/check_sbom_fonts.py "release/arinc-data-loader-$VERSION.spdx.json" src/ui/fonts
           ls -l release
 
       - name: Upload the files to sign
