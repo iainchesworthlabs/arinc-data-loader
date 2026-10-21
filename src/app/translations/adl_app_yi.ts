@@ -2,50 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="yi">
 <context>
-    <name>AboutDialog</name>
-    <message>
-        <location filename="../qml/AboutDialog.qml" line="+14"/>
-        <source>ARINC Data Loader %1</source>
-        <translation>ARINC Data Loader %1</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>About ARINC Data Loader</source>
-        <translation>וועגן ARINC Data Loader</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Close</source>
-        <translation>צומאַכן</translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
-        <translation>אַן אינזשעניר־לאָד־קאָנסאָל לויט ARINC 615A און ARINC 665: מעדיע־סעטן, צילן, די אָפּעראַציעס אינפֿאָרמאַציע, אַרויפֿלאָדן און אַראָפּלאָדן, און דער באַווײַז פֿון וואָס איז געשען.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Version</source>
-        <translation>ווערסיע</translation>
-    </message>
-    <message>
-        <location line="+30"/>
-        <source>Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.</source>
-        <translation>דריט־פּאַרטײיִשע קאָמפּאָנענטן - Qt (LGPL 3), די שריפֿט Archivo (SIL Open Font License 1.1) און אַנדערע - זענען אויפֿגעצײלט, מיט זײערע ליצענזן, אונטער ליצענזן.</translation>
-    </message>
-    <message>
-        <location line="-55"/>
-        <location line="+39"/>
-        <source>Licences</source>
-        <translation>ליצענזן</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</source>
-        <translation>פֿרײַע סאָפֿטװער אונטער דער GNU General Public License, װערסיע 3 אָדער שפּעטער. זי װערט פֿאַרשפּרײט אָן קײן שום גאַראַנטיע; זעט די &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</translation>
-    </message>
-</context>
-<context>
     <name>ActivityDock</name>
     <message>
         <location filename="../qml/ActivityDock.qml" line="+33"/>
@@ -147,7 +103,7 @@
 <context>
     <name>DownloadPanel</name>
     <message>
-        <location filename="../qml/DownloadPanel.qml" line="+121"/>
+        <location filename="../qml/DownloadPanel.qml" line="+115"/>
         <source>Media defined</source>
         <translation>מעדיע־באַשטימט</translation>
     </message>
@@ -185,7 +141,7 @@
         <translation>צולייגן דעם טעקע־נאָמען צום אַראָפּלאָד</translation>
     </message>
     <message numerus="yes">
-        <location line="+92"/>
+        <location line="+102"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
         <translation>
@@ -224,23 +180,17 @@
         <translation>אַראָפּלאָדן %1</translation>
     </message>
     <message>
-        <location line="-110"/>
+        <location line="-120"/>
         <source>Remove</source>
         <translation>אַוועקנעמען</translation>
     </message>
     <message>
-        <location line="-218"/>
+        <location line="-212"/>
         <source>no target</source>
         <translation>קײן ציל</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <location line="+369"/>
-        <source>Choose the download directory</source>
-        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="-339"/>
+        <location line="+43"/>
         <source>THE DOWNLOAD</source>
         <translation>דער אַראָפּלאָד</translation>
     </message>
@@ -250,24 +200,15 @@
         <translation>אַראָפּלאָדן פֿון %1</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>RUNNING</source>
-        <translation>לױפֿט</translation>
+        <location line="-40"/>
+        <location line="+385"/>
+        <source>Choose the download folder</source>
+        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation>גרײט</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation>ניט גרײט</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; directory.</source>
-        <translation>יעדער אַראָפּלאָד שרײַבט אַ נײַע פּאַפּקע DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;.</translation>
+        <location line="-331"/>
+        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; folder.</source>
+        <translation>יעדע אַראָפּלאָדן שרײַבט אַ נײַע פּאַפּקע DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;.</translation>
     </message>
     <message>
         <location line="+20"/>
@@ -320,7 +261,7 @@
         <translation>אַוועקנעמען %1 פֿונעם אַראָפּלאָד</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+41"/>
         <source>The target&apos;s list</source>
         <translation>די רשימה פֿונעם ציל</translation>
     </message>
@@ -330,7 +271,7 @@
         <translation>אָנהײבן דעם אַראָפּלאָד: דער ציל שיקט זײַן רשימה, צײכנט אָן װאָס מען זאָל נעמען, און שיקט צוריק די אויסװאַל.</translation>
     </message>
     <message>
-        <location line="+97"/>
+        <location line="+109"/>
         <source>Destination</source>
         <translation>באַשטימונגס־אָרט</translation>
     </message>
@@ -346,37 +287,42 @@
     </message>
     <message>
         <location line="+10"/>
-        <source>No download directory set</source>
-        <translation>קײן אַראָפּלאָד־פּאַפּקע ניט באַשטימט</translation>
+        <source>No download folder set</source>
+        <translation>קײן אַראָפּלאָד־פּאַפּקע איז נישט באַשטימט</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>Change...</source>
-        <translation>ענדערן...</translation>
+        <source>Choose folder...</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Open the last download folder</source>
+        <translation>עפֿענען די לעצטע אַראָפּלאָד־פּאַפּקע</translation>
     </message>
     <message>
         <location line="+8"/>
+        <source>A new numbered folder is made for every download, even one that is aborted.</source>
+        <translation>פֿאַר יעדן אַראָפּלאָדן װערט געמאַכט אַ נײַע נומערירטע פּאַפּקע, אַפֿילו פֿאַר אַן אָפּגעבראָכענעם.</translation>
+    </message>
+    <message>
+        <location line="+64"/>
+        <source>no folder</source>
+        <translation>קײן פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="-74"/>
         <location line="+55"/>
         <source>Open folder</source>
         <translation>עפֿענען די פּאַפּקע</translation>
     </message>
     <message>
-        <location line="-53"/>
-        <source>Open the last download directory</source>
-        <translation>עפֿענען די לעצטע אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location line="-46"/>
         <source>The last download was written to %1.</source>
         <translation>דער לעצטער אַראָפּלאָד איז געשריבן געװאָרן אין %1.</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>A new numbered directory is made for every download, even one that is aborted.</source>
-        <translation>פֿאַר יעדן אַראָפּלאָד װערט באַשאַפֿן אַ נײַע נומערירטע פּאַפּקע, אַפֿילו װען ער װערט אָפּגעבראָכן.</translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+30"/>
         <source>COMPLETE</source>
         <translation>פֿאַרענדיקט</translation>
     </message>
@@ -395,22 +341,11 @@
         <source>Target %1 · %2</source>
         <translation>ציל %1 · %2</translation>
     </message>
-    <message>
-        <location line="+3"/>
-        <source>no directory</source>
-        <translation>קײן פּאַפּקע</translation>
-    </message>
 </context>
 <context>
     <name>FirstRunScreen</name>
     <message>
-        <location filename="../qml/FirstRunScreen.qml" line="+22"/>
-        <location line="+176"/>
-        <source>Choose the download directory</source>
-        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="-161"/>
+        <location filename="../qml/FirstRunScreen.qml" line="+37"/>
         <source>FIRST RUN</source>
         <translation>ערשטער אָנהײב</translation>
     </message>
@@ -445,12 +380,7 @@
         <translation>עפֿנט צוזאַמען דעם מעדיע־סעט־אויסקלײַבער און דעם אַרבעטס־טיש</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Start loading opens the workbench with these defaults. A media set can be chosen there, or here.</source>
-        <translation>אָנהײבן לאָדן עפֿנט דעם אַרבעטס־טיש מיט די דאָזיקע פֿאַרױסבאַשטימטע װערטן. אַ מעדיע־סעט קען מען אויסקלײַבן דאָרט, צי דאָ.</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+28"/>
         <source>Defaults</source>
         <translation>פֿאַרױסבאַשטימטע װערטן</translation>
     </message>
@@ -485,43 +415,18 @@
         <translation>פֿאַרויסבאַשטימטער אַדרעס</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+11"/>
         <source>Default target address</source>
         <translation>פֿאַרויסבאַשטימטער ציל־אַדרעס</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+11"/>
         <source>Default THW_ID_POS</source>
         <translation>פֿאַרויסבאַשטימטער THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>פֿאַרויסבאַשטימטער ציל־האַרדווער־אידענטיפֿיקאַטאָר און פּאָזיציע</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <location line="+14"/>
-        <source>Download directory</source>
-        <translation>אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Browse...</source>
-        <translation>בלעטערן...</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+44"/>
         <source>WHAT THIS WINDOW DOES</source>
         <translation>װאָס דאָס פֿענצטער טוט</translation>
     </message>
@@ -531,9 +436,41 @@
         <translation>אויסקלײַבן אַ מעדיע־סעט</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>A directory with one directory per member. Its loads, files and findings are read and checked.</source>
-        <translation>אַ פּאַפּקע מיט איין פּאַפּקע פֿאַר יעדן מיטגליד. אירע לאַסטן, טעקעס און באַפֿונטן װערן געלייענט און געפּרוּפֿט.</translation>
+        <location line="-227"/>
+        <location line="+176"/>
+        <source>Choose the download folder</source>
+        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="-107"/>
+        <source>Start loading opens the workbench. The default address and THW_ID_POS start empty, and downloads go to the folder shown under Defaults; set them there or later in Preferences. A media set can be chosen there, or here.</source>
+        <translation>סטאַרט לאָדן עפֿנט די אַרבעט־באַנק. די סטאַנדאַרט־אַדרעס און THW_ID_POS הייבן זיך אָן ליידיק, און אַראָפּלאָדן גייען אין דער פּאַפּקע װאָס װערט געוויזן אונטער סטאַנדאַרטן; באַשטימט זײ דאָרט אָדער שפּעטער אין פּרעפֿערענצן. אַ מעדיע־סעט קאָן מען אויסקלײַבן דאָרט, אָדער דאָ.</translation>
+    </message>
+    <message>
+        <location line="+65"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>צום בײַשפּיל: 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>צום בײַשפּיל: HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <location line="+14"/>
+        <source>Download folder</source>
+        <translation>אַראָפּלאָד־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע...</translation>
+    </message>
+    <message>
+        <location line="+63"/>
+        <source>A folder with one folder per member. Its loads, files and findings are read and checked.</source>
+        <translation>אַ פּאַפּקע מיט איין פּאַפּקע פֿאַר יעדן מיטגליד. אירע לאַסטן, טעקעס און באַפֿונטן װערן געלייענט און געפּרוּװט.</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -604,12 +541,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-67"/>
-        <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
-        <translation>קלײַבט אויס די פּאַפּקע אין װעלכער דער מעדיע־סעט איז געשריבן געװאָרן, און זיכערט זיך אַז יעדע טעקע פֿונעם סעט איז נאָך דאָרט.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-60"/>
         <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
         <translation>עפּעס אין מעדיע־סעט איז געביטן, אױסגעביטן אָדער אַװעקגענומען געװאָרן נאָך דער פּרוּפֿונג, דעריבער איז גאָרנישט ניט אַרױפֿגעלאָדן געװאָרן. פּרוּפֿט נאָך אַ מאָל דעם מעדיע־סעט און לאָדט דעמאָלט אַרױף.</translation>
     </message>
@@ -624,9 +556,14 @@
         <translation>גיט אַרײַן דעם IPv4־אַדרעס פֿונעם ציל װי פֿיר נומערן פֿון 0 ביז 255, צעשײדט מיט פּונקטן, למשל 10.0.0.2.</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
-        <translation>קלײַבט אויס אַן אַראָפּלאָד־פּאַפּקע װאָס עקזיסטירט אָדער קען באַשאַפֿן װערן, און זיכערט זיך אַז מען קען דאָרט שרײַבן (פּרעפֿערענצן).</translation>
+        <location line="-21"/>
+        <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
+        <translation>קלײַבט אויס די פּאַפּקע אין װעלכער דער מעדיע־סעט איז געשריבן געװאָרן, און זיכערט זיך אַז יעדע טעקע פֿון סעט געפֿינט זיך נאָך אין איר.</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
+        <translation>קלײַבט אויס אַן אַראָפּלאָד־פּאַפּקע װאָס עקזיסטירט אָדער מען קען מאַכן, און זיכערט זיך אַז מען קען אין איר שרײַבן (פּרעפֿערענצן).</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -724,28 +661,38 @@
     <message>
         <location filename="../qml/Main.qml" line="+50"/>
         <location line="+58"/>
+        <location line="+129"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
-        <location line="+92"/>
-        <location line="+406"/>
-        <source>Choose the media set directory</source>
-        <translation>אויסקלײַבן די מעדיע־סעט־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="-324"/>
+        <location line="+47"/>
         <source>The operation failed</source>
         <translation>די אָפּעראַציע איז דורכגעפֿאַלן</translation>
     </message>
     <message>
-        <location line="+258"/>
-        <location line="+128"/>
+        <location line="+141"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>צום בײַשפּיל: 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>צום בײַשפּיל: HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Target THW_ID_POS</source>
+        <translation>THW_ID_POS פֿון דעם ציל</translation>
+    </message>
+    <message>
+        <location line="+94"/>
+        <location line="+127"/>
         <source>Properties...</source>
         <translation>אייגנשאַפֿטן...</translation>
     </message>
     <message>
-        <location line="-118"/>
+        <location line="-117"/>
         <source>Ready to address.</source>
         <translation>גרײט פֿאַר אַן אַדרעס.</translation>
     </message>
@@ -785,27 +732,12 @@
         <translation>ניט געפּרוּפֿט</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>Choose...</source>
-        <translation>אויסקלײַבן...</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Change...</source>
-        <translation>ענדערן...</translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="+24"/>
         <source>No media set chosen</source>
         <translation>קײן מעדיע־סעט ניט אויסגעקליבן</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Choose a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation>קלײַבט אויס אַ פּאַפּקע מיט איין פּאַפּקע פֿאַר יעדן מיטגליד. זי װערט געלייענט און געפּרוּפֿט פֿאַר אַן אַרױפֿלאָד.</translation>
-    </message>
-    <message>
-        <location line="+46"/>
+        <location line="+47"/>
         <source>Re-check</source>
         <translation>איבערפּרוּפֿן</translation>
     </message>
@@ -830,12 +762,12 @@
         <translation>אַרויפֿלאָדן לאַסט %1</translation>
     </message>
     <message>
-        <location line="-345"/>
+        <location line="-344"/>
         <source>Find targets</source>
         <translation>געפֿינען צילן</translation>
     </message>
     <message>
-        <location line="-377"/>
+        <location line="-379"/>
         <source>WORKING</source>
         <translation>אַרבעט</translation>
     </message>
@@ -846,18 +778,16 @@
     </message>
     <message>
         <location line="+2"/>
-        <location line="+888"/>
         <source>READY</source>
         <translation>גרײט</translation>
     </message>
     <message>
-        <location line="-888"/>
-        <location line="+888"/>
+        <location line="+0"/>
         <source>NOT READY</source>
         <translation>ניט גרײט</translation>
     </message>
     <message>
-        <location line="-874"/>
+        <location line="+14"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
         <translation>אַן אַרױפֿלאָד דאַרף אַ געפּרוּפֿטן מעדיע־סעט, װײניקסטנס איין אָנגעצײכנטן לאַסט און אַ ציל.</translation>
     </message>
@@ -913,7 +843,13 @@
         <translation>v%1</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+10"/>
+        <location line="+407"/>
+        <source>Choose the media set folder</source>
+        <translation>אויסקלײַבן די מעדיע־סעט־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="-387"/>
         <source>Media set properties</source>
         <translation>מעדיע־סעט־אײגנשאַפֿטן</translation>
     </message>
@@ -923,32 +859,17 @@
         <translation>ציל־אײגנשאַפֿטן</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>About ARINC Data Loader</source>
-        <translation>װעגן ARINC Data Loader</translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+22"/>
         <source>An operation is running</source>
         <translation>אַן אָפּעראַציע לױפֿט</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Stop and close</source>
-        <translation>אָפּשטעלן און צומאַכן</translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Keep working</source>
         <translation>װײַטער אַרבעטן</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
-        <translation>צומאַכן װעט יעצט בעטן דעם ציל זיך אָפּצושטעלן. דער ציל קען נעמען ביז 13 סעקונדעס צו באַשטעטיקן, און דאָס פֿענצטער בלײַבט אָפֿן ביז ער טוט עס.</translation>
-    </message>
-    <message>
-        <location line="+26"/>
+        <location line="+33"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -978,12 +899,7 @@
         <translation>אַדרעס</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+15"/>
         <source>Target address</source>
         <translation>ציל־אַדרעס</translation>
     </message>
@@ -993,17 +909,7 @@
         <translation>THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Target hardware identifier and position</source>
-        <translation>ציל־האַרדווער־אידענטיפֿיקאַטאָר און פּאָזיציע</translation>
-    </message>
-    <message>
-        <location line="+10"/>
+        <location line="+25"/>
         <source>FOUND</source>
         <translation>געפֿונען</translation>
     </message>
@@ -1017,8 +923,18 @@
         <source>Show the target properties</source>
         <translation>ווײַזן די ציל־אייגנשאַפֿטן</translation>
     </message>
+    <message>
+        <location line="+58"/>
+        <source>Choose folder...</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Choose a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>קלײַבט אויס אַ פּאַפּקע מיט איין פּאַפּקע פֿאַר יעדן מיטגליד. זי װערט געלייענט און געפּרוּװט פֿאַר אַן אַרױפֿלאָדן.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+89"/>
+        <location line="+20"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n מיטגליד</numerusform>
@@ -1074,12 +990,12 @@
         <translation>יעדע טעקע און פּרוּפֿ־װערט איז געלייענט און באַשטעטיקט געװאָרן.</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+44"/>
         <source>TRANSFER</source>
         <translation>איבערגעבונג</translation>
     </message>
     <message>
-        <location line="+164"/>
+        <location line="+147"/>
         <source>Downloading...</source>
         <translation>מען לאָדט אַראָפּ...</translation>
     </message>
@@ -1089,8 +1005,8 @@
         <translation>אַראָפּלאָדן פֿונעם ציל</translation>
     </message>
     <message>
-        <location line="-157"/>
-        <location line="+154"/>
+        <location line="-140"/>
+        <location line="+137"/>
         <source>Download</source>
         <translation>אַראָפּלאָדן</translation>
     </message>
@@ -1105,21 +1021,36 @@
         <translation>לייענען די ציל־אינפֿאָרמאַציע</translation>
     </message>
     <message>
-        <location line="-138"/>
-        <location line="+145"/>
+        <location line="-121"/>
+        <location line="+128"/>
         <source>Upload</source>
         <translation>אַרויפֿלאָדן</translation>
     </message>
     <message numerus="yes">
-        <location line="-1001"/>
+        <location line="-983"/>
         <source>Ready: %n load(s) to %1</source>
         <translation>
             <numerusform>גרײט: %n לאַסט צו %1</numerusform>
             <numerusform>גרײט: %n לאַסטן צו %1</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+197"/>
+        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
+        <translation>אַן אינזשעניר־לאָד־קאָנסאָל לויט ARINC 615A און ARINC 665: מעדיע־סעטן, צילן, די אָפּעראַציעס אינפֿאָרמאַציע, אַרויפֿלאָדן און אַראָפּלאָדן, און דער באַווײַז פֿון וואָס איז געשען.</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Abort and close</source>
+        <translation>אָפּברעכן און שליסן</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Closing now aborts the operation: the target is asked to stop and may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
+        <translation>שליסן יעצט בראָכט אָפּ די אָפּעראַציע: דער ציל װערט געבעטן זיך אָפּשטעלן און קען נעמען ביז 13 סעקונדעס עס באַשטעטיקן, און דאָס פֿענצטער בלײַבט אָפֿן ביז דעמאָלט.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+748"/>
+        <location line="+531"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n װאָרענונג</numerusform>
@@ -1127,27 +1058,12 @@
         </translation>
     </message>
     <message>
-        <location line="+114"/>
+        <location line="+112"/>
         <source>Transfer operation</source>
         <translation>איבערגעבונג־אָפּעראַציע</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>RUNNING</source>
-        <translation>לױפֿט</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>COMPLETE</source>
-        <translation>פֿאַרענדיקט</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>FAILED</source>
-        <translation>דורכגעפֿאַלן</translation>
-    </message>
-    <message>
-        <location line="+105"/>
+        <location line="+100"/>
         <source>working</source>
         <translation>אַרבעט</translation>
     </message>
@@ -1172,7 +1088,7 @@
         <translation>אָפּברעכן די אָפּעראַציע</translation>
     </message>
     <message>
-        <location line="-919"/>
+        <location line="-901"/>
         <source>Idle</source>
         <translation>אין רו</translation>
     </message>
@@ -1304,13 +1220,7 @@
         <translation>אַנולירן</translation>
     </message>
     <message>
-        <location line="+43"/>
-        <location line="+202"/>
-        <source>Choose the download directory</source>
-        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="-187"/>
+        <location line="+58"/>
         <source>Appearance</source>
         <translation>אויסזען</translation>
     </message>
@@ -1325,7 +1235,17 @@
         <translation>דאָס פֿענצטער פֿאָלגט דעם ליכטיקן אָדער טונקעלן סכעמע פֿון דעם דעסקטאָפּ. די שפּראַך װירקט גלײַך; אַלץ אַנדערש בײַם אָפּהיטן.</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="+33"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>צום בײַשפּיל: 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>צום בײַשפּיל: HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
         <translation>פֿאַר אַן אָפּעראַציע אָן אויסגעקליבענעם ציל, לאָזט לױפֿן FIND און נעמט דעם איינציקן ענטפֿער; אויב קײנער אָדער עטלעכע ענטפֿערן, װײַזט דאָס רעזולטאַט און װאַרט.</translation>
     </message>
@@ -1335,14 +1255,25 @@
         <translation>אַ סעט מוז דורכגײן דעם פּרוּף פֿאַר אַן אַרױפֿלאָד. װען דאָס איז אויסגעשאַלטן, ניצט &apos;איבערפּרוּפֿן&apos; אין דעם מעדיע־סעט־שטרײַף.</translation>
     </message>
     <message>
-        <location line="+80"/>
-        <source>Browse...</source>
-        <translation>בלעטערן...</translation>
+        <location line="+18"/>
+        <source>None</source>
+        <translation>קײנע</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <location line="+15"/>
+        <source>Download folder</source>
+        <translation>אַראָפּלאָד־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע...</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>The directory is where each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; directory is made.</source>
-        <translation>אין דער דאָזיקער פּאַפּקע װערט באַשאַפֿן יעדע פּאַפּקע DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt;.</translation>
+        <source>Each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; folder is made inside it.</source>
+        <translation>יעדע פּאַפּקע DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; װערט געמאַכט אינעם.</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -1360,34 +1291,26 @@
         <translation>ציל</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="-53"/>
+        <location line="+202"/>
+        <source>Choose the download folder</source>
+        <translation>אויסקלײַבן די אַראָפּלאָד־פּאַפּקע</translation>
+    </message>
+    <message>
+        <location line="-139"/>
         <source>Default address</source>
         <translation>פֿאַרויסבאַשטימטער אַדרעס</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+12"/>
         <source>Default target address</source>
         <translation>פֿאַרויסבאַשטימטער ציל־אַדרעס</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+12"/>
         <source>Default THW_ID_POS</source>
         <translation>פֿאַרויסבאַשטימטער THW_ID_POS</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>פֿאַרויסבאַשטימטער ציל־האַרדווער־אידענטיפֿיקאַטאָר און פּאָזיציע</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1410,12 +1333,7 @@
         <translation>לעצטער מעדיע־סעט</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>none</source>
-        <translation>קיינע</translation>
-    </message>
-    <message>
-        <location line="+15"/>
+        <location line="+23"/>
         <source>Loader</source>
         <translation>לאָודער</translation>
     </message>
@@ -1430,13 +1348,7 @@
         <translation>לאָודער־קאָנטראָל־פּאָרט</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <location line="+15"/>
-        <source>Download directory</source>
-        <translation>אַראָפּלאָד־פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="+25"/>
+        <location line="+45"/>
         <source>Log</source>
         <translation>לאָג</translation>
     </message>
@@ -1487,8 +1399,8 @@
     </message>
     <message>
         <location line="+23"/>
-        <source>Hardware identifier</source>
-        <translation>האַרדווער־אידענטיפֿיקאַטאָר</translation>
+        <source>Hardware ID</source>
+        <translation>האַרדװער־אידענטיפֿיקאַטאָר</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1496,22 +1408,22 @@
         <translation>סאָרט</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Position</source>
         <translation>פּאָזיציע</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Name</source>
         <translation>נאָמען</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Manufacturer code</source>
         <translation>פֿאַבריקאַנט־קאָד</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>No target was chosen from a FIND answer. The address and THW_ID_POS are the values typed in the rail.</source>
         <translation>קײן ציל איז ניט אויסגעקליבן געװאָרן פֿון אַן ענטפֿער אויף FIND. דער אַדרעס און THW_ID_POS זענען די װערטן װאָס זענען אַרײַנגעגעבן אין שטרײַף.</translation>
     </message>
@@ -1594,17 +1506,7 @@
         <translation>יעדע טעקע און איר פּרוּפֿ־װערט װערט געלייענט; אַן אַרױפֿלאָד דאַרף אַז דער פּרוּף זאָל דורכגײן.</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>A media set is a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation>אַ מעדיע־סעט איז אַ פּאַפּקע מיט איין פּאַפּקע פֿאַר יעדן מיטגליד. ער װערט געלייענט און געפּרוּפֿט פֿאַר אַן אַרױפֿלאָד.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Read the set again, or choose another directory.</source>
-        <translation>לייענט דעם סעט נאָך אַ מאָל, אָדער קלײַבט אויס אַן אַנדער פּאַפּקע.</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>The set has to be read again and checked before it may be uploaded.</source>
         <translation>דער סעט מוז װערן געלייענט נאָך אַ מאָל און געפּרוּפֿט איידער מען מעג אים אַרױפֿלאָדן.</translation>
     </message>
@@ -1638,23 +1540,8 @@
         <source>Upload %1 loads to %2</source>
         <translation>אַרױפֿלאָדן %1 לאַסטן צו %2</translation>
     </message>
-    <message>
-        <location line="+15"/>
-        <source>RUNNING</source>
-        <translation>לױפֿט</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation>גרײט</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation>ניט גרײט</translation>
-    </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+18"/>
         <location line="+43"/>
         <source>%n member(s)</source>
         <translation>
@@ -1671,16 +1558,26 @@
             <numerusform>%n לאַסטן</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="-85"/>
+        <source>Choose a folder</source>
+        <translation>אויסקלײַבן אַ פּאַפּקע</translation>
+    </message>
     <message numerus="yes">
-        <location line="-76"/>
+        <location line="+9"/>
         <source>%n warning(s) from the check</source>
         <translation>
             <numerusform>%n װאָרענונג פֿונעם פּרוּף</numerusform>
             <numerusform>%n װאָרענונגען פֿונעם פּרוּף</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+244"/>
+        <source>%1 · Target %2 · %3 · %4</source>
+        <translation>%1 · ציל %2 · %3 · %4</translation>
+    </message>
     <message numerus="yes">
-        <location line="+248"/>
+        <location line="+5"/>
         <source>%n load(s) ticked</source>
         <translation>
             <numerusform>%n לאַסט אָנגעצײכנט</numerusform>
@@ -1688,12 +1585,22 @@
         </translation>
     </message>
     <message>
-        <location line="-298"/>
+        <location line="-299"/>
         <source>No media set selected</source>
         <translation>קײן מעדיע־סעט ניט אויסגעקליבן</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="-83"/>
+        <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>אַ מעדיע־סעט איז אַ פּאַפּקע מיט איין פּאַפּקע פֿאַר יעדן מיטגליד. ער װערט געלייענט און געפּרוּװט פֿאַר אַן אַרױפֿלאָדן.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Read the set again, or choose another folder.</source>
+        <translation>לייענט איבער דעם סעט, אָדער קלײַבט אויס אַן אַנדערע פּאַפּקע.</translation>
+    </message>
+    <message>
+        <location line="+101"/>
         <source>Target</source>
         <translation>ציל</translation>
     </message>
@@ -1735,12 +1642,7 @@
         <translation>מעדיע־סעט</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Choose a directory</source>
-        <translation>אויסקלײַבן אַ פּאַפּקע</translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+11"/>
         <source>Loads</source>
         <translation>לאַסטן</translation>
     </message>
@@ -1811,12 +1713,7 @@
         <translation>פֿאַרענדיקט</translation>
     </message>
     <message>
-        <location line="+27"/>
-        <source>Target %1 · %2 · %3</source>
-        <translation>ציל %1 · %2 · %3</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+31"/>
         <source>no media set</source>
         <translation>קײן מעדיע־סעט</translation>
     </message>
@@ -2147,13 +2044,8 @@
         <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
         <translation>&quot;%1&quot; איז ניט קײן THW_ID_POS װאָס מען קען מאַכן אַן אַראָפּלאָדן פֿאַר.</translation>
     </message>
-    <message>
-        <location line="+71"/>
-        <source>Nothing was received, so the empty download directory %1 was removed.</source>
-        <translation>גאָרנישט איז ניט אָנגענומען געװאָרן, דעריבער איז די לײדיקע אַראָפּלאָד־פּאַפּקע %1 אַװעקגענומען געװאָרן.</translation>
-    </message>
     <message numerus="yes">
-        <location line="+54"/>
+        <location line="+125"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>פֿאַרענדיקט, %n טעקע דורכגעפֿאַלן</numerusform>
@@ -2195,12 +2087,7 @@
         <translation>מען פֿרעגט %1 (%2) נאָך די טעקעס וואָס ער קען אַראָפּלאָדן...</translation>
     </message>
     <message>
-        <location line="+28"/>
-        <source>The download directory could not be used: %1.</source>
-        <translation>מען האָט ניט געקענט ניצן די אַראָפּלאָד־פּאַפּקע: %1.</translation>
-    </message>
-    <message>
-        <location line="+71"/>
+        <location line="+99"/>
         <source>the request was refused (%1)</source>
         <translation>די בקשה איז אָפּגעווויזן געוואָרן (%1)</translation>
     </message>
@@ -2230,7 +2117,17 @@
         <translation>דער ציל האָט באַשטעטיקט אַז ער האָט זיך אָפּגעשטעלט.</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-128"/>
+        <source>The download folder could not be used: %1.</source>
+        <translation>מען האָט נישט געקענט באַניצן די אַראָפּלאָד־פּאַפּקע: %1.</translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>Nothing was received, so the empty download folder %1 was removed.</source>
+        <translation>גאָרנישט איז נישט אָנגענומען געװאָרן, דעריבער איז די ליידיקע אַראָפּלאָד־פּאַפּקע %1 אַװעקגענומען געװאָרן.</translation>
+    </message>
+    <message>
+        <location line="+73"/>
         <source>The target did not confirm that it stopped.</source>
         <translation>דער ציל האָט ניט באַשטעטיקט אַז ער האָט זיך אָפּגעשטעלט.</translation>
     </message>
@@ -2336,7 +2233,7 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+67"/>
+        <location filename="../core/src/loader_model.cpp" line="+68"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1, %2, אַלע פּרוּפֿ־װערטן באַשטעטיקט</translation>
     </message>
@@ -2416,12 +2313,12 @@
         </translation>
     </message>
     <message>
-        <location line="+313"/>
+        <location line="+318"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>קלײַבט אויס דעם ציל פֿון דער רשימה, און לויפֿט די אָפּעראַציע נאָך אַ מאָל.</translation>
     </message>
     <message>
-        <location line="-403"/>
+        <location line="-408"/>
         <source>No target is selected; looking for one first.</source>
         <translation>קיין ציל איז ניט אויסגעקליבן; מען זוכט קודם איינעם.</translation>
     </message>

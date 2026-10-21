@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtTest
 
 // Closing the loader's window. With a job running the window asks first: "Keep working" leaves
-// everything as it was; "Stop and close" asks the target to stop and closes when the job has
+// everything as it was; "Abort and close" asks the target to stop and closes when the job has
 // ended - or at once, when the job ended while the question was open (no busy change follows
 // then, so the window has to notice by itself). Every test makes a window of its own, because
 // closing one is the point.
@@ -110,7 +110,7 @@ TestCase {
         tryVerify(function() { return dialog.visible })
         const stop = dialog.standardButton(Dialog.Ok)
         verify(stop !== null)
-        compare(stop.text, "Stop and close")
+        compare(stop.text, "Abort and close")
         mouseClick(stop)
 
         // The abort was asked for; the window waits for the job to end before it goes.
@@ -124,7 +124,7 @@ TestCase {
         tryVerify(function() { return !window.visible }, 10000)
     }
 
-    // The job ended while the question was open: pressing "Stop and close" has nothing to stop,
+    // The job ended while the question was open: pressing "Abort and close" has nothing to stop,
     // and no change of the job's state is left to close the window - it has to close at once.
     function test_04_stop_and_close_after_the_job_ended_closes_at_once() {
         const window = newWindow()

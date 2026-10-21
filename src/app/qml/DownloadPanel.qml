@@ -28,7 +28,7 @@ Item {
     FolderDialog {
         id: destinationDialog
 
-        title: qsTr("Choose the download directory")
+        title: qsTr("Choose the download folder")
         onAccepted: root.app.downloadDirectory = selectedFolder
     }
 
@@ -80,15 +80,9 @@ Item {
                         Layout.fillWidth: true
                         spacing: Theme.space2
 
-                        StatusChip {
-                            text: root.app.busy ? qsTr("RUNNING")
-                                                : root.app.canDownload ? qsTr("READY") : qsTr("NOT READY")
-                            tone: root.app.busy ? "accent" : root.app.canDownload ? "ok" : "warn"
-                        }
-
                         Text {
                             Layout.fillWidth: true
-                            text: qsTr("Each download writes a new DNLD_DATA_<THW_ID_POS>_<n> directory.")
+                            text: qsTr("Each download writes a new DNLD_DATA_<THW_ID_POS>_<n> folder.")
                             color: Theme.textMuted
                             font.pixelSize: Theme.fontBody
                             elide: Text.ElideRight
@@ -254,6 +248,16 @@ Item {
                                     value: Math.max(0, nameRow.ratio)
                                     indeterminate: false
                                 }
+
+                                // Why this file failed, in words, under its bar.
+                                Text {
+                                    Layout.fillWidth: true
+                                    visible: nameRow.failed && nameRow.problem.length > 0
+                                    text: nameRow.problem
+                                    color: Theme.accentInk
+                                    font.pixelSize: Theme.fontSmall
+                                    wrapMode: Text.WordWrap
+                                }
                             }
                         }
                     }
@@ -363,6 +367,18 @@ Item {
                                     value: Math.max(0, choiceRow.ratio)
                                     indeterminate: false
                                 }
+
+                                // What happened to this file, and why when it failed.
+                                Text {
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 26
+                                    visible: choiceRow.ratio >= 0 || choiceRow.failed
+                                    text: Math.max(0, choiceRow.ratio) + "% " + choiceRow.fileStatus
+                                          + (choiceRow.problem.length > 0 ? ": " + choiceRow.problem : "")
+                                    color: choiceRow.failed ? Theme.accentInk : Theme.text
+                                    font.pixelSize: Theme.fontSmall
+                                    wrapMode: Text.WordWrap
+                                }
                             }
                         }
                     }
@@ -386,7 +402,7 @@ Item {
                         Text {
                             Layout.fillWidth: true
                             text: root.app.downloadDirectory.length > 0
-                                  ? root.app.downloadDirectory : qsTr("No download directory set")
+                                  ? root.app.downloadDirectory : qsTr("No download folder set")
                             color: Theme.text
                             font.pixelSize: Theme.fontSmall
                             font.family: Theme.monoFamily
@@ -394,17 +410,17 @@ Item {
                         }
 
                         AppButton {
-                            text: qsTr("Change...")
+                            text: qsTr("Choose folder...")
                             enabled: !root.app.busy
                             onClicked: destinationDialog.open()
-                            Accessible.name: qsTr("Choose the download directory")
+                            Accessible.name: qsTr("Choose the download folder")
                         }
 
                         AppButton {
                             visible: root.app.lastDownloadDirectory.length > 0
                             text: qsTr("Open folder")
                             onClicked: Qt.openUrlExternally(root.app.lastDownloadDirectory)
-                            Accessible.name: qsTr("Open the last download directory")
+                            Accessible.name: qsTr("Open the last download folder")
                         }
                     }
 
@@ -412,7 +428,7 @@ Item {
                         Layout.fillWidth: true
                         text: root.app.lastDownloadDirectory.length > 0
                               ? qsTr("The last download was written to %1.").arg(root.app.lastDownloadDirectory)
-                              : qsTr("A new numbered directory is made for every download, even one that is aborted.")
+                              : qsTr("A new numbered folder is made for every download, even one that is aborted.")
                         color: Theme.textMuted
                         font.pixelSize: Theme.fontSmall
                         wrapMode: Text.WordWrap
@@ -476,7 +492,7 @@ Item {
                             text: qsTr("Target %1 · %2")
                                   .arg(root.targetName)
                                   .arg(root.app.lastDownloadDirectory.length > 0
-                                       ? root.app.lastDownloadDirectory : qsTr("no directory"))
+                                       ? root.app.lastDownloadDirectory : qsTr("no folder"))
                             color: Theme.textMuted
                             font.pixelSize: Theme.fontSmall
                             font.family: Theme.monoFamily

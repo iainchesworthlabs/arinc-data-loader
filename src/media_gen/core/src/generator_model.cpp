@@ -320,7 +320,14 @@ void GeneratorModel::removeTargetHardwareId(int row) {
     setTargetHardwareIds(ids);
 }
 
-void GeneratorModel::refresh_validation() {
+void GeneratorModel::refresh_validation(bool edited) {
+    // The outcome describes the form as it was when it ran: once the operator changes the form,
+    // it no longer says what the window now holds.
+    if (edited && !busy_ && result_state_ != 0) {
+        output_path_.clear();
+        validation_findings_.clear();
+        set_result(0, {}, {});
+    }
     const QString load_error = check_text(
         load_part_number_, adl::arinc665::check_load_part_number(load_part_number_.toStdString()),
         tr("Enter the load part number, for example ACM47-1234-5678."));
@@ -359,11 +366,11 @@ void GeneratorModel::refresh_validation() {
 
     QString output_error;
     if (output_directory_.isEmpty()) {
-        output_error = tr("Choose an output directory.");
+        output_error = tr("Choose an output folder.");
     } else {
         const QFileInfo directory(output_directory_);
         if (!directory.exists() || !directory.isDir()) {
-            output_error = tr("The output directory does not exist.");
+            output_error = tr("The output folder does not exist.");
         }
     }
 
@@ -407,7 +414,7 @@ void GeneratorModel::on_finished(const GenerateOutcome& outcome) {
     output_path_ = outcome.output_path;
     validation_findings_ = outcome.findings;
     Q_EMIT resultChanged();
-    refresh_validation();
+    refresh_validation(false);
 }
 
 void GeneratorModel::retranslate() {

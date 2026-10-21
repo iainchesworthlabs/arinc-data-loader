@@ -18,7 +18,7 @@ changes at once, see [Languages and colour](languages-and-colour.md).)
 | **Check the media set as soon as it is chosen** | on | A media set has to pass the check before an upload. With this off, press **Re-check** in the media set block |
 | **Last media set** | (shown, read-only) | The folder chosen last time. It is opened again quietly when the loader starts |
 | **Control port** | 59 | The UDP port the loader answers the target on during an operation (1 to 65535). The standard says 59. **If the target runs on the same computer as the loader, change it**, for example to 5900, because the target already uses 59. Any value but 59 is sent to the target as an option in the request, so a target that follows the standard moves its file traffic to that port |
-| **Download directory** | `Documents/ArincDownloads` | The folder in which each download makes its own `DNLD_DATA_<THW_ID_POS>_<number>` folder. **Browse...** chooses it. It is made if it does not exist |
+| **Download folder** | `Documents/ArincDownloads` | The folder in which each download makes its own `DNLD_DATA_<THW_ID_POS>_<number>` folder. **Choose folder...** picks it. It is made if it does not exist |
 | **Activity lines kept** | 2000 | How many lines the [activity log](log-and-receipt.md#the-activity-log) keeps (100 to 1 000 000). The oldest go first |
 
 The loader also remembers, without asking, the **last target** an operation was started against
@@ -45,7 +45,7 @@ read the set:
 
 **Properties...** in the target block shows what the loader knows about the target: the address and
 `THW_ID_POS` that are set, and, if the target was chosen from a FIND answer, everything it said:
-the address, hardware identifier, type, position, name and manufacturer code. If you typed the
+the address, hardware ID, type, position, name and manufacturer code. If you typed the
 target by hand, the page says that no FIND answer was used.
 
 ![Target properties](../images/app-target-properties.png)
@@ -70,10 +70,10 @@ The generator and the mock target have the same About box.
 ## Dialogs that ask or tell
 
 - **An operation is running.** Closing the window while a job runs asks first: **Keep working** or
-  **Stop and close**. The second asks the target to stop and waits for it to confirm, which can
+  **Abort and close**. The second asks the target to abort and waits for it to confirm, which can
   take up to 13 seconds; the window stays open until then.
 - **The operation failed.** Every failed operation opens one dialog with what happened, the detail,
   and, where the loader knows one, what you can do about it. See
   [The log, the receipt and failures](log-and-receipt.md#failures).
-- **Choose a directory** (the media set, the download directory) is the system's own folder
+- **Choose folder...** (the media set, the download folder) is the system's own folder
   chooser.

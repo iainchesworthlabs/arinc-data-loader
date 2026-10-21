@@ -2,50 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="fr">
 <context>
-    <name>AboutDialog</name>
-    <message>
-        <location filename="../qml/AboutDialog.qml" line="+14"/>
-        <source>ARINC Data Loader %1</source>
-        <translation>ARINC Data Loader %1</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>About ARINC Data Loader</source>
-        <translation>À propos d&apos;ARINC Data Loader</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Close</source>
-        <translation>Fermer</translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
-        <translation>Une console de chargement d’ingénierie ARINC 615A et ARINC 665&#xa0;: jeux de supports, cibles, opérations Information, Téléversement et Téléchargement, et la preuve de ce qui s’est passé.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Version</source>
-        <translation>Version</translation>
-    </message>
-    <message>
-        <location line="+30"/>
-        <source>Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.</source>
-        <translation>Les composants tiers - Qt (LGPL 3), la police Archivo (SIL Open Font License 1.1) et d’autres - sont répertoriés, avec leurs licences, sous Licences.</translation>
-    </message>
-    <message>
-        <location line="-55"/>
-        <location line="+39"/>
-        <source>Licences</source>
-        <translation>Licences</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</source>
-        <translation>Logiciel libre sous licence GNU General Public License, version 3 ou ultérieure. Il est distribué SANS AUCUNE GARANTIE&#xa0;; voir la &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</translation>
-    </message>
-</context>
-<context>
     <name>ActivityDock</name>
     <message>
         <location filename="../qml/ActivityDock.qml" line="+33"/>
@@ -147,7 +103,7 @@
 <context>
     <name>DownloadPanel</name>
     <message>
-        <location filename="../qml/DownloadPanel.qml" line="+121"/>
+        <location filename="../qml/DownloadPanel.qml" line="+115"/>
         <source>Media defined</source>
         <translation>Défini par le média</translation>
     </message>
@@ -185,7 +141,7 @@
         <translation>Ajouter le nom du fichier au téléchargement</translation>
     </message>
     <message numerus="yes">
-        <location line="+92"/>
+        <location line="+102"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
         <translation>
@@ -224,23 +180,17 @@
         <translation>Télécharger %1</translation>
     </message>
     <message>
-        <location line="-110"/>
+        <location line="-120"/>
         <source>Remove</source>
         <translation>Retirer</translation>
     </message>
     <message>
-        <location line="-218"/>
+        <location line="-212"/>
         <source>no target</source>
         <translation>aucune cible</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <location line="+369"/>
-        <source>Choose the download directory</source>
-        <translation>Choisir le répertoire de téléchargement</translation>
-    </message>
-    <message>
-        <location line="-339"/>
+        <location line="+43"/>
         <source>THE DOWNLOAD</source>
         <translation>LE TÉLÉCHARGEMENT</translation>
     </message>
@@ -250,24 +200,15 @@
         <translation>Téléchargement depuis %1</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>RUNNING</source>
-        <translation>EN COURS</translation>
+        <location line="-40"/>
+        <location line="+385"/>
+        <source>Choose the download folder</source>
+        <translation>Choisir le dossier de téléchargement</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation>PRÊT</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation>NON PRÊT</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; directory.</source>
-        <translation>Chaque téléchargement écrit un nouveau répertoire DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;.</translation>
+        <location line="-331"/>
+        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; folder.</source>
+        <translation>Chaque téléchargement écrit un nouveau dossier DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;.</translation>
     </message>
     <message>
         <location line="+20"/>
@@ -320,7 +261,7 @@
         <translation>Retirer %1 du téléchargement</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+41"/>
         <source>The target&apos;s list</source>
         <translation>Liste de la cible</translation>
     </message>
@@ -330,7 +271,7 @@
         <translation>Démarrer le téléchargement&#xa0;: la cible envoie sa liste, cochez ce qu’il faut récupérer et renvoyez le choix.</translation>
     </message>
     <message>
-        <location line="+97"/>
+        <location line="+109"/>
         <source>Destination</source>
         <translation>Destination</translation>
     </message>
@@ -346,37 +287,42 @@
     </message>
     <message>
         <location line="+10"/>
-        <source>No download directory set</source>
-        <translation>Aucun répertoire de téléchargement défini</translation>
+        <source>No download folder set</source>
+        <translation>Aucun dossier de téléchargement défini</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>Change...</source>
-        <translation>Modifier...</translation>
+        <source>Choose folder...</source>
+        <translation>Choisir un dossier...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Open the last download folder</source>
+        <translation>Ouvrir le dernier dossier de téléchargement</translation>
     </message>
     <message>
         <location line="+8"/>
+        <source>A new numbered folder is made for every download, even one that is aborted.</source>
+        <translation>Un nouveau dossier numéroté est créé pour chaque téléchargement, même abandonné.</translation>
+    </message>
+    <message>
+        <location line="+64"/>
+        <source>no folder</source>
+        <translation>aucun dossier</translation>
+    </message>
+    <message>
+        <location line="-74"/>
         <location line="+55"/>
         <source>Open folder</source>
         <translation>Ouvrir le dossier</translation>
     </message>
     <message>
-        <location line="-53"/>
-        <source>Open the last download directory</source>
-        <translation>Ouvrir le dernier répertoire de téléchargement</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location line="-46"/>
         <source>The last download was written to %1.</source>
         <translation>Le dernier téléchargement a été écrit dans %1.</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>A new numbered directory is made for every download, even one that is aborted.</source>
-        <translation>Un nouveau répertoire numéroté est créé pour chaque téléchargement, même s’il est abandonné.</translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+30"/>
         <source>COMPLETE</source>
         <translation>TERMINÉ</translation>
     </message>
@@ -395,22 +341,11 @@
         <source>Target %1 · %2</source>
         <translation>Cible %1 · %2</translation>
     </message>
-    <message>
-        <location line="+3"/>
-        <source>no directory</source>
-        <translation>aucun répertoire</translation>
-    </message>
 </context>
 <context>
     <name>FirstRunScreen</name>
     <message>
-        <location filename="../qml/FirstRunScreen.qml" line="+22"/>
-        <location line="+176"/>
-        <source>Choose the download directory</source>
-        <translation>Choisir le répertoire de téléchargement</translation>
-    </message>
-    <message>
-        <location line="-161"/>
+        <location filename="../qml/FirstRunScreen.qml" line="+37"/>
         <source>FIRST RUN</source>
         <translation>PREMIÈRE UTILISATION</translation>
     </message>
@@ -445,12 +380,7 @@
         <translation>Ouvre ensemble le sélecteur de jeu de supports et l’espace de travail</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Start loading opens the workbench with these defaults. A media set can be chosen there, or here.</source>
-        <translation>«&#xa0;Commencer le chargement&#xa0;» ouvre l’espace de travail avec ces valeurs par défaut. Un jeu de supports peut y être choisi, ou ici.</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+28"/>
         <source>Defaults</source>
         <translation>Valeurs par défaut</translation>
     </message>
@@ -485,43 +415,18 @@
         <translation>Adresse par défaut</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+11"/>
         <source>Default target address</source>
         <translation>Adresse de cible par défaut</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+11"/>
         <source>Default THW_ID_POS</source>
         <translation>THW_ID_POS par défaut</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>Identifiant matériel et position de la cible par défaut</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <location line="+14"/>
-        <source>Download directory</source>
-        <translation>Répertoire de téléchargement</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Browse...</source>
-        <translation>Parcourir...</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+44"/>
         <source>WHAT THIS WINDOW DOES</source>
         <translation>CE QUE FAIT CETTE FENÊTRE</translation>
     </message>
@@ -531,9 +436,41 @@
         <translation>Choisir un jeu de supports</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>A directory with one directory per member. Its loads, files and findings are read and checked.</source>
-        <translation>Un répertoire contenant un répertoire par membre. Ses chargements, ses fichiers et ses constats sont lus et vérifiés.</translation>
+        <location line="-227"/>
+        <location line="+176"/>
+        <source>Choose the download folder</source>
+        <translation>Choisir le dossier de téléchargement</translation>
+    </message>
+    <message>
+        <location line="-107"/>
+        <source>Start loading opens the workbench. The default address and THW_ID_POS start empty, and downloads go to the folder shown under Defaults; set them there or later in Preferences. A media set can be chosen there, or here.</source>
+        <translation>«&#xa0;Démarrer le chargement&#xa0;» ouvre l’espace de travail. L’adresse par défaut et le THW_ID_POS sont d’abord vides, et les téléchargements vont dans le dossier indiqué sous Valeurs par défaut&#xa0;; définissez-les là ou plus tard dans les préférences. Un jeu de supports peut être choisi là ou ici.</translation>
+    </message>
+    <message>
+        <location line="+65"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>p. ex. 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>p. ex. HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <location line="+14"/>
+        <source>Download folder</source>
+        <translation>Dossier de téléchargement</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>Choisir un dossier...</translation>
+    </message>
+    <message>
+        <location line="+63"/>
+        <source>A folder with one folder per member. Its loads, files and findings are read and checked.</source>
+        <translation>Un dossier contenant un dossier par membre. Ses chargements, fichiers et constats sont lus et vérifiés.</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -604,12 +541,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-67"/>
-        <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
-        <translation>Choisissez le répertoire dans lequel le jeu de supports a été écrit et assurez-vous que tous les fichiers du jeu s’y trouvent toujours.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-60"/>
         <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
         <translation>Un élément du jeu de supports a été modifié, remplacé ou supprimé après sa vérification&#xa0;; rien n’a donc été téléversé. Vérifiez à nouveau le jeu de supports, puis téléversez.</translation>
     </message>
@@ -624,9 +556,14 @@
         <translation>Saisissez l’adresse IPv4 de la cible sous la forme de quatre nombres de 0 à 255 séparés par des points, par exemple 10.0.0.2.</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
-        <translation>Choisissez un répertoire de téléchargement existant ou pouvant être créé, et assurez-vous qu’il est accessible en écriture (Préférences).</translation>
+        <location line="-21"/>
+        <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
+        <translation>Choisissez le dossier dans lequel le jeu de supports a été écrit et assurez-vous que tous les fichiers du jeu s’y trouvent toujours.</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
+        <translation>Choisissez un dossier de téléchargement existant ou pouvant être créé, et assurez-vous qu’il est accessible en écriture (Préférences).</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -724,28 +661,38 @@
     <message>
         <location filename="../qml/Main.qml" line="+50"/>
         <location line="+58"/>
+        <location line="+129"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
-        <location line="+92"/>
-        <location line="+406"/>
-        <source>Choose the media set directory</source>
-        <translation>Choisir le répertoire du jeu de média</translation>
-    </message>
-    <message>
-        <location line="-324"/>
+        <location line="+47"/>
         <source>The operation failed</source>
         <translation>L&apos;opération a échoué</translation>
     </message>
     <message>
-        <location line="+258"/>
-        <location line="+128"/>
+        <location line="+141"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>p. ex. 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>p. ex. HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Target THW_ID_POS</source>
+        <translation>THW_ID_POS de la cible</translation>
+    </message>
+    <message>
+        <location line="+94"/>
+        <location line="+127"/>
         <source>Properties...</source>
         <translation>Propriétés...</translation>
     </message>
     <message>
-        <location line="-118"/>
+        <location line="-117"/>
         <source>Ready to address.</source>
         <translation>Prêt à adresser.</translation>
     </message>
@@ -785,27 +732,12 @@
         <translation>NON VÉRIFIÉ</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>Choose...</source>
-        <translation>Choisir...</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Change...</source>
-        <translation>Modifier...</translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="+24"/>
         <source>No media set chosen</source>
         <translation>Aucun jeu de supports choisi</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Choose a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation>Choisissez un répertoire contenant un répertoire par membre. Il est lu et vérifié avant un téléversement.</translation>
-    </message>
-    <message>
-        <location line="+46"/>
+        <location line="+47"/>
         <source>Re-check</source>
         <translation>Revérifier</translation>
     </message>
@@ -830,12 +762,12 @@
         <translation>Téléverser le chargement %1</translation>
     </message>
     <message>
-        <location line="-345"/>
+        <location line="-344"/>
         <source>Find targets</source>
         <translation>Rechercher les cibles</translation>
     </message>
     <message>
-        <location line="-377"/>
+        <location line="-379"/>
         <source>WORKING</source>
         <translation>EN TRAITEMENT</translation>
     </message>
@@ -846,18 +778,16 @@
     </message>
     <message>
         <location line="+2"/>
-        <location line="+888"/>
         <source>READY</source>
         <translation>PRÊT</translation>
     </message>
     <message>
-        <location line="-888"/>
-        <location line="+888"/>
+        <location line="+0"/>
         <source>NOT READY</source>
         <translation>NON PRÊT</translation>
     </message>
     <message>
-        <location line="-874"/>
+        <location line="+14"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
         <translation>Le téléversement nécessite un jeu de supports vérifié, au moins un chargement coché et une cible.</translation>
     </message>
@@ -913,7 +843,13 @@
         <translation>v%1</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+10"/>
+        <location line="+407"/>
+        <source>Choose the media set folder</source>
+        <translation>Choisir le dossier du jeu de supports</translation>
+    </message>
+    <message>
+        <location line="-387"/>
         <source>Media set properties</source>
         <translation>Propriétés du jeu de supports</translation>
     </message>
@@ -923,32 +859,17 @@
         <translation>Propriétés de la cible</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>About ARINC Data Loader</source>
-        <translation>À propos d’ARINC Data Loader</translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+22"/>
         <source>An operation is running</source>
         <translation>Une opération est en cours</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Stop and close</source>
-        <translation>Arrêter et fermer</translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Keep working</source>
         <translation>Continuer à travailler</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
-        <translation>La fermeture demande maintenant à la cible de s’arrêter. La cible peut mettre jusqu’à 13 secondes à confirmer, et la fenêtre restera ouverte jusque-là.</translation>
-    </message>
-    <message>
-        <location line="+26"/>
+        <location line="+33"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -978,12 +899,7 @@
         <translation>ADRESSE</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+15"/>
         <source>Target address</source>
         <translation>Adresse de cible</translation>
     </message>
@@ -993,17 +909,7 @@
         <translation>THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Target hardware identifier and position</source>
-        <translation>Identifiant matériel et position de la cible</translation>
-    </message>
-    <message>
-        <location line="+10"/>
+        <location line="+25"/>
         <source>FOUND</source>
         <translation>TROUVÉES</translation>
     </message>
@@ -1017,8 +923,18 @@
         <source>Show the target properties</source>
         <translation>Afficher les propriétés de la cible</translation>
     </message>
+    <message>
+        <location line="+58"/>
+        <source>Choose folder...</source>
+        <translation>Choisir un dossier...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Choose a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>Choisissez un dossier contenant un dossier par membre. Il est lu et vérifié avant un téléversement.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+89"/>
+        <location line="+20"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n membre</numerusform>
@@ -1074,12 +990,12 @@
         <translation>Chaque fichier et chaque valeur de contrôle a été lu et vérifié.</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+44"/>
         <source>TRANSFER</source>
         <translation>TRANSFERT</translation>
     </message>
     <message>
-        <location line="+164"/>
+        <location line="+147"/>
         <source>Downloading...</source>
         <translation>Téléchargement en cours...</translation>
     </message>
@@ -1089,8 +1005,8 @@
         <translation>Télécharger depuis la cible</translation>
     </message>
     <message>
-        <location line="-157"/>
-        <location line="+154"/>
+        <location line="-140"/>
+        <location line="+137"/>
         <source>Download</source>
         <translation>Télécharger</translation>
     </message>
@@ -1105,21 +1021,36 @@
         <translation>Lire les informations de la cible</translation>
     </message>
     <message>
-        <location line="-138"/>
-        <location line="+145"/>
+        <location line="-121"/>
+        <location line="+128"/>
         <source>Upload</source>
         <translation>Téléverser</translation>
     </message>
     <message numerus="yes">
-        <location line="-1001"/>
+        <location line="-983"/>
         <source>Ready: %n load(s) to %1</source>
         <translation>
             <numerusform>Prêt&#xa0;: %n chargement vers %1</numerusform>
             <numerusform>Prêt&#xa0;: %n chargements vers %1</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+197"/>
+        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
+        <translation>Une console de chargement d’ingénierie ARINC 615A et ARINC 665&#xa0;: jeux de supports, cibles, opérations Information, Téléversement et Téléchargement, et la preuve de ce qui s’est passé.</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Abort and close</source>
+        <translation>Abandonner et fermer</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Closing now aborts the operation: the target is asked to stop and may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
+        <translation>Fermer maintenant abandonne l’opération&#xa0;: la cible est invitée à s’arrêter et peut mettre jusqu’à 13 secondes à le confirmer, et la fenêtre reste ouverte jusque-là.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+748"/>
+        <location line="+531"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n AVERTISSEMENT</numerusform>
@@ -1127,27 +1058,12 @@
         </translation>
     </message>
     <message>
-        <location line="+114"/>
+        <location line="+112"/>
         <source>Transfer operation</source>
         <translation>Opération de transfert</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>RUNNING</source>
-        <translation>EN COURS</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>COMPLETE</source>
-        <translation>TERMINÉ</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>FAILED</source>
-        <translation>ÉCHEC</translation>
-    </message>
-    <message>
-        <location line="+105"/>
+        <location line="+100"/>
         <source>working</source>
         <translation>en traitement</translation>
     </message>
@@ -1172,7 +1088,7 @@
         <translation>Abandonner l&apos;opération</translation>
     </message>
     <message>
-        <location line="-919"/>
+        <location line="-901"/>
         <source>Idle</source>
         <translation>Inactif</translation>
     </message>
@@ -1304,13 +1220,7 @@
         <translation>Annuler</translation>
     </message>
     <message>
-        <location line="+43"/>
-        <location line="+202"/>
-        <source>Choose the download directory</source>
-        <translation>Choisir le répertoire de téléchargement</translation>
-    </message>
-    <message>
-        <location line="-187"/>
+        <location line="+58"/>
         <source>Appearance</source>
         <translation>Apparence</translation>
     </message>
@@ -1325,7 +1235,17 @@
         <translation>La fenêtre suit le thème clair ou sombre du bureau. La langue s’applique immédiatement&#xa0;; tout le reste à l’enregistrement.</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="+33"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>p. ex. 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>p. ex. HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
         <translation>Avant une opération sans cible choisie, lancer FIND et retenir la seule réponse&#xa0;; si aucune ou plusieurs cibles répondent, afficher le résultat et attendre.</translation>
     </message>
@@ -1335,14 +1255,25 @@
         <translation>Un jeu doit réussir la vérification avant un téléversement. Désactivé, utilisez «&#xa0;Revérifier&#xa0;» dans le volet du jeu de supports.</translation>
     </message>
     <message>
-        <location line="+80"/>
-        <source>Browse...</source>
-        <translation>Parcourir...</translation>
+        <location line="+18"/>
+        <source>None</source>
+        <translation>Aucun</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <location line="+15"/>
+        <source>Download folder</source>
+        <translation>Dossier de téléchargement</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>Choisir un dossier...</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>The directory is where each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; directory is made.</source>
-        <translation>Le répertoire est celui où chaque répertoire DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; est créé.</translation>
+        <source>Each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; folder is made inside it.</source>
+        <translation>Chaque dossier DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; est créé à l’intérieur.</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -1360,34 +1291,26 @@
         <translation>Cible</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="-53"/>
+        <location line="+202"/>
+        <source>Choose the download folder</source>
+        <translation>Choisir le dossier de téléchargement</translation>
+    </message>
+    <message>
+        <location line="-139"/>
         <source>Default address</source>
         <translation>Adresse par défaut</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+12"/>
         <source>Default target address</source>
         <translation>Adresse de cible par défaut</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+12"/>
         <source>Default THW_ID_POS</source>
         <translation>THW_ID_POS par défaut</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>Identifiant matériel et position de la cible par défaut</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1410,12 +1333,7 @@
         <translation>Dernier jeu de média</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>none</source>
-        <translation>aucun</translation>
-    </message>
-    <message>
-        <location line="+15"/>
+        <location line="+23"/>
         <source>Loader</source>
         <translation>Chargeur</translation>
     </message>
@@ -1430,13 +1348,7 @@
         <translation>Port de contrôle du chargeur</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <location line="+15"/>
-        <source>Download directory</source>
-        <translation>Répertoire de téléchargement</translation>
-    </message>
-    <message>
-        <location line="+25"/>
+        <location line="+45"/>
         <source>Log</source>
         <translation>Journal</translation>
     </message>
@@ -1487,8 +1399,8 @@
     </message>
     <message>
         <location line="+23"/>
-        <source>Hardware identifier</source>
-        <translation>Identifiant matériel</translation>
+        <source>Hardware ID</source>
+        <translation>ID matériel</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1496,22 +1408,22 @@
         <translation>Type</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Position</source>
         <translation>Position</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Manufacturer code</source>
         <translation>Code constructeur</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>No target was chosen from a FIND answer. The address and THW_ID_POS are the values typed in the rail.</source>
         <translation>Aucune cible n’a été choisie à partir d’une réponse FIND. L’adresse et THW_ID_POS sont les valeurs saisies dans le volet.</translation>
     </message>
@@ -1594,17 +1506,7 @@
         <translation>Chaque fichier et sa valeur de contrôle sont en cours de lecture&#xa0;; un téléversement exige que la vérification réussisse.</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>A media set is a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation>Un jeu de supports est un répertoire contenant un répertoire par membre. Il est lu et vérifié avant un téléversement.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Read the set again, or choose another directory.</source>
-        <translation>Relisez le jeu, ou choisissez un autre répertoire.</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>The set has to be read again and checked before it may be uploaded.</source>
         <translation>Le jeu doit être relu et vérifié avant de pouvoir être téléversé.</translation>
     </message>
@@ -1638,23 +1540,8 @@
         <source>Upload %1 loads to %2</source>
         <translation>Téléverser %1 chargements vers %2</translation>
     </message>
-    <message>
-        <location line="+15"/>
-        <source>RUNNING</source>
-        <translation>EN COURS</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation>PRÊT</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation>NON PRÊT</translation>
-    </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+18"/>
         <location line="+43"/>
         <source>%n member(s)</source>
         <translation>
@@ -1671,16 +1558,26 @@
             <numerusform>%n chargements</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="-85"/>
+        <source>Choose a folder</source>
+        <translation>Choisir un dossier</translation>
+    </message>
     <message numerus="yes">
-        <location line="-76"/>
+        <location line="+9"/>
         <source>%n warning(s) from the check</source>
         <translation>
             <numerusform>%n avertissement de la vérification</numerusform>
             <numerusform>%n avertissements de la vérification</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+244"/>
+        <source>%1 · Target %2 · %3 · %4</source>
+        <translation>%1 · Cible %2 · %3 · %4</translation>
+    </message>
     <message numerus="yes">
-        <location line="+248"/>
+        <location line="+5"/>
         <source>%n load(s) ticked</source>
         <translation>
             <numerusform>%n chargement coché</numerusform>
@@ -1688,12 +1585,22 @@
         </translation>
     </message>
     <message>
-        <location line="-298"/>
+        <location line="-299"/>
         <source>No media set selected</source>
         <translation>Aucun jeu de supports sélectionné</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="-83"/>
+        <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>Un jeu de supports est un dossier contenant un dossier par membre. Il est lu et vérifié avant un téléversement.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Read the set again, or choose another folder.</source>
+        <translation>Relisez le jeu ou choisissez un autre dossier.</translation>
+    </message>
+    <message>
+        <location line="+101"/>
         <source>Target</source>
         <translation>Cible</translation>
     </message>
@@ -1735,12 +1642,7 @@
         <translation>Jeu de supports</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Choose a directory</source>
-        <translation>Choisir un répertoire</translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+11"/>
         <source>Loads</source>
         <translation>Chargements</translation>
     </message>
@@ -1811,12 +1713,7 @@
         <translation>TERMINÉ</translation>
     </message>
     <message>
-        <location line="+27"/>
-        <source>Target %1 · %2 · %3</source>
-        <translation>Cible %1 · %2 · %3</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+31"/>
         <source>no media set</source>
         <translation>aucun jeu de supports</translation>
     </message>
@@ -2147,13 +2044,8 @@
         <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
         <translation>«&#xa0;%1&#xa0;» n’est pas un THW_ID_POS pour lequel un téléchargement peut être effectué.</translation>
     </message>
-    <message>
-        <location line="+71"/>
-        <source>Nothing was received, so the empty download directory %1 was removed.</source>
-        <translation>Rien n’a été reçu&#xa0;; le répertoire de téléchargement vide %1 a donc été supprimé.</translation>
-    </message>
     <message numerus="yes">
-        <location line="+54"/>
+        <location line="+125"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>terminé, %n fichier en échec</numerusform>
@@ -2195,12 +2087,7 @@
         <translation>Demande à %1 (%2) des fichiers qu&apos;elle peut télécharger...</translation>
     </message>
     <message>
-        <location line="+28"/>
-        <source>The download directory could not be used: %1.</source>
-        <translation>Le répertoire de téléchargement n&apos;a pas pu être utilisé : %1.</translation>
-    </message>
-    <message>
-        <location line="+71"/>
+        <location line="+99"/>
         <source>the request was refused (%1)</source>
         <translation>la requête a été refusée (%1)</translation>
     </message>
@@ -2230,7 +2117,17 @@
         <translation>La cible a confirmé son arrêt.</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-128"/>
+        <source>The download folder could not be used: %1.</source>
+        <translation>Le dossier de téléchargement n’a pas pu être utilisé&#xa0;: %1.</translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>Nothing was received, so the empty download folder %1 was removed.</source>
+        <translation>Rien n’a été reçu&#xa0;; le dossier de téléchargement vide %1 a donc été supprimé.</translation>
+    </message>
+    <message>
+        <location line="+73"/>
         <source>The target did not confirm that it stopped.</source>
         <translation>La cible n&apos;a pas confirmé son arrêt.</translation>
     </message>
@@ -2336,7 +2233,7 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+67"/>
+        <location filename="../core/src/loader_model.cpp" line="+68"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1, %2, toutes les valeurs de contrôle vérifiées</translation>
     </message>
@@ -2416,12 +2313,12 @@
         </translation>
     </message>
     <message>
-        <location line="+313"/>
+        <location line="+318"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>Choisissez la cible dans la liste, puis relancez l&apos;opération.</translation>
     </message>
     <message>
-        <location line="-403"/>
+        <location line="-408"/>
         <source>No target is selected; looking for one first.</source>
         <translation>Aucune cible n&apos;est sélectionnée ; recherche préalable d&apos;une cible.</translation>
     </message>

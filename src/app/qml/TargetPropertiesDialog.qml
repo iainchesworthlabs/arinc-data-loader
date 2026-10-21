@@ -82,7 +82,7 @@ AppDialog {
                     font.pixelSize: Theme.fontBody
                     font.family: Theme.monoFamily
                 }
-                Text { text: qsTr("Hardware identifier"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
+                Text { text: qsTr("Hardware ID"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
                 Text {
                     Layout.fillWidth: true
                     text: dialog.app.selectedTargetHardwareId
@@ -91,16 +91,35 @@ AppDialog {
                     font.family: Theme.monoFamily
                 }
                 Text { text: qsTr("Type"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
-                Text { Layout.fillWidth: true; text: dialog.app.selectedTargetTypeName; color: Theme.text }
+                Text {
+                    Layout.fillWidth: true
+                    text: dialog.app.selectedTargetTypeName
+                    color: Theme.text
+                    font.pixelSize: Theme.fontBody
+                    font.family: Theme.monoFamily
+                }
                 Text { text: qsTr("Position"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
-                Text { Layout.fillWidth: true; text: dialog.app.selectedTargetPosition; color: Theme.text }
+                Text {
+                    Layout.fillWidth: true
+                    text: dialog.app.selectedTargetPosition
+                    color: Theme.text
+                    font.pixelSize: Theme.fontBody
+                    font.family: Theme.monoFamily
+                }
                 Text { text: qsTr("Name"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
-                Text { Layout.fillWidth: true; text: dialog.app.selectedTargetLiteralName; color: Theme.text }
+                Text {
+                    Layout.fillWidth: true
+                    text: dialog.app.selectedTargetLiteralName
+                    color: Theme.text
+                    font.pixelSize: Theme.fontBody
+                    font.family: Theme.monoFamily
+                }
                 Text { text: qsTr("Manufacturer code"); color: Theme.textMuted; font.pixelSize: Theme.fontSmall }
                 Text {
                     Layout.fillWidth: true
                     text: dialog.app.selectedTargetManufacturer
                     color: Theme.text
+                    font.pixelSize: Theme.fontBody
                     font.family: Theme.monoFamily
                 }
             }

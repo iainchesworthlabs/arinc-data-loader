@@ -82,6 +82,10 @@ class LoaderModel : public QObject {
     Q_PROPERTY(bool resultWasDownload READ resultWasDownload NOTIFY resultChanged)
     Q_PROPERTY(QString resultText READ resultText NOTIFY resultChanged)
     Q_PROPERTY(QString resultDetail READ resultDetail NOTIFY resultChanged)
+    // What the receipt records of the operation itself: how many loads were ticked when it
+    // started (the ticks may change afterwards) and when it ended, as local "yyyy-MM-dd HH:mm:ss".
+    Q_PROPERTY(int resultLoadCount READ resultLoadCount NOTIFY resultChanged)
+    Q_PROPERTY(QString resultTime READ resultTime NOTIFY resultChanged)
     // A failed job, for the window's error dialog: what happened, what it means, and what the
     // operator can do (when the application knows). Set on every failure, one dialog per
     // failure; `dismissError` acknowledges it.
@@ -181,6 +185,8 @@ public:
     [[nodiscard]] bool resultWasDownload() const noexcept { return result_was_download_; }
     [[nodiscard]] QString resultText() const { return result_text_.text(); }
     [[nodiscard]] QString resultDetail() const { return result_detail_.text(); }
+    [[nodiscard]] int resultLoadCount() const noexcept { return result_load_count_; }
+    [[nodiscard]] QString resultTime() const { return result_time_; }
     [[nodiscard]] QString lastErrorText() const { return last_error_text_.text(); }
     [[nodiscard]] QString lastErrorDetail() const { return last_error_detail_.text(); }
     [[nodiscard]] QString lastErrorHint() const { return last_error_hint_.text(); }
@@ -367,6 +373,9 @@ private:
     bool result_was_download_ = false;
     Message result_text_;
     Message result_detail_;
+    int job_load_count_ = 0;  // the ticked loads when the running job started
+    int result_load_count_ = 0;
+    QString result_time_;
     Message last_error_text_;
     Message last_error_detail_;
     Message last_error_hint_;

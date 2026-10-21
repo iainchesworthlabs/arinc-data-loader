@@ -34,7 +34,6 @@ set(ADL_APP_QML_FILES
     qml/PreferencesDialog.qml
     qml/MediaSetPropertiesDialog.qml
     qml/TargetPropertiesDialog.qml
-    qml/AboutDialog.qml
     ${ADL_UI_QML_FILES})
 
 adl_prepare_ui_qml()
@@ -74,8 +73,7 @@ adl_add_app_translations(adl_app_qml adl_app
         qml/FirstRunScreen.qml
         qml/PreferencesDialog.qml
         qml/MediaSetPropertiesDialog.qml
-        qml/TargetPropertiesDialog.qml
-        qml/AboutDialog.qml)
+        qml/TargetPropertiesDialog.qml)
 
 target_compile_features(adl_app PRIVATE cxx_std_23)
 target_link_libraries(adl_app

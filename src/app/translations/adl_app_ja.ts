@@ -2,50 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ja">
 <context>
-    <name>AboutDialog</name>
-    <message>
-        <location filename="../qml/AboutDialog.qml" line="+14"/>
-        <source>ARINC Data Loader %1</source>
-        <translation>ARINCデータローダー %1</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>About ARINC Data Loader</source>
-        <translation>ARINC Data Loader について</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Close</source>
-        <translation>閉じる</translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
-        <translation>ARINC 615AおよびARINC 665に対応したエンジニアリング用ロードコンソールです。メディアセット、ターゲット、情報・アップロード・ダウンロードの各操作、および実行結果の証跡を扱います。</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Version</source>
-        <translation>バージョン</translation>
-    </message>
-    <message>
-        <location line="+30"/>
-        <source>Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.</source>
-        <translation>サードパーティのコンポーネント(Qt(LGPL 3)、Archivo書体(SIL Open Font License 1.1)など)は、ライセンスとともに「ライセンス」に一覧表示されます。</translation>
-    </message>
-    <message>
-        <location line="-55"/>
-        <location line="+39"/>
-        <source>Licences</source>
-        <translation>ライセンス</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</source>
-        <translation>GNU General Public License(バージョン3以降)に基づくフリーソフトウェアです。いかなる保証もなく配布されます。詳しくは&lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;を参照してください。</translation>
-    </message>
-</context>
-<context>
     <name>ActivityDock</name>
     <message>
         <location filename="../qml/ActivityDock.qml" line="+33"/>
@@ -147,7 +103,7 @@
 <context>
     <name>DownloadPanel</name>
     <message>
-        <location filename="../qml/DownloadPanel.qml" line="+121"/>
+        <location filename="../qml/DownloadPanel.qml" line="+115"/>
         <source>Media defined</source>
         <translation>メディア定義</translation>
     </message>
@@ -184,7 +140,7 @@
         <translation>ファイル名をダウンロード対象に追加</translation>
     </message>
     <message numerus="yes">
-        <location line="+92"/>
+        <location line="+102"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
         <translation>
@@ -222,23 +178,17 @@
         <translation>%1 をダウンロード</translation>
     </message>
     <message>
-        <location line="-110"/>
+        <location line="-120"/>
         <source>Remove</source>
         <translation>削除</translation>
     </message>
     <message>
-        <location line="-218"/>
+        <location line="-212"/>
         <source>no target</source>
         <translation>ターゲットなし</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <location line="+369"/>
-        <source>Choose the download directory</source>
-        <translation>ダウンロード先ディレクトリを選択</translation>
-    </message>
-    <message>
-        <location line="-339"/>
+        <location line="+43"/>
         <source>THE DOWNLOAD</source>
         <translation>ダウンロード</translation>
     </message>
@@ -248,24 +198,15 @@
         <translation>%1からダウンロード</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>RUNNING</source>
-        <translation>実行中</translation>
+        <location line="-40"/>
+        <location line="+385"/>
+        <source>Choose the download folder</source>
+        <translation>ダウンロードフォルダーを選択</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation>準備完了</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation>未準備</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; directory.</source>
-        <translation>ダウンロードのたびに、新しいDNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;ディレクトリに書き込まれます。</translation>
+        <location line="-331"/>
+        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; folder.</source>
+        <translation>ダウンロードのたびに、新しいDNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;フォルダーが作成されます。</translation>
     </message>
     <message>
         <location line="+20"/>
@@ -318,7 +259,7 @@
         <translation>%1 をダウンロード対象から削除</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+41"/>
         <source>The target&apos;s list</source>
         <translation>ターゲットの一覧</translation>
     </message>
@@ -328,7 +269,7 @@
         <translation>ダウンロードを開始します。ターゲットが一覧を送信するので、取得するものを選択して、選択内容を返送してください。</translation>
     </message>
     <message>
-        <location line="+97"/>
+        <location line="+109"/>
         <source>Destination</source>
         <translation>保存先</translation>
     </message>
@@ -344,37 +285,42 @@
     </message>
     <message>
         <location line="+10"/>
-        <source>No download directory set</source>
-        <translation>ダウンロード先ディレクトリが未設定です</translation>
+        <source>No download folder set</source>
+        <translation>ダウンロードフォルダーが設定されていません</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>Change...</source>
-        <translation>変更...</translation>
+        <source>Choose folder...</source>
+        <translation>フォルダーを選択...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Open the last download folder</source>
+        <translation>直前のダウンロードフォルダーを開く</translation>
     </message>
     <message>
         <location line="+8"/>
+        <source>A new numbered folder is made for every download, even one that is aborted.</source>
+        <translation>ダウンロードのたびに番号付きの新しいフォルダーが作成されます。中止されたダウンロードでも同様です。</translation>
+    </message>
+    <message>
+        <location line="+64"/>
+        <source>no folder</source>
+        <translation>フォルダーなし</translation>
+    </message>
+    <message>
+        <location line="-74"/>
         <location line="+55"/>
         <source>Open folder</source>
         <translation>フォルダーを開く</translation>
     </message>
     <message>
-        <location line="-53"/>
-        <source>Open the last download directory</source>
-        <translation>前回のダウンロード先ディレクトリを開く</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location line="-46"/>
         <source>The last download was written to %1.</source>
         <translation>前回のダウンロードは%1に書き込まれました。</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>A new numbered directory is made for every download, even one that is aborted.</source>
-        <translation>ダウンロードのたびに、中止された場合でも、連番付きの新しいディレクトリが作成されます。</translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+30"/>
         <source>COMPLETE</source>
         <translation>完了</translation>
     </message>
@@ -393,22 +339,11 @@
         <source>Target %1 · %2</source>
         <translation>ターゲット%1 · %2</translation>
     </message>
-    <message>
-        <location line="+3"/>
-        <source>no directory</source>
-        <translation>ディレクトリなし</translation>
-    </message>
 </context>
 <context>
     <name>FirstRunScreen</name>
     <message>
-        <location filename="../qml/FirstRunScreen.qml" line="+22"/>
-        <location line="+176"/>
-        <source>Choose the download directory</source>
-        <translation>ダウンロードディレクトリを選択</translation>
-    </message>
-    <message>
-        <location line="-161"/>
+        <location filename="../qml/FirstRunScreen.qml" line="+37"/>
         <source>FIRST RUN</source>
         <translation>初回起動</translation>
     </message>
@@ -443,12 +378,7 @@
         <translation>メディアセットの選択画面とワークベンチを同時に開きます</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Start loading opens the workbench with these defaults. A media set can be chosen there, or here.</source>
-        <translation>「ロードを開始」を押すと、これらの既定値でワークベンチが開きます。メディアセットは、そこでも、ここでも選択できます。</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+28"/>
         <source>Defaults</source>
         <translation>既定値</translation>
     </message>
@@ -483,43 +413,18 @@
         <translation>既定のアドレス</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+11"/>
         <source>Default target address</source>
         <translation>既定のターゲットアドレス</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+11"/>
         <source>Default THW_ID_POS</source>
         <translation>既定の THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>既定のターゲットハードウェア識別子と位置</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <location line="+14"/>
-        <source>Download directory</source>
-        <translation>ダウンロードディレクトリ</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Browse...</source>
-        <translation>参照...</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+44"/>
         <source>WHAT THIS WINDOW DOES</source>
         <translation>このウィンドウの機能</translation>
     </message>
@@ -529,9 +434,41 @@
         <translation>メディアセットを選択</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>A directory with one directory per member. Its loads, files and findings are read and checked.</source>
-        <translation>メンバーごとに1つのディレクトリを持つディレクトリです。ロード、ファイル、警告が読み取られて確認されます。</translation>
+        <location line="-227"/>
+        <location line="+176"/>
+        <source>Choose the download folder</source>
+        <translation>ダウンロードフォルダーを選択</translation>
+    </message>
+    <message>
+        <location line="-107"/>
+        <source>Start loading opens the workbench. The default address and THW_ID_POS start empty, and downloads go to the folder shown under Defaults; set them there or later in Preferences. A media set can be chosen there, or here.</source>
+        <translation>「ロードを開始」を押すとワークベンチが開きます。既定のアドレスとTHW_ID_POSは空の状態で始まり、ダウンロードは「既定値」に表示されたフォルダーに保存されます。これらはそこで、または後で設定から指定できます。メディアセットはそこでも、ここでも選択できます。</translation>
+    </message>
+    <message>
+        <location line="+65"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>例：10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>例：HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <location line="+14"/>
+        <source>Download folder</source>
+        <translation>ダウンロードフォルダー</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>フォルダーを選択...</translation>
+    </message>
+    <message>
+        <location line="+63"/>
+        <source>A folder with one folder per member. Its loads, files and findings are read and checked.</source>
+        <translation>メンバーごとに1つのフォルダーを含むフォルダーです。そのロード、ファイル、検出結果が読み取られ、チェックされます。</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -602,12 +539,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-67"/>
-        <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
-        <translation>メディアセットの書き込み先ディレクトリを選択し、セットのすべてのファイルがそこに残っていることを確認してください。</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-60"/>
         <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
         <translation>チェックの後にメディアセットの一部が編集、置換、または削除されたため、何もアップロードされませんでした。メディアセットをもう一度チェックしてから、アップロードしてください。</translation>
     </message>
@@ -622,9 +554,14 @@
         <translation>ターゲットのIPv4アドレスを、0～255の4つの数値をドットで区切って入力してください(例：10.0.0.2)。</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
-        <translation>存在する、または作成可能なダウンロード先ディレクトリを選択し、書き込み可能であることを確認してください(環境設定)。</translation>
+        <location line="-21"/>
+        <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
+        <translation>メディアセットの書き込み先のフォルダーを選択し、セットのすべてのファイルがまだその中にあることを確認してください。</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
+        <translation>存在する、または作成できるダウンロードフォルダーを選択し、書き込み可能であることを確認してください（設定）。</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -721,28 +658,38 @@
     <message>
         <location filename="../qml/Main.qml" line="+50"/>
         <location line="+58"/>
+        <location line="+129"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
-        <location line="+92"/>
-        <location line="+406"/>
-        <source>Choose the media set directory</source>
-        <translation>メディアセットのディレクトリを選択</translation>
-    </message>
-    <message>
-        <location line="-324"/>
+        <location line="+47"/>
         <source>The operation failed</source>
         <translation>操作に失敗しました</translation>
     </message>
     <message>
-        <location line="+258"/>
-        <location line="+128"/>
+        <location line="+141"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>例：10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>例：HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Target THW_ID_POS</source>
+        <translation>ターゲットのTHW_ID_POS</translation>
+    </message>
+    <message>
+        <location line="+94"/>
+        <location line="+127"/>
         <source>Properties...</source>
         <translation>プロパティ...</translation>
     </message>
     <message>
-        <location line="-118"/>
+        <location line="-117"/>
         <source>Ready to address.</source>
         <translation>アドレス指定の準備ができました。</translation>
     </message>
@@ -782,27 +729,12 @@
         <translation>未チェック</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>Choose...</source>
-        <translation>選択...</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Change...</source>
-        <translation>変更...</translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="+24"/>
         <source>No media set chosen</source>
         <translation>メディアセットが選択されていません</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Choose a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation>メンバーごとに1つのディレクトリを持つディレクトリを選択してください。アップロードの前に読み取られて確認されます。</translation>
-    </message>
-    <message>
-        <location line="+46"/>
+        <location line="+47"/>
         <source>Re-check</source>
         <translation>再チェック</translation>
     </message>
@@ -827,12 +759,12 @@
         <translation>ロード %1 をアップロード</translation>
     </message>
     <message>
-        <location line="-345"/>
+        <location line="-344"/>
         <source>Find targets</source>
         <translation>ターゲットを検索</translation>
     </message>
     <message>
-        <location line="-377"/>
+        <location line="-379"/>
         <source>WORKING</source>
         <translation>処理中</translation>
     </message>
@@ -843,18 +775,16 @@
     </message>
     <message>
         <location line="+2"/>
-        <location line="+888"/>
         <source>READY</source>
         <translation>準備完了</translation>
     </message>
     <message>
-        <location line="-888"/>
-        <location line="+888"/>
+        <location line="+0"/>
         <source>NOT READY</source>
         <translation>未準備</translation>
     </message>
     <message>
-        <location line="-874"/>
+        <location line="+14"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
         <translation>アップロードには、チェック済みのメディアセット、1つ以上の選択済みロード、およびターゲットが必要です。</translation>
     </message>
@@ -910,7 +840,13 @@
         <translation>v%1</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+10"/>
+        <location line="+407"/>
+        <source>Choose the media set folder</source>
+        <translation>メディアセットのフォルダーを選択</translation>
+    </message>
+    <message>
+        <location line="-387"/>
         <source>Media set properties</source>
         <translation>メディアセットのプロパティ</translation>
     </message>
@@ -920,32 +856,17 @@
         <translation>ターゲットのプロパティ</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>About ARINC Data Loader</source>
-        <translation>ARINCデータローダーのバージョン情報</translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+22"/>
         <source>An operation is running</source>
         <translation>操作を実行中です</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Stop and close</source>
-        <translation>停止して閉じる</translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Keep working</source>
         <translation>作業を続ける</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
-        <translation>今閉じると、ターゲットに停止を要求します。ターゲットの確認に最大13秒かかることがあり、確認されるまでウィンドウは開いたままになります。</translation>
-    </message>
-    <message>
-        <location line="+26"/>
+        <location line="+33"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -975,12 +896,7 @@
         <translation>アドレス</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+15"/>
         <source>Target address</source>
         <translation>ターゲットアドレス</translation>
     </message>
@@ -990,17 +906,7 @@
         <translation>THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Target hardware identifier and position</source>
-        <translation>ターゲットのハードウェア識別子と位置</translation>
-    </message>
-    <message>
-        <location line="+10"/>
+        <location line="+25"/>
         <source>FOUND</source>
         <translation>検出</translation>
     </message>
@@ -1014,8 +920,18 @@
         <source>Show the target properties</source>
         <translation>ターゲットのプロパティを表示</translation>
     </message>
+    <message>
+        <location line="+58"/>
+        <source>Choose folder...</source>
+        <translation>フォルダーを選択...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Choose a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>メンバーごとに1つのフォルダーを含むフォルダーを選択してください。アップロードの前に読み取られ、チェックされます。</translation>
+    </message>
     <message numerus="yes">
-        <location line="+89"/>
+        <location line="+20"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n個のメンバー</numerusform>
@@ -1069,12 +985,12 @@
         <translation>すべてのファイルとチェック値を読み取り、検証しました。</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+44"/>
         <source>TRANSFER</source>
         <translation>転送</translation>
     </message>
     <message>
-        <location line="+164"/>
+        <location line="+147"/>
         <source>Downloading...</source>
         <translation>ダウンロード中...</translation>
     </message>
@@ -1084,8 +1000,8 @@
         <translation>ターゲットからダウンロード</translation>
     </message>
     <message>
-        <location line="-157"/>
-        <location line="+154"/>
+        <location line="-140"/>
+        <location line="+137"/>
         <source>Download</source>
         <translation>ダウンロード</translation>
     </message>
@@ -1100,47 +1016,47 @@
         <translation>ターゲット情報を読み取る</translation>
     </message>
     <message>
-        <location line="-138"/>
-        <location line="+145"/>
+        <location line="-121"/>
+        <location line="+128"/>
         <source>Upload</source>
         <translation>アップロード</translation>
     </message>
     <message numerus="yes">
-        <location line="-1001"/>
+        <location line="-983"/>
         <source>Ready: %n load(s) to %1</source>
         <translation>
             <numerusform>準備完了：%n個のロードを%1へ</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+197"/>
+        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
+        <translation>ARINC 615AおよびARINC 665に対応したエンジニアリング用ロードコンソールです。メディアセット、ターゲット、情報・アップロード・ダウンロードの各操作、および実行結果の証跡を扱います。</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Abort and close</source>
+        <translation>中止して閉じる</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Closing now aborts the operation: the target is asked to stop and may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
+        <translation>今閉じると操作が中止されます。ターゲットに停止が要求され、確認まで最大13秒かかることがあり、それまでウィンドウは開いたままになります。</translation>
+    </message>
     <message numerus="yes">
-        <location line="+748"/>
+        <location line="+531"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>警告%n件</numerusform>
         </translation>
     </message>
     <message>
-        <location line="+114"/>
+        <location line="+112"/>
         <source>Transfer operation</source>
         <translation>転送操作</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>RUNNING</source>
-        <translation>実行中</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>COMPLETE</source>
-        <translation>完了</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>FAILED</source>
-        <translation>失敗</translation>
-    </message>
-    <message>
-        <location line="+105"/>
+        <location line="+100"/>
         <source>working</source>
         <translation>処理中</translation>
     </message>
@@ -1165,7 +1081,7 @@
         <translation>操作を中止</translation>
     </message>
     <message>
-        <location line="-919"/>
+        <location line="-901"/>
         <source>Idle</source>
         <translation>待機中</translation>
     </message>
@@ -1294,13 +1210,7 @@
         <translation>キャンセル</translation>
     </message>
     <message>
-        <location line="+43"/>
-        <location line="+202"/>
-        <source>Choose the download directory</source>
-        <translation>ダウンロード先ディレクトリを選択</translation>
-    </message>
-    <message>
-        <location line="-187"/>
+        <location line="+58"/>
         <source>Appearance</source>
         <translation>外観</translation>
     </message>
@@ -1315,7 +1225,17 @@
         <translation>ウィンドウはデスクトップのライト/ダークの設定に従います。言語は即時に適用され、その他は保存時に適用されます。</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="+33"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>例：10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>例：HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
         <translation>ターゲットを選択していない状態で操作を行う前にFINDを実行し、応答が1つだけならそれを採用します。応答がない場合や複数ある場合は、結果を表示して待機します。</translation>
     </message>
@@ -1325,14 +1245,25 @@
         <translation>アップロードの前に、セットがチェックに合格する必要があります。オフにした場合は、サイドパネルの「再チェック」を使用してください。</translation>
     </message>
     <message>
-        <location line="+80"/>
-        <source>Browse...</source>
-        <translation>参照...</translation>
+        <location line="+18"/>
+        <source>None</source>
+        <translation>なし</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <location line="+15"/>
+        <source>Download folder</source>
+        <translation>ダウンロードフォルダー</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>フォルダーを選択...</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>The directory is where each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; directory is made.</source>
-        <translation>このディレクトリの下に、DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt;ディレクトリがそれぞれ作成されます。</translation>
+        <source>Each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; folder is made inside it.</source>
+        <translation>DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt;フォルダーは、その中に作成されます。</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -1350,34 +1281,26 @@
         <translation>ターゲット</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="-53"/>
+        <location line="+202"/>
+        <source>Choose the download folder</source>
+        <translation>ダウンロードフォルダーを選択</translation>
+    </message>
+    <message>
+        <location line="-139"/>
         <source>Default address</source>
         <translation>既定のアドレス</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+12"/>
         <source>Default target address</source>
         <translation>既定のターゲットアドレス</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+12"/>
         <source>Default THW_ID_POS</source>
         <translation>既定の THW_ID_POS</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>既定のターゲットハードウェア識別子と位置</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1400,12 +1323,7 @@
         <translation>最後のメディアセット</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>none</source>
-        <translation>なし</translation>
-    </message>
-    <message>
-        <location line="+15"/>
+        <location line="+23"/>
         <source>Loader</source>
         <translation>ローダー</translation>
     </message>
@@ -1420,13 +1338,7 @@
         <translation>ローダー制御ポート</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <location line="+15"/>
-        <source>Download directory</source>
-        <translation>ダウンロードディレクトリ</translation>
-    </message>
-    <message>
-        <location line="+25"/>
+        <location line="+45"/>
         <source>Log</source>
         <translation>ログ</translation>
     </message>
@@ -1477,8 +1389,8 @@
     </message>
     <message>
         <location line="+23"/>
-        <source>Hardware identifier</source>
-        <translation>ハードウェア識別子</translation>
+        <source>Hardware ID</source>
+        <translation>ハードウェアID</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1486,22 +1398,22 @@
         <translation>タイプ</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Position</source>
         <translation>位置</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Name</source>
         <translation>名前</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Manufacturer code</source>
         <translation>製造元コード</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>No target was chosen from a FIND answer. The address and THW_ID_POS are the values typed in the rail.</source>
         <translation>FINDの応答からターゲットは選択されていません。アドレスとTHW_ID_POSは、サイドパネルに入力された値です。</translation>
     </message>
@@ -1584,17 +1496,7 @@
         <translation>すべてのファイルとそのチェック値を読み取っています。アップロードにはチェックの合格が必要です。</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>A media set is a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation>メディアセットは、メンバーごとに1つのディレクトリを持つディレクトリです。アップロードの前に読み取られて確認されます。</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Read the set again, or choose another directory.</source>
-        <translation>セットを再度読み取るか、別のディレクトリを選択してください。</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>The set has to be read again and checked before it may be uploaded.</source>
         <translation>アップロードする前に、セットを再度読み取って確認する必要があります。</translation>
     </message>
@@ -1628,23 +1530,8 @@
         <source>Upload %1 loads to %2</source>
         <translation>%1個のロードを%2にアップロード</translation>
     </message>
-    <message>
-        <location line="+15"/>
-        <source>RUNNING</source>
-        <translation>実行中</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation>準備完了</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation>未準備</translation>
-    </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+18"/>
         <location line="+43"/>
         <source>%n member(s)</source>
         <translation>
@@ -1659,27 +1546,47 @@
             <numerusform>%n個のロード</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="-85"/>
+        <source>Choose a folder</source>
+        <translation>フォルダーを選択</translation>
+    </message>
     <message numerus="yes">
-        <location line="-76"/>
+        <location line="+9"/>
         <source>%n warning(s) from the check</source>
         <translation>
             <numerusform>チェックによる警告%n件</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+244"/>
+        <source>%1 · Target %2 · %3 · %4</source>
+        <translation>%1 · ターゲット%2 · %3 · %4</translation>
+    </message>
     <message numerus="yes">
-        <location line="+248"/>
+        <location line="+5"/>
         <source>%n load(s) ticked</source>
         <translation>
             <numerusform>%n個のロードを選択済み</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-298"/>
+        <location line="-299"/>
         <source>No media set selected</source>
         <translation>メディアセットが選択されていません</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="-83"/>
+        <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>メディアセットは、メンバーごとに1つのフォルダーを含むフォルダーです。アップロードの前に読み取られ、チェックされます。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Read the set again, or choose another folder.</source>
+        <translation>セットを読み込み直すか、別のフォルダーを選択してください。</translation>
+    </message>
+    <message>
+        <location line="+101"/>
         <source>Target</source>
         <translation>ターゲット</translation>
     </message>
@@ -1721,12 +1628,7 @@
         <translation>メディアセット</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Choose a directory</source>
-        <translation>ディレクトリを選択</translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+11"/>
         <source>Loads</source>
         <translation>ロード</translation>
     </message>
@@ -1797,12 +1699,7 @@
         <translation>完了</translation>
     </message>
     <message>
-        <location line="+27"/>
-        <source>Target %1 · %2 · %3</source>
-        <translation>ターゲット%1 · %2 · %3</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+31"/>
         <source>no media set</source>
         <translation>メディアセットなし</translation>
     </message>
@@ -2130,13 +2027,8 @@
         <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
         <translation>「%1」は、ダウンロードを行えるTHW_ID_POSではありません。</translation>
     </message>
-    <message>
-        <location line="+71"/>
-        <source>Nothing was received, so the empty download directory %1 was removed.</source>
-        <translation>何も受信しなかったため、空のダウンロードディレクトリ%1を削除しました。</translation>
-    </message>
     <message numerus="yes">
-        <location line="+54"/>
+        <location line="+125"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>完了、%n個のファイルが失敗</numerusform>
@@ -2174,12 +2066,7 @@
         <translation>%1 (%2) にダウンロード可能なファイルを要求しています...</translation>
     </message>
     <message>
-        <location line="+28"/>
-        <source>The download directory could not be used: %1.</source>
-        <translation>ダウンロードディレクトリを使用できませんでした: %1。</translation>
-    </message>
-    <message>
-        <location line="+71"/>
+        <location line="+99"/>
         <source>the request was refused (%1)</source>
         <translation>要求が拒否されました (%1)</translation>
     </message>
@@ -2209,7 +2096,17 @@
         <translation>ターゲットは停止を確認しました。</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-128"/>
+        <source>The download folder could not be used: %1.</source>
+        <translation>ダウンロードフォルダーを使用できませんでした：%1。</translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>Nothing was received, so the empty download folder %1 was removed.</source>
+        <translation>何も受信されなかったため、空のダウンロードフォルダー%1を削除しました。</translation>
+    </message>
+    <message>
+        <location line="+73"/>
         <source>The target did not confirm that it stopped.</source>
         <translation>ターゲットは停止を確認しませんでした。</translation>
     </message>
@@ -2310,7 +2207,7 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+67"/>
+        <location filename="../core/src/loader_model.cpp" line="+68"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1、%2、すべてのチェック値を確認済み</translation>
     </message>
@@ -2386,12 +2283,12 @@
         </translation>
     </message>
     <message>
-        <location line="+313"/>
+        <location line="+318"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>一覧からターゲットを選択し、操作を再実行してください。</translation>
     </message>
     <message>
-        <location line="-403"/>
+        <location line="-408"/>
         <source>No target is selected; looking for one first.</source>
         <translation>ターゲットが選択されていません。まず検索します。</translation>
     </message>

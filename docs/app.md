@@ -126,7 +126,7 @@ over, and `Runner::find` not until the window of three seconds has passed. So th
   is where `DataLoader::provide_selection` is called from, with the choice posted by the window
   (`post_selection`) and taken from a flag in the same way. If an abort has been asked for, it wins.
 - **Closing the window** while a job runs first asks (`An operation is running`: `Keep working` or
-  `Stop and close`); the second choice aborts the job and waits for the engine's thread. For an operation
+  `Abort and close`); the second choice aborts the job and waits for the engine's thread. For an operation
   the target has to confirm, that can be up to the 13 second time-out; a FIND, three seconds.
 - **The platform's `Host` is made on the engine thread, once per job** (`system_host_factory`), and
   released at its end, so Winsock (on Windows) is started and stopped around each job and nothing is held

@@ -197,7 +197,7 @@ ApplicationWindow {
     FolderDialog {
         id: mediaSetDialog
 
-        title: qsTr("Choose the media set directory")
+        title: qsTr("Choose the media set folder")
         onAccepted: {
             if (window.app.firstRun)
                 window.app.completeFirstRun();
@@ -233,7 +233,9 @@ ApplicationWindow {
         id: aboutDialog
         objectName: "aboutDialog"
 
-        title: qsTr("About ARINC Data Loader")
+        appCode: "ADL"
+        appName: qsTr("ARINC Data Loader")
+        blurb: qsTr("An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.")
         onShowLicences: licencesDialog.open()
     }
 
@@ -246,7 +248,7 @@ ApplicationWindow {
 
         objectName: "closeDialog"
         heading: qsTr("An operation is running")
-        primaryText: qsTr("Stop and close")
+        primaryText: qsTr("Abort and close")
         secondaryText: qsTr("Keep working")
 
         content: ColumnLayout {
@@ -254,7 +256,7 @@ ApplicationWindow {
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.")
+                text: qsTr("Closing now aborts the operation: the target is asked to stop and may take up to 13 seconds to confirm, and the window will stay open until it does.")
                 color: Theme.textMuted
                 font.pixelSize: Theme.fontBody
                 wrapMode: Text.WordWrap
@@ -365,9 +367,9 @@ ApplicationWindow {
             id: rail
 
             objectName: "rail"
-            Layout.preferredWidth: 388
-            Layout.minimumWidth: 348
-            Layout.maximumWidth: 460
+            Layout.preferredWidth: Theme.railWidth
+            Layout.minimumWidth: Theme.railMinWidth
+            Layout.maximumWidth: Theme.railMaxWidth
             Layout.fillHeight: true
             clip: true
             contentWidth: availableWidth
@@ -420,7 +422,7 @@ ApplicationWindow {
                             objectName: "targetAddressField"
 
                             Layout.fillWidth: true
-                            placeholderText: qsTr("10.0.0.2")
+                            placeholderText: qsTr("e.g. 10.0.0.2")
                             text: window.app.targetAddress
                             enabled: !window.app.busy
                             onTextEdited: window.app.targetAddress = text
@@ -439,11 +441,11 @@ ApplicationWindow {
                             objectName: "thwIdPosField"
 
                             Layout.fillWidth: true
-                            placeholderText: qsTr("HNPFMS_L")
+                            placeholderText: qsTr("e.g. HNPFMS_L")
                             text: window.app.thwIdPos
                             enabled: !window.app.busy
                             onTextEdited: window.app.thwIdPos = text
-                            Accessible.name: qsTr("Target hardware identifier and position")
+                            Accessible.name: qsTr("Target THW_ID_POS")
                         }
                     }
 
@@ -599,18 +601,17 @@ ApplicationWindow {
                         AppButton {
                             objectName: "mediaSetChooseButton"
 
-                            text: window.app.mediaSetPath.length === 0
-                                  ? qsTr("Choose...") : qsTr("Change...")
+                            text: qsTr("Choose folder...")
                             enabled: !window.app.busy
                             onClicked: mediaSetDialog.open()
-                            Accessible.name: qsTr("Choose the media set directory")
+                            Accessible.name: qsTr("Choose the media set folder")
                         }
                     }
 
                     EmptyState {
                         visible: window.app.mediaSetPath.length === 0
                         title: qsTr("No media set chosen")
-                        body: qsTr("Choose a directory with one directory per member. It is read and checked before an upload.")
+                        body: qsTr("Choose a folder with one folder per member. It is read and checked before an upload.")
                     }
 
                     ColumnLayout {
@@ -845,13 +846,11 @@ ApplicationWindow {
                         wrapMode: Text.WordWrap
                     }
 
-                    Text {
+                    AppBanner {
                         Layout.fillWidth: true
                         visible: window.app.validationState === 3
+                        tone: "error"
                         text: window.app.validationError
-                        color: Theme.accentInk
-                        font.pixelSize: Theme.fontSmall
-                        wrapMode: Text.WordWrap
                     }
                 }
 
@@ -905,23 +904,6 @@ ApplicationWindow {
 
                     Item {
                         Layout.fillWidth: true
-                    }
-
-                    StatusChip {
-                        text: window.app.busy ? qsTr("RUNNING")
-                                              : window.app.resultIsTransfer && window.app.resultState === 1
-                                                ? qsTr("COMPLETE")
-                                                : window.app.resultIsTransfer && window.app.resultState === 2
-                                                  ? qsTr("FAILED")
-                                                  : window.app.canUpload || window.app.canDownload
-                                                    ? qsTr("READY") : qsTr("NOT READY")
-                        tone: window.app.busy ? "accent"
-                                              : window.app.resultIsTransfer && window.app.resultState === 1
-                                                ? "ok"
-                                                : window.app.resultIsTransfer && window.app.resultState === 2
-                                                  ? "fail"
-                                                  : window.app.canUpload || window.app.canDownload
-                                                    ? "ok" : "warn"
                     }
                 }
 

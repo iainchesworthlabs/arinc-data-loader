@@ -2,6 +2,58 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ja" sourcelanguage="en">
 <context>
+    <name>AboutDialog</name>
+    <message>
+        <location filename="../qml/AboutDialog.qml" line="20"/>
+        <source>%1 %2</source>
+        <translation>%1 %2</translation>
+    </message>
+    <message>
+        <location filename="../qml/AboutDialog.qml" line="27"/>
+        <source>About %1</source>
+        <translation>%1について</translation>
+    </message>
+    <message>
+        <location filename="../qml/AboutDialog.qml" line="28"/>
+        <source>Close</source>
+        <translation>閉じる</translation>
+    </message>
+    <message>
+        <location filename="../qml/AboutDialog.qml" line="29"/>
+        <location filename="../qml/AboutDialog.qml" line="68"/>
+        <source>Licences</source>
+        <translation>ライセンス</translation>
+    </message>
+    <message>
+        <location filename="../qml/AboutDialog.qml" line="54"/>
+        <source>Version</source>
+        <translation>バージョン</translation>
+    </message>
+    <message>
+        <location filename="../qml/AboutDialog.qml" line="75"/>
+        <source>Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</source>
+        <translation>GNU General Public License(バージョン3以降)に基づくフリーソフトウェアです。いかなる保証もなく配布されます。詳しくは&lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;を参照してください。</translation>
+    </message>
+    <message>
+        <location filename="../qml/AboutDialog.qml" line="84"/>
+        <source>Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.</source>
+        <translation>サードパーティのコンポーネント(Qt(LGPL 3)、Archivo書体(SIL Open Font License 1.1)など)は、ライセンスとともに「ライセンス」に一覧表示されます。</translation>
+    </message>
+</context>
+<context>
+    <name>AppBanner</name>
+    <message>
+        <location filename="../qml/AppBanner.qml" line="92"/>
+        <source>Dismiss</source>
+        <translation>閉じる</translation>
+    </message>
+    <message>
+        <location filename="../qml/AppBanner.qml" line="94"/>
+        <source>Dismiss the message</source>
+        <translation>メッセージを閉じる</translation>
+    </message>
+</context>
+<context>
     <name>AppDialog</name>
     <message>
         <location filename="../qml/AppDialog.qml" line="12"/>

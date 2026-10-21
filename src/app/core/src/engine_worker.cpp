@@ -43,7 +43,7 @@ class Hint {
 public:
     static Message media_set() {
         return Message::translated(
-            &Hint::tr, QT_TR_NOOP("Choose the directory the media set was written to, and make "
+            &Hint::tr, QT_TR_NOOP("Choose the folder the media set was written to, and make "
                                   "sure every file of the set is still in it."));
     }
 
@@ -70,7 +70,7 @@ public:
 
     static Message download_directory() {
         return Message::translated(
-            &Hint::tr, QT_TR_NOOP("Choose a download directory that exists or can be created, and "
+            &Hint::tr, QT_TR_NOOP("Choose a download folder that exists or can be created, and "
                                   "make sure it can be written (Preferences)."));
     }
 
@@ -625,7 +625,7 @@ void EngineWorker::run_download(const Address& target, const QString& thw_id_pos
         lease->host->files(), to_platform_path(download_directory), thw_id_pos.toStdString());
     if (!made) {
         fail(Message::translated(&EngineWorker::tr,
-                                 QT_TR_NOOP("The download directory could not be used: %1."),
+                                 QT_TR_NOOP("The download folder could not be used: %1."),
                                  {made.error()}),
              Hint::download_directory());
         return;
@@ -682,7 +682,7 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     if (directory_removed) {
         removed_note = Message::translated(
             &EngineWorker::tr,
-            QT_TR_NOOP("Nothing was received, so the empty download directory %1 was removed."),
+            QT_TR_NOOP("Nothing was received, so the empty download folder %1 was removed."),
             {Message::verbatim(QDir::toNativeSeparators(to_qstring(download_path)))});
         Q_EMIT log_line({Severity::info, removed_note});
     }

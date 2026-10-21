@@ -71,7 +71,8 @@ class GeneratorModel : public QObject {
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(int progressPercent READ progressPercent NOTIFY progressChanged)
 
-    // The outcome of the last generation: 0 none yet, 1 the set was written and verified, 2 not.
+    // The outcome of the last generation: 0 none yet, 1 the set was written and verified, 2 it
+    // failed, 3 the operator cancelled it. Any later change to the form clears it back to 0.
     Q_PROPERTY(int resultState READ resultState NOTIFY resultChanged)
     Q_PROPERTY(QString resultText READ resultText NOTIFY resultChanged)
     Q_PROPERTY(QString resultDetail READ resultDetail NOTIFY resultChanged)
@@ -183,7 +184,8 @@ Q_SIGNALS:
     void resultChanged();
 
 private:
-    void refresh_validation();
+    // `edited` is false when the refresh follows the job itself, not a change to the form.
+    void refresh_validation(bool edited = true);
     void on_finished(const GenerateOutcome& outcome);
     void set_result(int state, const adl::ui::Message& text, const adl::ui::Message& detail);
     void fill_load_type_model();

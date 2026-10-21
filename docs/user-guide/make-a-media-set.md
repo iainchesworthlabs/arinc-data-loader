@@ -9,9 +9,12 @@ choice (names, part numbers, which check values), and it enforces the rest.
 
 The window has a rail on the left with three numbered blocks to fill in, the table of files on the
 right, and an action bar at the bottom. The button at the bottom right is always the main action:
-**Generate media set**. It stays dimmed, and the bar says what is missing, until everything needed
-is present and valid. The header chip says **INCOMPLETE**, **READY**, **GENERATING** or
-**GENERATED**.
+**Generate media set**. While something needed is missing or wrong the bar says what, and pressing
+the button then marks those fields instead of starting. The header chip says **NOT STARTED**
+(nothing entered yet), **INCOMPLETE**, **READY**, **GENERATING**, and afterwards **GENERATED**,
+**FAILED** or **CANCELLED**; none of the first three is an error, so none is red. A field shows
+what is wrong with it once you have been in it, or all of them do once you press **Generate media
+set** on an incomplete form.
 
 ## 01 Media set
 
@@ -21,7 +24,7 @@ is present and valid. The header chip says **INCOMPLETE**, **READY**, **GENERATI
 | **Members** | How many members (disks) the set has, 1 to 255. One is right for a small load. With more, the data files are spread over the members, see [How the files are placed](#how-the-files-are-placed) |
 | **Each listed file** | The check value kept in `FILES.LUM` for every file it lists: none, 8-bit CRC, 16-bit CRC, 32-bit CRC, MD5 or SHA-1 |
 | **FILES.LUM itself** | The check value for the `FILES.LUM` list file itself, from the same choices |
-| **Choose output directory...** | The folder in which the set is written. It must exist. The set goes into a new folder inside it named after the media set part number |
+| **Choose folder...** (under OUTPUT) | The folder in which the set is written. It must exist. The set goes into a new folder inside it named after the media set part number |
 
 The demonstration uses **32-bit CRC** for each listed file and **16-bit CRC** for `FILES.LUM`.
 
@@ -61,7 +64,7 @@ one place cannot be told apart.
 
 ![A name used twice is refused](../images/gen-file-error.png)
 
-The chip **NO CHECK VALUES** appears when the three choices *Each listed file*, *FILES.LUM itself*
+Once files are chosen, the chip **NO CHECK VALUES** appears when the three choices *Each listed file*, *FILES.LUM itself*
 and *Load check value* are all *none*: the set would be written, but the loader could not verify its
 files against the header. Choose a check value unless the format you are following requires none.
 

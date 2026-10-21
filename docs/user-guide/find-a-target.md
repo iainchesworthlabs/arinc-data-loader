@@ -11,9 +11,9 @@ FIND asks the whole local network "who is a target?" and lists every target that
 Each answer is a row under **FOUND**: the target's `THW_ID_POS` in bold, and under it its address,
 type name and position. **Click a row** to choose it: its address and `THW_ID_POS` are copied into
 the two fields and the row is marked **SELECTED**. **Properties...** then shows everything the
-target said: hardware identifier, type name, position, literal name and manufacturer code.
+target said: hardware ID, type name, position, literal name and manufacturer code.
 
-If the FIND answer gives a hardware identifier and a position, the loader makes `THW_ID_POS` from
+If the FIND answer gives a hardware ID and a position, the loader makes `THW_ID_POS` from
 them with an underscore (`HNPFMS` at `L` becomes `HNPFMS_L`), and from the identifier alone when
 there is no position. That reading follows the examples in the standard and has not been checked
 against a real target. The field can always be edited.

@@ -2,50 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de">
 <context>
-    <name>AboutDialog</name>
-    <message>
-        <location filename="../qml/AboutDialog.qml" line="+14"/>
-        <source>ARINC Data Loader %1</source>
-        <translation>ARINC Data Loader %1</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>About ARINC Data Loader</source>
-        <translation>Über ARINC Data Loader</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Close</source>
-        <translation>Schließen</translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
-        <translation>Eine Engineering-Ladekonsole für ARINC 615A und ARINC 665: Mediensets, Zielgeräte, die Operationen Information, Upload und Download sowie der Nachweis dessen, was geschehen ist.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Version</source>
-        <translation>Version</translation>
-    </message>
-    <message>
-        <location line="+30"/>
-        <source>Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences.</source>
-        <translation>Komponenten von Drittanbietern - Qt (LGPL 3), die Schriftart Archivo (SIL Open Font License 1.1) und weitere - sind mit ihren Lizenzen unter „Lizenzen“ aufgeführt.</translation>
-    </message>
-    <message>
-        <location line="-55"/>
-        <location line="+39"/>
-        <source>Licences</source>
-        <translation>Lizenzen</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Free software under the GNU General Public License, version 3 or later. It is distributed WITHOUT ANY WARRANTY; see the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</source>
-        <translation>Freie Software unter der GNU General Public License, Version 3 oder später. Sie wird OHNE JEDE GEWÄHRLEISTUNG vertrieben; siehe &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License&lt;/a&gt;.</translation>
-    </message>
-</context>
-<context>
     <name>ActivityDock</name>
     <message>
         <location filename="../qml/ActivityDock.qml" line="+33"/>
@@ -147,7 +103,7 @@
 <context>
     <name>DownloadPanel</name>
     <message>
-        <location filename="../qml/DownloadPanel.qml" line="+121"/>
+        <location filename="../qml/DownloadPanel.qml" line="+115"/>
         <source>Media defined</source>
         <translation>Durch Medium bestimmt</translation>
     </message>
@@ -185,7 +141,7 @@
         <translation>Den Dateinamen zum Download hinzufügen</translation>
     </message>
     <message numerus="yes">
-        <location line="+92"/>
+        <location line="+102"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
         <translation>
@@ -224,23 +180,17 @@
         <translation>%1 herunterladen</translation>
     </message>
     <message>
-        <location line="-110"/>
+        <location line="-120"/>
         <source>Remove</source>
         <translation>Entfernen</translation>
     </message>
     <message>
-        <location line="-218"/>
+        <location line="-212"/>
         <source>no target</source>
         <translation>kein Zielgerät</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <location line="+369"/>
-        <source>Choose the download directory</source>
-        <translation>Download-Verzeichnis wählen</translation>
-    </message>
-    <message>
-        <location line="-339"/>
+        <location line="+43"/>
         <source>THE DOWNLOAD</source>
         <translation>DER DOWNLOAD</translation>
     </message>
@@ -250,24 +200,15 @@
         <translation>Download von %1</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>RUNNING</source>
-        <translation>LÄUFT</translation>
+        <location line="-40"/>
+        <location line="+385"/>
+        <source>Choose the download folder</source>
+        <translation>Download-Ordner wählen</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation>BEREIT</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation>NICHT BEREIT</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; directory.</source>
-        <translation>Jeder Download schreibt ein neues Verzeichnis DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;.</translation>
+        <location line="-331"/>
+        <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; folder.</source>
+        <translation>Jeder Download schreibt einen neuen Ordner DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;.</translation>
     </message>
     <message>
         <location line="+20"/>
@@ -320,7 +261,7 @@
         <translation>%1 aus dem Download entfernen</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+41"/>
         <source>The target&apos;s list</source>
         <translation>Liste des Zielgeräts</translation>
     </message>
@@ -330,7 +271,7 @@
         <translation>Download starten: Das Zielgerät sendet seine Liste, die gewünschten Dateien markieren und die Auswahl zurücksenden.</translation>
     </message>
     <message>
-        <location line="+97"/>
+        <location line="+109"/>
         <source>Destination</source>
         <translation>Speicherort</translation>
     </message>
@@ -346,37 +287,42 @@
     </message>
     <message>
         <location line="+10"/>
-        <source>No download directory set</source>
-        <translation>Kein Download-Verzeichnis festgelegt</translation>
+        <source>No download folder set</source>
+        <translation>Kein Download-Ordner festgelegt</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>Change...</source>
-        <translation>Ändern...</translation>
+        <source>Choose folder...</source>
+        <translation>Ordner wählen...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Open the last download folder</source>
+        <translation>Letzten Download-Ordner öffnen</translation>
     </message>
     <message>
         <location line="+8"/>
+        <source>A new numbered folder is made for every download, even one that is aborted.</source>
+        <translation>Für jeden Download wird ein neuer nummerierter Ordner angelegt, auch für einen abgebrochenen.</translation>
+    </message>
+    <message>
+        <location line="+64"/>
+        <source>no folder</source>
+        <translation>kein Ordner</translation>
+    </message>
+    <message>
+        <location line="-74"/>
         <location line="+55"/>
         <source>Open folder</source>
         <translation>Ordner öffnen</translation>
     </message>
     <message>
-        <location line="-53"/>
-        <source>Open the last download directory</source>
-        <translation>Letztes Download-Verzeichnis öffnen</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location line="-46"/>
         <source>The last download was written to %1.</source>
         <translation>Der letzte Download wurde nach %1 geschrieben.</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>A new numbered directory is made for every download, even one that is aborted.</source>
-        <translation>Für jeden Download wird ein neues nummeriertes Verzeichnis angelegt, auch bei einem abgebrochenen.</translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+30"/>
         <source>COMPLETE</source>
         <translation>ABGESCHLOSSEN</translation>
     </message>
@@ -395,22 +341,11 @@
         <source>Target %1 · %2</source>
         <translation>Zielgerät %1 · %2</translation>
     </message>
-    <message>
-        <location line="+3"/>
-        <source>no directory</source>
-        <translation>kein Verzeichnis</translation>
-    </message>
 </context>
 <context>
     <name>FirstRunScreen</name>
     <message>
-        <location filename="../qml/FirstRunScreen.qml" line="+22"/>
-        <location line="+176"/>
-        <source>Choose the download directory</source>
-        <translation>Download-Verzeichnis wählen</translation>
-    </message>
-    <message>
-        <location line="-161"/>
+        <location filename="../qml/FirstRunScreen.qml" line="+37"/>
         <source>FIRST RUN</source>
         <translation>ERSTER START</translation>
     </message>
@@ -445,12 +380,7 @@
         <translation>Öffnet die Medienset-Auswahl und den Arbeitsbereich gemeinsam</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Start loading opens the workbench with these defaults. A media set can be chosen there, or here.</source>
-        <translation>„Laden starten“ öffnet den Arbeitsbereich mit diesen Standardwerten. Ein Medienset kann dort oder hier gewählt werden.</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+28"/>
         <source>Defaults</source>
         <translation>Standardwerte</translation>
     </message>
@@ -485,43 +415,18 @@
         <translation>Standardadresse</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+11"/>
         <source>Default target address</source>
         <translation>Standard-Zieladresse</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+11"/>
         <source>Default THW_ID_POS</source>
         <translation>Standard-THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>Standard-Hardware-Kennung und -Position des Ziels</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <location line="+14"/>
-        <source>Download directory</source>
-        <translation>Download-Verzeichnis</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Browse...</source>
-        <translation>Durchsuchen...</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+44"/>
         <source>WHAT THIS WINDOW DOES</source>
         <translation>WAS DIESES FENSTER TUT</translation>
     </message>
@@ -531,9 +436,41 @@
         <translation>Medienset wählen</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>A directory with one directory per member. Its loads, files and findings are read and checked.</source>
-        <translation>Ein Verzeichnis mit je einem Verzeichnis pro Mitglied. Seine Loads, Dateien und Befunde werden gelesen und geprüft.</translation>
+        <location line="-227"/>
+        <location line="+176"/>
+        <source>Choose the download folder</source>
+        <translation>Download-Ordner wählen</translation>
+    </message>
+    <message>
+        <location line="-107"/>
+        <source>Start loading opens the workbench. The default address and THW_ID_POS start empty, and downloads go to the folder shown under Defaults; set them there or later in Preferences. A media set can be chosen there, or here.</source>
+        <translation>Mit „Laden starten“ öffnet sich die Arbeitsfläche. Standardadresse und THW_ID_POS sind zunächst leer, Downloads gehen in den unter „Voreinstellungen“ angezeigten Ordner; legen Sie sie dort oder später in den Einstellungen fest. Ein Medienset kann dort oder hier gewählt werden.</translation>
+    </message>
+    <message>
+        <location line="+65"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>z. B. 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>z. B. HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <location line="+14"/>
+        <source>Download folder</source>
+        <translation>Download-Ordner</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>Ordner wählen...</translation>
+    </message>
+    <message>
+        <location line="+63"/>
+        <source>A folder with one folder per member. Its loads, files and findings are read and checked.</source>
+        <translation>Ein Ordner mit je einem Ordner pro Mitglied. Seine Loads, Dateien und Befunde werden gelesen und geprüft.</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -604,12 +541,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-67"/>
-        <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
-        <translation>Das Verzeichnis wählen, in das das Medienset geschrieben wurde, und sicherstellen, dass alle Dateien des Sets noch darin liegen.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-60"/>
         <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
         <translation>Etwas im Medienset wurde nach der Prüfung bearbeitet, ersetzt oder entfernt, daher wurde nichts hochgeladen. Prüfen Sie das Medienset erneut und laden Sie dann hoch.</translation>
     </message>
@@ -624,9 +556,14 @@
         <translation>Die IPv4-Adresse des Zielgeräts als vier durch Punkte getrennte Zahlen von 0 bis 255 eingeben, z. B. 10.0.0.2.</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Choose a download directory that exists or can be created, and make sure it can be written (Preferences).</source>
-        <translation>Ein Download-Verzeichnis wählen, das existiert oder angelegt werden kann und beschreibbar ist (Einstellungen).</translation>
+        <location line="-21"/>
+        <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
+        <translation>Wählen Sie den Ordner, in den das Medienset geschrieben wurde, und stellen Sie sicher, dass noch jede Datei des Sets darin liegt.</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
+        <translation>Wählen Sie einen Download-Ordner, der existiert oder angelegt werden kann, und stellen Sie sicher, dass er beschreibbar ist (Einstellungen).</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -724,28 +661,38 @@
     <message>
         <location filename="../qml/Main.qml" line="+50"/>
         <location line="+58"/>
+        <location line="+129"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
-        <location line="+92"/>
-        <location line="+406"/>
-        <source>Choose the media set directory</source>
-        <translation>Mediensatz-Verzeichnis wählen</translation>
-    </message>
-    <message>
-        <location line="-324"/>
+        <location line="+47"/>
         <source>The operation failed</source>
         <translation>Der Vorgang ist fehlgeschlagen</translation>
     </message>
     <message>
-        <location line="+258"/>
-        <location line="+128"/>
+        <location line="+141"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>z. B. 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>z. B. HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Target THW_ID_POS</source>
+        <translation>THW_ID_POS des Zielgeräts</translation>
+    </message>
+    <message>
+        <location line="+94"/>
+        <location line="+127"/>
         <source>Properties...</source>
         <translation>Eigenschaften...</translation>
     </message>
     <message>
-        <location line="-118"/>
+        <location line="-117"/>
         <source>Ready to address.</source>
         <translation>Bereit zur Adressierung.</translation>
     </message>
@@ -785,27 +732,12 @@
         <translation>UNGEPRÜFT</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>Choose...</source>
-        <translation>Wählen...</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>Change...</source>
-        <translation>Ändern...</translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="+24"/>
         <source>No media set chosen</source>
         <translation>Kein Medienset gewählt</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Choose a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation>Ein Verzeichnis mit je einem Verzeichnis pro Mitglied wählen. Es wird vor einem Upload gelesen und geprüft.</translation>
-    </message>
-    <message>
-        <location line="+46"/>
+        <location line="+47"/>
         <source>Re-check</source>
         <translation>Erneut prüfen</translation>
     </message>
@@ -830,12 +762,12 @@
         <translation>Ladeeinheit %1 hochladen</translation>
     </message>
     <message>
-        <location line="-345"/>
+        <location line="-344"/>
         <source>Find targets</source>
         <translation>Ziele suchen</translation>
     </message>
     <message>
-        <location line="-377"/>
+        <location line="-379"/>
         <source>WORKING</source>
         <translation>IN ARBEIT</translation>
     </message>
@@ -846,18 +778,16 @@
     </message>
     <message>
         <location line="+2"/>
-        <location line="+888"/>
         <source>READY</source>
         <translation>BEREIT</translation>
     </message>
     <message>
-        <location line="-888"/>
-        <location line="+888"/>
+        <location line="+0"/>
         <source>NOT READY</source>
         <translation>NICHT BEREIT</translation>
     </message>
     <message>
-        <location line="-874"/>
+        <location line="+14"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
         <translation>Ein Upload erfordert ein geprüftes Medienset, mindestens einen markierten Load und ein Zielgerät.</translation>
     </message>
@@ -913,7 +843,13 @@
         <translation>v%1</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+10"/>
+        <location line="+407"/>
+        <source>Choose the media set folder</source>
+        <translation>Medienset-Ordner wählen</translation>
+    </message>
+    <message>
+        <location line="-387"/>
         <source>Media set properties</source>
         <translation>Medienset-Eigenschaften</translation>
     </message>
@@ -923,32 +859,17 @@
         <translation>Zielgerät-Eigenschaften</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>About ARINC Data Loader</source>
-        <translation>Über ARINC Data Loader</translation>
-    </message>
-    <message>
-        <location line="+12"/>
+        <location line="+22"/>
         <source>An operation is running</source>
         <translation>Eine Operation läuft</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Stop and close</source>
-        <translation>Stoppen und schließen</translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Keep working</source>
         <translation>Weiterarbeiten</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>Closing now asks the target to stop. The target may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
-        <translation>Beim Schließen wird das Zielgerät zum Stoppen aufgefordert. Es kann bis zu 13 Sekunden dauern, bis das Zielgerät dies bestätigt; das Fenster bleibt bis dahin geöffnet.</translation>
-    </message>
-    <message>
-        <location line="+26"/>
+        <location line="+33"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -978,12 +899,7 @@
         <translation>ADRESSE</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+4"/>
+        <location line="+15"/>
         <source>Target address</source>
         <translation>Zieladresse</translation>
     </message>
@@ -993,17 +909,7 @@
         <translation>THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+11"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Target hardware identifier and position</source>
-        <translation>Hardware-Kennung und -Position des Ziels</translation>
-    </message>
-    <message>
-        <location line="+10"/>
+        <location line="+25"/>
         <source>FOUND</source>
         <translation>GEFUNDEN</translation>
     </message>
@@ -1017,8 +923,18 @@
         <source>Show the target properties</source>
         <translation>Die Eigenschaften des Ziels anzeigen</translation>
     </message>
+    <message>
+        <location line="+58"/>
+        <source>Choose folder...</source>
+        <translation>Ordner wählen...</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Choose a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>Wählen Sie einen Ordner mit je einem Ordner pro Mitglied. Er wird vor einem Upload gelesen und geprüft.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+89"/>
+        <location line="+20"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n Mitglied</numerusform>
@@ -1074,12 +990,12 @@
         <translation>Jede Datei und jeder Prüfwert wurde gelesen und verifiziert.</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+44"/>
         <source>TRANSFER</source>
         <translation>ÜBERTRAGUNG</translation>
     </message>
     <message>
-        <location line="+164"/>
+        <location line="+147"/>
         <source>Downloading...</source>
         <translation>Download läuft...</translation>
     </message>
@@ -1089,8 +1005,8 @@
         <translation>Download vom Zielgerät</translation>
     </message>
     <message>
-        <location line="-157"/>
-        <location line="+154"/>
+        <location line="-140"/>
+        <location line="+137"/>
         <source>Download</source>
         <translation>Herunterladen</translation>
     </message>
@@ -1105,21 +1021,36 @@
         <translation>Die Zielinformationen lesen</translation>
     </message>
     <message>
-        <location line="-138"/>
-        <location line="+145"/>
+        <location line="-121"/>
+        <location line="+128"/>
         <source>Upload</source>
         <translation>Hochladen</translation>
     </message>
     <message numerus="yes">
-        <location line="-1001"/>
+        <location line="-983"/>
         <source>Ready: %n load(s) to %1</source>
         <translation>
             <numerusform>Bereit: %n Load auf %1</numerusform>
             <numerusform>Bereit: %n Loads auf %1</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+197"/>
+        <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
+        <translation>Eine Engineering-Ladekonsole für ARINC 615A und ARINC 665: Mediensets, Zielgeräte, die Operationen Information, Upload und Download sowie der Nachweis dessen, was geschehen ist.</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Abort and close</source>
+        <translation>Abbrechen und schließen</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Closing now aborts the operation: the target is asked to stop and may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
+        <translation>Das Schließen bricht den Vorgang jetzt ab: Das Zielgerät wird zum Anhalten aufgefordert und braucht bis zu 13 Sekunden für die Bestätigung; das Fenster bleibt bis dahin geöffnet.</translation>
+    </message>
     <message numerus="yes">
-        <location line="+748"/>
+        <location line="+531"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n WARNUNG</numerusform>
@@ -1127,27 +1058,12 @@
         </translation>
     </message>
     <message>
-        <location line="+114"/>
+        <location line="+112"/>
         <source>Transfer operation</source>
         <translation>Übertragungsoperation</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>RUNNING</source>
-        <translation>LÄUFT</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>COMPLETE</source>
-        <translation>ABGESCHLOSSEN</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>FAILED</source>
-        <translation>FEHLGESCHLAGEN</translation>
-    </message>
-    <message>
-        <location line="+105"/>
+        <location line="+100"/>
         <source>working</source>
         <translation>arbeitet</translation>
     </message>
@@ -1172,7 +1088,7 @@
         <translation>Den Vorgang abbrechen</translation>
     </message>
     <message>
-        <location line="-919"/>
+        <location line="-901"/>
         <source>Idle</source>
         <translation>Bereit</translation>
     </message>
@@ -1304,13 +1220,7 @@
         <translation>Abbrechen</translation>
     </message>
     <message>
-        <location line="+43"/>
-        <location line="+202"/>
-        <source>Choose the download directory</source>
-        <translation>Download-Verzeichnis wählen</translation>
-    </message>
-    <message>
-        <location line="-187"/>
+        <location line="+58"/>
         <source>Appearance</source>
         <translation>Erscheinungsbild</translation>
     </message>
@@ -1325,7 +1235,17 @@
         <translation>Das Fenster folgt dem hellen oder dunklen Farbschema des Desktops. Die Sprache gilt sofort; alles andere beim Speichern.</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="+33"/>
+        <source>e.g. 10.0.0.2</source>
+        <translation>z. B. 10.0.0.2</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>e.g. HNPFMS_L</source>
+        <translation>z. B. HNPFMS_L</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
         <translation>Vor einer Operation ohne gewähltes Zielgerät FIND ausführen und die einzige Antwort übernehmen; antwortet keines oder antworten mehrere, das Ergebnis anzeigen und warten.</translation>
     </message>
@@ -1335,14 +1255,25 @@
         <translation>Ein Set muss vor einem Upload die Prüfung bestehen. Ist dies aus, in der Medienset-Leiste „Erneut prüfen“ verwenden.</translation>
     </message>
     <message>
-        <location line="+80"/>
-        <source>Browse...</source>
-        <translation>Durchsuchen...</translation>
+        <location line="+18"/>
+        <source>None</source>
+        <translation>Keine</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <location line="+15"/>
+        <source>Download folder</source>
+        <translation>Download-Ordner</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Choose folder...</source>
+        <translation>Ordner wählen...</translation>
     </message>
     <message>
         <location line="+8"/>
-        <source>The directory is where each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; directory is made.</source>
-        <translation>Das Verzeichnis ist der Ort, an dem jedes Verzeichnis DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; angelegt wird.</translation>
+        <source>Each DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; folder is made inside it.</source>
+        <translation>Jeder Ordner DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;number&gt; wird darin angelegt.</translation>
     </message>
     <message>
         <location line="+23"/>
@@ -1360,34 +1291,26 @@
         <translation>Ziel</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="-53"/>
+        <location line="+202"/>
+        <source>Choose the download folder</source>
+        <translation>Download-Ordner wählen</translation>
+    </message>
+    <message>
+        <location line="-139"/>
         <source>Default address</source>
         <translation>Standardadresse</translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>10.0.0.2</source>
-        <translation>10.0.0.2</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+12"/>
         <source>Default target address</source>
         <translation>Standard-Zieladresse</translation>
     </message>
     <message>
         <location line="+4"/>
+        <location line="+12"/>
         <source>Default THW_ID_POS</source>
         <translation>Standard-THW_ID_POS</translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>HNPFMS_L</source>
-        <translation>HNPFMS_L</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Default target hardware identifier and position</source>
-        <translation>Standard-Hardware-Kennung und -Position des Ziels</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1410,12 +1333,7 @@
         <translation>Letzter Mediensatz</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>none</source>
-        <translation>keiner</translation>
-    </message>
-    <message>
-        <location line="+15"/>
+        <location line="+23"/>
         <source>Loader</source>
         <translation>Lader</translation>
     </message>
@@ -1430,13 +1348,7 @@
         <translation>Steuerport des Laders</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <location line="+15"/>
-        <source>Download directory</source>
-        <translation>Download-Verzeichnis</translation>
-    </message>
-    <message>
-        <location line="+25"/>
+        <location line="+45"/>
         <source>Log</source>
         <translation>Protokoll</translation>
     </message>
@@ -1487,8 +1399,8 @@
     </message>
     <message>
         <location line="+23"/>
-        <source>Hardware identifier</source>
-        <translation>Hardware-Kennung</translation>
+        <source>Hardware ID</source>
+        <translation>Hardware-ID</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1496,22 +1408,22 @@
         <translation>Typ</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Position</source>
         <translation>Position</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Name</source>
         <translation>Name</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>Manufacturer code</source>
         <translation>Herstellercode</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+14"/>
         <source>No target was chosen from a FIND answer. The address and THW_ID_POS are the values typed in the rail.</source>
         <translation>Es wurde kein Zielgerät aus einer FIND-Antwort gewählt. Adresse und THW_ID_POS sind die in der Leiste eingegebenen Werte.</translation>
     </message>
@@ -1594,17 +1506,7 @@
         <translation>Jede Datei und ihr Prüfwert wird gelesen; ein Upload setzt eine bestandene Prüfung voraus.</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>A media set is a directory with one directory per member. It is read and checked before an upload.</source>
-        <translation>Ein Medienset ist ein Verzeichnis mit je einem Verzeichnis pro Mitglied. Es wird vor einem Upload gelesen und geprüft.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>Read the set again, or choose another directory.</source>
-        <translation>Das Set erneut lesen oder ein anderes Verzeichnis wählen.</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+8"/>
         <source>The set has to be read again and checked before it may be uploaded.</source>
         <translation>Das Set muss erneut gelesen und geprüft werden, bevor es hochgeladen werden darf.</translation>
     </message>
@@ -1638,23 +1540,8 @@
         <source>Upload %1 loads to %2</source>
         <translation>%1 Loads auf %2 hochladen</translation>
     </message>
-    <message>
-        <location line="+15"/>
-        <source>RUNNING</source>
-        <translation>LÄUFT</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>READY</source>
-        <translation>BEREIT</translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>NOT READY</source>
-        <translation>NICHT BEREIT</translation>
-    </message>
     <message numerus="yes">
-        <location line="+8"/>
+        <location line="+18"/>
         <location line="+43"/>
         <source>%n member(s)</source>
         <translation>
@@ -1671,16 +1558,26 @@
             <numerusform>%n Loads</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="-85"/>
+        <source>Choose a folder</source>
+        <translation>Ordner wählen</translation>
+    </message>
     <message numerus="yes">
-        <location line="-76"/>
+        <location line="+9"/>
         <source>%n warning(s) from the check</source>
         <translation>
             <numerusform>%n Warnung aus der Prüfung</numerusform>
             <numerusform>%n Warnungen aus der Prüfung</numerusform>
         </translation>
     </message>
+    <message>
+        <location line="+244"/>
+        <source>%1 · Target %2 · %3 · %4</source>
+        <translation>%1 · Zielgerät %2 · %3 · %4</translation>
+    </message>
     <message numerus="yes">
-        <location line="+248"/>
+        <location line="+5"/>
         <source>%n load(s) ticked</source>
         <translation>
             <numerusform>%n Load markiert</numerusform>
@@ -1688,12 +1585,22 @@
         </translation>
     </message>
     <message>
-        <location line="-298"/>
+        <location line="-299"/>
         <source>No media set selected</source>
         <translation>Kein Medienset ausgewählt</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="-83"/>
+        <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
+        <translation>Ein Medienset ist ein Ordner mit je einem Ordner pro Mitglied. Es wird vor einem Upload gelesen und geprüft.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Read the set again, or choose another folder.</source>
+        <translation>Lesen Sie das Set erneut oder wählen Sie einen anderen Ordner.</translation>
+    </message>
+    <message>
+        <location line="+101"/>
         <source>Target</source>
         <translation>Zielgerät</translation>
     </message>
@@ -1735,12 +1642,7 @@
         <translation>Medienset</translation>
     </message>
     <message>
-        <location line="+5"/>
-        <source>Choose a directory</source>
-        <translation>Verzeichnis wählen</translation>
-    </message>
-    <message>
-        <location line="+6"/>
+        <location line="+11"/>
         <source>Loads</source>
         <translation>Loads</translation>
     </message>
@@ -1811,12 +1713,7 @@
         <translation>ABGESCHLOSSEN</translation>
     </message>
     <message>
-        <location line="+27"/>
-        <source>Target %1 · %2 · %3</source>
-        <translation>Zielgerät %1 · %2 · %3</translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+31"/>
         <source>no media set</source>
         <translation>kein Medienset</translation>
     </message>
@@ -2147,13 +2044,8 @@
         <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
         <translation>„%1“ ist keine THW_ID_POS, für die ein Download möglich ist.</translation>
     </message>
-    <message>
-        <location line="+71"/>
-        <source>Nothing was received, so the empty download directory %1 was removed.</source>
-        <translation>Es wurde nichts empfangen, daher wurde das leere Download-Verzeichnis %1 entfernt.</translation>
-    </message>
     <message numerus="yes">
-        <location line="+54"/>
+        <location line="+125"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>abgeschlossen, %n Datei fehlgeschlagen</numerusform>
@@ -2195,12 +2087,7 @@
         <translation>Frage bei %1 (%2) die herunterladbaren Dateien ab...</translation>
     </message>
     <message>
-        <location line="+28"/>
-        <source>The download directory could not be used: %1.</source>
-        <translation>Das Download-Verzeichnis konnte nicht verwendet werden: %1.</translation>
-    </message>
-    <message>
-        <location line="+71"/>
+        <location line="+99"/>
         <source>the request was refused (%1)</source>
         <translation>die Anfrage wurde abgelehnt (%1)</translation>
     </message>
@@ -2230,7 +2117,17 @@
         <translation>Das Ziel hat bestätigt, dass es angehalten hat.</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-128"/>
+        <source>The download folder could not be used: %1.</source>
+        <translation>Der Download-Ordner konnte nicht verwendet werden: %1.</translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>Nothing was received, so the empty download folder %1 was removed.</source>
+        <translation>Es wurde nichts empfangen, daher wurde der leere Download-Ordner %1 entfernt.</translation>
+    </message>
+    <message>
+        <location line="+73"/>
         <source>The target did not confirm that it stopped.</source>
         <translation>Das Ziel hat nicht bestätigt, dass es angehalten hat.</translation>
     </message>
@@ -2336,7 +2233,7 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message>
-        <location filename="../core/src/loader_model.cpp" line="+67"/>
+        <location filename="../core/src/loader_model.cpp" line="+68"/>
         <source>%1, %2, all check values verified</source>
         <translation>%1, %2, alle Prüfwerte verifiziert</translation>
     </message>
@@ -2416,12 +2313,12 @@
         </translation>
     </message>
     <message>
-        <location line="+313"/>
+        <location line="+318"/>
         <source>Choose the target from the list, then run the operation again.</source>
         <translation>Wählen Sie das Ziel aus der Liste und führen Sie den Vorgang dann erneut aus.</translation>
     </message>
     <message>
-        <location line="-403"/>
+        <location line="-408"/>
         <source>No target is selected; looking for one first.</source>
         <translation>Kein Ziel ausgewählt; es wird zuerst eines gesucht.</translation>
     </message>

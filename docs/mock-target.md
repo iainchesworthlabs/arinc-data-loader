@@ -16,11 +16,11 @@ an operation, drop status files, send a wrong checksum, abort on its own, or go 
 
 | What | How |
 | --- | --- |
-| FIND | Listens on UDP port 1001 (configurable) and answers a FIND request with the configured identity: target hardware identifier, type name, position, literal name and manufacturer code (`adl::arinc615a`'s FIND codec). |
+| FIND | Listens on UDP port 1001 (configurable) and answers a FIND request with the configured identity: target hardware ID, type name, position, literal name and manufacturer code (`adl::arinc615a`'s FIND codec). |
 | Initialization files | A TFTP server on port 59 (configurable) serves `<THW_ID_POS>.LCI`, `.LUI`, `.LND` and `.LNO` with an "accepted" status file and protocol version A4. It honors the loader's options (block size, and the `port` option that lets the loader use a control port of its own). With an injection it answers WAIT or refuses the operation with 0x1000 ("operation denied"), so the loader's error paths can be shown. The engine can also refuse with 0x1002 and serve an initialization file of an invalid structure (`Config::refusal`, `Config::garbage_init`); the window has no control for either. |
 | Information | Writes the configuration status files (`.LCS`), then the configuration list (`.LCL`, hardware with parts), then the final status 0x0003, on the DLP status cadence. |
-| Upload | Reads the upload request (`.LUR`), then each load's header, data and support files from the loader, checking each against the check value the header file records; writes upload status files (`.LUS`) with per-load progress; stores what it read to `<storage directory>/<load part number>/<file name>`; ends 0x0003, or 0x0002 naming the failed loads. |
-| Download | Both modes: for a media defined download it serves the files the loader's `.LNR` asks for; for an operator defined one it writes the list of files it holds (`.LNL`) and serves only the ones the loader's `.LNA` chooses. The files it can serve are read **once, when Start is pressed** (the session), from `<storage directory>/holds`, so a file put there while the target is running is not served until it is stopped and started again; with no storage directory or nothing in `holds` it holds one demonstration file, `DEMO.TXT`. Download status files (`.LNS`) carry the progress; it ends 0x0003. |
+| Upload | Reads the upload request (`.LUR`), then each load's header, data and support files from the loader, checking each against the check value the header file records; writes upload status files (`.LUS`) with per-load progress; stores what it read to `<storage folder>/<load part number>/<file name>`; ends 0x0003, or 0x0002 naming the failed loads. |
+| Download | Both modes: for a media defined download it serves the files the loader's `.LNR` asks for; for an operator defined one it writes the list of files it holds (`.LNL`) and serves only the ones the loader's `.LNA` chooses. The files it can serve are read **once, when Start is pressed** (the session), from `<storage folder>/holds`, so a file put there while the target is running is not served until it is stopped and started again; with no storage folder or nothing in `holds` it holds one demonstration file, `DEMO.TXT`. Download status files (`.LNS`) carry the progress; it ends 0x0003. |
 | Aborts | When the loader sends ABORT, the mock target stops its transfers and ends the operation with a final status file carrying the loader's code, which is what makes the loader report the abort as confirmed. |
 | Injections | Answer the first request with WAIT for N seconds, answer every request with WAIT, refuse one chosen operation (Information, Upload, Download media defined, Download operator defined), drop every Nth status file, a bit flipped in every served file (the protocol files included, so a download ends at once as "unsupported protocol version"), a wrong checksum option (reported as a notice; the file is kept and the operation completes), an abort (status 0x1003) after N status files, and silence after the first status file (the loader then runs into its 13 second data load protocol time-out). Think time (0 to 60 000 ms, default 1000) and the status file period (0 to 3600 s, default 4) shape the pace of a dialogue. Defaults: behave. |
 | The log | Every status file, file read or written, WAIT and abort as a line with a severity, shown in the window like the loader's activity log. |
@@ -44,12 +44,17 @@ tests/mock_target/      the engine against the loader's real engine on the fake 
 src/ui/                 the shared design system (Theme, controls, header, footer, log)
 ```
 
-The window (1280×900, at least 1120×760) follows the desktop's light or dark scheme, is English only and remembers its size and place. The header owns the run state and Start/Stop: a `SERVING` / `STOPPED` chip and the two buttons (Start needs a hardware identifier; ports must be 1 to 65535). Every field is disabled while the target is serving, so a configuration is changed by stopping, editing and starting again.
+The window (1280×900, at least 1120×760) follows the desktop's light or dark scheme, is English only and remembers its size and place. The header owns the run state and Start/Stop: a `SERVING` / `STOPPED` chip and the two buttons (Start needs a hardware ID; ports must be 1 to 65535). The primary button is the one that applies: Start while stopped, Stop while serving. Every field is disabled while the target is serving, so a configuration is changed by stopping, editing and starting again.
 The left rail is the configuration, numbered (identity, ports, storage, behaviour, fault
 injection), and the right is the evidence (the operation, the activity log and the stored files).
-Fault injection is its own block with an `N ACTIVE` / `BEHAVING` chip and `Reset all`, so a demo
-cannot quietly run with a stale fault. The derived `THW_ID_POS` is shown and copyable; an unset
-storage directory is called out as "still serves, not kept".
+Fault injection is its own block with an `N ACTIVE` / `BEHAVING` chip and `Reset all`, and, because
+that block is below the fold at 1280×900, any armed injection also shows as a "N faults injected" chip in
+the header and the footer; pressing either scrolls the rail to the block, so a demo cannot quietly run
+with a stale fault. The state is named once, in the header; the operation panel says what the target is
+doing ("Waiting for a request", the operation's name, "Not started") and the footer says whether and
+where it listens. The progress bar moves only while the target is working on a request, not while it
+merely listens, and an error from the target is an `AppBanner`. The derived `THW_ID_POS` is shown and
+copyable; an unset storage folder is called out as "still serves, not kept".
 
 ## How it is put together
 
@@ -84,11 +89,11 @@ storage directory is called out as "still serves, not kept".
   starts and stops the model 300 times with a different gap each time.
 - **What the target stores is named safely.** A file the loader sends is stored only under a plain name (letters,
   digits and `. _ -`) that `adl::arinc665::is_portable_file_name` also accepts, so a colon, a device name
-  (`NUL`, `COM1`...) or a trailing dot is refused on every platform; the load's directory is its part number
+  (`NUL`, `COM1`...) or a trailing dot is refused on every platform; the load's folder is its part number
   with anything else turned into `_`, and a device name or trailing dot made harmless.
 - **The files a download serves are read when Start is pressed** (the session), not when a download
   begins: a file put in `holds` afterwards is served after a stop and a start.
-- **The window** lets the operator edit the identity, the ports, the storage directory and the
+- **The window** lets the operator edit the identity, the ports, the storage folder and the
   injections before pressing Start, and shows the operation, its progress, the log and the
   files an upload stored while it runs.
 

@@ -220,6 +220,6 @@ void EngineWorkerTest::a_download_directory_that_cannot_be_made_is_reported() {
     QVERIFY2(summary.outcome.text().contains(QStringLiteral("could not be used")),
              qPrintable(summary.outcome.text()));
     QVERIFY(summary.outcome.text().contains(QStringLiteral("cannot create")));
-    QVERIFY(summary.hint.text().contains(QStringLiteral("download directory")));
+    QVERIFY(summary.hint.text().contains(QStringLiteral("download folder")));
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
 }

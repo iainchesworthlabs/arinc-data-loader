@@ -48,9 +48,9 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | fault injection | injection de défauts |
 | think time | temps de réflexion |
 | find (button) | Rechercher (FIND est conservé) |
-| output directory | répertoire de sortie |
-| storage directory | répertoire de stockage |
-| directory vs folder | répertoire (dossier seulement pour « Open folder ») |
+| output folder | dossier de sortie |
+| storage folder | dossier de stockage |
+| directory vs folder | dossier (the English says "folder" everywhere in the applications; « répertoire » is no longer used) |
 | typography | NBSP avant : ; ? ! % et à l’intérieur de « », apostrophe typographique ’, infinitif pour les boutons |
 
 ## German (`de`)
@@ -83,7 +83,7 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | operator | Bediener |
 | operator defined / media defined | bedienerdefiniert / mediendefiniert |
 | operation | Operation |
-| directory | Verzeichnis |
+| directory | Verzeichnis (only in technical text; the applications say "folder") |
 | folder | Ordner |
 | part number | Teilenummer |
 | data file / support file | Datendatei / Support-Datei |
@@ -93,12 +93,12 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | loader / data loader | Loader / Data Loader |
 | fault injection | Fehlerinjektion |
 | licences | Lizenzen |
-| storage directory | Speicherverzeichnis |
+| storage folder | Speicherordner |
 | destination (download) | Speicherort |
 | peer | Gegenstelle |
 | engine | Engine |
 | find (button) | Suchen (FIND bleibt FIND) |
-| output directory | Ausgabeverzeichnis |
+| output folder | Ausgabeordner |
 | generate | erzeugen |
 | verify | verifizieren |
 | check (media set) | prüfen |
@@ -183,7 +183,7 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | warning / finding | אזהרה / ממצא |
 | log / activity log | יומן / יומן פעילות |
 | preferences | העדפות |
-| directory | ספרייה |
+| directory / folder | ספרייה |
 | destination (download) | מיקום שמירה |
 | operator | מפעיל |
 | port | יציאה |
@@ -287,6 +287,7 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | log / activity log | 日志 / 活动日志 |
 | preferences | 首选项 |
 | licences | 许可证 |
+| folder / directory | 文件夹 |
 | media defined / operator defined | 介质定义 / 操作员定义 |
 | operator | 操作员 |
 | workbench | 工作台 |
@@ -341,9 +342,9 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | workbench | ワークベンチ |
 | operator defined / media defined | オペレーター定義 / メディア定義 |
 | destination | 保存先 |
-| download directory | ダウンロード先ディレクトリ |
-| storage directory | ストレージディレクトリ |
-| output directory | 出力ディレクトリ |
+| download folder | ダウンロードフォルダー |
+| storage folder | ストレージフォルダー |
+| output folder | 出力フォルダー |
 | fault injection | 障害注入 |
 | think time | 処理時間 |
 | peer | ピア |

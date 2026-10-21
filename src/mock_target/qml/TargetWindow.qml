@@ -23,10 +23,8 @@ ApplicationWindow {
                                              + (app.wrongChecksum ? 1 : 0)
                                              + (app.abortAfterStatuses > 0 ? 1 : 0)
                                              + (app.silent ? 1 : 0)
-    readonly property string versionDetails: typeof appVersionDetails === "string"
-                                             ? appVersionDetails
-                                             : qsTr("ARINC Mock Target %1")
-                                                   .arg(Qt.application.version)
+    // The target is answering a request, as opposed to merely listening.
+    readonly property bool working: app.running && app.currentOperation.length > 0
     readonly property bool modalOpen: aboutDialog.opened || licencesDialog.opened
 
     title: qsTr("ARINC Mock Target")
@@ -63,6 +61,44 @@ ApplicationWindow {
 
     Component.onCompleted: Theme.forcedDark = renderDark;
 
+    // Scrolls the rail to block 05, so an armed injection is one click from where it is changed.
+    function showFaults() {
+        const flick = rail.contentItem;
+        const top = faultBlock.mapToItem(railColumn, 0, 0).y - Theme.space4;
+        flick.contentY = Math.max(0, Math.min(top, flick.contentHeight - flick.height));
+    }
+
+    // The armed-injection count as a control: in the header and the footer, where it cannot be
+    // scrolled out of sight, and a click or Enter jumps to the block that changes it.
+    component FaultChip: StatusChip {
+        id: faultChip
+
+        signal clicked()
+
+        text: qsTr("%n fault(s) injected", "", window.activeInjections)
+        tone: "warn"
+        visible: window.activeInjections > 0
+        activeFocusOnTab: visible
+        Accessible.role: Accessible.Button
+        Accessible.name: qsTr("%1. Show the fault injection settings").arg(text)
+        Accessible.onPressAction: faultChip.clicked()
+        Keys.onReturnPressed: faultChip.clicked()
+        Keys.onEnterPressed: faultChip.clicked()
+        Keys.onSpacePressed: faultChip.clicked()
+
+        TapHandler {
+            onTapped: faultChip.clicked()
+        }
+
+        HoverHandler {
+            cursorShape: Qt.PointingHandCursor
+        }
+
+        FocusRing {
+            active: faultChip.activeFocus
+        }
+    }
+
     Shortcut {
         sequence: StandardKey.Quit
         onActivated: window.close()
@@ -72,6 +108,11 @@ ApplicationWindow {
         appCode: "MOCK"
         title: qsTr("ARINC Mock Target")
         subtitle: qsTr("ARINC 615A target · real sockets · fault injection")
+
+        FaultChip {
+            objectName: "headerFaultChip"
+            onClicked: window.showFaults()
+        }
 
         StatusChip {
             text: window.app.running ? qsTr("SERVING") : qsTr("STOPPED")
@@ -89,6 +130,7 @@ ApplicationWindow {
 
         AppButton {
             objectName: "stopButton"
+            primary: window.app.running
             text: qsTr("Stop")
             enabled: window.app.running
             onClicked: window.app.stop()
@@ -115,7 +157,10 @@ ApplicationWindow {
         }
 
         Text {
-            text: window.app.running ? qsTr("Serving") : qsTr("Stopped")
+            text: window.app.running
+                  ? (window.app.loopbackOnly ? qsTr("Listening on 127.0.0.1")
+                                             : qsTr("Listening on every interface"))
+                  : qsTr("Not listening")
             color: window.app.running ? Theme.accentInk : Theme.text
             font.pixelSize: Theme.fontMono
             font.family: Theme.monoFamily
@@ -150,6 +195,11 @@ ApplicationWindow {
             elide: Text.ElideRight
         }
 
+        FaultChip {
+            objectName: "footerFaultChip"
+            onClicked: window.showFaults()
+        }
+
         Text {
             text: qsTr("v%1").arg(Qt.application.version)
             color: Theme.textMuted
@@ -161,70 +211,17 @@ ApplicationWindow {
     FolderDialog {
         id: storageDialog
 
-        title: qsTr("Choose the storage directory")
+        title: qsTr("Choose the storage folder")
         onAccepted: window.app.storageDirectory = selectedFolder
     }
 
-    AppDialog {
+    AboutDialog {
         id: aboutDialog
 
-        heading: qsTr("About the ARINC Mock Target")
-        primaryText: qsTr("Close")
-        secondaryText: qsTr("Licences")
-        width: 620
-
-        content: ColumnLayout {
-            Layout.fillWidth: true
-            spacing: Theme.space3
-
-            Text {
-                text: "MOCK"
-                color: Theme.accent
-                font.pixelSize: Theme.fontDisplay
-                font.family: Theme.headingFamily
-                font.weight: Font.ExtraBold
-                font.letterSpacing: Theme.trackingTitle
-            }
-
-            Text {
-                Layout.fillWidth: true
-                text: qsTr("A 615A target over real UDP sockets, for demonstrating the loader end to end without an embedded box. FIND, Information, Upload and Download run against it; the fault injections make it misbehave on purpose.")
-                color: Theme.textMuted
-                font.pixelSize: Theme.fontBody
-                wrapMode: Text.WordWrap
-            }
-
-            SectionHeader {
-                label: qsTr("Version")
-            }
-
-            Text {
-                Layout.fillWidth: true
-                text: window.versionDetails
-                color: Theme.text
-                font.pixelSize: Theme.fontSmall
-                font.family: Theme.monoFamily
-                wrapMode: Text.WordWrap
-            }
-
-            SectionHeader {
-                label: qsTr("Licences")
-            }
-
-            Text {
-                Layout.fillWidth: true
-                textFormat: Text.RichText
-                linkColor: Theme.accentInk
-                text: qsTr("GNU General Public License, version 3 or later. Third-party components - Qt (LGPL 3), the Archivo typeface (SIL Open Font License 1.1) and others - are listed, with their licences, under Licences. <a href=\"https://github.com/iainchesworthlabs/arinc-data-loader\">Repository</a>.")
-                color: Theme.textMuted
-                font.pixelSize: Theme.fontSmall
-                wrapMode: Text.WordWrap
-                onLinkActivated: (link) => Qt.openUrlExternally(link)
-            }
-        }
-
-        onSecondaryClicked: licencesDialog.open()
-        onPrimaryClicked: aboutDialog.close()
+        appCode: "MOCK"
+        appName: qsTr("ARINC Mock Target")
+        blurb: qsTr("A 615A target over real UDP sockets, for demonstrating the loader end to end without an embedded box. FIND, Information, Upload and Download run against it; the fault injections make it misbehave on purpose.")
+        onShowLicences: licencesDialog.open()
     }
 
     LicencesDialog {
@@ -239,14 +236,18 @@ ApplicationWindow {
         ScrollView {
             id: rail
 
-            Layout.preferredWidth: 396
-            Layout.minimumWidth: 352
-            Layout.maximumWidth: 460
+            objectName: "rail"
+
+            Layout.preferredWidth: Theme.railWidth
+            Layout.minimumWidth: Theme.railMinWidth
+            Layout.maximumWidth: Theme.railMaxWidth
             Layout.fillHeight: true
             clip: true
             contentWidth: availableWidth
 
             ColumnLayout {
+                id: railColumn
+
                 width: rail.availableWidth
                 spacing: 0
 
@@ -274,11 +275,11 @@ ApplicationWindow {
                     AppTextField {
                         objectName: "hardwareIdField"
                         Layout.fillWidth: true
-                        placeholderText: qsTr("HNPFMS")
+                        placeholderText: qsTr("e.g. HNPFMS")
                         text: window.app.hardwareId
                         enabled: !window.app.running
                         onTextEdited: window.app.hardwareId = text
-                        Accessible.name: qsTr("Target hardware identifier")
+                        Accessible.name: qsTr("Target hardware ID")
                     }
 
                     Text {
@@ -291,7 +292,7 @@ ApplicationWindow {
 
                     AppTextField {
                         Layout.fillWidth: true
-                        placeholderText: qsTr("FMS")
+                        placeholderText: qsTr("e.g. FMS")
                         text: window.app.typeName
                         enabled: !window.app.running
                         onTextEdited: window.app.typeName = text
@@ -308,7 +309,7 @@ ApplicationWindow {
 
                     AppTextField {
                         Layout.fillWidth: true
-                        placeholderText: qsTr("L")
+                        placeholderText: qsTr("e.g. L")
                         text: window.app.position
                         enabled: !window.app.running
                         onTextEdited: window.app.position = text
@@ -325,7 +326,7 @@ ApplicationWindow {
 
                     AppTextField {
                         Layout.fillWidth: true
-                        placeholderText: qsTr("FMS LEFT")
+                        placeholderText: qsTr("e.g. FMS LEFT")
                         text: window.app.literalName
                         enabled: !window.app.running
                         onTextEdited: window.app.literalName = text
@@ -342,7 +343,7 @@ ApplicationWindow {
 
                     AppTextField {
                         Layout.fillWidth: true
-                        placeholderText: qsTr("HNP")
+                        placeholderText: qsTr("e.g. HNP")
                         text: window.app.manufacturerCode
                         enabled: !window.app.running
                         onTextEdited: window.app.manufacturerCode = text
@@ -367,7 +368,7 @@ ApplicationWindow {
                             Layout.fillWidth: true
                             readOnly: true
                             text: window.derivedThwIdPos
-                            Accessible.name: qsTr("Derived target hardware identifier and position")
+                            Accessible.name: qsTr("Derived THW_ID_POS")
                         }
 
                         AppButton {
@@ -383,7 +384,7 @@ ApplicationWindow {
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("Hardware ID, an underscore and the position. The loader addresses the target by this.")
+                        text: qsTr("The hardware ID, an underscore and the position. The loader addresses the target by this.")
                         color: Theme.textMuted
                         font.pixelSize: Theme.fontSmall
                         wrapMode: Text.WordWrap
@@ -492,7 +493,7 @@ ApplicationWindow {
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("Uploaded files are written under one directory per load. Files in its 'holds' directory are what a download serves.")
+                        text: qsTr("Uploaded files are written under one folder per load. Files in its 'holds' folder are what a download serves.")
                         color: Theme.textMuted
                         font.pixelSize: Theme.fontSmall
                         wrapMode: Text.WordWrap
@@ -504,17 +505,17 @@ ApplicationWindow {
 
                         AppButton {
                             objectName: "storageButton"
-                            text: qsTr("Choose directory...")
+                            text: qsTr("Choose folder...")
                             enabled: !window.app.running
                             onClicked: storageDialog.open()
-                            Accessible.name: qsTr("Choose the storage directory")
+                            Accessible.name: qsTr("Choose the storage folder")
                         }
 
                         AppButton {
                             text: qsTr("Open folder")
                             enabled: window.app.storageDirectory.length > 0
                             onClicked: Qt.openUrlExternally(window.app.storageDirectory)
-                            Accessible.name: qsTr("Open the storage directory")
+                            Accessible.name: qsTr("Open the storage folder")
                         }
                     }
 
@@ -522,7 +523,7 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         text: window.app.storageDirectory.length > 0
                               ? window.app.storageDirectory
-                              : qsTr("No storage directory chosen. The target still serves; an upload is not kept.")
+                              : qsTr("No storage folder chosen. The target still serves; an upload is not kept.")
                         color: window.app.storageDirectory.length > 0 ? Theme.textMuted : Theme.accentInk
                         font.pixelSize: Theme.fontSmall
                         font.family: window.app.storageDirectory.length > 0
@@ -600,6 +601,8 @@ ApplicationWindow {
                 }
 
                 RailBlock {
+                    id: faultBlock
+
                     Layout.margins: Theme.space4
                     ordinal: "05"
                     label: qsTr("FAULT INJECTION")
@@ -825,8 +828,8 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         text: window.app.currentOperation.length > 0
                               ? window.app.currentOperation
-                              : window.app.running ? qsTr("Serving — no operation")
-                                                   : qsTr("Stopped")
+                              : window.app.running ? qsTr("Waiting for a request")
+                                                   : qsTr("Not started")
                         color: Theme.text
                         font.pixelSize: Theme.fontHeadline
                         font.family: Theme.headingFamily
@@ -834,17 +837,14 @@ ApplicationWindow {
                         wrapMode: Text.WordWrap
                     }
 
-                    StatusChip {
-                        text: window.app.running ? qsTr("SERVING") : qsTr("STOPPED")
-                        tone: window.app.running ? "accent" : "neutral"
-                    }
                 }
 
+                // Still while the target is only listening; it moves only while it is working.
                 TaskProgress {
                     Layout.fillWidth: true
                     visible: window.app.running || window.app.progress >= 0
                     value: Math.max(0, window.app.progress)
-                    indeterminate: window.app.running && window.app.progress < 0
+                    indeterminate: window.working && window.app.progress < 0
                 }
 
                 Text {
@@ -856,13 +856,12 @@ ApplicationWindow {
                     font.family: Theme.monoFamily
                 }
 
-                Text {
+                AppBanner {
+                    objectName: "errorBanner"
                     Layout.fillWidth: true
                     visible: window.app.errorText.length > 0
+                    tone: "error"
                     text: window.app.errorText
-                    color: Theme.accentInk
-                    font.pixelSize: Theme.fontBody
-                    wrapMode: Text.WordWrap
                 }
             }
 
@@ -1008,7 +1007,7 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     visible: storedList.count === 0
                     title: qsTr("Nothing stored yet")
-                    body: qsTr("The files of an upload are written under the storage directory, one directory per load.")
+                    body: qsTr("The files of an upload are written under the storage folder, one folder per load.")
                 }
             }
 

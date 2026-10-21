@@ -37,7 +37,7 @@ files move in whichever direction the job needs. There are three **operations**:
   it can give and the operator picks.
 
 A loader can also look for targets: **FIND** broadcasts a question to the network and every target
-that hears it answers with its identity (hardware identifier, type name, position, literal name,
+that hears it answers with its identity (hardware ID, type name, position, literal name,
 manufacturer code).
 
 ## Words this guide uses
@@ -51,7 +51,7 @@ manufacturer code).
 | Check value | A number calculated from a file's contents, used to prove it arrived unchanged |
 | Finding | Something in a media set that differs from what the standard recommends, but does not stop it being read; the loader shows these as warnings |
 | Target | The equipment being loaded (or the mock target that stands in for it) |
-| `THW_ID_POS` | How a target is addressed in file names: its hardware identifier, an underscore and its position, for example `HNPFMS_L` for hardware `HNPFMS` at position `L`. A target with no position is just its identifier |
+| `THW_ID_POS` | How a target is addressed in file names: its hardware ID, an underscore and its position, for example `HNPFMS_L` for hardware `HNPFMS` at position `L`. A target with no position is just its hardware ID |
 | Control port | The UDP port the target's file server listens on: 59 in the standard. The loader and the target can share one machine if one of them uses another port |
 | FIND port | The UDP port FIND uses: 1001 |
 | Activity log | The loader's list of what the target said and what the loader noticed, with the time |

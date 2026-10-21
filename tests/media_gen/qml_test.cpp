@@ -158,6 +158,43 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // The state is said once, in the header, and a complete form says READY.
+    QQuickItem* status = find_item(window->contentItem(), QStringLiteral("statusChip"));
+    QQuickItem* attempt = find_item(window->contentItem(), QStringLiteral("attemptBanner"));
+    QQuickItem* result = find_item(window->contentItem(), QStringLiteral("resultBanner"));
+    if (status == nullptr || attempt == nullptr || result == nullptr) {
+        std::fprintf(stderr, "the status chip or a banner is not in the window\n");
+        return 1;
+    }
+    const auto status_text = [&] { return status->property("text").toString(); };
+    if (status_text() != QStringLiteral("READY") || attempt->isVisible() || result->isVisible()) {
+        std::fprintf(stderr, "a complete form does not read as READY: %s\n",
+                     qPrintable(status_text()));
+        return 1;
+    }
+
+    // An incomplete form is INCOMPLETE and shows no complaint until Generate is pressed on it;
+    // then the banner says what is missing, and nothing is written.
+    model.setLoadPartNumber(QString());
+    QCoreApplication::processEvents();
+    if (status_text() != QStringLiteral("INCOMPLETE") || attempt->isVisible()) {
+        std::fprintf(stderr, "an incomplete form is alarming before an attempt: %s\n",
+                     qPrintable(status_text()));
+        return 1;
+    }
+    QMetaObject::invokeMethod(button, "click");
+    QCoreApplication::processEvents();
+    if (!attempt->isVisible() || model.resultState() != 0 || result->isVisible()) {
+        std::fprintf(stderr, "Generate on an incomplete form did not say what is missing\n");
+        return 1;
+    }
+    model.setLoadPartNumber(QStringLiteral("ACM47-1234-5678"));
+    QCoreApplication::processEvents();
+    if (!model.canGenerate() || attempt->isVisible()) {
+        std::fprintf(stderr, "the banner stayed after the form was completed\n");
+        return 1;
+    }
+
     // The window's own button starts the generation, exactly as an operator would.
     QMetaObject::invokeMethod(button, "click");
     QCoreApplication::processEvents();
@@ -170,6 +207,13 @@ int main(int argc, char* argv[]) {
     if (model.resultState() != 1 || model.outputPath().isEmpty()) {
         std::fprintf(stderr, "the generation did not complete: %s\n",
                      qPrintable(model.resultText()));
+        return 1;
+    }
+
+    if (status_text() != QStringLiteral("GENERATED") || !result->isVisible() ||
+        attempt->isVisible()) {
+        std::fprintf(stderr, "the window does not show the outcome once: %s\n",
+                     qPrintable(status_text()));
         return 1;
     }
 

@@ -1,5 +1,6 @@
 #include "adl/app/loader_model.hpp"
 
+#include <QDateTime>
 #include <QDir>
 #include <QMetaObject>
 #include <QTimer>
@@ -420,6 +421,7 @@ bool LoaderModel::begin(Job job) {
     // A request or a choice left over from an earlier job must not abort or answer this one.
     worker_->clear_controls();
     set_result(0, {}, {});
+    job_load_count_ = selectedLoadCount();
     set_progress(-1);
     if (download_choice_pending_) {
         download_choice_pending_ = false;
@@ -447,6 +449,8 @@ void LoaderModel::on_finished(const OperationSummary& summary) {
     result_is_transfer_ = ended == Job::information || ended == Job::upload ||
                           ended == Job::download_media || ended == Job::download_operator;
     result_was_download_ = ended == Job::download_media || ended == Job::download_operator;
+    result_load_count_ = job_load_count_;
+    result_time_ = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
     set_result(summary.success ? 1 : 2, summary.outcome, summary.detail);
     if (!summary.success && !quiet_job_) {
         set_error(summary.outcome, summary.detail, summary.hint);
@@ -488,6 +492,8 @@ void LoaderModel::set_result(int state, const Message& text, const Message& deta
     if (state == 0) {
         result_is_transfer_ = false;
         result_was_download_ = false;
+        result_load_count_ = 0;
+        result_time_.clear();
     }
     result_state_ = state;
     result_text_ = text;

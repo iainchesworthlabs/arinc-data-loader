@@ -114,8 +114,9 @@ that grows with its label; the chrome bands under Geometry are fixed.
   screen's available area less 48 px wide and 80 px high, and restores the saved position only if
   that rectangle still meets a screen; otherwise the window is centred horizontally and placed a
   third of the way down. A maximised window is restored maximised.
-- Rail: the loader's and the generator's is 388 px preferred, 348–460; the mock target's is 396
-  preferred, 352–460. The rail scrolls itself and a 2 px rule separates it from the work area.
+- Rail: one width for all three windows, `Theme.railWidth` 388 px preferred, `Theme.railMinWidth`
+  348 to `Theme.railMaxWidth` 460. The rail scrolls itself and a 2 px rule separates it from the
+  work area.
 - Fixed bands: header 64, status bar 28, the loader's transfer strip 52, the loader's activity dock
   260 open and 44 collapsed, the loader's and the generator's action bar 76. The action bar never
   scrolls.
@@ -126,7 +127,7 @@ that grows with its label; the chrome bands under Geometry are fixed.
 |---|---|
 | `AppButton` | 30 px floor, 1 px divider, transparent secondary, `accentFill` primary (no border, DemiBold label), hover and pressed shades, 0.45 opacity when disabled, 2 px focus ring outside. |
 | `AppCheckBox` | 16 px square, `accentFill` when checked, struck `accentText` mark, label 14, optional note 12, ring around the square. `click()` for the window tests. |
-| `AppTextField` | 30 px floor, `neutral100`, 1 px divider, mono 13, optional unit suffix, focus border becomes `focusRing`. |
+| `AppTextField` | 30 px floor, `neutral100`, 1 px divider, mono 13, optional unit suffix, focus border becomes `focusRing`. A placeholder is an example, not a value: it is drawn in the heading face, italic and muted (never in the mono face of real values) and is written "e.g. ..." at the call site, so `e.g. 10.0.0.2` cannot be mistaken for an address that was entered. |
 | `AppComboBox` | 30 px floor, `neutral100`, 1 px divider, drawn chevron, popup `surface`, highlighted row `neutral200`, focus border becomes `focusRing`. |
 | `AppSpinBox` | 30 px floor, `neutral100`, two 24 px square stepper cells (+ and −), mono value without digit grouping. |
 | `SegmentedControl` | Row of 30 px floor, 90 px minimum segments; the chosen one `accentFill` with an `accentText` label, the rest transparent with a 1 px divider. Each segment is a button (`objectName` from the segment's `name`). One tab stop for the group. |
@@ -144,15 +145,22 @@ that grows with its label; the chrome bands under Geometry are fixed.
 | `LogView` | mono 11 time in a 62 px column (`showTime`), 12 px message, `accentInk` for any severity above information, follows the end until the operator scrolls away from it; says "No activity yet." when empty. |
 | `FocusRing` | 2 px `focusRing`, 2 px outside the control, z 100. |
 | `AppDialog` | 2 px `text` border on `surface`, 24 px padding, 640 px wide unless the dialog sets a width, 56 px heading band with a 2 px rule, 64 px footer with one primary and an optional secondary to its left. Content is a named `content` property. `standardButton(role)` maps the affirmative roles to the primary and Cancel and No to the secondary, for the window tests. |
+| `AppBanner` | The one inline message for the window: a sentence (`text`), an optional mono second line (`detail`), actions placed inside it, an optional Dismiss. A 4 px rule at the left edge (2 px for `info`) and the surface carry the tone: `error` (`accent100` surface, `accentInk` border and rule), `warning` (`neutral100`, `accentInk` border and rule), `info` (`neutral100`, `divider`) and `success` (`neutral100`, `neutral900` rule). Its role is an alert. It never repeats the state word that is already in the header. |
+| `AboutDialog` | The one About page: the wordmark, one paragraph (`blurb`), the build provenance, the licence statement, the repository link and a Licences button that opens `LicencesDialog` (`showLicences`). A window passes `appCode`, `appName` and `blurb`, and may put an extra section inside it. |
 | `LicencesDialog` | An `AppDialog` ("Third-party licences", Close) showing the embedded `NOTICES.txt` in a read-only mono 12 text area, at most 780×660. Opened from About > Licences in all three windows; says so in a sentence if the build carries no notices. |
 
 Rules for composition:
 
 - One primary per region. In the loader and the generator the primary lives in the fixed action
-  bar; the mock target has no action bar and keeps Start in the header. Secondary actions are
-  outlined.
-- A modal is for a decision, not for a message. Errors use the dialog only when the operation
-  failed; routine state is inline.
+  bar; the mock target has no action bar and keeps Start and Stop in the header, and the primary
+  is the one that applies: Start while the target is stopped, Stop while it is serving. Secondary
+  actions are outlined.
+- A modal is for a decision, not for a message. The loader's error dialog is for an operation on a
+  target that failed and must be acknowledged; every other message that stays in a window is an
+  `AppBanner`, and a message about one field is the small red line under that field.
+- A field is not an error until the operator has been in it or has tried to go on. A fresh form
+  shows no red: the state in the header says "not started" and the field messages appear for the
+  fields that were touched, or for all of them once the action was pressed on an incomplete form.
 - Empty states say what will appear and how to make it appear. They are not a blank rectangle.
 - Tables have a header row, 1 px rules and a stable column order; the first column is the object's
   identity.
@@ -194,15 +202,42 @@ language box. `tst_right_to_left.qml` checks the result ([translations](translat
 
 ## Window chrome and first run
 
-The header is the product's identity and the window's own actions. The loader has a readiness chip
-(WORKING, SETUP, READY or NOT READY), Preferences and About. The generator has a chip (GENERATING,
-GENERATED, READY or INCOMPLETE) and About. The mock target has a SERVING or STOPPED chip, Start,
-Stop and About. The footer is the state line: the loader's is state (the running activity,
-Complete, Failed or Idle), target, media set and version; the generator's is state, output
-directory and version; the mock target's is state, ports, derived `THW_ID_POS` and version. The
+The header is the product's identity and the window's own actions, and it is the one place a state
+is named. The loader has a readiness chip (WORKING, SETUP, READY or NOT READY), Preferences and
+About. The generator has a chip (NOT STARTED, INCOMPLETE, READY, GENERATING, then GENERATED, FAILED
+or CANCELLED) and About. The mock target has a SERVING or STOPPED chip, Start, Stop and About, and,
+while any fault injection is armed, a chip that says how many and scrolls the rail to them; the
+footer repeats it. The panel and the footer say something other than the state word: the loader's
+footer is the running activity or the last outcome, target, media set and version; the generator's
+is what is left to fill in (or what happened), output folder and version; the mock target's is
+whether it listens and where, ports, derived `THW_ID_POS`, the armed faults and version. The
 first run, in the loader only, is the family shape: a statement, one primary ("Start loading"), one optional route ("Choose a
 media set...") and a numbered mental model beside it. The defaults are folded away behind "Set up
 defaults"; the workbench is reachable without answering a form.
+
+## Words
+
+One word for one thing, in the windows, the guide and the messages. The identifiers in the code
+keep their own names (`outputDirectory`); this is what the person reads.
+
+| Say | Not | Where it applies |
+|---|---|---|
+| **folder** | directory | Anything on the computer's file system the person chooses or opens: the output folder, the download folder, the storage folder, the media set folder ("one folder per member"). The standard's own words (the part root directory) stay when quoting the standard. |
+| **Choose folder...** | Browse, Change, Choose directory, Choose output directory | The button that opens a file or folder dialog. One verb, **Choose**, whether or not a value is set. A list that grows says **Add files...**. |
+| **hardware ID** | hardware identifier | A target's hardware ID as the standard names it (the generator's "Target hardware IDs", the mock target's "Hardware ID", the FIND answer). |
+| **THW_ID_POS** | hardware ID and position | The loader's address string, `<hardware ID>_<position>` (`HNPFMS_L`), where the person types or reads it whole. |
+| **Cancel** | Abort, Stop | Ending a local job that has changed nothing yet (a generation, a read of a media set) and dismissing a dialog. Past tense: *Cancelled*. |
+| **Abort** | Cancel, Stop | Ending an operation on a target, which the target has to be told about and may take time to confirm (the loader's Abort button; *Abort and close*). |
+| **Stop** | Cancel, Abort | Turning a service off: the mock target stops serving. |
+| **None** | none | A value that stands alone in a field or a list ("None"). Inside a sentence the plain word is lower case ("no media set"). |
+| **READY / NOT STARTED / INCOMPLETE** | | The state before an operation: READY when everything it needs is there, NOT STARTED when nothing has been entered, INCOMPLETE when something is missing. Not an error, so not red. |
+| **WORKING** | RUNNING | While an operation is in progress, in the header, in every window (GENERATING in the generator is its own verb for the same state). |
+| **COMPLETE / FAILED / CANCELLED** | | How an operation ended. The generator's header says GENERATED, FAILED or CANCELLED; the loader's receipt says COMPLETE or FAILED. |
+| **SERVING / STOPPED** | | The mock target's state, in the header only. |
+
+A state word appears once, in the header. A second chip next to the same fact (NOT READY three
+times, INCOMPLETE three times, STOPPED four times) is noise: the other places say what is missing,
+what happened or where.
 
 ## Implementation notes
 

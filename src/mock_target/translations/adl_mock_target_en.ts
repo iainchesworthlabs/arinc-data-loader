@@ -4,7 +4,15 @@
 <context>
     <name>TargetWindow</name>
     <message numerus="yes">
-        <location filename="../qml/TargetWindow.qml" line="623"/>
+        <location filename="../qml/TargetWindow.qml" line="78"/>
+        <source>%n fault(s) injected</source>
+        <translation>
+            <numerusform>%n fault injected</numerusform>
+            <numerusform>%n faults injected</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../qml/TargetWindow.qml" line="626"/>
         <source>%n ACTIVE</source>
         <translation>
             <numerusform>%n ACTIVE</numerusform>
@@ -12,7 +20,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/TargetWindow.qml" line="885"/>
+        <location filename="../qml/TargetWindow.qml" line="884"/>
         <source>%n line(s)</source>
         <translation>
             <numerusform>%n line</numerusform>
@@ -20,7 +28,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/TargetWindow.qml" line="928"/>
+        <location filename="../qml/TargetWindow.qml" line="927"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n file</numerusform>

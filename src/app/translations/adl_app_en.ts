@@ -4,7 +4,7 @@
 <context>
     <name>DownloadPanel</name>
     <message numerus="yes">
-        <location filename="../qml/DownloadPanel.qml" line="+155"/>
+        <location filename="../qml/DownloadPanel.qml" line="+149"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n file</numerusform>
@@ -12,7 +12,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+115"/>
+        <location line="+125"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
         <translation>
@@ -35,7 +35,7 @@
 <context>
     <name>Main</name>
     <message numerus="yes">
-        <location filename="../qml/Main.qml" line="+633"/>
+        <location filename="../qml/Main.qml" line="+634"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n member</numerusform>
@@ -51,7 +51,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-594"/>
+        <location line="-595"/>
         <source>Ready: %n load(s) to %1</source>
         <translation>
             <numerusform>Ready: %n load to %1</numerusform>
@@ -59,7 +59,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+748"/>
+        <location line="+749"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n WARNING</numerusform>
@@ -97,7 +97,7 @@
 <context>
     <name>UploadPanel</name>
     <message numerus="yes">
-        <location filename="../qml/UploadPanel.qml" line="+150"/>
+        <location filename="../qml/UploadPanel.qml" line="+144"/>
         <location line="+43"/>
         <source>%n member(s)</source>
         <translation>
@@ -123,7 +123,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+248"/>
+        <location line="+249"/>
         <source>%n load(s) ticked</source>
         <translation>
             <numerusform>%n load ticked</numerusform>
@@ -236,7 +236,7 @@
 <context>
     <name>adl::app::LoaderModel</name>
     <message numerus="yes">
-        <location filename="../core/src/loader_model.cpp" line="+68"/>
+        <location filename="../core/src/loader_model.cpp" line="+69"/>
         <location line="+148"/>
         <source>%n load(s)</source>
         <translation>

@@ -50,9 +50,9 @@ struct GenerateJob {
     QList<JobFile> files;
 };
 
-// How the job ended: 1 the set was written and read back, 2 it was not (or was cancelled).
-// `findings` are where the written set differs from the standard's recommendations, which do not
-// stop a generation.
+// How the job ended: 1 the set was written and read back, 2 it was not, 3 the operator cancelled
+// it. `findings` are where the written set differs from the standard's recommendations, which do
+// not stop a generation.
 struct GenerateOutcome {
     int state = 0;
     adl::ui::Message text;
@@ -122,6 +122,9 @@ private:
     void run(const GenerateJob& job, GenerateOutcome& outcome);
     void fail(GenerateOutcome& outcome, const adl::ui::Message& text,
               const adl::ui::Message& detail = {});
+    // Ends the job as cancelled: the operator asked for it, so it is not a failure. `detail` is
+    // what to say besides; empty, it says that nothing was written.
+    void stop(GenerateOutcome& outcome, const adl::ui::Message& detail = {});
     [[nodiscard]] static adl::ui::Message cannot_read(const QString& path);
 
     std::atomic<bool> cancel_{false};

@@ -175,6 +175,16 @@ void GeneratorWorker::fail(GenerateOutcome& outcome, const Message& text, const 
     Q_EMIT finished(outcome);
 }
 
+void GeneratorWorker::stop(GenerateOutcome& outcome, const Message& detail) {
+    outcome.state = 3;
+    outcome.text = Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Cancelled."));
+    outcome.detail = detail.isEmpty() ? Message::translated(&GeneratorWorker::tr,
+                                                            QT_TR_NOOP("Nothing was written."))
+                                      : detail;
+    Q_EMIT progress(-1);
+    Q_EMIT finished(outcome);
+}
+
 void GeneratorWorker::generate(const GenerateJob& job) {
     GenerateOutcome outcome;
     outcome.state = 2;
@@ -222,8 +232,7 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
     qint64 bytes_read = 0;
     for (qsizetype i = 0; i < job.files.size(); ++i) {
         if (checkpoint("read")) {
-            fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Cancelled.")),
-                 Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Nothing was written.")));
+            stop(outcome);
             return;
         }
         const JobFile& meta = job.files.at(i);
@@ -263,8 +272,7 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
 
     // ---- 2. the load ----
     if (checkpoint("load")) {
-        fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Cancelled.")),
-             Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Nothing was written.")));
+        stop(outcome);
         return;
     }
     LoadSpec load_spec;
@@ -371,8 +379,7 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
     // then, and whatever goes wrong (a full disk, a cancel, a set that does not verify), what was
     // written is removed. Nothing already there is overwritten.
     if (checkpoint("write")) {
-        fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Cancelled.")),
-             Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Nothing was written.")));
+        stop(outcome);
         return;
     }
     const std::filesystem::path base = to_path(job.output_directory);
@@ -421,8 +428,7 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
     // ---- 5. read the tree back and verify what is on the disk ----
     // A cancel after the write finds the whole set on the disk, and takes it away again.
     if (checkpoint("written")) {
-        fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Cancelled.")),
-             partial.discard());
+        stop(outcome, partial.discard());
         return;
     }
     const auto on_disk = adl::media_tree::read_media_set_tree(partial.path());
@@ -446,8 +452,7 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome) {
         return;
     }
     if (checkpoint("verified")) {
-        fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Cancelled.")),
-             partial.discard());
+        stop(outcome, partial.discard());
         return;
     }
 
