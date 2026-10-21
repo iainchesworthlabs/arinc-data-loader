@@ -7,9 +7,7 @@
 #include <string>
 #include <utility>
 
-#include <QList>
 #include <QQuickItem>
-#include <QSet>
 #include <QSettings>
 #include <QStringList>
 
@@ -229,39 +227,6 @@ QObject* Harness::findItem(QObject* root, const QString& name) const {
         }
     }
     return nullptr;
-}
-
-void Harness::collectItems(QObject* root, const QString& name, QVariantList& found) const {
-    // An item is both a visual child and a QObject child of its parent; count it once.
-    QList<QObject*> pending{root};
-    QSet<QObject*> seen;
-    while (!pending.isEmpty()) {
-        QObject* current = pending.takeFirst();
-        if (current == nullptr || seen.contains(current)) {
-            continue;
-        }
-        seen.insert(current);
-        if (current->objectName() == name) {
-            found.append(QVariant::fromValue(current));
-        }
-        QList<QObject*> next;
-        if (auto* item = qobject_cast<QQuickItem*>(current)) {
-            for (QQuickItem* child : item->childItems()) {
-                next.append(child);
-            }
-        }
-        next.append(current->children());
-        // Depth first, in tree order: this node's children before its later siblings.
-        for (qsizetype i = next.size(); i-- > 0;) {
-            pending.prepend(next.at(i));
-        }
-    }
-}
-
-QVariantList Harness::findItems(QObject* root, const QString& name) const {
-    QVariantList found;
-    collectItems(root, name, found);
-    return found;
 }
 
 int Harness::targetCount() const {

@@ -71,9 +71,6 @@ public:
     // An item anywhere below `root` whose `text` is exactly `text` (a button without a name).
     [[nodiscard]] Q_INVOKABLE QObject* findItemByText(QObject* root, const QString& text) const;
 
-    // Every item called `name` below `root`, in tree order (a Repeater's delegates, for one).
-    [[nodiscard]] Q_INVOKABLE QVariantList findItems(QObject* root, const QString& name) const;
-
     // The rows of the lists the window shows, for assertions that a binding or a button filled one.
     [[nodiscard]] Q_INVOKABLE int targetCount() const;
     [[nodiscard]] Q_INVOKABLE int configurationCount() const;
@@ -108,7 +105,6 @@ public:
     [[nodiscard]] Q_INVOKABLE bool gateReached() const;
 
 private:
-    void collectItems(QObject* root, const QString& name, QVariantList& found) const;
     [[nodiscard]] std::optional<std::vector<std::byte>> downloadedBytes(const QString& name,
                                                                         int number) const;
 
