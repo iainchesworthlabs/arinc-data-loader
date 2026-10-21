@@ -14,7 +14,7 @@ pwsh tools/docs/capture_screenshots.ps1 -WorkDir 'C:\demo'
 ```
 
 The scratch folder shows in the pictures (the media set's path appears in the footer and the rail),
-so the published ones were made with `C:\demo`. It takes about 45 minutes for both colour schemes and
+so the published ones were made with `C:\demo-rtl-and-translations` (a folder of that name; use any short one). It takes about 45 minutes for both colour schemes and
 writes about 60 pictures, 2.8 MB in all.
 
 What it does:

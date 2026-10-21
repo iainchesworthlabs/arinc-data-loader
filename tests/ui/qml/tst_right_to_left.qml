@@ -139,11 +139,17 @@ TestCase {
         // English: the steppers at the right; Hebrew: at the left. The dialog is a popup, which
         // follows the window's direction.
         verify(spin.up.indicator.x > spin.width / 2)
+        verify(spin.contentItem.leftPadding > 0 && spin.contentItem.rightPadding === 0)
         switchTo("he")
         verify(spin.mirrored)
         verify(spin.up.indicator.x < spin.width / 2, "the steppers did not move to the left")
         verify(spin.contentItem.x > spin.up.indicator.width - 1,
                "the number overlaps the steppers")
+        // The number starts at the right edge, with a gap there and none on the stepper side.
+        verify(spin.contentItem.effectiveHorizontalAlignment === TextInput.AlignRight,
+               "the number is not aligned to the start edge")
+        verify(spin.contentItem.rightPadding > 0 && spin.contentItem.leftPadding === 0,
+               "the number touches the end of the box")
         dialog.close()
         tryVerify(function() { return !dialog.opened })
     }

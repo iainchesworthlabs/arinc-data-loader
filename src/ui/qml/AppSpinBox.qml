@@ -38,7 +38,10 @@ QQC.SpinBox {
         selectedTextColor: Theme.accentText
         horizontalAlignment: Qt.AlignLeft
         verticalAlignment: Qt.AlignVCenter
-        leftPadding: Theme.space3
+        // The gap is at the start edge (the physical left in a left-to-right window, the right in a
+        // mirrored one: the alignment mirrors by itself, a padding does not).
+        leftPadding: control.mirrored ? 0 : Theme.space3
+        rightPadding: control.mirrored ? Theme.space3 : 0
         readOnly: !control.editable
         validator: control.validator
         inputMethodHints: Qt.ImhFormattedNumbersOnly
