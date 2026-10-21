@@ -15,7 +15,7 @@ What it describes, and where each fact comes from:
   - Qt: the version the kit reported, used under the LGPL-3.0, and for each Qt module that ships a
     runtime library in a package, the kit's own SPDX document, referenced from the SPDX document by
     namespace and SHA-1 as SPDX 2.3 asks (the documents are published beside this one);
-  - the Archivo typeface (SIL OFL 1.1), embedded in every program;
+    - the Archivo and Noto Sans Hebrew typefaces (SIL OFL 1.1), embedded in every program;
   - the runtime files Qt's deployment tool placed in a package (Mesa's software OpenGL, Microsoft's
     Direct3D compiler and Visual C++ runtime installer, ICU), found by name in the archive's file list;
   - the vcpkg packages installed during the build (Catch2): test-only, so not in any package, and said
@@ -38,6 +38,7 @@ from pathlib import Path
 
 REPO_URL = "https://github.com/iainchesworthlabs/arinc-data-loader"
 FONT_URL = "https://github.com/Omnibus-Type/Archivo"
+HEBREW_FONT_URL = "https://github.com/notofonts/hebrew"
 NOASSERTION = "NOASSERTION"
 PROGRAMS = [
     ("adl_app", "The ARINC 615A data loader application"),
@@ -221,9 +222,23 @@ def main():
         "copyrightText": "Copyright 2020 The Archivo Project Authors", "primaryPackagePurpose": "FILE",
         "description": "The typeface embedded, unmodified, in every program (Regular, Medium, SemiBold, ExtraBold)",
     })
+        # The typeface of the Hebrew and Yiddish windows (src/ui/fonts, notices/fragments/fonts.txt): four static
+    # instances of the weights the design uses, cut from the variable font the Noto Project publishes.
+    hebrew_font_id = "SPDXRef-NotoSansHebrew"
+    packages.append({
+        "SPDXID": hebrew_font_id, "name": "Noto Sans Hebrew", "versionInfo": NOASSERTION,
+        "supplier": "Organization: The Noto Project Authors", "downloadLocation": HEBREW_FONT_URL,
+        "filesAnalyzed": False, "homepage": HEBREW_FONT_URL, "licenseConcluded": "OFL-1.1",
+        "licenseDeclared": "OFL-1.1", "copyrightText": "Copyright 2022 The Noto Project Authors",
+        "primaryPackagePurpose": "FILE",
+        "description": "The typeface of the Hebrew and Yiddish windows, embedded in every program: four static "
+                       "instances (Regular, Medium, SemiBold, ExtraBold) cut from the variable font the Noto "
+                       "Project publishes; the letters are not otherwise changed",
+    })
     for name in ("adl_app", "adl_media_gen", "adl_mock_target"):
         add_relationship(program_ids[name], "DYNAMIC_LINK", qt_id)
         add_relationship(program_ids[name], "CONTAINS", font_id)
+        add_relationship(program_ids[name], "CONTAINS", hebrew_font_id)
     # How the first-party pieces build on each other (the libraries are static, so a program that uses
     # one carries it).
     add_relationship(library_ids["adl_arinc615a"], "DEPENDS_ON", library_ids["adl_arinc665"])
@@ -285,6 +300,7 @@ def main():
                 add_relationship(ident, "CONTAINS", program_ids[name])
             add_relationship(ident, "CONTAINS", qt_id)
             add_relationship(ident, "CONTAINS", font_id)
+            add_relationship(ident, "CONTAINS", hebrew_font_id)
             for pattern, key, label, license_, homepage, description in RUNTIME_FILES:
                 if any(pattern.search(f) for f in archive["files"]):
                     component = spdx_id("Runtime-" + key)
@@ -377,8 +393,13 @@ def main():
     components.append(component("archivo", "data", "Archivo", None, licenses=licence("OFL-1.1"),
                                 externalReferences=[{"type": "website", "url": FONT_URL}],
                                 description="The typeface embedded, unmodified, in every program"))
+    components.append(component("noto-sans-hebrew", "data", "Noto Sans Hebrew", None, licenses=licence("OFL-1.1"),
+                                externalReferences=[{"type": "website", "url": HEBREW_FONT_URL}],
+                                description="The typeface of the Hebrew and Yiddish windows, embedded in every "
+                                            "program: four static instances cut from the variable font the Noto "
+                                            "Project publishes"))
     for name in ("adl_app", "adl_media_gen", "adl_mock_target"):
-        depends(name, "qt", "archivo")
+        depends(name, "qt", "archivo", "noto-sans-hebrew")
     depends("adl_arinc615a", "adl_arinc665")
     depends("adl_media_tree", "adl_arinc665")
     depends("adl_arinc615a_runner", "adl_arinc615a", "adl_platform")
@@ -390,7 +411,7 @@ def main():
                                     description=f"Built on the {archive['leg']} leg"))
         depends(root_ref, ref)
         if archive["runtime"]:
-            depends(ref, *program_ids.keys(), "qt", "archivo")
+            depends(ref, *program_ids.keys(), "qt", "archivo", "noto-sans-hebrew")
             for pattern, key, label, license_, homepage, description in RUNTIME_FILES:
                 if any(pattern.search(f) for f in archive["files"]):
                     cref = "runtime-" + key

@@ -209,10 +209,9 @@ releases it signed, so a compromise is also announced on the releases it touches
   before it is unpacked; the Python package that unpacks it is hash-locked ([CI](ci.md)). The kit is
   Qt's own build: this project does not rebuild Qt.
 - **The SBOM** lists what the build reported, never a guess: the first-party programs and libraries,
-  Qt (by reference to the kit's own SPDX documents), the typeface, the runtime files Qt's deployment
+  Qt (by reference to the kit's own SPDX documents), the typefaces, the runtime files Qt's deployment
   tool placed in a package, the vcpkg packages used for the tests (Catch2: in no package), and the
-  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with
-  hash-locked validators.
+  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with hash-locked validators, and the SPDX document is checked to list every typeface in `src/ui/fonts` (`tools/release/check_sbom_fonts.py`).
 - **The attestations and the signature are independent.** A compromised runner could produce a package
   and an honest-looking attestation of it; a compromised key could sign anything. Together they say the
   maintainer's key signed what the maintainer's workflow built.
