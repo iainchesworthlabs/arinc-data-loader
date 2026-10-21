@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <expected>
@@ -12,6 +13,7 @@
 #include <vector>
 
 #include <QDir>
+#include <QFileInfo>
 #include <QPointer>
 #include <QSemaphore>
 #include <QSettings>
@@ -29,7 +31,9 @@
 #include "adl/platform/paths.hpp"
 #include "adl/samples/scenarios.hpp"
 #include "bytes.hpp"
+#include "gated_host.hpp"
 #include "rig.hpp"
+#include "scratch_settings.hpp"
 #include "test_classes.hpp"
 #include "upload_fixture.hpp"
 
@@ -51,8 +55,25 @@ HostFactory rig_host(adl::test::Rig& rig, QSemaphore* hold = nullptr) {
     };
 }
 
+// The loader's host with a gate in its file calls (see gated_host.hpp): the engine's thread can be
+// stopped half way through a transfer, with the target certainly still at it.
+HostFactory gated_host(adl::test::GatedHost& gated) {
+    return [&gated]() -> std::expected<HostLease, QString> {
+        HostLease lease;
+        lease.host = &gated;
+        return lease;
+    };
+}
+
 // The operator's preferences in a file of their own, so no test reads (or writes) the settings
-// of another one.
+// of another one. Without a directory it is a file in the scratch directory of the test that is
+// running (init() moves that on before each test), the same place a QSettings made without
+// arguments uses, so nothing is shared with another test or another run.
+std::unique_ptr<AppSettings> settings_in(
+    const QString& file = adl::test::scratch_settings().file()) {
+    return std::make_unique<AppSettings>(std::make_unique<QSettings>(file, QSettings::IniFormat));
+}
+
 std::unique_ptr<AppSettings> settings_in(QTemporaryDir& directory,
                                          const QString& name = QStringLiteral("settings.ini")) {
     return std::make_unique<AppSettings>(
@@ -171,9 +192,15 @@ bool holds(adl::test::Rig& rig, const std::filesystem::path& directory, const st
 
 }  // namespace
 
+void LoaderModelTest::init() {
+    // An empty settings directory for every test: the last address, the download directory and the
+    // last media set a test stored are not there for the next one.
+    adl::test::scratch_settings().next();
+}
+
 void LoaderModelTest::information_reads_the_configuration() {
     adl::test::Rig rig;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     point_at_the_target(model);
     QVERIFY(model.canReadInformation());
     QVERIFY(!model.busy());
@@ -223,7 +250,7 @@ void LoaderModelTest::find_lists_the_targets() {
     adl::test::SimPlan plan;
     plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
     adl::test::Rig rig(plan);
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
 
     model.findTargets();
     QVERIFY(model.busy());
@@ -300,7 +327,7 @@ void LoaderModelTest::a_target_needs_an_address_and_a_name() {
 void LoaderModelTest::abort_before_the_target_accepts_ends_the_operation() {
     adl::test::Rig rig;
     QSemaphore hold;
-    LoaderModel model(rig_host(rig, &hold));
+    LoaderModel model(rig_host(rig, &hold), settings_in());
     point_at_the_target(model);
 
     model.readInformation();
@@ -332,7 +359,7 @@ void LoaderModelTest::abort_before_the_target_accepts_ends_the_operation() {
 void LoaderModelTest::a_second_job_is_refused_while_one_runs() {
     adl::test::Rig rig;
     QSemaphore hold;
-    LoaderModel model(rig_host(rig, &hold));
+    LoaderModel model(rig_host(rig, &hold), settings_in());
     point_at_the_target(model);
 
     model.readInformation();
@@ -350,9 +377,11 @@ void LoaderModelTest::a_second_job_is_refused_while_one_runs() {
 }
 
 void LoaderModelTest::a_failing_host_ends_the_job_with_the_reason() {
-    LoaderModel model([]() -> std::expected<HostLease, QString> {
-        return std::unexpected(QStringLiteral("no network adapter"));
-    });
+    LoaderModel model(
+        []() -> std::expected<HostLease, QString> {
+            return std::unexpected(QStringLiteral("no network adapter"));
+        },
+        settings_in());
     point_at_the_target(model);
     model.readInformation();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
@@ -382,7 +411,7 @@ void LoaderModelTest::media_set_is_read_from_a_directory() {
     QVERIFY(written.has_value());
 
     adl::test::Rig rig;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     QSignalSpy changed(&model, &LoaderModel::mediaSetChanged);
     model.chooseMediaSet(QUrl::fromLocalFile(directory.path()));
     QVERIFY(model.busy());
@@ -434,7 +463,7 @@ void LoaderModelTest::media_set_that_is_not_there_is_reported() {
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     adl::test::Rig rig;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     model.chooseMediaSet(QUrl::fromLocalFile(directory.filePath(QStringLiteral("missing"))));
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
 
@@ -473,7 +502,7 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     point_at_the_target(model);
     read_the_media_set(model, fixture);
     QCOMPARE(qobject_cast<LoadModel*>(model.loads())->rowCount(), 1);
@@ -550,7 +579,7 @@ void LoaderModelTest::an_upload_needs_a_target_a_media_set_and_a_tick() {
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
 
     // Nothing to upload yet, and asking for it changes nothing.
     QVERIFY(!model.canUpload());
@@ -595,7 +624,7 @@ void LoaderModelTest::a_load_the_target_cannot_read_ends_the_upload() {
         adl::test::ReadItem{"MISSING.BIN", adl::test::Bytes(3), std::nullopt});
     adl::test::Rig rig(plan);
     QVERIFY(fixture.write(rig));
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     point_at_the_target(model);
     read_the_media_set(model, fixture);
     model.selectAllLoads(true);
@@ -616,7 +645,7 @@ void LoaderModelTest::abort_before_the_target_accepts_ends_the_upload() {
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
     QSemaphore hold;
-    LoaderModel model(rig_host(rig, &hold));
+    LoaderModel model(rig_host(rig, &hold), settings_in());
     point_at_the_target(model);
     read_the_media_set(model, fixture);
     model.selectAllLoads(true);
@@ -645,7 +674,7 @@ void LoaderModelTest::selecting_a_target_exposes_its_properties() {
     adl::test::SimPlan plan;
     plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "R", "FMS RIGHT", "HNP"};
     adl::test::Rig rig(plan);
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     QCOMPARE(model.selectedTargetIndex(), -1);
     QVERIFY(model.selectedTargetHardwareId().isEmpty());
 
@@ -813,7 +842,7 @@ void LoaderModelTest::a_set_is_uploadable_only_after_the_check_passes() {
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     point_at_the_target(model);
 
     // Choosing the set leaves it unchecked, and nothing can be uploaded.
@@ -844,7 +873,7 @@ void LoaderModelTest::a_corrupted_set_fails_the_check_and_stays_refused() {
         out.write(reinterpret_cast<const char*>(corrupt.data()),
                   static_cast<std::streamsize>(corrupt.size()));
 
-        LoaderModel model(rig_host(rig));
+        LoaderModel model(rig_host(rig), settings_in());
         point_at_the_target(model);
         model.chooseMediaSet(fixture.url());
         wait_for_the_check(model, 3);
@@ -864,7 +893,7 @@ void LoaderModelTest::a_corrupted_set_fails_the_check_and_stays_refused() {
         QVERIFY(!read_file(fixture.directory.path(), "APP.LUP", &where).empty());
         std::filesystem::remove(where);
 
-        LoaderModel model(rig_host(rig));
+        LoaderModel model(rig_host(rig), settings_in());
         point_at_the_target(model);
         model.chooseMediaSet(fixture.url());
         wait_for_the_check(model, 3);
@@ -879,7 +908,7 @@ void LoaderModelTest::check_media_set_revalidates_files_changed_on_disk() {
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     read_the_media_set(model, fixture);
     point_at_the_target(model);
     model.selectAllLoads(true);
@@ -925,7 +954,7 @@ void LoaderModelTest::a_set_edited_after_the_check_is_not_uploaded() {
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     read_the_media_set(model, fixture);
     point_at_the_target(model);
     model.selectAllLoads(true);
@@ -973,7 +1002,7 @@ void LoaderModelTest::findings_warn_but_do_not_block_the_upload() {
     fixture.media_set_part_number = "ACM-SET-000I";
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     read_the_media_set(model, fixture);
 
     QVERIFY(!model.mediaSetFindings().isEmpty());
@@ -1173,7 +1202,7 @@ void LoaderModelTest::a_media_defined_download_writes_the_files_into_the_numbere
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     // The download directory itself is a directory that does not exist yet: it is made on
     // demand.
     model.setDownloadDirectory(
@@ -1237,7 +1266,7 @@ void LoaderModelTest::each_download_gets_the_next_numbered_directory() {
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     model.setDownloadDirectory(download_dir_of(downloads));
     point_at_the_target(model);
     model.addDownloadFile(QStringLiteral("A.BIN"));
@@ -1263,7 +1292,7 @@ void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     model.setDownloadDirectory(download_dir_of(downloads));
     point_at_the_target(model);
     model.setDownloadMode(1);
@@ -1317,7 +1346,7 @@ void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() 
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     model.setDownloadDirectory(download_dir_of(downloads));
     point_at_the_target(model);
     model.setDownloadMode(1);
@@ -1358,7 +1387,7 @@ void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() 
 void LoaderModelTest::an_id_a_download_directory_cannot_be_named_after_is_refused() {
     adl::test::Rig rig(download_plan());
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     model.setDownloadDirectory(download_dir_of(downloads));
     model.setTargetAddress(QStringLiteral("10.0.0.2"));
     model.addDownloadFile(QStringLiteral("A.BIN"));
@@ -1392,7 +1421,7 @@ void LoaderModelTest::a_download_with_a_missing_file_ends_as_a_failure() {
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     model.setDownloadDirectory(download_dir_of(downloads));
     point_at_the_target(model);
     model.addDownloadFile(QStringLiteral("A.BIN"));
@@ -1417,7 +1446,7 @@ void LoaderModelTest::abort_of_a_download_stops_it() {
     adl::test::Rig rig(plan);
     QSemaphore hold;
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig, &hold));
+    LoaderModel model(rig_host(rig, &hold), settings_in());
     model.setDownloadDirectory(download_dir_of(downloads));
     point_at_the_target(model);
     model.addDownloadFile(QStringLiteral("A.BIN"));
@@ -1452,7 +1481,7 @@ void LoaderModelTest::abort_of_a_download_stops_it() {
 void LoaderModelTest::a_directory_from_a_folder_dialog_is_stored_as_a_path() {
     adl::test::Rig rig(download_plan());
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
 
     const QString path = download_dir_of(downloads);
     model.setDownloadDirectory(QUrl::fromLocalFile(path).toString());
@@ -1467,7 +1496,7 @@ void LoaderModelTest::a_directory_from_a_folder_dialog_is_stored_as_a_path() {
 void LoaderModelTest::a_download_needs_a_target_a_directory_and_files() {
     adl::test::Rig rig(download_plan());
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
 
     // Nothing set up: refused, and asking for it changes nothing.
     QVERIFY(!model.canDownload());
@@ -1504,7 +1533,7 @@ void LoaderModelTest::a_download_needs_a_target_a_directory_and_files() {
 void LoaderModelTest::a_download_refuses_a_name_that_is_not_a_safe_file_name() {
     adl::test::Rig rig(download_plan());
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig));
+    LoaderModel model(rig_host(rig), settings_in());
     model.setDownloadDirectory(download_dir_of(downloads));
     point_at_the_target(model);
     model.addDownloadFile(QStringLiteral("A.BIN"));
@@ -1524,7 +1553,7 @@ void LoaderModelTest::a_second_job_is_refused_while_a_download_runs() {
     adl::test::Rig rig(download_plan());
     QSemaphore hold;
     adl::test::TempDir downloads;
-    LoaderModel model(rig_host(rig, &hold));
+    LoaderModel model(rig_host(rig, &hold), settings_in());
     model.setDownloadDirectory(download_dir_of(downloads));
     point_at_the_target(model);
     model.addDownloadFile(QStringLiteral("A.BIN"));
@@ -1570,4 +1599,273 @@ void LoaderModelTest::auto_find_runs_before_a_download_when_no_target_is_selecte
     QCOMPARE(model.targetAddress(), QStringLiteral("10.0.0.2"));
     QVERIFY(log_contains(model, QStringLiteral("No target is selected")));
     QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content));
+}
+
+// ---- Aborts in the middle of a transfer, and what a job leaves behind --------------------------
+
+void LoaderModelTest::abort_in_the_middle_of_an_upload_is_confirmed_by_the_target() {
+    adl::test::UploadFixture fixture;
+    adl::test::SimPlan plan = fixture.plan();
+    // The target keeps working (and reporting) after its last file, so the abort cannot arrive
+    // after it has finished on its own.
+    plan.work_time = std::chrono::seconds(60);
+    adl::test::Rig rig(plan);
+    QVERIFY(fixture.write(rig));
+    adl::test::GatedHost gated(rig.loader_host);
+    LoaderModel model(gated_host(gated), settings_in());
+    const adl::test::GatedHost::Release unblock(gated);
+    point_at_the_target(model);
+    read_the_media_set(model, fixture);
+    model.selectAllLoads(true);
+    const std::size_t all_files = fixture.load.item.reads.size();
+    QVERIFY(all_files >= 2);
+
+    // The engine is held when the target asks for its second file: the first is across, the
+    // transfer is under way and the load is not complete. (Before the upload starts, the
+    // application opens every file of the set once to see that none has changed since the check;
+    // those opens come first.)
+    gated.arm(adl::test::GatedHost::Event::open_read, static_cast<unsigned>(model.fileCount()) + 2);
+    model.uploadSelected();
+    QVERIFY(gated.wait_until_reached());
+    QVERIFY(model.busy());
+    QVERIFY(model.canAbort());
+    QCOMPARE(rig.target.log().files_read.size(), std::size_t{1});
+    // The target has reported on the upload already: the operator is looking at its progress.
+    QTRY_VERIFY_WITH_TIMEOUT(model.progress() >= 0, 5000);
+
+    model.abort();
+    QVERIFY(!model.canAbort());
+    gated.release();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    // The target saw the abort and answered it, so the stop is confirmed; and the job failed.
+    QCOMPARE(model.resultState(), 2);
+    QCOMPARE(model.resultText(), QStringLiteral("aborted by the operator"));
+    QVERIFY2(model.resultDetail().contains(QStringLiteral("The target confirmed that it stopped.")),
+             qPrintable(model.resultDetail()));
+    QVERIFY(!model.resultDetail().contains(QStringLiteral("did not confirm")));
+    QVERIFY(model.resultDetail().contains(QStringLiteral("The target read 1 file.")));
+    QCOMPARE(rig.target.log().aborts_seen.size(), std::size_t{1});
+    QVERIFY(rig.target.log().files_read.size() < all_files);
+    QVERIFY(rig.target.log().files_read.size() >= 1);
+
+    // The failure is for the dialog, and a confirmed stop has no "may still be loading" hint.
+    QCOMPARE(model.lastErrorText(), QStringLiteral("aborted by the operator"));
+    QVERIFY(model.lastErrorDetail().contains(QStringLiteral("confirmed that it stopped")));
+    QVERIFY(model.lastErrorHint().isEmpty());
+    QVERIFY(log_contains(model, QStringLiteral("Finished: aborted by the operator")));
+    // The operator can go again.
+    QVERIFY(model.canUpload());
+}
+
+void LoaderModelTest::abort_in_the_middle_of_a_download_is_confirmed_by_the_target() {
+    adl::test::SimPlan plan = download_plan();
+    plan.work_time = std::chrono::seconds(60);
+    adl::test::Rig rig(plan);
+    adl::test::TempDir downloads;
+    adl::test::GatedHost gated(rig.loader_host);
+    LoaderModel model(gated_host(gated), settings_in());
+    const adl::test::GatedHost::Release unblock(gated);
+    model.setDownloadDirectory(download_dir_of(downloads));
+    point_at_the_target(model);
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+    model.addDownloadFile(QStringLiteral("B.BIN"));
+    model.addDownloadFile(QStringLiteral("C.BIN"));
+
+    // Held as the second file begins to arrive: the first has been written, the others have not.
+    gated.arm(adl::test::GatedHost::Event::create, 2);
+    model.downloadSelected();
+    QVERIFY(gated.wait_until_reached());
+    QVERIFY(model.busy());
+    QCOMPARE(rig.target.log().files_written.size(), std::size_t{1});
+
+    model.abort();
+    gated.release();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+
+    QCOMPARE(model.resultState(), 2);
+    QVERIFY(model.resultWasDownload());
+    QCOMPARE(model.resultText(), QStringLiteral("aborted by the operator"));
+    QVERIFY2(model.resultDetail().contains(QStringLiteral("The target confirmed that it stopped.")),
+             qPrintable(model.resultDetail()));
+    QVERIFY(model.resultDetail().contains(QStringLiteral("requested.")));
+    QVERIFY(!model.resultDetail().contains(QStringLiteral("Files received: 3 of 3")));
+    QVERIFY(!model.resultDetail().contains(QStringLiteral("Files received: 0 of 3")));
+    QCOMPARE(rig.target.log().aborts_seen.size(), std::size_t{1});
+    // The file that was complete is on the disk; the one that was not is not there.
+    QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content));
+    QVERIFY(!downloaded(rig, downloads.path(), "C.BIN").has_value());
+    QVERIFY(model.lastErrorHint().isEmpty());
+}
+
+void LoaderModelTest::a_changed_target_drops_what_was_observed_against_the_old_one() {
+    adl::test::SimPlan plan;
+    plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
+    adl::test::Rig rig(plan);
+    LoaderModel model(rig_host(rig), settings_in());
+
+    // FIND, choose the target, read its configuration: all of it describes that target.
+    model.findTargets();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    model.selectTarget(0);
+    QCOMPARE(model.selectedTargetIndex(), 0);
+    model.readInformation();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QVERIFY(model.resultIsTransfer());
+    const auto* configuration = qobject_cast<ConfigurationModel*>(model.configuration());
+    QVERIFY(configuration->rowCount() > 0);
+    const int log_before = qobject_cast<EventModel*>(model.events())->rowCount();
+
+    // The address is edited: the selection, the configuration and the receipt go; the log stays.
+    QSignalSpy selection(&model, &LoaderModel::selectedTargetChanged);
+    QSignalSpy result(&model, &LoaderModel::resultChanged);
+    model.setTargetAddress(QStringLiteral("10.0.0.9"));
+    QCOMPARE(model.selectedTargetIndex(), -1);
+    QVERIFY(selection.count() >= 1);
+    QCOMPARE(configuration->rowCount(), 0);
+    QCOMPARE(model.resultState(), 0);
+    QVERIFY(!model.resultIsTransfer());
+    QVERIFY(model.resultText().isEmpty());
+    QVERIFY(result.count() >= 1);
+    QCOMPARE(qobject_cast<EventModel*>(model.events())->rowCount(), log_before);
+
+    // The same for the other half of the target's name.
+    model.setTargetAddress(QStringLiteral("10.0.0.2"));
+    rig.target.reset_operation();
+    model.readInformation();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QVERIFY(configuration->rowCount() > 0);
+    model.setThwIdPos(QStringLiteral("HNPFMS_R"));
+    QCOMPARE(configuration->rowCount(), 0);
+    QCOMPARE(model.resultState(), 0);
+
+    // Setting the same value again changes nothing (and so drops nothing).
+    model.setThwIdPos(QStringLiteral("HNPFMS_L"));
+    rig.target.reset_operation();
+    model.readInformation();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    const int rows = configuration->rowCount();
+    QVERIFY(rows > 0);
+    model.setThwIdPos(QStringLiteral(" HNPFMS_L "));
+    QCOMPARE(configuration->rowCount(), rows);
+    QCOMPARE(model.resultState(), 1);
+}
+
+void LoaderModelTest::a_media_set_result_is_not_a_transfer_and_survives_a_changed_target() {
+    adl::test::UploadFixture fixture;
+    adl::test::Rig rig(fixture.plan());
+    QVERIFY(fixture.write(rig));
+    LoaderModel model(rig_host(rig), settings_in());
+    point_at_the_target(model);
+
+    // Reading a media set succeeds, and it is not a transfer: the receipt does not show it.
+    read_the_media_set(model, fixture);
+    QCOMPARE(model.resultState(), 1);
+    QVERIFY(!model.resultIsTransfer());
+    QVERIFY(!model.resultWasDownload());
+    // Nor is a FIND.
+    model.findTargets();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QVERIFY(!model.resultIsTransfer());
+    QVERIFY(!model.resultWasDownload());
+
+    // An upload is one; it is not a download.
+    model.selectAllLoads(true);
+    model.uploadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QVERIFY(model.resultIsTransfer());
+    QVERIFY(!model.resultWasDownload());
+
+    // Re-reading the set makes the result the set's again: not a transfer any more.
+    read_the_media_set(model, fixture);
+    QVERIFY(!model.resultIsTransfer());
+    QVERIFY(!model.resultWasDownload());
+    QCOMPARE(model.resultState(), 1);
+
+    // Changing the target does not clear a result that is not about a target.
+    model.setTargetAddress(QStringLiteral("10.0.0.9"));
+    QCOMPARE(model.resultState(), 1);
+}
+
+void LoaderModelTest::a_download_result_is_a_transfer_and_a_download_even_when_it_fails() {
+    const adl::test::SimPlan plan = download_plan();
+    adl::test::Rig rig(plan);
+    adl::test::TempDir downloads;
+    LoaderModel model(rig_host(rig), settings_in());
+    model.setDownloadDirectory(download_dir_of(downloads));
+    point_at_the_target(model);
+
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+    model.downloadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QVERIFY(model.resultIsTransfer());
+    QVERIFY(model.resultWasDownload());
+
+    // A failed download is still a download, so its receipt is shown in the Download view.
+    rig.target.reset_operation();
+    model.addDownloadFile(QStringLiteral("MISSING.BIN"));
+    model.downloadSelected();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 2);
+    QVERIFY(model.resultIsTransfer());
+    QVERIFY(model.resultWasDownload());
+
+    // A job that is not a download takes the flag back.
+    rig.target.reset_operation();
+    model.readInformation();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QVERIFY(model.resultIsTransfer());
+    QVERIFY(!model.resultWasDownload());
+
+    // Editing the target clears the receipt, and both flags with it.
+    model.setThwIdPos(QStringLiteral("HNPFMS_R"));
+    QCOMPARE(model.resultState(), 0);
+    QVERIFY(!model.resultIsTransfer());
+    QVERIFY(!model.resultWasDownload());
+}
+
+// The only test that runs the application's own host factory: the real platform host, with a
+// download directory whose name is not ASCII. No target answers (nothing is listening on port 59
+// of the loopback interface, and the loader listens on a high port of its own), so the operation
+// is stopped once the download directory has been made, which is what it checks.
+void LoaderModelTest::the_real_host_makes_a_download_directory_with_a_non_ascii_name() {
+    QTemporaryDir scratch;
+    QVERIFY(scratch.isValid());
+    const QString downloads =
+        scratch.filePath(QString::fromUtf8("T\xC3\xA9"
+                                           "l\xC3\xA9"
+                                           "charg\xC3\xA9"
+                                           "s "
+                                           "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E"
+                                           " "
+                                           "\xC3\xB1"));
+    QVERIFY(QDir().mkpath(downloads));
+
+    LoaderModel model(system_host_factory(), settings_in());
+    model.setDownloadDirectory(downloads);
+    model.setControlPort(30905);
+    model.setTargetAddress(QStringLiteral("127.0.0.1"));
+    model.setThwIdPos(QStringLiteral("HNPFMS_L"));
+    model.addDownloadFile(QStringLiteral("A.BIN"));
+    QVERIFY(model.canDownload());
+
+    model.downloadSelected();
+    QVERIFY(model.busy());
+    // The engine thread made the host, then the numbered directory below the chosen one.
+    const QString numbered = downloads + QStringLiteral("/DNLD_DATA_HNPFMS_L_1");
+    QTRY_VERIFY_WITH_TIMEOUT(QFileInfo(numbered).isDir(), 20000);
+
+    model.abort();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 40000);
+    QCOMPARE(model.resultState(), 2);
+    QVERIFY(model.resultWasDownload());
+    QCOMPARE(model.resultText(), QStringLiteral("aborted by the operator"));
+    // No file came back, so the empty numbered folder is taken away again - on the real disk, by
+    // the real host, below a directory whose name is not ASCII - and the chosen directory stays.
+    QVERIFY2(!QFileInfo(numbered).exists(), qPrintable(numbered));
+    QVERIFY(QFileInfo(downloads).isDir());
+    QVERIFY(log_contains(model, QStringLiteral("Downloading 1 file from 127.0.0.1")));
 }
