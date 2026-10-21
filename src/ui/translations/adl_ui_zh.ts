@@ -43,12 +43,12 @@
 <context>
     <name>AppBanner</name>
     <message>
-        <location filename="../qml/AppBanner.qml" line="92"/>
+        <location filename="../qml/AppBanner.qml" line="111"/>
         <source>Dismiss</source>
         <translation>忽略</translation>
     </message>
     <message>
-        <location filename="../qml/AppBanner.qml" line="94"/>
+        <location filename="../qml/AppBanner.qml" line="113"/>
         <source>Dismiss the message</source>
         <translation>忽略该消息</translation>
     </message>
@@ -56,7 +56,7 @@
 <context>
     <name>AppDialog</name>
     <message>
-        <location filename="../qml/AppDialog.qml" line="12"/>
+        <location filename="../qml/AppDialog.qml" line="20"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
@@ -95,7 +95,7 @@
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../qml/LicencesDialog.qml" line="49"/>
+        <location filename="../qml/LicencesDialog.qml" line="50"/>
         <source>Third-party licence text</source>
         <translation>第三方许可证文本</translation>
     </message>
@@ -103,12 +103,37 @@
 <context>
     <name>LogView</name>
     <message>
-        <location filename="../qml/LogView.qml" line="52"/>
+        <location filename="../qml/LogView.qml" line="26"/>
+        <source>ERROR</source>
+        <translation>错误</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="27"/>
+        <source>WARN</source>
+        <translation>警告</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="28"/>
+        <source>NOTE</source>
+        <translation>注意</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="29"/>
+        <source>INFO</source>
+        <translation>信息</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="101"/>
         <source>Activity log</source>
         <translation>活动日志</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="92"/>
+        <location filename="../qml/LogView.qml" line="102"/>
+        <source>Up and Down scroll; Ctrl+C copies every line</source>
+        <translation>上下键滚动；Ctrl+C复制所有行</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="181"/>
         <source>No activity yet.</source>
         <translation>尚无活动。</translation>
     </message>

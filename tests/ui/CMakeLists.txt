@@ -79,7 +79,8 @@ add_dependencies(adl_ui_tests adl_app_tests)
 # cannot colour what the next one sees). A test that hangs fails after five minutes instead of
 # holding the run. The offscreen platform plugin is not one the deployment step copies beside the
 # program, so it is looked for in the Qt kit's own plugin directory.
-foreach(test_file tst_main_window tst_dialogs tst_first_run tst_window_close tst_right_to_left)
+foreach(test_file tst_main_window tst_dialogs tst_first_run tst_window_close tst_right_to_left
+                 tst_keyboard tst_navigation tst_accessibility tst_layout tst_tones)
     add_test(NAME ui.${test_file}
         COMMAND adl_ui_tests -input "${CMAKE_CURRENT_SOURCE_DIR}/qml/${test_file}.qml")
     set_tests_properties(ui.${test_file} PROPERTIES

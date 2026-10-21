@@ -43,12 +43,12 @@
 <context>
     <name>AppBanner</name>
     <message>
-        <location filename="../qml/AppBanner.qml" line="92"/>
+        <location filename="../qml/AppBanner.qml" line="111"/>
         <source>Dismiss</source>
         <translation>Descartar</translation>
     </message>
     <message>
-        <location filename="../qml/AppBanner.qml" line="94"/>
+        <location filename="../qml/AppBanner.qml" line="113"/>
         <source>Dismiss the message</source>
         <translation>Descartar el mensaje</translation>
     </message>
@@ -56,7 +56,7 @@
 <context>
     <name>AppDialog</name>
     <message>
-        <location filename="../qml/AppDialog.qml" line="12"/>
+        <location filename="../qml/AppDialog.qml" line="20"/>
         <source>OK</source>
         <translation>Aceptar</translation>
     </message>
@@ -95,7 +95,7 @@
         <translation>Cerrar</translation>
     </message>
     <message>
-        <location filename="../qml/LicencesDialog.qml" line="49"/>
+        <location filename="../qml/LicencesDialog.qml" line="50"/>
         <source>Third-party licence text</source>
         <translation>Texto de la licencia de terceros</translation>
     </message>
@@ -103,12 +103,37 @@
 <context>
     <name>LogView</name>
     <message>
-        <location filename="../qml/LogView.qml" line="52"/>
+        <location filename="../qml/LogView.qml" line="26"/>
+        <source>ERROR</source>
+        <translation>ERROR</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="27"/>
+        <source>WARN</source>
+        <translation>AVISO</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="28"/>
+        <source>NOTE</source>
+        <translation>NOTA</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="29"/>
+        <source>INFO</source>
+        <translation>INFO</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="101"/>
         <source>Activity log</source>
         <translation>Registro de actividad</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="92"/>
+        <location filename="../qml/LogView.qml" line="102"/>
+        <source>Up and Down scroll; Ctrl+C copies every line</source>
+        <translation>Arriba y Abajo desplazan; Ctrl+C copia todas las líneas</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="181"/>
         <source>No activity yet.</source>
         <translation>Aún no hay actividad.</translation>
     </message>

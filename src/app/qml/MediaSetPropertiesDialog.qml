@@ -11,8 +11,8 @@ AppDialog {
 
     heading: qsTr("Media set properties")
     primaryText: qsTr("Close")
-    width: 940
-    height: 720
+    width: Math.min(940, Overlay.overlay ? Overlay.overlay.width - 48 : 940)
+    height: Math.min(720, Overlay.overlay ? Overlay.overlay.height - 48 : 720)
 
     content: ColumnLayout {
         Layout.fillWidth: true
@@ -79,7 +79,25 @@ AppDialog {
             Layout.preferredHeight: 96
             clip: true
             model: dialog.app.loads
-            ScrollBar.vertical: ScrollBar {}
+            ScrollBar.vertical: AppScrollBar {}
+            boundsBehavior: Flickable.StopAtBounds
+            activeFocusOnTab: true
+            Accessible.role: Accessible.List
+            Accessible.focusable: true
+            Keys.onPressed: (event) => loadsListKeys.handle(event)
+
+            KeyScroll {
+                id: loadsListKeys
+
+                flickable: loadsList
+            }
+
+            // Inside the edge: the list clips, so a ring outside it would be cut off.
+            FocusRing {
+                parent: loadsList
+                anchors.margins: 0
+                active: loadsList.activeFocus
+            }
 
             delegate: RowLayout {
                 required property string partNumber
@@ -161,7 +179,25 @@ AppDialog {
             Layout.fillHeight: true
             clip: true
             model: dialog.app.files
-            ScrollBar.vertical: ScrollBar {}
+            ScrollBar.vertical: AppScrollBar {}
+            boundsBehavior: Flickable.StopAtBounds
+            activeFocusOnTab: true
+            Accessible.role: Accessible.List
+            Accessible.focusable: true
+            Keys.onPressed: (event) => filesListKeys.handle(event)
+
+            KeyScroll {
+                id: filesListKeys
+
+                flickable: filesList
+            }
+
+            // Inside the edge: the list clips, so a ring outside it would be cut off.
+            FocusRing {
+                parent: filesList
+                anchors.margins: 0
+                active: filesList.activeFocus
+            }
 
             delegate: RowLayout {
                 required property string name
@@ -232,16 +268,13 @@ AppDialog {
             Repeater {
                 model: dialog.app.mediaSetFindings
 
-                delegate: Text {
+                delegate: ToneMessage {
                     id: finding
 
                     required property string modelData
 
-                    Layout.fillWidth: true
-                    text: "· " + finding.modelData
-                    color: Theme.accentInk
-                    font.pixelSize: Theme.fontSmall
-                    wrapMode: Text.WordWrap
+                    tone: "warn"
+                    text: finding.modelData
                 }
             }
         }

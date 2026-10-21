@@ -22,26 +22,29 @@ property that it assigns to `Theme.forcedDark` when it completes; the window tes
 | `bg` | `#f3f2f2` | `#151313` | the page behind a surface |
 | `surface` | `#eae9e9` | `#1d1a1a` | header, status bar, action bar, dialogs, cards |
 | `text` | `#201e1d` | `#ece7e5` | primary text |
-| `accent` | `#ec3013` | `#ff5c40` | shapes: rules, dots, progress, markers |
+| `accent` | `#ec3013` | `#ff5c40` | shapes: rules, the active-tab underline, markers |
 | `accentFill` | `#b82009` | `#ff5c40` | a labelled accent surface |
 | `accentText` | `#ffffff` | `#151313` | the label on `accentFill` |
 | `neutral100` | `#f8f4f4` | `#1c1919` | field and tile fill |
-| `neutral200` | `#eae7e7` | `#272423` | hover, selected row |
+| `neutral200` | `#eae7e7` | `#272423` | hover, the `ok` tint, a scroll track |
 | `neutral300` | `#d7d3d3` | `#353130` | pressed, track |
 | `neutral400` | `#bab6b6` | `#4b4645` | quiet marks |
 | `neutral500` | `#9b9797` | `#6b6563` | disabled marks |
-| `neutral600` | `#7d7979` | `#8b8583` | busy mark, idle status dot |
+| `neutral600` | `#7d7979` | `#8b8583` | busy mark, scroll bar thumb |
 | `neutral700` | `#605d5d` | `#aba4a1` | secondary |
 | `neutral800` | `#444141` | `#cfc8c5` | strong secondary |
-| `neutral900` | `#2d2b2b` | `#e8e2df` | the strongest neutral |
-| `accent100` | `#fff2ef` | `#2c150f` | warning banner, selected row |
-| `accent200` | `#ffe0d9` | `#3e1c14` | warning border |
-| `accent300` | `#ffc4b8` | `#58261b` | selected-row and warning-banner border |
+| `neutral900` | `#2d2b2b` | `#e8e2df` | the strongest neutral; the `ok` ink |
+| `accent100` | `#fff2ef` | `#2c150f` | warning tint, selected row |
+| `accent200` | `#ffe0d9` | `#3e1c14` | unused |
+| `accent300` | `#ffc4b8` | `#58261b` | decoration only (1.4:1 against `accent100`) |
 | `accent700` | `#ae1800` | `#ff8368` | accent as ink |
+| `accent800` | `#7c1405` | `#ffac9a` | the warning ink |
 
-`Theme` also defines `accent400` to `accent600` and `accent800` and `accent900`. No view uses
-`neutral400`, `neutral500`, `neutral700`, `neutral800`, `accent200` or any of those accent rungs
-yet; `neutral900` is used by the `ok` chip tone and as the window palette's dark role.
+`Theme` also defines `accent400` to `accent600` and `accent900`. No view uses `neutral400`,
+`neutral500`, `accent200` or those accent rungs yet. `neutral900` is the `ok` ink and the window
+palette's dark role, `neutral600` to `neutral800` are the scroll bar thumb, `accent800` is the
+`warn` ink, `accent100` is the warning tint and the selected-row fill, and `accent300` is
+decoration only (no state rests on it).
 
 Derived tokens:
 
@@ -50,10 +53,30 @@ Derived tokens:
 - `textMuted` = `text` at 68% alpha, for secondary prose.
 - `accentInk` = the accent if it clears 4.5:1 against `bg`, otherwise `accent700`. That is
   `accent700` in light (6.41:1 on `bg`; the raw accent is 3.76:1) and the accent itself in dark
-  (6.04:1). Used for warning text, ordinals and the focus ring.
-- `ok` = `neutral800`, `warn` = `accentInk`, `fail` = `accentInk`, `info` = `textMuted`. Success is
-  neutral; warning and failure are the accent and the word says which. There is no green token.
-  No QML view reads these four tokens: `StatusChip` chooses its own colours from the tones below.
+  (6.04:1). Used for error text, ordinals and the focus ring.
+- `selectedFill` = `accent100` and `selectedBorder` = `accentInk`, `selectedBorderWidth` 2: the
+  chosen FIND answer and the ticked loads. The border clears 3:1 against the fill in both schemes.
+- `progressFill` = `accentFill` on `progressTrack` = `neutral300`: 4.4:1 in light and 5.3:1 in dark
+  (the raw accent on the track was 2.8:1).
+- `disabledOpacity` = 0.65. A disabled control's label then holds 4.5:1 against the page in both
+  schemes (it was 2.75:1 at 0.45) and is still plainly dimmed.
+
+Status has one vocabulary, `Theme.tone*`, and there is no green. Colour is only the second reading:
+each tone has its own glyph, surface and ink, and the word says which.
+
+| Tone | Glyph | Ink | Surface | Used for |
+|---|---|---|---|---|
+| `neutral` | dot | `textMuted` | outline | not yet known, not chosen, stopped |
+| `ok` | check | `ok` = `neutral900` | `neutral200` tint | set, checked, complete, ready, a finished load |
+| `warn` | warning triangle | `warn` = `accent800` | `accent100` tint, `warn` border | missing but recoverable, a check warning |
+| `fail` | cross | `accentText` on `accentFill` (as page text, `accentInk`) | filled `accentFill` | failed, invalid, an error |
+| `accent` | play mark | `accentInk` | outline, `accentInk` border | running, checking, serving |
+
+`info` = `textMuted`. A filled red surface therefore means a failure (and, separately, a primary
+button); a running job, a warning and a finished load each look different from it and from each
+other. `Theme.toneGlyph`, `toneInk`, `toneTextInk`, `toneFill`, `toneBorder` and `severityTone` are
+the only way a view chooses them; any other tone name draws as `neutral`. `StatusChip`, the
+`ToneGlyph` and `ToneMessage` components, and the activity log are built from them.
 
 `Theme` keeps the names used before the shared system (`desk`, `panel`, `border`, `ink`, `muted`,
 `accentSoft`) as aliases of `bg`, `surface`, `divider`, `text`, `textMuted` and `accent100`. No
@@ -63,9 +86,9 @@ Rules:
 
 1. `accent` never carries a label. Signal light is 4.20:1 on white; `accentFill`/`accentText` is
    the measured pair (6.46:1 for the light fill, 6.04:1 for the dark one).
-2. No second hue. Status is a word plus a tone, not a traffic light.
-3. The only circles are the semantic status dots: 6 px (radius 3) in the status bar and 4 px
-   (radius 2) in a `StatusChip`. Everything else is square.
+2. No second hue. Status is a word, a glyph and a tone, not a traffic light, and never colour alone.
+3. The only circle is the neutral dot glyph (a 4 px disc inside a 10 px mark). Everything else is
+   square.
 
 ## Type
 
@@ -91,15 +114,17 @@ CJK fonts; none is bundled ([translations](translations.md#typefaces)).
 | `fontBody` | 13 | controls, prose |
 | `fontSmall` | 12 | secondary text, section labels, log messages |
 | `fontMono` | 11 | rail labels and ordinals, status bar, timestamps |
-| `fontMicro` | 10 | eyebrows, tile labels, chips |
+| `fontMicro` | 10 | eyebrows and tile labels (never a state) |
 | `fontFine` | 9 | reserved; no view uses it |
 
-`trackingWide` = 1.2 px at 100%; `trackingTitle` = −0.3. Uppercase micro labels carry 0.6–1.4 px
-of tracking, set as literals in the views (they do not follow `fontScale`). Every size is
-multiplied by `Theme.fontScale`; a literal `pixelSize` in a view is a bug (none remains in
-`src/*/qml`). `fontScale` is 1.0 and nothing sets it yet: there is no text-size preference. A
-control's height is a floor (30 px for buttons, fields, combos and spin boxes; 20 px for a chip)
-that grows with its label; the chrome bands under Geometry are fixed.
+`trackingWide` = 1.2 px; `trackingTitle` = −0.3. Uppercase micro labels carry 0.6–1.4 px of
+tracking, set as literals in the views. A literal `pixelSize` in a view is a bug (none remains in
+`src/*/qml`). There is no scale factor: Qt does not expose the platform's text-size setting, so the
+type follows the desktop's display scaling only, and the layouts wrap or scroll rather than clip.
+Text that carries a state is never smaller than `fontMono` (11): a chip's word is `fontSmall`
+(12, bold mono), and `fontMicro` is for labels and eyebrows that name a field, not a state. A
+control's height is a floor (30 px for buttons, fields and combos, 32 for a spin box, 22 for a
+chip) that grows with its label; the chrome bands under Geometry are fixed.
 
 ## Geometry
 
@@ -107,45 +132,59 @@ that grows with its label; the chrome bands under Geometry are fixed.
 - `radius` 0. Do not round a surface or a control.
 - Borders: 1 px on controls, cards, tiles and the rule above the status bar and the action bar;
   2 px section rules, the rule under the header and under the transfer strip, the rule between the
-  rail and the work area, and the border of a dialog; 3 px active-tab underline (the activity
-  dock's tabs).
-- Window: all three open at 1280×900 with a minimum of 1120×760. `install_window_state()`
-  (`src/ui/window_state.cpp`) restores the saved size, clamped between the minimum and the
-  screen's available area less 48 px wide and 80 px high, and restores the saved position only if
-  that rectangle still meets a screen; otherwise the window is centred horizontally and placed a
-  third of the way down. A maximised window is restored maximised.
+  rail and the work area, the border of a dialog and of the chosen row of a list; 3 px active-tab
+  underline (the activity dock's tabs).
+- Window: all three open at 1280×900. The loader's minimum is 1000×620, so that the 76 px action
+  bar stays on screen on a 1366×768 display at 125% scaling and on a 1920×1080 display at 150%
+  (the generator and the mock target keep 1120×760 until they are brought down too).
+  `install_window_state()` (`src/ui/window_state.cpp`) restores the saved size, clamped between the
+  minimum and the screen's available area less 48 px wide and 80 px high, and restores the saved
+  position only if a usable part of the window's title bar (96×24 px of its top 32 px) still lies
+  on a screen's available area; otherwise the window is centred horizontally and placed a third of
+  the way down. Coordinates are read as signed numbers, so a window on a monitor to the left of
+  the primary one is reopened there. A maximised window is restored maximised.
 - Rail: one width for all three windows, `Theme.railWidth` 388 px preferred, `Theme.railMinWidth`
   348 to `Theme.railMaxWidth` 460. The rail scrolls itself and a 2 px rule separates it from the
   work area.
-- Fixed bands: header 64, status bar 28, the loader's transfer strip 52, the loader's activity dock
-  260 open and 44 collapsed, the loader's and the generator's action bar 76. The action bar never
-  scrolls.
+- Fixed bands: header 64, status bar 28, the loader's transfer strip 52, the loader's and the
+  generator's action bar 76. The action bar never scrolls. The loader's activity dock is 44 px
+  collapsed and, open, 26% of the window height between 150 and 260 px; it starts collapsed in a
+  window shorter than 700 px. What is left is the plan (about 355 px at the minimum size with the
+  dock collapsed, 240 px with it open); a page that is taller than that scrolls, and says so with a
+  scroll bar (`AppScrollBar`) that is drawn whenever there is something to scroll to.
+- Targets: a pointer target is at least 24×24 px. A check box row is 24 px high, a spin box's
+  steppers are 30 px wide and as tall as the box.
 
 ## Components
 
 | Component | Anatomy |
 |---|---|
-| `AppButton` | 30 px floor, 1 px divider, transparent secondary, `accentFill` primary (no border, DemiBold label), hover and pressed shades, 0.45 opacity when disabled, 2 px focus ring outside. |
-| `AppCheckBox` | 16 px square, `accentFill` when checked, struck `accentText` mark, label 14, optional note 12, ring around the square. `click()` for the window tests. |
-| `AppTextField` | 30 px floor, `neutral100`, 1 px divider, mono 13, optional unit suffix, focus border becomes `focusRing`. A placeholder is an example, not a value: it is drawn in the heading face, italic and muted (never in the mono face of real values) and is written "e.g. ..." at the call site, so `e.g. 10.0.0.2` cannot be mistaken for an address that was entered. |
-| `AppComboBox` | 30 px floor, `neutral100`, 1 px divider, drawn chevron, popup `surface`, highlighted row `neutral200`, focus border becomes `focusRing`. |
-| `AppSpinBox` | 30 px floor, `neutral100`, two 24 px square stepper cells (+ and −), mono value without digit grouping. |
-| `SegmentedControl` | Row of 30 px floor, 90 px minimum segments; the chosen one `accentFill` with an `accentText` label, the rest transparent with a 1 px divider. Each segment is a button (`objectName` from the segment's `name`). One tab stop for the group. |
+| `AppButton` | 30 px floor, 1 px divider, transparent secondary, `accentFill` primary (no border, DemiBold label), hover and pressed shades, `disabledOpacity` when disabled, 2 px focus ring outside. Its accessible name is its text; a longer phrase goes in `Accessible.description`. Return and Enter press it as Space does. |
+| `AppCheckBox` | 16 px square in a row at least 24 px high (the whole row is the target), `accentFill` when checked, struck `accentText` mark, label 14, optional note 12 (its accessible description), 2 px ring around the square. `click()` for the window tests. |
+| `AppTextField` | 30 px floor, `neutral100`, 1 px divider, mono 13, optional unit suffix, the 2 px focus ring outside the box (and the border in `focusRing`). `textCommitted(value)` is what a view binds to its model: it fires on every edit, when the field is left or accepted, and when the text is set from outside while the field is not being typed in (UI Automation, voice control). A placeholder is an example, not a value: it is drawn in the heading face, italic and muted (never in the mono face of real values) and is written "e.g. ..." at the call site, so `e.g. 10.0.0.2` cannot be mistaken for an address that was entered. |
+| `AppComboBox` | 30 px floor, `neutral100`, 1 px divider, drawn chevron, popup `surface`, highlighted row `neutral200`, 2 px focus ring outside the box. |
+| `AppSpinBox` | 32 px, `neutral100`, mono value without digit grouping, two steppers side by side on the right (− then +), each 30 px wide and as tall as the box. The value editor carries the control's accessible name; 2 px focus ring. |
+| `SegmentedControl` | Row of 30 px floor, 90 px minimum segments; the chosen one `accentFill` with an `accentText` label, the rest transparent with a 1 px divider. Each segment is a button (`objectName` from the segment's `name`). One tab stop for the group (the chosen segment); Left/Right (swapped when mirrored), Up/Down, Home and End choose the neighbour and move the focus onto it, wrapping; a click on the chosen segment does not clear it. `tabs: true` draws it as a 42 px tab strip (the activity dock): no boxes, the chosen tab underlined by 3 px of accent, roles `PageTabList` and `PageTab`. |
 | `AppHeader` | 64 px on `surface`, 4×30 accent bar, mark (`appCode`, 22 px ExtraBold: `ADL`, `GEN` or `MOCK`), product name and uppercase mono 10 subtitle, right-hand actions, 2 px bottom rule. |
-| `AppStatusBar` | 28 px on `surface`, 1 px top rule; the window supplies the children left to right. Each window puts a 6 px status dot and a mono 11 state word first and `v<version>` last. |
+| `AppStatusBar` | 28 px on `surface`, 1 px top rule; the window supplies the children left to right. Each window puts a 10 px state mark (a `ToneGlyph`: busy, cross, check or dot) and a mono 11 state word first and `v<version>` last. |
 | `RailBlock` | mono 11 `accentInk` ordinal, uppercase DemiBold 11 label with 1.3 px tracking, 2 px rule, content column at 12 px gaps. |
 | `SectionHeader` | optional mono 12 ordinal, uppercase bold 12 label, 2 px rule (`rule: false` hides it), mono 12 summary; title and summary elide. Used in the dialogs, the upload and download panels and the mock target's right-hand pane. |
 | `Card` | `surface`, 1 px border, 16 px padding; default box, `flat` or `framed`. No window uses it at present. |
-| `StatusChip` | 20 px floor, 1 px border, bold mono 10 uppercase with 0.8 px tracking, 4 px dot (`dot: false` removes it). Tones: `neutral` (default; `textMuted` word, `divider` border), `ok` (`neutral900` word and dot, `divider` border, no fill), `warn` (`accentInk` word, dot and border), `accent` and `fail` (`accentFill` fill and border, `accentText` word and dot). Any other tone draws as `neutral`. |
-| `CheckTile` | `neutral100`, 1 px border, uppercase micro label, bold mono 14 value (`Not set` when empty), 12 px detail, chip; used for the upload preflight. |
+| `StatusChip` | 22 px floor, 1 px border, a 10 px `ToneGlyph` and the word in bold mono 12 uppercase with 0.6 px tracking (`dot: false` removes the glyph). The tone chooses the glyph, ink, fill and border (see the tone table under Colour): `neutral` (default), `ok`, `warn`, `fail`, `accent`. Any other tone draws as `neutral`. |
+| `CheckTile` | `neutral100`, 1 px border, uppercase micro label, bold mono 14 value (`Not set` when empty), 12 px detail that wraps to two lines before it elides, chip; used for the upload preflight. The tiles sit three across when the page is 720 px wide or more, and one per row below that. |
 | `StatTile` | micro label over a bold mono 14 value; used in the media set properties. |
 | `EmptyState` | `neutral100`, 1 px border, 24×2 accent rule, 15 px title, one sentence, actions. |
-| `TaskProgress` | 4 px `neutral300` track, accent fill; indeterminate is a 30% segment that sweeps, and stays at the left, still, under reduced motion. |
+| `TaskProgress` | 4 px `progressTrack` track, `progressFill` fill; indeterminate is a 30% segment that sweeps, and stays at the left, still, under reduced motion. |
 | `BusyMark` | three 5 px `neutral600` squares phased; still at full strength under reduced motion. |
-| `LogView` | mono 11 time in a 62 px column (`showTime`), 12 px message, `accentInk` for any severity above information, follows the end until the operator scrolls away from it; says "No activity yet." when empty. |
-| `FocusRing` | 2 px `focusRing`, 2 px outside the control, z 100. |
-| `AppDialog` | 2 px `text` border on `surface`, 24 px padding, 640 px wide unless the dialog sets a width, 56 px heading band with a 2 px rule, 64 px footer with one primary and an optional secondary to its left. Content is a named `content` property. `standardButton(role)` maps the affirmative roles to the primary and Cancel and No to the secondary, for the window tests. |
-| `AppBanner` | The one inline message for the window: a sentence (`text`), an optional mono second line (`detail`), actions placed inside it, an optional Dismiss. A 4 px rule at the left edge (2 px for `info`) and the surface carry the tone: `error` (`accent100` surface, `accentInk` border and rule), `warning` (`neutral100`, `accentInk` border and rule), `info` (`neutral100`, `divider`) and `success` (`neutral100`, `neutral900` rule). Its role is an alert. It never repeats the state word that is already in the header. |
+| `LogView` | mono 11 time in a 62 px column (`showTime`), then the severity as a word (INFO, NOTE, WARN, ERROR) with the tone glyph for a warning or an error, then the 12 px message in the tone's page ink. A tab stop with a 2 px ring: Up, Down, Page Up, Page Down, Home and End scroll it, Ctrl+C copies every line as `time  SEVERITY  message`. Follows the end until the operator scrolls away from it; says "No activity yet." when empty. |
+| `FocusRing` | 2 px `focusRing`, 2 px outside the control, z 100. Fields, combos, spin boxes, check boxes, buttons, segments, FIND answers and the scrolling lists all draw it; a list that clips draws it inside its edge. |
+| `AppDialog` | 2 px `text` border on `surface`, 24 px padding, 640 px wide unless the dialog sets a width, 56 px heading band with a 2 px rule, 64 px footer with one primary and an optional secondary to its left. Content is a named `content` property. `standardButton(role)` maps the affirmative roles to the primary and Cancel and No to the secondary, for the window tests. It opens with the focus inside it: on `initialFocusItem` (the first field), else on the primary, or on the secondary with `initialFocus: "secondary"`. Return or Enter in the body presses the primary unless `enterAccepts` is false; Esc closes it; on close the focus returns to the control that opened it. |
+| `ToneGlyph` | A 12 px canvas that draws the tone's shape: `check`, `warning` (triangle with a bar), `cross`, `busy` (play mark) or `dot`. Drawn as paths, since no bundled face carries them. |
+| `ToneMessage` | A line of prose with its tone glyph and ink; a neutral tone shows no glyph. Rail and dialog warnings and errors use it, so a warning no longer reads as an error. |
+| `AppScrollBar` | A 12 px `neutral200` track with a `neutral600` thumb, drawn whenever the content is longer than the view. |
+| `RevealOnFocus` | Scrolls a `ScrollView` to the control that takes the keyboard focus. |
+| `KeyScroll` | The Up, Down, Page and Home/End handling of a read-only list. |
+| `AppBanner` | The one inline message for the window: a sentence (`text`), an optional mono second line (`detail`), actions placed inside it, an optional Dismiss. A 4 px rule at the left edge (2 px for `info`), the surface and a `ToneGlyph` carry the tone: `error` (a cross, `accent100` surface, `accentInk` border and rule), `warning` (a warning triangle, `neutral100`, `warn` border and rule), `info` (no glyph, `neutral100`, `divider`) and `success` (a check, `neutral100`, `neutral900` rule). Its role is an alert. It never repeats the state word that is already in the header. |
 | `AboutDialog` | The one About page: the wordmark, one paragraph (`blurb`), the build provenance, the licence statement, the repository link and a Licences button that opens `LicencesDialog` (`showLicences`). A window passes `appCode`, `appName` and `blurb`, and may put an extra section inside it. |
 | `LicencesDialog` | An `AppDialog` ("Third-party licences", Close) showing the embedded `NOTICES.txt` in a read-only mono 12 text area, at most 780×660. Opened from About > Licences in all three windows; says so in a sentence if the build carries no notices. |
 
@@ -178,19 +217,35 @@ language box. `tst_right_to_left.qml` checks the result ([translations](translat
 
 ## Focus, keyboard and motion
 
-- Every control is a tab stop when it can be pressed; a disabled control is not.
-- Buttons: Space, Return and Enter. Check boxes: Space, Return and Enter. Segments: one tab stop
-  for the group (the chosen segment); Left/Right/Up/Down/Home/End choose the neighbouring segment
-  and move the focus onto it, wrapping at the ends (Left and Right swap in a right-to-left
-  layout).
+- Every control is a tab stop when it can be pressed; a disabled control is not. The keyboard can
+  do everything the pointer can (principle 9), and the focus is always visible.
+- Buttons: Space, Return and Enter. Check boxes: Space, Return and Enter. A group that is one
+  choice (the transfer switch, the dock tabs, the FIND answers) is one tab stop, the chosen item;
+  Left/Right (swapped in a right-to-left layout), Up/Down, Home and End choose the neighbour and
+  move the focus onto it, wrapping at the ends, and Enter or Space chooses the focused FIND answer.
+  A click on the chosen tab leaves it chosen.
+- A list that is only read (the activity log, the target configuration, the media set's loads and
+  files) is a tab stop that scrolls with Up, Down, Page Up, Page Down, Home and End; the log also
+  copies with Ctrl+C. A page that scrolls follows the focus (`RevealOnFocus`).
+- Dialogs: they open with the focus inside them and give it back to the control that opened them
+  when they close. The first field takes the first Tab in Preferences; the primary holds the focus
+  in About, the properties dialogs and the error dialog; "Keep working" holds it in the
+  stop-and-close confirmation, which is the one dialog whose primary is not the safe answer. Return
+  or Enter in a dialog's body presses its primary (`enterAccepts`), except there. Esc closes the
+  dialog and, for the error dialog, acknowledges the failure exactly as OK does.
 - Shortcuts: the loader has Preferences (`StandardKey.Preferences`), Quit and Ctrl+F (Find); the
   generator and the mock target have Quit.
-- Text fields and combos show focus by changing their own border to `focusRing`; hand-drawn
-  controls show a 2 px ring outside.
-- The focus ring is `accentInk`; width 2, offset 2. It is never the only cue for state.
-- `Theme.motionDuration()` is the one switch for animation; `Theme.reducedMotion` (future
-  preference; nothing sets it) stops the busy mark and task progress motion without removing the
-  still mark.
+- Every control shows focus as the 2 px ring outside it (fields and combos also take the border in
+  `focusRing`). The ring is `accentInk`; width 2, offset 2 (6.4:1 against the page in light and
+  6.0:1 in dark; the 1 px border change it replaces was 2.1:1 and 1.3:1 against the unfocused
+  border). It is never the only cue for state.
+- Names: an accessible name is the text on the screen (a field's is its label: "THW_ID_POS", not
+  "hardware identifier"), so a person who says what they see is understood; the longer phrase is
+  the `Accessible.description`. A spin box's editor carries the box's name.
+- `Theme.motionDuration()` is the one switch for animation; `Theme.reducedMotion` follows the
+  platform's "reduce motion" preference (`Application.styleHints.accessibility.motionPreference`,
+  Qt 6.12) and stops the busy mark and task progress motion without removing the still mark.
+  `Theme.forcedReducedMotion` pins it for a test or a screenshot.
 - The modal dialog traps focus as Qt's `Dialog` does; Esc closes it (the only close policy;
   clicking outside does nothing). Each window dims its content with one scrim item while a dialog
   is open (black at 32% in light, 62% in dark, above the content and below the popup overlay), and
@@ -203,7 +258,7 @@ language box. `tst_right_to_left.qml` checks the result ([translations](translat
 ## Window chrome and first run
 
 The header is the product's identity and the window's own actions, and it is the one place a state
-is named. The loader has a readiness chip (WORKING, SETUP, READY or NOT READY), Preferences and
+is named. The loader has a readiness chip (SETUP, RUNNING, FAILED, COMPLETE, READY or NOT READY: one state that the status bar repeats, so they cannot disagree), Preferences and
 About. The generator has a chip (NOT STARTED, INCOMPLETE, READY, GENERATING, then GENERATED, FAILED
 or CANCELLED) and About. The mock target has a SERVING or STOPPED chip, Start, Stop and About, and,
 while any fault injection is armed, a chip that says how many and scrolls the rail to them; the

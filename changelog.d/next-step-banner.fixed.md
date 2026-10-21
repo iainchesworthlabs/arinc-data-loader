@@ -1,0 +1,1 @@
+The upload page's "next step" banner names one step and offers its button: "Tick at least one load" now comes with "Tick all loads" instead of "Find targets". Pressing Escape on the error dialog now acknowledges the failure as OK does.

@@ -126,7 +126,7 @@ data files and the support file one by one, and reports its progress in status f
 
 ![An upload in progress](../images/app-upload-running.png)
 
-When it ends the strip says **COMPLETE** and each load is at 100%.
+When it ends the header says **COMPLETE** and each load is at 100%.
 
 ![The upload has completed](../images/app-upload-complete.png)
 
@@ -154,7 +154,7 @@ press **Add**, then `MAINT.DAT` and **Add**.
 
 ![Two files named for a download](../images/app-download-ready.png)
 
-Press **Download**. Each file arrives, and the strip says **COMPLETE**.
+Press **Download**. Each file arrives, and the header says **COMPLETE**.
 
 ![The download is complete](../images/app-download-complete.png)
 

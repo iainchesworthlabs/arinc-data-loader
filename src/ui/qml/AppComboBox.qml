@@ -2,12 +2,14 @@ import QtQuick
 import QtQuick.Controls as QQC
 
 // A combo box drawn to the family: the same 30 px neutral100 box as AppTextField, a drawn
-// chevron instead of the style's image, and a 1 px accent border while focused.
+// chevron instead of the style's image, and the 2 px focus ring outside the box while the keyboard
+// is on it.
 QQC.ComboBox {
     id: control
 
     implicitHeight: 30
     font.pixelSize: Theme.fontBody
+    opacity: enabled ? 1.0 : Theme.disabledOpacity
 
     background: Rectangle {
         color: Theme.neutral100
@@ -74,5 +76,9 @@ QQC.ComboBox {
         background: Rectangle {
             color: item.highlighted ? Theme.neutral200 : "transparent"
         }
+    }
+
+    FocusRing {
+        active: control.activeFocus
     }
 }

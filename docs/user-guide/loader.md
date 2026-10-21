@@ -8,7 +8,7 @@ shows how the workbench is laid out; the tasks have their own pages.
 ## The header
 
 At the top: the **ADL** mark and the name, a **readiness chip** (**SETUP** on the first-run screen,
-**NOT READY**, **READY**, or **WORKING** while a job runs), and the buttons
+**NOT READY**, **READY**, **RUNNING** while a job runs, then **COMPLETE** or **FAILED** until the next one; the status bar at the bottom says the same), and the buttons
 [Preferences](preferences.md) and **About**.
 
 ## The rail (left): what you are working with

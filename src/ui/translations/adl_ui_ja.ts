@@ -43,12 +43,12 @@
 <context>
     <name>AppBanner</name>
     <message>
-        <location filename="../qml/AppBanner.qml" line="92"/>
+        <location filename="../qml/AppBanner.qml" line="111"/>
         <source>Dismiss</source>
         <translation>閉じる</translation>
     </message>
     <message>
-        <location filename="../qml/AppBanner.qml" line="94"/>
+        <location filename="../qml/AppBanner.qml" line="113"/>
         <source>Dismiss the message</source>
         <translation>メッセージを閉じる</translation>
     </message>
@@ -56,7 +56,7 @@
 <context>
     <name>AppDialog</name>
     <message>
-        <location filename="../qml/AppDialog.qml" line="12"/>
+        <location filename="../qml/AppDialog.qml" line="20"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -95,7 +95,7 @@
         <translation>閉じる</translation>
     </message>
     <message>
-        <location filename="../qml/LicencesDialog.qml" line="49"/>
+        <location filename="../qml/LicencesDialog.qml" line="50"/>
         <source>Third-party licence text</source>
         <translation>サードパーティのライセンス文</translation>
     </message>
@@ -103,12 +103,37 @@
 <context>
     <name>LogView</name>
     <message>
-        <location filename="../qml/LogView.qml" line="52"/>
+        <location filename="../qml/LogView.qml" line="26"/>
+        <source>ERROR</source>
+        <translation>エラー</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="27"/>
+        <source>WARN</source>
+        <translation>警告</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="28"/>
+        <source>NOTE</source>
+        <translation>注記</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="29"/>
+        <source>INFO</source>
+        <translation>情報</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="101"/>
         <source>Activity log</source>
         <translation>アクティビティログ</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="92"/>
+        <location filename="../qml/LogView.qml" line="102"/>
+        <source>Up and Down scroll; Ctrl+C copies every line</source>
+        <translation>上下キーでスクロール、Ctrl+Cですべての行をコピー</translation>
+    </message>
+    <message>
+        <location filename="../qml/LogView.qml" line="181"/>
         <source>No activity yet.</source>
         <translation>アクティビティはまだありません。</translation>
     </message>

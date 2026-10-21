@@ -4,7 +4,7 @@
 <context>
     <name>ActivityDock</name>
     <message>
-        <location filename="../qml/ActivityDock.qml" line="+33"/>
+        <location filename="../qml/ActivityDock.qml" line="+40"/>
         <source>ACTIVITY</source>
         <translation>פעילות</translation>
     </message>
@@ -14,7 +14,12 @@
         <translation>תצורת יעד</translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+4"/>
+        <source>Evidence panel</source>
+        <translation>לוח ראיות</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>Clear</source>
         <translation>נקה</translation>
     </message>
@@ -54,12 +59,12 @@
         <translation>הרחב את חלונית הראיות</translation>
     </message>
     <message>
-        <location line="+36"/>
+        <location line="+40"/>
         <source>Target configuration</source>
         <translation>תצורת יעד</translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+57"/>
         <source>Nothing read yet</source>
         <translation>עדיין לא נקרא דבר</translation>
     </message>
@@ -103,7 +108,7 @@
 <context>
     <name>DownloadPanel</name>
     <message>
-        <location filename="../qml/DownloadPanel.qml" line="+115"/>
+        <location filename="../qml/DownloadPanel.qml" line="+123"/>
         <source>Media defined</source>
         <translation>מוגדר לפי המדיה</translation>
     </message>
@@ -141,7 +146,7 @@
         <translation>הוספת שם הקובץ להורדה</translation>
     </message>
     <message numerus="yes">
-        <location line="+102"/>
+        <location line="+103"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
         <translation>
@@ -185,12 +190,12 @@
         <translation>הסירו</translation>
     </message>
     <message>
-        <location line="-212"/>
+        <location line="-220"/>
         <source>no target</source>
         <translation>אין יעד</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+50"/>
         <source>THE DOWNLOAD</source>
         <translation>ההורדה</translation>
     </message>
@@ -200,13 +205,13 @@
         <translation>הורדה מ-%1</translation>
     </message>
     <message>
-        <location line="-40"/>
-        <location line="+385"/>
+        <location line="-47"/>
+        <location line="+393"/>
         <source>Choose the download folder</source>
         <translation>בחר את ספריית ההורדה</translation>
     </message>
     <message>
-        <location line="-331"/>
+        <location line="-332"/>
         <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; folder.</source>
         <translation>כל הורדה כותבת ספרייה חדשה DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;.</translation>
     </message>
@@ -256,7 +261,7 @@
         <translation>יש לנקוב בכל קובץ שהיעד צריך לשלוח. רשימת היעד עצמו משמשת רק במצב המוגדר על ידי המפעיל.</translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+54"/>
         <source>Remove %1 from the download</source>
         <translation>הסרת %1 מההורדה</translation>
     </message>
@@ -345,7 +350,7 @@
 <context>
     <name>FirstRunScreen</name>
     <message>
-        <location filename="../qml/FirstRunScreen.qml" line="+37"/>
+        <location filename="../qml/FirstRunScreen.qml" line="+41"/>
         <source>FIRST RUN</source>
         <translation>הפעלה ראשונה</translation>
     </message>
@@ -360,7 +365,7 @@
         <translation>הטוען קורא ערכת מדיה של ARINC 665, בודק כל קובץ ואת ערך הבדיקה שלו, ומעביר את ה-Loads שסומנו אל יעד ARINC 615A. דבר אינו נשלח עד שמבקשים זאת.</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+16"/>
         <source>Start loading</source>
         <translation>התחל טעינה</translation>
     </message>
@@ -411,11 +416,12 @@
     </message>
     <message>
         <location line="+13"/>
+        <location line="+11"/>
         <source>Default address</source>
         <translation>כתובת ברירת מחדל</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+1"/>
         <source>Default target address</source>
         <translation>כתובת יעד ברירת מחדל</translation>
     </message>
@@ -426,7 +432,7 @@
         <translation>THW_ID_POS ברירת מחדל</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+45"/>
         <source>WHAT THIS WINDOW DOES</source>
         <translation>מה החלון הזה עושה</translation>
     </message>
@@ -436,13 +442,13 @@
         <translation>בחר ערכת מדיה</translation>
     </message>
     <message>
-        <location line="-227"/>
-        <location line="+176"/>
+        <location line="-231"/>
+        <location line="+180"/>
         <source>Choose the download folder</source>
         <translation>בחר את ספריית ההורדה</translation>
     </message>
     <message>
-        <location line="-107"/>
+        <location line="-109"/>
         <source>Start loading opens the workbench. The default address and THW_ID_POS start empty, and downloads go to the folder shown under Defaults; set them there or later in Preferences. A media set can be chosen there, or here.</source>
         <translation>התחלת טעינה פותחת את סביבת העבודה. כתובת ברירת המחדל וה-THW_ID_POS ריקים בתחילה, וההורדות נשמרות בספרייה המוצגת תחת ברירות מחדל; אפשר להגדיר אותם שם או מאוחר יותר בהעדפות. ערכת מדיה אפשר לבחור שם או כאן.</translation>
     </message>
@@ -452,12 +458,17 @@
         <translation>לדוגמה: 10.0.0.2</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+16"/>
         <source>e.g. HNPFMS_L</source>
         <translation>לדוגמה: HNPFMS_L</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+4"/>
+        <source>Default target hardware identifier and position</source>
+        <translation>מזהה החומרה והמיקום המוגדרים כברירת מחדל של היעד</translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <location line="+14"/>
         <source>Download folder</source>
         <translation>ספריית הורדה</translation>
@@ -533,7 +544,7 @@
         <translation>אותה מערכת גרפית מציירת את מחולל ערכות המדיה ואת היעד המדומה, כך ששלושת הכלים נראים דומים.</translation>
     </message>
     <message>
-        <location line="-385"/>
+        <location line="-387"/>
         <source>Start the loader</source>
         <translation>התחלת הטוען</translation>
     </message>
@@ -659,19 +670,19 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="+50"/>
-        <location line="+58"/>
-        <location line="+129"/>
+        <location filename="../qml/Main.qml" line="+59"/>
+        <location line="+60"/>
+        <location line="+136"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
-        <location line="+47"/>
+        <location line="+51"/>
         <source>The operation failed</source>
         <translation>הפעולה נכשלה</translation>
     </message>
     <message>
-        <location line="+141"/>
+        <location line="+149"/>
         <source>e.g. 10.0.0.2</source>
         <translation>לדוגמה: 10.0.0.2</translation>
     </message>
@@ -681,18 +692,13 @@
         <translation>לדוגמה: HNPFMS_L</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Target THW_ID_POS</source>
-        <translation>THW_ID_POS של היעד</translation>
-    </message>
-    <message>
-        <location line="+94"/>
-        <location line="+127"/>
+        <location line="+153"/>
+        <location line="+126"/>
         <source>Properties...</source>
         <translation>מאפיינים...</translation>
     </message>
     <message>
-        <location line="-117"/>
+        <location line="-116"/>
         <source>Ready to address.</source>
         <translation>הכתובת מוכנה.</translation>
     </message>
@@ -732,12 +738,12 @@
         <translation>לא נבדק</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+26"/>
         <source>No media set chosen</source>
         <translation>לא נבחרה ערכת מדיה</translation>
     </message>
     <message>
-        <location line="+47"/>
+        <location line="+44"/>
         <source>Re-check</source>
         <translation>בדוק שוב</translation>
     </message>
@@ -762,19 +768,24 @@
         <translation>העלאת מטען %1</translation>
     </message>
     <message>
-        <location line="-344"/>
+        <location line="-398"/>
         <source>Find targets</source>
         <translation>איתור יעדים</translation>
     </message>
     <message>
-        <location line="-379"/>
-        <source>WORKING</source>
-        <translation>עובד</translation>
+        <location line="-404"/>
+        <source>SETUP</source>
+        <translation>הגדרה</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>SETUP</source>
-        <translation>הגדרה</translation>
+        <source>FAILED</source>
+        <translation>נכשל</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>COMPLETE</source>
+        <translation>הושלם</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -787,7 +798,7 @@
         <translation>לא מוכן</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+17"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
         <translation>העלאה דורשת ערכת מדיה שנבדקה, Load אחד מסומן לפחות ויעד.</translation>
     </message>
@@ -802,18 +813,18 @@
         <translation>הורדה דורשת יעד, מיקום שמירה, ובמצב המוגדר על ידי המדיה גם שם קובץ.</translation>
     </message>
     <message>
-        <location line="+62"/>
+        <location line="+64"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation>ARINC 615A · ARINC 665 · קונסולת טעינה הנדסית</translation>
     </message>
     <message>
-        <location line="+9"/>
-        <location line="+94"/>
+        <location line="+10"/>
+        <location line="+100"/>
         <source>Preferences</source>
         <translation>העדפות</translation>
     </message>
     <message>
-        <location line="-92"/>
+        <location line="-98"/>
         <source>Open preferences</source>
         <translation>פתח את ההעדפות</translation>
     </message>
@@ -828,7 +839,7 @@
         <translation>אודות טוען הנתונים</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+22"/>
         <source>Complete</source>
         <translation>הושלם</translation>
     </message>
@@ -838,18 +849,18 @@
         <translation>נכשל</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+45"/>
         <source>v%1</source>
         <translation>v%1</translation>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+407"/>
+        <location line="+476"/>
         <source>Choose the media set folder</source>
         <translation>בחר את ספריית ערכת המדיה</translation>
     </message>
     <message>
-        <location line="-387"/>
+        <location line="-456"/>
         <source>Media set properties</source>
         <translation>מאפייני ערכת המדיה</translation>
     </message>
@@ -869,12 +880,12 @@
         <translation>המשך לעבוד</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+37"/>
         <source>OK</source>
         <translation>אישור</translation>
     </message>
     <message>
-        <location line="+99"/>
+        <location line="+107"/>
         <source>TARGET</source>
         <translation>יעד</translation>
     </message>
@@ -905,26 +916,32 @@
     </message>
     <message>
         <location line="+4"/>
+        <location line="+15"/>
         <source>THW_ID_POS</source>
         <translation>THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+1"/>
+        <source>Target hardware identifier and position</source>
+        <translation>מזהה החומרה והמיקום של היעד</translation>
+    </message>
+    <message>
+        <location line="+10"/>
         <source>FOUND</source>
         <translation>נמצא</translation>
     </message>
     <message>
-        <location line="+63"/>
+        <location line="+114"/>
         <source>SELECTED</source>
         <translation>נבחר</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+28"/>
         <source>Show the target properties</source>
         <translation>הצגת מאפייני היעד</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>Choose folder...</source>
         <translation>בחר ספרייה...</translation>
     </message>
@@ -950,7 +967,7 @@
         </translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+43"/>
         <source>LOADS</source>
         <translation>Loads</translation>
     </message>
@@ -970,7 +987,7 @@
         <translation>ללא</translation>
     </message>
     <message>
-        <location line="+114"/>
+        <location line="+111"/>
         <source>Show fewer</source>
         <translation>הצג פחות</translation>
     </message>
@@ -995,7 +1012,7 @@
         <translation>העברה</translation>
     </message>
     <message>
-        <location line="+147"/>
+        <location line="+156"/>
         <source>Downloading...</source>
         <translation>מוריד...</translation>
     </message>
@@ -1005,8 +1022,8 @@
         <translation>הורדה מהיעד</translation>
     </message>
     <message>
-        <location line="-140"/>
-        <location line="+137"/>
+        <location line="-149"/>
+        <location line="+146"/>
         <source>Download</source>
         <translation>הורדה</translation>
     </message>
@@ -1021,13 +1038,18 @@
         <translation>קריאת המידע של היעד</translation>
     </message>
     <message>
-        <location line="-121"/>
-        <location line="+128"/>
+        <location line="-130"/>
+        <location line="+137"/>
         <source>Upload</source>
         <translation>העלאה</translation>
     </message>
+    <message>
+        <location line="-1084"/>
+        <source>RUNNING</source>
+        <translation>פועל</translation>
+    </message>
     <message numerus="yes">
-        <location line="-983"/>
+        <location line="+20"/>
         <source>Ready: %n load(s) to %1</source>
         <translation>
             <numerusform>מוכן: %n Load אל %1</numerusform>
@@ -1035,7 +1057,7 @@
         </translation>
     </message>
     <message>
-        <location line="+197"/>
+        <location line="+206"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
         <translation>קונסולת טעינה הנדסית לפי ARINC 615A ו-ARINC 665: ערכות מדיה, יעדים, הפעולות מידע, העלאה והורדה, והראיות למה שהתרחש.</translation>
     </message>
@@ -1045,12 +1067,12 @@
         <translation>הפסק וסגור</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+12"/>
         <source>Closing now aborts the operation: the target is asked to stop and may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
         <translation>סגירה כעת מפסיקה את הפעולה: היעד מתבקש לעצור ועשוי לקחת עד 13 שניות לאשר זאת, והחלון יישאר פתוח עד אז.</translation>
     </message>
     <message numerus="yes">
-        <location line="+531"/>
+        <location line="+591"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n אזהרה</numerusform>
@@ -1058,12 +1080,12 @@
         </translation>
     </message>
     <message>
-        <location line="+112"/>
+        <location line="+111"/>
         <source>Transfer operation</source>
         <translation>פעולת העברה</translation>
     </message>
     <message>
-        <location line="+100"/>
+        <location line="+109"/>
         <source>working</source>
         <translation>עובד</translation>
     </message>
@@ -1088,12 +1110,12 @@
         <translation>ביטול הפעולה</translation>
     </message>
     <message>
-        <location line="-901"/>
+        <location line="-974"/>
         <source>Idle</source>
         <translation>פנוי</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>no target</source>
         <translation>אין יעד</translation>
     </message>
@@ -1138,12 +1160,12 @@
     </message>
     <message>
         <location line="-27"/>
-        <location line="+68"/>
+        <location line="+86"/>
         <source>Files</source>
         <translation>קבצים</translation>
     </message>
     <message>
-        <location line="-63"/>
+        <location line="-81"/>
         <source>Batches</source>
         <translation>אצוות</translation>
     </message>
@@ -1161,7 +1183,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+41"/>
+        <location line="+59"/>
         <source>%n file(s) from FILES.LUM</source>
         <translation>
             <numerusform>%n קובץ מתוך FILES.LUM</numerusform>
@@ -1169,7 +1191,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+101"/>
+        <location line="+119"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n אזהרה</numerusform>
@@ -1177,7 +1199,7 @@
         </translation>
     </message>
     <message>
-        <location line="-92"/>
+        <location line="-110"/>
         <source>NAME</source>
         <translation>שם</translation>
     </message>
@@ -1197,7 +1219,7 @@
         <translation>CRC</translation>
     </message>
     <message>
-        <location line="+76"/>
+        <location line="+94"/>
         <source>Deviations from the standard&apos;s recommendations. They are shown, and do not block an upload.</source>
         <translation>סטיות מהמלצות התקן. הן מוצגות ואינן חוסמות העלאה.</translation>
     </message>
@@ -1220,7 +1242,7 @@
         <translation>ביטול</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>Appearance</source>
         <translation>מראה</translation>
     </message>
@@ -1235,17 +1257,22 @@
         <translation>החלון עוקב אחר ערכת הנושא הבהירה או הכהה של שולחן העבודה. השפה חלה מיד; כל השאר עם השמירה.</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+35"/>
         <source>e.g. 10.0.0.2</source>
         <translation>לדוגמה: 10.0.0.2</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+17"/>
         <source>e.g. HNPFMS_L</source>
         <translation>לדוגמה: HNPFMS_L</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+3"/>
+        <source>Default target hardware identifier and position</source>
+        <translation>מזהה החומרה והמיקום המוגדרים כברירת מחדל של היעד</translation>
+    </message>
+    <message>
+        <location line="+9"/>
         <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
         <translation>לפני פעולה ללא יעד שנבחר, הרץ FIND וקח את התשובה היחידה; אם אין תשובה או שיש כמה, הצג את התוצאה והמתן.</translation>
     </message>
@@ -1260,7 +1287,7 @@
         <translation>ללא</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+44"/>
         <location line="+15"/>
         <source>Download folder</source>
         <translation>ספריית הורדה</translation>
@@ -1277,32 +1304,34 @@
     </message>
     <message>
         <location line="+23"/>
+        <location line="+11"/>
         <source>Activity lines kept</source>
         <translation>שורות פעילות שנשמרות</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+13"/>
         <source>Save applies these choices. Cancel and Esc leave them as they were.</source>
         <translation>שמירה מחילה את הבחירות האלה. ביטול ו-Esc משאירים אותן כפי שהיו.</translation>
     </message>
     <message>
-        <location line="-201"/>
+        <location line="-207"/>
         <source>Target</source>
         <translation>יעד</translation>
     </message>
     <message>
         <location line="-53"/>
-        <location line="+202"/>
+        <location line="+207"/>
         <source>Choose the download folder</source>
         <translation>בחר את ספריית ההורדה</translation>
     </message>
     <message>
-        <location line="-139"/>
+        <location line="-144"/>
+        <location line="+14"/>
         <source>Default address</source>
         <translation>כתובת ברירת מחדל</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+1"/>
         <source>Default target address</source>
         <translation>כתובת יעד ברירת מחדל</translation>
     </message>
@@ -1313,7 +1342,7 @@
         <translation>THW_ID_POS ברירת מחדל</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>Find the target automatically</source>
         <translation>איתור היעד אוטומטית</translation>
     </message>
@@ -1339,11 +1368,12 @@
     </message>
     <message>
         <location line="+10"/>
+        <location line="+13"/>
         <source>Control port</source>
         <translation>פורט בקרה</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+1"/>
         <source>Loader control port</source>
         <translation>פורט הבקרה של הטוען</translation>
     </message>
@@ -1353,7 +1383,7 @@
         <translation>יומן</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Activity log capacity</source>
         <translation>קיבולת יומן הפעילות</translation>
     </message>
@@ -1431,7 +1461,7 @@
 <context>
     <name>UploadPanel</name>
     <message>
-        <location filename="../qml/UploadPanel.qml" line="+22"/>
+        <location filename="../qml/UploadPanel.qml" line="+24"/>
         <source>no target</source>
         <translation>אין יעד</translation>
     </message>
@@ -1456,37 +1486,37 @@
         <translation>לא נבדק</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+34"/>
         <source>An operation is running</source>
         <translation>פעולה מתבצעת</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Checking the media set</source>
         <translation>בודק את ערכת המדיה</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Choose a media set first</source>
         <translation>יש לבחור קודם ערכת מדיה</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>The media set is not valid</source>
         <translation>ערכת המדיה אינה תקינה</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Check the media set</source>
         <translation>בדוק את ערכת המדיה</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Tick at least one load</source>
         <translation>יש לסמן Load אחד לפחות</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Choose or find a target</source>
         <translation>יש לבחור יעד או למצוא אותו</translation>
     </message>
@@ -1496,7 +1526,7 @@
         <translation>מוכן להעלאה</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+6"/>
         <source>Wait for it to finish, or stop it from the action bar.</source>
         <translation>יש להמתין לסיומה, או לעצור אותה מסרגל הפעולות.</translation>
     </message>
@@ -1511,22 +1541,17 @@
         <translation>יש לקרוא את הערכה שוב ולבדוק אותה לפני שניתן להעלות אותה.</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Use the check boxes in the media set rail. Nothing is sent until at least one load is ticked.</source>
-        <translation>יש להשתמש בתיבות הסימון בסרגל ערכת המדיה. דבר אינו נשלח עד שמסומן Load אחד לפחות.</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+4"/>
         <source>FIND, or type the target&apos;s IPv4 address and THW_ID_POS.</source>
         <translation>FIND, או הקלדת כתובת ה-IPv4 של היעד ו-THW_ID_POS.</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>The target, the set, the ticked loads and the check are all in place.</source>
         <translation>היעד, הערכה, ה-Loads המסומנים והבדיקה כולם במקומם.</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+70"/>
         <source>THE UPLOAD</source>
         <translation>ההעלאה</translation>
     </message>
@@ -1542,7 +1567,7 @@
     </message>
     <message numerus="yes">
         <location line="+18"/>
-        <location line="+43"/>
+        <location line="+45"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n חבר</numerusform>
@@ -1550,8 +1575,8 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-41"/>
-        <location line="+127"/>
+        <location line="-43"/>
+        <location line="+128"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n Load</numerusform>
@@ -1559,7 +1584,7 @@
         </translation>
     </message>
     <message>
-        <location line="-85"/>
+        <location line="-84"/>
         <source>Choose a folder</source>
         <translation>בחר ספרייה</translation>
     </message>
@@ -1572,7 +1597,7 @@
         </translation>
     </message>
     <message>
-        <location line="+244"/>
+        <location line="+241"/>
         <source>%1 · Target %2 · %3 · %4</source>
         <translation>%1 · יעד %2 · %3 · %4</translation>
     </message>
@@ -1585,12 +1610,12 @@
         </translation>
     </message>
     <message>
-        <location line="-299"/>
+        <location line="-298"/>
         <source>No media set selected</source>
         <translation>לא נבחרה ערכת מדיה</translation>
     </message>
     <message>
-        <location line="-83"/>
+        <location line="-115"/>
         <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
         <translation>ערכת מדיה היא ספרייה עם ספרייה אחת לכל חבר. היא נקראת ונבדקת לפני העלאה.</translation>
     </message>
@@ -1600,7 +1625,17 @@
         <translation>יש לקרוא את הערכה שוב, או לבחור ספרייה אחרת.</translation>
     </message>
     <message>
-        <location line="+101"/>
+        <location line="+4"/>
+        <source>Use the check boxes in the media set rail, or tick every load here. Nothing is sent until at least one load is ticked.</source>
+        <translation>יש להשתמש בתיבות הסימון בפאנל ערכת המדיה, או לסמן כאן את כל ה-Loads. דבר לא נשלח עד שמסומן לפחות Load אחד.</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Tick all loads</source>
+        <translation>סמן את כל ה-Loads</translation>
+    </message>
+    <message>
+        <location line="+118"/>
         <source>Target</source>
         <translation>יעד</translation>
     </message>
@@ -1657,7 +1692,7 @@
         <translation>אין</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="-149"/>
         <source>Choose media set</source>
         <translation>בחר ערכת מדיה</translation>
     </message>
@@ -1667,12 +1702,12 @@
         <translation>בדוק את הערכה</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Find targets</source>
         <translation>מצא יעדים</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+219"/>
         <source>Payload</source>
         <translation>מטען</translation>
     </message>
@@ -1693,17 +1728,17 @@
     </message>
     <message>
         <location line="+59"/>
-        <location line="+56"/>
+        <location line="+54"/>
         <source>FAILED</source>
         <translation>נכשל</translation>
     </message>
     <message>
-        <location line="-56"/>
+        <location line="-54"/>
         <source>TICKED</source>
         <translation>מסומן</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+25"/>
         <source>No load is ticked. The media set rail lists every load and its check box.</source>
         <translation>אין Load מסומן. סרגל ערכת המדיה מפרט כל Load ואת תיבת הסימון שלו.</translation>
     </message>

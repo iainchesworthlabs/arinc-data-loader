@@ -256,6 +256,34 @@ int Harness::fileCount() const {
     return files == nullptr ? 0 : files->rowCount();
 }
 
+void Harness::showTargets(int count) {
+    auto* targets = qobject_cast<adl::app::TargetModel*>(model_->targets());
+    if (targets == nullptr) {
+        return;
+    }
+    QList<adl::app::FoundTarget> found;
+    for (int i = 0; i < count; ++i) {
+        adl::app::FoundTarget target;
+        target.address = QStringLiteral("10.0.0.%1").arg(2 + i);
+        target.hardware_id = QStringLiteral("HW%1").arg(i + 1);
+        target.type_name = QStringLiteral("FMS");
+        target.position = i % 2 == 0 ? QStringLiteral("L") : QStringLiteral("R");
+        target.literal_name = QStringLiteral("TARGET %1").arg(i + 1);
+        target.manufacturer_code = QStringLiteral("HNP");
+        found.append(target);
+    }
+    targets->reset(found);
+}
+
+void Harness::addEvent(int severity, const QString& text) {
+    auto* events = qobject_cast<adl::app::EventModel*>(model_->events());
+    if (events == nullptr) {
+        return;
+    }
+    events->append(adl::app::EventEntry{static_cast<adl::app::Severity>(severity),
+                                        adl::app::Message::verbatim(text)});
+}
+
 int Harness::eventCount() const {
     const auto* events = qobject_cast<adl::app::EventModel*>(model_->events());
     return events == nullptr ? 0 : events->rowCount();

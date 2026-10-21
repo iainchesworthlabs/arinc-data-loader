@@ -14,7 +14,7 @@ The **Upload** view of the workbench says what is still needed. It has three **p
 | **Loads** | at least one load is ticked (**SET**), otherwise **NONE** |
 
 A banner under the tiles says what to do next ("Choose a media set first", "The media set is not
-valid", "Tick at least one load", "Choose or find a target") with a button that does it, and, when
+valid", "Tick at least one load" with **Tick all loads**, "Choose or find a target" with **Find targets**), each with a button that does it, and, when
 everything is in place, "Ready to upload". Only then is **Upload** (bottom right) enabled. The
 plan line above says what will happen: "Upload 1 load to HNPFMS_L".
 
@@ -39,7 +39,7 @@ up on a load, why. The log fills with what the target said and with each file th
 
 ## When it ends
 
-The strip says **COMPLETE** or **FAILED**, and a **receipt** appears under the payload:
+The header says **COMPLETE** or **FAILED**, and a **receipt** appears under the payload:
 
 ![A finished upload and its receipt](../images/app-upload-complete.png)
 

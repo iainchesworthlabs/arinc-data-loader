@@ -101,17 +101,97 @@ QtObject {
     readonly property int focusRingWidth: 2
     readonly property int focusRingOffset: 2
 
-    // Semantic status tones. The family does not add a green: success is neutral, warning and
-    // failure are the accent, and the word beside the mark carries the meaning.
-    readonly property color ok: neutral800
-    readonly property color warn: accentInk
+    // Semantic status tones. The family does not add a green: success is neutral and warning and
+    // failure are the accent family, so the word and a glyph carry the meaning and colour is only
+    // ever the second reading. Each tone has its own ink, surface and glyph (see toneInk, toneFill,
+    // toneBorder and toneGlyph below); a chip, a log line or a rail message is built from them.
+    //
+    //   ok      neutral900 ink on a neutral200 tint, a check
+    //   warn    accent800 ink on an accent100 tint, a warning triangle
+    //   fail    accentText on an accentFill surface, a cross
+    //   accent  accentInk outline, a play mark: work in progress or a service running
+    //   neutral textMuted outline, a dot
+    readonly property color ok: neutral900
+    readonly property color warn: accent800
     readonly property color fail: accentInk
     readonly property color info: textMuted
 
+    // The tone a chip, a rail message or a result takes, by name. A name it does not know is
+    // neutral. Views never choose a colour for a state; they choose one of these names.
+    readonly property var tones: ["neutral", "ok", "warn", "fail", "accent"]
+    function knownTone(tone) {
+        return tones.indexOf(tone) >= 0 ? tone : "neutral";
+    }
+    // The ink for the word and glyph on the tone's own chip surface.
+    function toneInk(tone) {
+        switch (knownTone(tone)) {
+        case "ok": return ok;
+        case "warn": return warn;
+        case "fail": return accentText;
+        case "accent": return accentInk;
+        default: return textMuted;
+        }
+    }
+    // The ink for text that stands on the page rather than on a chip (a rail message, a log
+    // line): a filled tone cannot be its own ink there, so failure reads in accentInk.
+    function toneTextInk(tone) {
+        return knownTone(tone) === "fail" ? fail : toneInk(tone);
+    }
+    function toneFill(tone) {
+        switch (knownTone(tone)) {
+        case "ok": return neutral200;
+        case "warn": return accent100;
+        case "fail": return accentFill;
+        default: return Qt.rgba(0, 0, 0, 0);   // no fill: the page shows through
+        }
+    }
+    function toneBorder(tone) {
+        switch (knownTone(tone)) {
+        case "warn": return warn;
+        case "fail": return accentFill;
+        case "accent": return accentInk;
+        default: return divider;
+        }
+    }
+    // The shape that says what the word says: a check, a warning triangle, a cross, a play mark
+    // for work in progress, or a dot.
+    function toneGlyph(tone) {
+        switch (knownTone(tone)) {
+        case "ok": return "check";
+        case "warn": return "warning";
+        case "fail": return "cross";
+        case "accent": return "busy";
+        default: return "dot";
+        }
+    }
+    // The activity log's severities (adl::app::Severity): info, notice, warning, error.
+    function severityTone(severity) {
+        return severity >= 3 ? "fail" : severity === 2 ? "warn" : "neutral";
+    }
+
+    // The selected row of a list is a 2 px accentInk border (6.4:1 against the tint in light, 6.0:1
+    // in dark). The 1 px accent300 border it replaced was 1.4:1, and a selection has to be seen
+    // without its word.
+    readonly property color selectedFill: accent100
+    readonly property color selectedBorder: accentInk
+    readonly property int selectedBorderWidth: 2
+
+    // A progress bar's fill and track. The fill is the accentFill pair, not the raw accent
+    // (2.8:1 against the track); accentFill holds 4.4:1 in light and 5.3:1 in dark.
+    readonly property color progressFill: accentFill
+    readonly property color progressTrack: neutral300
+
+    // A disabled control is dimmed to this opacity. At 0.65 its label holds 4.5:1 against the page
+    // in both schemes (0.45 was 2.75:1 in light) and the dimming is still plain.
+    readonly property real disabledOpacity: 0.65
+
     // ---- motion ------------------------------------------------------------
-    // System motion preference is not exposed to QML by Qt; the application uses short durations
-    // and every animation goes through this so a future preference is one switch.
-    property bool reducedMotion: false
+    // The platform's "reduce motion" preference (Qt 6.12 exposes it as a style hint) stops the busy
+    // mark and the indeterminate sweep. Every animation asks reducedMotion or goes through
+    // motionDuration(); the tests and the screenshot runs can pin it with forcedReducedMotion.
+    property bool forcedReducedMotion: false
+    readonly property bool reducedMotion: forcedReducedMotion
+        || Application.styleHints.accessibility.motionPreference === Qt.MotionPreference.ReducedMotion
     function motionDuration(ms) {
         return reducedMotion ? 0 : ms;
     }
@@ -135,22 +215,36 @@ QtObject {
     readonly property int radiusControl: 0
 
     // ---- type ---------------------------------------------------------------
-    // Every size in the three windows comes from this scale and multiplies fontScale. A literal
-    // pixelSize in a view is a size that cannot follow a text-size setting.
-    property real fontScale: 1.0
-    readonly property int fontTitle: Math.round(22 * fontScale)
-    readonly property int fontDisplay: Math.round(40 * fontScale)
-    readonly property int fontHeadline: Math.round(26 * fontScale)
-    readonly property int fontHeading: Math.round(18 * fontScale)
-    readonly property int fontSubheading: Math.round(15 * fontScale)
-    readonly property int fontNormal: Math.round(14 * fontScale)
-    readonly property int fontBody: Math.round(13 * fontScale)
-    readonly property int fontSmall: Math.round(12 * fontScale)
-    readonly property int fontMono: Math.round(11 * fontScale)
-    readonly property int fontMicro: Math.round(10 * fontScale)
-    readonly property int fontFine: Math.round(9 * fontScale)
-    readonly property real trackingWide: 1.2 * fontScale
-    readonly property real trackingTitle: -0.3 * fontScale
+    // Every size in the three windows comes from this scale; a literal pixelSize in a view is a
+    // bug. Qt does not expose the platform's text-size setting, so there is no scale factor: the
+    // desktop's display scaling is what makes the type larger, and the layouts wrap rather than
+    // clip. Text that carries a state is never below fontMono (11).
+    readonly property int fontTitle: 22
+    readonly property int fontDisplay: 40
+    readonly property int fontHeadline: 26
+    readonly property int fontHeading: 18
+    readonly property int fontSubheading: 15
+    readonly property int fontNormal: 14
+    readonly property int fontBody: 13
+    readonly property int fontSmall: 12
+    readonly property int fontMono: 11
+    readonly property int fontMicro: 10
+    readonly property int fontFine: 9
+    readonly property real trackingWide: 1.2
+    readonly property real trackingTitle: -0.3
+
+    // The file: URL of a local path, as QUrl::fromLocalFile makes it, for Qt.openUrlExternally. A
+    // native path handed to openUrlExternally is parsed as a URL, so "C:\out" becomes the scheme
+    // "c" and a path with a space or a # is cut short.
+    function fileUrl(path) {
+        const text = String(path).split("\\").join("/");
+        let prefix = "file://";
+        if (text.startsWith("//"))
+            prefix = "file:";          // //host/share/dir -> file://host/share/dir
+        else if (!text.startsWith("/"))
+            prefix = "file:///";       // C:/dir -> file:///C:/dir
+        return prefix + encodeURI(text).split("#").join("%23").split("?").join("%3F");
+    }
 
     // Archivo is bundled with each application and registered before the QML engine starts; the
     // fallback keeps a build that has not registered it readable rather than blank. Archivo has no

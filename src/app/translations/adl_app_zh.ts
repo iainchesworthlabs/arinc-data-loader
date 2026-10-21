@@ -4,7 +4,7 @@
 <context>
     <name>ActivityDock</name>
     <message>
-        <location filename="../qml/ActivityDock.qml" line="+33"/>
+        <location filename="../qml/ActivityDock.qml" line="+40"/>
         <source>ACTIVITY</source>
         <translation>活动</translation>
     </message>
@@ -14,7 +14,12 @@
         <translation>目标机配置</translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+4"/>
+        <source>Evidence panel</source>
+        <translation>记录面板</translation>
+    </message>
+    <message>
+        <location line="+11"/>
         <source>Clear</source>
         <translation>清除</translation>
     </message>
@@ -54,12 +59,12 @@
         <translation>展开记录面板</translation>
     </message>
     <message>
-        <location line="+36"/>
+        <location line="+40"/>
         <source>Target configuration</source>
         <translation>目标机配置</translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+57"/>
         <source>Nothing read yet</source>
         <translation>尚未读取</translation>
     </message>
@@ -103,7 +108,7 @@
 <context>
     <name>DownloadPanel</name>
     <message>
-        <location filename="../qml/DownloadPanel.qml" line="+115"/>
+        <location filename="../qml/DownloadPanel.qml" line="+123"/>
         <source>Media defined</source>
         <translation>媒体定义</translation>
     </message>
@@ -140,7 +145,7 @@
         <translation>将文件名添加到下载</translation>
     </message>
     <message numerus="yes">
-        <location line="+102"/>
+        <location line="+103"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
         <translation>
@@ -183,12 +188,12 @@
         <translation>移除</translation>
     </message>
     <message>
-        <location line="-212"/>
+        <location line="-220"/>
         <source>no target</source>
         <translation>无目标机</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+50"/>
         <source>THE DOWNLOAD</source>
         <translation>本次下载</translation>
     </message>
@@ -198,13 +203,13 @@
         <translation>从%1下载</translation>
     </message>
     <message>
-        <location line="-40"/>
-        <location line="+385"/>
+        <location line="-47"/>
+        <location line="+393"/>
         <source>Choose the download folder</source>
         <translation>选择下载文件夹</translation>
     </message>
     <message>
-        <location line="-331"/>
+        <location line="-332"/>
         <source>Each download writes a new DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt; folder.</source>
         <translation>每次下载都会写入一个新的DNLD_DATA_&lt;THW_ID_POS&gt;_&lt;n&gt;文件夹。</translation>
     </message>
@@ -254,7 +259,7 @@
         <translation>逐个指定目标机要发送的文件。目标机自己的列表仅用于操作员定义模式。</translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+54"/>
         <source>Remove %1 from the download</source>
         <translation>从下载中移除 %1</translation>
     </message>
@@ -343,7 +348,7 @@
 <context>
     <name>FirstRunScreen</name>
     <message>
-        <location filename="../qml/FirstRunScreen.qml" line="+37"/>
+        <location filename="../qml/FirstRunScreen.qml" line="+41"/>
         <source>FIRST RUN</source>
         <translation>首次运行</translation>
     </message>
@@ -358,7 +363,7 @@
         <translation>加载器读取ARINC 665介质集，检查每个文件及其校验值，并把您勾选的加载件传送到ARINC 615A目标机。在您发出指令之前不会发送任何内容。</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+16"/>
         <source>Start loading</source>
         <translation>开始加载</translation>
     </message>
@@ -409,11 +414,12 @@
     </message>
     <message>
         <location line="+13"/>
+        <location line="+11"/>
         <source>Default address</source>
         <translation>默认地址</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+1"/>
         <source>Default target address</source>
         <translation>默认目标地址</translation>
     </message>
@@ -424,7 +430,7 @@
         <translation>默认 THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+45"/>
         <source>WHAT THIS WINDOW DOES</source>
         <translation>本窗口的作用</translation>
     </message>
@@ -434,13 +440,13 @@
         <translation>选择介质集</translation>
     </message>
     <message>
-        <location line="-227"/>
-        <location line="+176"/>
+        <location line="-231"/>
+        <location line="+180"/>
         <source>Choose the download folder</source>
         <translation>选择下载文件夹</translation>
     </message>
     <message>
-        <location line="-107"/>
+        <location line="-109"/>
         <source>Start loading opens the workbench. The default address and THW_ID_POS start empty, and downloads go to the folder shown under Defaults; set them there or later in Preferences. A media set can be chosen there, or here.</source>
         <translation>开始加载会打开工作台。默认地址和THW_ID_POS起初为空，下载内容保存到“默认值”下显示的文件夹；可在那里或稍后在“首选项”中设置。介质集可以在那里选择，也可以在这里选择。</translation>
     </message>
@@ -450,12 +456,17 @@
         <translation>例如：10.0.0.2</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+16"/>
         <source>e.g. HNPFMS_L</source>
         <translation>例如：HNPFMS_L</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+4"/>
+        <source>Default target hardware identifier and position</source>
+        <translation>目标机的默认硬件标识和位置</translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <location line="+14"/>
         <source>Download folder</source>
         <translation>下载文件夹</translation>
@@ -531,7 +542,7 @@
         <translation>介质集生成器和模拟目标机由同一套系统绘制，因此三个工具的外观一致。</translation>
     </message>
     <message>
-        <location line="-385"/>
+        <location line="-387"/>
         <source>Start the loader</source>
         <translation>启动加载器</translation>
     </message>
@@ -656,19 +667,19 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="+50"/>
-        <location line="+58"/>
-        <location line="+129"/>
+        <location filename="../qml/Main.qml" line="+59"/>
+        <location line="+60"/>
+        <location line="+136"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
     </message>
     <message>
-        <location line="+47"/>
+        <location line="+51"/>
         <source>The operation failed</source>
         <translation>操作失败</translation>
     </message>
     <message>
-        <location line="+141"/>
+        <location line="+149"/>
         <source>e.g. 10.0.0.2</source>
         <translation>例如：10.0.0.2</translation>
     </message>
@@ -678,18 +689,13 @@
         <translation>例如：HNPFMS_L</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Target THW_ID_POS</source>
-        <translation>目标机THW_ID_POS</translation>
-    </message>
-    <message>
-        <location line="+94"/>
-        <location line="+127"/>
+        <location line="+153"/>
+        <location line="+126"/>
         <source>Properties...</source>
         <translation>属性...</translation>
     </message>
     <message>
-        <location line="-117"/>
+        <location line="-116"/>
         <source>Ready to address.</source>
         <translation>可以指定地址。</translation>
     </message>
@@ -729,12 +735,12 @@
         <translation>未检查</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+26"/>
         <source>No media set chosen</source>
         <translation>未选择介质集</translation>
     </message>
     <message>
-        <location line="+47"/>
+        <location line="+44"/>
         <source>Re-check</source>
         <translation>重新检查</translation>
     </message>
@@ -759,19 +765,24 @@
         <translation>上传加载项 %1</translation>
     </message>
     <message>
-        <location line="-344"/>
+        <location line="-398"/>
         <source>Find targets</source>
         <translation>查找目标</translation>
     </message>
     <message>
-        <location line="-379"/>
-        <source>WORKING</source>
-        <translation>工作中</translation>
+        <location line="-404"/>
+        <source>SETUP</source>
+        <translation>设置</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>SETUP</source>
-        <translation>设置</translation>
+        <source>FAILED</source>
+        <translation>失败</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>COMPLETE</source>
+        <translation>完成</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -784,7 +795,7 @@
         <translation>未就绪</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+17"/>
         <source>Upload needs a checked media set, at least one ticked load and a target.</source>
         <translation>上载需要已检查的介质集、至少一个已勾选的加载件和一个目标机。</translation>
     </message>
@@ -799,18 +810,18 @@
         <translation>下载需要目标机、保存位置，在介质定义模式下还需要文件名。</translation>
     </message>
     <message>
-        <location line="+62"/>
+        <location line="+64"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation>ARINC 615A · ARINC 665 · 工程加载控制台</translation>
     </message>
     <message>
-        <location line="+9"/>
-        <location line="+94"/>
+        <location line="+10"/>
+        <location line="+100"/>
         <source>Preferences</source>
         <translation>首选项</translation>
     </message>
     <message>
-        <location line="-92"/>
+        <location line="-98"/>
         <source>Open preferences</source>
         <translation>打开首选项</translation>
     </message>
@@ -825,7 +836,7 @@
         <translation>关于数据加载器</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+22"/>
         <source>Complete</source>
         <translation>完成</translation>
     </message>
@@ -835,18 +846,18 @@
         <translation>失败</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+45"/>
         <source>v%1</source>
         <translation>v%1</translation>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+407"/>
+        <location line="+476"/>
         <source>Choose the media set folder</source>
         <translation>选择介质集文件夹</translation>
     </message>
     <message>
-        <location line="-387"/>
+        <location line="-456"/>
         <source>Media set properties</source>
         <translation>介质集属性</translation>
     </message>
@@ -866,12 +877,12 @@
         <translation>继续工作</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+37"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location line="+99"/>
+        <location line="+107"/>
         <source>TARGET</source>
         <translation>目标机</translation>
     </message>
@@ -902,26 +913,32 @@
     </message>
     <message>
         <location line="+4"/>
+        <location line="+15"/>
         <source>THW_ID_POS</source>
         <translation>THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+1"/>
+        <source>Target hardware identifier and position</source>
+        <translation>目标机的硬件标识和位置</translation>
+    </message>
+    <message>
+        <location line="+10"/>
         <source>FOUND</source>
         <translation>已找到</translation>
     </message>
     <message>
-        <location line="+63"/>
+        <location line="+114"/>
         <source>SELECTED</source>
         <translation>已选择</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+28"/>
         <source>Show the target properties</source>
         <translation>显示目标属性</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>Choose folder...</source>
         <translation>选择文件夹...</translation>
     </message>
@@ -945,7 +962,7 @@
         </translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+43"/>
         <source>LOADS</source>
         <translation>加载件</translation>
     </message>
@@ -965,7 +982,7 @@
         <translation>无</translation>
     </message>
     <message>
-        <location line="+114"/>
+        <location line="+111"/>
         <source>Show fewer</source>
         <translation>收起</translation>
     </message>
@@ -990,7 +1007,7 @@
         <translation>传输</translation>
     </message>
     <message>
-        <location line="+147"/>
+        <location line="+156"/>
         <source>Downloading...</source>
         <translation>正在下载...</translation>
     </message>
@@ -1000,8 +1017,8 @@
         <translation>从目标机下载</translation>
     </message>
     <message>
-        <location line="-140"/>
-        <location line="+137"/>
+        <location line="-149"/>
+        <location line="+146"/>
         <source>Download</source>
         <translation>下载</translation>
     </message>
@@ -1016,20 +1033,25 @@
         <translation>读取目标信息</translation>
     </message>
     <message>
-        <location line="-121"/>
-        <location line="+128"/>
+        <location line="-130"/>
+        <location line="+137"/>
         <source>Upload</source>
         <translation>上传</translation>
     </message>
+    <message>
+        <location line="-1084"/>
+        <source>RUNNING</source>
+        <translation>运行中</translation>
+    </message>
     <message numerus="yes">
-        <location line="-983"/>
+        <location line="+20"/>
         <source>Ready: %n load(s) to %1</source>
         <translation>
             <numerusform>就绪：将%n个加载件上载到%1</numerusform>
         </translation>
     </message>
     <message>
-        <location line="+197"/>
+        <location line="+206"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
         <translation>ARINC 615A和ARINC 665工程加载控制台：介质集、目标机、信息、上载和下载操作，以及操作过程的记录。</translation>
     </message>
@@ -1039,24 +1061,24 @@
         <translation>中止并关闭</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+12"/>
         <source>Closing now aborts the operation: the target is asked to stop and may take up to 13 seconds to confirm, and the window will stay open until it does.</source>
         <translation>现在关闭将中止该操作：会请求目标机停止，确认最多可能需要13秒，在此之前窗口将保持打开。</translation>
     </message>
     <message numerus="yes">
-        <location line="+531"/>
+        <location line="+591"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n条警告</numerusform>
         </translation>
     </message>
     <message>
-        <location line="+112"/>
+        <location line="+111"/>
         <source>Transfer operation</source>
         <translation>传输操作</translation>
     </message>
     <message>
-        <location line="+100"/>
+        <location line="+109"/>
         <source>working</source>
         <translation>工作中</translation>
     </message>
@@ -1081,12 +1103,12 @@
         <translation>中止操作</translation>
     </message>
     <message>
-        <location line="-901"/>
+        <location line="-974"/>
         <source>Idle</source>
         <translation>空闲</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>no target</source>
         <translation>无目标</translation>
     </message>
@@ -1131,12 +1153,12 @@
     </message>
     <message>
         <location line="-27"/>
-        <location line="+68"/>
+        <location line="+86"/>
         <source>Files</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location line="-63"/>
+        <location line="-81"/>
         <source>Batches</source>
         <translation>批</translation>
     </message>
@@ -1153,21 +1175,21 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+41"/>
+        <location line="+59"/>
         <source>%n file(s) from FILES.LUM</source>
         <translation>
             <numerusform>FILES.LUM中的%n个文件</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+101"/>
+        <location line="+119"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n条警告</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-92"/>
+        <location line="-110"/>
         <source>NAME</source>
         <translation>名称</translation>
     </message>
@@ -1187,7 +1209,7 @@
         <translation>CRC</translation>
     </message>
     <message>
-        <location line="+76"/>
+        <location line="+94"/>
         <source>Deviations from the standard&apos;s recommendations. They are shown, and do not block an upload.</source>
         <translation>与标准建议的偏差。这些偏差会显示出来，但不会阻止上载。</translation>
     </message>
@@ -1210,7 +1232,7 @@
         <translation>取消</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>Appearance</source>
         <translation>外观</translation>
     </message>
@@ -1225,17 +1247,22 @@
         <translation>窗口跟随桌面的浅色或深色方案。语言立即生效；其他设置在保存后生效。</translation>
     </message>
     <message>
-        <location line="+33"/>
+        <location line="+35"/>
         <source>e.g. 10.0.0.2</source>
         <translation>例如：10.0.0.2</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+17"/>
         <source>e.g. HNPFMS_L</source>
         <translation>例如：HNPFMS_L</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+3"/>
+        <source>Default target hardware identifier and position</source>
+        <translation>目标机的默认硬件标识和位置</translation>
+    </message>
+    <message>
+        <location line="+9"/>
         <source>Before an operation with no target chosen, run FIND and take the only answer; if none or several answer, show the result and wait.</source>
         <translation>在未选择目标机就执行操作之前，先运行FIND并采用唯一的应答；若无应答或有多个应答，则显示结果并等待。</translation>
     </message>
@@ -1250,7 +1277,7 @@
         <translation>无</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+44"/>
         <location line="+15"/>
         <source>Download folder</source>
         <translation>下载文件夹</translation>
@@ -1267,32 +1294,34 @@
     </message>
     <message>
         <location line="+23"/>
+        <location line="+11"/>
         <source>Activity lines kept</source>
         <translation>保留的活动行数</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+13"/>
         <source>Save applies these choices. Cancel and Esc leave them as they were.</source>
         <translation>“保存”应用这些选择。“取消”和Esc则保持原样。</translation>
     </message>
     <message>
-        <location line="-201"/>
+        <location line="-207"/>
         <source>Target</source>
         <translation>目标</translation>
     </message>
     <message>
         <location line="-53"/>
-        <location line="+202"/>
+        <location line="+207"/>
         <source>Choose the download folder</source>
         <translation>选择下载文件夹</translation>
     </message>
     <message>
-        <location line="-139"/>
+        <location line="-144"/>
+        <location line="+14"/>
         <source>Default address</source>
         <translation>默认地址</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+1"/>
         <source>Default target address</source>
         <translation>默认目标地址</translation>
     </message>
@@ -1303,7 +1332,7 @@
         <translation>默认 THW_ID_POS</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>Find the target automatically</source>
         <translation>自动查找目标</translation>
     </message>
@@ -1329,11 +1358,12 @@
     </message>
     <message>
         <location line="+10"/>
+        <location line="+13"/>
         <source>Control port</source>
         <translation>控制端口</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+1"/>
         <source>Loader control port</source>
         <translation>加载器控制端口</translation>
     </message>
@@ -1343,7 +1373,7 @@
         <translation>日志</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Activity log capacity</source>
         <translation>活动日志容量</translation>
     </message>
@@ -1421,7 +1451,7 @@
 <context>
     <name>UploadPanel</name>
     <message>
-        <location filename="../qml/UploadPanel.qml" line="+22"/>
+        <location filename="../qml/UploadPanel.qml" line="+24"/>
         <source>no target</source>
         <translation>无目标机</translation>
     </message>
@@ -1446,37 +1476,37 @@
         <translation>未检查</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+34"/>
         <source>An operation is running</source>
         <translation>有操作正在运行</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Checking the media set</source>
         <translation>正在检查介质集</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Choose a media set first</source>
         <translation>请先选择介质集</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>The media set is not valid</source>
         <translation>介质集无效</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Check the media set</source>
         <translation>检查介质集</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Tick at least one load</source>
         <translation>请至少勾选一个加载件</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Choose or find a target</source>
         <translation>请选择或查找目标机</translation>
     </message>
@@ -1486,7 +1516,7 @@
         <translation>可上载</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+6"/>
         <source>Wait for it to finish, or stop it from the action bar.</source>
         <translation>请等待其完成，或在操作栏中停止。</translation>
     </message>
@@ -1501,22 +1531,17 @@
         <translation>上载前必须重新读取并检查该介质集。</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Use the check boxes in the media set rail. Nothing is sent until at least one load is ticked.</source>
-        <translation>请使用介质集侧栏中的复选框。至少勾选一个加载件后才会发送任何内容。</translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+4"/>
         <source>FIND, or type the target&apos;s IPv4 address and THW_ID_POS.</source>
         <translation>使用FIND，或输入目标机的IPv4地址和THW_ID_POS。</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>The target, the set, the ticked loads and the check are all in place.</source>
         <translation>目标机、介质集、已勾选的加载件和检查均已就绪。</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+70"/>
         <source>THE UPLOAD</source>
         <translation>本次上载</translation>
     </message>
@@ -1532,22 +1557,22 @@
     </message>
     <message numerus="yes">
         <location line="+18"/>
-        <location line="+43"/>
+        <location line="+45"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n个成员</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-41"/>
-        <location line="+127"/>
+        <location line="-43"/>
+        <location line="+128"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n个加载件</numerusform>
         </translation>
     </message>
     <message>
-        <location line="-85"/>
+        <location line="-84"/>
         <source>Choose a folder</source>
         <translation>选择文件夹</translation>
     </message>
@@ -1559,7 +1584,7 @@
         </translation>
     </message>
     <message>
-        <location line="+244"/>
+        <location line="+241"/>
         <source>%1 · Target %2 · %3 · %4</source>
         <translation>%1 · 目标机%2 · %3 · %4</translation>
     </message>
@@ -1571,12 +1596,12 @@
         </translation>
     </message>
     <message>
-        <location line="-299"/>
+        <location line="-298"/>
         <source>No media set selected</source>
         <translation>未选择介质集</translation>
     </message>
     <message>
-        <location line="-83"/>
+        <location line="-115"/>
         <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
         <translation>介质集是一个文件夹，其中每个成员对应一个文件夹。上载前会读取并检查它。</translation>
     </message>
@@ -1586,7 +1611,17 @@
         <translation>请重新读取该集，或选择另一个文件夹。</translation>
     </message>
     <message>
-        <location line="+101"/>
+        <location line="+4"/>
+        <source>Use the check boxes in the media set rail, or tick every load here. Nothing is sent until at least one load is ticked.</source>
+        <translation>请使用介质集栏中的复选框，或在此勾选所有加载件。至少勾选一个加载件之前，不会发送任何内容。</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Tick all loads</source>
+        <translation>勾选所有加载件</translation>
+    </message>
+    <message>
+        <location line="+118"/>
         <source>Target</source>
         <translation>目标机</translation>
     </message>
@@ -1643,7 +1678,7 @@
         <translation>无</translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="-149"/>
         <source>Choose media set</source>
         <translation>选择介质集</translation>
     </message>
@@ -1653,12 +1688,12 @@
         <translation>检查介质集</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Find targets</source>
         <translation>查找目标机</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+219"/>
         <source>Payload</source>
         <translation>载荷</translation>
     </message>
@@ -1679,17 +1714,17 @@
     </message>
     <message>
         <location line="+59"/>
-        <location line="+56"/>
+        <location line="+54"/>
         <source>FAILED</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location line="-56"/>
+        <location line="-54"/>
         <source>TICKED</source>
         <translation>已勾选</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+25"/>
         <source>No load is ticked. The media set rail lists every load and its check box.</source>
         <translation>未勾选任何加载件。介质集侧栏列出每个加载件及其复选框。</translation>
     </message>

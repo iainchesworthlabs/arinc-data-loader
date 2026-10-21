@@ -4,7 +4,7 @@
 <context>
     <name>DownloadPanel</name>
     <message numerus="yes">
-        <location filename="../qml/DownloadPanel.qml" line="+149"/>
+        <location filename="../qml/DownloadPanel.qml" line="+157"/>
         <source>%n file(s)</source>
         <translation>
             <numerusform>%n file</numerusform>
@@ -12,7 +12,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+125"/>
+        <location line="+126"/>
         <location line="+38"/>
         <source>%n file(s) ticked</source>
         <translation>
@@ -35,7 +35,7 @@
 <context>
     <name>Main</name>
     <message numerus="yes">
-        <location filename="../qml/Main.qml" line="+634"/>
+        <location filename="../qml/Main.qml" line="+721"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n member</numerusform>
@@ -51,7 +51,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-595"/>
+        <location line="-673"/>
         <source>Ready: %n load(s) to %1</source>
         <translation>
             <numerusform>Ready: %n load to %1</numerusform>
@@ -59,7 +59,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+749"/>
+        <location line="+822"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n WARNING</numerusform>
@@ -78,7 +78,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+41"/>
+        <location line="+59"/>
         <source>%n file(s) from FILES.LUM</source>
         <translation>
             <numerusform>%n file from FILES.LUM</numerusform>
@@ -86,7 +86,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+101"/>
+        <location line="+119"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n WARNING</numerusform>
@@ -97,8 +97,8 @@
 <context>
     <name>UploadPanel</name>
     <message numerus="yes">
-        <location filename="../qml/UploadPanel.qml" line="+144"/>
-        <location line="+43"/>
+        <location filename="../qml/UploadPanel.qml" line="+194"/>
+        <location line="+45"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n member</numerusform>
@@ -106,8 +106,8 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-41"/>
-        <location line="+127"/>
+        <location line="-43"/>
+        <location line="+128"/>
         <source>%n load(s)</source>
         <translation>
             <numerusform>%n load</numerusform>
@@ -115,7 +115,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-76"/>
+        <location line="-75"/>
         <source>%n warning(s) from the check</source>
         <translation>
             <numerusform>%n warning from the check</numerusform>
@@ -123,7 +123,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+249"/>
+        <location line="+246"/>
         <source>%n load(s) ticked</source>
         <translation>
             <numerusform>%n load ticked</numerusform>

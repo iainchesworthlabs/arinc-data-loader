@@ -390,10 +390,10 @@ function Invoke-DemoPass {
         Click-Named $a 'Read the target information' Button
         Wait-Running $a -SettleMs 0
         Wait-Idle $a
-        Click-Named $a 'TARGET CONFIGURATION' RadioButton
+        Click-Named $a 'TARGET CONFIGURATION' TabItem
         Start-Sleep -Milliseconds 600
         Save-Shot $app 'app-information'
-        Click-Named $a 'ACTIVITY' RadioButton
+        Click-Named $a 'ACTIVITY' TabItem
 
         # ---- Upload
         Click-Named $a 'Upload the ticked loads' Button

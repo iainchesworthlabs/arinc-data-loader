@@ -14,10 +14,11 @@ Item {
 
     implicitWidth: Math.max(220, Math.min(560, label.implicitWidth + 26))
     implicitHeight: column.implicitHeight
-    opacity: enabled ? 1.0 : 0.45
+    opacity: enabled ? 1.0 : Theme.disabledOpacity
     activeFocusOnTab: enabled
     Accessible.role: Accessible.CheckBox
     Accessible.name: root.text
+    Accessible.description: root.note
     Accessible.checked: root.checked
     Accessible.focusable: root.enabled
     Accessible.onPressAction: if (root.enabled) root.toggled(!root.checked)
@@ -46,6 +47,9 @@ Item {
         spacing: Theme.space1
 
         Row {
+            // The row is at least 24 px high, the minimum pointer target; the 16 px square sits
+            // in the middle of it and the whole row (the label too) is the click target.
+            height: Math.max(24, label.implicitHeight)
             spacing: 10
 
             Rectangle {
@@ -90,6 +94,8 @@ Item {
                 id: label
 
                 objectName: "checkLabel"
+                anchors.verticalCenter: parent.verticalCenter
+
                 width: Math.max(0, root.width - 26)
                 text: root.text
                 color: Theme.text

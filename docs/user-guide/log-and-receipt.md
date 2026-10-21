@@ -3,8 +3,10 @@
 ## The activity log
 
 The **ACTIVITY** tab of the dock records, oldest first, what the target said and what the loader
-noticed, each line with the time. It follows the newest line until you scroll up. Severity is
-shown by the line's colour and its words: normal text for what happened, red for a problem.
+noticed, each line with the time. It follows the newest line until you scroll up. Each line names its
+severity in a word (**INFO**, **NOTE**, **WARN** with a warning triangle, **ERROR** with a cross), and a
+warning or an error is also set in its own ink, so a copied or printed log reads the same. The log
+takes the keyboard (Tab to it, Up, Down and Page keys to scroll, **Ctrl+C** to copy it all).
 **Clear** empties the log. It is kept in memory only (see
 [Where files go](files-and-limits.md#where-files-go)).
 

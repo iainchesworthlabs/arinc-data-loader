@@ -70,7 +70,7 @@ TestCase {
         compare(Qt.application.layoutDirection, Qt.LeftToRight)
         verify(!mainWindow.contentItem.LayoutMirroring.enabled)
         // The rail is the left column; the header's About is the last action, at the right.
-        verify(xMiddle(find("rail")) < mainWindow.width / 2)
+        verify(xMiddle(find("railScroll")) < mainWindow.width / 2)
         verify(xLeft(find("preferencesButton")) < xLeft(find("aboutButton")))
         verify(xLeft(find("transferUpload")) < xLeft(find("transferDownload")))
         // A load's detail line sits under its label, 26 px in from the left edge.
@@ -103,7 +103,7 @@ TestCase {
         verify(mainWindow.contentItem.LayoutMirroring.enabled)
 
         // The rail moves to the right edge, and the work area takes the left.
-        const rail = find("rail")
+        const rail = find("railScroll")
         verify(xMiddle(rail) > mainWindow.width / 2, "the rail is not on the right")
         verify(xRight(rail) <= mainWindow.width + 1)
 
@@ -182,7 +182,7 @@ TestCase {
         switchTo("he")
         switchTo("en")
         verify(!languageManager.rightToLeft)
-        verify(xMiddle(find("rail")) < mainWindow.width / 2)
+        verify(xMiddle(find("railScroll")) < mainWindow.width / 2)
         verify(xLeft(find("preferencesButton")) < xLeft(find("aboutButton")))
         verify(xLeft(find("transferUpload")) < xLeft(find("transferDownload")))
     }
