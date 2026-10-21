@@ -12,9 +12,9 @@ changes at once, see [Languages and colour](languages-and-colour.md).)
 | Setting | Default | What it does |
 | --- | --- | --- |
 | **Language** | the system's, if there is a translation, otherwise English | The language of the window. See [Languages and colour](languages-and-colour.md) |
-| **Default address** | empty | The IPv4 address filled into the **Address** field of the workbench when the loader starts, and again whenever you clear that field |
+| **Default address** | empty | The IPv4 address filled into the **Address** field of the workbench when the loader starts, until an operation has been started (after that the last target is put back instead, see below); and again whenever you clear that field |
 | **Default THW_ID_POS** | empty | The same for the target identifier (for example `HNPFMS_L`) |
-| **Find the target automatically** | off | When you press **Read information**, **Upload** or **Download** with no target chosen, the loader runs FIND first. If exactly one target answers it is taken and the operation goes on; if none or several answer, the result is shown and the loader waits for you to choose |
+| **Find the target automatically** | off | When you press **Read information**, **Upload** or **Download** with no target chosen, the loader runs FIND first. If exactly one target answers it is taken and the operation goes on; if none or several answer, nothing starts: the answers are listed under **FOUND** and the loader waits for you to choose ([details](find-a-target.md#find-a-target-find)) |
 | **Check the media set as soon as it is chosen** | on | A media set has to pass the check before an upload. With this off, press **Re-check** in the media set block |
 | **Last media set** | (shown, read-only) | The folder chosen last time. It is opened again quietly when the loader starts |
 | **Control port** | 59 | The UDP port the loader answers the target on during an operation (1 to 65535). The standard says 59. **If the target runs on the same computer as the loader, change it**, for example to 5900, because the target already uses 59. Any value but 59 is sent to the target as an option in the request, so a target that follows the standard moves its file traffic to that port |
@@ -22,8 +22,9 @@ changes at once, see [Languages and colour](languages-and-colour.md).)
 | **Activity lines kept** | 2000 | How many lines the [activity log](log-and-receipt.md#the-activity-log) keeps (100 to 1 000 000). The oldest go first |
 
 The loader also remembers, without asking, the **last target** an operation was started against
-and puts it back in the Address and `THW_ID_POS` fields the next time it starts, and its window
-size and position.
+(Read information, Upload or Download) and puts it back in the Address and `THW_ID_POS` fields the
+next time it starts, instead of the defaults above, and its window size and position. The defaults
+are used at start only when no operation has been started yet.
 
 ## Media set properties
 

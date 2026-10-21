@@ -46,6 +46,10 @@ them for anything that matters. The standards themselves are not part of this so
 [the specs page](../specs/README.md)); where this guide says "the standard", it means ARINC 665-3
 (media sets) and ARINC 615A-3 (the loading protocol).
 
+Each release is published as a package for each system: a zip file for Windows, a tar.gz file
+for Linux and a disk image for macOS. They hold the three programs and need no installer.
+[Installing and starting the programs](installing.md) covers getting and starting them.
+
 For people who build or change the software, [the developer documentation](../../README.md#documentation)
 starts at the project README.
 

@@ -16,7 +16,8 @@ What happens, in one picture:
 ```
 
 Make a working folder, for example `C:\demo`, with three empty folders in it: `sources`, `target`
-and `output`. You will put files in `sources` and in `target\holds`.
+and `output`. Inside `target` make one more folder, `holds`: the mock target does not make it for
+you. You will put files in `sources` and in `target\holds`.
 
 ## 1. Prepare some files
 
@@ -52,8 +53,9 @@ Press **Add files...**, choose the three files from `sources`, set **CONFIG.LDR*
 
 ![The generator, ready to generate](../images/gen-ready.png)
 
-When it says **COMPLETE** the set is in `output\ACM-SET-0001`, and the generator has already read
-it back and verified it.
+When the header chip says **GENERATED**, the set is in `output\ACM-SET-0001`, and the generator has
+already read it back and verified it: a banner says "Media set ACM-SET-0001 written and verified."
+and gives the number of files, the bytes, the members and the folder.
 
 ![The generator, finished](../images/gen-complete.png)
 
@@ -66,6 +68,9 @@ where it keeps uploads, and where `holds` is). Leave the rest as it is and press
 turns **SERVING** and the log says `listening: FIND on port 1001, TFTP on port 59`.
 
 ![The mock target, serving](../images/mock-serving.png)
+
+In the pictures of the mock target in this guide, **Think time** is 500 and **Status period** is 2.
+The defaults, which you get if you leave them alone, are 1000 and 4.
 
 (To keep the firewall from asking, tick **This computer only (127.0.0.1)** in the *Ports* block before
 pressing **Start**; this demonstration never leaves the computer. See
@@ -118,6 +123,11 @@ holds.
 
 ![The target's hardware and parts](../images/app-information.png)
 
+What the mock target reports here is a fixed sample: the hardware "FMS LEFT", serial number
+`SN-0001`, and two parts, `ACM47-1234-5678` and `ACM47-8765-4321 A`. It is not read from the
+mock target's storage and does not change when you upload. The first part number happens to be
+the same as the load made in step 2, so seeing it here does not mean that an upload has happened.
+
 ## 8. Upload
 
 The preflight tiles say Target SET, Media set CHECKED, Loads SET, and the banner says **Ready to
@@ -131,7 +141,7 @@ When it ends the header says **COMPLETE** and each load is at 100%.
 ![The upload has completed](../images/app-upload-complete.png)
 
 Hide the dock (**Hide**) to see the **receipt** under the payload: the outcome, how many files the
-target read, and the target and set it was for.
+target read, and a last line with the time it ended, the target and the set it was for.
 
 ![The receipt](../images/app-upload-receipt.png)
 
@@ -139,13 +149,6 @@ In the mock target the four files are now in its stored files, and on disk in
 `target\ACM47-1234-5678\`.
 
 ![What the mock target stored](../images/mock-stored.png)
-
-While it runs you will also see red lines "status file transfer failed: HNPFMS_L.LUS (timed out)"
-between the status lines. With the mock target these appear with every status file; the status
-that follows each is processed as normal, and the operation completes. (Now and then a "status files
-lost (1)" line joins them; that is a status file that did not arrive, and is
-also harmless here.) See
-[Troubleshooting](troubleshooting.md#status-file-transfer-failed-timed-out-with-the-mock-target).
 
 ## 9. Download, media defined
 
@@ -179,7 +182,8 @@ chip says **1 ACTIVE**. Press **Start** again.
 
 ![The mock target with a fault set](../images/mock-faults.png)
 
-In the loader press **Upload**. The target refuses; the loader shows the dialog.
+In the loader, switch back to **Upload** (step 10 left it on Download), then press **Upload**. The
+target refuses; the loader shows the dialog.
 
 ![The loader reports the refusal](../images/app-error-refused.png)
 

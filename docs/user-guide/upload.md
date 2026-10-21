@@ -47,19 +47,28 @@ The header says **COMPLETE** or **FAILED**, and a **receipt** appears under the 
   operation but gave up on a load (that is a failure, and is shown as one), or "aborted by the
   operator";
 - the detail: "The target read 3 files." (and whether an abort was confirmed);
-- a line with the target, the media set and how many loads were ticked.
+- a last line with the date and time the operation ended, the target, the media set and how many
+  loads were ticked.
 
 A failure also opens a dialog once. See [The log, the receipt and failures](log-and-receipt.md).
 
 ## Which files the target gets
 
 A media set can hold several files of the same name, in different folders or on different members.
-The target names the file it wants and, in its request, the check value of the one it means; the
-loader serves the file of that name whose check value matches. If only one file has the name, it
-is served whatever check value the request carries. If several have it and none matches, the
-target is told the file is not found and ends the operation.
+The target names the file it wants and may add, in its request, a 16-bit CRC of the one it means.
+That CRC is the only thing the loader uses to choose between files of one name: it serves the
+file of that name whose CRC matches. If only one file has the name, it is served whatever check
+value the request carries. If several have the name and the request carries no 16-bit CRC, the
+first of them in `FILES.LUM` is served. If several have it and none matches, the target is told
+the file is not found and ends the operation.
 
-The files are read from the media set folder when the target asks, not copied beforehand.
-Changing a file after the check is not noticed by the loader.
+The files are read from the media set folder when the target asks, not copied beforehand. What
+was checked is what is sent. When you press **Upload**, the loader first compares every file of
+the set with what the check saw, before it contacts the target, and it compares each file again
+as the target opens it. If a file was edited, replaced or removed after the check, it is not sent:
+found before the target is contacted, nothing is sent at all; found as the target opens a file,
+that file is refused and the upload ends. Either way the result says "the media set changed after
+it was checked" and names the file, and the media set goes back to unchecked. Check it again
+(**Re-check**) and upload again; see [Re-checking](choose-a-media-set.md#re-checking).
 
 Next: [download](download.md).
