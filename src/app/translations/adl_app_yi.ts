@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+112"/>
+        <location filename="../core/src/engine_worker.cpp" line="+113"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>&quot;%1&quot; איז ניט קײן IPv4־אַדרעס.</translation>
     </message>
@@ -604,12 +604,12 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-66"/>
+        <location filename="../core/src/engine_worker.cpp" line="-67"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>קלײַבט אויס די פּאַפּקע אין װעלכער דער מעדיע־סעט איז געשריבן געװאָרן, און זיכערט זיך אַז יעדע טעקע פֿונעם סעט איז נאָך דאָרט.</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
         <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
         <translation>עפּעס אין מעדיע־סעט איז געביטן, אױסגעביטן אָדער אַװעקגענומען געװאָרן נאָך דער פּרוּפֿונג, דעריבער איז גאָרנישט ניט אַרױפֿגעלאָדן געװאָרן. פּרוּפֿט נאָך אַ מאָל דעם מעדיע־סעט און לאָדט דעמאָלט אַרױף.</translation>
     </message>
@@ -2112,12 +2112,12 @@
     </message>
     <message>
         <location line="+5"/>
-        <location line="+245"/>
+        <location line="+246"/>
         <source>the media set changed after it was checked</source>
         <translation>דער מעדיע־סעט האָט זיך געביטן נאָך דער פּרוּפֿונג</translation>
     </message>
     <message numerus="yes">
-        <location line="-234"/>
+        <location line="-235"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>מען לאָדט אַרױף %n לאַסט צו %1 (%2)...</numerusform>
@@ -2143,7 +2143,7 @@
         </translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+33"/>
         <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
         <translation>&quot;%1&quot; איז ניט קײן THW_ID_POS װאָס מען קען מאַכן אַן אַראָפּלאָדן פֿאַר.</translation>
     </message>
@@ -2190,12 +2190,12 @@
         </translation>
     </message>
     <message>
-        <location line="-177"/>
+        <location line="-178"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>מען פֿרעגט %1 (%2) נאָך די טעקעס וואָס ער קען אַראָפּלאָדן...</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+28"/>
         <source>The download directory could not be used: %1.</source>
         <translation>מען האָט ניט געקענט ניצן די אַראָפּלאָד־פּאַפּקע: %1.</translation>
     </message>

@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstddef>
 #include <expected>
+#include <set>
 #include <string>
 #include <utility>
 
@@ -47,20 +48,24 @@ Harness::Harness(QObject* parent)
       settings_directory_(),
       fixture_(),
       rig_(std::make_unique<adl::test::Rig>(plan_of(fixture_))),
+      gated_(std::make_unique<adl::test::GatedHost>(rig_->loader_host)),
       model_(std::make_unique<adl::app::LoaderModel>(
           [this]() -> std::expected<adl::app::HostLease, QString> {
               if (hold_.load()) {
                   released_.acquire();
               }
               adl::app::HostLease lease;
-              lease.host = &rig_->loader_host;
+              lease.host = gated_.get();
               return lease;
           },
           settings_of(settings_directory_))) {
     ready_ = fixture_.write(*rig_);
 }
 
-Harness::~Harness() = default;
+Harness::~Harness() {
+    // A job held in the middle of a transfer would keep the model's destructor waiting for ever.
+    releaseJob();
+}
 
 QString Harness::mediaSetPath() const {
     return QString::fromStdU16String(fixture_.directory.path().u16string());
@@ -68,6 +73,29 @@ QString Harness::mediaSetPath() const {
 
 QUrl Harness::mediaSetUrl() const {
     return fixture_.url();
+}
+
+QString Harness::initialDownloadDirectory() const {
+    return QString::fromStdU16String((fixture_.directory.path() / "initial-downloads").u16string());
+}
+
+QVariantMap Harness::storedPreferences() const {
+    // Another model over the same settings file, as the next launch would make it.
+    adl::app::LoaderModel next(
+        []() -> std::expected<adl::app::HostLease, QString> {
+            return std::unexpected(QStringLiteral("no host in this model"));
+        },
+        settings_of(settings_directory_));
+    QVariantMap map;
+    map.insert(QStringLiteral("defaultTargetAddress"), next.defaultTargetAddress());
+    map.insert(QStringLiteral("defaultThwIdPos"), next.defaultThwIdPos());
+    map.insert(QStringLiteral("downloadDirectory"), next.downloadDirectory());
+    map.insert(QStringLiteral("controlPort"), next.controlPort());
+    map.insert(QStringLiteral("logCapacity"), next.logCapacity());
+    map.insert(QStringLiteral("autoFindBeforeOperation"), next.autoFindBeforeOperation());
+    map.insert(QStringLiteral("validateOnOpen"), next.validateOnOpen());
+    map.insert(QStringLiteral("firstRun"), next.firstRun());
+    return map;
 }
 
 QString Harness::downloadDirectory() const {
@@ -110,6 +138,73 @@ bool Harness::downloadedFileExists(const QString& name, int number) const {
 QString Harness::downloadedFileText(const QString& name, int number) const {
     const auto bytes = downloadedBytes(name, number);
     return bytes.has_value() ? text_of(*bytes) : QString{};
+}
+
+namespace {
+
+void collect(QObject* root, const QString& name, QVariantList& found, std::set<QObject*>& visited) {
+    if (root == nullptr || !visited.insert(root).second) {
+        return;
+    }
+    if (root->objectName() == name) {
+        found.append(QVariant::fromValue(root));
+    }
+    // Visual children and QObject children both, as findItem does; an item is listed once.
+    if (auto* item = qobject_cast<QQuickItem*>(root)) {
+        for (QQuickItem* child : item->childItems()) {
+            collect(child, name, found, visited);
+        }
+    }
+    for (QObject* child : root->children()) {
+        collect(child, name, found, visited);
+    }
+}
+
+}  // namespace
+
+QVariantList Harness::findItems(QObject* root, const QString& name) const {
+    QVariantList found;
+    std::set<QObject*> visited;
+    collect(root, name, found, visited);
+    return found;
+}
+
+int Harness::targetAbortsSeen() const {
+    return static_cast<int>(rig_->target.log().aborts_seen.size());
+}
+
+int Harness::targetFilesWrittenCount() const {
+    return static_cast<int>(rig_->target.log().files_written.size());
+}
+
+QStringList Harness::targetFilesWritten() const {
+    QStringList names;
+    for (const std::string& name : rig_->target.log().files_written) {
+        names.append(QString::fromStdString(name));
+    }
+    return names;
+}
+
+QObject* Harness::findItemByText(QObject* root, const QString& text) const {
+    if (root == nullptr) {
+        return nullptr;
+    }
+    if (root->property("text").toString() == text && root->property("visible").toBool()) {
+        return root;
+    }
+    if (auto* item = qobject_cast<QQuickItem*>(root)) {
+        for (QQuickItem* child : item->childItems()) {
+            if (QObject* found = findItemByText(child, text)) {
+                return found;
+            }
+        }
+    }
+    for (QObject* child : root->children()) {
+        if (QObject* found = findItemByText(child, text)) {
+            return found;
+        }
+    }
+    return nullptr;
 }
 
 QObject* Harness::findItem(QObject* root, const QString& name) const {
@@ -192,9 +287,11 @@ void Harness::resetTarget() {
 }
 
 void Harness::resetDownloads() {
+    // Back to an empty media defined list. (remove_row refuses while the list is the target's own
+    // choice, so removing rows one by one would never end after an operator defined download.)
     auto* downloads = qobject_cast<adl::app::DownloadModel*>(model_->downloads());
-    while (downloads != nullptr && downloads->rowCount() > 0) {
-        downloads->remove_row(0);
+    if (downloads != nullptr) {
+        downloads->reset_media({});
     }
 }
 
@@ -208,7 +305,27 @@ void Harness::holdNextJob() {
     hold_.store(true);
 }
 
+void Harness::makeTargetSlow() {
+    rig_->target.plan().work_time = std::chrono::seconds(60);
+}
+
+void Harness::holdUploadAtSecondFile() {
+    // The application opens every file of the set once before an upload starts, to see that none
+    // changed since the check; the target's own requests come after those.
+    gated_->arm(adl::test::GatedHost::Event::open_read,
+                static_cast<unsigned>(model_->fileCount()) + 2);
+}
+
+void Harness::holdDownloadAtSecondFile() {
+    gated_->arm(adl::test::GatedHost::Event::create, 2);
+}
+
+bool Harness::gateReached() const {
+    return gated_->reached();
+}
+
 void Harness::releaseJob() {
+    gated_->release();
     // Only a held job has anything to release: an unconditional release would leave a token in
     // the semaphore that makes the next hold pass straight through.
     if (hold_.exchange(false)) {

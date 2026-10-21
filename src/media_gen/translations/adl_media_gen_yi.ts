@@ -627,16 +627,16 @@
     <message>
         <location filename="../core/src/generator_worker.cpp" line="225"/>
         <location filename="../core/src/generator_worker.cpp" line="266"/>
-        <location filename="../core/src/generator_worker.cpp" line="375"/>
-        <location filename="../core/src/generator_worker.cpp" line="426"/>
-        <location filename="../core/src/generator_worker.cpp" line="451"/>
+        <location filename="../core/src/generator_worker.cpp" line="374"/>
+        <location filename="../core/src/generator_worker.cpp" line="424"/>
+        <location filename="../core/src/generator_worker.cpp" line="449"/>
         <source>Cancelled.</source>
         <translation>אַנולירט.</translation>
     </message>
     <message>
         <location filename="../core/src/generator_worker.cpp" line="226"/>
         <location filename="../core/src/generator_worker.cpp" line="267"/>
-        <location filename="../core/src/generator_worker.cpp" line="376"/>
+        <location filename="../core/src/generator_worker.cpp" line="375"/>
         <source>Nothing was written.</source>
         <translation>גאָרנישט איז געשריבן געװאָרן.</translation>
     </message>
@@ -646,12 +646,12 @@
         <translation>קײן דאַטן־טעקעס ניט אויסגעקליבן.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="306"/>
+        <location filename="../core/src/generator_worker.cpp" line="305"/>
         <source>The load could not be built: %1.</source>
         <translation>דער לאַסט האָט ניט געקענט געבױט װערן: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="365"/>
+        <location filename="../core/src/generator_worker.cpp" line="364"/>
         <source>The media set could not be built: %1.</source>
         <translation>דער מעדיע־סעט האָט ניט געקענט געבױט װערן: %1.</translation>
     </message>
@@ -671,7 +671,7 @@
         <translation>װאָס איז געשריבן געװאָרן האָט מען ניט געקענט אַװעקנעמען, און עס געפֿינט זיך נאָך אין %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="151"/>
+        <location filename="../core/src/generator_worker.cpp" line="152"/>
         <source>%1 is too large to be read into memory.</source>
         <translation>%1 איז צו גרױס כּדי עס זאָל געלייענט װערן אין זכּרון.</translation>
     </message>
@@ -696,32 +696,32 @@
         <translation>גאָרנישט איז ניט געשריבן געװאָרן. קלײַבט קלענערע טעקעס, אָדער שליסט אַנדערע פּראָגראַמען און פּרוּװט נאָך אַ מאָל.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="407"/>
+        <location filename="../core/src/generator_worker.cpp" line="406"/>
         <source>Too many unfinished sets (%1.writing...) are there already.</source>
         <translation>עס זענען שױן פֿאַראַן צו פֿיל אומפֿאַרענדיקטע סעטן (%1.writing...).</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="435"/>
+        <location filename="../core/src/generator_worker.cpp" line="433"/>
         <source>The written media set could not be read back: %1 (%2).</source>
         <translation>דער געשריבענער מעדיע־סעט האָט ניט געקענט צוריקגעלייענט װערן: %1 (%2).</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="445"/>
+        <location filename="../core/src/generator_worker.cpp" line="443"/>
         <source>The written media set does not verify: %1.</source>
         <translation>דער געשריבענער מעדיע־סעט װערט ניט באַשטעטיקט: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="513"/>
+        <location filename="../core/src/generator_worker.cpp" line="511"/>
         <source>Media set %1 written and verified.</source>
         <translation>מעדיע־סעט %1 געשריבן און באַשטעטיקט.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="517"/>
+        <location filename="../core/src/generator_worker.cpp" line="515"/>
         <source>%1, %2, %3 bytes in %4, in %5.</source>
         <translation>%1, %2, %3 בײַט אין %4, אין %5.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="518"/>
+        <location filename="../core/src/generator_worker.cpp" line="516"/>
         <source>%n data file(s)</source>
         <translation>
             <numerusform>%n דאַטן־טעקע</numerusform>
@@ -729,7 +729,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="520"/>
+        <location filename="../core/src/generator_worker.cpp" line="518"/>
         <source>%n support file(s)</source>
         <translation>
             <numerusform>%n הילף־טעקע</numerusform>
@@ -737,7 +737,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="523"/>
+        <location filename="../core/src/generator_worker.cpp" line="521"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n מיטגליד</numerusform>
@@ -745,7 +745,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="531"/>
+        <location filename="../core/src/generator_worker.cpp" line="529"/>
         <source>%n difference(s) from the standard&apos;s recommendations.</source>
         <translation>
             <numerusform>%n אָפּװײכונג פֿון די רעקאָמענדאַציעס פֿונעם סטאַנדאַרט.</numerusform>

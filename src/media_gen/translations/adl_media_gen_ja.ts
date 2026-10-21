@@ -624,16 +624,16 @@
     <message>
         <location filename="../core/src/generator_worker.cpp" line="225"/>
         <location filename="../core/src/generator_worker.cpp" line="266"/>
-        <location filename="../core/src/generator_worker.cpp" line="375"/>
-        <location filename="../core/src/generator_worker.cpp" line="426"/>
-        <location filename="../core/src/generator_worker.cpp" line="451"/>
+        <location filename="../core/src/generator_worker.cpp" line="374"/>
+        <location filename="../core/src/generator_worker.cpp" line="424"/>
+        <location filename="../core/src/generator_worker.cpp" line="449"/>
         <source>Cancelled.</source>
         <translation>キャンセルしました。</translation>
     </message>
     <message>
         <location filename="../core/src/generator_worker.cpp" line="226"/>
         <location filename="../core/src/generator_worker.cpp" line="267"/>
-        <location filename="../core/src/generator_worker.cpp" line="376"/>
+        <location filename="../core/src/generator_worker.cpp" line="375"/>
         <source>Nothing was written.</source>
         <translation>何も書き込まれませんでした。</translation>
     </message>
@@ -643,12 +643,12 @@
         <translation>データファイルが選択されていません。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="306"/>
+        <location filename="../core/src/generator_worker.cpp" line="305"/>
         <source>The load could not be built: %1.</source>
         <translation>ロードをビルドできませんでした：%1。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="365"/>
+        <location filename="../core/src/generator_worker.cpp" line="364"/>
         <source>The media set could not be built: %1.</source>
         <translation>メディアセットをビルドできませんでした：%1。</translation>
     </message>
@@ -668,7 +668,7 @@
         <translation>書き込まれた内容を削除できず、%1にまだ残っています。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="151"/>
+        <location filename="../core/src/generator_worker.cpp" line="152"/>
         <source>%1 is too large to be read into memory.</source>
         <translation>%1は大きすぎて、メモリに読み込めません。</translation>
     </message>
@@ -693,53 +693,53 @@
         <translation>何も書き込まれませんでした。より小さいファイルを選ぶか、他のプログラムを閉じて、もう一度お試しください。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="407"/>
+        <location filename="../core/src/generator_worker.cpp" line="406"/>
         <source>Too many unfinished sets (%1.writing...) are there already.</source>
         <translation>未完成のセット（%1.writing...）がすでに多すぎます。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="435"/>
+        <location filename="../core/src/generator_worker.cpp" line="433"/>
         <source>The written media set could not be read back: %1 (%2).</source>
         <translation>書き込んだメディアセットを読み戻せませんでした：%1(%2)。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="445"/>
+        <location filename="../core/src/generator_worker.cpp" line="443"/>
         <source>The written media set does not verify: %1.</source>
         <translation>書き込んだメディアセットは検証に失敗しました：%1。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="513"/>
+        <location filename="../core/src/generator_worker.cpp" line="511"/>
         <source>Media set %1 written and verified.</source>
         <translation>メディアセット%1を書き込み、検証しました。</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="517"/>
+        <location filename="../core/src/generator_worker.cpp" line="515"/>
         <source>%1, %2, %3 bytes in %4, in %5.</source>
         <translation>%1、%2、%4にわたり合計%3バイト、出力先：%5。</translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="518"/>
+        <location filename="../core/src/generator_worker.cpp" line="516"/>
         <source>%n data file(s)</source>
         <translation>
             <numerusform>%n個のデータファイル</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="520"/>
+        <location filename="../core/src/generator_worker.cpp" line="518"/>
         <source>%n support file(s)</source>
         <translation>
             <numerusform>%n個のサポートファイル</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="523"/>
+        <location filename="../core/src/generator_worker.cpp" line="521"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n個のメンバー</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="531"/>
+        <location filename="../core/src/generator_worker.cpp" line="529"/>
         <source>%n difference(s) from the standard&apos;s recommendations.</source>
         <translation>
             <numerusform>規格の推奨事項との相違が%n件あります。</numerusform>

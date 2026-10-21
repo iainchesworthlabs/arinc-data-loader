@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+112"/>
+        <location filename="../core/src/engine_worker.cpp" line="+113"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>&quot;%1&quot; אינה כתובת IPv4.</translation>
     </message>
@@ -604,12 +604,12 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-66"/>
+        <location filename="../core/src/engine_worker.cpp" line="-67"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>יש לבחור את הספרייה שאליה נכתבה ערכת המדיה, ולוודא שכל קבצי הערכה עדיין בה.</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
         <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
         <translation>משהו בערכת המדיה נערך, הוחלף או הוסר לאחר שנבדקה, ולכן דבר לא הועלה. יש לבדוק שוב את ערכת המדיה ואז להעלות.</translation>
     </message>
@@ -2112,12 +2112,12 @@
     </message>
     <message>
         <location line="+5"/>
-        <location line="+245"/>
+        <location line="+246"/>
         <source>the media set changed after it was checked</source>
         <translation>ערכת המדיה השתנתה לאחר שנבדקה</translation>
     </message>
     <message numerus="yes">
-        <location line="-234"/>
+        <location line="-235"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>מעלה %n Load אל %1 (%2)...</numerusform>
@@ -2143,7 +2143,7 @@
         </translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+33"/>
         <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
         <translation>&quot;%1&quot; אינו THW_ID_POS שניתן לבצע עבורו הורדה.</translation>
     </message>
@@ -2190,12 +2190,12 @@
         </translation>
     </message>
     <message>
-        <location line="-177"/>
+        <location line="-178"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>מבקש מ-%1 (%2) את הקבצים שניתן להוריד...</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+28"/>
         <source>The download directory could not be used: %1.</source>
         <translation>לא ניתן היה להשתמש בתיקיית ההורדות: %1.</translation>
     </message>

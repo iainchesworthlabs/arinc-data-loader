@@ -14,7 +14,6 @@
 #include <string>
 #include <vector>
 
-#include <QDir>
 #include <QEventLoop>
 #include <QGuiApplication>
 #include <QImage>
@@ -25,8 +24,6 @@
 #include <QQuickItem>
 #include <QQuickStyle>
 #include <QQuickWindow>
-#include <QSettings>
-#include <QTemporaryDir>
 #include <QTimer>
 #include <QUrl>
 #include <QVariant>
@@ -40,6 +37,7 @@
 #include "bytes.hpp"
 #include "frame_profiler.hpp"
 #include "rig.hpp"
+#include "scratch_settings.hpp"
 #include "upload_fixture.hpp"
 
 #include <adl/profiling.hpp>
@@ -103,11 +101,10 @@ int main(int argc, char* argv[]) {
     // The model reads QSettings without arguments; the test keeps that out of the operator's
     // real settings, and out of the run before this one: the first-run screen is passed by this
     // test, so a shared file would make the next run's window think it had been used before.
-    QSettings::setDefaultFormat(QSettings::IniFormat);
-    const QString settings_root = QDir::tempPath() + QStringLiteral("/adl_test_qsettings_") +
-                                  QString::number(QCoreApplication::applicationPid());
-    QDir().mkpath(settings_root);
-    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settings_root);
+    // The directory is removed when the program ends.
+    QCoreApplication::setOrganizationName(QStringLiteral("adl-tests"));
+    QCoreApplication::setApplicationName(QStringLiteral("adl_app_qml_test"));
+    const adl::test::ScratchSettings scratch_settings;
 
     adl::test::UploadFixture fixture;
     adl::test::SimPlan plan = fixture.plan();

@@ -627,16 +627,16 @@
     <message>
         <location filename="../core/src/generator_worker.cpp" line="225"/>
         <location filename="../core/src/generator_worker.cpp" line="266"/>
-        <location filename="../core/src/generator_worker.cpp" line="375"/>
-        <location filename="../core/src/generator_worker.cpp" line="426"/>
-        <location filename="../core/src/generator_worker.cpp" line="451"/>
+        <location filename="../core/src/generator_worker.cpp" line="374"/>
+        <location filename="../core/src/generator_worker.cpp" line="424"/>
+        <location filename="../core/src/generator_worker.cpp" line="449"/>
         <source>Cancelled.</source>
         <translation>בוטל.</translation>
     </message>
     <message>
         <location filename="../core/src/generator_worker.cpp" line="226"/>
         <location filename="../core/src/generator_worker.cpp" line="267"/>
-        <location filename="../core/src/generator_worker.cpp" line="376"/>
+        <location filename="../core/src/generator_worker.cpp" line="375"/>
         <source>Nothing was written.</source>
         <translation>דבר לא נכתב.</translation>
     </message>
@@ -646,12 +646,12 @@
         <translation>לא נבחרו קובצי נתונים.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="306"/>
+        <location filename="../core/src/generator_worker.cpp" line="305"/>
         <source>The load could not be built: %1.</source>
         <translation>לא ניתן היה לבנות את ה-Load: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="365"/>
+        <location filename="../core/src/generator_worker.cpp" line="364"/>
         <source>The media set could not be built: %1.</source>
         <translation>לא ניתן היה לבנות את ערכת המדיה: %1.</translation>
     </message>
@@ -671,7 +671,7 @@
         <translation>מה שנכתב לא ניתן היה להסיר, והוא עדיין ב-%1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="151"/>
+        <location filename="../core/src/generator_worker.cpp" line="152"/>
         <source>%1 is too large to be read into memory.</source>
         <translation>%1 גדול מדי מכדי להיקרא לזיכרון.</translation>
     </message>
@@ -696,32 +696,32 @@
         <translation>דבר לא נכתב. יש לבחור קבצים קטנים יותר, או לסגור תוכנות אחרות ולנסות שוב.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="407"/>
+        <location filename="../core/src/generator_worker.cpp" line="406"/>
         <source>Too many unfinished sets (%1.writing...) are there already.</source>
         <translation>כבר יש יותר מדי ערכות לא גמורות (%1.writing...).</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="435"/>
+        <location filename="../core/src/generator_worker.cpp" line="433"/>
         <source>The written media set could not be read back: %1 (%2).</source>
         <translation>לא ניתן היה לקרוא בחזרה את ערכת המדיה שנכתבה: %1 (%2).</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="445"/>
+        <location filename="../core/src/generator_worker.cpp" line="443"/>
         <source>The written media set does not verify: %1.</source>
         <translation>ערכת המדיה שנכתבה אינה עוברת אימות: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="513"/>
+        <location filename="../core/src/generator_worker.cpp" line="511"/>
         <source>Media set %1 written and verified.</source>
         <translation>ערכת המדיה %1 נכתבה ואומתה.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="517"/>
+        <location filename="../core/src/generator_worker.cpp" line="515"/>
         <source>%1, %2, %3 bytes in %4, in %5.</source>
         <translation>%1, %2, %3 בתים ב-%4, ב-%5.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="518"/>
+        <location filename="../core/src/generator_worker.cpp" line="516"/>
         <source>%n data file(s)</source>
         <translation>
             <numerusform>%n קובץ נתונים</numerusform>
@@ -729,7 +729,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="520"/>
+        <location filename="../core/src/generator_worker.cpp" line="518"/>
         <source>%n support file(s)</source>
         <translation>
             <numerusform>%n קובץ תמיכה</numerusform>
@@ -737,7 +737,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="523"/>
+        <location filename="../core/src/generator_worker.cpp" line="521"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n חבר</numerusform>
@@ -745,7 +745,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="531"/>
+        <location filename="../core/src/generator_worker.cpp" line="529"/>
         <source>%n difference(s) from the standard&apos;s recommendations.</source>
         <translation>
             <numerusform>%n סטייה מהמלצות התקן.</numerusform>

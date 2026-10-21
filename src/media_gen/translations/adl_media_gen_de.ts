@@ -627,16 +627,16 @@
     <message>
         <location filename="../core/src/generator_worker.cpp" line="225"/>
         <location filename="../core/src/generator_worker.cpp" line="266"/>
-        <location filename="../core/src/generator_worker.cpp" line="375"/>
-        <location filename="../core/src/generator_worker.cpp" line="426"/>
-        <location filename="../core/src/generator_worker.cpp" line="451"/>
+        <location filename="../core/src/generator_worker.cpp" line="374"/>
+        <location filename="../core/src/generator_worker.cpp" line="424"/>
+        <location filename="../core/src/generator_worker.cpp" line="449"/>
         <source>Cancelled.</source>
         <translation>Abgebrochen.</translation>
     </message>
     <message>
         <location filename="../core/src/generator_worker.cpp" line="226"/>
         <location filename="../core/src/generator_worker.cpp" line="267"/>
-        <location filename="../core/src/generator_worker.cpp" line="376"/>
+        <location filename="../core/src/generator_worker.cpp" line="375"/>
         <source>Nothing was written.</source>
         <translation>Es wurde nichts geschrieben.</translation>
     </message>
@@ -646,12 +646,12 @@
         <translation>Keine Datendateien gewählt.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="306"/>
+        <location filename="../core/src/generator_worker.cpp" line="305"/>
         <source>The load could not be built: %1.</source>
         <translation>Der Load konnte nicht erstellt werden: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="365"/>
+        <location filename="../core/src/generator_worker.cpp" line="364"/>
         <source>The media set could not be built: %1.</source>
         <translation>Das Medienset konnte nicht erstellt werden: %1.</translation>
     </message>
@@ -671,7 +671,7 @@
         <translation>Was geschrieben worden war, konnte nicht entfernt werden und befindet sich noch in %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="151"/>
+        <location filename="../core/src/generator_worker.cpp" line="152"/>
         <source>%1 is too large to be read into memory.</source>
         <translation>%1 ist zu groß, um in den Speicher gelesen zu werden.</translation>
     </message>
@@ -696,32 +696,32 @@
         <translation>Nichts wurde geschrieben. Wählen Sie kleinere Dateien oder schließen Sie andere Programme und versuchen Sie es erneut.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="407"/>
+        <location filename="../core/src/generator_worker.cpp" line="406"/>
         <source>Too many unfinished sets (%1.writing...) are there already.</source>
         <translation>Es gibt bereits zu viele unfertige Sets (%1.writing...).</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="435"/>
+        <location filename="../core/src/generator_worker.cpp" line="433"/>
         <source>The written media set could not be read back: %1 (%2).</source>
         <translation>Das geschriebene Medienset konnte nicht zurückgelesen werden: %1 (%2).</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="445"/>
+        <location filename="../core/src/generator_worker.cpp" line="443"/>
         <source>The written media set does not verify: %1.</source>
         <translation>Das geschriebene Medienset besteht die Verifizierung nicht: %1.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="513"/>
+        <location filename="../core/src/generator_worker.cpp" line="511"/>
         <source>Media set %1 written and verified.</source>
         <translation>Medienset %1 geschrieben und verifiziert.</translation>
     </message>
     <message>
-        <location filename="../core/src/generator_worker.cpp" line="517"/>
+        <location filename="../core/src/generator_worker.cpp" line="515"/>
         <source>%1, %2, %3 bytes in %4, in %5.</source>
         <translation>%1, %2, %3 Bytes in %4, in %5.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="518"/>
+        <location filename="../core/src/generator_worker.cpp" line="516"/>
         <source>%n data file(s)</source>
         <translation>
             <numerusform>%n Datendatei</numerusform>
@@ -729,7 +729,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="520"/>
+        <location filename="../core/src/generator_worker.cpp" line="518"/>
         <source>%n support file(s)</source>
         <translation>
             <numerusform>%n Support-Datei</numerusform>
@@ -737,7 +737,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="523"/>
+        <location filename="../core/src/generator_worker.cpp" line="521"/>
         <source>%n member(s)</source>
         <translation>
             <numerusform>%n Mitglied</numerusform>
@@ -745,7 +745,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../core/src/generator_worker.cpp" line="531"/>
+        <location filename="../core/src/generator_worker.cpp" line="529"/>
         <source>%n difference(s) from the standard&apos;s recommendations.</source>
         <translation>
             <numerusform>%n Abweichung von den Empfehlungen der Norm.</numerusform>

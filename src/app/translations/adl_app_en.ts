@@ -24,7 +24,7 @@
 <context>
     <name>JobListener</name>
     <message numerus="yes">
-        <location filename="../core/src/engine_worker.cpp" line="+291"/>
+        <location filename="../core/src/engine_worker.cpp" line="+292"/>
         <source>The target listed %n file(s) it can download.</source>
         <translation>
             <numerusform>The target listed %n file it can download.</numerusform>
@@ -158,7 +158,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location line="+157"/>
+        <location line="+158"/>
         <source>completed, %n file(s) failed</source>
         <translation>
             <numerusform>completed, %n file failed</numerusform>

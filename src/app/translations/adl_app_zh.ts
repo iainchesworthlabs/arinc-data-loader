@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+112"/>
+        <location filename="../core/src/engine_worker.cpp" line="+113"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>“%1”不是IPv4地址。</translation>
     </message>
@@ -602,12 +602,12 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-66"/>
+        <location filename="../core/src/engine_worker.cpp" line="-67"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>请选择介质集写入的目录，并确保该介质集的每个文件仍在其中。</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
         <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
         <translation>介质集中的内容在检查后被编辑、替换或删除，因此没有上载任何内容。请重新检查介质集，然后再上载。</translation>
     </message>
@@ -2097,12 +2097,12 @@
     </message>
     <message>
         <location line="+5"/>
-        <location line="+245"/>
+        <location line="+246"/>
         <source>the media set changed after it was checked</source>
         <translation>介质集在检查后发生了变化</translation>
     </message>
     <message numerus="yes">
-        <location line="-234"/>
+        <location line="-235"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>正在向%1（%2）上载%n个加载件...</numerusform>
@@ -2126,7 +2126,7 @@
         </translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+33"/>
         <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
         <translation>“%1”不是可进行下载的THW_ID_POS。</translation>
     </message>
@@ -2169,12 +2169,12 @@
         </translation>
     </message>
     <message>
-        <location line="-177"/>
+        <location line="-178"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>正在向 %1（%2）请求其可下载的文件...</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+28"/>
         <source>The download directory could not be used: %1.</source>
         <translation>下载目录无法使用：%1。</translation>
     </message>

@@ -116,7 +116,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+112"/>
+        <location filename="../core/src/engine_worker.cpp" line="+113"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>«&#xa0;%1&#xa0;» n’est pas une adresse IPv4.</translation>
     </message>
@@ -604,12 +604,12 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-66"/>
+        <location filename="../core/src/engine_worker.cpp" line="-67"/>
         <source>Choose the directory the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>Choisissez le répertoire dans lequel le jeu de supports a été écrit et assurez-vous que tous les fichiers du jeu s’y trouvent toujours.</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+7"/>
         <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
         <translation>Un élément du jeu de supports a été modifié, remplacé ou supprimé après sa vérification&#xa0;; rien n’a donc été téléversé. Vérifiez à nouveau le jeu de supports, puis téléversez.</translation>
     </message>
@@ -2112,12 +2112,12 @@
     </message>
     <message>
         <location line="+5"/>
-        <location line="+245"/>
+        <location line="+246"/>
         <source>the media set changed after it was checked</source>
         <translation>le jeu de supports a changé après sa vérification</translation>
     </message>
     <message numerus="yes">
-        <location line="-234"/>
+        <location line="-235"/>
         <source>Uploading %n load(s) to %1 (%2)...</source>
         <translation>
             <numerusform>Téléversement de %n chargement vers %1 (%2)...</numerusform>
@@ -2143,7 +2143,7 @@
         </translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+33"/>
         <source>&quot;%1&quot; is not a THW_ID_POS a download can be made for.</source>
         <translation>«&#xa0;%1&#xa0;» n’est pas un THW_ID_POS pour lequel un téléchargement peut être effectué.</translation>
     </message>
@@ -2190,12 +2190,12 @@
         </translation>
     </message>
     <message>
-        <location line="-177"/>
+        <location line="-178"/>
         <source>Asking %1 (%2) for the files it can download...</source>
         <translation>Demande à %1 (%2) des fichiers qu&apos;elle peut télécharger...</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+28"/>
         <source>The download directory could not be used: %1.</source>
         <translation>Le répertoire de téléchargement n&apos;a pas pu être utilisé : %1.</translation>
     </message>

@@ -21,6 +21,7 @@ private Q_SLOTS:
     void names_the_file_and_gives_the_number_its_unit();
     void says_how_a_failed_transfer_ended();
     void leaves_the_rest_as_they_are();
+    void every_notice_has_a_sentence_of_its_own();
 };
 
 // The lists the window shows.
@@ -118,6 +119,7 @@ class LoaderModelTest : public QObject {
     Q_OBJECT
 
 private Q_SLOTS:
+    void init();
     void information_reads_the_configuration();
     void find_lists_the_targets();
     void selecting_a_target_fills_the_address();
@@ -162,6 +164,12 @@ private Q_SLOTS:
     void a_download_refuses_a_name_that_is_not_a_safe_file_name();
     void a_second_job_is_refused_while_a_download_runs();
     void auto_find_runs_before_a_download_when_no_target_is_selected();
+    void abort_in_the_middle_of_an_upload_is_confirmed_by_the_target();
+    void abort_in_the_middle_of_a_download_is_confirmed_by_the_target();
+    void a_changed_target_drops_what_was_observed_against_the_old_one();
+    void a_media_set_result_is_not_a_transfer_and_survives_a_changed_target();
+    void a_download_result_is_a_transfer_and_a_download_even_when_it_fails();
+    void the_real_host_makes_a_download_directory_with_a_non_ascii_name();
     void a_language_switch_reaches_the_result_the_log_and_the_failure_on_show();
 };
 

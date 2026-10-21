@@ -335,6 +335,8 @@ function(adl_add_ui_support target)
         "${CMAKE_SOURCE_DIR}/src/ui/language_manager.cpp"
         "${CMAKE_SOURCE_DIR}/src/ui/fonts.cpp"
         "${CMAKE_SOURCE_DIR}/src/ui/window_state.cpp"
+        "${CMAKE_SOURCE_DIR}/src/ui/settings_location.cpp"
+        "${CMAKE_SOURCE_DIR}/src/ui/smoke_test.cpp"
         "${CMAKE_SOURCE_DIR}/src/ui/version.cpp")
     target_include_directories(${target} PRIVATE
         "${CMAKE_SOURCE_DIR}/src/ui/include"

@@ -13,6 +13,8 @@
 #include "adl/ui/build_info.hpp"
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/language_manager.hpp"
+#include "adl/ui/settings_location.hpp"
+#include "adl/ui/smoke_test.hpp"
 #include "adl/ui/version.hpp"
 #include "adl/ui/window_state.hpp"
 #include "frame_profiler.hpp"
@@ -22,6 +24,8 @@ int main(int argc, char* argv[]) {
     QGuiApplication::setApplicationName(QStringLiteral("ARINC Data Loader"));
     QGuiApplication::setApplicationVersion(QString::fromLatin1(adl::ui::kVersion));
     QGuiApplication::setOrganizationName(QStringLiteral("iainchesworthlabs"));
+    // ADL_SETTINGS_DIR moves the preferences into an ini file there (the tests set it).
+    adl::ui::redirect_settings_from_environment();
 
     adl::ui::register_fonts();
 
@@ -69,6 +73,7 @@ int main(int argc, char* argv[]) {
         if (auto* window = qobject_cast<QQuickWindow*>(engine->rootObjects().constFirst())) {
             frame_profiler.emplace(window);
             adl::ui::install_window_state(window);
+            adl::ui::install_smoke_test(window);
         }
     }
 

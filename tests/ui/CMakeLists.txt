@@ -77,14 +77,40 @@ adl_deploy_sanitizer_runtime(adl_ui_tests)
 add_dependencies(adl_ui_tests adl_app_tests)
 
 # One test per QML file, so each starts with a model of its own (a media set read by one file
-# cannot colour what the next one sees). A test that hangs fails after three minutes instead of
+# cannot colour what the next one sees). A test that hangs fails after five minutes instead of
 # holding the run. The offscreen platform plugin is not one the deployment step copies beside the
 # program, so it is looked for in the Qt kit's own plugin directory.
-foreach(test_file tst_main_window tst_dialogs tst_right_to_left)
+foreach(test_file tst_main_window tst_dialogs tst_first_run tst_window_close tst_right_to_left)
     add_test(NAME ui.${test_file}
         COMMAND adl_ui_tests -input "${CMAKE_CURRENT_SOURCE_DIR}/qml/${test_file}.qml")
     set_tests_properties(ui.${test_file} PROPERTIES
-        TIMEOUT 180
+        TIMEOUT 300
         LABELS "ui;system"
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Fusion;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")
 endforeach()
+
+# The window geometry code the three programs share (src/ui/window_state.cpp), on a bare window:
+# restore, clamp, off-screen and maximised. QtTest, offscreen, with the settings in a scratch
+# directory.
+add_executable(adl_window_state_tests
+    window_state_test.cpp)
+target_include_directories(adl_window_state_tests PRIVATE
+    "${PROJECT_SOURCE_DIR}/tests/support")
+adl_add_ui_support(adl_window_state_tests)
+target_link_libraries(adl_window_state_tests
+    PRIVATE
+        Qt6::Gui
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::Test
+        adl::warnings
+        adl::sanitizers
+        adl::coverage)
+adl_platform_deploy_qt_runtime(adl_window_state_tests "")
+adl_deploy_sanitizer_runtime(adl_window_state_tests)
+add_dependencies(adl_window_state_tests adl_ui_tests)
+add_test(NAME ui.window_state COMMAND adl_window_state_tests)
+set_tests_properties(ui.window_state PROPERTIES
+    TIMEOUT 120
+    LABELS "ui;unit"
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")

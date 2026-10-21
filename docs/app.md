@@ -255,6 +255,24 @@ carries no per-file figure), with the target's status word and description. `suc
 the failed or missing files, with a hint. The detail says how many files arrived of how many
 requested, and where.
 
+## Where the settings are kept
+
+The preferences, the language and each window's size and place are `QSettings` of the organisation
+`iainchesworthlabs` and the program's name, so they live where the platform keeps such things (the registry
+key `HKCU\Software\iainchesworthlabs\<name>` on Windows, a property list on macOS, a configuration file
+on Linux). **`ADL_SETTINGS_DIR` moves them:** with the variable set to a directory, all three programs read
+and write an ini file below that directory instead (`<directory>/iainchesworthlabs/<name>.ini`, whatever
+the platform) and write nothing to the usual place. It is read once, at start-up, by
+`adl::ui::redirect_settings_from_environment()` (`src/ui/settings_location.cpp`), which every `main` calls
+straight after naming the application. The tests set it so that starting a program under test never
+touches an operator's real settings or another run's, and it is also the way to keep two configurations
+apart or to run a program from a stick.
+
+`--smoke-test` makes a program draw its window's first frame, print `smoke-test: first frame drawn` and
+exit with code 0 (`adl::ui::install_smoke_test`, `src/ui/smoke_test.cpp`). It is what the system tests start
+the programs with ([testing](testing.md)); a program that cannot create its window exits with an error or
+never gets as far as the frame.
+
 ## Qt in this repository
 
 - **Qt is the prebuilt kit, not vcpkg.** `cmake/FindQt6.cmake` finds it through `QT_ROOT_DIR` (set by
@@ -284,7 +302,9 @@ index, its progress and its end, a load the target cannot read, an abort of an U
 a host that cannot start, a media set read from a directory and one that is not there, the model destroyed
 while a job is queued), a media defined Download whose files land byte for byte in the
 `DNLD_DATA_<THW_ID_POS>_<number>` directory of the fake storage, an operator defined Download with a
-ticked subset and with "Choose none" (the abort with the target's confirmation), a download with a failed
+ticked subset and with "Choose none" (the abort with the target's confirmation), an abort in the middle of
+an Upload and of a Download, both in the model and by the window's button (the engine held inside a file
+call, the target's confirmation and the error dialog asserted), a download with a failed
 item, an unsafe file name refused before anything is sent, the directory handling (`download_directory_test`:
 the numbering, the race for a number, each failing call of the file system, the removal of an empty
 directory and only of that) and the worker's jobs called directly with a host made to fail
@@ -313,8 +333,7 @@ a check box, a spin box and a progress bar mirror), and `tests/unit/translations
 Not checked: an Upload against a real target (and so which checksum a real target sends for each file,
 see above), an Upload whose files are in two directories of one name end to end (the source is tested
 on that, the operation is not), a media set of many gigabytes (files are read by block, not held, and the
-test sets are a few kilobytes), an abort in the middle of a transfer through the window (the engine's
-tests cover it; the application's abort test holds the engine at the start of the job); the window
+test sets are a few kilobytes), the window
 against a real target over a real network (the runner over real sockets is run by the loopback
 integration test against the mock target, [mock target](mock-target.md), not by the window); the window
 at scales other than 100% (it has been driven on a real Windows desktop in both schemes by a script, see
