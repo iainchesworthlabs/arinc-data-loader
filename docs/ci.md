@@ -27,11 +27,11 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 
 | Workflow | Purpose | Runs on a private copy? |
 | --- | --- | --- |
-| `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs, a coverage gate, and the Zephyr and FreeRTOS simulator jobs | yes |
+| `ci.yml` | `clang-format`, `platform-isolation`, the Windows / Linux / macOS build-and-test legs, a coverage gate, and the Zephyr and FreeRTOS simulator jobs; a change to documentation alone builds nothing ([Documentation-only changes](#documentation-only-changes)) | yes |
 | `branch-name-check.yml` | gitflow branch naming; the source/target pairing | yes |
 | `commit-policy.yml` | no attribution in the PR title, PR body or any commit message of the PR | yes |
 | `changelog.yml` | a PR into `develop` adds a changelog fragment, or carries the `no-changelog` label | yes |
-| `docs.yml` | builds the documentation site strictly on every pull request and queue entry, and publishes it to GitHub Pages when `main` is pushed ([Documentation site](#documentation-site)) | yes |
+| `docs.yml` | builds the documentation site strictly on every pull request and queue entry, checks the links and the paths in the Markdown files, and publishes the site to GitHub Pages when `main` is pushed ([Documentation site](#documentation-site)) | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
 | `release.yml` | the Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on `release/*` branches and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | the nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
@@ -101,6 +101,12 @@ build. A page that is added to `docs/` must also be added to `nav` in `mkdocs.ym
 link into one to the file on GitHub (`blob/main/...`, or `tree/main/...` for a folder). A link whose target
 does not exist is left alone, and the build fails on it.
 
+**Icon and navigation.** The logo and the favicon are the loader's icon. The same hook adds it to the site, as
+`images/icon.svg`, from `packaging/linux/icons/adl_app.svg`, where the Linux package takes it, so there is one
+copy. `navigation.instant` loads a page without reloading the site and `navigation.tracking` keeps the address
+bar on the heading being read; both depend on `site_url`, so a built site opened from disk or served from
+another address navigates the ordinary way (`mkdocs serve` sets `site_url` to its own address).
+
 **What is not published.** The standards (`docs/specs/*.pdf`) are third-party documents ([Licensing](licensing.md));
 `exclude_docs` leaves them out and the build fails if a PDF is in the site.
 
@@ -111,6 +117,10 @@ user's guide exist, no PDF, a minimum number of pages). Two workflows use it, so
 - `docs.yml`, job `Docs build (strict)`: on every pull request into `main` or `develop` and every merge queue
   entry. It has no path filter, because a required check that does not run blocks the pull request. On a
   push to `main` it packages the site and the job `Publish the site` deploys it with `actions/deploy-pages`.
+  After the build it runs `tools/checks/check_doc_links.ps1` and `tools/checks/check_doc_paths.ps1`, the scripts
+  behind the CTest tests `docs.links` and `docs.paths`, over every Markdown file, so that a change to
+  documentation alone, which runs no CTest ([below](#documentation-only-changes)), is still checked for links,
+  anchors and paths, and so is `README.md`, which the site does not contain.
 - `release.yml`, job `Docs (strict)`: the first job after *Prepare*, ahead of the three builds, so a release
   with a broken page stops in a minute and not after an hour.
 
@@ -168,7 +178,7 @@ with the rulesets.
 | --- | --- | --- |
 | `clang-format` | ubuntu-24.04 | Every `.cpp`/`.hpp` (and sibling extensions) under `src/` and `tests/` is exactly what the repository's `.clang-format` produces, with one pinned clang-format release (`.github/requirements/lint.txt`). Any difference fails; the log names file and line. |
 | `platform-isolation` | ubuntu-24.04 | `tools/checks/check_platform_isolation.ps1`: no preprocessor conditional, no OS header or OS-querying API outside `src/platforms/`, no OS test in CMake outside the selector, no `#define`, every platform source wired. Fast, and deliberately not behind the build legs. |
-| `Plan build legs` | ubuntu-24.04 | The build matrix was computed. It is a required check only so that a failure here cannot turn the three build legs into "skipped" (which counts as a pass). |
+| `Plan build legs` | ubuntu-24.04 | The build matrix was computed, and so was whether the change is more than documentation ([Documentation-only changes](#documentation-only-changes)). It is a required check only so that a failure here cannot turn the three build legs into "skipped" (which counts as a pass). |
 | `Windows (MSVC)` | windows-2025-vs2026 | Preset `windows-msvc-debug` configures, builds warning-free (`/W4 /WX`) with ASan, and all of ctest passes. |
 | `Linux (GCC)` | ubuntu-26.04 | Preset `linux-gcc-debug`: the image's default `g++` builds warning-free (`-Wall -Wextra -Wpedantic -Werror ...`) with ASan and UBSan, and all of ctest passes. |
 | `macOS (AppleClang)` | macos-26 (Apple silicon) | Preset `macos-clang-debug`: AppleClang from Xcode builds warning-free with ASan and UBSan, and all of ctest passes. |
@@ -201,8 +211,10 @@ the `translations.current.*` tests (lupdate over a copy of each set of catalogue
 catalogues no longer match the sources), and the repository checks `platform.fragments` (every platform
 fragment satisfies the platform contract, on whichever host this is), `platform.selector`,
 `platform.vcpkg_root` (which vcpkg checkout a configure uses, tried against a fake repository, with no
-network), `platform.isolation` (the same script as the `platform-isolation` job) and `docs.links` (every
-relative link and `#anchor` of the Markdown files resolves, pictures included); the last two need `pwsh`,
+network), `platform.isolation` (the same script as the `platform-isolation` job), `docs.links` (every
+relative link and `#anchor` of the Markdown files resolves, pictures included), `docs.paths` (every
+repository path that a Markdown file names in a code span exists) and `ci.changed_code` (the list of files
+that make a change documentation-only, [below](#documentation-only-changes)); the last four need `pwsh`,
 which every hosted image has. The tests that load or drive a window carry the label `ui`
 (`ctest -L ui`). The application, UI, loopback and system tests carry a time-out each, and the job has its
 own (45 minutes), so a hung test cannot hold a runner. `system.install_consumer` is not on this list: it
@@ -261,9 +273,52 @@ the fact instead of re-run.
   and is understood by actionlint. Every job that uses one checks the
   repository out first.
 
+### Documentation-only changes
+
+A pull request or merge queue entry whose changed files are all documentation builds and tests nothing.
+`Plan build legs` runs `.github/actions/changed-code`, which runs `tools/ci/changed_code.ps1`. That lists the
+files that differ between the merge commit and its first parent (for a queue entry, between the entry and the
+commit it is built on, `merge_group.base_sha`), and outputs `code=false` when each of them is
+
+- under `docs/`, except `docs/release-signing-key.asc` (the release workflow and `tools/release/*.sh` read it);
+- `mkdocs.yml`, or under `changelog.d/`;
+- a Markdown file at the root of the repository (`README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, ...).
+
+Everything else is code. That keeps out of the list whatever CTest or a build reads: `LICENSE` (the notices
+test), the Markdown files below the root (they sit among the sources), the workflows, the check scripts of
+`tools/` and the pinned requirements. A rename is listed under both names, so moving
+a source file into `docs/` is a change to code. An empty diff, a failed fetch and every event that is not a
+pull request or a queue entry (a push, a manual run, a schedule) are `code=true`: a push to `develop` or
+`main` always builds everything, since it makes the vcpkg cache that pull requests start from. The test
+`ci.changed_code` holds the list, so a file cannot be added to it unnoticed. The `Plan build legs` log says what
+it found, for example "3 changed file(s), all documentation".
+
+What `code=false` does, and why it is built this way:
+
+- **The required checks still report.** A job skipped by `if:` reports under the raw text of its `name:`
+  expression (`${{ matrix.name }}` for a leg), not under the name it would have had, so a required check
+  skipped that way never reports and the pull request waits for it. A workflow-level `paths:` filter has the
+  same fault. So `Windows (MSVC)`, `Linux (GCC)`, `macOS (AppleClang)` and `Coverage (Linux, GCC)` are not
+  skipped: they run, print "Nothing to build or test (documentation only)", skip every other step and finish
+  in seconds as successes. The three legs are given an Ubuntu runner for it, not a macOS or a Windows one.
+  `clang-format`, `platform-isolation` and `Plan build legs` run as usual.
+- **The rest skips as a whole.** `Zephyr (native_sim)`, `Zephyr (QEMU, SDK toolchain)` and `FreeRTOS (POSIX
+  simulator)` are not required checks, so `if:` skips them. A job made a required check later needs the
+  treatment of the legs above first ([Branch protection](branch-protection.md#the-merge_group-rule)).
+- **The checks of documentation still run.** `Docs build (strict)` builds the site and runs the link and path
+  checks over every Markdown file ([Documentation site](#documentation-site)); they are the same scripts as the
+  CTest tests `docs.links` and `docs.paths`, which a documentation-only change does not reach. The workflow has
+  no path filter, so it runs for every change.
+- **The merge queue.** Every entry runs `ci.yml` on its own temporary ref, as before, and is judged by its own
+  changes. When an entry ahead of it in the queue changes code and it changes documentation, it builds nothing
+  and the entry ahead builds the code; if that one fails, the queue builds the later entry again on its new base.
+
+`changelog.yml` and the policy checks are not affected: a documentation-only pull request still carries a
+changelog fragment or the `no-changelog` label.
+
 ### Running some legs by hand
 
-A push, pull request or queue run always runs every leg. A manual dispatch can
+A push, and every pull request or queue entry that changes more than documentation, runs every leg. A manual dispatch can
 name just the ones it needs - useful in a fork or private copy, where hosted
 minutes are limited and macOS minutes are billed at a multiple:
 
@@ -362,7 +417,8 @@ run costs minutes, not hours; the cache earns its keep mostly on macOS.
 `actions/checkout` runs with `fetch-depth: 0` and `submodules: recursive` on
 the vcpkg-using jobs: with a `builtin-baseline`, vcpkg reads historical port
 versions out of the submodule's git history, and the default depth-1
-submodule clone does not have them.
+submodule clone does not have them. The same holds on a developer's machine:
+[Building](building.md#clone) clones the submodule in full, not with `--depth 1`.
 
 ## What the Zephyr jobs cache, and what they never ask the GitHub API
 
@@ -483,7 +539,8 @@ The three legs (Windows MSVC, Linux GCC, macOS AppleClang) have all run on
    ASan runtime DLL that `adl_deploy_sanitizer_runtime` copies next to the
    tests, found next to the compiler).
 4. **The vcpkg submodule**: a clone without enough history for the baseline
-   (`fetch-depth: 0` is set for that reason).
+   (`fetch-depth: 0` is set for that reason; on a developer's machine,
+   `git -C deps/vcpkg fetch --unshallow` repairs a submodule made with `--depth 1`).
 5. **Coverage**: gcovr refusing a counter, or a figure below the minimum. The
    report step passes `--gcov-ignore-parse-errors negative_hits.warn_once_per_file`
    for the known gcov bug, and the coverage preset updates counters atomically.

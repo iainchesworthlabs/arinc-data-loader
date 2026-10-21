@@ -137,7 +137,8 @@ what to do instead of an `#ifdef`, and how to add a platform.
   other. [changelog.d/README.md](changelog.d/README.md) has the details.
 - If you change what a window shows or does, change [the user's guide](docs/user-guide/index.md)
   with it, and make the pictures again ([docs/screenshots.md](docs/screenshots.md)). The
-  `docs.links` test fails on a link or a picture that is not there.
+  `docs.links` test fails on a link or a picture that is not there, and the `docs.paths` test on a path in a
+  code span (`src/...`, `tools/...`) that is not in the repository.
 - The pages in `docs/` are also built into a website, strictly: a link to a page or a heading that is not
   there fails the `Docs build (strict)` check. A new page goes into `nav` in `mkdocs.yml`. Build it before
   you push with `mkdocs build --strict` or `cmake --build <dir> --target docs`

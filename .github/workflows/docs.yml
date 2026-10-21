@@ -46,6 +46,18 @@ jobs:
 
       - uses: ./.github/actions/docs-site
 
+      # The two checks CTest runs as docs.links and docs.paths, here as well: a change to
+      # documentation alone does not build or test anything (docs/ci.md, "Documentation-only
+      # changes"), and the site covers docs/ but not README.md, CONTRIBUTING.md and the changelog
+      # fragments. They take a few seconds. pwsh ships on every hosted image.
+      - name: Check the links of the Markdown files
+        shell: pwsh
+        run: ./tools/checks/check_doc_links.ps1 -Root $PWD
+
+      - name: Check the paths the Markdown files name
+        shell: pwsh
+        run: ./tools/checks/check_doc_paths.ps1 -Root $PWD
+
       # Only a build that will be published is packaged: a pull request needs to know it builds.
       - name: Package the site for Pages
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
