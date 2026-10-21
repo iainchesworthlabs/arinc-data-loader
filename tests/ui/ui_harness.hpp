@@ -6,13 +6,13 @@
 // it between test cases and answers the questions a QML test cannot ask the model directly (what
 // the target read, what a download wrote, how many rows a list holds).
 
-#include <atomic>
+#include <condition_variable>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <vector>
 
 #include <QObject>
-#include <QSemaphore>
 #include <QString>
 #include <QStringList>
 #include <QUrl>
@@ -86,8 +86,12 @@ public:
     // The target refuses the next operation.
     Q_INVOKABLE void makeTargetRefuse();
     // Holds the engine's thread just before it takes the host, so a UI test can be certain a job
-    // is running (and press Abort) however fast the fake platform would finish it.
+    // is running (and press Abort) however fast the fake platform would finish it. jobHeld() says
+    // the engine's thread has got there: a test that acts on "the job is running" waits for it,
+    // because the model is busy from the moment the job is posted, which can be well before the
+    // thread is scheduled (and a release before that must not let the next hold pass).
     Q_INVOKABLE void holdNextJob();
+    [[nodiscard]] Q_INVOKABLE bool jobHeld() const;
     Q_INVOKABLE void releaseJob();
     // The target keeps working (and reporting) for a minute after its last file, so a job cannot
     // end before the test has done what it wants to do to it.
@@ -110,8 +114,12 @@ private:
     std::unique_ptr<adl::test::Rig> rig_;
     std::unique_ptr<adl::test::GatedHost> gated_;
     std::unique_ptr<adl::app::LoaderModel> model_;
-    std::atomic<bool> hold_{false};
-    QSemaphore released_;
+    // The hold before the host is taken: a flag under a mutex, not a semaphore, so that a release
+    // made before the engine's thread has arrived leaves nothing behind for the next hold.
+    mutable std::mutex hold_mutex_;
+    std::condition_variable hold_changed_;
+    bool hold_ = false;
+    bool held_ = false;
     bool ready_ = false;
 };
 
