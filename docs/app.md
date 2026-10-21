@@ -18,8 +18,8 @@ FIND, the Information, Upload and Download operations are built. What the window
 | Upload | The Upload operation (5.4.3): the ticked loads of the media set are loaded to the target. The target reads their header, data and support files from the media set on disk; the window shows how far the target's list has got and, beside each ticked load, its own percentage and status (and why, for one the target gave up on), from the upload status files. With the abort button. See [what the Upload operation needs](#what-the-upload-operation-needs-from-the-application). |
 | Download | The Download operation (5.4.4), in both modes. Media defined: the operator names the files the target is to send. Operator defined: the target's list of files is shown to be ticked, the choice goes back through the engine's deferred-selection route, and "Choose none" cancels the operation the way the standard says. The files land in a fresh `DNLD_DATA_<THW_ID_POS>_<number>` directory under the download directory (Preferences): the number is the lowest free one. A download that receives no file (the target denies it or never answers, the operator cancels or aborts, the loader cannot run) leaves no directory behind; one that received anything keeps it. Each file's row carries its own status and progress; the abort button covers downloads. See [what the Download operation needs](#what-the-download-operation-needs-from-the-application). |
 | Preferences | Persistent settings, in a two-column modal page from the header's Preferences button: the last media set directory (restored quietly at start-up), a default target address and `<THW_ID_POS>` (prefilled), the loader's control port (anything but 59 is sent to the target as the `port` option, which is what lets the loader and a target share one machine), the download directory, whether FIND runs by itself before an operation with no chosen target (one answer is taken automatically; none or several leaves the choice to the operator), whether a chosen media set is checked at once, the activity log's capacity, and the language. The dialog edits a working copy: Save writes it, Cancel and Esc leave the stored values as they were. |
-| About | The `ADL` mark, what the window is for, and the build provenance the other ICL tools show: version, git describe, full commit, branch, build target, Qt version and a dirty-tree marker, generated at configure time; the licence and repository link. |
-| The window's look | The shared design system in `src/ui`: `Theme.qml` is the single source of truth for colour (Signal light and dark), type, spacing and geometry; the shared controls (`AppButton`, `AppCheckBox`, `AppTextField`, `AppComboBox`, `AppSpinBox`, `SegmentedControl`, `FocusRing`), the header and footer, the chips, the log and the dialogs draw from it. The three applications compile the same source; see [the design system](design-system.md). |
+| About | The `ADL` mark, what the window is for, and the build provenance: version, git describe, full commit, branch, build target, Qt version and a dirty-tree marker, generated at configure time; the licence and repository link. |
+| The window's look | The shared design system in `src/ui` (taken from ICL Forge, a separate application whose code is not in this repository): `Theme.qml` is the single source of truth for colour (Signal light and dark), type, spacing and geometry; the shared controls (`AppButton`, `AppCheckBox`, `AppTextField`, `AppComboBox`, `AppSpinBox`, `SegmentedControl`, `FocusRing`), the header and footer, the chips, the log and the dialogs draw from it. The three applications compile the same source; see [the design system](design-system.md). |
 | The first launch | A first-run statement before the workbench: what the window is for, one primary that opens the workbench, an optional route to choose a media set, and the defaults folded away. Passing it once is stored (its fields are the preferences), so every later launch goes straight to the workbench. |
 | The language | All text goes through `qsTr`/`tr`, and the loader, the generator and the mock target offer the same eight languages (English, the source; French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese) through one shared `adl::ui::LanguageManager` and its picker (the loader's is in Preferences). It installs the catalogues for the persisted language (the system locale, then English, on a first run), sets the layout direction and the typeface, and retranslates the running window, **including what the engine said earlier**: results, failures, log lines and the checks' details are `Message`s translated when they are read. Hebrew and Yiddish **mirror the whole window** (`LayoutMirroring` on the window root) and are set in the bundled Noto Sans Hebrew. Counts are real plurals (`%n`, with numerus forms). **Every message has a translation in every language, and all seven are machine-drafted first versions that no speaker has reviewed.** Not translated: the findings of the ARINC 665 library and the names of its errors, platform error codes, whatever the target sends, and the mock target's 615A engine log. [Translations](translations.md) has the details. |
 | The target that was used | The address and `<THW_ID_POS>` an operation last started against are stored, and put back into the window at start-up, so a session starts where the last one left off. The Preferences defaults fill the fields on a first run, and again whenever the operator clears one. |
@@ -57,8 +57,8 @@ src/app/
   main.cpp            creates the QGuiApplication, one LoaderModel, the QML engine and the language manager
   frame_profiler      the window's frame loop for a profiling build (docs/profiling.md)
   qml/                Main.qml (the shell), UploadPanel.qml, DownloadPanel.qml, ActivityDock.qml,
-                      FirstRunScreen.qml, and the preferences, media set properties, target
-                      properties and about dialogs (the licences dialog is in src/ui)
+                      FirstRunScreen.qml, and the preferences, media set properties and target
+                      properties dialogs (the About and Licences dialogs are in src/ui)
   translations/       the catalogues (adl_app_<code>.ts for the seven languages, adl_app_en.ts for the
                       English plural forms), compiled into the window's module; the shared
                       components' are in src/ui/translations. LanguageManager is src/ui's.
@@ -80,9 +80,11 @@ src/ui/               the shared design system: Theme, the controls, the header 
 ```
 
 `core` has no QML and no GUI, so it is tested headless. The QML is a view: it binds to `LoaderModel`'s
-properties and the four models and calls its functions. The window gets the model as a required initial
-property (`app`), so there is no global and no singleton; the language manager is the one context
-property, because it belongs to the process rather than to the loader. The QML is a static library of its
+properties and the six models (`targets`, `events`, `configuration`, `loads`, `files` and
+`downloads`) and calls its functions. The window gets the model as a required initial property
+(`app`), so there is no global and no singleton. The only context properties are the language manager
+(`languageManager`), the About text (`appVersionDetails`) and the licence notices
+(`appLicenceNotices`), because they belong to the process rather than to the loader. The QML is a static library of its
 own (`adl_app_qml`), linked whole into the application and into the window's test, so the test loads the
 same compiled module the application does.
 
@@ -137,7 +139,7 @@ over, and `Runner::find` not until the window of three seconds has passed. So th
 
 `LoaderConfig` wants the target's endpoint, its `<THW_ID_POS>` and a workspace; the engine allocates
 nothing, so the worker gives it a `std::vector<std::byte>` of `DataLoader::workspace_bytes` and keeps the
-`DataLoader` (about 16 KB) on the heap. An Information operation has no `FileSource` or `FileSink`.
+`DataLoader` on the heap. An Information operation has no `FileSource` or `FileSink`.
 
 `<THW_ID_POS>` is, in this application, the hardware identifier from the FIND answer, an underscore and
 the position (`HNPFMS` at `L` is `HNPFMS_L`), or the identifier alone for a target that gave no position.
@@ -158,19 +160,21 @@ progress report (the list's percentage, and per load its percentage, status and 
 refused before it starts, and the button disabled, unless there is a media set that was read, a load
 ticked, and a valid address and `<THW_ID_POS>` (`canUpload`).
 
-**The files come from the media set on disk through `adl::platform`'s file system, not from memory.**
-While the media set is read (to show it), `MediaSetIndex` is made from its `FILES.LUM`: every file's name,
-member, directory and 16-bit CRC, mapped to a path below the directory the operator chose (member
-directory, then the file's own directory: `adl::media_tree`'s layout). Nothing but the index is kept;
-the bytes are read at the offsets the target asks for, when it asks (a media set can be larger than
-memory). `MediaTreeSource` is the `FileSource` over it, and reads through the host's `FileSystem`, which
-is what lets the tests run an upload against files in memory.
+**During an upload the files come from the media set on disk through `adl::platform`'s file system,
+not from memory.** While the media set is read (to show it), `MediaSetIndex` is made from its
+`FILES.LUM`: every file's name, member, directory and 16-bit CRC, mapped to a path below the directory
+the operator chose (member directory, then the file's own directory: `adl::media_tree`'s layout).
+Nothing but the index is kept; during the upload the bytes are read at the offsets the target asks
+for, when it asks. Choosing and checking a set is different: `read_media_set_tree` returns the bytes of
+every file of the set, so the whole set is in memory while it is read, and a set has to fit in memory
+to be chosen. `MediaTreeSource` is the `FileSource` over the index, and reads through the host's
+`FileSystem`, which is what lets the tests run an upload against files in memory.
 
 **Finding the file the target means.** A media set can hold several files of one name (in different
 directories of a load, or on different members), and the target tells them apart by the checksum option
 of its request (5.3.2.3.8.5), the CRC the load header gives that file. `MediaSetIndex::find` takes the
-file of that name whose `FILES.LUM` CRC is the one asked for. Two decisions, both mine and unchecked
-against a target:
+file of that name whose `FILES.LUM` CRC is the one asked for. Two decisions, both the application's
+own choices and unchecked against a target:
 
 - With **one** file of the name, it is served whatever CRC the request carries (and whatever kind of
   checksum). The header file's CRC as a target knows it may not be the one `FILES.LUM` records (the header
@@ -188,7 +192,8 @@ modification time, because the platform's `FileSystem` interface has no modifica
 back or be too coarse to tell a second edit, and a changed byte always changes the hash; taking it costs
 nothing extra at that point, since the bytes are there. The fingerprint is checked twice. When an upload
 starts, before the target is contacted, the worker reads the whole set through the host's `FileSystem`
-and compares it (one more read of the set, as long as the check's own); a difference ends the job at once
+(file by file, in blocks of 64 KiB, so the set is not held in memory) and compares it (one more read
+of the set, as long as the check's own); a difference ends the job at once
 with "The media set changed after it was checked: DATA.LUP (member 1, \LOAD\)", the hint to check the media
 set again, and the check no longer stands (the upload stays refused until it is run again). And each time the
 target opens a file, `MediaTreeSource::open` compares that file again before a byte is served, so a file
@@ -217,7 +222,11 @@ the tests' fake storage receives the bytes).
   (`is_valid_thw_id_pos`: 1 to 240 characters, no control character, slash or backslash) and, because the id
   becomes part of a directory name, that `DNLD_DATA_<id>_1` is a name every platform can make (a colon, which
   names a stream on NTFS, an asterisk or a trailing dot is refused). The model also treats an id the engine
-  refuses as no target at all.
+  refuses as no target at all. When "Find the target automatically" is on and exactly one target
+  answers the FIND, its id is checked the same way before the operation is started again
+  (`run_pending_after_find`): one that cannot be used (for a download, one that cannot name the
+  directory) stops the operation with a failure dialog and a log line, instead of another FIND or
+  nothing at all.
 - **A download that received nothing leaves no directory.** When the runner returns, whether the target
   denied the operation, never answered, the operator cancelled or aborted, or the loader could not run
   (the request refused, the port taken, the wait failing), the directory is removed if it is empty, and the
@@ -228,11 +237,14 @@ the tests' fake storage receives the bytes).
   calls; if another copy takes the number in between, `make_directory` says `already_exists`, which is not
   an error here: the next number is tried (and a file system that says so for every number ends the search
   after 10 000 with a message, not a hang).
-- **The names the target chooses** are checked by `DirectoryFileSink` with one predicate shared with the
-  media tree and the mock target, `adl::arinc665::is_portable_file_name`, the same on every platform: no
-  separator, no colon (an NTFS stream), no device name (`CON`, `NUL`, `COM1`, `CONIN$`... with or without an
-  extension), no trailing dot or space, printable ASCII, 254 characters at most, and not ending in `.part`
-  (the sink's own temporary name). The media defined mode refuses such a name before the operation starts.
+- **The names the target chooses** are checked by `DirectoryFileSink` with `adl::arinc615a::is_safe_file_name`,
+  which is the predicate shared with the media tree, `adl::arinc665::is_portable_file_name`, plus two
+  rules: at most 254 characters, and not ending in `.part` (the sink's own temporary name).
+  `is_portable_file_name` is the same on every platform: no separator, no colon (an NTFS stream), no
+  device name (`CON`, `NUL`, `COM1`, `CONIN$`... with or without an extension), no trailing dot or space,
+  printable ASCII; it puts no limit on the length. The mock target adds the 254 characters itself (and
+  accepts only letters, digits and `. _ -`). The media defined mode refuses such a name before the
+  operation starts.
 
 **The operator's choice is a deferred engine call.** For an operator defined download the
 target writes its list of files (`<THW_ID_POS>.LNL`), and the standard leaves when the choice is
@@ -268,6 +280,27 @@ straight after naming the application. The tests set it so that starting a progr
 touches an operator's real settings or another run's, and it is also the way to keep two configurations
 apart or to run a program from a stick.
 
+The loader's keys (`src/app/core/src/settings.cpp`, `AppSettings`; each change is written at once) and
+their defaults:
+
+| Key | Default | What it holds |
+| --- | --- | --- |
+| `app/firstRunComplete` | false | the first-run screen has been passed |
+| `mediaSet/lastDirectory` | empty | the media set folder last chosen, restored at start-up |
+| `mediaSet/validateOnOpen` | true | whether a chosen set is checked at once |
+| `target/defaultAddress`, `target/defaultThwIdPos` | empty | the defaults that prefill the target fields |
+| `target/lastAddress`, `target/lastThwIdPos` | empty | the target the last operation started against, put back at start-up |
+| `target/autoFindBeforeOperation` | false | whether FIND runs by itself before an operation with no chosen target |
+| `loader/controlPort` | 59 | the loader's control port; a stored value outside 1 to 65535 is ignored |
+| `download/directory` | `<Documents>/ArincDownloads` (the home folder stands in when the platform gives no Documents folder) | the download directory |
+| `log/capacity` | 2000 | the most lines the activity log keeps; a stored value outside 100 to 1,000,000 is ignored |
+
+Two keys are not the loader's own: `language/code` (written by `adl::ui::LanguageManager`; with none
+stored, the system's language if it is one of the eight, otherwise English) and `window/x`,
+`window/y`, `window/width`, `window/height`, `window/maximized` and `window/placed`
+(`adl::ui::install_window_state`, written when the window closes and when the application quits).
+The generator and the mock target store only these two groups.
+
 `--smoke-test` makes a program draw its window's first frame, print `smoke-test: first frame drawn` and
 exit with code 0 (`adl::ui::install_smoke_test`, `src/ui/smoke_test.cpp`). It is what the system tests start
 the programs with ([testing](testing.md)); a program that cannot create its window exits with an error or
@@ -275,8 +308,9 @@ never gets as far as the frame.
 
 ## Qt in this repository
 
-- **Qt is the prebuilt kit, not vcpkg.** `cmake/FindQt6.cmake` finds it through `QT_ROOT_DIR` (set by
-  `. C:\Repos\common\env.ps1`, and by CI) or the aqtinstall layout each platform fragment lists.
+- **Qt is the prebuilt kit, not vcpkg.** `cmake/FindQt6.cmake` finds it through `QT_ROOT_DIR` (set it
+  to the kit's directory, see [building](building.md#building-the-application); CI sets it too) or
+  the aqtinstall layout each platform fragment lists.
 - **`ADL_BUILD_APP` is on by default on a desktop where the Qt kit is found**, and off where it is not,
   so the libraries still build on a machine without Qt; `-DADL_BUILD_APP=ON` makes a missing kit an
   error and `-DADL_BUILD_APP=OFF` is the deliberate libraries-only build ([building](building.md#building-the-application)).
@@ -332,8 +366,8 @@ a check box, a spin box and a progress bar mirror), and `tests/unit/translations
 
 Not checked: an Upload against a real target (and so which checksum a real target sends for each file,
 see above), an Upload whose files are in two directories of one name end to end (the source is tested
-on that, the operation is not), a media set of many gigabytes (files are read by block, not held, and the
-test sets are a few kilobytes), the window
+on that, the operation is not), a set larger than memory (choosing and checking a set reads all of it into
+memory; only the transfer reads by block; the test sets are a few kilobytes), the window
 against a real target over a real network (the runner over real sockets is run by the loopback
 integration test against the mock target, [mock target](mock-target.md), not by the window); the window
 at scales other than 100% (it has been driven on a real Windows desktop in both schemes by a script, see

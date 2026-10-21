@@ -437,7 +437,7 @@ Item {
                         Layout.fillWidth: true
                         text: root.app.lastDownloadDirectory.length > 0
                               ? qsTr("The last download was written to %1.").arg(root.app.lastDownloadDirectory)
-                              : qsTr("A new numbered folder is made for every download, even one that is aborted.")
+                              : qsTr("Each download writes into a new numbered folder; one that brings back no file leaves no folder behind.")
                         color: Theme.textMuted
                         font.pixelSize: Theme.fontSmall
                         wrapMode: Text.WordWrap

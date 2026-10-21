@@ -194,6 +194,13 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "Start is not the primary action while the target is stopped\n");
         return 1;
     }
+    // The footer's state mark is a ToneGlyph, as the loader's is: a dot while stopped, the play
+    // mark while serving, never a coloured disc alone.
+    QQuickItem* mark = find_item(content, QStringLiteral("statusMark"));
+    if (mark == nullptr || mark->property("glyph").toString() != QStringLiteral("dot")) {
+        std::fprintf(stderr, "the footer's state mark is not a dot while the target is stopped\n");
+        return 1;
+    }
     QMetaObject::invokeMethod(start, "click");
     if (!model.running()) {
         std::fprintf(stderr, "the window's Start button did not start the target\n");
@@ -202,6 +209,10 @@ int main(int argc, char* argv[]) {
     QCoreApplication::processEvents();
     if (start->property("primary").toBool() || !stop->property("primary").toBool()) {
         std::fprintf(stderr, "Stop is not the primary action while the target is serving\n");
+        return 1;
+    }
+    if (mark->property("glyph").toString() != QStringLiteral("busy")) {
+        std::fprintf(stderr, "the footer's state mark is not the play mark while serving\n");
         return 1;
     }
     auto* activity = qobject_cast<adl::mock::ActivityModel*>(model.activity());
@@ -216,6 +227,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     QCoreApplication::processEvents();
+    if (mark->property("glyph").toString() != QStringLiteral("dot")) {
+        std::fprintf(stderr, "the footer's state mark did not go back to a dot\n");
+        return 1;
+    }
 
     const QImage picture = window->grabWindow();
     if (picture.isNull()) {
@@ -264,6 +279,25 @@ int main(int argc, char* argv[]) {
     QCoreApplication::processEvents();
     if (picker_centre() < window->width() / 2.0) {
         std::fprintf(stderr, "English did not put the header back\n");
+        return 1;
+    }
+
+    // Ctrl+C in the activity log copies "time  SEVERITY  message" for every line. The shared
+    // LogView reads the model's roles by number, so a model that numbered them otherwise would
+    // copy no time and call every line INFO.
+    QQuickItem* log_view = find_item(window->contentItem(), QStringLiteral("activityLog"));
+    if (log_view == nullptr) {
+        std::fprintf(stderr, "the window has no activity log\n");
+        return 1;
+    }
+    activity->append({2, QStringLiteral("12:34:56"), QStringLiteral("a warning")});
+    activity->append({3, QStringLiteral("12:34:57"), QStringLiteral("an error")});
+    QVariant copied;
+    if (!QMetaObject::invokeMethod(log_view, "plainText", qReturnArg(copied)) ||
+        !copied.toString().endsWith(
+            QStringLiteral("12:34:56  WARN  a warning\n12:34:57  ERROR  an error"))) {
+        std::fprintf(stderr, "Ctrl+C in the activity log would copy '%s'\n",
+                     qPrintable(copied.toString()));
         return 1;
     }
 

@@ -1,6 +1,6 @@
 # ARINC Data Loader
 
-An ARINC 615A and 665 compliant data loader, in C++23, built with CMake for
+An ARINC 615A and 665 data loader, written from the standards, in C++23, built with CMake for
 Windows, macOS and Linux.
 
 ARINC 665 describes how loadable software is packaged: the header file, the data
@@ -8,6 +8,10 @@ and support files, their check values, and the media set they travel on. ARINC
 615A describes how a data loader moves a load to (and from) a target over a
 network. The two standards are not in the repository (see
 [docs/specs](docs/specs/README.md)); the code cites them by section.
+
+The documentation, with a [user's guide](docs/user-guide/index.md), is published at
+<https://iainchesworthlabs.github.io/arinc-data-loader/> from the first release on. The same pages are in
+[`docs/`](docs/README.md).
 
 ## Status
 
@@ -99,9 +103,10 @@ release key and listed with its checksums and bill of materials
   [docs/static-analysis.md](docs/static-analysis.md).
 
 What is planned is in [docs/roadmap.md](docs/roadmap.md): testing the format
-against another tool's files and ARINC 615A against a real target, packaging, translations, Tracy profiling,
-and a build of the loader library for an embedded target (the Green
-Hills INTEGRITY ports are written and unbuilt; VxWorks is a design).
+against another tool's files and ARINC 615A against a real target, review of the
+machine-drafted translations by speakers, profiling a large upload over a real network, and a build of
+the loader library for an embedded target (the Green Hills INTEGRITY ports are written and
+unbuilt; VxWorks is a design).
 
 ## Using it
 
@@ -143,7 +148,9 @@ src/mock_target/     adl_mock_target: a 615A target over real sockets, for demon
 src/platforms/       everything that differs between operating systems
 tests/               unit, integration and system tests; the fake platform; the Qt Quick Test UI suite
 cmake/               the platform selector, warnings, static analysis, sanitizers, coverage, Tracy, Qt
-tools/               repository checks, commit policy, git hooks
+tools/               repository checks, commit policy, git hooks, release and repository-setup
+                     scripts, the simulator jobs' scripts, the documentation build and screenshots,
+                     firewall and AppArmor helpers
 docs/                the user's guide, architecture, roadmap, CI, static analysis, coverage of 665 and 615A,
                      the three applications, the 615A codec and engine, docs/specs
 ```
@@ -160,11 +167,13 @@ The full index is [docs/README.md](docs/README.md).
 | --- | --- |
 | [User's guide](docs/user-guide/index.md) | Installing, the demonstration, every screen and setting of the three programs, troubleshooting |
 | [Building](docs/building.md), [Testing](docs/testing.md), [CI](docs/ci.md), [Static analysis](docs/static-analysis.md), [Profiling](docs/profiling.md) | Build, test, continuous integration and analysis |
+| [Releasing](docs/releasing.md), [Verifying a release](docs/verifying-releases.md) | For the maintainer: how a release is cut, built and signed. For downloaders: how to check one |
 | [Screenshots](docs/screenshots.md) | How the pictures in the documentation are regenerated |
 | [Architecture](docs/architecture.md), [Platform abstraction](docs/platform-abstraction.md), [Platform isolation](docs/platform-isolation.md), [Green Hills INTEGRITY](docs/platform-ghs.md) | How the code is arranged and how it stays portable |
 | [ARINC 665 coverage](docs/arinc665-coverage.md), [615A codec](docs/arinc615a-codec.md), [615A engine](docs/arinc615a-engine.md), [615A coverage](docs/arinc615a-coverage.md) | The libraries, section by section |
 | [The application](docs/app.md), [the generator](docs/media-gen.md), [the mock target](docs/mock-target.md) | The three programs, for developers |
 | [Design overhaul](docs/design-overhaul.md), [design system](docs/design-system.md) | The human-factors analysis and the shared look |
+| [Translations](docs/translations.md), [translation glossaries](docs/translation-glossaries.md) | The eight languages, how a language is switched and the window mirrored, and the glossaries the drafts chose |
 | [Roadmap](docs/roadmap.md), [licensing](docs/licensing.md), [branch protection](docs/branch-protection.md), [specs](docs/specs/README.md) | What is planned, licences, repository rules, the standards |
 
 ## Contributing

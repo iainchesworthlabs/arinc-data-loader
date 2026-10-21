@@ -24,8 +24,9 @@ This project follows
 - **`develop`** is the integration branch. Target your pull request here. It is
   protected: nothing is pushed to it directly (see
   [docs/branch-protection.md](docs/branch-protection.md)).
-- **`main`** receives releases only: a `develop` to `main` release pull
-  request, or a `hotfix/*`. Day-to-day work never targets it.
+- **`main`** receives releases only: a pull request from a `release/*` branch,
+  or from a `hotfix/*` branch ([docs/releasing.md](docs/releasing.md)).
+  Day-to-day work never targets it.
 - Topic branches start with `feature/`, `bugfix/`, `release/`, `hotfix/` or
   `support/`, followed by a short name of letters, digits, `.`, `_` and `-`. A
   pull request from any other name is refused by a CI check, and a `pre-push`
@@ -65,15 +66,17 @@ block a pull request ([docs/static-analysis.md](docs/static-analysis.md)).
 The operating system is chosen by CMake, not by the source. Code that differs
 between systems lives in `src/platforms/<name>/`, behind a header in
 `src/platforms/interfaces/`, and the platform's `platform.cmake` names the files
-it compiles. Outside `src/platforms/` and `tests/platform/` there is:
+it compiles. The rules are:
 
-- no `#if`, `#ifdef`, `#else` or `#endif`, and no `#define` or `#undef`, in any
-  first-party C++;
-- no operating system header (`<windows.h>`, `<unistd.h>`, `<sys/...>`) and no
-  call that asks which system this is (`QSysInfo`, `Q_OS_*`, `Qt.platform`);
-- no `WIN32`, `APPLE` or `UNIX` test, and no `CMAKE_SYSTEM_NAME`, in any CMake
-  file but `cmake/Platform.cmake`, the platform fragments and the toolchain files
-  in `cmake/toolchains/`.
+- in any first-party C++, the platform directories included: no preprocessor
+  conditional (`#if`, `#ifdef`, `#ifndef`, `#elif`, `#else`, `#endif`) and no
+  `#define` or `#undef`;
+- outside `src/platforms/` and `tests/platform/`: no operating system header
+  (`<windows.h>`, `<unistd.h>`, `<sys/...>`) and no call that asks which system
+  this is (`QSysInfo`, `Q_OS_*`, `Qt.platform`);
+- in any CMake file but `cmake/Platform.cmake`, the platform fragments and the
+  toolchain files in `cmake/toolchains/`: no `WIN32`, `APPLE` or `UNIX` test, and
+  no `CMAKE_SYSTEM_NAME`.
 
 `tools/checks/check_platform_isolation.ps1` enforces it, and it also runs as the
 `platform.isolation` test, so you will see a violation locally:
@@ -134,7 +137,12 @@ what to do instead of an `#ifdef`, and how to add a platform.
   other. [changelog.d/README.md](changelog.d/README.md) has the details.
 - If you change what a window shows or does, change [the user's guide](docs/user-guide/index.md)
   with it, and make the pictures again ([docs/screenshots.md](docs/screenshots.md)). The
-  `docs.links` test fails on a link or a picture that is not there.
+  `docs.links` test fails on a link or a picture that is not there, and the `docs.paths` test on a path in a
+  code span (`src/...`, `tools/...`) that is not in the repository.
+- The pages in `docs/` are also built into a website, strictly: a link to a page or a heading that is not
+  there fails the `Docs build (strict)` check. A new page goes into `nav` in `mkdocs.yml`. Build it before
+  you push with `mkdocs build --strict` or `cmake --build <dir> --target docs`
+  ([docs/ci.md](docs/ci.md#documentation-site)).
 - Do not commit a load, media set or capture taken from real equipment, or
   build output. The `.gitignore` already keeps build output out; do not work
   around it. Nor the ARINC standards: they are kept in `docs/specs/` for

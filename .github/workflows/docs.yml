@@ -1,0 +1,83 @@
+name: Docs
+
+# The documentation site (docs/ci.md, "Documentation site"): the Markdown in docs/ built by MkDocs with
+# --strict, and published to GitHub Pages from main.
+#
+#   pull request / merge queue   build only. "Docs build (strict)" is a required check, so the workflow
+#                                has no path filter: a required check that does not run blocks the pull
+#                                request.
+#   push to main                 build, then publish. A merge to main is a release (gitflow), so the
+#                                published site is the released documentation.
+#   release.yml                  runs the same build (.github/actions/docs-site) before it builds
+#                                anything else.
+#
+# Publishing uses the Pages "GitHub Actions" source and not a gh-pages branch: the branch-names
+# ruleset refuses any branch that is not a gitflow name. It waits for the repository variable
+# PUBLISH_DOCS = true, which is set once Pages is switched on (docs/releasing.md, "One-time setup"),
+# so that a repository without Pages does not get a red run on every merge.
+
+on:
+  pull_request:
+    branches: [main, develop]
+  merge_group:
+    branches: [develop]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Two builds of main must not publish at once; a pull request's build is replaced by its next push.
+concurrency:
+  group: docs-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  build:
+    name: Docs build (strict)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/docs-site
+
+      # The two checks CTest runs as docs.links and docs.paths, here as well: a change to
+      # documentation alone does not build or test anything (docs/ci.md, "Documentation-only
+      # changes"), and the site covers docs/ but not README.md, CONTRIBUTING.md and the changelog
+      # fragments. They take a few seconds. pwsh ships on every hosted image.
+      - name: Check the links of the Markdown files
+        shell: pwsh
+        run: ./tools/checks/check_doc_links.ps1 -Root $PWD
+
+      - name: Check the paths the Markdown files name
+        shell: pwsh
+        run: ./tools/checks/check_doc_paths.ps1 -Root $PWD
+
+      # Only a build that will be published is packaged: a pull request needs to know it builds.
+      - name: Package the site for Pages
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  publish:
+    name: Publish the site
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'merge_group' && vars.PUBLISH_DOCS == 'true' }}
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

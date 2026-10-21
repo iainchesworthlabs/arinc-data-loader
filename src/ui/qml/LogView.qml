@@ -16,7 +16,8 @@ Item {
     property bool showTime: true
     readonly property int count: list.count
 
-    // The roles of adl::app::EventModel (Qt::UserRole + 1, + 2, + 3).
+    // The roles of adl::app::EventModel and adl::mock::ActivityModel, which number them alike
+    // (Qt::UserRole + 1, + 2, + 3). A model that feeds this view has to use these numbers.
     readonly property int severityRole: 257
     readonly property int textRole: 258
     readonly property int timeRole: 259
@@ -54,6 +55,15 @@ Item {
         clipboard.text = root.plainText();
         clipboard.selectAll();
         clipboard.copy();
+    }
+
+    // The platform's own Copy key, as text (Ctrl+C, or Cmd+C on a Mac), for the accessible
+    // description. It is never pressed: the list handles the key itself.
+    Shortcut {
+        id: copyKey
+
+        sequences: [StandardKey.Copy]
+        enabled: false
     }
 
     // QML has no clipboard object; a TextEdit that is never shown can copy its own text.
@@ -99,7 +109,8 @@ Item {
 
         Accessible.role: Accessible.List
         Accessible.name: qsTr("Activity log")
-        Accessible.description: qsTr("Up and Down scroll; Ctrl+C copies every line")
+        Accessible.description: qsTr("Up and Down scroll; %1 copies every line")
+                                    .arg(copyKey.nativeText)
         Accessible.focusable: true
 
         Keys.onPressed: function(event) {

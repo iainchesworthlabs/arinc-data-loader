@@ -77,7 +77,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+113"/>
+        <location filename="../core/src/engine_worker.cpp" line="+114"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>«%1» no es una dirección IPv4.</translation>
     </message>
@@ -86,8 +86,8 @@
     <name>DirectoryProblem</name>
     <message>
         <location filename="../core/src/download_directory.cpp" line="+22"/>
-        <source>%1 is not a directory</source>
-        <translation>%1 no es un directorio</translation>
+        <source>%1 is not a folder</source>
+        <translation>%1 no es una carpeta</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -100,9 +100,9 @@
         <translation>no se puede crear %1 (%2)</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>there are already %1 download directories for %2 in %3</source>
-        <translation>ya hay %1 directorios de descarga para %2 en %3</translation>
+        <location line="+6"/>
+        <source>there are already %1 download folders for %2 in %3</source>
+        <translation>ya hay %1 carpetas de descarga para %2 en %3</translation>
     </message>
 </context>
 <context>
@@ -133,7 +133,7 @@
     <message>
         <location line="+15"/>
         <source>Download file name</source>
-        <translation>Nombre del fichero de descarga</translation>
+        <translation>Nombre del archivo de descarga</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -143,7 +143,7 @@
     <message>
         <location line="+3"/>
         <source>Add the file name to the download</source>
-        <translation>Añadir el nombre del fichero a la descarga</translation>
+        <translation>Añadir el nombre del archivo a la descarga</translation>
     </message>
     <message numerus="yes">
         <location line="+103"/>
@@ -157,7 +157,7 @@
     <message>
         <location line="-29"/>
         <source>Waiting for the target&apos;s list of files...</source>
-        <translation>Esperando la lista de ficheros del objetivo...</translation>
+        <translation>Esperando la lista de archivos del destino...</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -167,7 +167,7 @@
     <message>
         <location line="+2"/>
         <source>Choose none of the files</source>
-        <translation>No elegir ningún fichero</translation>
+        <translation>No elegir ningún archivo</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -177,7 +177,7 @@
     <message>
         <location line="+3"/>
         <source>Download the ticked files</source>
-        <translation>Descargar los ficheros marcados</translation>
+        <translation>Descargar los archivos marcados</translation>
     </message>
     <message>
         <location line="+43"/>
@@ -306,12 +306,7 @@
         <translation>Abrir la última carpeta de descarga</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>A new numbered folder is made for every download, even one that is aborted.</source>
-        <translation>Se crea una carpeta numerada nueva para cada descarga, incluso para una abortada.</translation>
-    </message>
-    <message>
-        <location line="+64"/>
+        <location line="+72"/>
         <source>no folder</source>
         <translation>sin carpeta</translation>
     </message>
@@ -327,7 +322,12 @@
         <translation>La última descarga se escribió en %1.</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+1"/>
+        <source>Each download writes into a new numbered folder; one that brings back no file leaves no folder behind.</source>
+        <translation>Cada descarga escribe en una carpeta numerada nueva; una descarga que no trae ningún archivo no deja carpeta.</translation>
+    </message>
+    <message>
+        <location line="+29"/>
         <source>COMPLETE</source>
         <translation>COMPLETADO</translation>
     </message>
@@ -423,7 +423,7 @@
     <message>
         <location line="+1"/>
         <source>Default target address</source>
-        <translation>Dirección de objetivo predeterminada</translation>
+        <translation>Dirección de destino predeterminada</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -552,12 +552,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-60"/>
-        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
-        <translation>Algo del conjunto de medios se editó, reemplazó o eliminó después de comprobarlo, por lo que no se subió nada. Compruebe de nuevo el conjunto de medios y vuelva a subirlo.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-53"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>El cargador no pudo usar la red o su puerto. Comprobar que no se esté ejecutando otra copia del cargador y que ningún otro programa ocupe el puerto de control (Preferencias).</translation>
     </message>
@@ -567,12 +562,17 @@
         <translation>Introducir la dirección IPv4 del destino como cuatro números de 0 a 255 separados por puntos, por ejemplo 10.0.0.2.</translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="-22"/>
         <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>Elija la carpeta en la que se escribió el conjunto de medios y compruebe que todos los archivos del conjunto siguen en ella.</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+7"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so the upload was refused or stopped. If it was stopped part way, the target may already have read some of the files. Check the media set again, then upload.</source>
+        <translation>Algo del conjunto de medios se editó, reemplazó o eliminó después de comprobarlo, por lo que la subida se rechazó o se detuvo. Si se detuvo a mitad de camino, el destino puede haber leído ya algunos de los archivos. Compruebe de nuevo el conjunto de medios y vuelva a subirlo.</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
         <translation>Elija una carpeta de descarga que exista o se pueda crear y compruebe que se puede escribir en ella (Preferencias).</translation>
     </message>
@@ -583,8 +583,8 @@
     </message>
     <message>
         <location line="+8"/>
-        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
-        <translation>Use el THW_ID_POS del destino tal como se nombra a sí mismo: de 1 a 240 caracteres, ninguno de ellos un carácter de control, una barra, una barra invertida o un carácter que un nombre de directorio no pueda contener (dos puntos, asterisco, signo de interrogación, comillas, corchetes angulares o barra vertical).</translation>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a folder name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <translation>Use el THW_ID_POS del destino tal como se nombra a sí mismo: de 1 a 240 caracteres, ninguno de ellos un carácter de control, una barra, una barra invertida o un carácter que un nombre de carpeta no pueda contener (dos puntos, asterisco, signo de interrogación, comillas, corchetes angulares o barra vertical).</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -671,7 +671,7 @@
     <name>Main</name>
     <message>
         <location filename="../qml/Main.qml" line="+59"/>
-        <location line="+60"/>
+        <location line="+62"/>
         <location line="+136"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
@@ -682,7 +682,7 @@
         <translation>La operación falló</translation>
     </message>
     <message>
-        <location line="+149"/>
+        <location line="+147"/>
         <source>e.g. 10.0.0.2</source>
         <translation>p. ej. 10.0.0.2</translation>
     </message>
@@ -770,7 +770,7 @@
     <message>
         <location line="-398"/>
         <source>Find targets</source>
-        <translation>Buscar objetivos</translation>
+        <translation>Buscar destinos</translation>
     </message>
     <message>
         <location line="-404"/>
@@ -813,7 +813,7 @@
         <translation>La descarga requiere un destino, un directorio donde guardar y - en modo definido por el medio - un nombre de archivo.</translation>
     </message>
     <message>
-        <location line="+64"/>
+        <location line="+66"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation>ARINC 615A · ARINC 665 · consola de ingeniería de cargas</translation>
     </message>
@@ -855,12 +855,12 @@
     </message>
     <message>
         <location line="+10"/>
-        <location line="+476"/>
+        <location line="+474"/>
         <source>Choose the media set folder</source>
         <translation>Elegir la carpeta del conjunto de medios</translation>
     </message>
     <message>
-        <location line="-456"/>
+        <location line="-454"/>
         <source>Media set properties</source>
         <translation>Propiedades del conjunto de medios</translation>
     </message>
@@ -885,7 +885,7 @@
         <translation>Aceptar</translation>
     </message>
     <message>
-        <location line="+107"/>
+        <location line="+105"/>
         <source>TARGET</source>
         <translation>DESTINO</translation>
     </message>
@@ -912,7 +912,7 @@
     <message>
         <location line="+15"/>
         <source>Target address</source>
-        <translation>Dirección del objetivo</translation>
+        <translation>Dirección del destino</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -938,7 +938,7 @@
     <message>
         <location line="+28"/>
         <source>Show the target properties</source>
-        <translation>Mostrar las propiedades del objetivo</translation>
+        <translation>Mostrar las propiedades del destino</translation>
     </message>
     <message>
         <location line="+60"/>
@@ -1035,7 +1035,7 @@
     <message>
         <location line="+3"/>
         <source>Read the target information</source>
-        <translation>Leer la información del objetivo</translation>
+        <translation>Leer la información del destino</translation>
     </message>
     <message>
         <location line="-130"/>
@@ -1057,7 +1057,7 @@
         </translation>
     </message>
     <message>
-        <location line="+206"/>
+        <location line="+208"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
         <translation>Una consola de ingeniería de cargas ARINC 615A y ARINC 665: conjuntos de medios, destinos, las operaciones de Información, Subida y Descarga, y la evidencia de lo ocurrido.</translation>
     </message>
@@ -1072,7 +1072,7 @@
         <translation>Cerrar ahora aborta la operación: se pide al destino que se detenga y puede tardar hasta 13 segundos en confirmarlo; la ventana seguirá abierta hasta entonces.</translation>
     </message>
     <message numerus="yes">
-        <location line="+591"/>
+        <location line="+589"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n ADVERTENCIA</numerusform>
@@ -1102,22 +1102,22 @@
     <message>
         <location line="+17"/>
         <source>Abort</source>
-        <translation>Cancelar</translation>
+        <translation>Abortar</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Abort the operation</source>
-        <translation>Cancelar la operación</translation>
+        <translation>Abortar la operación</translation>
     </message>
     <message>
-        <location line="-974"/>
+        <location line="-972"/>
         <source>Idle</source>
         <translation>Inactivo</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>no target</source>
-        <translation>sin objetivo</translation>
+        <translation>sin destino</translation>
     </message>
     <message>
         <location line="+15"/>
@@ -1316,7 +1316,7 @@
     <message>
         <location line="-207"/>
         <source>Target</source>
-        <translation>Objetivo</translation>
+        <translation>Destino</translation>
     </message>
     <message>
         <location line="-53"/>
@@ -1333,7 +1333,7 @@
     <message>
         <location line="+1"/>
         <source>Default target address</source>
-        <translation>Dirección de objetivo predeterminada</translation>
+        <translation>Dirección de destino predeterminada</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -1344,7 +1344,7 @@
     <message>
         <location line="+9"/>
         <source>Find the target automatically</source>
-        <translation>Buscar el objetivo automáticamente</translation>
+        <translation>Buscar el destino automáticamente</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -1393,7 +1393,7 @@
     <message>
         <location filename="../qml/TargetPropertiesDialog.qml" line="+12"/>
         <source>Target properties</source>
-        <translation>Propiedades del objetivo</translation>
+        <translation>Propiedades del destino</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1555,18 +1555,8 @@
         <source>THE UPLOAD</source>
         <translation>LA SUBIDA</translation>
     </message>
-    <message>
-        <location line="+11"/>
-        <source>Upload 1 load to %1</source>
-        <translation>Subir 1 carga a %1</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Upload %1 loads to %2</source>
-        <translation>Subir %1 cargas a %2</translation>
-    </message>
     <message numerus="yes">
-        <location line="+18"/>
+        <location line="+27"/>
         <location line="+45"/>
         <source>%n member(s)</source>
         <translation>
@@ -1615,7 +1605,7 @@
         <translation>Ningún conjunto de medios seleccionado</translation>
     </message>
     <message>
-        <location line="-115"/>
+        <location line="-112"/>
         <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
         <translation>Un conjunto de medios es una carpeta con una carpeta por miembro. Se lee y se comprueba antes de una subida.</translation>
     </message>
@@ -1634,8 +1624,16 @@
         <source>Tick all loads</source>
         <translation>Marcar todas las cargas</translation>
     </message>
+    <message numerus="yes">
+        <location line="+71"/>
+        <source>Upload %n load(s) to %1</source>
+        <translation>
+            <numerusform>Subir %n carga a %1</numerusform>
+            <numerusform>Subir %n cargas a %1</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+118"/>
+        <location line="+44"/>
         <source>Target</source>
         <translation>Destino</translation>
     </message>
@@ -1692,7 +1690,7 @@
         <translation>NINGUNA</translation>
     </message>
     <message>
-        <location line="-149"/>
+        <location line="-146"/>
         <source>Choose media set</source>
         <translation>Elegir conjunto de medios</translation>
     </message>
@@ -1707,7 +1705,7 @@
         <translation>Buscar destinos</translation>
     </message>
     <message>
-        <location line="+219"/>
+        <location line="+216"/>
         <source>Payload</source>
         <translation>Carga útil</translation>
     </message>
@@ -2002,12 +2000,12 @@
     <message>
         <location filename="../core/src/engine_worker.cpp" line="+109"/>
         <source>Looking for targets (broadcast, three seconds)...</source>
-        <translation>Buscando objetivos (difusión, tres segundos)...</translation>
+        <translation>Buscando destinos (difusión, tres segundos)...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Looking for a target at %1 (three seconds)...</source>
-        <translation>Buscando un objetivo en %1 (tres segundos)...</translation>
+        <translation>Buscando un destino en %1 (tres segundos)...</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -2059,12 +2057,12 @@
     <message>
         <location line="+18"/>
         <source>No file was named.</source>
-        <translation>No se ha indicado ningún fichero.</translation>
+        <translation>No se ha indicado ningún archivo.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>&quot;%1&quot; is not a safe file name.</source>
-        <translation>&quot;%1&quot; no es un nombre de fichero seguro.</translation>
+        <translation>&quot;%1&quot; no es un nombre de archivo seguro.</translation>
     </message>
     <message numerus="yes">
         <location line="+13"/>
@@ -2119,7 +2117,7 @@
     <message>
         <location line="-178"/>
         <source>Asking %1 (%2) for the files it can download...</source>
-        <translation>Pidiendo a %1 (%2) los ficheros que puede descargar...</translation>
+        <translation>Pidiendo a %1 (%2) los archivos que puede descargar...</translation>
     </message>
     <message>
         <location line="+99"/>
@@ -2149,7 +2147,7 @@
     <message>
         <location line="-112"/>
         <source>The target confirmed that it stopped.</source>
-        <translation>El objetivo confirmó que se detuvo.</translation>
+        <translation>El destino confirmó que se detuvo.</translation>
     </message>
     <message>
         <location line="-128"/>
@@ -2164,12 +2162,12 @@
     <message>
         <location line="+73"/>
         <source>The target did not confirm that it stopped.</source>
-        <translation>El objetivo no confirmó que se detuviera.</translation>
+        <translation>El destino no confirmó que se detuviera.</translation>
     </message>
     <message>
         <location line="+32"/>
         <source>Files received: %1 of %2 requested.</source>
-        <translation>Ficheros recibidos: %1 de %2 solicitados.</translation>
+        <translation>Archivos recibidos: %1 de %2 solicitados.</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -2300,7 +2298,7 @@
     <message>
         <location line="+61"/>
         <source>Looking for targets...</source>
-        <translation>Buscando objetivos...</translation>
+        <translation>Buscando destinos...</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2312,17 +2310,17 @@
     <message>
         <location line="-6"/>
         <source>Reading the target&apos;s configuration...</source>
-        <translation>Leyendo la configuración del objetivo...</translation>
+        <translation>Leyendo la configuración del destino...</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Uploading to the target...</source>
-        <translation>Subiendo al objetivo...</translation>
+        <translation>Subiendo al destino...</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Downloading from the target...</source>
-        <translation>Descargando del objetivo...</translation>
+        <translation>Descargando del destino...</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -2350,12 +2348,27 @@
     <message>
         <location line="+318"/>
         <source>Choose the target from the list, then run the operation again.</source>
-        <translation>Elija el objetivo de la lista y vuelva a ejecutar la operación.</translation>
+        <translation>Elija el destino de la lista y vuelva a ejecutar la operación.</translation>
     </message>
     <message>
-        <location line="-408"/>
+        <location line="+14"/>
+        <source>The target that answered cannot be used: its THW_ID_POS is &quot;%1&quot;.</source>
+        <translation>No se puede usar el destino que respondió: su THW_ID_POS es &quot;%1&quot;.</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>A download goes into a folder named for the THW_ID_POS, so the name cannot hold a colon, an asterisk, a question mark, quotes, angle brackets or a bar.</source>
+        <translation>Una descarga se guarda en una carpeta con el nombre del THW_ID_POS, por lo que el nombre no puede contener dos puntos, asterisco, signo de interrogación, comillas, corchetes angulares ni barra vertical.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>A THW_ID_POS is 1 to 240 characters, none of them a control character, a slash or a backslash.</source>
+        <translation>Un THW_ID_POS tiene de 1 a 240 caracteres, ninguno de ellos un carácter de control, una barra o una barra invertida.</translation>
+    </message>
+    <message>
+        <location line="-433"/>
         <source>No target is selected; looking for one first.</source>
-        <translation>No hay ningún objetivo seleccionado; se busca uno primero.</translation>
+        <translation>No hay ningún destino seleccionado; se busca uno primero.</translation>
     </message>
 </context>
 <context>

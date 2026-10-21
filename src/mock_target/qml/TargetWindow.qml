@@ -149,11 +149,15 @@ ApplicationWindow {
     }
 
     footer: AppStatusBar {
-        Rectangle {
-            width: 6
-            height: 6
-            radius: 3
-            color: window.app.running ? Theme.accent : Theme.neutral600
+        // The state mark: the play mark while the target serves and the dot while it is stopped,
+        // the same glyphs the header chip's tones use, so the status bar does not rely on a
+        // coloured dot.
+        ToneGlyph {
+            objectName: "statusMark"
+            Layout.preferredWidth: 10
+            Layout.preferredHeight: 10
+            glyph: window.app.running ? "busy" : "dot"
+            color: window.app.running ? Theme.accentInk : Theme.neutral700
         }
 
         Text {
@@ -901,6 +905,7 @@ ApplicationWindow {
 
                 LogView {
                     id: activityList
+                    objectName: "activityLog"
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true

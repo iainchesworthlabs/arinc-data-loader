@@ -103,37 +103,37 @@
 <context>
     <name>LogView</name>
     <message>
-        <location filename="../qml/LogView.qml" line="26"/>
+        <location filename="../qml/LogView.qml" line="27"/>
         <source>ERROR</source>
         <translation>FEHLER</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="27"/>
+        <location filename="../qml/LogView.qml" line="28"/>
         <source>WARN</source>
         <translation>WARNUNG</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="28"/>
+        <location filename="../qml/LogView.qml" line="29"/>
         <source>NOTE</source>
         <translation>HINWEIS</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="29"/>
+        <location filename="../qml/LogView.qml" line="30"/>
         <source>INFO</source>
         <translation>INFO</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="101"/>
+        <location filename="../qml/LogView.qml" line="111"/>
         <source>Activity log</source>
         <translation>Aktivitätsprotokoll</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="102"/>
-        <source>Up and Down scroll; Ctrl+C copies every line</source>
-        <translation>Auf und Ab scrollen; Strg+C kopiert jede Zeile</translation>
+        <location filename="../qml/LogView.qml" line="112"/>
+        <source>Up and Down scroll; %1 copies every line</source>
+        <translation>Auf und Ab scrollen; %1 kopiert jede Zeile</translation>
     </message>
     <message>
-        <location filename="../qml/LogView.qml" line="181"/>
+        <location filename="../qml/LogView.qml" line="192"/>
         <source>No activity yet.</source>
         <translation>Noch keine Aktivität.</translation>
     </message>

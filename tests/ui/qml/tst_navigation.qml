@@ -221,6 +221,18 @@ TestCase {
         probe.destroy()
     }
 
+    function test_14_the_log_names_the_platforms_copy_key_in_its_description() {
+        // "Ctrl+C" on Windows and Linux, "Cmd+C" on a Mac: the text comes from the platform's own
+        // Copy key, not from the source.
+        const list = findIn(find("activityLog"), "logList")
+        const copyKey = Qt.createQmlObject('import QtQuick\nShortcut { sequences: [StandardKey.Copy] }',
+                                           testCase)
+        verify(copyKey.nativeText.length > 0, "the platform has no Copy key text")
+        compare(list.Accessible.description,
+                "Up and Down scroll; " + copyKey.nativeText + " copies every line")
+        copyKey.destroy()
+    }
+
     function test_13_the_configuration_list_is_a_tab_stop() {
         const list = find("configurationList")
         verify(list.activeFocusOnTab)

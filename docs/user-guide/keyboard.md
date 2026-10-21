@@ -17,9 +17,14 @@ that is untested).
   each: use the **arrow keys** (and **Home** and **End**) to choose between their parts, and the
   focus moves with the choice. Choosing is immediate; pressing the part that is already chosen
   leaves it chosen. In the list of targets, **Return** or **Space** chooses the one you are on.
+  In the first three, **Up** and **Down** go to the previous and next part in every language, and
+  **Left** and **Right** do the same in left-to-right languages but swap in Hebrew and Yiddish
+  (**Right** goes to the previous part). In the list of targets, **Left** always means the previous
+  target and **Right** the next one.
 - The **activity log**, the **target configuration** and the lists in the media set properties are
   stops of their own: **Up**, **Down**, **Page Up**, **Page Down**, **Home** and **End** scroll them.
-  **Ctrl+C** in the activity log copies every line, as "time  SEVERITY  message".
+  **Ctrl+C** (**Cmd+C** on a Mac) in the activity log (the loader's and the mock target's) copies
+  every line, as "time  SEVERITY  message".
 - A page that is longer than the window scrolls to follow the control you tab to.
 - In a drop-down list (a check value, the language, the refusal choice of the mock target) the
   arrow keys move through the entries, and **Return** or **Space** opens and confirms.
@@ -45,9 +50,13 @@ files and output folder) are the operating system's, with its usual keys.
 
 | Shortcut | Window | What it does |
 | --- | --- | --- |
-| **Ctrl+F** | Loader | Runs FIND (when nothing else is running) |
+| **Ctrl+F** (on a Mac, **Cmd+F**) | Loader | Runs FIND (when nothing else is running) |
 | The system's *Preferences* key (on a Mac, **Cmd+,**) | Loader | Opens Preferences |
 | The system's *Quit* key (**Ctrl+Q** on Linux, **Cmd+Q** on a Mac) | All three | Closes the window |
+
+On a Mac these are **Cmd+F** and **Cmd+C**. The loader declares its Find shortcut as Ctrl+F, which
+Qt turns into the Command key on a Mac (the programs do not switch that off), and the log's copy
+is the system's standard Copy key. This has not been tried on a Mac.
 
 On Windows the system defines no Quit key; close a window with its close button or **Alt+F4**. If
 the loader is busy, closing asks first.

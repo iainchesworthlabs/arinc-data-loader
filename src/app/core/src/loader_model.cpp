@@ -535,6 +535,33 @@ void LoaderModel::run_pending_after_find(bool found) {
         return;
     }
     selectTarget(0);
+    // The one target that answered may name itself in a way the loader cannot use. Going on would
+    // look for a target again (an id the loader rejects never makes the target valid, so the
+    // operation would start another FIND, and another) or, for a download whose folder cannot be
+    // named after the id, return without a word. Stop, and say why.
+    const std::string thw_id_pos = thw_id_pos_.toStdString();
+    const bool id_is_valid = adl::arinc615a::is_valid_thw_id_pos(thw_id_pos);
+    if (!id_is_valid || (pending == Pending::download && !can_download_from(thw_id_pos))) {
+        const Message text = Message::translated(
+            &LoaderModel::tr,
+            QT_TR_NOOP("The target that answered cannot be used: its THW_ID_POS is \"%1\"."),
+            {Message::verbatim(thw_id_pos_)});
+        const Message detail =
+            id_is_valid
+                ? Message::translated(
+                      &LoaderModel::tr,
+                      QT_TR_NOOP("A download goes into a folder named for the THW_ID_POS, so the "
+                                 "name cannot hold a colon, an asterisk, a question mark, quotes, "
+                                 "angle brackets or a bar."))
+                : Message::translated(
+                      &LoaderModel::tr,
+                      QT_TR_NOOP("A THW_ID_POS is 1 to 240 characters, none of them a control "
+                                 "character, a slash or a backslash."));
+        events_.append({Severity::error, text});
+        set_result(2, text, detail);
+        set_error(text, detail, {});
+        return;
+    }
     switch (pending) {
         case Pending::information:
             readInformation();

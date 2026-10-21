@@ -13,12 +13,16 @@ in CI; macOS has never been tried by hand.
 | --- | --- | --- |
 | CMake | 4.0 or newer | The presets require it. 4.4.0 was used |
 | Ninja | any recent | The presets use the Ninja generator |
-| A C++23 compiler | MSVC from Visual Studio 2022 17.x or Visual Studio 2026; GCC 14 or newer; AppleClang 16 or newer | The code uses `std::expected` and `<span>` |
+| A C++23 compiler | MSVC from Visual Studio 2022 17.x or Visual Studio 2026; GCC 14 or newer; AppleClang 16 or newer | The code uses `std::expected` and `<span>`. The `linux-gcc-*` presets set the compiler to `g++`, so that is the one used; with an older `g++` on the path, configure with `-DCMAKE_CXX_COMPILER=<path to a newer g++>` |
 | Git | any recent | The vendored vcpkg is a submodule |
 | PowerShell 7 (`pwsh`) | 7.0 or newer | For the [platform-isolation check](platform-isolation.md#enforcement). Optional: without it the `platform.isolation` test is not registered |
+| Python 3 | | The project's own CMake does not use it. It installs the pinned tools with `pip` (clang-format, clang-tidy, gcovr, MkDocs: the files in `.github/requirements`) and, when someone regenerates the golden payloads by hand, runs `tests/golden/make_golden.py` and `make_golden_615a.py` |
 | clang-tidy | 23.1.3 | Only for the `linux-gcc-tidy` preset: the PyPI wheel pinned in `.github/requirements/static-analysis.txt` ([nightly analysis](static-analysis.md)) |
 | Network access | | The first configure bootstraps vcpkg and builds Catch2 |
-| Qt | 6.12 | Only for the application (`-DADL_BUILD_APP=ON`): the prebuilt kit, found through `QT_ROOT_DIR`. See [Building the application](#building-the-application) |
+| Qt | 6.12 | Only for the applications (`-DADL_BUILD_APP=ON`): the prebuilt desktop kit, with the modules and system libraries listed under [Building the application](#building-the-application) |
+
+The macOS presets set the vcpkg triplet `arm64-osx` and a deployment target of macOS 14.4, so they are
+for Apple silicon; an Intel Mac is not covered.
 
 ## Clone
 
@@ -27,14 +31,30 @@ git clone --recurse-submodules https://github.com/iainchesworthlabs/arinc-data-l
 cd arinc-data-loader
 ```
 
-vcpkg is the git submodule `deps/vcpkg` (the labs' fork of vcpkg), so the
+vcpkg is the git submodule `deps/vcpkg` (a fork of vcpkg that the project's organisation keeps), so the
 dependency provider is pinned by the commit and nothing has to be installed
 machine-wide. If you cloned without `--recurse-submodules`, the first configure
 initialises it for you when it finds a `.git` directory; or do it yourself:
 
 ```sh
-git submodule update --init --depth 1 deps/vcpkg
+git submodule update --init deps/vcpkg
 ```
+
+The submodule is cloned with its whole history (about 125 MB), and not with `--depth 1`. The manifest's
+`builtin-baseline` (`vcpkg.json`) is a vcpkg commit other than the one the submodule pins, and vcpkg
+reads that commit and the older versions of each port out of the submodule's history. In a shallow
+submodule the first configure of a build with tests (the default, which needs Catch2) stops with
+"failed to `git show` versions/baseline.json". If `deps/vcpkg` is shallow already, deepen it and
+configure again:
+
+```sh
+git -C deps/vcpkg fetch --unshallow
+cmake --fresh --preset <name>
+```
+
+A clone made this way needs nothing else for a libraries-only build, and no shared store:
+`cmake --preset <name> -DADL_BUILD_APP=OFF` downloads and builds Catch2 on the first configure and
+needs no Qt.
 
 ## Sharing vcpkg between checkouts
 
@@ -46,7 +66,7 @@ set this once per machine, in your environment:
 
 ```sh
 # Windows (new terminals and Visual Studio pick it up after a restart)
-setx ICL_VCPKG_STORE C:\Repos\common\vcpkg
+setx ICL_VCPKG_STORE C:\icl\vcpkg
 # Linux/macOS: put this in your shell profile
 export ICL_VCPKG_STORE=$HOME/.cache/icl/vcpkg
 ```
@@ -88,7 +108,7 @@ Two other ways in, for when the store does not fit:
 Avoid pointing `deps/vcpkg` itself at a shared directory with a junction or
 symlink: deleting that checkout (or a worktree of it) can then empty the shared
 copy for everyone, and a dead link makes git report only that it "cannot find
-the current revision". The configure now says which link is dead.
+the current revision". The configure says which link is dead.
 
 ## First build
 
@@ -124,7 +144,7 @@ The build has a source side and a target side, and the libraries sit on both.
 | Portable libraries | `adl::platform`, `adl::arinc665`, `adl::arinc615a`, `adl::arinc615a_mini`, `adl::arinc615a_runner`, `adl::media_tree`, `adl::samples` | always | source and target |
 | Payload writer | `adl_write_payloads` | always | source (desktop) |
 | Source-side applications (Qt) | `adl_app` (the data loader), `adl_media_gen` (the media set generator), `adl_mock_target` (a 615A target, for demonstrations) | `ADL_BUILD_APP`, on by default on a desktop | source (desktop) |
-| Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`, `adl_loopback_test`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_tests`, `adl_mock_model_test`, `adl_mock_qml_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
+| Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_ui_tests`, `adl_window_state_tests`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_tests`, `adl_mock_model_test`, `adl_mock_qml_test`, `adl_loopback_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
 | Target side | the libraries above, for the target's platform | `ADL_TARGET_PLATFORM` (or a toolchain that sets it) | target (embedded) |
 
 The **source side** is the operator's machine: the loader, the generator and the payload writer. The
@@ -146,12 +166,31 @@ off; a desktop where the kit is not found configures the libraries alone, says s
 block, and `-DADL_BUILD_APP=ON` turns that absence into an error, while `-DADL_BUILD_APP=OFF` is
 the deliberate libraries-only build.
 
-They need the prebuilt kit, not vcpkg: `cmake/FindQt6.cmake` looks in `QT_ROOT_DIR` first (on a
-labs machine `. C:\Repos\common\env.ps1` sets it to
-`C:\Repos\common\qt\6.12.0\msvc2022_64`), then in the places the platform's fragment lists for an
-aqtinstall layout — `C:/Qt`, `~/Qt`, and on Windows also the labs' shared tree `C:/Repos/common/qt`,
-so an IDE that does not run `env.ps1` (Visual Studio's CMake integration, for one) still finds the
-kit. An explicit `-DCMAKE_PREFIX_PATH=...` always wins.
+They need the prebuilt kit, not vcpkg, and `find_package(Qt6 6.12 ...)` has to succeed. The programs
+use the modules Core, Gui, Qml, Quick, Quick Controls 2 and Linguist Tools (`lupdate` and `lrelease`),
+and their tests Test and Quick Test. CI installs the desktop kit for each system with
+`.github/actions/install-qt/install_qt.py`, which checks every archive against a SHA-256 pinned in this
+repository ([CI](ci.md#toolchain-choices)).
+
+`cmake/FindQt6.cmake` looks in `QT_ROOT_DIR` first (set it to the kit's directory, the one that holds
+`lib/cmake/Qt6`), then in the places the platform's fragment lists (`src/platforms/<name>/platform.cmake`)
+for a kit laid out as `<root>/6.x/<kit directory>`:
+
+| System | Usual roots | Kit directories |
+| --- | --- | --- |
+| Windows | `C:/Qt`, `%USERPROFILE%/Qt` | `msvc2022_64`, `msvc2019_64` |
+| Linux | `~/Qt`, `/opt/Qt`, `/usr/lib/qt6`, `/usr/lib/x86_64-linux-gnu/qt6` | `gcc_64` |
+| macOS | `~/Qt`, `/opt/Qt`, `/usr/local/opt/qt6`, `/opt/homebrew/opt/qt6` | `macos`, `clang_64` |
+
+A Qt installed directly under a root (`<root>/lib/cmake/Qt6`, which is how a system package such as
+`qt6-base-dev` lays it out) is found too. A kit in one of the roots above needs no `QT_ROOT_DIR`, so an IDE that
+does not pass it (Visual Studio's CMake integration, for one) still finds the kit. An explicit
+`-DCMAKE_PREFIX_PATH=...` always wins.
+
+On Linux the prebuilt kit also needs some of the system's libraries. Configuring against it asks for
+OpenGL's headers and `libGL.so`, and the xkbcommon, EGL and fontconfig development packages bring the
+libraries it links to. CI installs `libgl-dev`, `libegl-dev`, `libxkbcommon-dev`, `libfontconfig-dev`,
+`libdbus-1-3` and `libglib2.0-0t64` with apt (`.github/actions/install-qt/action.yml`).
 
 So the ordinary desktop presets contain the applications and their tests, and an IDE that reads
 `CMakePresets.json` (Visual Studio, VS Code, CLion) lists them:
@@ -174,7 +213,9 @@ cmake --preset windows-msvc-debug                       # applications and their
 
 On Windows the build runs windeployqt after linking, so the programs start from anywhere (Qt's DLLs,
 its plugins and the QML modules the windows import are copied beside them). On Linux they find Qt the
-way the build did; on macOS the programs are bundles, and packaging them (`macdeployqt`) is not done yet.
+way the build did; on macOS the programs are application bundles that run against the Qt installation they
+were built with, and `cmake --install` runs `macdeployqt` on each bundle to copy Qt's frameworks, plugins and
+QML modules into it, which is how the disk image under [Packages](#packages) is made.
 
 The tests that need Qt are `app.tests` and `app.qml`, `media_gen.tests` and `media_gen.qml`, and
 `mock.engine`, `mock.model` and `mock.qml`; they run in the same `ctest` as the rest when
@@ -237,9 +278,11 @@ dialog) trips a heap-buffer-overflow report and the program exits with status 1 
 pressed. Use a Release build (`windows-msvc-release`) to drive the windows by hand or to
 [regenerate the screenshots](screenshots.md).
 
-Each preset is available only on its own host. Debug presets turn on
-AddressSanitizer (and UndefinedBehaviorSanitizer where the compiler has it),
-except the analysis presets (`windows-msvc-analyze`, `linux-gcc-tidy`,
+The Windows, Linux and macOS presets are available only on their own host. The
+`ghs*` presets have no such condition, so every host lists them; they need the
+INTEGRITY toolchain. The desktop Debug presets turn on AddressSanitizer (and
+UndefinedBehaviorSanitizer where the compiler has it), except the analysis
+presets (`windows-msvc-analyze`, `linux-gcc-coverage`, `linux-gcc-tidy`,
 `linux-gcc-sonar`), which turn the sanitizers off on purpose; every first-party
 target is built with warnings as errors.
 
@@ -385,14 +428,30 @@ The product tells the platform layer about the file system and the priority of t
 `adl::platform::freertos::set_environment` (`src/platforms/freertos/environment.hpp`), once, before
 `make_host()`. The simulator's `main` is `tests/platform/freertos/sim/main.cpp`.
 
+## The documentation site
+
+The pages in `docs/` are built into a website with MkDocs. Install it from the hash-locked requirements and
+build strictly, which is what CI does ([Documentation site](ci.md#documentation-site)):
+
+```sh
+python -m pip install --require-hashes -r .github/requirements/docs.txt
+mkdocs serve                                   # open http://127.0.0.1:8000 while you edit
+mkdocs build --strict                          # writes ./site
+cmake --build build/<preset> --target docs     # the same, into build/<preset>/site
+```
+
 ## Formatting
 
 The repository's `.clang-format` is applied with one pinned release:
 
 ```sh
 pip install -r .github/requirements/lint.txt
-clang-format -i $(git ls-files 'src/*.cpp' 'src/*.hpp' 'tests/*.cpp')
+clang-format -i $(git ls-files 'src/*.cpp' 'src/*.hpp' 'src/*.h' 'tests/*.cpp' 'tests/*.hpp' 'tests/*.h')
 ```
+
+The CI job checks every file under `src/` and `tests/` with one of the extensions `.cpp`, `.hpp`, `.h`,
+`.cc`, `.hh`, `.cxx`, `.hxx`, `.inl` and `.ipp` ([CI](ci.md#the-jobs-in-ciyml)); the command above names the
+three that the tracked files use.
 
 ## Static analysis
 

@@ -129,11 +129,28 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  # The documentation builds strictly (a link that points nowhere, a missing anchor or a page left out
+  # of the navigation fails it), before anything else is built: it takes a minute, the builds take an
+  # hour. The same build publishes the site when main is pushed (docs.yml).
+  docs:
+    name: Docs (strict)
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/docs-site
+
   # Configure, build, test (every tier) and package the Release preset on one desktop, then start the
   # programs from the unpacked packages with no Qt about.
   build:
     name: ${{ matrix.name }}
-    needs: prepare
+    needs: [prepare, docs]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     permissions:
@@ -337,6 +354,8 @@ jobs:
           cp docs/release-signing-key.asc release/arinc-data-loader-release-key.pgp
           "$RUNNER_TEMP/sbom-venv/bin/python" -I tools/release/validate_sbom.py \
             "release/arinc-data-loader-$VERSION.spdx.json" "release/arinc-data-loader-$VERSION.cdx.json"
+          # Every typeface the programs embed must be in the bill of materials.
+          python3 -I tools/release/check_sbom_fonts.py "release/arinc-data-loader-$VERSION.spdx.json" src/ui/fonts
           ls -l release
 
       - name: Upload the files to sign

@@ -77,7 +77,7 @@
 <context>
     <name>AddressProblem</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="+113"/>
+        <location filename="../core/src/engine_worker.cpp" line="+114"/>
         <source>&quot;%1&quot; is not an IPv4 address.</source>
         <translation>&quot;%1&quot; אינה כתובת IPv4.</translation>
     </message>
@@ -86,7 +86,7 @@
     <name>DirectoryProblem</name>
     <message>
         <location filename="../core/src/download_directory.cpp" line="+22"/>
-        <source>%1 is not a directory</source>
+        <source>%1 is not a folder</source>
         <translation>%1 אינה ספרייה</translation>
     </message>
     <message>
@@ -100,8 +100,8 @@
         <translation>לא ניתן ליצור את %1 (%2)</translation>
     </message>
     <message>
-        <location line="+7"/>
-        <source>there are already %1 download directories for %2 in %3</source>
+        <location line="+6"/>
+        <source>there are already %1 download folders for %2 in %3</source>
         <translation>כבר קיימות %1 ספריות הורדה עבור %2 ב-%3</translation>
     </message>
 </context>
@@ -306,12 +306,7 @@
         <translation>פתח את ספריית ההורדה האחרונה</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>A new numbered folder is made for every download, even one that is aborted.</source>
-        <translation>לכל הורדה נוצרת ספרייה חדשה ממוספרת, גם להורדה שהופסקה.</translation>
-    </message>
-    <message>
-        <location line="+64"/>
+        <location line="+72"/>
         <source>no folder</source>
         <translation>אין ספרייה</translation>
     </message>
@@ -327,7 +322,12 @@
         <translation>ההורדה האחרונה נכתבה אל %1.</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+1"/>
+        <source>Each download writes into a new numbered folder; one that brings back no file leaves no folder behind.</source>
+        <translation>כל הורדה נכתבת לספרייה חדשה ממוספרת; הורדה שלא מחזירה אף קובץ אינה משאירה אחריה ספרייה.</translation>
+    </message>
+    <message>
+        <location line="+29"/>
         <source>COMPLETE</source>
         <translation>הושלם</translation>
     </message>
@@ -552,12 +552,7 @@
 <context>
     <name>Hint</name>
     <message>
-        <location filename="../core/src/engine_worker.cpp" line="-60"/>
-        <source>Something in the media set was edited, replaced or removed after it was checked, so nothing was uploaded. Check the media set again, then upload.</source>
-        <translation>משהו בערכת המדיה נערך, הוחלף או הוסר לאחר שנבדקה, ולכן דבר לא הועלה. יש לבדוק שוב את ערכת המדיה ואז להעלות.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
+        <location filename="../core/src/engine_worker.cpp" line="-53"/>
         <source>The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences).</source>
         <translation>הטוען לא הצליח להשתמש ברשת או ביציאה שלו. יש לוודא שאין עותק נוסף של הטוען שפועל, ושאף תוכנית אחרת אינה מחזיקה ביציאת הבקרה (העדפות).</translation>
     </message>
@@ -567,12 +562,17 @@
         <translation>יש להזין את כתובת ה-IPv4 של היעד כארבעה מספרים בין 0 ל-255 המופרדים בנקודות, לדוגמה 10.0.0.2.</translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="-22"/>
         <source>Choose the folder the media set was written to, and make sure every file of the set is still in it.</source>
         <translation>יש לבחור את הספרייה שאליה נכתבה ערכת המדיה ולוודא שכל קובצי הערכה עדיין נמצאים בה.</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+7"/>
+        <source>Something in the media set was edited, replaced or removed after it was checked, so the upload was refused or stopped. If it was stopped part way, the target may already have read some of the files. Check the media set again, then upload.</source>
+        <translation>משהו בערכת המדיה נערך, הוחלף או הוסר לאחר שנבדקה, ולכן ההעלאה נדחתה או הופסקה. אם היא הופסקה באמצע, ייתכן שהיעד כבר קרא חלק מהקבצים. יש לבדוק שוב את ערכת המדיה ואז להעלות.</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Choose a download folder that exists or can be created, and make sure it can be written (Preferences).</source>
         <translation>יש לבחור ספריית הורדה שקיימת או שאפשר ליצור, ולוודא שאפשר לכתוב בה (העדפות).</translation>
     </message>
@@ -583,7 +583,7 @@
     </message>
     <message>
         <location line="+8"/>
-        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a directory name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
+        <source>Use the target&apos;s THW_ID_POS as it names itself: 1 to 240 characters, none of them a control character, a slash, a backslash or a character a folder name cannot hold (a colon, an asterisk, a question mark, quotes, angle brackets or a bar).</source>
         <translation>יש להשתמש ב-THW_ID_POS של היעד כפי שהוא מכנה את עצמו: 1 עד 240 תווים, אף אחד מהם אינו תו בקרה, לוכסן, לוכסן הפוך או תו ששם ספרייה אינו יכול להכיל (נקודתיים, כוכבית, סימן שאלה, מירכאות, סוגריים משולשים או קו אנכי).</translation>
     </message>
     <message>
@@ -671,7 +671,7 @@
     <name>Main</name>
     <message>
         <location filename="../qml/Main.qml" line="+59"/>
-        <location line="+60"/>
+        <location line="+62"/>
         <location line="+136"/>
         <source>ARINC Data Loader</source>
         <translation>ARINC Data Loader</translation>
@@ -682,7 +682,7 @@
         <translation>הפעולה נכשלה</translation>
     </message>
     <message>
-        <location line="+149"/>
+        <location line="+147"/>
         <source>e.g. 10.0.0.2</source>
         <translation>לדוגמה: 10.0.0.2</translation>
     </message>
@@ -813,7 +813,7 @@
         <translation>הורדה דורשת יעד, מיקום שמירה, ובמצב המוגדר על ידי המדיה גם שם קובץ.</translation>
     </message>
     <message>
-        <location line="+64"/>
+        <location line="+66"/>
         <source>ARINC 615A · ARINC 665 · engineering load console</source>
         <translation>ARINC 615A · ARINC 665 · קונסולת טעינה הנדסית</translation>
     </message>
@@ -855,12 +855,12 @@
     </message>
     <message>
         <location line="+10"/>
-        <location line="+476"/>
+        <location line="+474"/>
         <source>Choose the media set folder</source>
         <translation>בחר את ספריית ערכת המדיה</translation>
     </message>
     <message>
-        <location line="-456"/>
+        <location line="-454"/>
         <source>Media set properties</source>
         <translation>מאפייני ערכת המדיה</translation>
     </message>
@@ -885,7 +885,7 @@
         <translation>אישור</translation>
     </message>
     <message>
-        <location line="+107"/>
+        <location line="+105"/>
         <source>TARGET</source>
         <translation>יעד</translation>
     </message>
@@ -1057,7 +1057,7 @@
         </translation>
     </message>
     <message>
-        <location line="+206"/>
+        <location line="+208"/>
         <source>An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.</source>
         <translation>קונסולת טעינה הנדסית לפי ARINC 615A ו-ARINC 665: ערכות מדיה, יעדים, הפעולות מידע, העלאה והורדה, והראיות למה שהתרחש.</translation>
     </message>
@@ -1072,7 +1072,7 @@
         <translation>סגירה כעת מפסיקה את הפעולה: היעד מתבקש לעצור ועשוי לקחת עד 13 שניות לאשר זאת, והחלון יישאר פתוח עד אז.</translation>
     </message>
     <message numerus="yes">
-        <location line="+591"/>
+        <location line="+589"/>
         <source>%n WARNING(S)</source>
         <translation>
             <numerusform>%n אזהרה</numerusform>
@@ -1102,15 +1102,15 @@
     <message>
         <location line="+17"/>
         <source>Abort</source>
-        <translation>ביטול</translation>
+        <translation>הפסק</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Abort the operation</source>
-        <translation>ביטול הפעולה</translation>
+        <translation>הפסק את הפעולה</translation>
     </message>
     <message>
-        <location line="-974"/>
+        <location line="-972"/>
         <source>Idle</source>
         <translation>פנוי</translation>
     </message>
@@ -1555,18 +1555,8 @@
         <source>THE UPLOAD</source>
         <translation>ההעלאה</translation>
     </message>
-    <message>
-        <location line="+11"/>
-        <source>Upload 1 load to %1</source>
-        <translation>העלה Load אחד אל %1</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Upload %1 loads to %2</source>
-        <translation>העלה %1 Loads אל %2</translation>
-    </message>
     <message numerus="yes">
-        <location line="+18"/>
+        <location line="+27"/>
         <location line="+45"/>
         <source>%n member(s)</source>
         <translation>
@@ -1615,7 +1605,7 @@
         <translation>לא נבחרה ערכת מדיה</translation>
     </message>
     <message>
-        <location line="-115"/>
+        <location line="-112"/>
         <source>A media set is a folder with one folder per member. It is read and checked before an upload.</source>
         <translation>ערכת מדיה היא ספרייה עם ספרייה אחת לכל חבר. היא נקראת ונבדקת לפני העלאה.</translation>
     </message>
@@ -1634,8 +1624,16 @@
         <source>Tick all loads</source>
         <translation>סמן את כל ה-Loads</translation>
     </message>
+    <message numerus="yes">
+        <location line="+71"/>
+        <source>Upload %n load(s) to %1</source>
+        <translation>
+            <numerusform>העלה %n Load אל %1</numerusform>
+            <numerusform>העלה %n Loads אל %1</numerusform>
+        </translation>
+    </message>
     <message>
-        <location line="+118"/>
+        <location line="+44"/>
         <source>Target</source>
         <translation>יעד</translation>
     </message>
@@ -1692,7 +1690,7 @@
         <translation>אין</translation>
     </message>
     <message>
-        <location line="-149"/>
+        <location line="-146"/>
         <source>Choose media set</source>
         <translation>בחר ערכת מדיה</translation>
     </message>
@@ -1707,7 +1705,7 @@
         <translation>מצא יעדים</translation>
     </message>
     <message>
-        <location line="+219"/>
+        <location line="+216"/>
         <source>Payload</source>
         <translation>מטען</translation>
     </message>
@@ -2353,7 +2351,22 @@
         <translation>בחרו יעד מהרשימה, ואז הריצו את הפעולה שוב.</translation>
     </message>
     <message>
-        <location line="-408"/>
+        <location line="+14"/>
+        <source>The target that answered cannot be used: its THW_ID_POS is &quot;%1&quot;.</source>
+        <translation>היעד שהשיב אינו ניתן לשימוש: ה-THW_ID_POS שלו הוא &quot;%1&quot;.</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>A download goes into a folder named for the THW_ID_POS, so the name cannot hold a colon, an asterisk, a question mark, quotes, angle brackets or a bar.</source>
+        <translation>הורדה נכתבת לספרייה הנקראת על שם ה-THW_ID_POS, ולכן השם אינו יכול להכיל נקודתיים, כוכבית, סימן שאלה, מירכאות, סוגריים משולשים או קו אנכי.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>A THW_ID_POS is 1 to 240 characters, none of them a control character, a slash or a backslash.</source>
+        <translation>ה-THW_ID_POS הוא באורך של 1 עד 240 תווים, אף אחד מהם אינו תו בקרה, לוכסן או לוכסן הפוך.</translation>
+    </message>
+    <message>
+        <location line="-433"/>
         <source>No target is selected; looking for one first.</source>
         <translation>לא נבחר יעד; מחפש יעד תחילה.</translation>
     </message>

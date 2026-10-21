@@ -46,7 +46,8 @@ on the local network:
   broadcast out of the wrong one.
 - The target must listen on port 1001. The mock target's *FIND port* is that.
 
-Typing the address and `THW_ID_POS` always works if the target can be reached.
+Typing the address and `THW_ID_POS` is the way to reach a target that does not answer FIND. It needs
+the target to listen on UDP port 59 and the identifier to be the one the target expects.
 
 ## A port is in use, or not allowed
 
@@ -57,35 +58,49 @@ copy of the loader is running, and that no other program holds the control port 
   **Control port** to another number such as 5900 (Preferences). The loader tells the target, which
   moves its file traffic to that port.
 - **Another copy of the loader is running**, or an earlier one has not finished closing.
-- **The mock target will not start** ("The TFTP and FIND ports must each be between 1 and 65535", or
-  its log shows `the FIND port could not be bound: port 1001: ...`): something else uses 59 or 1001,
-  or, with *permission denied*, a port below 1024 needs extra privilege on Linux and macOS (and a
-  port the system has reserved on Windows). On Linux give the program `CAP_NET_BIND_SERVICE` or lower
-  `net.ipv4.ip_unprivileged_port_start`; see [Installing](installing.md#linux).
+- **The mock target will not start.** It stays *STOPPED* and an error banner under **OPERATION**
+  says why: "The TFTP and FIND ports must each be between 1 and 65535", or
+  `the FIND port could not be bound: port 1001: ...`. The activity log does not say it. Something
+  else uses 59 or 1001, or, with *permission denied*, a port below 1024 needs extra privilege on
+  Linux and macOS (and a port the system has reserved on Windows). On Linux give the program
+  `CAP_NET_BIND_SERVICE` or lower `net.ipv4.ip_unprivileged_port_start`; see
+  [Installing](installing.md#linux).
 - **The loader fails at the start of every operation on Linux** ("the loader's port could not be
   opened (permission denied)"): its default control port is 59, which is below 1024. Set the
   *Control port* in Preferences to 5900, or give `adl_app` the capability as above.
 - **A Windows or macOS firewall window is in front of everything**, or an automated run stopped
   there: see [Installing](installing.md#what-the-firewall-asks). For the demonstration tick *This
   computer only (127.0.0.1)* in the mock target, which listens on no network and so is not asked
-  about; for a target on the network, run `tools/network-access/windows/adl_firewall.ps1` once.
+  about; for a target on the network, run `tools/network-access/windows/adl_firewall.ps1` once
+  (the script is in the source tree; the release packages do not contain it).
 - **The loader always sends to port 59 of the target.** Moving the mock target to another TFTP port
   makes it unreachable from the loader. In a demonstration keep the mock target on 59 and move the
   *loader's* control port.
 
 ## The media set will not open, or says INVALID
 
-- **"Choose a folder with one folder per member."** Pick the folder that *contains*
-  `member_001`, not `member_001` itself and not a folder above the set.
-- **INVALID** with a reason: the loader read the set and found a file that is missing, a file whose
-  length or check value is wrong, or a list file that disagrees with the files. The reason is in the
-  rail and the Upload view. The set cannot be uploaded. Rebuild it with the generator, or restore the
-  damaged file.
+- **You chose `member_001` itself, or a folder above the set.** The chip says **INVALID** and the
+  reason is `unexpected entry in the tree` followed by the path of the first entry that is not a
+  member folder (or `no media set members` for an empty folder). The dialog adds the hint "Choose
+  the folder the media set was written to, ...". Choose the folder that *contains* `member_001`.
+  ("Choose a folder with one folder per member." is only the text the window shows before any
+  folder has been chosen.)
+- **Something else is in the folder.** The folder you choose may hold only the `member_NNN`
+  folders. Any other file or folder directly in it, for example `desktop.ini`, `Thumbs.db` or
+  `.DS_Store`, makes the whole set unreadable, with `unexpected entry in the tree` and the path of
+  that entry. Move it out of the folder.
+- **INVALID** with another reason: the loader read the set and found a file that is missing, a file
+  whose length or check value is wrong, or a list file that disagrees with the files. The reason is
+  in the rail and the Upload view; some reasons, such as "CRC mismatch", do not say which file. The
+  set cannot be uploaded. Rebuild it with the generator, or restore the damaged file.
 
 ![A set that failed its check](../images/app-set-invalid.png)
 
 - **Warnings** do not block: they say where the set departs from the standard's recommendations.
-- **A file changed after the check** is not noticed until you press **Re-check**.
+- **A file changed after the check** is noticed when you press **Upload**, or as the target asks
+  for the file. The changed file is not sent, the result says "the media set changed after it was
+  checked" and names the file, and the set goes back to unchecked. Press **Re-check**, then upload
+  again (see [Upload](upload.md#which-files-the-target-gets)).
 
 ## An upload or download that "completed" but failed
 
@@ -99,26 +114,17 @@ copy of the loader is running, and that no other program holds the control port 
 
 ## Check values
 
-- `checksum did not match` in the log: a file that arrived does not match the check value the target
-  sent with it. **The loader keeps the file and the operation still completes**, so this line is the
-  only warning: do not trust that file. (The mock target does this on purpose with *Send a wrong
-  checksum option*; *Corrupt served files* damages the protocol files too and ends the operation with
-  "unsupported protocol version".)
-- A generated set whose chip says **NO CHECK VALUES** can be loaded, but the loader cannot verify its files:
-  choose check values in the generator and generate again.
+- `checksum did not match` in the log (a **NOTE** line): a file that arrived does not match the
+  check value the target sent with it. **The loader keeps the file and the operation still
+  completes**, so this line is the only warning: do not trust that file. (The mock target does this
+  on purpose with *Send a wrong checksum option*; *Corrupt served files* damages the protocol files
+  too and usually ends the operation at once with "unsupported protocol version".)
+- A generated set whose chip says **NO CHECK VALUES** can be loaded. Every file is still listed with
+  a 16-bit CRC and the load carries a CRC of its own, and the loader checks those, but no stronger
+  check value is recorded. Choose check values in the generator and generate again if you want
+  one.
 - A part number the generator refuses because of its check characters: see
   [the rules](make-a-media-set.md#load-and-batch-part-numbers).
-
-## Status file transfer failed (timed out) with the mock target
-
-With the mock target, the loader's log shows, after **every** status file the target writes,
-`status file transfer failed: HNPFMS_L.LUS (timed out)` (or `.LCS`, `.LNS`), usually followed by the
-status line itself. The status counter keeps counting up and the operation finishes **completed**,
-so the status files are being received and used; what is flagged is the end of each transfer. This
-has been seen with the mock target only (never with a real target, which has not been tried), and is
-recorded as an open question in the project notes. "status files lost (n)" lines also turn up now and
-then with the mock target: some status files do not arrive, and the next one that does is used. If you
-see them with a *real* target, treat them as real losses on the network.
 
 ## An abort that is not confirmed
 
@@ -135,13 +141,17 @@ doing before trying again."
   [stored per user](files-and-limits.md#where-files-go).
 - **The colours are the wrong way round.** The programs follow the desktop's setting, see
   [Languages and colour](languages-and-colour.md#colour).
-- **The text is in another language.** Preferences > Language. The loader starts in the system's language when it
-  has a translation for it.
+- **The text is in another language.** In the loader, **Preferences > Language**. In the generator
+  and the mock target, the language box in the header, beside **About**. The loader starts in the
+  system's language when it has a translation for it.
 - **A button is dimmed.** The action bar or the banner above it says what is missing
   ("Upload needs a checked media set, at least one ticked load and a target.").
-- **The window is too big for the screen.** The loader is at least 1000 by 620 pixels; on a smaller screen its
-  size is limited to the screen and its rail and pages scroll (a scroll bar shows when they do).
-  The activity dock starts folded in a short window: press **Show** to open it.
+- **The window is too big for the screen.** None of the windows can be made smaller than its
+  minimum: 1000 by 620 pixels for the loader, 1120 by 760 for the generator and the mock target
+  (pixels after the display's scaling, so a 1366 by 768 screen set to 125% has room for 1093 by
+  614). On a screen with fewer pixels than that, part of the window is off the screen; lower the
+  display's scaling. In a window that is short, the loader's rail and pages scroll (a scroll bar
+  shows when they do), and its activity dock starts folded: press **Show** to open it.
 
 ## Building and running (developers)
 

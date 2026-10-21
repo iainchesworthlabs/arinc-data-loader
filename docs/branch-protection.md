@@ -38,19 +38,23 @@ before a push reaches GitHub.
 ## The flow
 
 ```text
-feature/* bugfix/* ──PR──▶ merge queue ──▶ develop ──release PR──▶ main
-                                                        ▲
-                                   release/* hotfix/* support/* ─┘
+feature/* bugfix/* ──PR──▶ merge queue ──▶ develop ──▶ release/* ──PR──▶ main
+                                                                          ▲
+                                                      hotfix/* support/* ─┘
 ```
 
 - **Topic branches** (`feature/*`, `bugfix/*`, `release/*`, `hotfix/*`,
   `support/*`, plus Dependabot's `dependabot/*`) open a pull request against
   `develop`; a ready PR goes into the **merge queue**. Nobody pushes to
   `develop` directly.
-- **`develop` → `main`** is a release step: a merge commit, never a squash or
-  rebase (or the two branches diverge and the next release PR re-lists every
-  commit). Hotfixes go to `main` from `hotfix/*` and are merged back into
-  `develop` through a PR.
+- **`release/*` → `main`** is a release step: the release branch is cut from
+  `develop` ([Releasing](releasing.md)) and merged with a merge commit, never a
+  squash or rebase (or the two branches diverge and the next release PR re-lists
+  every commit), and then back into `develop`. Hotfixes go to `main` from
+  `hotfix/*` and are merged back into `develop` through a PR.
+  `branch-name-check.yml` accepts `release/*`, `hotfix/*`, `support/*` and
+  `develop` itself as the source of a pull request into `main`; the release
+  process uses the first two.
 - **Head branches are deleted** when their PR merges.
 
 ## The rulesets
@@ -144,7 +148,7 @@ Consequences worth knowing:
 
 ## Required checks
 
-The required contexts equal the job display names of the four workflows that
+The required contexts equal the job display names of the five workflows that
 produce them:
 
 | Check (context) | Workflow | Required on `develop` | Required on `main` |
@@ -159,6 +163,10 @@ produce them:
 | `macOS (AppleClang)` | `ci.yml` | yes | yes |
 | `Coverage (Linux, GCC)` | `ci.yml` | yes | yes |
 | `Scan dependency diff` | `dependency-review.yml` | yes | yes |
+| `Docs build (strict)` | `docs.yml` | yes | yes |
+
+`Docs build (strict)` reports only on a branch that has `docs.yml`. A release branch cut before `docs.yml`
+existed has to merge `develop` first, or the required check never appears on its pull request into `main`.
 
 ### Staging of `Scan dependency diff`
 
@@ -182,9 +190,10 @@ repository set up from this one.
 
 ### The simulator jobs are not required yet
 
-`Zephyr (native_sim)`, `Zephyr (QEMU, SDK toolchain)` and `FreeRTOS (POSIX simulator)` (`ci.yml`) are new,
-run on every pull request, and are **not** in `required_status_checks`: they download Zephyr, FreeRTOS, lwIP and littlefs at run
-time, and a required check that fails because a mirror was down blocks every pull request. Add
+`Zephyr (native_sim)`, `Zephyr (QEMU, SDK toolchain)` and `FreeRTOS (POSIX simulator)` (`ci.yml`)
+run on every pull request that changes more than documentation and are **not** in `required_status_checks`: they download Zephyr, FreeRTOS, lwIP and littlefs at run
+time, and a required check that fails because a mirror was down blocks every pull request. They are skipped by `if:` on a change to documentation alone,
+so before one is added it has to report on such a change, as the build legs do ([CI](ci.md#documentation-only-changes)). Add
 `{ "context": "Zephyr (native_sim)" }`, `{ "context": "Zephyr (QEMU, SDK toolchain)" }` and
 `{ "context": "FreeRTOS (POSIX simulator)" }` to both ruleset files, as for `Scan dependency diff`, once each has been green on a run of pull requests and a merge
 queue entry (they also run on `merge_group`, as every job of `ci.yml` does), and run `apply_rulesets.ps1
@@ -199,11 +208,17 @@ Two rules keep the queue honest:
   `merge_group`.** GitHub only runs workflows that opt in on the queue's
   temporary ref; a required check from one that does not never reports, and
   the entry sits until `check_response_timeout_minutes` expires.
-  `ci.yml`, `branch-name-check.yml`, `commit-policy.yml` and
-  `dependency-review.yml` carry it.
+  `ci.yml`, `branch-name-check.yml`, `commit-policy.yml`,
+  `dependency-review.yml` and `docs.yml` carry it.
 - **A workflow that produces no required check must not carry
   `merge_group`**, or every queue entry burns a full run of it for nothing.
   `codeql.yml`, `static-analysis.yml` and `scorecard.yml` do not.
+
+A third rule keeps a pull request from waiting for ever: **a required check is never skipped with `if:`.** A
+job skipped by `if:` reports under the raw text of its `name:` expression, not under the name it would have
+had, so a required check that comes from it never reports. `ci.yml` therefore runs the required jobs on a
+change to documentation alone and has them do nothing ([CI](ci.md#documentation-only-changes)); a job that is
+made a required check has to be built the same way.
 
 A queue entry has no head branch name, PR title or PR body of its own, so
 `Validate gitflow branch name` and `Validate commit and PR text` skip their job
@@ -255,13 +270,15 @@ Set by hand in the repository's settings (not expressible as a ruleset):
 
 ## Environments and tags
 
-Releases add two repository **environments**, which are settings and not rulesets
-(`tools/repo/apply_rulesets.ps1` does not touch them; [Releasing](releasing.md) has the table):
+Releases add two repository **environments**, and publishing the documentation site a third. They are
+settings and not rulesets (`tools/repo/apply_rulesets.ps1` does not touch them; [Releasing](releasing.md)
+has the table):
 
 | Environment | Holds | Who can reach it | Waits for |
 | --- | --- | --- | --- |
 | `release-signing` | the release key and its passphrase | jobs on `release/*` branches and `v*` tags only | nothing |
 | `release` | nothing | jobs on `v*` tags only | the maintainer's approval |
+| `github-pages` | nothing | jobs on `main` only (`Publish the site` in `docs.yml`) | nothing |
 
 No ruleset protects tags yet: a `v*` tag can be created and moved by anyone with write access, and a
 tag run publishes only a **draft** release after the maintainer approves it, which is the safeguard

@@ -6,7 +6,8 @@ The **ACTIVITY** tab of the dock records, oldest first, what the target said and
 noticed, each line with the time. It follows the newest line until you scroll up. Each line names its
 severity in a word (**INFO**, **NOTE**, **WARN** with a warning triangle, **ERROR** with a cross), and a
 warning or an error is also set in its own ink, so a copied or printed log reads the same. The log
-takes the keyboard (Tab to it, Up, Down and Page keys to scroll, **Ctrl+C** to copy it all).
+takes the keyboard (Tab to it, Up, Down and Page keys to scroll, **Ctrl+C** to copy it all, **Cmd+C**
+on a Mac).
 **Clear** empties the log. It is kept in memory only (see
 [Where files go](files-and-limits.md#where-files-go)).
 
@@ -18,18 +19,23 @@ takes the keyboard (Tab to it, Up, Down and Page keys to scroll, **Ctrl+C** to c
 | --- | --- |
 | `Looking for targets (broadcast, three seconds)...` / `2 targets answered` | A FIND started, and how it ended |
 | `Asking 127.0.0.1 (HNPFMS_L) for its configuration...` | An Information operation started |
-| `Uploading 1 load to 127.0.0.1 (HNPFMS_L)...` / `Downloading 2 files from ...` | An upload or a download started |
+| `Uploading 1 load to 127.0.0.1 (HNPFMS_L)...` / `Downloading 2 files from ...` | An upload or a media defined download started |
+| `Asking 127.0.0.1 (HNPFMS_L) for the files it can download...` | An operator defined download started |
+| `No target is selected; looking for one first.` | **Find the target automatically** is on and there was no usable target, so a FIND runs before the operation (see [Find a target](find-a-target.md#find-a-target-find)) |
+| `The target that answered cannot be used: its THW_ID_POS is "..."` | **Find the target automatically** is on, exactly one target answered, and its `THW_ID_POS` is one the loader cannot use (for a download, one that cannot name a folder). Nothing is started (see [Find a target](find-a-target.md#find-a-target-find)) |
 | `The target answered: accepted` | The target's answer to the request. *Accepted* is good; *denied* or *not supported* is a refusal, with the target's reason in brackets |
 | `Status 3: in progress, 50% of the list, about 6 s left` | A status file. The *counter* grows by one with every file the target writes. The percentage is how far the target's list of loads or files has got; the time is the target's own estimate, shown only when it gives one |
 | `The target read ACM47.LUH (220 bytes)` | During an upload, a file the target has read from the loader |
 | `Received FLIGHT01.LOG (1021 bytes)` | During a download, a file that has arrived |
 | `The target failed load ACM47-1234-5678 (ACM47.LUH): <reason>` / `The target failed file X: <reason>` | The target gave up on one load or file and said why. Logged once |
 | `The target listed its configuration.` / `The target listed 3 files it can download.` | The answer to an Information request, or the list of an operator defined download |
+| `Nothing was received, so the empty download folder <path> was removed.` | A download brought back no file, so the folder made for it was removed (see [Download](download.md#where-the-files-go)) |
 | `Finished: completed.` | The operation ended, and how (see the outcomes below) |
 | `Reading the media set in ...` / `Read media set ACM-SET-0001: 1 load.` / `Checking the media set in ...` / `Checked media set ...: 1 load, 3 files.` | The media set read and check |
 
 The loader also reports **notices**: things the protocol engine saw that are worth knowing. They
-read as a name, then the file or detail, then a number if there is one:
+are **NOTE** lines in the log, written in the ordinary ink like **INFO** lines, not in the ink of a
+warning or an error. They read as a name, then the file or detail, then a number if there is one:
 
 | Notice | It means |
 | --- | --- |
@@ -64,15 +70,25 @@ How an operation ended is always one of these, in the receipt and in `Finished: 
 | the target was silent longer than its exception timer | The target said it would be quiet for a while and stayed quiet longer |
 | protocol error | A file of an invalid structure, or one that arrived out of turn |
 | local error | The loader could not read or write something it needed (a file, the download folder) |
+| the media set changed after it was checked | Upload only: a file of the set was edited, replaced or removed after the check. The detail names the file; see [Upload](upload.md#which-files-the-target-gets) |
 
 ## The receipt
 
 After a transfer the work area shows a **receipt**: a chip (**COMPLETE** or **FAILED**), the
-outcome, the detail, and a line with the target, the media set and the loads ticked. For an
-upload the detail says how many files the target read ("The target read 3 files."), for a
-download how many files arrived of how many were requested and where they went, and for an abort
-whether the target confirmed that it stopped. The receipt belongs to the last transfer: it is
-replaced by the next. It does not keep a time of its own; the log has the times.
+outcome, the detail, and a last line. For an upload the detail says how many files the target read
+("The target read 3 files."), for a download how many files arrived of how many were requested and
+where they went, and for an abort whether the target confirmed that it stopped.
+
+- The last line of an **upload** receipt gives the date and time the operation ended, the target,
+  the media set and how many loads were ticked: for example `2026-10-21 20:03:51 · Target
+  HNPFMS_L · ACM-SET-0001 · 1 load ticked`.
+- The last line of a **download** receipt gives the target and the folder the files went to
+  ("no folder" when none was kept), with no time.
+- A **Read information** run also ends with **COMPLETE** or **FAILED** in the header and a receipt
+  in the Upload view, in the form of the upload receipt.
+
+The receipt belongs to the last transfer: it is replaced by the next. The log has the time of every
+line.
 
 If an abort was not confirmed the loader says "The target may still be loading; ask it what it is
 doing before trying again."
@@ -84,16 +100,22 @@ what to do, a hint in red. Press **OK** to close it. What the loader knows a hin
 
 | What happened | The hint |
 | --- | --- |
-| The address is not an IPv4 address | Enter four numbers of 0 to 255 separated by dots, for example `10.0.0.2` |
-| The loader could not open the network or its port | Check that no other copy of the loader is running, and that no other program holds the control port (Preferences) |
+| The loader could not open the network or its port | The loader could not use the network or its port. Check that no other copy of the loader is running, and that no other program holds the control port (Preferences) |
 | The media set could not be read | Choose the folder the media set was written to, and make sure every file of the set is still in it |
-| The download folder could not be used | Choose a folder that exists or can be created, and make sure it can be written (Preferences) |
+| The media set changed after it was checked (an upload) | Something in the media set was edited, replaced or removed after it was checked, so the upload was refused or stopped. If it was stopped part way, the target may already have read some of the files. Check the media set again, then upload |
+| The download folder could not be used | Choose a download folder that exists or can be created, and make sure it can be written (Preferences) |
 | A download did not give back every file | The target did not give back every file that was asked for. Check the names against what the target can give, and ask it why a file failed |
 | A file name for a media defined download is not safe | Name the file as the target knows it: a plain name of at most 254 characters, without a path |
-| Several targets answered the automatic FIND | Choose the target from the list, then run the operation again |
 | An abort the target did not confirm | The target may still be loading; ask it what it is doing before trying again |
 
 ![A failure dialog](../images/app-error-refused.png)
+
+Two things that look like failures do not open a dialog. A target address that is not four numbers
+makes the chip say **NOT SET** and dims the buttons (see
+[Name a target by hand](find-a-target.md#name-a-target-by-hand)). With **Find the target
+automatically** on, a FIND that finds no target, or several, starts no operation: the answers are
+listed under **FOUND** and the log says, for example, "2 targets answered." Choose the target from
+the list, or type one, and start the operation again.
 
 If the dialog has no hint, the detail and the log are what there is; [Troubleshooting](troubleshooting.md)
 lists the common causes.

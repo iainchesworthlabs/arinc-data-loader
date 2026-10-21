@@ -2,7 +2,7 @@
 
 The **ARINC Media Set Generator** turns files from your disk into a media set: it works out the
 header file, the three list files and the check values, writes the folder tree the loader opens,
-and then reads that tree back to prove it is sound. You decide the parts that are a person's
+and then checks it by reading the tree back from disk. You decide the parts that are a person's
 choice (names, part numbers, which check values), and it enforces the rest.
 
 ![The generator, empty](../images/gen-empty.png)
@@ -43,7 +43,8 @@ The demonstration uses **32-bit CRC** for each listed file and **16-bit CRC** fo
 Tick **Include a batch file** to add one batch file that names the load for every target hardware
 ID you listed. It needs its own part number (for example `ACM4C-0100-0200`). The batch file's name
 is made from the first three characters of that part number and `.LUB`, and the window shows it
-("Written as ACM.LUB"). Leave the box unticked if you do not need a batch.
+("Written as ACM.LUB"). Leave the box unticked if you do not need a batch. The loader reads and
+counts batch files but does not use them; see [Limits](files-and-limits.md#limits).
 
 ## The files
 
@@ -58,15 +59,17 @@ the row you have clicked; **Clear** empties the table; **Remove** on a row takes
 | **Check value** | The check value the *header file* records for this file |
 | **Size** | The file's size (read-only) |
 
-A row with a problem shows its reason under it, and **Generate media set** stays dimmed until every
-row is right. The same name twice (in any capitals) is refused, because two files of one name in
-one place cannot be told apart.
+A row with a problem shows its reason under it, and **Generate media set** marks what is missing
+until every row is right. The same name twice (in any capitals) is refused, because two files of
+one name in one place cannot be told apart.
 
 ![A name used twice is refused](../images/gen-file-error.png)
 
 Once files are chosen, the chip **NO CHECK VALUES** appears when the three choices *Each listed file*, *FILES.LUM itself*
-and *Load check value* are all *none*: the set would be written, but the loader could not verify its
-files against the header. Choose a check value unless the format you are following requires none.
+and *Load check value* are all *none* and no file has a check value in the **Check value** column of the
+table. The set would be written without any check value. Every file is still listed
+with a 16-bit CRC and the load carries a CRC of its own, and the loader checks those, but nothing
+stronger is recorded. Choose a check value unless the format you are following requires none.
 
 ![The generator with the form filled in and three files chosen](../images/gen-ready.png)
 
@@ -85,25 +88,51 @@ Press **Generate media set**. The generator
 6. gives the folder its name, the media set part number (if that folder already holds anything, `_2`,
    `_3` and so on is added instead, so nothing is ever overwritten).
 
-When it ends the receipt shows **COMPLETE** and the line "Media set ... written and verified.",
-the numbers of data and support files, the bytes, the members and the folder, with an **Open
-folder** button. If the read-back finds anything that differs from what the standard
-*recommends* (but can still be read), the receipt lists those findings; they do not stop the set
-being used. If something is wrong the receipt says **FAILED** and why. Whatever fails, and a **Cancel** at
-any point, leaves no half-written set: the temporary folder is removed and the receipt says so (if it
-cannot be removed, the receipt says where it is). A set only ever appears under its own name whole and
-verified.
+When it ends, the header chip says **GENERATED** and a banner above the action bar says "Media set
+... written and verified.", with the numbers of data and support files, the bytes, the members and
+the folder, and an **Open folder** button. If the read-back finds anything that differs from what
+the standard *recommends* (but can still be read), the banner adds how many differences there are
+("1 difference from the standard's recommendations."); they do not stop the set being used. The
+generator does not list them: choose the set in the loader, which lists them as warnings. If
+something is wrong the chip says **FAILED** and the banner says why; after a **Cancel** it says
+**CANCELLED**. Whatever fails, and a **Cancel** at any point, leaves no half-written set: the
+temporary folder is removed and the banner says so (if it cannot be removed, the banner says where
+it is). A set only ever appears under its own name whole and verified. If you change anything in
+the window afterwards (a field, or the files), the banner and the **Open folder** button go away and
+the chip goes back to **READY** or **INCOMPLETE**.
 
 ![A finished generation](../images/gen-complete.png)
 
-The folder you give to the loader's **Choose** button is the one the receipt names, for example
+The folder you give to the loader's **Choose** button is the one the banner names, for example
 `.../generated/ACM-SET-0001`.
 
 ## How the files are placed
 
-For a set of one member (the usual case) the member folder holds `LOADS.LUM`, `FILES.LUM` (and
-`BATCHES.LUM` with the batch file) and one folder named after the load's part number without its
-hyphens (`ACM4712345678`), which holds the header file, the data files and the support files:
+For a set of one member (the usual case) the member folder holds `LOADS.LUM` and `FILES.LUM`, and
+one folder named after the load's part number without its hyphens (`ACM4712345678`), which holds
+the header file, the data files and the support files. With a batch file, the member folder also
+holds `BATCHES.LUM` and the batch file itself (`ACM.LUB` here), beside the other two list files:
+
+```text
+ACM-SET-0001/
+  member_001/
+    LOADS.LUM
+    FILES.LUM
+    BATCHES.LUM         (only with a batch file)
+    ACM.LUB             (only with a batch file)
+    ACM4712345678/
+      ACM47.LUH
+      NAVDATA.LUP
+      APPCODE.LUP
+      CONFIG.LDR
+```
+
+With more than one member, every member has its own `LOADS.LUM` and `FILES.LUM` (and
+`BATCHES.LUM` with a batch file). The header file, the support files and the batch file stay on
+member 1, in the same places as above. The data files are dealt out round-robin: the first to
+member 1, the second to member 2, and so on, and each goes into a second folder of the same name
+inside the load's folder, on every member, member 1 included. For two members and the three files
+above:
 
 ```text
 ACM-SET-0001/
@@ -112,21 +141,23 @@ ACM-SET-0001/
     FILES.LUM
     ACM4712345678/
       ACM47.LUH
-      NAVDATA.LUP
-      APPCODE.LUP
       CONFIG.LDR
+      ACM4712345678/
+        NAVDATA.LUP
+  member_002/
+    LOADS.LUM
+    FILES.LUM
+    ACM4712345678/
+      ACM4712345678/
+        APPCODE.LUP
 ```
-
-With more than one member, the header file and the support files stay on member 1, and the data
-files are dealt out round-robin: the first to member 1, the second to member 2, and so on, each
-inside a folder of the load's name on its member. Every member has its own `LOADS.LUM` and
-`FILES.LUM`.
 
 ## The rules the generator enforces
 
 The generator uses the same checks the loader uses to judge a set, so a form with no red text
-makes a set the loader reads without complaint. Most are from ARINC 665-3; the section is in
-brackets.
+makes a set the loader accepts (the names are checked by two rules, see [File names](#file-names)). The read-back may still find differences from the standard's
+recommendations (an odd-sized data file, for example); the loader shows those as warnings and they
+do not stop an upload. Most rules are from ARINC 665-3; the section is in brackets.
 
 ### Media set part number
 
@@ -162,8 +193,9 @@ printable ASCII, none of the characters `~ / : \`, and not `.` or `..`. On top o
 | The batch file | Ends in `.LUB` (the window makes it for you) |
 
 The reserved extensions are `CRC`, `DIR`, `HDR`, `LDR`, `LCI`, `LCL`, `LCS`, `LNA`, `LND`, `LNL`,
-`LNO`, `LNR`, `LNS`, `LUB`, `LUH`, `LUI`, `LUM`, `LUP`, `LUR` and `LUS`. A data file called
-`REPORT.LUM`, for example, is refused.
+`LNO`, `LNR`, `LNS`, `LUB`, `LUH`, `LUI`, `LUM`, `LUP`, `LUR` and `LUS`. A data file called `REPORT.LUM`, for example, is refused.
+
+The set is written as a folder tree that has to be usable on every system, and that rule is stricter than the standard's: a name that holds one of `* ? " < > |`, that ends in a dot or a space, or that is a device name (`CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`, `LPT1` to `LPT9`, in any case, with or without an extension) is refused when the tree is written. So the form checks every name against both rules, as you type: the names in the table, the header file name and the batch file name (which is made from the first three characters of the batch part number, so a manufacturer's code such as `NUL` cannot be used for a batch). A name that breaks the second rule is marked like any other, under its field, with the message *This name will not work on every system: avoid * ? " < > |, a dot or a space at the end, and device names such as CON or NUL.*, and the set cannot be generated until it is changed. Where a name breaks both, the message is the standard's, and the second appears once that is put right. A header file name made from a load part number whose manufacturer's code is a device name (`CON4A-1234-5678` gives `CON.LUH`) is marked in the same way; type another header file name, for example `CO1.LUH`.
 
 ### Target hardware IDs
 
@@ -184,7 +216,6 @@ most four directories deep.
   offer it yet).
 - It reads each file completely into memory, so the files are limited by the computer's memory.
 - It does not change files you give it, and it never writes over anything.
-- The window is English only.
 
 ## The About box
 

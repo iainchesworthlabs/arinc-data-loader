@@ -116,14 +116,41 @@ jobs:
   # Picks the desktop build legs. A push, pull request or merge_group run
   # always gets all three; only a manual dispatch can narrow it. The matrix
   # lives here, as JSON, because a job-level `if` cannot see `matrix`.
+  #
+  # It also says whether a pull request or a queue entry changes anything but
+  # documentation (docs/ci.md, "Documentation-only changes"). If not, the jobs
+  # that build and test still run and still report under their own names - a
+  # required check that is skipped by an `if` never reports, and the pull
+  # request would wait for it for ever - but every step of theirs is skipped,
+  # so each finishes in seconds as a success.
   plan:
     name: Plan build legs
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    permissions: {}
+    permissions:
+      contents: read
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
+      # "false" when only documentation changed (.github/actions/changed-code).
+      # The jobs that build and test read it: the three build legs and the
+      # coverage job skip their steps and still report; the simulator jobs,
+      # which are not required checks, are skipped as a whole.
+      code: ${{ steps.changed.outputs.code }}
     steps:
+      # The merge commit and its first parent are what the comparison needs,
+      # and the folders of the action and its script are all it reads.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            tools/ci
+
+      - name: Does anything but documentation change?
+        id: changed
+        uses: ./.github/actions/changed-code
+
       - name: Select build legs
         id: plan
         shell: bash
@@ -174,7 +201,10 @@ jobs:
     # The matrix is empty when a dispatch names no desktop leg, which would
     # otherwise be an error rather than a skip.
     if: ${{ needs.plan.outputs.matrix != '[]' }}
-    runs-on: ${{ matrix.os }}
+    # A change to documentation alone builds and tests nothing, so the job is
+    # given a Linux runner for the seconds it takes to say so, not a macOS or a
+    # Windows one.
+    runs-on: ${{ needs.plan.outputs.code == 'true' && matrix.os || 'ubuntu-24.04' }}
     timeout-minutes: 45
     permissions:
       contents: read
@@ -184,11 +214,23 @@ jobs:
         include: ${{ fromJSON(needs.plan.outputs.matrix) }}
 
     steps:
+      # A change to documentation alone builds and tests nothing, and this job
+      # still reports under its own name: a job skipped by `if` reports under
+      # the raw text of its `name:` expression, so a required check skipped
+      # that way is never reported and the pull request waits for it for ever.
+      # Every step below is skipped instead (needs.plan.outputs.code, from
+      # .github/actions/changed-code) and the job is a success.
+      - name: Nothing to build or test (documentation only)
+        if: ${{ needs.plan.outputs.code != 'true' }}
+        shell: bash
+        run: echo "only documentation changed; nothing to do"
+
       # fetch-depth: 0 is required, not just nice-to-have: with a
       # builtin-baseline, vcpkg reads historical versions out of the
       # deps/vcpkg submodule's git history, and checkout's default is a
       # depth-1 submodule clone that does not have them.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ needs.plan.outputs.code == 'true' }}
         with:
           submodules: recursive
           fetch-depth: 0
@@ -197,12 +239,14 @@ jobs:
       # vcpkg's `files` binary-cache provider plus actions/cache (its x-gha
       # provider was removed). Keyed per triplet; see docs/ci.md.
       - name: Restore vcpkg binaries
+        if: ${{ needs.plan.outputs.code == 'true' }}
         id: vcpkg-cache
         uses: ./.github/actions/vcpkg-cache/restore
         with:
           triplet: ${{ matrix.triplet }}
 
       - name: Install CMake 4 + Ninja
+        if: ${{ needs.plan.outputs.code == 'true' }}
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
         with:
           cmakeVersion: "4.4.2"
@@ -211,12 +255,13 @@ jobs:
       # Ninja needs cl.exe on PATH; the preset does not set up the VS
       # environment itself.
       - name: Set up MSVC environment (Windows)
-        if: runner.os == 'Windows'
+        if: ${{ needs.plan.outputs.code == 'true' && runner.os == 'Windows' }}
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
       # What the leg actually built with, in the log: the first thing to read
       # when a compiler-specific failure shows up.
       - name: Show the toolchain
+        if: ${{ needs.plan.outputs.code == 'true' }}
         shell: bash
         run: |
           cmake --version | head -n 1
@@ -231,6 +276,7 @@ jobs:
       # cmake/FindQt6.cmake. Version pinned here, installer pinned in
       # .github/requirements/qt.txt.
       - name: Install Qt
+        if: ${{ needs.plan.outputs.code == 'true' }}
         uses: ./.github/actions/install-qt
         with:
           version: "6.12.0"
@@ -239,12 +285,14 @@ jobs:
 
       # ADL_BUILD_APP builds the Qt application and its tests (src/app, tests/app).
       - name: Configure
+        if: ${{ needs.plan.outputs.code == 'true' }}
         shell: bash
         env:
           CMAKE_PRESET: ${{ matrix.preset }}
         run: cmake --preset "$CMAKE_PRESET" -DADL_BUILD_APP=ON
 
       - name: Build
+        if: ${{ needs.plan.outputs.code == 'true' }}
         shell: bash
         env:
           CMAKE_PRESET: ${{ matrix.preset }}
@@ -253,6 +301,7 @@ jobs:
       # The test preset errors out when no test is found, so an empty suite
       # cannot pass.
       - name: Test
+        if: ${{ needs.plan.outputs.code == 'true' }}
         shell: bash
         env:
           CMAKE_PRESET: ${{ matrix.preset }}
@@ -262,7 +311,7 @@ jobs:
       # only what the job log shows for the failures) and the JUnit report, so a
       # failure that does not reproduce locally leaves its evidence behind.
       - name: Upload test logs
-        if: ${{ failure() }}
+        if: ${{ failure() && needs.plan.outputs.code == 'true' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ctest-logs-${{ matrix.preset }}
@@ -277,7 +326,7 @@ jobs:
       # every package vcpkg had already built. Only saves when packages were
       # added since the restore - see .github/actions/vcpkg-cache.
       - name: Save vcpkg binaries
-        if: ${{ always() }}
+        if: ${{ always() && needs.plan.outputs.code == 'true' }}
         uses: ./.github/actions/vcpkg-cache/save
         with:
           triplet: ${{ matrix.triplet }}
@@ -296,13 +345,23 @@ jobs:
   coverage:
     name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Coverage (Linux, GCC)' || 'Coverage (Linux, GCC)' }}
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',coverage,') }}
+    needs: plan
     runs-on: ubuntu-26.04
     timeout-minutes: 45
     permissions:
       contents: read
     steps:
+      # A change to documentation alone builds and tests nothing; the job still
+      # reports under its own name and every other step is skipped - see
+      # build-and-test.
+      - name: Nothing to build or test (documentation only)
+        if: ${{ needs.plan.outputs.code != 'true' }}
+        shell: bash
+        run: echo "only documentation changed; nothing to do"
+
       # fetch-depth: 0 for vcpkg's version resolution - see build-and-test.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ needs.plan.outputs.code == 'true' }}
         with:
           submodules: recursive
           fetch-depth: 0
@@ -310,23 +369,27 @@ jobs:
 
       # Same triplet, same archives as the Linux (GCC) leg.
       - name: Restore vcpkg binaries
+        if: ${{ needs.plan.outputs.code == 'true' }}
         id: vcpkg-cache
         uses: ./.github/actions/vcpkg-cache/restore
         with:
           triplet: x64-linux
 
       - name: Install CMake 4 + Ninja
+        if: ${{ needs.plan.outputs.code == 'true' }}
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
         with:
           cmakeVersion: "4.4.2"
           ninjaVersion: "1.13.2"
 
       - name: Install uv
+        if: ${{ needs.plan.outputs.code == 'true' }}
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           enable-cache: false
 
       - name: Install gcovr (pinned)
+        if: ${{ needs.plan.outputs.code == 'true' }}
         run: |
           uv venv "$RUNNER_TEMP/cov-venv"
           uv pip install --python "$RUNNER_TEMP/cov-venv/bin/python" --requirement .github/requirements/coverage.txt
@@ -336,6 +399,7 @@ jobs:
       # gcov has to be the one that goes with the compiler that built the
       # objects: a mismatch reads as "version mismatch" or an empty report.
       - name: Pick the matching gcov
+        if: ${{ needs.plan.outputs.code == 'true' }}
         shell: bash
         run: |
           g++ --version | head -n 1
@@ -349,6 +413,7 @@ jobs:
       # The prebuilt Qt kit, as on the Linux (GCC) leg: the second coverage pass measures the
       # applications' window-free logic (src/*/core), which needs the applications built.
       - name: Install Qt
+        if: ${{ needs.plan.outputs.code == 'true' }}
         uses: ./.github/actions/install-qt
         with:
           version: "6.12.0"
@@ -356,14 +421,17 @@ jobs:
           arch: linux_gcc_64
 
       - name: Configure
+        if: ${{ needs.plan.outputs.code == 'true' }}
         run: cmake --preset linux-gcc-coverage -DADL_BUILD_APP=ON
 
       - name: Build
+        if: ${{ needs.plan.outputs.code == 'true' }}
         run: cmake --build --preset linux-gcc-coverage
 
       # A failing test fails the job before the coverage gate; the gate is for
       # testable code that no test reaches.
       - name: Test
+        if: ${{ needs.plan.outputs.code == 'true' }}
         run: ctest --preset linux-gcc-coverage
 
       # One script owns the minimum and the gcovr switches (the same one the
@@ -371,6 +439,7 @@ jobs:
       # build/linux-gcc-coverage/coverage. It fails the job when either figure
       # is below the minimum, and when the applications' pass measured too little.
       - name: Coverage report and gates (libraries 90% lines and 80% branches, applications at their floor)
+        if: ${{ needs.plan.outputs.code == 'true' }}
         env:
           GCOVR: ${{ runner.temp }}/cov-venv/bin/gcovr
         shell: bash
@@ -381,14 +450,14 @@ jobs:
             -P cmake/CoverageReport.cmake
 
       - name: Summarise coverage
-        if: ${{ always() && hashFiles('build/linux-gcc-coverage/coverage/summary.json') != '' }}
+        if: ${{ always() && needs.plan.outputs.code == 'true' && hashFiles('build/linux-gcc-coverage/coverage/summary.json') != '' }}
         shell: bash
         run: |
           jq -r '"### Coverage of src/ (minimum: 90% lines, 80% branches)\n\n| | covered | total | percent |\n|---|---|---|---|\n| lines | \(.line_covered // 0) | \(.line_total // 0) | \(.line_percent // 0) |\n| branches | \(.branch_covered // 0) | \(.branch_total // 0) | \(.branch_percent // 0) |"' \
             build/linux-gcc-coverage/coverage/summary.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload coverage report
-        if: always()
+        if: ${{ always() && needs.plan.outputs.code == 'true' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-report
@@ -398,7 +467,7 @@ jobs:
 
       # Saved even when a later step fails - see build-and-test.
       - name: Save vcpkg binaries
-        if: ${{ always() }}
+        if: ${{ always() && needs.plan.outputs.code == 'true' }}
         uses: ./.github/actions/vcpkg-cache/save
         with:
           triplet: x64-linux
@@ -411,7 +480,11 @@ jobs:
   # once it has been green for a while (docs/branch-protection.md, "Staging").
   zephyr-native-sim:
     name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Zephyr (native_sim)' || 'Zephyr (native_sim)' }}
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',zephyr,') }}
+    # Not a required check, so a change to documentation alone skips the job as a whole. When it
+    # is made one, it needs what build-and-test has instead (docs/ci.md, "Documentation-only
+    # changes"): a skipped job never reports under the required name.
+    needs: plan
+    if: ${{ needs.plan.outputs.code == 'true' && (github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',zephyr,')) }}
     runs-on: ubuntu-26.04
     timeout-minutes: 45
     permissions:
@@ -488,7 +561,8 @@ jobs:
   # NOT a required check, for the reason the native_sim job is not.
   zephyr-qemu:
     name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Zephyr (QEMU, SDK toolchain)' || 'Zephyr (QEMU, SDK toolchain)' }}
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',zephyr,') }}
+    needs: plan
+    if: ${{ needs.plan.outputs.code == 'true' && (github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',zephyr,')) }}
     runs-on: ubuntu-26.04
     timeout-minutes: 60
     permissions:
@@ -574,7 +648,8 @@ jobs:
   # reason the Zephyr job is not.
   freertos-posix-sim:
     name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - FreeRTOS (POSIX simulator)' || 'FreeRTOS (POSIX simulator)' }}
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',freertos,') }}
+    needs: plan
+    if: ${{ needs.plan.outputs.code == 'true' && (github.event_name != 'workflow_dispatch' || inputs.legs == 'all' || contains(format(',{0},', inputs.legs), ',freertos,')) }}
     runs-on: ubuntu-26.04
     timeout-minutes: 30
     permissions:

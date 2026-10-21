@@ -71,7 +71,9 @@ dialogs (the file and folder pickers follow the system's language).
 1. Write it with `qsTr()` (QML) or, in C++, with `tr()` of a class with `Q_OBJECT` or
    `Q_DECLARE_TR_FUNCTIONS`; text that outlives the moment is a `Message`. A count is a `%n`
    message with "(s)" for the plural, with the count given. Do not build a plural with
-   `n == 1 ? a : b`.
+   `n == 1 ? a : b`: two plain messages are translated on their own and neither follows the plural
+   forms of the language. The headline of the Upload view is one such message,
+   `qsTr("Upload %n load(s) to %1", "", n)`.
 2. `cmake --build <dir> --target update_translations` extracts every catalogue. A new or reworded
    string arrives `unfinished`.
 3. Give it its translation in the seven languages (and its two forms in `_en.ts` if it is plural),
@@ -83,8 +85,13 @@ dialogs (the file and folder pickers follow the system's language).
 A new language is a `.ts` file in each of the four directories (create it with lupdate, and check
 that its `language="..."` attribute is the bare code: lupdate takes it from the file name, and
 `adl_ui_fr.ts` came out as `ui_fr`), the code in `ADL_TRANSLATED_LANGUAGES` (`cmake/AdlUi.cmake`),
-its line in the table in `src/ui/language_manager.cpp` (with the typeface it needs), and the list in
-`tests/unit/translations_test.cpp`.
+its line in the table in `src/ui/language_manager.cpp` (with the typeface it needs), the list in
+`tests/unit/translations_test.cpp`, and the code lists in `tests/app/qml_test.cpp`. That test names
+the codes in two places: the checks of the layout direction Qt gives each code (a list of the
+left-to-right codes, and a separate check for Hebrew and Yiddish), and the loop over the seven
+languages that installs each catalogue in the running window and checks the text, the layout
+direction and the typeface. The generator's and the mock target's window tests loop over Hebrew and
+Yiddish only, so a new left-to-right language needs no change there.
 
 ## Right to left
 
@@ -125,9 +132,11 @@ Hebrew and Yiddish right to left.
 
 ![The mock target in Hebrew](images/mock-hebrew.png)
 
-(Pictures of the three windows drawn offscreen by the window tests,
-`adl_app_qml_test`, `adl_gen_qml_test` and `adl_mock_qml_test` with a picture path for each of their
-arguments; see [the screenshots](screenshots.md).)
+(These pictures are of the real programs, taken by the capture script
+`tools/docs/capture_screenshots.ps1` with the language set to Hebrew; see
+[the screenshots](screenshots.md). The offscreen window tests, `adl_app_qml_test`,
+`adl_gen_qml_test` and `adl_mock_qml_test`, can save a right-to-left picture of their own when they
+are given a picture path, but those pictures are not the ones shown here.)
 
 ## Typefaces
 
@@ -143,8 +152,9 @@ Archivo has no Hebrew letters and no Chinese or Japanese characters.
   letters). No CJK face is bundled: one is several megabytes per script and the desktops the
   programs run on ship them. A system without a CJK font shows empty boxes for those two languages
   (a minimal Linux install or container; install a font such as Noto Sans CJK). On a real Windows
-  desktop both are drawn by the system's fallback fonts (checked in both colour schemes), though a
-  line may mix glyph weights where the fallback hops between fonts. **The offscreen window tests
+  desktop both are drawn by the system's fallback fonts (the pictures below are in the light
+  scheme; there is no dark picture of either), though a line may mix glyph weights where the
+  fallback hops between fonts. **The offscreen window tests
   cannot draw them**: Qt's offscreen platform has no fallback fonts on Windows, so a picture made
   there shows boxes for Chinese and Japanese (the tests check the text, not the glyphs; the pictures
   below were made on the real Windows platform).
@@ -155,13 +165,13 @@ Archivo has no Hebrew letters and no Chinese or Japanese characters.
 
 ## For a reviewer
 
-Each language's draft kept a glossary of the terms it chose; they are in
+The terms chosen for each language are listed in
 [the translation glossaries](translation-glossaries.md), by language. The domain words (load, media
 set, target, upload, download, abort, check value) are what a speaker will recognise or not, so read
 them first.
 
-The strings the drafters were least sure of were the small status chips (SET, FOUND, SELECTED, ...
-whose grammatical gender depends on what they label), the fault-injection labels of the mock target
-and the sentences with several counts; they are the next to read. A review is a pull request that
+Worth reading next: the small status chips (SET, FOUND, SELECTED, ...), which are single words
+whose grammatical gender depends on what they label, the fault-injection labels of the mock target
+and the sentences with several counts. A review is a pull request that
 edits the `.ts` file of its language (and, where a term changes, every message that uses it): the
 tests above keep the placeholders, the plural forms and the identifiers right whatever is changed.

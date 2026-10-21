@@ -38,8 +38,18 @@
     they are re-saved with a 256-colour palette (tools/docs/optimise_png.py), a third of the size.
 
 .PARAMETER Only
-    Run only some parts: generator, mock, loader (the loader needs the generator's set and the
-    mock target, so it runs them too when their files are missing).
+    Run only some parts, as a list (-Only faults,sets). The parts are:
+      generator  the generator: its form, its errors and a generated media set
+      demo       the demonstration: the mock target, then the loader's first launch, FIND, the
+                 media set, Information, Upload, both Downloads, About and Licences
+      faults     the loader against a target that refuses, is not there, goes silent, or injects
+                 the other faults
+      sets       the loader choosing a media set with a changed byte, the sample sets that have
+                 warnings, and the properties of a two-member set
+      language   the loader in Hebrew, Japanese and Chinese, and the generator and the mock
+                 target in Hebrew
+    The default is all five. The parts after generator use the media set it made in the work
+    folder, so run generator first, or leave its set there from an earlier run.
 
 .EXAMPLE
     pwsh tools/docs/capture_screenshots.ps1

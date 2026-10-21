@@ -48,11 +48,11 @@
   is. Each thing the program needs from the system is a header in
   `src/platforms/interfaces/adl/platform/`, with one implementation per platform
   beside it: files, memory, threads and priorities, a clock, UDP sockets and
-  message queues, gathered in a `Host` that the engine is handed (a real one
+  message queues, gathered in a `Host` that the runner is handed (a real one
   from `make_host()`, or the fake in `tests/fake`). [Platform
   isolation](platform-isolation.md) has the rules and
-  [platform abstraction](platform-abstraction.md) the design, how each of seven
-  operating systems provides each service, and what has and has not been
+  [platform abstraction](platform-abstraction.md) the design, how each of seven operating systems and two INTEGRITY
+  ports (which have [a page of their own](platform-ghs.md)) provides each service, and what has and has not been
   verified.
 - **`src/arinc615a`** is the ARINC 615A library, the data loader's side of the protocol. Its codec
   is the TFTP packets with their options (and the WAIT and ABORT messages), the FIND packets and the
@@ -70,9 +70,7 @@
   layouts, [ARINC 615A engine](arinc615a-engine.md) the design and the choices made where the standard is
   unclear, and [ARINC 615A coverage](arinc615a-coverage.md) the standard section by section.
 - **`src/arinc615a_mini`** is a second, independent TFTP implementation (lock-step blocks, the time-out and
-  retry, the options the loader uses, WAIT and ABORT), deliberately plain and written on the codec only, so
-  that the engine is checked against another reading of the standard and not against itself. It is the TFTP
-  of the simulated target of `tests/engine` and of the mock target application.
+  retry, the options the loader uses, WAIT and ABORT), deliberately plain and written on the codec, so that the engine is checked against another reading of the standard and not against itself. It uses the codec and the figures in `limits.hpp` (the time-outs, the retry count and the default block size), so those are not independently checked. It is the TFTP of the simulated target of `tests/engine` and of the mock target application.
 - **`src/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
   opens the sockets the engine asks for, waits on all of them from one thread with
   `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.
@@ -120,9 +118,10 @@ route to remove it.
 | `src/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
 | `src/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/*.hpp` |
 | `src/platforms` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
+| `src/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
-The programs are `adl_app`, `adl_media_gen`, `adl_mock_target` and `adl_write_payloads`. `src/ui` is not a
-library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt applications.
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target` and `adl_write_payloads`. The rest of `src/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
+applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
 directory of a library is its `include/` (or, for the platform, `interfaces/`).
@@ -146,8 +145,8 @@ users.
   (`constexpr`) and a checker is chosen by calling `IntegrityChecker::make`. The
   earlier design registered checkers in a factory from static initialisers, which
   depends on the order translation units are initialised in.
-- **Closed sets are variants.** The three CRCs are held in a `std::variant`, so
-  choosing one at run time costs no allocation.
+- **Closed sets are variants.** The five check-value algorithms (three CRCs, MD5 and SHA-1) are held in a
+  `std::variant`, so choosing one at run time costs no allocation.
 - **Values, not hierarchies.** The load model is plain types with defaulted
   comparison. There is no virtual `OutputStream`: writing a file is a function
   that returns bytes, not a stream operator on a base class.
@@ -179,13 +178,13 @@ users.
 | `ARINC 615A` static library (empty) | `adl::arinc615a` (the codec and the sans-I/O engine) and `adl::arinc615a_runner` |
 | `IIntegrityChecker`, `IntegrityChecker_CRC<>`, `IntegrityCheckerFactory`, `Singleton` | `Crc<>`, `Md5`, `Sha1` and `IntegrityChecker::make`; the singleton is gone |
 | `LoadCheck` | `CheckValueType` (the type) and `IntegrityChecker` (the calculation) |
-| `GenericFile`, `UserSuppliedFile`, `DataFile`, `SupportFile` | plain structs in `files.hpp` |
+| `GenericFile`, `UserSuppliedFile`, `DataFile`, `SupportFile` | `UserSuppliedFile`, `DataFile`, `SupportFile`, `ConfigLdrFile` and `ExcConfigLdrFile`, plain structs in `files.hpp`; `GenericFile` has no counterpart |
 | `HeaderFile` | `HeaderFile` (the fields of the header file) with `encode_header_file` and `decode_header_file` |
 | `Load` | `LoadSpec` (what a person decides), `Load` (the header, its bytes and the files), `build_load`, `verify_load` |
 | `MediaSet`, `MediaSetMember` | `MediaSetSpec`, `MediaMember`, `MediaSet`, `build_media_set`, `read_media_set`; `LoadsList`, `FilesList`, `BatchesList` |
 | C++/CLI MSTest project | Catch2, in `tests/unit` |
 
-The earlier code did not do most of this: its header file `OutputStream` did not
+The earlier code (which is not in this repository) did not do most of this: its header file `OutputStream` did not
 compile and its pointers were placeholders, writing a load to a directory
 returned `false`, and MD5 and SHA-1 were declared and never written. Writing a
 media set to a directory and reading one from it is `adl::media_tree`.

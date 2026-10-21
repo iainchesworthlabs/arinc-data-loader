@@ -1,9 +1,11 @@
 # Translation glossaries
 
-The terms each machine-drafted catalogue chose for the words of the domain, as the drafts recorded
-them, so that a reviewer can see what was decided and change a term in one go. Anything in
-brackets is the drafter's own note. The catalogues themselves are described in
-[Translations](translations.md); nothing here is checked by a test.
+The terms each machine-drafted catalogue is meant to use for the words of the domain, so that a
+reviewer can see what was decided and change a term in one go. Anything in brackets is a note on the
+term. The catalogues themselves are described in [Translations](translations.md). Nothing here is
+checked by a test, and a catalogue can differ from its table: the notes in a table or under it
+list the differences found by reading the catalogues for the terms they name; other differences may
+exist.
 
 ## French (`fr`)
 
@@ -50,7 +52,7 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | find (button) | Rechercher (FIND est conservé) |
 | output folder | dossier de sortie |
 | storage folder | dossier de stockage |
-| directory vs folder | dossier (the English says "folder" everywhere in the applications; « répertoire » is no longer used) |
+| directory vs folder | dossier (the English says "folder" throughout the applications, and `adl_app_fr.ts` has « dossier » for it everywhere) |
 | typography | NBSP avant : ; ? ! % et à l’intérieur de « », apostrophe typographique ’, infinitif pour les boutons |
 
 ## German (`de`)
@@ -123,7 +125,7 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | upload | subida / subir |
 | download | descarga / descargar |
 | Information (operation) | Información |
-| abort | abortar |
+| abort | abortar (cancel is cancelar) |
 | status | estado |
 | status file | archivo de estado |
 | check value | valor de comprobación |
@@ -156,6 +158,10 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | typeface | tipografía |
 | firewall | cortafuegos |
 
+Abort and cancel are different words, as the [design system](design-system.md#words) asks: the
+loader's "Abort" button and "Abort the operation" are "Abortar" and "Abortar la operación" (and
+"Abort and close" is "Abortar y cerrar"), and "Cancel" is "Cancelar".
+
 ## Hebrew (`he`)
 
 | English | Hebrew |
@@ -174,7 +180,7 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | upload | העלאה |
 | download | הורדה |
 | Information (operation) | מידע |
-| abort / aborted | הפסקה / הופסק |
+| abort / aborted | הפסקה / הופסק (the verb is הפסק; cancel is ביטול) |
 | cancel | ביטול |
 | status | סטטוס |
 | mode | מצב |
@@ -199,6 +205,10 @@ brackets is the drafter's own note. The catalogues themselves are described in
 | licence | רישיון |
 | peer | הצד השני |
 | think time | זמן חשיבה |
+
+Abort and cancel are different words, as the [design system](design-system.md#words) asks: the
+loader's "Abort" button and "Abort the operation" are הפסק and הפסק את הפעולה (and "Abort and close"
+is הפסק וסגור), and "Cancel" is ביטול.
 
 ## Yiddish (`yi`)
 

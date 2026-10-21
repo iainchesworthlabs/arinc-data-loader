@@ -64,3 +64,6 @@ coverage*.info
 # Python bytecode (tooling scripts are run in place)
 __pycache__/
 *.pyc
+
+# The documentation site (cmake --build <dir> --target docs writes to the build tree; mkdocs build writes here).
+/site/
