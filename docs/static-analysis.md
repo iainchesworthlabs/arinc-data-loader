@@ -12,12 +12,11 @@ So the analyzers run on a **nightly schedule**, together, in
 `.github/workflows/static-analysis.yml` (and CodeQL in `codeql.yml` at the same
 hour). None of them is a required check. A red night is a thing to look at in
 the morning, not a blocked pull request; the required checks stay the ones in
-[branch protection](branch-protection.md).
+[repository settings](repository-settings.md).
 
 GitHub starts a scheduled workflow, and registers a manually dispatched one, only
-from the repository's default branch, which is `main`. A workflow that is not on
-`main` does not run, and `gh workflow run` reports that it is not found. These two
-reach `main` with the first release that carries them; see
+from the repository's default branch, which is `develop`. A workflow that is not on
+`develop` does not run, and `gh workflow run` reports that it is not found; see
 [CI](ci.md#nightly-static-analysis).
 
 ## Schedule

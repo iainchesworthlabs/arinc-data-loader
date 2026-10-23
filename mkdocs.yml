@@ -159,7 +159,7 @@ nav:
       - CI: ci.md
       - Static analysis: static-analysis.md
       - Profiling: profiling.md
-      - Branch protection: branch-protection.md
+      - Repository settings: repository-settings.md
       - Releasing: releasing.md
       - Licensing: licensing.md
       - Roadmap: roadmap.md

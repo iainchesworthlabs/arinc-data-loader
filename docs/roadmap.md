@@ -8,7 +8,7 @@ What is built, and what is planned, in the order it is intended to be done.
   sanitizers, coverage and warnings as errors.
 - The platform section: the operating system is chosen by CMake, with no `#ifdef`
   anywhere ([platform isolation](platform-isolation.md)).
-- CI and the repository rules: gitflow, no attribution in commits or PRs,
+- CI and the repository rules: trunk-based development, no attribution in commits or PRs,
   formatting, platform isolation ([CI](ci.md)).
 
 ## 2. ARINC 665 (written, not yet checked against another tool)

@@ -1,0 +1,15 @@
+{
+  "docs": ["docs/**", "*.md", "mkdocs.yml", "LICENSE*", "changelog.d/**", "tools/docs/**", ".github/actions/docs-site/**",
+           ".github/requirements/docs.*"],
+  "no_build": [".github/PULL_REQUEST_TEMPLATE*", ".github/ISSUE_TEMPLATE/**", ".github/CODEOWNERS", ".github/dependabot.yml",
+               ".github/rulesets/**", ".github/repo-settings.json", ".github/labels.json", "REUSE.toml", ".editorconfig",
+               "LICENSES/**", ".git-blame-ignore-revs", "sonar-project.properties", "tools/hooks/**", "tools/policy/**",
+               "tools/network-access/**", "tools/repo/**"],
+  "build": ["libs/**", "apps/**", "tests/**", "CMakeLists.txt", "CMakePresets.json", "vcpkg.json", "cmake/**", "packaging/**",
+            "notices/**", "zephyr/**", "tools/checks/**", "tools/release/**", "tools/coverage-floors.json",
+            "tools/preprocessor-*"],
+  "gui": ["apps/**", "libs/ui/**", "tests/ui/**", "tests/loopback/**", "tests/system/**", "**/*.qml", "**/*.ts", "cmake/**",
+          "CMakeLists.txt", "CMakePresets.json", "vcpkg.json"],
+  "machinery": [".github/workflows/**", ".github/actions/**", ".github/ci/**", ".github/toolchain-versions.json",
+                ".github/requirements/**", "tools/ci/**"]
+}

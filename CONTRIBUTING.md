@@ -18,21 +18,21 @@ deliberately not built yet.
 
 ## Branching model
 
-This project follows
-[gitflow](https://nvie.com/posts/a-successful-git-branching-model/):
+Development is trunk-based:
 
-- **`develop`** is the integration branch. Target your pull request here. It is
-  protected: nothing is pushed to it directly (see
-  [docs/branch-protection.md](docs/branch-protection.md)).
-- **`main`** receives releases only: a pull request from a `release/*` branch,
-  or from a `hotfix/*` branch ([docs/releasing.md](docs/releasing.md)).
-  Day-to-day work never targets it.
-- Topic branches start with `feature/`, `bugfix/`, `release/`, `hotfix/` or
-  `support/`, followed by a short name of letters, digits, `.`, `_` and `-`. A
-  pull request from any other name is refused by a CI check, and a `pre-push`
-  hook in `tools/hooks` tells you sooner (see below).
-- Pull requests are merged with a **merge commit**. Squash and rebase merges
-  are not used, so the history you wrote is the history that lands.
+- **`develop`** is the trunk and the default branch. Target your pull request
+  here. It is protected: nothing is pushed to it directly, and every pull request
+  goes through the merge queue (see [docs/repository-settings.md](docs/repository-settings.md)).
+- **`main`** holds published releases only. The release workflow moves it to the
+  tagged commit; nobody opens a pull request into it
+  ([docs/releasing.md](docs/releasing.md)).
+- Branches start with `feature/`, `bugfix/`, `docs/`, `chore/` or `agent/`,
+  followed by a short name of letters, digits, `.`, `_` and `-`. A pull request
+  from any other name is refused by the Policy check, and a `pre-push` hook in
+  `tools/hooks` tells you sooner (see below).
+- Pull requests are **squash-merged**: the pull request title and description
+  become the commit message, so write them as one.
+- Sign off your commits (`git commit -s`, the Developer Certificate of Origin).
 
 ## Set up your build
 
@@ -153,11 +153,10 @@ what to do instead of an `#ifdef`, and how to add a platform.
 
 1. Push your topic branch and open a pull request against `develop`.
 2. Make sure the checks are green. [docs/ci.md](docs/ci.md) says what runs, and
-   [docs/branch-protection.md](docs/branch-protection.md) how the protected
+   [docs/repository-settings.md](docs/repository-settings.md) how the protected
    branches are set up.
 3. Describe what changed and why, and what you ran to check it, on which system.
-4. Once the checks are green it goes through the merge queue and is merged with
-   a merge commit. The rulesets require no approving review (the project has one
+4. Once the checks are green it goes through the merge queue and is squash-merged. The rulesets require no approving review (the project has one
    maintainer), but review comments are still worth settling first.
 
 ## Releases

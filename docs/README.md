@@ -74,7 +74,7 @@ The project overview is the [README](../README.md); what changed is the [changel
 | [CI](ci.md) | What each continuous-integration job proves, and which are required |
 | [Static analysis](static-analysis.md) | The nightly analysers, how to run them, the suppression rules |
 | [Profiling](profiling.md) | The opt-in Tracy build |
-| [Branch protection](branch-protection.md) | The repository rules and rulesets |
+| [Repository settings](repository-settings.md) | The repository rules, rulesets and how they are applied |
 | [Releasing](releasing.md) | For the maintainer: what a release contains, how it is cut, built, signed and published, and the one-time repository setup |
 | [Licensing](licensing.md) | The GPL, the third-party notices, how to add a component |
 | [Roadmap](roadmap.md) | What is built, what is planned, in order |

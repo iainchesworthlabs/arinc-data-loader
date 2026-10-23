@@ -80,7 +80,7 @@ with a suffix, and any `0.x` version, is published as a **pre-release** (the fir
 
 ## Cutting a release
 
-The branch model is gitflow ([Branch protection](branch-protection.md)): `release/*` branches from
+The branch model is gitflow ([Repository settings](repository-settings.md)): `release/*` branches from
 `develop`, merged to `main` by a pull request with a merge commit, and back into `develop`.
 
 1. **Branch.** `git switch -c release/0.1.0 develop`
