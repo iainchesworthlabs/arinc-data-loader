@@ -64,14 +64,14 @@ block a pull request ([docs/static-analysis.md](docs/static-analysis.md)).
 ## Platform code: the one rule that is not about style
 
 The operating system is chosen by CMake, not by the source. Code that differs
-between systems lives in `src/platforms/<name>/`, behind a header in
-`src/platforms/interfaces/`, and the platform's `platform.cmake` names the files
+between systems lives in `libs/platform/<name>/`, behind a header in
+`libs/platform/interfaces/`, and the platform's `platform.cmake` names the files
 it compiles. The rules are:
 
 - in any first-party C++, the platform directories included: no preprocessor
   conditional (`#if`, `#ifdef`, `#ifndef`, `#elif`, `#else`, `#endif`) and no
   `#define` or `#undef`;
-- outside `src/platforms/` and `tests/platform/`: no operating system header
+- outside `libs/platform/` and `tests/platform/`: no operating system header
   (`<windows.h>`, `<unistd.h>`, `<sys/...>`) and no call that asks which system
   this is (`QSysInfo`, `Q_OS_*`, `Qt.platform`);
 - in any CMake file but `cmake/Platform.cmake`, the platform fragments and the
@@ -102,8 +102,8 @@ what to do instead of an `#ifdef`, and how to add a platform.
   its reason; add one the same way, and use a `NOLINT` only for a finding from
   a system macro or a known-safe call, with the reason beside it.
 - Keep the libraries GUI-free and platform-free. Qt belongs in the three
-  applications (`src/app`, `src/media_gen`, `src/mock_target`) and the interface
-  code they share (`src/ui`), and nowhere else.
+  applications (`apps/app`, `apps/media_gen`, `apps/mock_target`) and the interface
+  code they share (`libs/ui`), and nowhere else.
 
 ## Commits and pull requests
 

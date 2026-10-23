@@ -4,7 +4,7 @@
 # Platform-isolation guard (docs/platform-isolation.md).
 #
 # ARINC Data Loader branches on the operating system in CMake, never in source: each
-# platform's implementations live in src/platforms/<name>/, and that
+# platform's implementations live in libs/platform/<name>/, and that
 # platform's platform.cmake (selected once, in cmake/Platform.cmake) says which
 # of them are compiled and what they link against. Adding a platform is a new
 # directory plus one branch in the selector. That only stays true if nobody
@@ -29,13 +29,13 @@
 #      directories included: they are already chosen by CMake.
 #
 #   2. NO OS HEADERS OR OS-QUERYING APIs outside the platform section
-#      (src/platforms/ and tests/platform/): not <windows.h>, <unistd.h>,
+#      (libs/platform/ and tests/platform/): not <windows.h>, <unistd.h>,
 #      <sys/...>, Objective-C, Android or Emscripten headers, and not QSysInfo,
 #      QOperatingSystemVersion, Q_OS_*, QJniObject, platformName() or QML's
 #      Qt.platform. Code that needs an OS service declares an interface in
-#      src/platforms/interfaces/ and gets one implementation per platform.
+#      libs/platform/interfaces/ and gets one implementation per platform.
 #
-#   3. EVERY PLATFORM TRANSLATION UNIT IS WIRED. Each src/platforms/<name>/
+#   3. EVERY PLATFORM TRANSLATION UNIT IS WIRED. Each libs/platform/<name>/
 #      directory (other than detail/, posix/ and ghs/, which are not platforms)
 #      has a platform.cmake, and every .cpp/.mm in the section is named, outside
 #      a comment, by one of them - a file nothing compiles is a platform that
@@ -67,10 +67,10 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
-$platformRoot = Join-Path $Root 'src/platforms'
+$platformRoot = Join-Path $Root 'libs/platform'
 if (-not (Test-Path -LiteralPath $platformRoot)) {
         # Not Write-Error: with -ErrorAction Stop it ends the script with exit 1 before the exit below runs.
-    [Console]::Error.WriteLine("No src/platforms/ under '$Root'. Pass -Root <repo-root>.")
+    [Console]::Error.WriteLine("No libs/platform/ under '$Root'. Pass -Root <repo-root>.")
     exit 2
 }
 
@@ -79,7 +79,7 @@ if (-not (Test-Path -LiteralPath $platformRoot)) {
 # Every first-party tree. Optional, each, so a checkout of an older tag still
 # has something to scan. The top-level cmake/ and CMakeLists.txt are scanned
 # for rule 4 only (they hold no C++).
-$scanRoots = @('src', 'tests', 'tools', 'cmake') |
+$scanRoots = @('libs', 'apps', 'tests', 'tools', 'cmake') |
     ForEach-Object { Join-Path $Root $_ } |
     Where-Object { Test-Path -LiteralPath $_ }
 
@@ -191,11 +191,11 @@ function Add-Violation([string]$rule, [string]$path, [int]$line, [string]$text, 
 }
 
 $conditionalHint = 'Select the variant in CMake (a source file per platform, named in its platform.cmake) or pass a value in with target_compile_definitions.'
-$osHint = 'Put the OS service behind an interface in src/platforms/interfaces/ with one implementation per platform under src/platforms/.'
+$osHint = 'Put the OS service behind an interface in libs/platform/interfaces/ with one implementation per platform under libs/platform/.'
 $defineHint = 'Use constexpr, an inline function or a template; a build-time value comes from a header CMake generates with configure_file, or target_compile_definitions.'
-$cmakeHint = 'Declare it in the platform''s src/platforms/<name>/platform.cmake and read it as a variable or hook; only cmake/Platform.cmake tests the OS.'
+$cmakeHint = 'Declare it in the platform''s libs/platform/<name>/platform.cmake and read it as a variable or hook; only cmake/Platform.cmake tests the OS.'
 
-$platformPrefixes = @('src/platforms/', 'tests/platform/')
+$platformPrefixes = @('libs/platform/', 'tests/platform/')
 
 # The code of one line: block comments (which may span lines, hence $state) and
 # trailing // comments removed. `$state.InBlock` is carried from line to line.
@@ -244,7 +244,7 @@ foreach ($file in $candidates) {
     # and vcpkg.json carry platform names), so cmake/triplets/ and
     # cmake/toolchains/ are as exempt as the fragments.
     $isSelectorOrFragment = $relative -ieq 'cmake/Platform.cmake' -or
-        $relative -match '^src/platforms/[^/]+/platform\.cmake$' -or
+        $relative -match '^libs/platform/[^/]+/platform\.cmake$' -or
         $relative -match '^cmake/triplets/[^/]+\.cmake$' -or
         $relative -match '^cmake/toolchains/[^/]+\.cmake$'
 
@@ -299,7 +299,7 @@ foreach ($dir in $platformDirs) {
     }
 }
 foreach ($dir in $platformDirs) {
-    # detail/ is the shared helpers every platform links (src/app/CMakeLists.txt
+    # detail/ is the shared helpers every platform links (apps/app/CMakeLists.txt
     # lists them itself); posix/ and ghs/ are the shared implementations the
     # fragments name, and are not platforms of their own.
     if ($dir.Name -in @('detail', 'interfaces', 'posix', 'ghs')) { continue }
@@ -314,7 +314,7 @@ foreach ($dir in $platformDirs) {
     $units = Get-ChildItem -LiteralPath $dir.FullName -Recurse -File |
         Where-Object { $_.Extension.ToLowerInvariant() -in @('.cpp', '.cc', '.cxx', '.mm') }
     foreach ($unit in $units) {
-        $needle = (Get-RelativePath $unit.FullName).Substring('src/platforms/'.Length)
+        $needle = (Get-RelativePath $unit.FullName).Substring('libs/platform/'.Length)
         if (-not $fragmentText.Contains($needle)) {
             Add-Violation 'unwired' (Get-RelativePath $unit.FullName) 1 "$needle is named by no platform.cmake" `
                 'List it in the platform.cmake of every platform that compiles it, or delete it.'
@@ -339,7 +339,7 @@ if ($violations.Count -gt 0) {
     exit 1
 }
 
-$summary = "OK: no platform code outside src/platforms and tests/platform, no OS tests in CMake outside the selector, and every platform file is wired ($(@($candidates).Count) files scanned"
+$summary = "OK: no platform code outside libs/platform and tests/platform, no OS tests in CMake outside the selector, and every platform file is wired ($(@($candidates).Count) files scanned"
 if ($skipped -gt 0) {
     # Printed rather than left implicit: the git filter turning the check
     # green by excluding real source is the one failure that would not

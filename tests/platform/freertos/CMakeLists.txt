@@ -116,19 +116,19 @@ target_compile_options(adl_lwip PRIVATE -w)
 
 # ---- the platform layer, from the fragment the other platforms use ----------------------------
 set(ADL_PLATFORM freertos)
-include("${ADL_REPO_ROOT}/src/platforms/freertos/platform.cmake")
+include("${ADL_REPO_ROOT}/libs/platform/freertos/platform.cmake")
 include(PlatformContract)
-adl_platform_check_contract("${ADL_REPO_ROOT}/src/platforms/freertos/platform.cmake"
-    "${ADL_REPO_ROOT}/src/platforms")
-add_subdirectory("${ADL_REPO_ROOT}/src/platforms" adl_platforms)
+adl_platform_check_contract("${ADL_REPO_ROOT}/libs/platform/freertos/platform.cmake"
+    "${ADL_REPO_ROOT}/libs/platform")
+add_subdirectory("${ADL_REPO_ROOT}/libs/platform" adl_platforms)
 target_link_libraries(adl_platform PRIVATE adl_freertos_kernel adl_lwip adl_littlefs)
 
 # ---- the loader's platform-free libraries -------------------------------------------------------
-add_subdirectory("${ADL_REPO_ROOT}/src/arinc665" adl_arinc665)
-add_subdirectory("${ADL_REPO_ROOT}/src/arinc615a" adl_arinc615a)
-add_subdirectory("${ADL_REPO_ROOT}/src/arinc615a_runner" adl_arinc615a_runner)
-add_subdirectory("${ADL_REPO_ROOT}/src/arinc615a_mini" adl_arinc615a_mini)
-add_subdirectory("${ADL_REPO_ROOT}/src/samples" adl_samples)
+add_subdirectory("${ADL_REPO_ROOT}/libs/arinc665" adl_arinc665)
+add_subdirectory("${ADL_REPO_ROOT}/libs/arinc615a" adl_arinc615a)
+add_subdirectory("${ADL_REPO_ROOT}/libs/arinc615a_runner" adl_arinc615a_runner)
+add_subdirectory("${ADL_REPO_ROOT}/libs/arinc615a_mini" adl_arinc615a_mini)
+add_subdirectory("${ADL_REPO_ROOT}/libs/samples" adl_samples)
 
 # ---- the program -------------------------------------------------------------------------------
 include("${ADL_REPO_ROOT}/tests/platform/rtos_support/test_sources.cmake")
@@ -142,7 +142,7 @@ add_executable(adl_freertos_tests
     ${ADL_RTOS_ENGINE_TEST_SOURCES})
 target_include_directories(adl_freertos_tests PRIVATE
     ${ADL_RTOS_TEST_INCLUDES}
-    "${ADL_REPO_ROOT}/src/platforms"
+    "${ADL_REPO_ROOT}/libs/platform"
     "${CMAKE_CURRENT_LIST_DIR}/sim")
 # littlefs's root: the scratch directories are made there.
 target_compile_definitions(adl_freertos_tests PRIVATE "ADL_TEST_SCRATCH_ROOT=\"\"")

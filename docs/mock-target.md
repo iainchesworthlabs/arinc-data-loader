@@ -1,6 +1,6 @@
 # The mock target
 
-`src/mock_target` is the second Qt application: a mock ARINC 615A target that runs on Windows,
+`apps/mock_target` is the second Qt application: a mock ARINC 615A target that runs on Windows,
 macOS and Linux over real UDP sockets, so that the data loader's dialogues can be demonstrated
 end to end against something that behaves like a target without an embedded box. It is a mock
 for demonstrations, not a real target, and it is not what the loader's tests run against (those
@@ -29,7 +29,7 @@ an operation, drop status files, send a wrong checksum, abort on its own, or go 
 ## Layout
 
 ```text
-src/mock_target/
+apps/mock_target/
   main.cpp              creates the QGuiApplication, one MockTargetModel and the QML engine
   qml/                  TargetWindow.qml (the window)
   core/                 adl_mock_core: everything but the window, Qt Core only
@@ -39,9 +39,9 @@ src/mock_target/
                         sockets, and the tests' FakeTargetLink on the fake network
     model               MockTargetModel: the worker thread, the properties and signals the
                         window binds to
-tests/mock_target/      the engine against the loader's real engine on the fake platform, the
+apps/mock_target/tests/      the engine against the loader's real engine on the fake platform, the
                         model, and the window loaded offscreen
-src/ui/                 the shared design system (Theme, controls, header, footer, log)
+libs/ui/                 the shared design system (Theme, controls, header, footer, log)
 ```
 
 The window (1280×900, at least 1120×760) follows the desktop's light or dark scheme and remembers its size and place. The header owns the run state and Start/Stop: a `SERVING` / `STOPPED` chip and the two buttons (Start needs a hardware ID; ports must be 1 to 65535). The primary button is the one that applies: Start while stopped, Stop while serving. Every field is disabled while the target is serving, so a configuration is changed by stopping, editing and starting again.
@@ -65,7 +65,7 @@ copyable; an unset storage folder is called out as "still serves, not kept".
   link the world's events drive it directly.
 - **Its TFTP is the second implementation.** Every transfer goes through
   `adl::arinc615a_mini::MiniTransfer` (the separate TFTP written for the tests, now shared
-  from `src/arinc615a_mini`), and every protocol file through `adl::arinc615a`'s codec. The
+  from `libs/arinc615a_mini`), and every protocol file through `adl::arinc615a`'s codec. The
   mock target shares no transfer code with the loader's engine, so a dialogue that completes
   exercises two implementations of the transfer, both written in this repository. Neither has met
   a real target.

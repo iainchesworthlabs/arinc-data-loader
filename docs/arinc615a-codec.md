@@ -1,6 +1,6 @@
 # ARINC 615A codec
 
-The codec half of `adl::arinc615a` (`src/arinc615a`) turns the packets and files of
+The codec half of `adl::arinc615a` (`libs/arinc615a`) turns the packets and files of
 ARINC 615A-3 into bytes and back: the TFTP packets with their options, the FIND packets, and the
 twelve protocol files of section 6.4. It does not send, receive or keep time. The protocol
 engine that uses it (the operations, the state machines, the time-outs) is in the same library,

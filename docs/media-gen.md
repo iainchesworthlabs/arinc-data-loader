@@ -1,6 +1,6 @@
 # The media set generator
 
-`src/media_gen` is the third Qt application: the preparation side of the workflow, where an
+`apps/media_gen` is the third Qt application: the preparation side of the workflow, where an
 operator turns files from disk into an ARINC 665 media set — the load header, the data and
 support files, and the media set's members — written as the folder tree (one folder per
 member) that the data loader application opens and uploads to a target. It is the "second user
@@ -22,21 +22,21 @@ it done.
 | Generate | Reads the files, builds the load, places it (header and support files on the first member; with more than one member the data files are spread round-robin, each in a subfolder named after the load's part root directory), builds the members and writes the tree under the output folder in a fresh folder named after the media set part number (a counter is appended rather than overwrite). |
 | Verify | Reads the set back from the disk it was written to (`read_media_set_tree`, `read_media_set`): an error fails the generation; findings (where the set departs from the standard's recommendations) do not fail it. A set that reads back without an error is reported done. When there are findings, the result says how many differences from the standard's recommendations were found ("N difference(s) from the standard's recommendations"); the list itself is not shown in the window. |
 | The outcome | The folder the loader's "Choose folder..." opens (with an Open folder button), the file counts and sizes, and the number of findings, if any. The progress bar is the bytes read from the source files; writing and reading back are not measured. |
-| The language | A language box in the header, beside About, offers the eight languages of the family (English, French, Spanish, German, Yiddish, Hebrew, Simplified Chinese, Japanese); the choice applies at once and is kept. Hebrew and Yiddish mirror the window ([Hebrew picture](images/gen-hebrew.png)). The catalogues are `src/media_gen/translations` and the shared `src/ui/translations`; the translations are machine drafts no speaker has read ([translations](translations.md)). The findings of the ARINC 665 library stay in English. |
+| The language | A language box in the header, beside About, offers the eight languages of the family (English, French, Spanish, German, Yiddish, Hebrew, Simplified Chinese, Japanese); the choice applies at once and is kept. Hebrew and Yiddish mirror the window ([Hebrew picture](images/gen-hebrew.png)). The catalogues are `apps/media_gen/translations` and the shared `libs/ui/translations`; the translations are machine drafts no speaker has read ([translations](translations.md)). The findings of the ARINC 665 library stay in English. |
 
 ## Layout
 
 ```text
-src/media_gen/
+apps/media_gen/
   main.cpp                creates the QGuiApplication, one GeneratorModel and the QML engine
   qml/GeneratorWindow.qml the window
   core/                   adl_gen_core: everything but the window, Qt Core only
     source_file_model     the table of files the operator chose, with its validation
     generator_worker      the job on its own thread: read, build, place, write, verify
     generator_model       what the QML talks to: properties and a few invokable functions
-tests/media_gen/          QtTest headless (including reading a generated set back through the
+apps/media_gen/tests/          QtTest headless (including reading a generated set back through the
                           loader's own media set summary), and the window loaded offscreen
-src/ui/                   the shared design system (Theme, controls, header, footer, log)
+libs/ui/                   the shared design system (Theme, controls, header, footer, log)
 ```
 
 The window (1280×900, at least 1120×760) is a fixed left rail of numbered blocks (01 media set,

@@ -5,7 +5,7 @@
 # build, so a finding is a failed build rather than a report nobody reads:
 #
 #   ADL_ENABLE_CLANG_TIDY     runs clang-tidy for every C++ translation unit
-#                             under src/ (the tests clear the launcher), with
+#                             under libs/ and apps/ (the tests clear the launcher), with
 #                             .clang-tidy and warnings as errors. Used by the
 #                             linux-gcc-tidy preset and the nightly
 #                             static-analysis workflow.
@@ -42,7 +42,7 @@ if(ADL_ENABLE_MSVC_ANALYSIS)
     # /analyze:external- keeps the analyzer out of the SDK and Qt headers. It
     # needs those headers passed as /external:I, which the imported targets do;
     # C6101 from the SDK's inline WSAGetIPUserMtu is the one that still leaks
-    # through, and src/platforms/windows/platform.cmake disables it for the one
+    # through, and libs/platform/windows/platform.cmake disables it for the one
     # file that includes that header.
     target_compile_options(adl_warnings INTERFACE /analyze /analyze:external-)
     message(STATUS "MSVC Code Analysis: /analyze (warnings are errors)")

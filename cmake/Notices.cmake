@@ -10,7 +10,7 @@
 # Assembles the third-party notices file the applications show under About >
 # Licences and carry beside the executables, at configure time, from plain-text
 # fragments (notices/fragments/) and the licence texts they quote
-# (notices/licences/, src/ui/fonts/OFL.txt). One file, written once, from the
+# (notices/licences/, libs/ui/fonts/OFL.txt). One file, written once, from the
 # versions CMake already knows, so the dialog and the file on disk cannot say
 # different things.
 #

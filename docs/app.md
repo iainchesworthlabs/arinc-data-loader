@@ -1,6 +1,6 @@
 # The application
 
-`src/app` is the Qt 6.12 application: a window over the libraries, and nothing else. It holds no protocol
+`apps/app` is the Qt 6.12 application: a window over the libraries, and nothing else. It holds no protocol
 logic and no file format. Everything it knows about ARINC 615A and 665 it asks of `adl::arinc615a`,
 `adl::arinc615a_runner`, `adl::arinc665` and `adl::media_tree`, and everything it knows about the system
 it asks of `adl::platform`. Qt is used here and nowhere else.
@@ -19,7 +19,7 @@ FIND, the Information, Upload and Download operations are built. What the window
 | Download | The Download operation (5.4.4), in both modes. Media defined: the operator names the files the target is to send. Operator defined: the target's list of files is shown to be ticked, the choice goes back through the engine's deferred-selection route, and "Choose none" cancels the operation the way the standard says. The files land in a fresh `DNLD_DATA_<THW_ID_POS>_<number>` directory under the download directory (Preferences): the number is the lowest free one. A download that receives no file (the target denies it or never answers, the operator cancels or aborts, the loader cannot run) leaves no directory behind; one that received anything keeps it. Each file's row carries its own status and progress; the abort button covers downloads. See [what the Download operation needs](#what-the-download-operation-needs-from-the-application). |
 | Preferences | Persistent settings, in a two-column modal page from the header's Preferences button: the last media set directory (restored quietly at start-up), a default target address and `<THW_ID_POS>` (prefilled), the loader's control port (anything but 59 is sent to the target as the `port` option, which is what lets the loader and a target share one machine), the download directory, whether FIND runs by itself before an operation with no chosen target (one answer is taken automatically; none or several leaves the choice to the operator), whether a chosen media set is checked at once, the activity log's capacity, and the language. The dialog edits a working copy: Save writes it, Cancel and Esc leave the stored values as they were. |
 | About | The `ADL` mark, what the window is for, and the build provenance: version, git describe, full commit, branch, build target, Qt version and a dirty-tree marker, generated at configure time; the licence and repository link. |
-| The window's look | The shared design system in `src/ui` (taken from ICL Forge, a separate application whose code is not in this repository): `Theme.qml` is the single source of truth for colour (Signal light and dark), type, spacing and geometry; the shared controls (`AppButton`, `AppCheckBox`, `AppTextField`, `AppComboBox`, `AppSpinBox`, `SegmentedControl`, `FocusRing`), the header and footer, the chips, the log and the dialogs draw from it. The three applications compile the same source; see [the design system](design-system.md). |
+| The window's look | The shared design system in `libs/ui` (taken from ICL Forge, a separate application whose code is not in this repository): `Theme.qml` is the single source of truth for colour (Signal light and dark), type, spacing and geometry; the shared controls (`AppButton`, `AppCheckBox`, `AppTextField`, `AppComboBox`, `AppSpinBox`, `SegmentedControl`, `FocusRing`), the header and footer, the chips, the log and the dialogs draw from it. The three applications compile the same source; see [the design system](design-system.md). |
 | The first launch | A first-run statement before the workbench: what the window is for, one primary that opens the workbench, an optional route to choose a media set, and the defaults folded away. Passing it once is stored (its fields are the preferences), so every later launch goes straight to the workbench. |
 | The language | All text goes through `qsTr`/`tr`, and the loader, the generator and the mock target offer the same eight languages (English, the source; French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese) through one shared `adl::ui::LanguageManager` and its picker (the loader's is in Preferences). It installs the catalogues for the persisted language (the system locale, then English, on a first run), sets the layout direction and the typeface, and retranslates the running window, **including what the engine said earlier**: results, failures, log lines and the checks' details are `Message`s translated when they are read. Hebrew and Yiddish **mirror the whole window** (`LayoutMirroring` on the window root) and are set in the bundled Noto Sans Hebrew. Counts are real plurals (`%n`, with numerus forms). **Every message has a translation in every language, and all seven are machine-drafted first versions that no speaker has reviewed.** Not translated: the findings of the ARINC 665 library and the names of its errors, platform error codes, whatever the target sends, and the mock target's 615A engine log. [Translations](translations.md) has the details. |
 | The target that was used | The address and `<THW_ID_POS>` an operation last started against are stored, and put back into the window at start-up, so a session starts where the last one left off. The Preferences defaults fill the fields on a first run, and again whenever the operator clears one. |
@@ -28,7 +28,7 @@ FIND, the Information, Upload and Download operations are built. What the window
 
 ## The window
 
-The window is one of three instruments on a shared design system (`src/ui`, described in
+The window is one of three instruments on a shared design system (`libs/ui`, described in
 [the design system](design-system.md)). The workbench is a fixed context rail beside a work area:
 
 - **The rail** is target (01) then media set (02). The target fields and the FIND results are
@@ -53,15 +53,15 @@ choice asks the target to abort and waits for it.
 ## Layout
 
 ```text
-src/app/
+apps/app/
   main.cpp            creates the QGuiApplication, one LoaderModel, the QML engine and the language manager
   frame_profiler      the window's frame loop for a profiling build (docs/profiling.md)
   qml/                Main.qml (the shell), UploadPanel.qml, DownloadPanel.qml, ActivityDock.qml,
                       FirstRunScreen.qml, and the preferences, media set properties and target
-                      properties dialogs (the About and Licences dialogs are in src/ui)
+                      properties dialogs (the About and Licences dialogs are in libs/ui)
   translations/       the catalogues (adl_app_<code>.ts for the seven languages, adl_app_en.ts for the
                       English plural forms), compiled into the window's module; the shared
-                      components' are in src/ui/translations. LanguageManager is src/ui's.
+                      components' are in libs/ui/translations. LanguageManager is libs/ui's.
   core/               adl_app_core: everything but the window, Qt Core only
     engine_worker     the engine on its own thread, the abort and the deferred download choice
     loader_model      what the QML talks to: properties and a few invokable functions
@@ -72,9 +72,9 @@ src/app/
     notice_text       an engine notice as a line for the operator
     events, address   plain values, and the IPv4 parser
     host_access       where the worker gets the platform from
-tests/app/            QtTest, and the window loaded offscreen
+apps/app/tests/            QtTest, and the window loaded offscreen
 tests/ui/             the window driven through Qt Quick Test (testing.md)
-src/ui/               the shared design system: Theme, the controls, the header and footer, the
+libs/ui/               the shared design system: Theme, the controls, the header and footer, the
                       log, the dialogs, Archivo, the version and licence text and the window
                       geometry helper
 ```
@@ -275,12 +275,12 @@ key `HKCU\Software\iainchesworthlabs\<name>` on Windows, a property list on macO
 on Linux). **`ADL_SETTINGS_DIR` moves them:** with the variable set to a directory, all three programs read
 and write an ini file below that directory instead (`<directory>/iainchesworthlabs/<name>.ini`, whatever
 the platform) and write nothing to the usual place. It is read once, at start-up, by
-`adl::ui::redirect_settings_from_environment()` (`src/ui/settings_location.cpp`), which every `main` calls
+`adl::ui::redirect_settings_from_environment()` (`libs/ui/settings_location.cpp`), which every `main` calls
 straight after naming the application. The tests set it so that starting a program under test never
 touches an operator's real settings or another run's, and it is also the way to keep two configurations
 apart or to run a program from a stick.
 
-The loader's keys (`src/app/core/src/settings.cpp`, `AppSettings`; each change is written at once) and
+The loader's keys (`apps/app/core/src/settings.cpp`, `AppSettings`; each change is written at once) and
 their defaults:
 
 | Key | Default | What it holds |
@@ -302,7 +302,7 @@ stored, the system's language if it is one of the eight, otherwise English) and 
 The generator and the mock target store only these two groups.
 
 `--smoke-test` makes a program draw its window's first frame, print `smoke-test: first frame drawn` and
-exit with code 0 (`adl::ui::install_smoke_test`, `src/ui/smoke_test.cpp`). It is what the system tests start
+exit with code 0 (`adl::ui::install_smoke_test`, `libs/ui/smoke_test.cpp`). It is what the system tests start
 the programs with ([testing](testing.md)); a program that cannot create its window exits with an error or
 never gets as far as the frame.
 
@@ -317,7 +317,7 @@ never gets as far as the frame.
 - **Qt's keyword macros are off** (`QT_NO_KEYWORDS`): `emit`, `signals`, `slots` and `foreach` are
   `Q_EMIT`, `Q_SIGNALS`, `Q_SLOTS` and `Q_FOREACH`. `forever` is one of Qt's macros and is also the name
   of the platform layer's "no time limit", so the macros would stop the platform headers compiling.
-- **No `#if`, OS header or `QSysInfo`/`Q_OS_*`/`Qt.platform` in `src/app` either**
+- **No `#if`, OS header or `QSysInfo`/`Q_OS_*`/`Qt.platform` in `apps/app` either**
   ([platform isolation](platform-isolation.md)): what differs between desktops is in the platform
   fragments (`adl_platform_configure_app` makes the Windows program a GUI-subsystem one and the macOS
   one a bundle; `adl_platform_deploy_qt_runtime` has windeployqt copy Qt's DLLs, plugins and the QML

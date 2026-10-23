@@ -173,7 +173,7 @@ and their tests Test and Quick Test. CI installs the desktop kit for each system
 repository ([CI](ci.md#toolchain-choices)).
 
 `cmake/FindQt6.cmake` looks in `QT_ROOT_DIR` first (set it to the kit's directory, the one that holds
-`lib/cmake/Qt6`), then in the places the platform's fragment lists (`src/platforms/<name>/platform.cmake`)
+`lib/cmake/Qt6`), then in the places the platform's fragment lists (`libs/platform/<name>/platform.cmake`)
 for a kit laid out as `<root>/6.x/<kit directory>`:
 
 | System | Usual roots | Kit directories |
@@ -337,7 +337,7 @@ program of its own that tests it, and a product does what that program does with
 
 ### Zephyr
 
-The platform layer is a Zephyr module: `zephyr/module.yml` names `src/platforms/zephyr` as its CMake
+The platform layer is a Zephyr module: `zephyr/module.yml` names `libs/platform/zephyr` as its CMake
 directory and its Kconfig. To use it, add this repository to the application's west manifest (or name it
 in `ZEPHYR_EXTRA_MODULES`) and set, in `prj.conf`:
 
@@ -425,7 +425,7 @@ them:
   loader asks for a `Host`.
 
 The product tells the platform layer about the file system and the priority of the network task with
-`adl::platform::freertos::set_environment` (`src/platforms/freertos/environment.hpp`), once, before
+`adl::platform::freertos::set_environment` (`libs/platform/freertos/environment.hpp`), once, before
 `make_host()`. The simulator's `main` is `tests/platform/freertos/sim/main.cpp`.
 
 ## The documentation site
@@ -449,7 +449,7 @@ pip install -r .github/requirements/lint.txt
 clang-format -i $(git ls-files 'src/*.cpp' 'src/*.hpp' 'src/*.h' 'tests/*.cpp' 'tests/*.hpp' 'tests/*.h')
 ```
 
-The CI job checks every file under `src/` and `tests/` with one of the extensions `.cpp`, `.hpp`, `.h`,
+The CI job checks every file under `libs/`, `apps/` and `tests/` with one of the extensions `.cpp`, `.hpp`, `.h`,
 `.cc`, `.hh`, `.cxx`, `.hxx`, `.inl` and `.ipp` ([CI](ci.md#the-jobs-in-ciyml)); the command above names the
 three that the tracked files use.
 

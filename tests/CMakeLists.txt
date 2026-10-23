@@ -44,10 +44,10 @@ target_include_directories(adl_unit_tests PRIVATE
 
 # The Qt Linguist catalogues the translation rules read as files (they need no Qt).
 target_compile_definitions(adl_unit_tests PRIVATE
-    ADL_UI_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/src/ui/translations"
-    ADL_APP_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/src/app/translations"
-    ADL_MEDIA_GEN_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/src/media_gen/translations"
-    ADL_MOCK_TARGET_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/src/mock_target/translations")
+    ADL_UI_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/libs/ui/translations"
+    ADL_APP_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/apps/app/translations"
+    ADL_MEDIA_GEN_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/apps/media_gen/translations"
+    ADL_MOCK_TARGET_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/apps/mock_target/translations")
 
 target_link_libraries(adl_unit_tests
     PRIVATE
@@ -96,7 +96,7 @@ target_link_libraries(adl_fake_platform
         adl::coverage)
 
 # The simulated target (a target of 615A on the fake network, with the second TFTP
-# implementation of src/arinc615a_mini, which shares no code with the engine). The engine tests
+# implementation of libs/arinc615a_mini, which shares no code with the engine). The engine tests
 # run whole operations against it, and so do the application's.
 add_library(adl_sim_target STATIC
     engine/sim_target.cpp)
@@ -271,13 +271,13 @@ set_tests_properties(tools.write_payloads.no_output_directory PROPERTIES
 add_test(NAME tools.write_payloads.list COMMAND adl_write_payloads --list)
 set_tests_properties(tools.write_payloads.list PROPERTIES LABELS "system")
 
-# The application's tests (src/app), when it is built: they need Qt.
+# The application's tests (apps/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)
-    add_subdirectory(app)
-    # The mock target's tests (src/mock_target).
-    add_subdirectory(mock_target)
-    # The media set generator's tests (src/media_gen).
-    add_subdirectory(media_gen)
+    add_subdirectory("${PROJECT_SOURCE_DIR}/apps/app/tests" apps/app/tests)
+    # The mock target's tests (apps/mock_target).
+    add_subdirectory("${PROJECT_SOURCE_DIR}/apps/mock_target/tests" apps/mock_target/tests)
+    # The media set generator's tests (apps/media_gen).
+    add_subdirectory("${PROJECT_SOURCE_DIR}/apps/media_gen/tests" apps/media_gen/tests)
     # The loopback integration test: the loader's runner over real sockets against the mock
     # target's engine on 127.0.0.1 (needs adl::mock_core, so it is behind ADL_BUILD_APP too).
     add_subdirectory(loopback)

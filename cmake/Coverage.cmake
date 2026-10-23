@@ -11,7 +11,7 @@
 #
 # With the instrumentation on, the `coverage` target runs the test suite and
 # then enforces the project minimum: 90% of lines and 80% of branches of the
-# portable code in src/. The figures and the gcovr invocation live in
+# portable code in libs/. The figures and the gcovr invocation live in
 # cmake/CoverageReport.cmake; the coverage CI job calls the same script.
 # ---------------------------------------------------------------------------
 

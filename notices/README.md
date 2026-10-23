@@ -8,7 +8,7 @@ the executables as `NOTICES.txt`. It is generated, not written by hand:
   CMake knows (`{{QT_VERSION}}`, `{{VERSION}}`, `{{PLATFORM}}`, ...) and `{{FILE:NAME}}` markers
   for the text of a licence;
 - `licences/*.txt`: the licence texts the fragments quote, byte for byte (the typeface's
-  OFL is `src/ui/fonts/OFL.txt`, which ships beside the faces as its licence requires).
+  OFL is `libs/ui/fonts/OFL.txt`, which ships beside the faces as its licence requires).
 
 `cmake/AdlUi.cmake` (`adl_generate_ui_notices`) picks the fragments for the platform and
 options, embeds the result in every application as `:/adl/notices/NOTICES.txt`, and copies it

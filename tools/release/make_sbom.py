@@ -222,7 +222,7 @@ def main():
         "copyrightText": "Copyright 2020 The Archivo Project Authors", "primaryPackagePurpose": "FILE",
         "description": "The typeface embedded, unmodified, in every program (Regular, Medium, SemiBold, ExtraBold)",
     })
-        # The typeface of the Hebrew and Yiddish windows (src/ui/fonts, notices/fragments/fonts.txt): four static
+        # The typeface of the Hebrew and Yiddish windows (libs/ui/fonts, notices/fragments/fonts.txt): four static
     # instances of the weights the design uses, cut from the variable font the Noto Project publishes.
     hebrew_font_id = "SPDXRef-NotoSansHebrew"
     packages.append({

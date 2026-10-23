@@ -7,7 +7,7 @@ where an interoperability test against a real loader or target matters most. It 
 page](arinc665-coverage.md). Section numbers are those of the 615A-3 edition in `docs/specs/`.
 
 The code is the **data loader's** half of the protocol. A target's half (answering `.LCI`, writing status
-files) exists only as the simulated target of the tests and the mock target application (`src/mock_target`,
+files) exists only as the simulated target of the tests and the mock target application (`apps/mock_target`,
 [the mock target](mock-target.md)), which is for demonstrations.
 
 ## In short

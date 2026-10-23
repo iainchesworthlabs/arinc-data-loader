@@ -1,5 +1,5 @@
 // The FreeRTOS simulator program: Catch2 run in a FreeRTOS task, over the real platform layer
-// (src/platforms/freertos) on the kernel's POSIX simulator port: a Linux process whose tasks are
+// (libs/platform/freertos) on the kernel's POSIX simulator port: a Linux process whose tasks are
 // the kernel's own, with lwIP's UDP sockets over its loopback interface and littlefs on a RAM
 // block device. The scheduler owns the process once it has started, so the tests run as a
 // task, after the network stack and the file system are up, and the task ends the process

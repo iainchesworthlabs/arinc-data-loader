@@ -1,5 +1,5 @@
 ---
-# Static analysis for the shipped code (src/), run nightly by
+# Static analysis for the shipped code (libs/ and apps/), run nightly by
 # static-analysis.yml and by hand with the linux-gcc-tidy preset
 # (docs/static-analysis.md). The compiler warning set it complements is in
 # cmake/CompilerWarnings.cmake; those warnings are errors in every build, these
@@ -59,7 +59,7 @@ Checks: >
   -portability-avoid-pragma-once
 
 WarningsAsErrors: ''
-HeaderFilterRegex: 'src/.*'
+HeaderFilterRegex: '(libs|apps)/.*'
 # A toolchain's own headers (the MSVC STL under a local Windows run) are not
 # this project's code, and a local build does not mark them as system headers.
 ExcludeHeaderFilterRegex: 'Program Files'

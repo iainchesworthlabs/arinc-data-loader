@@ -54,7 +54,7 @@ Zones are named `<area>: <action>`, so a trace can be read by area and by operat
 | Application core | read and validate media set, index the media set, open a media set file, progress to the load/download model, the operator's actions (choose media set, check media set, find targets, read information, upload, download) |
 | Window | `app: load QML` (compile and instantiate), frame marks, `ui.frame_ms`, `ui.fps`, `ui.render_ms` |
 
-The window's frame loop is `src/app/frame_profiler.cpp`: Qt emits `frameSwapped` on the GUI thread
+The window's frame loop is `apps/app/frame_profiler.cpp`: Qt emits `frameSwapped` on the GUI thread
 (the frame mark and the interval) and `beforeRendering`/`afterRendering` on the render thread (the
 render time, connected directly so it is measured where it happens). Threads are named `gui`,
 `engine` and Qt's render thread.

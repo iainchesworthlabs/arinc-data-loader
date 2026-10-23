@@ -101,7 +101,7 @@ find_program(Integrity_BUILD_TOOL
     DOC "gbuild, which builds an INTEGRITY image from a .gpj")
 
 # Which C++20/23 standard headers the located toolchain lacks, and the shims
-# that stand in for them (src/platforms/ghs/std/); the shim directory goes
+# that stand in for them (libs/platform/ghs/std/); the shim directory goes
 # first on the include path so it shadows the missing header.
 include(GhsStdShims)
 ghs_configure_std_shims(Integrity)

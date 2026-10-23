@@ -5,9 +5,9 @@
 # It is the one place those figures and the gcovr switches live; the `coverage` target and the
 # coverage CI job both call it.
 #
-#   1. The portable code in src/: at least 90% of lines and 80% of branches.
-#   2. The applications' window-free logic (src/app/core, src/mock_target/core and
-#      src/media_gen/core: the models, the engine's worker, the settings, the generator's and the
+#   1. The portable code in libs/ and apps/write_payloads: at least 90% of lines and 80% of branches.
+#   2. The applications' window-free logic (apps/app/core, apps/mock_target/core and
+#      apps/media_gen/core: the models, the engine's worker, the settings, the generator's and the
 #      mock target's cores), at a lower floor set a little under what the suite measures. It needs
 #      the Qt kit, so the coverage build has to be configured with the applications on; a build
 #      without them measures too little, and the pass fails instead of passing on nothing.
@@ -85,13 +85,13 @@ endif()
 
 # ---- Pass 1: the portable code ------------------------------------------------------------------
 # The two format libraries, the engine and its runner, the media tree, the samples, the payload
-# writer, and the platform interfaces. The OS fragments under src/platforms are not measured (each
+# writer, and the platform interfaces. The OS fragments under libs/platform are not measured (each
 # host builds a different set, and the conformance suite is what holds them to the contract), and
 # neither are the Qt windows: QML cannot be measured, which is why this gate is the libraries' and
 # not a blended figure.
 execute_process(
     COMMAND "${GCOVR}" ${_common}
-        --filter "${REPO_ROOT}/src/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|media_tree|samples|write_payloads|platforms/(interfaces|detail))/.*"
+        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|media_tree|samples|platform/(interfaces|detail))|apps/write_payloads)/.*"
         --fail-under-line "${LINE_THRESHOLD}"
         --fail-under-branch "${BRANCH_THRESHOLD}"
         --html-details "${_output}/index.html"
@@ -132,7 +132,7 @@ set(_app_output "${_output}/apps")
 file(MAKE_DIRECTORY "${_app_output}")
 execute_process(
     COMMAND "${GCOVR}" ${_common}
-        --filter "${REPO_ROOT}/src/(app|mock_target|media_gen)/core/.*"
+        --filter "${REPO_ROOT}/apps/(app|mock_target|media_gen)/core/.*"
         --exclude ".*/moc_[^/]*"
         --exclude ".*/mocs_compilation[^/]*"
         --exclude ".*_autogen/.*"

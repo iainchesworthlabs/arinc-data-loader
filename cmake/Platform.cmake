@@ -4,7 +4,7 @@
 # This file maps the toolchain's own flags (WIN32, APPLE, UNIX) to a platform
 # name, then includes that platform's fragment:
 #
-#     src/platforms/<name>/platform.cmake
+#     libs/platform/<name>/platform.cmake
 #
 # Everything the platform contributes - its source files, system libraries,
 # compile definitions and deployment steps - is declared in that fragment, and
@@ -13,7 +13,7 @@
 # (docs/platform-isolation.md; tools/checks/check_platform_isolation.ps1 holds
 # the source side of that in CI).
 #
-# Adding a platform is therefore two edits: a src/platforms/<name>/ directory
+# Adding a platform is therefore two edits: a libs/platform/<name>/ directory
 # (its implementations plus a platform.cmake that fills in the contract below),
 # and one branch in the selector here.
 #
@@ -83,7 +83,7 @@
 #                                    the Qt files they need) and the development component (the
 #                                    libraries, their headers and the CMake package).
 #
-# Build inputs (paths are relative to src/platforms):
+# Build inputs (paths are relative to libs/platform):
 #   ADL_PLATFORM_SOURCES          Compiled into adl_platform: one
 #                                 implementation of every interfaces/ header.
 #   ADL_PLATFORM_LINK_LIBRARIES   System libraries adl_platform needs.
@@ -165,18 +165,18 @@ else()
     message(FATAL_ERROR
         "Cannot tell which platform this is. For an RTOS or other cross build, name it: "
         "-DADL_TARGET_PLATFORM=<windows|linux|macos|qnx|ghs508|ghs178b|vxworks|freertos|zephyr>. "
-        "To add a platform, add src/platforms/<name>/ with a platform.cmake (the contract is at "
+        "To add a platform, add libs/platform/<name>/ with a platform.cmake (the contract is at "
         "the top of cmake/Platform.cmake) and a branch for it in this file.")
 endif()
 
-set(ADL_PLATFORM_DIR "${PROJECT_SOURCE_DIR}/src/platforms/${ADL_PLATFORM}")
+set(ADL_PLATFORM_DIR "${PROJECT_SOURCE_DIR}/libs/platform/${ADL_PLATFORM}")
 include("${ADL_PLATFORM_DIR}/platform.cmake")
 
 # A fragment that forgets part of the contract should fail here, by name, not
 # as an empty source list or a missing-command error three files away.
 include(PlatformContract)
 adl_platform_check_contract("${ADL_PLATFORM_DIR}/platform.cmake"
-    "${PROJECT_SOURCE_DIR}/src/platforms")
+    "${PROJECT_SOURCE_DIR}/libs/platform")
 
 # A platform whose program is built by a project of its own is not built by this one.
 if(ADL_PLATFORM_PROJECT)
@@ -188,7 +188,7 @@ endif()
 # A platform nobody has built is not silently built.
 if(ADL_PLATFORM_STATUS STREQUAL "design-only")
     message(FATAL_ERROR
-        "The ${ADL_PLATFORM_DISPLAY_NAME} platform is a design only: src/platforms/${ADL_PLATFORM}/ "
+        "The ${ADL_PLATFORM_DISPLAY_NAME} platform is a design only: libs/platform/${ADL_PLATFORM}/ "
         "has no implementation to build. See docs/platform-abstraction.md and "
         "docs/platform-ghs.md for what a port needs.")
 elseif(ADL_PLATFORM_STATUS STREQUAL "unbuilt" AND NOT ADL_ACCEPT_UNBUILT_PLATFORM)

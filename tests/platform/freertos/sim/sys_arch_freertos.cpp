@@ -1,7 +1,7 @@
 // lwIP's system layer (sys_arch) on FreeRTOS, for the simulator program: semaphores, mutexes,
 // mailboxes, threads and the clock, in the terms lwIP's sys.h asks for them. This is the port
 // a product's SDK usually brings with its lwIP; it is here because the simulator is a product
-// of its own, and it is not part of the platform layer (src/platforms/freertos), which uses
+// of its own, and it is not part of the platform layer (libs/platform/freertos), which uses
 // lwIP's sockets API and whatever port is under it.
 
 #include <lwip/err.h>

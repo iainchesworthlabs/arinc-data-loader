@@ -23,16 +23,16 @@ smaller claim than that every translation is right. The terms to look at first a
 
 | Catalogue | Source of the strings | File |
 | --- | --- | --- |
-| Shared interface | `src/ui/qml` (dialogs, log view, check tile, language picker, licences) | `src/ui/translations/adl_ui_<code>.ts` |
-| Loader | `src/app/qml`, `src/app/core` | `src/app/translations/adl_app_<code>.ts` |
-| Generator | `src/media_gen/qml`, `src/media_gen/core` | `src/media_gen/translations/adl_media_gen_<code>.ts` |
-| Mock target | `src/mock_target/qml`, `src/mock_target/core` (its model; the 615A engine's activity lines are not translated) | `src/mock_target/translations/adl_mock_target_<code>.ts` |
+| Shared interface | `libs/ui/qml` (dialogs, log view, check tile, language picker, licences) | `libs/ui/translations/adl_ui_<code>.ts` |
+| Loader | `apps/app/qml`, `apps/app/core` | `apps/app/translations/adl_app_<code>.ts` |
+| Generator | `apps/media_gen/qml`, `apps/media_gen/core` | `apps/media_gen/translations/adl_media_gen_<code>.ts` |
+| Mock target | `apps/mock_target/qml`, `apps/mock_target/core` (its model; the 615A engine's activity lines are not translated) | `apps/mock_target/translations/adl_mock_target_<code>.ts` |
 
 Each family has one file per language (`de es fr he ja yi zh`) and an English file, `_en.ts`, which
 holds only the plural forms (see below). `cmake/AdlUi.cmake` (`adl_add_app_translations`,
 `adl_generate_ui_translations`) runs lupdate with `-no-obsolete`, compiles the files with lrelease
 and embeds the `.qm` under `:/i18n`; the shared interface's are embedded in each program by
-`adl_add_ui_support`. `adl::ui::LanguageManager` (`src/ui/language_manager.cpp`, shared by the three
+`adl_add_ui_support`. `adl::ui::LanguageManager` (`libs/ui/language_manager.cpp`, shared by the three
 programs) installs Qt's own catalogue, the shared one and the program's for the language, sets the
 application's layout direction and typeface, and calls `QQmlEngine::retranslate()`.
 
@@ -51,7 +51,7 @@ with two arguments, each of which is a plural phrase of its own.
 
 What the engine and the models say is made on the engine's thread and shown for as long as it is on
 screen, so a `QString` made with `tr()` at that moment would stay in the language of that moment.
-`adl::ui::Message` (`src/ui/include/adl/ui/message.hpp`) keeps the untranslated source, the count and
+`adl::ui::Message` (`libs/ui/include/adl/ui/message.hpp`) keeps the untranslated source, the count and
 the arguments and is translated each time it is read: the log lines, how a job ended (`outcome`,
 `detail`, `hint`), the failure on show, the check's detail, the loads' status and the generator's
 result are Messages, and `retranslate()` on the models (connected to
@@ -85,8 +85,8 @@ dialogs (the file and folder pickers follow the system's language).
 A new language is a `.ts` file in each of the four directories (create it with lupdate, and check
 that its `language="..."` attribute is the bare code: lupdate takes it from the file name, and
 `adl_ui_fr.ts` came out as `ui_fr`), the code in `ADL_TRANSLATED_LANGUAGES` (`cmake/AdlUi.cmake`),
-its line in the table in `src/ui/language_manager.cpp` (with the typeface it needs), the list in
-`tests/unit/translations_test.cpp`, and the code lists in `tests/app/qml_test.cpp`. That test names
+its line in the table in `libs/ui/language_manager.cpp` (with the typeface it needs), the list in
+`tests/unit/translations_test.cpp`, and the code lists in `apps/app/tests/qml_test.cpp`. That test names
 the codes in two places: the checks of the layout direction Qt gives each code (a list of the
 left-to-right codes, and a separate check for Hebrew and Yiddish), and the loop over the seven
 languages that installs each catalogue in the running window and checks the text, the layout
@@ -143,10 +143,10 @@ are given a picture path, but those pictures are not the ones shown here.)
 Archivo has no Hebrew letters and no Chinese or Japanese characters.
 
 - **Hebrew and Yiddish** are set in **Noto Sans Hebrew** (SIL OFL 1.1), bundled: four static
-  instances (Regular, Medium, SemiBold, ExtraBold, in `src/ui/fonts`) cut from the Noto Project's
+  instances (Regular, Medium, SemiBold, ExtraBold, in `libs/ui/fonts`) cut from the Noto Project's
   variable font, registered by `register_fonts()`. `LanguageManager` makes it the application's
   typeface for those two languages and `Theme.headingFamily` follows the layout direction. Its
-  licence and copyright are in `src/ui/fonts/NotoSansHebrew-OFL.txt`, and in About > Licences
+  licence and copyright are in `libs/ui/fonts/NotoSansHebrew-OFL.txt`, and in About > Licences
   (`notices/fragments/fonts.txt`).
 - **Chinese and Japanese** are drawn in the system's own CJK fonts (Archivo stays for the Latin
   letters). No CJK face is bundled: one is several megabytes per script and the desktops the

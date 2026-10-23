@@ -50,10 +50,10 @@ $code = @(
     # What CTest reads or runs.
     'tests/CMakeLists.txt', 'tools/checks/check_doc_links.ps1', 'tools/checks/check_doc_paths.ps1',
     'LICENSE', 'CMakeLists.txt', 'CMakePresets.json', 'vcpkg.json', 'deps/vcpkg',
-    'src/app/main.cpp', 'src/arinc615a/include/adl/arinc615a/limits.hpp', 'notices/README.md',
+    'apps/app/main.cpp', 'libs/arinc615a/include/adl/arinc615a/limits.hpp', 'notices/README.md',
     'cmake/Docs.cmake', 'packaging/README.txt.in',
     # Markdown below the root can be anything's input; it is not the documentation of the site.
-    'src/app/README.md', 'tools/network-access/README.md', 'tests/golden/README.md',
+    'apps/app/README.md', 'tools/network-access/README.md', 'tests/golden/README.md',
     # The workflows and what the documentation job installs.
     '.github/workflows/ci.yml', '.github/actions/docs-site/action.yml', '.github/requirements/docs.txt',
     'tools/docs/mkdocs_hooks.py',

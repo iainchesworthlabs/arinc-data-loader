@@ -1,5 +1,5 @@
 // The Zephyr test program: Catch2 run on Zephyr's main thread, over the real platform layer
-// (src/platforms/zephyr) on whatever board the program is built for. CI builds it for
+// (libs/platform/zephyr) on whatever board the program is built for. CI builds it for
 // native_sim, where Zephyr's kernel, network stack and file system run as a host process.
 //
 // Before Catch2 starts, the file system the conformance suite writes to is made and mounted:

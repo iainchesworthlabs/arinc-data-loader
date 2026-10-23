@@ -1,7 +1,7 @@
 # Platform abstraction
 
 What the loader needs from the system it runs on, as interfaces in
-`src/platforms/interfaces/adl/platform/`, with one implementation per
+`libs/platform/interfaces/adl/platform/`, with one implementation per
 operating system beside them. This page is the design: the four areas
 (files, memory, threads and time, networking and message passing), why each is
 shaped as it is, how each of the operating systems provides it, and what is
@@ -21,12 +21,12 @@ Be clear about this before reading further.
 | Windows | **supported** | Built and tested by CI (MSVC, the Debug preset under AddressSanitizer on every change; the release workflow builds and tests the Release preset), and by the maintainer |
 | Linux | **supported** | Built and tested by CI (GCC, the Debug preset under AddressSanitizer and UBSan), and by the maintainer in a container (GCC 15, Debug under AddressSanitizer and UBSan, and Release) |
 | macOS | **supported, not tried by hand** | Written to the same pattern as Linux; CI has a leg that builds and tests it (AppleClang, the Debug preset under AddressSanitizer and UBSan), and it has not been run on a Mac by hand. The places most likely to need a fix are listed under [Risks](#gaps-and-risks) |
-| QNX Neutrino | **unbuilt** | Code exists (`src/platforms/qnx`, on top of the shared `posix/` sources) and has never been compiled against the QNX headers or run. The selector refuses it unless asked (`-DADL_ACCEPT_UNBUILT_PLATFORM=ON`) |
-| INTEGRITY 5.0.8 (GHS) | **unbuilt** | Code exists (`src/platforms/ghs508`, on top of `posix/`) and has never been compiled against the INTEGRITY headers or run; no GHS toolchain exists on this project's machines. [The GHS review](platform-ghs.md) lists the places INTEGRITY's POSIX may differ |
-| INTEGRITY-178B (GHS) | **unbuilt** | Code exists (`src/platforms/ghs178b`, a native port: semaphores, the virtual-clock time-out pattern, ipflite) and has never been compiled. `Threading::spawn` and the `FileSystem` are `unsupported` on purpose; [the GHS review](platform-ghs.md) says why |
+| QNX Neutrino | **unbuilt** | Code exists (`libs/platform/qnx`, on top of the shared `posix/` sources) and has never been compiled against the QNX headers or run. The selector refuses it unless asked (`-DADL_ACCEPT_UNBUILT_PLATFORM=ON`) |
+| INTEGRITY 5.0.8 (GHS) | **unbuilt** | Code exists (`libs/platform/ghs508`, on top of `posix/`) and has never been compiled against the INTEGRITY headers or run; no GHS toolchain exists on this project's machines. [The GHS review](platform-ghs.md) lists the places INTEGRITY's POSIX may differ |
+| INTEGRITY-178B (GHS) | **unbuilt** | Code exists (`libs/platform/ghs178b`, a native port: semaphores, the virtual-clock time-out pattern, ipflite) and has never been compiled. `Threading::spawn` and the `FileSystem` are `unsupported` on purpose; [the GHS review](platform-ghs.md) says why |
 | VxWorks | **design only** | No code. The fragment exists so the name is known and a build is refused with an explanation |
-| FreeRTOS | **experimental** | Built, and the conformance suite and the 615A engine tests run, in CI on the kernel's POSIX simulator port: the real kernel in a Linux process, lwIP's UDP sockets over its loopback interface, littlefs on a RAM block device (`src/platforms/freertos`, `tests/platform/freertos`). No target hardware, real network interface or flash has run it. [What was and was not verified](#the-freertos-and-zephyr-ports) |
-| Zephyr | **experimental** | Built, and the conformance suite and the 615A engine tests run, in CI on Zephyr's `native_sim` board: Zephyr's own kernel, IPv4/UDP stack (over its loopback interface) and littlefs on simulated flash, as a host process (`src/platforms/zephyr`, `tests/platform/zephyr`). No board has run it. [What was and was not verified](#the-freertos-and-zephyr-ports) |
+| FreeRTOS | **experimental** | Built, and the conformance suite and the 615A engine tests run, in CI on the kernel's POSIX simulator port: the real kernel in a Linux process, lwIP's UDP sockets over its loopback interface, littlefs on a RAM block device (`libs/platform/freertos`, `tests/platform/freertos`). No target hardware, real network interface or flash has run it. [What was and was not verified](#the-freertos-and-zephyr-ports) |
+| Zephyr | **experimental** | Built, and the conformance suite and the 615A engine tests run, in CI on Zephyr's `native_sim` board: Zephyr's own kernel, IPv4/UDP stack (over its loopback interface) and littlefs on simulated flash, as a host process (`libs/platform/zephyr`, `tests/platform/zephyr`). No board has run it. [What was and was not verified](#the-freertos-and-zephyr-ports) |
 
 *Experimental* is a status of its own: more than QNX's unbuilt code (it compiles, and a test suite passes
 on it, in CI) and less than the desktops' supported (what ran is a simulator, which has no priorities
@@ -334,7 +334,7 @@ is `Duration::max()`, and every blocking call takes a `Duration`.
 
 Five ordered levels: `lowest`, `low`, `normal`, `high`, `highest`. Each platform
 maps them onto its own range in whichever direction that runs; no native number
-leaves `src/platforms`. A runner wants `high`: it must answer a TFTP packet inside
+leaves `libs/platform`. A runner wants `high`: it must answer a TFTP packet inside
 2 seconds even while the application is busy. Everything else is `normal`; a log
 writer is `low`.
 
@@ -525,7 +525,7 @@ not. Nothing here has run on a board.
 | Operating system | FreeRTOS-Kernel V11.2.0 | Zephyr 4.4.2 |
 | Network stack | lwIP 2.2.1, its sockets API (`lwip_socket`, `lwip_poll`, ...), IPv4 and UDP | Zephyr's own stack, `zsock_*`, IPv4 and UDP |
 | Files | littlefs 2.11.3 (`lfs_*`) on a mounted `lfs_t` the product hands over (`freertos/environment.hpp`) | Zephyr's `fs_*` API on whatever the product mounts; tested on littlefs over flash |
-| How it is built | A CMake project on a host that builds the kernel, lwIP and littlefs and links the platform layer to them (`tests/platform/freertos`; a product does the same with its own kernel port and configuration) | A Zephyr module (`zephyr/module.yml`, `src/platforms/zephyr/Kconfig`) that an application turns on with `CONFIG_ADL_PLATFORM=y` |
+| How it is built | A CMake project on a host that builds the kernel, lwIP and littlefs and links the platform layer to them (`tests/platform/freertos`; a product does the same with its own kernel port and configuration) | A Zephyr module (`zephyr/module.yml`, `libs/platform/zephyr/Kconfig`) that an application turns on with `CONFIG_ADL_PLATFORM=y` |
 | Where it ran | The kernel's POSIX simulator port on Linux (GCC 15) | `native_sim/native/64` on Linux (GCC 15, the host's libstdc++), and `qemu_cortex_a9` in QEMU (the SDK's GCC 14.3, picolibc, libstdc++) |
 | Network in the run | lwIP's loopback interface: 127.0.0.1 | Zephyr's loopback interface: 127.0.0.1 |
 | Storage in the run | littlefs on a RAM block device | littlefs on the simulated flash |
@@ -686,7 +686,7 @@ that pointer; [building](building.md) says how each is built. Two tests hold thi
 
 1. Read the platform's section above and check every claim against its headers.
 2. Implement each header in `interfaces/adl/platform/` in
-   `src/platforms/<name>/`, reusing `posix/` where the system is POSIX (QNX does:
+   `libs/platform/<name>/`, reusing `posix/` where the system is POSIX (QNX does:
    it adds a handful of functions, declared in `posix/posix_os.hpp`).
 3. Fill in the fragment, set its status to `unbuilt`, and list the files.
 4. Build it. Run the conformance suite on the target (the suite needs only the
