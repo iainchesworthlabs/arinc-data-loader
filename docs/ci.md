@@ -32,6 +32,7 @@ work only.
 | Workflow | Purpose | Runs on a private copy? |
 | --- | --- | --- |
 | `ci.yml` | The gate: Policy, the planner, `clang-format`, `platform-isolation`, the documentation build, the build legs, coverage, workflow analysis, the dependency scan, and the aggregator `CI Status`; the RTOS simulators run beside it ([The jobs](#the-jobs-in-ciyml)) | yes |
+| `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
 | `docs.yml` | Publishes the documentation site to GitHub Pages when `main` moves ([Documentation site](#documentation-site)) | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
 | `release.yml` | The Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on `release/*` branches and on packaging pull requests ([Releasing](releasing.md)) | yes |
@@ -183,6 +184,7 @@ find is therefore found once, on the merged tree, and not on every pull request.
 | `macOS (AppleClang, Release)` | macos-26 (Apple silicon) | Preset `macos-release`: AppleClang from Xcode builds warning-free and all of ctest passes. |
 | `Windows (MSVC, Release)` | windows-2025-vs2026 | Preset `windows-msvc-release` builds warning-free (`/W4 /WX`) and all of ctest passes. |
 | `Windows (MSVC, ASan)` | windows-2025-vs2026 | Preset `windows-msvc-asan`: the same under AddressSanitizer. |
+| `Fuzz regression (Linux, Clang)` | ubuntu-26.04 | Preset `linux-fuzz` builds the libFuzzer harnesses with Clang 23, and every seed input and every past crash replays without a finding ([Fuzzing](fuzzing.md)). **Fast.** |
 | `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the ARINC 665 and 615A libraries, the second TFTP implementation, the runner, the media tree, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. A **second pass** measures the applications' window-free logic (`apps/app/core`, `apps/mock_target/core`, `apps/media_gen/core`, Qt's generated files left out) at a lower floor, set a little under what the suite measures ([testing](testing.md#coverage)), and fails when it measures too little; the job therefore installs the Qt kit and configures with `-DADL_BUILD_APP=ON`. The windows' QML cannot be measured and is covered by the UI suite on the build legs. **Fast.** |
 | `Workflow analysis` | ubuntu-24.04 | `zizmor` finds nothing in the workflows. |
 | `Scan dependency diff` | ubuntu-24.04 | The change adds no moderate-or-worse known vulnerability (GitHub Actions and the vcpkg manifest). |
@@ -297,8 +299,8 @@ gh workflow run ci.yml --ref <branch> -f legs=macos
 gh workflow run ci.yml --ref <branch> -f legs=clang-format,linux
 ```
 
-`legs` is comma-separated with no spaces: `clang-format`, `platform-isolation`, `docs`, `windows`,
-`linux`, `tsan`, `macos`, `coverage`, `zephyr`, `freertos`, or `all` (the default). An unknown name
+`legs` is comma-separated with no spaces: `clang-format`, `platform-isolation`, `docs`, `fuzz`,
+`windows`, `linux`, `tsan`, `macos`, `coverage`, `zephyr`, `freertos`, or `all` (the default). An unknown name
 fails the run rather than running nothing. A dispatched run reports its aggregator as `dispatch - CI
 Status`, deliberately not the name of the required check: a run that skips legs would otherwise
 satisfy it on the branch's head commit. The `deep` label on a pull request builds every leg on that

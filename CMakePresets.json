@@ -351,6 +351,21 @@
       }
     },
     {
+      "name": "linux-fuzz",
+      "displayName": "Linux (libFuzzer with ASan and UBSan; use Clang)",
+      "description": "Builds the libraries and the libFuzzer harnesses only; ctest --preset linux-fuzz replays the seed corpus and the past crashes",
+      "inherits": [
+        "linux-base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ADL_ENABLE_FUZZING": "ON",
+        "ADL_BUILD_TESTS": "OFF",
+        "ADL_BUILD_APP": "OFF"
+      }
+    },
+    {
       "name": "macos-release",
       "displayName": "macOS (Release)",
       "inherits": [
@@ -392,7 +407,8 @@
     { "name": "linux-tsan", "configurePreset": "linux-tsan" },
     { "name": "linux-coverage", "configurePreset": "linux-coverage" },
     { "name": "macos-release", "configurePreset": "macos-release" },
-    { "name": "windows-msvc-asan", "configurePreset": "windows-msvc-asan" }
+    { "name": "windows-msvc-asan", "configurePreset": "windows-msvc-asan" },
+    { "name": "linux-fuzz", "configurePreset": "linux-fuzz" }
   ],
   "testPresets": [
     {
@@ -435,6 +451,7 @@
     },
     { "name": "linux-coverage", "configurePreset": "linux-coverage", "inherits": ["base"] },
     { "name": "macos-release", "configurePreset": "macos-release", "inherits": ["base"] },
-    { "name": "windows-msvc-asan", "configurePreset": "windows-msvc-asan", "inherits": ["base"] }
+    { "name": "windows-msvc-asan", "configurePreset": "windows-msvc-asan", "inherits": ["base"] },
+    { "name": "linux-fuzz", "configurePreset": "linux-fuzz", "inherits": ["base"], "filter": { "include": { "label": "fuzz" } } }
   ]
 }

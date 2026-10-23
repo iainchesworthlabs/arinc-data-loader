@@ -58,6 +58,7 @@ include(AdlInstall)
 include(CompilerWarnings)
 include(StaticAnalysis)
 include(Sanitizers)
+include(Fuzzing)
 # Vendored from icl-common-infra (cmake/icl/SOURCE): ICL_SANITIZERS picks a sanitizer set for every
 # configuration (the linux-asan-ubsan, linux-tsan and windows-msvc-asan presets), and icl::hardening
 # adds the stack protector, control-flow protection, RELRO and the like to every target below.
@@ -103,7 +104,7 @@ add_subdirectory(libs/platform)
 
 # Tests are registered from the source directories too (the translation checks sit beside the
 # catalogues they check), so testing has to be on before any of them is added.
-if(ADL_BUILD_TESTS)
+if(ADL_BUILD_TESTS OR ADL_ENABLE_FUZZING)
     enable_testing()
 endif()
 

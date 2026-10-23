@@ -72,6 +72,7 @@ The project overview is the [README](../README.md); what changed is the [changel
 | [Building](building.md) | Requirements, presets, options, the demonstration, sample payloads |
 | [Testing](testing.md) | The three test tiers, the UI suite, coverage, what each test holds down |
 | [CI](ci.md) | What each continuous-integration job proves, and which are required |
+| [Fuzzing](fuzzing.md) | The libFuzzer harnesses of the decoders, their seeds, and what to do with a crash |
 | [Static analysis](static-analysis.md) | The nightly analysers, how to run them, the suppression rules |
 | [Profiling](profiling.md) | The opt-in Tracy build |
 | [Repository settings](repository-settings.md) | The repository rules, rulesets and how they are applied |
