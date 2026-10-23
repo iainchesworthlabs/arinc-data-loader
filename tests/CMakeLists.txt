@@ -279,8 +279,9 @@ endif()
 # The development package (cmake/AdlInstall.cmake): install its component into a scratch prefix and
 # build a program against it with find_package(adl). Only for an optimised build: the Debug presets
 # compile the libraries with the sanitizers, and a program that links such a library has to be
-# built with them too, which is not what a user of the package does.
-if(ADL_PLATFORM_DESKTOP AND CMAKE_BUILD_TYPE MATCHES "^(Release|RelWithDebInfo|MinSizeRel)$")
+# built with them too, which is not what a user of the package does. The same holds for the
+# sanitizer presets (ICL_SANITIZERS), which build RelWithDebInfo.
+if(ADL_PLATFORM_DESKTOP AND CMAKE_BUILD_TYPE MATCHES "^(Release|RelWithDebInfo|MinSizeRel)$" AND NOT ICL_SANITIZERS)
     add_test(NAME system.install_consumer
         COMMAND "${CMAKE_COMMAND}"
             "-DBUILD_DIR=${CMAKE_BINARY_DIR}"

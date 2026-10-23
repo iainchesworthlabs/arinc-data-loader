@@ -253,6 +253,33 @@ presets (`windows-msvc-analyze`, `linux-gcc-coverage`, `linux-gcc-tidy`,
 `linux-gcc-sonar`), which turn the sanitizers off on purpose; every first-party
 target is built with warnings as errors.
 
+### The standard presets
+
+CI builds with these names, which are the same in every repository of the organisation. They leave
+the compiler to `CC` and `CXX` (Linux), so the same preset serves GCC and Clang.
+
+| Preset | Host | Builds |
+| --- | --- | --- |
+| `linux-debug` | Linux | Debug, sanitizers off |
+| `linux-release` | Linux | Release |
+| `linux-asan-ubsan` | Linux | RelWithDebInfo at `-O1` with AddressSanitizer and UndefinedBehaviorSanitizer (`ICL_SANITIZERS=address,undefined`) |
+| `linux-tsan` | Linux | The same with ThreadSanitizer (`ICL_SANITIZERS=thread`); use Clang |
+| `linux-coverage` | Linux | Debug with gcov instrumentation, sanitizers off |
+| `macos-release` | macOS | Release |
+| `windows-msvc-release` | Windows | Release |
+| `windows-msvc-asan` | Windows | RelWithDebInfo with AddressSanitizer |
+
+The sanitizer presets set `ICL_SANITIZERS` (vendored `cmake/icl/IclSanitizers.cmake`), which applies to
+every configuration and cannot be combined with Tracy or coverage. `ctest --preset linux-tsan` leaves
+out the tests that run Qt's event loop and threads (names starting `app.`, `mock.`, `media_gen.`,
+`ui.`, `loopback.` and `system.adl_`): Qt and glib are not built with ThreadSanitizer, so it reports
+their hand-off between threads as races. The platform, engine and library tests run under it.
+
+Every first-party target is also built with the hardening options of `cmake/icl/IclHardening.cmake`
+(stack protector, `_FORTIFY_SOURCE=3` in optimised builds, control-flow protection, RELRO and position
+independent code on Linux; `/GS /guard:cf /sdl` on MSVC). They are build options of the targets and
+are not part of the installed `adl` package.
+
 ## Options
 
 | Option | Default | Does |

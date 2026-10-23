@@ -276,6 +276,97 @@
         "ghs178b-ghs-base",
         "release"
       ]
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "description": "Linux with whichever compiler CC and CXX name (CI sets them); the standard presets build on it",
+      "inherits": [
+        "base"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux (Debug, no sanitizers)",
+      "inherits": [
+        "linux-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_ENABLE_SANITIZERS": "OFF"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux (Release)",
+      "inherits": [
+        "linux-base",
+        "release"
+      ]
+    },
+    {
+      "name": "linux-asan-ubsan",
+      "displayName": "Linux (AddressSanitizer and UBSan, -O1)",
+      "inherits": [
+        "linux-base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ICL_SANITIZERS": "address,undefined"
+      }
+    },
+    {
+      "name": "linux-tsan",
+      "displayName": "Linux (ThreadSanitizer, -O1)",
+      "inherits": [
+        "linux-base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ADL_ENABLE_SANITIZERS": "OFF",
+        "ICL_SANITIZERS": "thread"
+      }
+    },
+    {
+      "name": "linux-coverage",
+      "displayName": "Linux (Coverage)",
+      "inherits": [
+        "linux-base",
+        "debug"
+      ],
+      "cacheVariables": {
+        "ADL_ENABLE_COVERAGE": "ON",
+        "ADL_ENABLE_SANITIZERS": "OFF"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS (Release)",
+      "inherits": [
+        "macos-clang-base",
+        "release"
+      ]
+    },
+    {
+      "name": "windows-msvc-asan",
+      "displayName": "Windows (MSVC, AddressSanitizer)",
+      "inherits": [
+        "windows-msvc-base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ADL_ENABLE_SANITIZERS": "ON",
+        "ICL_SANITIZERS": "address"
+      }
     }
   ],
   "buildPresets": [
@@ -292,7 +383,14 @@
     { "name": "ghs508-ghs-debug", "configurePreset": "ghs508-ghs-debug" },
     { "name": "ghs508-ghs-release", "configurePreset": "ghs508-ghs-release" },
     { "name": "ghs178b-ghs-debug", "configurePreset": "ghs178b-ghs-debug" },
-    { "name": "ghs178b-ghs-release", "configurePreset": "ghs178b-ghs-release" }
+    { "name": "ghs178b-ghs-release", "configurePreset": "ghs178b-ghs-release" },
+    { "name": "linux-debug", "configurePreset": "linux-debug" },
+    { "name": "linux-release", "configurePreset": "linux-release" },
+    { "name": "linux-asan-ubsan", "configurePreset": "linux-asan-ubsan" },
+    { "name": "linux-tsan", "configurePreset": "linux-tsan" },
+    { "name": "linux-coverage", "configurePreset": "linux-coverage" },
+    { "name": "macos-release", "configurePreset": "macos-release" },
+    { "name": "windows-msvc-asan", "configurePreset": "windows-msvc-asan" }
   ],
   "testPresets": [
     {
@@ -318,6 +416,23 @@
     { "name": "linux-gcc-coverage", "configurePreset": "linux-gcc-coverage", "inherits": ["base"] },
     { "name": "linux-clang-debug", "configurePreset": "linux-clang-debug", "inherits": ["base"] },
     { "name": "macos-clang-debug", "configurePreset": "macos-clang-debug", "inherits": ["base"] },
-    { "name": "macos-clang-release", "configurePreset": "macos-clang-release", "inherits": ["base"] }
+    { "name": "macos-clang-release", "configurePreset": "macos-clang-release", "inherits": ["base"] },
+    { "name": "linux-debug", "configurePreset": "linux-debug", "inherits": ["base"] },
+    { "name": "linux-release", "configurePreset": "linux-release", "inherits": ["base"] },
+    { "name": "linux-asan-ubsan", "configurePreset": "linux-asan-ubsan", "inherits": ["base"] },
+    {
+      "name": "linux-tsan",
+      "configurePreset": "linux-tsan",
+      "inherits": ["base"],
+      "description": "Not the tests that run Qt's event loop or threads: Qt and glib are not built with ThreadSanitizer, so it reports their hand-off between threads (queued signals, eventfd) as races. The platform, engine and library tests run.",
+      "filter": {
+        "exclude": {
+          "name": "^(app|mock|media_gen|ui|loopback)\\.|^system\\.adl_"
+        }
+      }
+    },
+    { "name": "linux-coverage", "configurePreset": "linux-coverage", "inherits": ["base"] },
+    { "name": "macos-release", "configurePreset": "macos-release", "inherits": ["base"] },
+    { "name": "windows-msvc-asan", "configurePreset": "windows-msvc-asan", "inherits": ["base"] }
   ]
 }

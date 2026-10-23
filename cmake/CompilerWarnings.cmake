@@ -70,3 +70,9 @@ else()
         "$<$<CXX_COMPILER_ID:MSVC>:${ADL_MSVC_WARNINGS}>"
         "$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${ADL_GNU_CLANG_WARNINGS}>")
 endif()
+
+# GCC 16.2 at -O3 reports a false positive from -Wrestrict for a std::string concatenation
+# (std::string{directory} + "/" + name in apps/app/core/src/download_directory.cpp: "accessing
+# 9223372036854775806 bytes ... overlaps"), where the compiler assumes the longest possible
+# length for a string_view. The warning stays visible; it is not an error.
+target_compile_options(adl_warnings INTERFACE "$<$<CXX_COMPILER_ID:GNU>:-Wno-error=restrict>")
