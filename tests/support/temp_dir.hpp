@@ -9,11 +9,14 @@
 #include <string>
 #include <system_error>
 
-namespace adl::test {
+namespace adl::test
+{
 
-class TempDir {
+class TempDir
+{
 public:
-    TempDir() {
+    TempDir()
+    {
         static std::atomic<unsigned> counter{0};
         std::random_device random;
         path_ = std::filesystem::temp_directory_path() /
@@ -24,15 +27,19 @@ public:
     TempDir(const TempDir&) = delete;
     TempDir& operator=(const TempDir&) = delete;
 
-    ~TempDir() {
+    ~TempDir()
+    {
         std::error_code ec;
         std::filesystem::remove_all(path_, ec);
     }
 
-    [[nodiscard]] const std::filesystem::path& path() const noexcept { return path_; }
+    [[nodiscard]] const std::filesystem::path& path() const noexcept
+    {
+        return path_;
+    }
 
 private:
     std::filesystem::path path_;
 };
 
-}  // namespace adl::test
+} // namespace adl::test

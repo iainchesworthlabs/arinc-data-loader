@@ -4,22 +4,26 @@
 #include <QSettings>
 #include <QtGlobal>
 
-namespace adl::ui {
+namespace adl::ui
+{
 
-void redirect_settings_to(const QString& directory) {
+void redirect_settings_to(const QString& directory)
+{
     QDir().mkpath(directory);
     QSettings::setDefaultFormat(QSettings::IniFormat);
     QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, directory);
     QSettings::setPath(QSettings::IniFormat, QSettings::SystemScope, directory);
 }
 
-QString redirect_settings_from_environment() {
+QString redirect_settings_from_environment()
+{
     const QString directory = qEnvironmentVariable(settings_directory_variable);
-    if (directory.isEmpty()) {
+    if (directory.isEmpty())
+    {
         return {};
     }
     redirect_settings_to(directory);
     return directory;
 }
 
-}  // namespace adl::ui
+} // namespace adl::ui

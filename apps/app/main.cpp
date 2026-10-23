@@ -1,14 +1,3 @@
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-#include <QQuickStyle>
-#include <QQuickWindow>
-#include <QVariant>
-
-#include <optional>
-
-#include <adl/profiling.hpp>
-
 #include "adl/app/loader_model.hpp"
 #include "adl/ui/build_info.hpp"
 #include "adl/ui/fonts.hpp"
@@ -19,7 +8,18 @@
 #include "adl/ui/window_state.hpp"
 #include "frame_profiler.hpp"
 
-int main(int argc, char* argv[]) {
+#include <adl/profiling.hpp>
+
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QQuickStyle>
+#include <QQuickWindow>
+#include <QVariant>
+#include <optional>
+
+int main(int argc, char* argv[])
+{
     QGuiApplication application(argc, argv);
     QGuiApplication::setApplicationName(QStringLiteral("ARINC Data Loader"));
     QGuiApplication::setApplicationVersion(QString::fromLatin1(adl::ui::kVersion));
@@ -34,7 +34,8 @@ int main(int argc, char* argv[]) {
 
     // One look on every desktop, drawn by Qt Quick itself (the style can still be overridden with
     // QT_QUICK_CONTROLS_STYLE).
-    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE")) {
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE"))
+    {
         QQuickStyle::setStyle(QStringLiteral("Fusion"));
     }
 
@@ -57,8 +58,8 @@ int main(int argc, char* argv[]) {
     adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
 
     QObject::connect(
-        &*engine, &QQmlApplicationEngine::objectCreationFailed, &application,
-        [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
+        &*engine, &QQmlApplicationEngine::objectCreationFailed, &application, [] { QCoreApplication::exit(1); },
+        Qt::QueuedConnection);
     engine->setInitialProperties({{QStringLiteral("app"), QVariant::fromValue(&model)}});
     {
         // The QML is compiled and instantiated inside this zone: the window's start-up cost.
@@ -69,8 +70,10 @@ int main(int argc, char* argv[]) {
     // The window's frame loop, for the trace: frame marks, the frame interval and the render
     // thread's time. Destroyed after the engine below, once no signal can arrive.
     std::optional<adl::app::FrameProfiler> frame_profiler;
-    if (!engine->rootObjects().isEmpty()) {
-        if (auto* window = qobject_cast<QQuickWindow*>(engine->rootObjects().constFirst())) {
+    if (!engine->rootObjects().isEmpty())
+    {
+        if (auto* window = qobject_cast<QQuickWindow*>(engine->rootObjects().constFirst()))
+        {
             frame_profiler.emplace(window);
             adl::ui::install_window_state(window);
             adl::ui::install_smoke_test(window);

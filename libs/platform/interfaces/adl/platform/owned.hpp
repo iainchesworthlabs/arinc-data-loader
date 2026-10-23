@@ -19,10 +19,12 @@
 #include <new>
 #include <utility>
 
-namespace adl::platform {
+namespace adl::platform
+{
 
 template <class T>
-class Recycler {
+class Recycler
+{
 public:
     // Destroys `object` and frees whatever held it. Called by the handle.
     virtual void recycle(T* object) noexcept = 0;
@@ -32,16 +34,22 @@ protected:
 };
 
 template <class T>
-struct Delete {
-    Recycler<T>* recycler = nullptr;  // null: delete it
+struct Delete
+{
+    Recycler<T>* recycler = nullptr; // null: delete it
 
-    void operator()(T* object) const noexcept {
-        if (object == nullptr) {
+    void operator()(T* object) const noexcept
+    {
+        if (object == nullptr)
+        {
             return;
         }
-        if (recycler != nullptr) {
+        if (recycler != nullptr)
+        {
             recycler->recycle(object);
-        } else {
+        }
+        else
+        {
             delete object;
         }
     }
@@ -54,15 +62,17 @@ using Owned = std::unique_ptr<T, Delete<T>>;
 // handle to `Base`; empty if the allocation failed. `Derived`'s constructor
 // must not throw. For the platform implementations that run on a heap.
 template <class Base, class Derived, class... Args>
-[[nodiscard]] Owned<Base> make_owned_nothrow(Args&&... args) noexcept {
+[[nodiscard]] Owned<Base> make_owned_nothrow(Args&&... args) noexcept
+{
     Derived* object = new (std::nothrow) Derived(std::forward<Args>(args)...);
     return Owned<Base>(object, Delete<Base>{});
 }
 
 // Takes a `Derived` that a caller already made with new, as a handle to `Base`.
 template <class Base, class Derived>
-[[nodiscard]] Owned<Base> adopt(std::unique_ptr<Derived> object) noexcept {
+[[nodiscard]] Owned<Base> adopt(std::unique_ptr<Derived> object) noexcept
+{
     return Owned<Base>(object.release(), Delete<Base>{});
 }
 
-}  // namespace adl::platform
+} // namespace adl::platform

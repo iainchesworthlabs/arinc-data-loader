@@ -11,8 +11,6 @@
 //                  put a simulated loader and a simulated target on the same
 //                  network at different addresses.
 
-#include <memory>
-
 #include "adl/platform/host.hpp"
 #include "adl/platform/ring_ipc.hpp"
 #include "fake_network.hpp"
@@ -20,26 +18,66 @@
 #include "fake_threading.hpp"
 #include "fake_world.hpp"
 
-namespace adl::fake {
+#include <memory>
 
-class FakeHost final : public platform::Host {
+namespace adl::fake
+{
+
+class FakeHost final : public platform::Host
+{
 public:
     FakeHost(FakeWorld& world, FakeNetwork& network, platform::Ipv4Address address);
 
-    platform::HostInfo info() const noexcept override { return {"fake", false}; }
-    platform::Clock& clock() noexcept override { return clock_; }
-    platform::MemoryProvider& memory() noexcept override { return memory_; }
-    platform::FileSystem& files() noexcept override { return files_; }
-    platform::Threading& threads() noexcept override { return threads_; }
-    platform::Network& network() noexcept override { return network_; }
-    platform::Ipc& ipc() noexcept override { return ipc_; }
+    platform::HostInfo info() const noexcept override
+    {
+        return {"fake", false};
+    }
+    platform::Clock& clock() noexcept override
+    {
+        return clock_;
+    }
+    platform::MemoryProvider& memory() noexcept override
+    {
+        return memory_;
+    }
+    platform::FileSystem& files() noexcept override
+    {
+        return files_;
+    }
+    platform::Threading& threads() noexcept override
+    {
+        return threads_;
+    }
+    platform::Network& network() noexcept override
+    {
+        return network_;
+    }
+    platform::Ipc& ipc() noexcept override
+    {
+        return ipc_;
+    }
 
     // The concrete fakes, for the knobs a test turns.
-    [[nodiscard]] FakeClock& fake_clock() noexcept { return clock_; }
-    [[nodiscard]] FakeMemory& fake_memory() noexcept { return memory_; }
-    [[nodiscard]] MemoryFileSystem& fake_files() noexcept { return files_; }
-    [[nodiscard]] FakeThreading& fake_threads() noexcept { return threads_; }
-    [[nodiscard]] FakeNetworkNode& fake_network() noexcept { return network_; }
+    [[nodiscard]] FakeClock& fake_clock() noexcept
+    {
+        return clock_;
+    }
+    [[nodiscard]] FakeMemory& fake_memory() noexcept
+    {
+        return memory_;
+    }
+    [[nodiscard]] MemoryFileSystem& fake_files() noexcept
+    {
+        return files_;
+    }
+    [[nodiscard]] FakeThreading& fake_threads() noexcept
+    {
+        return threads_;
+    }
+    [[nodiscard]] FakeNetworkNode& fake_network() noexcept
+    {
+        return network_;
+    }
 
 private:
     FakeClock clock_;
@@ -50,15 +88,26 @@ private:
     platform::RingIpc ipc_;
 };
 
-class FakeSystem {
+class FakeSystem
+{
 public:
-    explicit FakeSystem(std::uint64_t seed = 1,
-                        platform::Ipv4Address address = platform::Ipv4Address::loopback())
-        : world_(seed), network_(world_), host_(world_, network_, address) {}
+    explicit FakeSystem(std::uint64_t seed = 1, platform::Ipv4Address address = platform::Ipv4Address::loopback())
+        : world_(seed), network_(world_), host_(world_, network_, address)
+    {
+    }
 
-    [[nodiscard]] FakeWorld& world() noexcept { return world_; }
-    [[nodiscard]] FakeNetwork& network() noexcept { return network_; }
-    [[nodiscard]] FakeHost& host() noexcept { return host_; }
+    [[nodiscard]] FakeWorld& world() noexcept
+    {
+        return world_;
+    }
+    [[nodiscard]] FakeNetwork& network() noexcept
+    {
+        return network_;
+    }
+    [[nodiscard]] FakeHost& host() noexcept
+    {
+        return host_;
+    }
 
 private:
     FakeWorld world_;
@@ -66,4 +115,4 @@ private:
     FakeHost host_;
 };
 
-}  // namespace adl::fake
+} // namespace adl::fake

@@ -11,8 +11,6 @@
 // driven by time and bytes handed to it), the runner needs the clock and the
 // network, the file source needs files.
 
-#include <memory>
-
 #include "adl/platform/error.hpp"
 #include "adl/platform/files.hpp"
 #include "adl/platform/ipc.hpp"
@@ -21,17 +19,22 @@
 #include "adl/platform/threads.hpp"
 #include "adl/platform/time.hpp"
 
-namespace adl::platform {
+#include <memory>
+
+namespace adl::platform
+{
 
 // What a Host is, for a log line and for the few decisions that depend on it.
-struct HostInfo {
-    const char* name = "";  // "windows", "linux", "macos" or "fake"
+struct HostInfo
+{
+    const char* name = ""; // "windows", "linux", "macos" or "fake"
     // The platform has real-time scheduling worth the name. A desktop has not:
     // it can be late, and the loader's time-outs are written to tolerate that.
     bool real_time = false;
 };
 
-class Host {
+class Host
+{
 public:
     virtual ~Host() = default;
 
@@ -54,4 +57,4 @@ public:
 // returns live as long as the Host.
 [[nodiscard]] Result<std::unique_ptr<Host>> make_host() noexcept;
 
-}  // namespace adl::platform
+} // namespace adl::platform

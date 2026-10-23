@@ -5,21 +5,23 @@
 // CRCs and check values; verify_load() checks a complete one end to end; and
 // check_load() reports where it departs from the standard's recommendations.
 
-#include <cstddef>
-#include <optional>
-#include <string>
-#include <vector>
-
 #include "adl/arinc665/check_value_type.hpp"
 #include "adl/arinc665/error.hpp"
 #include "adl/arinc665/finding.hpp"
 #include "adl/arinc665/header_file.hpp"
 #include "adl/arinc665/part_number.hpp"
 
-namespace adl::arinc665 {
+#include <cstddef>
+#include <optional>
+#include <string>
+#include <vector>
+
+namespace adl::arinc665
+{
 
 // The bytes of a file together with its name.
-struct FileContent {
+struct FileContent
+{
     std::string name;
     std::vector<std::byte> bytes;
 
@@ -28,32 +30,35 @@ struct FileContent {
 
 // A data or support file to put into a load, and the check value to record for
 // it in the header file.
-struct LoadFileSpec {
+struct LoadFileSpec
+{
     std::string name;
     PartNumber part_number;
     std::vector<std::byte> content;
-    CheckValueType check_type = CheckValueType::none;  // none: record no check value
+    CheckValueType check_type = CheckValueType::none; // none: record no check value
 };
 
 // What a person decides about a load. Everything else in it (the lengths, the
 // CRCs, the check values, the pointers) follows from this, and build_load()
 // works it out.
-struct LoadSpec {
-    std::string header_file_name;  // for example "ACM47.LUH"
+struct LoadSpec
+{
+    std::string header_file_name; // for example "ACM47.LUH"
     PartFlags part_flags;
     PartNumber part_number;
     std::optional<LoadType> load_type;
     std::vector<std::string> target_hardware_ids;
     std::vector<TargetHardware> target_hardware_ids_with_positions;
-    std::vector<LoadFileSpec> data_files;     // at least one
-    std::vector<LoadFileSpec> support_files;  // for example CONFIG.LDR
+    std::vector<LoadFileSpec> data_files;    // at least one
+    std::vector<LoadFileSpec> support_files; // for example CONFIG.LDR
     std::vector<std::byte> user_defined_data;
-    CheckValueType load_check_type = CheckValueType::none;  // none: record no load check value
+    CheckValueType load_check_type = CheckValueType::none; // none: record no load check value
 };
 
 // A complete software load: the header file as it is written, the model it
 // decodes to, and the data and support files in the order the header lists them.
-struct Load {
+struct Load
+{
     std::string header_file_name;
     HeaderFile header;
     std::vector<std::byte> header_bytes;
@@ -84,4 +89,4 @@ struct Load {
 // header file and in the header file's name.
 [[nodiscard]] Findings check_load(const Load& load);
 
-}  // namespace adl::arinc665
+} // namespace adl::arinc665

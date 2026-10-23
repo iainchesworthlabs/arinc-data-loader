@@ -1,29 +1,3 @@
-#include <algorithm>
-#include <chrono>
-#include <cstdint>
-#include <cstring>
-#include <expected>
-#include <filesystem>
-#include <fstream>
-#include <iterator>
-#include <memory>
-#include <optional>
-#include <span>
-#include <string>
-#include <vector>
-
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
-#include <QPointer>
-#include <QSemaphore>
-#include <QSettings>
-#include <QSignalSpy>
-#include <QTemporaryDir>
-#include <QTest>
-#include <QTranslator>
-#include <QUrl>
-
 #include "adl/app/loader_model.hpp"
 #include "adl/app/media_set_summary.hpp"
 #include "adl/app/message.hpp"
@@ -40,16 +14,45 @@
 #include "test_classes.hpp"
 #include "upload_fixture.hpp"
 
+#include <QCoreApplication>
+#include <QDir>
+#include <QFileInfo>
+#include <QPointer>
+#include <QSemaphore>
+#include <QSettings>
+#include <QSignalSpy>
+#include <QTemporaryDir>
+#include <QTest>
+#include <QTranslator>
+#include <QUrl>
+#include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <cstring>
+#include <expected>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <memory>
+#include <optional>
+#include <span>
+#include <string>
+#include <vector>
+
 using namespace adl::app;
 
-namespace {
+namespace
+{
 
 // The engine's host: the loader's side of a rig (a fake network with a simulated target on it).
 // With a semaphore, the worker's thread waits for it before it gets the host, which lets a test
 // do something while a job is certain to be running, however fast the (virtual) time would be.
-HostFactory rig_host(adl::test::Rig& rig, QSemaphore* hold = nullptr) {
-    return [&rig, hold]() -> std::expected<HostLease, QString> {
-        if (hold != nullptr) {
+HostFactory rig_host(adl::test::Rig& rig, QSemaphore* hold = nullptr)
+{
+    return [&rig, hold]() -> std::expected<HostLease, QString>
+    {
+        if (hold != nullptr)
+        {
             hold->acquire();
         }
         HostLease lease;
@@ -60,8 +63,10 @@ HostFactory rig_host(adl::test::Rig& rig, QSemaphore* hold = nullptr) {
 
 // The loader's host with a gate in its file calls (see gated_host.hpp): the engine's thread can be
 // stopped half way through a transfer, with the target certainly still at it.
-HostFactory gated_host(adl::test::GatedHost& gated) {
-    return [&gated]() -> std::expected<HostLease, QString> {
+HostFactory gated_host(adl::test::GatedHost& gated)
+{
+    return [&gated]() -> std::expected<HostLease, QString>
+    {
         HostLease lease;
         lease.host = &gated;
         return lease;
@@ -72,21 +77,23 @@ HostFactory gated_host(adl::test::GatedHost& gated) {
 // of another one. Without a directory it is a file in the scratch directory of the test that is
 // running (init() moves that on before each test), the same place a QSettings made without
 // arguments uses, so nothing is shared with another test or another run.
-std::unique_ptr<AppSettings> settings_in(
-    const QString& file = adl::test::scratch_settings().file()) {
+std::unique_ptr<AppSettings> settings_in(const QString& file = adl::test::scratch_settings().file())
+{
     return std::make_unique<AppSettings>(std::make_unique<QSettings>(file, QSettings::IniFormat));
 }
 
-std::unique_ptr<AppSettings> settings_in(QTemporaryDir& directory,
-                                         const QString& name = QStringLiteral("settings.ini")) {
-    return std::make_unique<AppSettings>(
-        std::make_unique<QSettings>(directory.filePath(name), QSettings::IniFormat));
+std::unique_ptr<AppSettings> settings_in(QTemporaryDir& directory, const QString& name = QStringLiteral("settings.ini"))
+{
+    return std::make_unique<AppSettings>(std::make_unique<QSettings>(directory.filePath(name), QSettings::IniFormat));
 }
 
-bool log_contains(LoaderModel& model, const QString& text) {
+bool log_contains(LoaderModel& model, const QString& text)
+{
     const auto* events = qobject_cast<EventModel*>(model.events());
-    for (int row = 0; row < events->rowCount(); ++row) {
-        if (events->data(events->index(row), EventModel::TextRole).toString().contains(text)) {
+    for (int row = 0; row < events->rowCount(); ++row)
+    {
+        if (events->data(events->index(row), EventModel::TextRole).toString().contains(text))
+        {
             return true;
         }
     }
@@ -94,11 +101,14 @@ bool log_contains(LoaderModel& model, const QString& text) {
 }
 
 // How many lines of the activity log contain `text`.
-int log_count(LoaderModel& model, const QString& text) {
+int log_count(LoaderModel& model, const QString& text)
+{
     const auto* events = qobject_cast<EventModel*>(model.events());
     int count = 0;
-    for (int row = 0; row < events->rowCount(); ++row) {
-        if (events->data(events->index(row), EventModel::TextRole).toString().contains(text)) {
+    for (int row = 0; row < events->rowCount(); ++row)
+    {
+        if (events->data(events->index(row), EventModel::TextRole).toString().contains(text))
+        {
             ++count;
         }
     }
@@ -107,7 +117,8 @@ int log_count(LoaderModel& model, const QString& text) {
 
 // Reads the fixture's media set through the model and waits for it (the read, then the check
 // that follows it while validateOnOpen is on).
-void read_the_media_set(LoaderModel& model, const adl::test::UploadFixture& fixture) {
+void read_the_media_set(LoaderModel& model, const adl::test::UploadFixture& fixture)
+{
     model.chooseMediaSet(fixture.url());
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QVERIFY2(model.mediaSetError().isEmpty(), qPrintable(model.mediaSetError()));
@@ -115,22 +126,26 @@ void read_the_media_set(LoaderModel& model, const adl::test::UploadFixture& fixt
 }
 
 // Waits until the model is idle and the check that was running has been recorded.
-void wait_for_the_check(LoaderModel& model, int expected_state) {
+void wait_for_the_check(LoaderModel& model, int expected_state)
+{
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QCOMPARE(model.validationState(), expected_state);
 }
 
-void tick(LoaderModel& model, int row, bool ticked = true) {
+void tick(LoaderModel& model, int row, bool ticked = true)
+{
     auto* loads = qobject_cast<LoadModel*>(model.loads());
     QVERIFY(loads->setData(loads->index(row), ticked, LoadModel::CheckedRole));
 }
 
-QVariant load_field(LoaderModel& model, int row, int role) {
+QVariant load_field(LoaderModel& model, int row, int role)
+{
     auto* loads = qobject_cast<LoadModel*>(model.loads());
     return loads->data(loads->index(row), role);
 }
 
-void point_at_the_target(LoaderModel& model) {
+void point_at_the_target(LoaderModel& model)
+{
     model.setTargetAddress(QStringLiteral("10.0.0.2"));
     model.setThwIdPos(QStringLiteral("HNPFMS_L"));
 }
@@ -138,15 +153,18 @@ void point_at_the_target(LoaderModel& model) {
 // The bytes of the file called `name` somewhere below `root`, and its path (empty when there is
 // no such file).
 std::vector<std::byte> read_file(const std::filesystem::path& root, const std::string& name,
-                                 std::filesystem::path* where = nullptr) {
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(root)) {
-        if (entry.is_regular_file() && entry.path().filename().string() == name) {
-            if (where != nullptr) {
+                                 std::filesystem::path* where = nullptr)
+{
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(root))
+    {
+        if (entry.is_regular_file() && entry.path().filename().string() == name)
+        {
+            if (where != nullptr)
+            {
                 *where = entry.path();
             }
             std::ifstream in(entry.path(), std::ios::binary);
-            const std::vector<char> text{std::istreambuf_iterator<char>(in),
-                                         std::istreambuf_iterator<char>()};
+            const std::vector<char> text{std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
             std::vector<std::byte> bytes(text.size());
             std::memcpy(bytes.data(), text.data(), text.size());
             return bytes;
@@ -156,17 +174,17 @@ std::vector<std::byte> read_file(const std::filesystem::path& root, const std::s
 }
 
 // The 16-bit CRC of the bytes, as FILES.LUM writes it (four hexadecimal digits).
-QString crc16_hex_of(std::span<const std::byte> bytes) {
-    const auto value =
-        adl::arinc665::compute_check_value(adl::arinc665::CheckValueType::crc16, bytes);
-    const std::uint16_t crc =
-        static_cast<std::uint16_t>((std::to_integer<unsigned>(value->bytes[0]) << 8) |
-                                   std::to_integer<unsigned>(value->bytes[1]));
+QString crc16_hex_of(std::span<const std::byte> bytes)
+{
+    const auto value = adl::arinc665::compute_check_value(adl::arinc665::CheckValueType::crc16, bytes);
+    const std::uint16_t crc = static_cast<std::uint16_t>((std::to_integer<unsigned>(value->bytes[0]) << 8) |
+                                                         std::to_integer<unsigned>(value->bytes[1]));
     return QStringLiteral("%1").arg(crc, 4, 16, QLatin1Char('0')).toUpper();
 }
 
 // The plan of a download: three files the simulated target can give.
-adl::test::SimPlan download_plan() {
+adl::test::SimPlan download_plan()
+{
     adl::test::SimPlan plan;
     plan.files = {
         adl::test::DownloadItem{"A.BIN", adl::test::bytes_of("aaa"), "first file"},
@@ -177,43 +195,47 @@ adl::test::SimPlan download_plan() {
 }
 
 // The directory the downloads go to, as the operator's preference holds it.
-QString download_dir_of(const adl::test::TempDir& directory) {
+QString download_dir_of(const adl::test::TempDir& directory)
+{
     return QString::fromStdU16String(directory.path().u16string());
 }
 
 // The bytes of `name` in the DNLD_DATA_HNPFMS_L_<number> directory under `directory`, as the
 // fake host's file system holds them (nothing, when there is no such file).
-std::optional<std::vector<std::byte>> downloaded(adl::test::Rig& rig,
-                                                 const std::filesystem::path& directory,
-                                                 const std::string& name, unsigned number = 1) {
-    const std::string path = adl::platform::to_platform_path(directory) + "/DNLD_DATA_HNPFMS_L_" +
-                             std::to_string(number) + "/" + name;
+std::optional<std::vector<std::byte>> downloaded(adl::test::Rig& rig, const std::filesystem::path& directory,
+                                                 const std::string& name, unsigned number = 1)
+{
+    const std::string path =
+        adl::platform::to_platform_path(directory) + "/DNLD_DATA_HNPFMS_L_" + std::to_string(number) + "/" + name;
     return rig.loader_host.fake_files().get(path);
 }
 
 // Whether the DNLD_DATA_HNPFMS_L_<number> directory under `directory` is there.
-bool downloaded_directory_exists(adl::test::Rig& rig, const std::filesystem::path& directory,
-                                 unsigned number) {
-    const std::string path = adl::platform::to_platform_path(directory) + "/DNLD_DATA_HNPFMS_L_" +
-                             std::to_string(number);
+bool downloaded_directory_exists(adl::test::Rig& rig, const std::filesystem::path& directory, unsigned number)
+{
+    const std::string path =
+        adl::platform::to_platform_path(directory) + "/DNLD_DATA_HNPFMS_L_" + std::to_string(number);
     return rig.loader_host.fake_files().stat(path).has_value();
 }
 
 bool holds(adl::test::Rig& rig, const std::filesystem::path& directory, const std::string& name,
-           const std::vector<std::byte>& bytes, unsigned number = 1) {
+           const std::vector<std::byte>& bytes, unsigned number = 1)
+{
     const std::optional<std::vector<std::byte>> found = downloaded(rig, directory, name, number);
     return found.has_value() && *found == bytes;
 }
 
-}  // namespace
+} // namespace
 
-void LoaderModelTest::init() {
+void LoaderModelTest::init()
+{
     // An empty settings directory for every test: the last address, the download directory and the
     // last media set a test stored are not there for the next one.
     adl::test::scratch_settings().next();
 }
 
-void LoaderModelTest::information_reads_the_configuration() {
+void LoaderModelTest::information_reads_the_configuration()
+{
     adl::test::Rig rig;
     LoaderModel model(rig_host(rig), settings_in());
     point_at_the_target(model);
@@ -237,14 +259,10 @@ void LoaderModelTest::information_reads_the_configuration() {
     // What the simulated target holds: one piece of hardware with two parts.
     const auto* configuration = qobject_cast<ConfigurationModel*>(model.configuration());
     QCOMPARE(configuration->rowCount(), 3);
-    const auto title = [&](int row) {
-        return configuration->data(configuration->index(row), ConfigurationModel::TitleRole)
-            .toString();
-    };
-    const auto level = [&](int row) {
-        return configuration->data(configuration->index(row), ConfigurationModel::LevelRole)
-            .toInt();
-    };
+    const auto title = [&](int row)
+    { return configuration->data(configuration->index(row), ConfigurationModel::TitleRole).toString(); };
+    const auto level = [&](int row)
+    { return configuration->data(configuration->index(row), ConfigurationModel::LevelRole).toInt(); };
     QCOMPARE(title(0), QStringLiteral("FMS LEFT"));
     QCOMPARE(level(0), 0);
     QCOMPARE(title(1), QStringLiteral("ACM47-1234-5678"));
@@ -261,7 +279,8 @@ void LoaderModelTest::information_reads_the_configuration() {
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{1});
 }
 
-void LoaderModelTest::find_lists_the_targets() {
+void LoaderModelTest::find_lists_the_targets()
+{
     adl::test::SimPlan plan;
     plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
     adl::test::Rig rig(plan);
@@ -288,7 +307,8 @@ void LoaderModelTest::find_lists_the_targets() {
     QCOMPARE(targets->rowCount(), 0);
 }
 
-void LoaderModelTest::selecting_a_target_fills_the_address() {
+void LoaderModelTest::selecting_a_target_fills_the_address()
+{
     adl::test::SimPlan plan;
     plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "R", "FMS RIGHT", "HNP"};
     adl::test::Rig rig(plan);
@@ -302,7 +322,7 @@ void LoaderModelTest::selecting_a_target_fills_the_address() {
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
 
     QSignalSpy changed(&model, &LoaderModel::targetChanged);
-    model.selectTarget(7);  // there is no such row
+    model.selectTarget(7); // there is no such row
     QCOMPARE(changed.count(), 0);
     model.selectTarget(0);
     QCOMPARE(model.targetAddress(), QStringLiteral("10.0.0.2"));
@@ -311,7 +331,8 @@ void LoaderModelTest::selecting_a_target_fills_the_address() {
     QVERIFY(model.canReadInformation());
 }
 
-void LoaderModelTest::a_target_needs_an_address_and_a_name() {
+void LoaderModelTest::a_target_needs_an_address_and_a_name()
+{
     adl::test::Rig rig;
     // As above: no stored last target, so the window starts with the fields empty.
     QTemporaryDir settings_dir;
@@ -319,7 +340,7 @@ void LoaderModelTest::a_target_needs_an_address_and_a_name() {
     QVERIFY(!model.targetValid());
 
     model.setTargetAddress(QStringLiteral("10.0.0.2"));
-    QVERIFY(!model.targetValid());  // no name yet
+    QVERIFY(!model.targetValid()); // no name yet
     model.setThwIdPos(QStringLiteral("HNPFMS_L"));
     QVERIFY(model.targetValid());
     model.setTargetAddress(QStringLiteral("10.0.0"));
@@ -339,7 +360,8 @@ void LoaderModelTest::a_target_needs_an_address_and_a_name() {
     QVERIFY(model.canReadInformation());
 }
 
-void LoaderModelTest::abort_before_the_target_accepts_ends_the_operation() {
+void LoaderModelTest::abort_before_the_target_accepts_ends_the_operation()
+{
     adl::test::Rig rig;
     QSemaphore hold;
     LoaderModel model(rig_host(rig, &hold), settings_in());
@@ -348,7 +370,7 @@ void LoaderModelTest::abort_before_the_target_accepts_ends_the_operation() {
     model.readInformation();
     QVERIFY(model.canAbort());
     model.abort();
-    QVERIFY(!model.canAbort());  // asked once
+    QVERIFY(!model.canAbort()); // asked once
     QVERIFY(model.activity().contains(QStringLiteral("Stopping")));
     hold.release();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
@@ -371,7 +393,8 @@ void LoaderModelTest::abort_before_the_target_accepts_ends_the_operation() {
     QCOMPARE(model.resultText(), QStringLiteral("completed"));
 }
 
-void LoaderModelTest::a_second_job_is_refused_while_one_runs() {
+void LoaderModelTest::a_second_job_is_refused_while_one_runs()
+{
     adl::test::Rig rig;
     QSemaphore hold;
     LoaderModel model(rig_host(rig, &hold), settings_in());
@@ -391,12 +414,10 @@ void LoaderModelTest::a_second_job_is_refused_while_one_runs() {
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{1});
 }
 
-void LoaderModelTest::a_failing_host_ends_the_job_with_the_reason() {
-    LoaderModel model(
-        []() -> std::expected<HostLease, QString> {
-            return std::unexpected(QStringLiteral("no network adapter"));
-        },
-        settings_in());
+void LoaderModelTest::a_failing_host_ends_the_job_with_the_reason()
+{
+    LoaderModel model([]() -> std::expected<HostLease, QString>
+                      { return std::unexpected(QStringLiteral("no network adapter")); }, settings_in());
     point_at_the_target(model);
     model.readInformation();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
@@ -414,15 +435,16 @@ void LoaderModelTest::a_failing_host_ends_the_job_with_the_reason() {
     QVERIFY(model.resultText().contains(QStringLiteral("not an IPv4 address")));
 }
 
-void LoaderModelTest::media_set_is_read_from_a_directory() {
+void LoaderModelTest::media_set_is_read_from_a_directory()
+{
     auto spec = adl::samples::sample_media_set_spec();
     QVERIFY(spec.has_value());
     auto members = adl::arinc665::build_media_set(*spec);
     QVERIFY(members.has_value());
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
-    const auto written = adl::media_tree::write_media_set_tree(
-        std::filesystem::path(directory.path().toStdU16String()), *members);
+    const auto written =
+        adl::media_tree::write_media_set_tree(std::filesystem::path(directory.path().toStdU16String()), *members);
     QVERIFY(written.has_value());
 
     adl::test::Rig rig;
@@ -440,11 +462,9 @@ void LoaderModelTest::media_set_is_read_from_a_directory() {
     QCOMPARE(model.validationState(), 2);
     QVERIFY(model.validationError().isEmpty());
     QVERIFY(model.validationDetail().contains(QStringLiteral("check values verified")));
-    QVERIFY2(model.mediaSetTitle().contains(
-                 QString::fromLatin1(adl::samples::sample_media_set_part_number)),
+    QVERIFY2(model.mediaSetTitle().contains(QString::fromLatin1(adl::samples::sample_media_set_part_number)),
              qPrintable(model.mediaSetTitle()));
-    QCOMPARE(model.mediaSetPartNumber(),
-             QString::fromLatin1(adl::samples::sample_media_set_part_number));
+    QCOMPARE(model.mediaSetPartNumber(), QString::fromLatin1(adl::samples::sample_media_set_part_number));
     QCOMPARE(model.mediaSetMemberCount(), 2);
     QCOMPARE(model.mediaSetBatchCount(), 1);
     const auto* loads = qobject_cast<LoadModel*>(model.loads());
@@ -457,24 +477,26 @@ void LoaderModelTest::media_set_is_read_from_a_directory() {
     const auto* files = qobject_cast<FileModel*>(model.files());
     QVERIFY(files->rowCount() >= 6);
     bool saw_header = false;
-    for (int row = 0; row < files->rowCount(); ++row) {
+    for (int row = 0; row < files->rowCount(); ++row)
+    {
         const QModelIndex index = files->index(row);
         QVERIFY(!files->data(index, FileModel::NameRole).toString().isEmpty());
         QVERIFY(files->data(index, FileModel::MemberRole).toInt() >= 1);
         QVERIFY(!files->data(index, FileModel::PathnameRole).toString().isEmpty());
         const QString crc = files->data(index, FileModel::CrcRole).toString();
         QCOMPARE(crc.size(), 4);
-        for (const QChar digit : crc) {
+        for (const QChar digit : crc)
+        {
             QVERIFY((digit >= QLatin1Char('0') && digit <= QLatin1Char('9')) ||
                     (digit >= QLatin1Char('A') && digit <= QLatin1Char('F')));
         }
-        saw_header = saw_header || files->data(index, FileModel::NameRole).toString() ==
-                                       QStringLiteral("ACM47.LUH");
+        saw_header = saw_header || files->data(index, FileModel::NameRole).toString() == QStringLiteral("ACM47.LUH");
     }
     QVERIFY(saw_header);
 }
 
-void LoaderModelTest::media_set_that_is_not_there_is_reported() {
+void LoaderModelTest::media_set_that_is_not_there_is_reported()
+{
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     adl::test::Rig rig;
@@ -495,7 +517,8 @@ void LoaderModelTest::media_set_that_is_not_there_is_reported() {
     QVERIFY(log_contains(model, QStringLiteral("could not be read")));
 }
 
-void LoaderModelTest::destroying_the_model_waits_for_the_engine() {
+void LoaderModelTest::destroying_the_model_waits_for_the_engine()
+{
     adl::test::Rig rig;
     QSemaphore hold;
     auto model = std::make_unique<LoaderModel>(rig_host(rig, &hold));
@@ -513,7 +536,8 @@ void LoaderModelTest::destroying_the_model_waits_for_the_engine() {
     QVERIFY(rig.target.log().init_requests_at.size() <= 1);
 }
 
-void LoaderModelTest::upload_sends_the_ticked_loads() {
+void LoaderModelTest::upload_sends_the_ticked_loads()
+{
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
@@ -530,8 +554,7 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
     QCOMPARE(can_upload.count(), 1);
 
     std::vector<int> progress;
-    QObject::connect(&model, &LoaderModel::progressChanged, &model,
-                     [&] { progress.push_back(model.progress()); });
+    QObject::connect(&model, &LoaderModel::progressChanged, &model, [&] { progress.push_back(model.progress()); });
     model.uploadSelected();
     QVERIFY(model.busy());
     QVERIFY(model.canAbort());
@@ -545,11 +568,10 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
     QCOMPARE(model.resultState(), 1);
     QCOMPARE(model.resultText(), QStringLiteral("completed"));
     const auto& reads = fixture.load.item.reads;
-    const QString served = reads.size() == 1
-                               ? QStringLiteral("The target read 1 file")
-                               : QStringLiteral("The target read %1 files").arg(reads.size());
+    const QString served = reads.size() == 1 ? QStringLiteral("The target read 1 file")
+                                             : QStringLiteral("The target read %1 files").arg(reads.size());
     QVERIFY2(model.resultDetail().contains(served), qPrintable(model.resultDetail()));
-    QVERIFY(model.canUpload());  // and it can be done again
+    QVERIFY(model.canUpload()); // and it can be done again
     QVERIFY(!model.canAbort());
 
     // The receipt records the operation: the loads ticked when it started and when it ended, and
@@ -566,7 +588,8 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
 
     // The target read the header and every file of the load, the right ones, and nothing else.
     std::vector<std::string> names;
-    for (const auto& read : reads) {
+    for (const auto& read : reads)
+    {
         names.push_back(read.name);
     }
     QVERIFY(rig.target.log().files_read == names);
@@ -579,18 +602,17 @@ void LoaderModelTest::upload_sends_the_ticked_loads() {
     QCOMPARE(model.progress(), 100);
     QVERIFY(std::is_sorted(progress.begin(), progress.end()));
     QCOMPARE(load_field(model, 0, LoadModel::RatioRole).toInt(), 100);
-    QCOMPARE(load_field(model, 0, LoadModel::LoadStatusRole).toString(),
-             QStringLiteral("completed"));
+    QCOMPARE(load_field(model, 0, LoadModel::LoadStatusRole).toString(), QStringLiteral("completed"));
     QVERIFY(!load_field(model, 0, LoadModel::FailedRole).toBool());
 
     QVERIFY(log_contains(model, QStringLiteral("Uploading 1 load to 10.0.0.2 (HNPFMS_L)")));
-    QVERIFY(log_contains(
-        model, QStringLiteral("The target read %1").arg(QString::fromStdString(names.front()))));
+    QVERIFY(log_contains(model, QStringLiteral("The target read %1").arg(QString::fromStdString(names.front()))));
     QVERIFY(log_contains(model, QStringLiteral("% of the list")));
     QVERIFY(log_contains(model, QStringLiteral("Finished: completed")));
 }
 
-void LoaderModelTest::an_upload_needs_a_target_a_media_set_and_a_tick() {
+void LoaderModelTest::an_upload_needs_a_target_a_media_set_and_a_tick()
+{
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
@@ -604,7 +626,7 @@ void LoaderModelTest::an_upload_needs_a_target_a_media_set_and_a_tick() {
 
     read_the_media_set(model, fixture);
     point_at_the_target(model);
-    QVERIFY(!model.canUpload());  // no load ticked
+    QVERIFY(!model.canUpload()); // no load ticked
     model.uploadSelected();
     QVERIFY(!model.busy());
 
@@ -612,7 +634,7 @@ void LoaderModelTest::an_upload_needs_a_target_a_media_set_and_a_tick() {
     QCOMPARE(model.selectedLoadCount(), 1);
     QVERIFY(model.canUpload());
     model.setTargetAddress(QStringLiteral("10.0.0"));
-    QVERIFY(!model.canUpload());  // not an address
+    QVERIFY(!model.canUpload()); // not an address
     model.setTargetAddress(QStringLiteral("10.0.0.2"));
     QVERIFY(model.canUpload());
     model.selectAllLoads(false);
@@ -624,19 +646,19 @@ void LoaderModelTest::an_upload_needs_a_target_a_media_set_and_a_tick() {
     // point the loader back at the right directory without re-ticking.
     model.selectAllLoads(true);
     QVERIFY(model.canUpload());
-    model.chooseMediaSet(QUrl::fromLocalFile(
-        QString::fromStdU16String((fixture.directory.path() / "missing").u16string())));
+    model.chooseMediaSet(
+        QUrl::fromLocalFile(QString::fromStdU16String((fixture.directory.path() / "missing").u16string())));
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QVERIFY(!model.canUpload());
     QCOMPARE(model.selectedLoadCount(), 1);
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
 }
 
-void LoaderModelTest::a_load_the_target_cannot_read_ends_the_upload() {
+void LoaderModelTest::a_load_the_target_cannot_read_ends_the_upload()
+{
     adl::test::UploadFixture fixture;
     adl::test::SimPlan plan = fixture.plan();
-    plan.loads[0].reads.push_back(
-        adl::test::ReadItem{"MISSING.BIN", adl::test::Bytes(3), std::nullopt});
+    plan.loads[0].reads.push_back(adl::test::ReadItem{"MISSING.BIN", adl::test::Bytes(3), std::nullopt});
     adl::test::Rig rig(plan);
     QVERIFY(fixture.write(rig));
     LoaderModel model(rig_host(rig), settings_in());
@@ -652,10 +674,11 @@ void LoaderModelTest::a_load_the_target_cannot_read_ends_the_upload() {
     QCOMPARE(model.resultText(), QStringLiteral("aborted by the target"));
     QVERIFY(rig.target.log().read_failures == std::vector<std::string>{"MISSING.BIN"});
     QVERIFY(log_contains(model, QStringLiteral("Finished: aborted by the target")));
-    QVERIFY(model.canUpload());  // the operator can try again
+    QVERIFY(model.canUpload()); // the operator can try again
 }
 
-void LoaderModelTest::abort_before_the_target_accepts_ends_the_upload() {
+void LoaderModelTest::abort_before_the_target_accepts_ends_the_upload()
+{
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
@@ -685,7 +708,8 @@ void LoaderModelTest::abort_before_the_target_accepts_ends_the_upload() {
     QCOMPARE(model.resultState(), 1);
 }
 
-void LoaderModelTest::selecting_a_target_exposes_its_properties() {
+void LoaderModelTest::selecting_a_target_exposes_its_properties()
+{
     adl::test::SimPlan plan;
     plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "R", "FMS RIGHT", "HNP"};
     adl::test::Rig rig(plan);
@@ -711,7 +735,8 @@ void LoaderModelTest::selecting_a_target_exposes_its_properties() {
     QVERIFY(model.selectedTargetHardwareId().isEmpty());
 }
 
-void LoaderModelTest::clearing_a_target_field_restores_its_default() {
+void LoaderModelTest::clearing_a_target_field_restores_its_default()
+{
     QTemporaryDir settings_dir;
     auto settings = settings_in(settings_dir);
     settings->setDefaultTargetAddress(QStringLiteral("10.0.0.2"));
@@ -742,7 +767,8 @@ void LoaderModelTest::clearing_a_target_field_restores_its_default() {
     QCOMPARE(model2.targetAddress(), QStringLiteral("10.1.1.1"));
 }
 
-void LoaderModelTest::the_first_run_screen_is_shown_until_it_is_passed() {
+void LoaderModelTest::the_first_run_screen_is_shown_until_it_is_passed()
+{
     QTemporaryDir settings_dir;
     {
         adl::test::Rig rig;
@@ -766,7 +792,8 @@ void LoaderModelTest::the_first_run_screen_is_shown_until_it_is_passed() {
     QCOMPARE(again.targetAddress(), QStringLiteral("10.0.0.2"));
 }
 
-void LoaderModelTest::the_target_of_the_last_operation_comes_back() {
+void LoaderModelTest::the_target_of_the_last_operation_comes_back()
+{
     QTemporaryDir settings_dir;
     {
         adl::test::Rig rig;
@@ -787,14 +814,12 @@ void LoaderModelTest::the_target_of_the_last_operation_comes_back() {
     QCOMPARE(again.thwIdPos(), QStringLiteral("HNPFMS_L"));
 }
 
-void LoaderModelTest::a_failure_surfaces_for_the_dialog() {
+void LoaderModelTest::a_failure_surfaces_for_the_dialog()
+{
     QTemporaryDir settings_dir;
     auto settings = settings_in(settings_dir);
-    LoaderModel model(
-        []() -> std::expected<HostLease, QString> {
-            return std::unexpected(QStringLiteral("no network adapter"));
-        },
-        std::move(settings));
+    LoaderModel model([]() -> std::expected<HostLease, QString>
+                      { return std::unexpected(QStringLiteral("no network adapter")); }, std::move(settings));
     point_at_the_target(model);
     model.readInformation();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
@@ -824,15 +849,16 @@ void LoaderModelTest::a_failure_surfaces_for_the_dialog() {
     QVERIFY(model.lastErrorHint().contains(QStringLiteral("0 to 255")));
 }
 
-void LoaderModelTest::the_summary_lists_the_files_with_their_crcs() {
+void LoaderModelTest::the_summary_lists_the_files_with_their_crcs()
+{
     auto spec = adl::samples::sample_media_set_spec();
     QVERIFY(spec.has_value());
     auto members = adl::arinc665::build_media_set(*spec);
     QVERIFY(members.has_value());
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
-    const auto written = adl::media_tree::write_media_set_tree(
-        std::filesystem::path(directory.path().toStdU16String()), *members);
+    const auto written =
+        adl::media_tree::write_media_set_tree(std::filesystem::path(directory.path().toStdU16String()), *members);
     QVERIFY(written.has_value());
 
     const MediaSetSummary summary = read_media_set_summary(directory.path());
@@ -842,7 +868,8 @@ void LoaderModelTest::the_summary_lists_the_files_with_their_crcs() {
     // Every file FILES.LUM lists is on the member it names, and its CRC is the CRC of the
     // bytes on the disk.
     const std::filesystem::path root{directory.path().toStdU16String()};
-    for (const MediaFileSummary& file : summary.files) {
+    for (const MediaFileSummary& file : summary.files)
+    {
         const auto dir = adl::media_tree::native_directory(
             root / adl::media_tree::member_directory_name(static_cast<std::uint16_t>(file.member)),
             file.pathname.toStdString());
@@ -853,7 +880,8 @@ void LoaderModelTest::the_summary_lists_the_files_with_their_crcs() {
     }
 }
 
-void LoaderModelTest::a_set_is_uploadable_only_after_the_check_passes() {
+void LoaderModelTest::a_set_is_uploadable_only_after_the_check_passes()
+{
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
@@ -865,7 +893,7 @@ void LoaderModelTest::a_set_is_uploadable_only_after_the_check_passes() {
     QCOMPARE(model.validationState(), 0);
     QVERIFY(!model.canUpload());
     wait_for_the_check(model, 2);
-    QVERIFY(!model.canUpload());  // nothing ticked
+    QVERIFY(!model.canUpload()); // nothing ticked
 
     // The set that passed the check can be uploaded once a load is ticked.
     tick(model, 0);
@@ -873,7 +901,8 @@ void LoaderModelTest::a_set_is_uploadable_only_after_the_check_passes() {
     QCOMPARE(model.validationState(), 2);
 }
 
-void LoaderModelTest::a_corrupted_set_fails_the_check_and_stays_refused() {
+void LoaderModelTest::a_corrupted_set_fails_the_check_and_stays_refused()
+{
     // One byte of a file changed: the read (which is the check) sees the CRC and says so.
     {
         adl::test::UploadFixture fixture;
@@ -885,8 +914,7 @@ void LoaderModelTest::a_corrupted_set_fails_the_check_and_stays_refused() {
         std::vector<std::byte> corrupt = data;
         corrupt[0] ^= std::byte{0x01};
         std::ofstream out(where, std::ios::binary | std::ios::trunc);
-        out.write(reinterpret_cast<const char*>(corrupt.data()),
-                  static_cast<std::streamsize>(corrupt.size()));
+        out.write(reinterpret_cast<const char*>(corrupt.data()), static_cast<std::streamsize>(corrupt.size()));
 
         LoaderModel model(rig_host(rig), settings_in());
         point_at_the_target(model);
@@ -896,7 +924,7 @@ void LoaderModelTest::a_corrupted_set_fails_the_check_and_stays_refused() {
         QCOMPARE(model.validationError(), model.mediaSetError());
         QVERIFY(!model.canUpload());
         model.uploadSelected();
-        QVERIFY(!model.busy());  // refused
+        QVERIFY(!model.busy()); // refused
     }
 
     // A file taken away is a read error too.
@@ -919,7 +947,8 @@ void LoaderModelTest::a_corrupted_set_fails_the_check_and_stays_refused() {
     }
 }
 
-void LoaderModelTest::check_media_set_revalidates_files_changed_on_disk() {
+void LoaderModelTest::check_media_set_revalidates_files_changed_on_disk()
+{
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
@@ -938,13 +967,12 @@ void LoaderModelTest::check_media_set_revalidates_files_changed_on_disk() {
     corrupt[0] ^= std::byte{0x01};
     {
         std::ofstream out(where, std::ios::binary | std::ios::trunc);
-        out.write(reinterpret_cast<const char*>(corrupt.data()),
-                  static_cast<std::streamsize>(corrupt.size()));
+        out.write(reinterpret_cast<const char*>(corrupt.data()), static_cast<std::streamsize>(corrupt.size()));
     }
     model.checkMediaSet();
     wait_for_the_check(model, 3);
     QVERIFY(!model.validationError().isEmpty());
-    QCOMPARE(model.selectedLoadCount(), 1);  // the tick followed the load
+    QCOMPARE(model.selectedLoadCount(), 1); // the tick followed the load
     QVERIFY(!model.canUpload());
     model.uploadSelected();
     QVERIFY(!model.busy());
@@ -953,8 +981,7 @@ void LoaderModelTest::check_media_set_revalidates_files_changed_on_disk() {
     // index the check rebuilt).
     {
         std::ofstream out(where, std::ios::binary | std::ios::trunc);
-        out.write(reinterpret_cast<const char*>(data.data()),
-                  static_cast<std::streamsize>(data.size()));
+        out.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
     }
     model.checkMediaSet();
     wait_for_the_check(model, 2);
@@ -965,7 +992,8 @@ void LoaderModelTest::check_media_set_revalidates_files_changed_on_disk() {
     QCOMPARE(model.resultText(), QStringLiteral("completed"));
 }
 
-void LoaderModelTest::a_set_edited_after_the_check_is_not_uploaded() {
+void LoaderModelTest::a_set_edited_after_the_check_is_not_uploaded()
+{
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
@@ -1010,7 +1038,8 @@ void LoaderModelTest::a_set_edited_after_the_check_is_not_uploaded() {
     QCOMPARE(model.resultText(), QStringLiteral("completed"));
 }
 
-void LoaderModelTest::findings_warn_but_do_not_block_the_upload() {
+void LoaderModelTest::findings_warn_but_do_not_block_the_upload()
+{
     // A media set part number with an I in it: the standard recommends against it, and the read
     // reports it as a finding (a warning), not as an error.
     adl::test::UploadFixture fixture;
@@ -1022,8 +1051,7 @@ void LoaderModelTest::findings_warn_but_do_not_block_the_upload() {
 
     QVERIFY(!model.mediaSetFindings().isEmpty());
     QCOMPARE(model.validationFindings(), model.mediaSetFindings());
-    QVERIFY2(model.validationDetail().contains(QStringLiteral("warning")),
-             qPrintable(model.validationDetail()));
+    QVERIFY2(model.validationDetail().contains(QStringLiteral("warning")), qPrintable(model.validationDetail()));
     point_at_the_target(model);
     model.selectAllLoads(true);
     QVERIFY(model.canUpload());
@@ -1035,7 +1063,8 @@ void LoaderModelTest::findings_warn_but_do_not_block_the_upload() {
     QCOMPARE(rig.target.log().files_read.size(), fixture.load.item.reads.size());
 }
 
-void LoaderModelTest::with_validate_on_open_off_the_set_waits_for_a_check() {
+void LoaderModelTest::with_validate_on_open_off_the_set_waits_for_a_check()
+{
     QTemporaryDir settings_dir;
     auto settings = settings_in(settings_dir);
     settings->setValidateOnOpen(false);
@@ -1047,12 +1076,12 @@ void LoaderModelTest::with_validate_on_open_off_the_set_waits_for_a_check() {
     model.chooseMediaSet(fixture.url());
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
     QVERIFY(model.mediaSetError().isEmpty());
-    QCOMPARE(model.validationState(), 0);  // read, but not checked
+    QCOMPARE(model.validationState(), 0); // read, but not checked
     point_at_the_target(model);
     model.selectAllLoads(true);
     QVERIFY(!model.canUpload());
     model.uploadSelected();
-    QVERIFY(!model.busy());  // refused: the check has not said it is valid
+    QVERIFY(!model.busy()); // refused: the check has not said it is valid
 
     // The operator asks for the check, it passes, and the upload goes ahead.
     model.checkMediaSet();
@@ -1063,7 +1092,8 @@ void LoaderModelTest::with_validate_on_open_off_the_set_waits_for_a_check() {
     QCOMPARE(model.resultState(), 1);
 }
 
-void LoaderModelTest::the_control_port_flows_into_the_loader() {
+void LoaderModelTest::the_control_port_flows_into_the_loader()
+{
     QTemporaryDir settings_dir;
     auto settings = settings_in(settings_dir);
     settings->setControlPort(1615);
@@ -1084,7 +1114,8 @@ void LoaderModelTest::the_control_port_flows_into_the_loader() {
     QCOMPARE(rig.target.log().loader_port_used, std::uint16_t{1615});
 }
 
-void LoaderModelTest::auto_find_runs_before_an_upload_when_no_target_is_selected() {
+void LoaderModelTest::auto_find_runs_before_an_upload_when_no_target_is_selected()
+{
     QTemporaryDir settings_dir;
     auto settings = settings_in(settings_dir);
     settings->setAutoFindBeforeOperation(true);
@@ -1114,7 +1145,8 @@ void LoaderModelTest::auto_find_runs_before_an_upload_when_no_target_is_selected
     QCOMPARE(rig.target.log().files_read.size(), fixture.load.item.reads.size());
 }
 
-void LoaderModelTest::auto_find_with_several_targets_starts_nothing() {
+void LoaderModelTest::auto_find_with_several_targets_starts_nothing()
+{
     QTemporaryDir settings_dir;
     auto settings = settings_in(settings_dir);
     settings->setAutoFindBeforeOperation(true);
@@ -1126,8 +1158,7 @@ void LoaderModelTest::auto_find_with_several_targets_starts_nothing() {
     // distinct targets.
     adl::test::SimPlan second_plan;
     second_plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMC", "FMC", "R", "FMC RIGHT", "HNP"};
-    adl::test::SimTarget second_target(rig.world, rig.network,
-                                       adl::platform::Ipv4Address{{10, 0, 0, 3}}, second_plan);
+    adl::test::SimTarget second_target(rig.world, rig.network, adl::platform::Ipv4Address{{10, 0, 0, 3}}, second_plan);
     QVERIFY(fixture.write(rig));
     LoaderModel model(rig_host(rig), std::move(settings));
     read_the_media_set(model, fixture);
@@ -1160,12 +1191,19 @@ void LoaderModelTest::auto_find_with_several_targets_starts_nothing() {
     QCOMPARE(rig2.target.log().init_requests_at.size(), std::size_t{0});
 }
 
-void LoaderModelTest::auto_find_with_one_target_that_cannot_be_used_stops_with_a_message() {
-    enum class Operation { information, upload, download };
-    struct Case {
+void LoaderModelTest::auto_find_with_one_target_that_cannot_be_used_stops_with_a_message()
+{
+    enum class Operation
+    {
+        information,
+        upload,
+        download
+    };
+    struct Case
+    {
         const char* hardware_id;
         Operation operation;
-        const char* reason;  // a part of the detail the operator reads
+        const char* reason; // a part of the detail the operator reads
     };
     // "HN*FMS" is a THW_ID_POS the loader accepts but cannot name a download folder after;
     // "HN/FMS" is one it rejects for every operation.
@@ -1175,48 +1213,47 @@ void LoaderModelTest::auto_find_with_one_target_that_cannot_be_used_stops_with_a
         {"HN/FMS", Operation::upload, "1 to 240 characters"},
         {"HN/FMS", Operation::information, "1 to 240 characters"},
     };
-    for (const Case& test : cases) {
+    for (const Case& test : cases)
+    {
         QTemporaryDir settings_dir;
         auto settings = settings_in(settings_dir);
         settings->setAutoFindBeforeOperation(true);
         adl::test::UploadFixture fixture;
-        adl::test::SimPlan plan =
-            test.operation == Operation::download ? download_plan() : fixture.plan();
-        plan.find_answer =
-            adl::arinc615a::FindAnswer{test.hardware_id, "FMS", "L", "FMS LEFT", "HNP"};
+        adl::test::SimPlan plan = test.operation == Operation::download ? download_plan() : fixture.plan();
+        plan.find_answer = adl::arinc615a::FindAnswer{test.hardware_id, "FMS", "L", "FMS LEFT", "HNP"};
         adl::test::Rig rig(plan);
         adl::test::TempDir downloads;
         LoaderModel model(rig_host(rig), std::move(settings));
         QSignalSpy errors(&model, &LoaderModel::errorChanged);
-        switch (test.operation) {
-            case Operation::download:
-                model.setDownloadDirectory(download_dir_of(downloads));
-                model.addDownloadFile(QStringLiteral("A.BIN"));
-                model.downloadSelected();
-                break;
-            case Operation::upload:
-                QVERIFY(fixture.write(rig));
-                read_the_media_set(model, fixture);
-                model.selectAllLoads(true);
-                model.uploadSelected();
-                break;
-            case Operation::information:
-                model.readInformation();
-                break;
+        switch (test.operation)
+        {
+        case Operation::download:
+            model.setDownloadDirectory(download_dir_of(downloads));
+            model.addDownloadFile(QStringLiteral("A.BIN"));
+            model.downloadSelected();
+            break;
+        case Operation::upload:
+            QVERIFY(fixture.write(rig));
+            read_the_media_set(model, fixture);
+            model.selectAllLoads(true);
+            model.uploadSelected();
+            break;
+        case Operation::information:
+            model.readInformation();
+            break;
         }
         QVERIFY(model.busy());
 
         // The FIND ends, and the operation stops there: not a second FIND, and not silence.
         QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
-        QTest::qWait(300);  // a second FIND would be under way by now
+        QTest::qWait(300); // a second FIND would be under way by now
         QVERIFY(!model.busy());
         QCOMPARE(log_count(model, QStringLiteral("looking for one first")), 1);
         QCOMPARE(errors.count(), 1);
         QCOMPARE(model.resultState(), 2);
         QVERIFY2(model.lastErrorText().contains(QString::fromLatin1(test.hardware_id)),
                  qPrintable(model.lastErrorText()));
-        QVERIFY2(model.lastErrorText().contains(QStringLiteral("cannot be used")),
-                 qPrintable(model.lastErrorText()));
+        QVERIFY2(model.lastErrorText().contains(QStringLiteral("cannot be used")), qPrintable(model.lastErrorText()));
         QVERIFY2(model.lastErrorDetail().contains(QString::fromLatin1(test.reason)),
                  qPrintable(model.lastErrorDetail()));
         QCOMPARE(model.resultDetail(), model.lastErrorDetail());
@@ -1225,14 +1262,14 @@ void LoaderModelTest::auto_find_with_one_target_that_cannot_be_used_stops_with_a
     }
 }
 
-void LoaderModelTest::the_last_media_set_is_restored_after_startup() {
+void LoaderModelTest::the_last_media_set_is_restored_after_startup()
+{
     QTemporaryDir settings_dir;
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
     auto settings = settings_in(settings_dir);
-    settings->setLastMediaSetDirectory(
-        QString::fromStdU16String(fixture.directory.path().u16string()));
+    settings->setLastMediaSetDirectory(QString::fromStdU16String(fixture.directory.path().u16string()));
 
     // The window's event loop would deliver the timer; the test's does. The set is read (and
     // checked) without being asked for.
@@ -1244,23 +1281,24 @@ void LoaderModelTest::the_last_media_set_is_restored_after_startup() {
     QCOMPARE(qobject_cast<LoadModel*>(model.loads())->rowCount(), 1);
 }
 
-void LoaderModelTest::a_missing_last_media_set_is_skipped_quietly() {
+void LoaderModelTest::a_missing_last_media_set_is_skipped_quietly()
+{
     QTemporaryDir settings_dir;
-    adl::test::UploadFixture fixture;  // only for its directory
+    adl::test::UploadFixture fixture; // only for its directory
     adl::test::Rig rig;
     auto settings = settings_in(settings_dir);
-    settings->setLastMediaSetDirectory(
-        QString::fromStdU16String((fixture.directory.path() / "missing").u16string()));
+    settings->setLastMediaSetDirectory(QString::fromStdU16String((fixture.directory.path() / "missing").u16string()));
 
     LoaderModel model(rig_host(rig), std::move(settings));
     QTest::qWait(100);
     QVERIFY(!model.busy());
     QVERIFY(model.mediaSetPath().isEmpty());
-    QCOMPARE(model.resultState(), 0);  // no job ran, no dialog, nothing
+    QCOMPARE(model.resultState(), 0); // no job ran, no dialog, nothing
     QVERIFY(model.lastErrorText().isEmpty());
 }
 
-void LoaderModelTest::the_log_capacity_preference_is_applied() {
+void LoaderModelTest::the_log_capacity_preference_is_applied()
+{
     QTemporaryDir settings_dir;
     auto settings = settings_in(settings_dir);
     settings->setLogCapacity(150);
@@ -1278,27 +1316,26 @@ void LoaderModelTest::the_log_capacity_preference_is_applied() {
     QCOMPARE(read_back->logCapacity(), 200);
 }
 
-void LoaderModelTest::a_media_defined_download_writes_the_files_into_the_numbered_directory() {
+void LoaderModelTest::a_media_defined_download_writes_the_files_into_the_numbered_directory()
+{
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
     LoaderModel model(rig_host(rig), settings_in());
     // The download directory itself is a directory that does not exist yet: it is made on
     // demand.
-    model.setDownloadDirectory(
-        QString::fromStdU16String((downloads.path() / "not there yet").u16string()));
+    model.setDownloadDirectory(QString::fromStdU16String((downloads.path() / "not there yet").u16string()));
     point_at_the_target(model);
-    QVERIFY(!model.canDownload());  // no file named
+    QVERIFY(!model.canDownload()); // no file named
     model.addDownloadFile(QStringLiteral("A.BIN"));
     model.addDownloadFile(QStringLiteral("C.BIN"));
-    model.addDownloadFile(QStringLiteral("A.BIN"));  // there already: refused
-    model.addDownloadFile(QStringLiteral("   "));    // empty: refused
+    model.addDownloadFile(QStringLiteral("A.BIN")); // there already: refused
+    model.addDownloadFile(QStringLiteral("   "));   // empty: refused
     QCOMPARE(qobject_cast<DownloadModel*>(model.downloads())->rowCount(), 2);
     QVERIFY(model.canDownload());
 
     std::vector<int> progress;
-    QObject::connect(&model, &LoaderModel::progressChanged, &model,
-                     [&] { progress.push_back(model.progress()); });
+    QObject::connect(&model, &LoaderModel::progressChanged, &model, [&] { progress.push_back(model.progress()); });
     model.downloadSelected();
     QVERIFY(model.busy());
     QVERIFY(model.canAbort());
@@ -1329,8 +1366,7 @@ void LoaderModelTest::a_media_defined_download_writes_the_files_into_the_numbere
     QCOMPARE(files->rowCount(), 2);
     QCOMPARE(files->data(files->index(0), DownloadModel::RatioRole).toInt(), 100);
     QCOMPARE(files->data(files->index(1), DownloadModel::RatioRole).toInt(), 100);
-    QCOMPARE(files->data(files->index(0), DownloadModel::FileStatusRole).toString(),
-             QStringLiteral("in progress"));
+    QCOMPARE(files->data(files->index(0), DownloadModel::FileStatusRole).toString(), QStringLiteral("in progress"));
     QVERIFY(!files->data(files->index(0), DownloadModel::FailedRole).toBool());
     QVERIFY(!progress.empty());
     QCOMPARE(progress.back(), 100);
@@ -1342,7 +1378,8 @@ void LoaderModelTest::a_media_defined_download_writes_the_files_into_the_numbere
     QVERIFY(log_contains(model, QStringLiteral("Finished: completed")));
 }
 
-void LoaderModelTest::each_download_gets_the_next_numbered_directory() {
+void LoaderModelTest::each_download_gets_the_next_numbered_directory()
+{
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
@@ -1368,7 +1405,8 @@ void LoaderModelTest::each_download_gets_the_next_numbered_directory() {
     QVERIFY(model.lastDownloadDirectory().contains(QStringLiteral("DNLD_DATA_HNPFMS_L_2")));
 }
 
-void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_gate() {
+void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_gate()
+{
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
@@ -1376,26 +1414,29 @@ void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_
     model.setDownloadDirectory(download_dir_of(downloads));
     point_at_the_target(model);
     model.setDownloadMode(1);
-    QVERIFY(model.canDownload());  // a target and a directory are all it needs
+    QVERIFY(model.canDownload()); // a target and a directory are all it needs
 
     QStringList listed;
     bool list_was_logged = false;
-    QObject::connect(&model, &LoaderModel::downloadChoicePendingChanged, &model, [&] {
-        if (!model.downloadChoicePending()) {
-            return;
-        }
-        auto* files = qobject_cast<DownloadModel*>(model.downloads());
-        listed = files->names();
-        list_was_logged =
-            log_contains(model, QStringLiteral("The target listed 3 files it can download."));
-        // Take B.BIN and C.BIN only: the choice is what the gate hands to the loader.
-        QVERIFY(files->setData(files->index(0), false, DownloadModel::CheckedRole));
-        model.confirmDownloadSelection();
-        // The choice is made once: the window is not asking again, and the ticks are locked
-        // for the rest of the operation.
-        QVERIFY(!model.downloadChoicePending());
-        QVERIFY(!files->setData(files->index(0), false, DownloadModel::CheckedRole));
-    });
+    QObject::connect(&model, &LoaderModel::downloadChoicePendingChanged, &model,
+                     [&]
+                     {
+                         if (!model.downloadChoicePending())
+                         {
+                             return;
+                         }
+                         auto* files = qobject_cast<DownloadModel*>(model.downloads());
+                         listed = files->names();
+                         list_was_logged =
+                             log_contains(model, QStringLiteral("The target listed 3 files it can download."));
+                         // Take B.BIN and C.BIN only: the choice is what the gate hands to the loader.
+                         QVERIFY(files->setData(files->index(0), false, DownloadModel::CheckedRole));
+                         model.confirmDownloadSelection();
+                         // The choice is made once: the window is not asking again, and the ticks are locked
+                         // for the rest of the operation.
+                         QVERIFY(!model.downloadChoicePending());
+                         QVERIFY(!files->setData(files->index(0), false, DownloadModel::CheckedRole));
+                     });
     model.downloadSelected();
     QVERIFY(model.busy());
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
@@ -1404,15 +1445,12 @@ void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_
     QCOMPARE(model.resultText(), QStringLiteral("completed"));
     QVERIFY(model.resultDetail().contains(QStringLiteral("Files received: 2 of 2 requested.")));
     // The target's list reached the model, all three files, with the description the target gave.
-    QCOMPARE(listed, QStringList({QStringLiteral("A.BIN"), QStringLiteral("B.BIN"),
-                                  QStringLiteral("C.BIN")}));
+    QCOMPARE(listed, QStringList({QStringLiteral("A.BIN"), QStringLiteral("B.BIN"), QStringLiteral("C.BIN")}));
     // Only the chosen files were sent back (.LNA) and written; the choice went through the gate.
     QCOMPARE(rig.target.log().selected_files, (std::vector<std::string>{"B.BIN", "C.BIN"}));
     QCOMPARE(rig.target.log().files_written, (std::vector<std::string>{"B.BIN", "C.BIN"}));
-    QVERIFY2(holds(rig, downloads.path(), "B.BIN", plan.files[1].content),
-             "B.BIN is not in the download directory");
-    QVERIFY2(holds(rig, downloads.path(), "C.BIN", plan.files[2].content),
-             "C.BIN is not in the download directory");
+    QVERIFY2(holds(rig, downloads.path(), "B.BIN", plan.files[1].content), "B.BIN is not in the download directory");
+    QVERIFY2(holds(rig, downloads.path(), "C.BIN", plan.files[2].content), "C.BIN is not in the download directory");
     QVERIFY(!downloaded(rig, downloads.path(), "A.BIN").has_value());
     // The window keeps the chosen files, with their progress.
     QCOMPARE(qobject_cast<DownloadModel*>(model.downloads())->rowCount(), 2);
@@ -1422,7 +1460,8 @@ void LoaderModelTest::an_operator_defined_download_takes_the_choice_through_the_
     QVERIFY(list_was_logged);
 }
 
-void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() {
+void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download()
+{
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
@@ -1431,11 +1470,14 @@ void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() 
     point_at_the_target(model);
     model.setDownloadMode(1);
 
-    QObject::connect(&model, &LoaderModel::downloadChoicePendingChanged, &model, [&] {
-        if (model.downloadChoicePending()) {
-            model.chooseNoDownloadFiles();
-        }
-    });
+    QObject::connect(&model, &LoaderModel::downloadChoicePendingChanged, &model,
+                     [&]
+                     {
+                         if (model.downloadChoicePending())
+                         {
+                             model.chooseNoDownloadFiles();
+                         }
+                     });
     model.downloadSelected();
     QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
 
@@ -1464,7 +1506,8 @@ void LoaderModelTest::choosing_none_of_the_targets_files_cancels_the_download() 
     QVERIFY(holds(rig, downloads.path(), "A.BIN", plan.files[0].content, 1));
 }
 
-void LoaderModelTest::an_id_a_download_directory_cannot_be_named_after_is_refused() {
+void LoaderModelTest::an_id_a_download_directory_cannot_be_named_after_is_refused()
+{
     adl::test::Rig rig(download_plan());
     adl::test::TempDir downloads;
     LoaderModel model(rig_host(rig), settings_in());
@@ -1478,7 +1521,8 @@ void LoaderModelTest::an_id_a_download_directory_cannot_be_named_after_is_refuse
     QVERIFY(model.canDownload());
 
     // An id the loader refuses is not a target at all: not for a download, not for anything.
-    for (const char* id : {"a/b", "a\\b", "x\ty"}) {
+    for (const char* id : {"a/b", "a\\b", "x\ty"})
+    {
         model.setThwIdPos(QString::fromLatin1(id));
         QVERIFY2(!model.targetValid(), id);
         QVERIFY2(!model.canDownload(), id);
@@ -1497,7 +1541,8 @@ void LoaderModelTest::an_id_a_download_directory_cannot_be_named_after_is_refuse
     QVERIFY(!rig.loader_host.fake_files().stat(std::string{"/DNLD_DATA_HNP:FMS_1"}).has_value());
 }
 
-void LoaderModelTest::a_download_with_a_missing_file_ends_as_a_failure() {
+void LoaderModelTest::a_download_with_a_missing_file_ends_as_a_failure()
+{
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
@@ -1521,7 +1566,8 @@ void LoaderModelTest::a_download_with_a_missing_file_ends_as_a_failure() {
     QVERIFY(log_contains(model, QStringLiteral("requested files missing")));
 }
 
-void LoaderModelTest::abort_of_a_download_stops_it() {
+void LoaderModelTest::abort_of_a_download_stops_it()
+{
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     QSemaphore hold;
@@ -1558,22 +1604,23 @@ void LoaderModelTest::abort_of_a_download_stops_it() {
 
 // A FolderDialog's selectedFolder is a QUrl; assigned to the string property it arrives as
 // "file:///...", which the engine would take for a relative path.
-void LoaderModelTest::a_directory_from_a_folder_dialog_is_stored_as_a_path() {
+void LoaderModelTest::a_directory_from_a_folder_dialog_is_stored_as_a_path()
+{
     adl::test::Rig rig(download_plan());
     adl::test::TempDir downloads;
     LoaderModel model(rig_host(rig), settings_in());
 
     const QString path = download_dir_of(downloads);
     model.setDownloadDirectory(QUrl::fromLocalFile(path).toString());
-    QCOMPARE(QDir::fromNativeSeparators(model.downloadDirectory()),
-             QDir::fromNativeSeparators(path));
+    QCOMPARE(QDir::fromNativeSeparators(model.downloadDirectory()), QDir::fromNativeSeparators(path));
 
     // A plain path is stored as it is.
     model.setDownloadDirectory(path);
     QCOMPARE(model.downloadDirectory(), path);
 }
 
-void LoaderModelTest::a_download_needs_a_target_a_directory_and_files() {
+void LoaderModelTest::a_download_needs_a_target_a_directory_and_files()
+{
     adl::test::Rig rig(download_plan());
     adl::test::TempDir downloads;
     LoaderModel model(rig_host(rig), settings_in());
@@ -1585,10 +1632,10 @@ void LoaderModelTest::a_download_needs_a_target_a_directory_and_files() {
     QCOMPARE(model.resultState(), 0);
 
     point_at_the_target(model);
-    QVERIFY(!model.canDownload());  // no file named, and the directory was cleared
+    QVERIFY(!model.canDownload()); // no file named, and the directory was cleared
     model.setDownloadDirectory(QStringLiteral("   "));
     model.addDownloadFile(QStringLiteral("A.BIN"));
-    QVERIFY(!model.canDownload());  // no directory
+    QVERIFY(!model.canDownload()); // no directory
     model.setDownloadDirectory(download_dir_of(downloads));
     QVERIFY(model.canDownload());
 
@@ -1602,15 +1649,16 @@ void LoaderModelTest::a_download_needs_a_target_a_directory_and_files() {
     model.addDownloadFile(QStringLiteral("A.BIN"));
     QVERIFY(model.canDownload());
     model.setTargetAddress(QStringLiteral("10.0.0"));
-    QVERIFY(!model.canDownload());  // not an address
+    QVERIFY(!model.canDownload()); // not an address
     model.setTargetAddress(QStringLiteral("10.0.0.2"));
     model.removeDownloadFile(0);
-    QVERIFY(!model.canDownload());  // the name was removed
+    QVERIFY(!model.canDownload()); // the name was removed
 
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
 }
 
-void LoaderModelTest::a_download_refuses_a_name_that_is_not_a_safe_file_name() {
+void LoaderModelTest::a_download_refuses_a_name_that_is_not_a_safe_file_name()
+{
     adl::test::Rig rig(download_plan());
     adl::test::TempDir downloads;
     LoaderModel model(rig_host(rig), settings_in());
@@ -1629,7 +1677,8 @@ void LoaderModelTest::a_download_refuses_a_name_that_is_not_a_safe_file_name() {
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{0});
 }
 
-void LoaderModelTest::a_second_job_is_refused_while_a_download_runs() {
+void LoaderModelTest::a_second_job_is_refused_while_a_download_runs()
+{
     adl::test::Rig rig(download_plan());
     QSemaphore hold;
     adl::test::TempDir downloads;
@@ -1654,7 +1703,8 @@ void LoaderModelTest::a_second_job_is_refused_while_a_download_runs() {
     QCOMPARE(rig.target.log().init_requests_at.size(), std::size_t{1});
 }
 
-void LoaderModelTest::auto_find_runs_before_a_download_when_no_target_is_selected() {
+void LoaderModelTest::auto_find_runs_before_a_download_when_no_target_is_selected()
+{
     QTemporaryDir settings_dir;
     auto settings = settings_in(settings_dir);
     settings->setAutoFindBeforeOperation(true);
@@ -1683,7 +1733,8 @@ void LoaderModelTest::auto_find_runs_before_a_download_when_no_target_is_selecte
 
 // ---- Aborts in the middle of a transfer, and what a job leaves behind --------------------------
 
-void LoaderModelTest::abort_in_the_middle_of_an_upload_is_confirmed_by_the_target() {
+void LoaderModelTest::abort_in_the_middle_of_an_upload_is_confirmed_by_the_target()
+{
     adl::test::UploadFixture fixture;
     adl::test::SimPlan plan = fixture.plan();
     // The target keeps working (and reporting) after its last file, so the abort cannot arrive
@@ -1738,7 +1789,8 @@ void LoaderModelTest::abort_in_the_middle_of_an_upload_is_confirmed_by_the_targe
     QVERIFY(model.canUpload());
 }
 
-void LoaderModelTest::abort_in_the_middle_of_a_download_is_confirmed_by_the_target() {
+void LoaderModelTest::abort_in_the_middle_of_a_download_is_confirmed_by_the_target()
+{
     adl::test::SimPlan plan = download_plan();
     plan.work_time = std::chrono::seconds(60);
     adl::test::Rig rig(plan);
@@ -1778,7 +1830,8 @@ void LoaderModelTest::abort_in_the_middle_of_a_download_is_confirmed_by_the_targ
     QVERIFY(model.lastErrorHint().isEmpty());
 }
 
-void LoaderModelTest::a_changed_target_drops_what_was_observed_against_the_old_one() {
+void LoaderModelTest::a_changed_target_drops_what_was_observed_against_the_old_one()
+{
     adl::test::SimPlan plan;
     plan.find_answer = adl::arinc615a::FindAnswer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
     adl::test::Rig rig(plan);
@@ -1832,7 +1885,8 @@ void LoaderModelTest::a_changed_target_drops_what_was_observed_against_the_old_o
     QCOMPARE(model.resultState(), 1);
 }
 
-void LoaderModelTest::a_media_set_result_is_not_a_transfer_and_survives_a_changed_target() {
+void LoaderModelTest::a_media_set_result_is_not_a_transfer_and_survives_a_changed_target()
+{
     adl::test::UploadFixture fixture;
     adl::test::Rig rig(fixture.plan());
     QVERIFY(fixture.write(rig));
@@ -1869,7 +1923,8 @@ void LoaderModelTest::a_media_set_result_is_not_a_transfer_and_survives_a_change
     QCOMPARE(model.resultState(), 1);
 }
 
-void LoaderModelTest::a_download_result_is_a_transfer_and_a_download_even_when_it_fails() {
+void LoaderModelTest::a_download_result_is_a_transfer_and_a_download_even_when_it_fails()
+{
     const adl::test::SimPlan plan = download_plan();
     adl::test::Rig rig(plan);
     adl::test::TempDir downloads;
@@ -1911,17 +1966,17 @@ void LoaderModelTest::a_download_result_is_a_transfer_and_a_download_even_when_i
 // download directory whose name is not ASCII. No target answers (nothing is listening on port 59
 // of the loopback interface, and the loader listens on a high port of its own), so the operation
 // is stopped once the download directory has been made, which is what it checks.
-void LoaderModelTest::the_real_host_makes_a_download_directory_with_a_non_ascii_name() {
+void LoaderModelTest::the_real_host_makes_a_download_directory_with_a_non_ascii_name()
+{
     QTemporaryDir scratch;
     QVERIFY(scratch.isValid());
-    const QString downloads =
-        scratch.filePath(QString::fromUtf8("T\xC3\xA9"
-                                           "l\xC3\xA9"
-                                           "charg\xC3\xA9"
-                                           "s "
-                                           "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E"
-                                           " "
-                                           "\xC3\xB1"));
+    const QString downloads = scratch.filePath(QString::fromUtf8("T\xC3\xA9"
+                                                                 "l\xC3\xA9"
+                                                                 "charg\xC3\xA9"
+                                                                 "s "
+                                                                 "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E"
+                                                                 " "
+                                                                 "\xC3\xB1"));
     QVERIFY(QDir().mkpath(downloads));
 
     LoaderModel model(system_host_factory(), settings_in());
@@ -1950,11 +2005,13 @@ void LoaderModelTest::the_real_host_makes_a_download_directory_with_a_non_ascii_
     QVERIFY(log_contains(model, QStringLiteral("Downloading 1 file from 127.0.0.1")));
 }
 
-void LoaderModelTest::a_language_switch_reaches_the_result_the_log_and_the_failure_on_show() {
+void LoaderModelTest::a_language_switch_reaches_the_result_the_log_and_the_failure_on_show()
+{
     // The French catalogue, from where the application's build puts it (the English one is
     // installed for the whole program by main()).
     QTranslator french;
-    if (!french.load(QStringLiteral("adl_app_fr"), QStringLiteral(ADL_I18N_DIR))) {
+    if (!french.load(QStringLiteral("adl_app_fr"), QStringLiteral(ADL_I18N_DIR)))
+    {
         QSKIP("the French catalogue has not been built");
     }
 
@@ -1988,7 +2045,8 @@ void LoaderModelTest::a_language_switch_reaches_the_result_the_log_and_the_failu
     QVERIFY(!model.lastErrorHint().isEmpty());
 }
 
-void MessageTest::verbatim_text_is_never_translated() {
+void MessageTest::verbatim_text_is_never_translated()
+{
     const Message message = Message::verbatim(QStringLiteral("completed %1"));
     QCOMPARE(message.text(), QStringLiteral("completed %1"));
     QVERIFY(!message.isEmpty());
@@ -1996,49 +2054,51 @@ void MessageTest::verbatim_text_is_never_translated() {
     QVERIFY(Message::verbatim({}).isEmpty());
 }
 
-namespace {
+namespace
+{
 
 // A class with tr(), as the application's own are, whose texts these cases translate.
-class Words {
+class Words
+{
     Q_DECLARE_TR_FUNCTIONS(Words)
 };
 
-}  // namespace
+} // namespace
 
-void MessageTest::arguments_replace_the_placeholders_in_one_pass() {
+void MessageTest::arguments_replace_the_placeholders_in_one_pass()
+{
     // The second argument holds a placeholder of its own, which stays; the arguments may be used
     // in any order or not at all.
-    const Message message = Message::translated(
-        &Words::tr, "%2 before %1",
-        {Message::verbatim(QStringLiteral("one")), Message::verbatim(QStringLiteral("%1 two"))});
+    const Message message =
+        Message::translated(&Words::tr, "%2 before %1",
+                            {Message::verbatim(QStringLiteral("one")), Message::verbatim(QStringLiteral("%1 two"))});
     QCOMPARE(message.text(), QStringLiteral("%1 two before one"));
     const Message dropped = Message::translated(
-        &Words::tr, "only %2",
-        {Message::verbatim(QStringLiteral("a")), Message::verbatim(QStringLiteral("b"))});
+        &Words::tr, "only %2", {Message::verbatim(QStringLiteral("a")), Message::verbatim(QStringLiteral("b"))});
     QCOMPARE(dropped.text(), QStringLiteral("only b"));
     // A placeholder past the arguments is text.
-    QCOMPARE(
-        Message::translated(&Words::tr, "100%3 of %1", {Message::verbatim(QStringLiteral("x"))})
-            .text(),
-        QStringLiteral("100%3 of x"));
+    QCOMPARE(Message::translated(&Words::tr, "100%3 of %1", {Message::verbatim(QStringLiteral("x"))}).text(),
+             QStringLiteral("100%3 of x"));
 }
 
-void MessageTest::a_sequence_joins_its_parts() {
-    const Message message = Message::sequence({Message::verbatim(QStringLiteral("a")),
-                                               Message::translated(&Words::tr, "b"),
-                                               Message::verbatim(QStringLiteral("c"))});
+void MessageTest::a_sequence_joins_its_parts()
+{
+    const Message message =
+        Message::sequence({Message::verbatim(QStringLiteral("a")), Message::translated(&Words::tr, "b"),
+                           Message::verbatim(QStringLiteral("c"))});
     QCOMPARE(message.text(), QStringLiteral("abc"));
 }
 
-void MessageTest::a_count_picks_the_plural_form() {
+void MessageTest::a_count_picks_the_plural_form()
+{
     // No translator is installed here, so Qt shows the source with the number put in for %n.
     const Message three = Message::translated(&Words::tr, "%n file(s)", {}, 3);
     QCOMPARE(three.text(), QStringLiteral("3 file(s)"));
 }
 
-void MessageTest::the_text_follows_the_installed_translator() {
+void MessageTest::the_text_follows_the_installed_translator()
+{
     const Message message = Message::translated(&Words::tr, "Close");
     QCOMPARE(message.text(), QStringLiteral("Close"));
-    QCOMPARE(Message::translated(&Words::tr, "no such text").text(),
-             QStringLiteral("no such text"));
+    QCOMPARE(Message::translated(&Words::tr, "no such text").text(), QStringLiteral("no such text"));
 }

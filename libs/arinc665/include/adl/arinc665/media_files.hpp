@@ -5,27 +5,29 @@
 // its encoder, its decoder and its check. How they are laid out over the members
 // of a set is in media_set.hpp.
 
-#include <cstddef>
-#include <cstdint>
-#include <span>
-#include <string>
-#include <vector>
-
 #include "adl/arinc665/check_value.hpp"
 #include "adl/arinc665/error.hpp"
 #include "adl/arinc665/file_format_version.hpp"
 #include "adl/arinc665/finding.hpp"
 #include "adl/arinc665/part_number.hpp"
 
-namespace adl::arinc665 {
+#include <cstddef>
+#include <cstdint>
+#include <span>
+#include <string>
+#include <vector>
+
+namespace adl::arinc665
+{
 
 // Which media set a list file is part of, and which member of it: the Media Set
 // PN, the Media Sequence Number (X) and the Number of Media Set Members (Y).
 // Members are numbered 1 to 255 and X is at most Y (sections 3.2 and 3.2.3.1.10).
-struct MediaSetIdentity {
+struct MediaSetIdentity
+{
     PartNumber media_set_part_number;
-    std::uint8_t media_sequence_number = 1;        // X
-    std::uint8_t number_of_media_set_members = 1;  // Y
+    std::uint8_t media_sequence_number = 1;       // X
+    std::uint8_t number_of_media_set_members = 1; // Y
 
     friend bool operator==(const MediaSetIdentity&, const MediaSetIdentity&) = default;
 };
@@ -33,20 +35,22 @@ struct MediaSetIdentity {
 // ---- LOADS.LUM: the list of loads (section 3.2.3.1, Table 3.2.3.1) ----
 
 // An entry of LOADS.LUM for each load, and the contents of the file as a whole.
-struct LoadsListEntry {
+struct LoadsListEntry
+{
     PartNumber load_part_number;
     std::string header_file_name;
-    std::uint16_t member_sequence_number = 1;      // the member the header file is on
-    std::vector<std::string> target_hardware_ids;  // the same list as in the header file
+    std::uint16_t member_sequence_number = 1;     // the member the header file is on
+    std::vector<std::string> target_hardware_ids; // the same list as in the header file
 
     friend bool operator==(const LoadsListEntry&, const LoadsListEntry&) = default;
 };
 
-struct LoadsList {
+struct LoadsList
+{
     FileFormatVersion format_version = FileFormatVersion::media;
     MediaSetIdentity identity;
     std::vector<LoadsListEntry> loads;
-    std::vector<std::byte> user_defined_data;  // whole 16-bit words; may be empty
+    std::vector<std::byte> user_defined_data; // whole 16-bit words; may be empty
 
     friend bool operator==(const LoadsList&, const LoadsList&) = default;
 };
@@ -54,20 +58,22 @@ struct LoadsList {
 // ---- FILES.LUM: the list of files (section 3.2.3.2, Table 3.2.3.2) ----
 
 // An entry of FILES.LUM for each file, and the contents of the file as a whole.
-struct FilesListEntry {
+struct FilesListEntry
+{
     std::string file_name;
-    std::string pathname;  // from the root of the member, "\" for a file in the root
+    std::string pathname; // from the root of the member, "\" for a file in the root
     std::uint16_t member_sequence_number = 1;
-    std::uint16_t crc = 0;  // the 16-bit CRC of the whole file
+    std::uint16_t crc = 0; // the 16-bit CRC of the whole file
     OptionalCheckValue check_value;
 
     friend bool operator==(const FilesListEntry&, const FilesListEntry&) = default;
 };
 
-struct FilesList {
+struct FilesList
+{
     FileFormatVersion format_version = FileFormatVersion::media;
     MediaSetIdentity identity;
-    std::vector<FilesListEntry> files;  // every file on the media set but FILES.LUM
+    std::vector<FilesListEntry> files; // every file on the media set but FILES.LUM
     std::vector<std::byte> user_defined_data;
     // The check value of FILES.LUM itself, over the file but for the check value
     // fields and the CRC; held as read or as set (see build_media_set()).
@@ -79,7 +85,8 @@ struct FilesList {
 // ---- BATCHES.LUM: the list of batches (section 3.2.3.3, Table 3.2.3.3-1) ----
 
 // An entry of BATCHES.LUM for each batch, and the contents of the file as a whole.
-struct BatchesListEntry {
+struct BatchesListEntry
+{
     PartNumber batch_part_number;
     std::string batch_file_name;
     std::uint16_t member_sequence_number = 1;
@@ -87,7 +94,8 @@ struct BatchesListEntry {
     friend bool operator==(const BatchesListEntry&, const BatchesListEntry&) = default;
 };
 
-struct BatchesList {
+struct BatchesList
+{
     FileFormatVersion format_version = FileFormatVersion::media;
     MediaSetIdentity identity;
     std::vector<BatchesListEntry> batches;
@@ -121,4 +129,4 @@ struct BatchesList {
 // FILES.LUM this library can read.
 [[nodiscard]] Result<std::size_t> files_list_check_value_offset(std::span<const std::byte> bytes);
 
-}  // namespace adl::arinc665
+} // namespace adl::arinc665

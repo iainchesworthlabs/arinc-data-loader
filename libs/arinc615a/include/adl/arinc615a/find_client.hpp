@@ -8,33 +8,41 @@
 // broadcast, a unicast address for each target, Appendix E) from a socket bound to port
 // 1001, and feeds the answers back.
 
-#include <array>
-#include <cstddef>
-#include <cstdint>
-#include <span>
-#include <string_view>
-
 #include "adl/arinc615a/endpoint.hpp"
 #include "adl/arinc615a/error.hpp"
 #include "adl/arinc615a/find.hpp"
 #include "adl/arinc615a/limits.hpp"
 #include "adl/arinc615a/time.hpp"
 
-namespace adl::arinc615a {
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <span>
+#include <string_view>
+
+namespace adl::arinc615a
+{
 
 // A text of at most N characters, held in the object (a FIND answer's views die with its
 // datagram).
 template <std::size_t N>
-class FixedText {
+class FixedText
+{
 public:
-    void set(std::string_view text) noexcept {
+    void set(std::string_view text) noexcept
+    {
         size_ = text.size() < N ? text.size() : N;
-        for (std::size_t i = 0; i < size_; ++i) {
+        for (std::size_t i = 0; i < size_; ++i)
+        {
             chars_[i] = text[i];
         }
     }
-    [[nodiscard]] std::string_view view() const noexcept { return {chars_.data(), size_}; }
-    friend bool operator==(const FixedText& a, const FixedText& b) noexcept {
+    [[nodiscard]] std::string_view view() const noexcept
+    {
+        return {chars_.data(), size_};
+    }
+    friend bool operator==(const FixedText& a, const FixedText& b) noexcept
+    {
         return a.view() == b.view();
     }
 
@@ -44,8 +52,9 @@ private:
 };
 
 // A target that answered.
-struct FindTarget {
-    Endpoint from;  // where the answer came from: the target's address
+struct FindTarget
+{
+    Endpoint from; // where the answer came from: the target's address
     FixedText<find_max_hardware_id> hardware_id;
     FixedText<find_max_type_name> type_name;
     FixedText<find_max_position> position;
@@ -55,13 +64,15 @@ struct FindTarget {
     friend bool operator==(const FindTarget&, const FindTarget&) noexcept = default;
 };
 
-struct FindConfig {
+struct FindConfig
+{
     Duration window = find_window;
     // Where the request goes. Empty means the limited broadcast address, 255.255.255.255.
     std::span<const Address> destinations;
 };
 
-class FindClient {
+class FindClient
+{
 public:
     static constexpr std::size_t max_targets = 64;
 
@@ -70,13 +81,14 @@ public:
     // Opens the window. After it the runner sends request() to destinations().
     void start(Instant now) noexcept;
 
-    [[nodiscard]] std::span<const std::byte> request() const noexcept {
+    [[nodiscard]] std::span<const std::byte> request() const noexcept
+    {
         return std::span<const std::byte>{request_}.first(request_size_);
     }
     // Every address the request is to be sent to, port 1001.
-    [[nodiscard]] std::span<const Address> destinations() const noexcept {
-        return config_.destinations.empty() ? std::span<const Address>{&broadcast_, 1}
-                                            : config_.destinations;
+    [[nodiscard]] std::span<const Address> destinations() const noexcept
+    {
+        return config_.destinations.empty() ? std::span<const Address>{&broadcast_, 1} : config_.destinations;
     }
 
     // An answer (or anything else) arrived on the FIND socket. What is not a valid answer, or
@@ -84,14 +96,24 @@ public:
     void on_datagram(Instant now, const Endpoint& from, std::span<const std::byte> bytes) noexcept;
     void on_timer(Instant now) noexcept;
 
-    [[nodiscard]] Instant next_wake() const noexcept { return done_ ? never : end_; }
-    [[nodiscard]] bool done() const noexcept { return done_; }
+    [[nodiscard]] Instant next_wake() const noexcept
+    {
+        return done_ ? never : end_;
+    }
+    [[nodiscard]] bool done() const noexcept
+    {
+        return done_;
+    }
 
-    [[nodiscard]] std::span<const FindTarget> targets() const noexcept {
+    [[nodiscard]] std::span<const FindTarget> targets() const noexcept
+    {
         return std::span<const FindTarget>{targets_}.first(count_);
     }
     // Datagrams ignored as not valid answers, as repeats, or for want of room.
-    [[nodiscard]] std::size_t ignored() const noexcept { return ignored_; }
+    [[nodiscard]] std::size_t ignored() const noexcept
+    {
+        return ignored_;
+    }
 
 private:
     FindConfig config_;
@@ -105,4 +127,4 @@ private:
     std::size_t ignored_ = 0;
 };
 
-}  // namespace adl::arinc615a
+} // namespace adl::arinc615a

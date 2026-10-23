@@ -1,16 +1,18 @@
+#include "adl/arinc665/portable_name.hpp"
+
 #include <catch2/catch_test_macros.hpp>
+
 #include <string>
 #include <string_view>
 
-#include "adl/arinc665/portable_name.hpp"
-
 using namespace adl::arinc665;
 
-TEST_CASE("an ordinary file name is portable", "[portable-name]") {
+TEST_CASE("an ordinary file name is portable", "[portable-name]")
+{
     for (const std::string_view name :
-         {"A", "APP.LUP", "HNPFMS_L.LCS", "lower.case", "a.b.c", "with space.txt", "x-y_z~1", "a,b",
-          "CONFIG.LDR", ".hidden", "COMPORT.BIN", "CONSOLE", "AUXILIARY.TXT", "COM10", "COM0",
-          "LPT0.TXT", "NULL", "PRNT", "x"}) {
+         {"A", "APP.LUP", "HNPFMS_L.LCS", "lower.case", "a.b.c", "with space.txt", "x-y_z~1", "a,b", "CONFIG.LDR",
+          ".hidden", "COMPORT.BIN", "CONSOLE", "AUXILIARY.TXT", "COM10", "COM0", "LPT0.TXT", "NULL", "PRNT", "x"})
+    {
         CAPTURE(name);
         CHECK(is_portable_file_name(name));
     }
@@ -18,9 +20,11 @@ TEST_CASE("an ordinary file name is portable", "[portable-name]") {
 
 // What a target can name a file when the operator's download directory is on any host: the
 // answer is the same on every platform, because the tree may be copied to another.
-TEST_CASE("hostile file names are refused on every platform", "[portable-name]") {
+TEST_CASE("hostile file names are refused on every platform", "[portable-name]")
+{
     const std::string long_but_fine(255, 'a');
-    struct Case {
+    struct Case
+    {
         std::string_view name;
         const char* why;
     };
@@ -70,22 +74,25 @@ TEST_CASE("hostile file names are refused on every platform", "[portable-name]")
         {"caf\xC3\xA9", "a character outside printable ASCII"},
         {"\xEF\xBC\x8F", "a full-width solidus, which some hosts fold to a separator"},
     };
-    for (const Case& entry : hostile) {
+    for (const Case& entry : hostile)
+    {
         CAPTURE(entry.why, std::string{entry.name});
         CHECK_FALSE(is_portable_file_name(entry.name));
     }
     CHECK(is_portable_file_name(long_but_fine));
 }
 
-TEST_CASE("device names are told with or without an extension", "[portable-name]") {
-    for (const std::string_view name :
-         {"CON", "con", "PRN", "AUX", "NUL", "COM1", "COM9", "LPT1", "LPT9", "CONIN$", "CONOUT$",
-          "nul.txt", "Com3.bin", "aux.", "conin$.x"}) {
+TEST_CASE("device names are told with or without an extension", "[portable-name]")
+{
+    for (const std::string_view name : {"CON", "con", "PRN", "AUX", "NUL", "COM1", "COM9", "LPT1", "LPT9", "CONIN$",
+                                        "CONOUT$", "nul.txt", "Com3.bin", "aux.", "conin$.x"})
+    {
         CAPTURE(name);
         CHECK(is_device_name(name));
     }
-    for (const std::string_view name : {"", "COM", "COM0", "COM10", "LPT0", "CONS", "NULL", "AUXX",
-                                        "xCON", "CONIN", "CONIN$$", "a.NUL", "x.con"}) {
+    for (const std::string_view name :
+         {"", "COM", "COM0", "COM10", "LPT0", "CONS", "NULL", "AUXX", "xCON", "CONIN", "CONIN$$", "a.NUL", "x.con"})
+    {
         CAPTURE(name);
         CHECK_FALSE(is_device_name(name));
     }

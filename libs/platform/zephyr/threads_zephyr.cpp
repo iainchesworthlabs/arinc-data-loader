@@ -1,14 +1,16 @@
+#include "adl/platform/threads.hpp"
+#include "detail/nothrow.hpp"
+#include "zephyr/zephyr_os.hpp"
+
 #include <algorithm>
 #include <array>
 #include <cstring>
 #include <memory>
 
-#include "adl/platform/threads.hpp"
-#include "detail/nothrow.hpp"
-#include "zephyr/zephyr_os.hpp"
-
-namespace adl::platform::zephyr {
-namespace {
+namespace adl::platform::zephyr
+{
+namespace
+{
 
 using zephyr_os::fail_errno;
 
@@ -32,49 +34,64 @@ constexpr std::size_t minimum_stack_bytes = 1024;
 //
 // docs/platform-abstraction.md has the table and what a product still has to check
 // against its own thread plan (the network stack's receive thread, in particular).
-[[nodiscard]] int native_priority(Priority level) noexcept {
+[[nodiscard]] int native_priority(Priority level) noexcept
+{
     const int lowest = K_LOWEST_APPLICATION_THREAD_PRIO;
     // Fewer than four pre-emptible priorities cannot tell five levels apart; the
     // levels then share what there is, in order.
     const int span = std::max(lowest - 1, 0);
-    switch (level) {
-        case Priority::highest:
-            return std::min(1, lowest);
-        case Priority::high:
-            return std::min(1 + span / 4, lowest);
-        case Priority::normal:
-            return std::min(1 + span / 2, lowest);
-        case Priority::low:
-            return std::min(1 + (span * 3) / 4, lowest);
-        case Priority::lowest:
-            return lowest;
+    switch (level)
+    {
+    case Priority::highest:
+        return std::min(1, lowest);
+    case Priority::high:
+        return std::min(1 + span / 4, lowest);
+    case Priority::normal:
+        return std::min(1 + span / 2, lowest);
+    case Priority::low:
+        return std::min(1 + (span * 3) / 4, lowest);
+    case Priority::lowest:
+        return lowest;
     }
     return lowest;
 }
 
 // ---- mutex ---------------------------------------------------------------------
 
-class ZephyrMutex final : public Mutex {
+class ZephyrMutex final : public Mutex
+{
 public:
-    ZephyrMutex() noexcept { (void)k_mutex_init(&mutex_); }
+    ZephyrMutex() noexcept
+    {
+        (void)k_mutex_init(&mutex_);
+    }
 
-    void lock() noexcept override { (void)k_mutex_lock(&mutex_, K_FOREVER); }
+    void lock() noexcept override
+    {
+        (void)k_mutex_lock(&mutex_, K_FOREVER);
+    }
 
-    bool try_lock() noexcept override {
-        if (k_mutex_lock(&mutex_, K_NO_WAIT) != 0) {
+    bool try_lock() noexcept override
+    {
+        if (k_mutex_lock(&mutex_, K_NO_WAIT) != 0)
+        {
             return false;
         }
         // A k_mutex is recursive, and the interface's is not: a thread that
         // already holds it would just have deepened its own lock. That is not
         // getting the lock.
-        if (mutex_.lock_count > 1) {
+        if (mutex_.lock_count > 1)
+        {
             (void)k_mutex_unlock(&mutex_);
             return false;
         }
         return true;
     }
 
-    void unlock() noexcept override { (void)k_mutex_unlock(&mutex_); }
+    void unlock() noexcept override
+    {
+        (void)k_mutex_unlock(&mutex_);
+    }
 
 private:
     k_mutex mutex_{};
@@ -86,36 +103,45 @@ private:
 // and the interface reports a post past the ceiling. A count under a k_mutex with
 // a k_condvar (the shape of the POSIX port's) is exact, and the mutex still
 // inherits priority.
-class ZephyrSemaphore final : public Semaphore {
+class ZephyrSemaphore final : public Semaphore
+{
 public:
     ZephyrSemaphore(Clock& clock, unsigned initial, unsigned ceiling) noexcept
-        : clock_(clock), count_(initial), ceiling_(ceiling) {
+        : clock_(clock), count_(initial), ceiling_(ceiling)
+    {
         (void)k_mutex_init(&mutex_);
         (void)k_condvar_init(&condition_);
     }
 
-    Result<void> post() noexcept override {
+    Result<void> post() noexcept override
+    {
         (void)k_mutex_lock(&mutex_, K_FOREVER);
         const bool full = count_ >= ceiling_;
-        if (!full) {
+        if (!full)
+        {
             ++count_;
         }
         (void)k_mutex_unlock(&mutex_);
-        if (full) {
+        if (full)
+        {
             return fail(ErrorCode::resource_exhausted);
         }
         (void)k_condvar_signal(&condition_);
         return {};
     }
 
-    Result<void> wait(Duration timeout) noexcept override {
+    Result<void> wait(Duration timeout) noexcept override
+    {
         const Instant deadline = timeout == forever ? Instant{forever} : clock_.now() + timeout;
         (void)k_mutex_lock(&mutex_, K_FOREVER);
-        while (count_ == 0) {
+        while (count_ == 0)
+        {
             Duration remaining = forever;
-            if (timeout != forever) {
+            if (timeout != forever)
+            {
                 remaining = deadline - clock_.now();
-                if (remaining <= Duration::zero()) {
+                if (remaining <= Duration::zero())
+                {
                     (void)k_mutex_unlock(&mutex_);
                     return fail(ErrorCode::timeout);
                 }
@@ -139,52 +165,60 @@ private:
 
 // ---- thread --------------------------------------------------------------------
 
-class ZephyrThread final : public Thread {
+class ZephyrThread final : public Thread
+{
 public:
-    explicit ZephyrThread(const ThreadSpec& spec) noexcept
-        : entry_(spec.entry), argument_(spec.argument) {
+    explicit ZephyrThread(const ThreadSpec& spec) noexcept : entry_(spec.entry), argument_(spec.argument)
+    {
         // The caller's string need not outlive the call.
         const char* name = spec.name != nullptr ? spec.name : "";
         std::size_t i = 0;
-        for (; i + 1 < name_.size() && name[i] != '\0'; ++i) {
+        for (; i + 1 < name_.size() && name[i] != '\0'; ++i)
+        {
             name_[i] = name[i];
         }
         name_[i] = '\0';
     }
 
-    ~ZephyrThread() override {
+    ~ZephyrThread() override
+    {
         (void)join();
-        if (stack_ != nullptr && owns_stack_) {
+        if (stack_ != nullptr && owns_stack_)
+        {
             (void)k_thread_stack_free(stack_);
         }
     }
 
-    [[nodiscard]] Result<void> start(const ThreadSpec& spec) noexcept {
-        std::size_t stack_bytes = spec.stack_bytes != 0
-                                      ? std::max(spec.stack_bytes, minimum_stack_bytes)
-                                      : std::size_t{CONFIG_ADL_THREAD_STACK_BYTES};
-        if (!spec.stack_storage.empty()) {
+    [[nodiscard]] Result<void> start(const ThreadSpec& spec) noexcept
+    {
+        std::size_t stack_bytes = spec.stack_bytes != 0 ? std::max(spec.stack_bytes, minimum_stack_bytes)
+                                                        : std::size_t{CONFIG_ADL_THREAD_STACK_BYTES};
+        if (!spec.stack_storage.empty())
+        {
             // Storage the caller made with K_KERNEL_STACK_DEFINE or K_THREAD_STACK_DEFINE:
             // used as it is, so it has to be aligned the way the architecture needs.
-            if (reinterpret_cast<std::uintptr_t>(spec.stack_storage.data()) %
-                    Z_KERNEL_STACK_OBJ_ALIGN !=
-                0) {
+            if (reinterpret_cast<std::uintptr_t>(spec.stack_storage.data()) % Z_KERNEL_STACK_OBJ_ALIGN != 0)
+            {
                 return fail(ErrorCode::invalid_argument);
             }
             stack_ = reinterpret_cast<k_thread_stack_t*>(spec.stack_storage.data());
             stack_bytes = spec.stack_storage.size();
-        } else {
+        }
+        else
+        {
             stack_ = k_thread_stack_alloc(stack_bytes, 0);
-            if (stack_ == nullptr) {
+            if (stack_ == nullptr)
+            {
                 return fail(ErrorCode::resource_exhausted);
             }
             owns_stack_ = true;
         }
         priority_level_ = spec.priority;
         // The priority is part of creation, so the thread never runs at any other.
-        tid_ = k_thread_create(&thread_, stack_, stack_bytes, &ZephyrThread::main, this, nullptr,
-                               nullptr, native_priority(spec.priority), 0, K_NO_WAIT);
-        if (tid_ == nullptr) {
+        tid_ = k_thread_create(&thread_, stack_, stack_bytes, &ZephyrThread::main, this, nullptr, nullptr,
+                               native_priority(spec.priority), 0, K_NO_WAIT);
+        if (tid_ == nullptr)
+        {
             return fail(ErrorCode::resource_exhausted);
         }
         joinable_ = true;
@@ -192,21 +226,28 @@ public:
         return {};
     }
 
-    Result<void> join() noexcept override {
-        if (!joinable_) {
+    Result<void> join() noexcept override
+    {
+        if (!joinable_)
+        {
             return {};
         }
         joinable_ = false;
-        if (const int error = k_thread_join(&thread_, K_FOREVER); error != 0) {
+        if (const int error = k_thread_join(&thread_, K_FOREVER); error != 0)
+        {
             return fail_errno(error);
         }
         return {};
     }
 
-    PriorityOutcome priority_outcome() const noexcept override { return PriorityOutcome::applied; }
+    PriorityOutcome priority_outcome() const noexcept override
+    {
+        return PriorityOutcome::applied;
+    }
 
 private:
-    static void main(void* self, void* /*unused*/, void* /*unused*/) noexcept {
+    static void main(void* self, void* /*unused*/, void* /*unused*/) noexcept
+    {
         auto* thread = static_cast<ZephyrThread*>(self);
         // The creator may join and destroy the object as soon as the entry function
         // returns; nothing of it is touched after this.
@@ -226,39 +267,48 @@ private:
     Priority priority_level_ = Priority::normal;
 };
 
-class ZephyrThreading final : public Threading {
+class ZephyrThreading final : public Threading
+{
 public:
     explicit ZephyrThreading(Clock& clock) noexcept : clock_(clock) {}
 
-    Result<Owned<Thread>> spawn(const ThreadSpec& spec) noexcept override {
-        if (spec.entry == nullptr) {
+    Result<Owned<Thread>> spawn(const ThreadSpec& spec) noexcept override
+    {
+        if (spec.entry == nullptr)
+        {
             return fail(ErrorCode::invalid_argument);
         }
         auto thread = make_owned_nothrow<Thread, ZephyrThread>(spec);
-        if (!thread) {
+        if (!thread)
+        {
             return fail(ErrorCode::resource_exhausted);
         }
-        if (auto started = static_cast<ZephyrThread&>(*thread).start(spec); !started) {
+        if (auto started = static_cast<ZephyrThread&>(*thread).start(spec); !started)
+        {
             return std::unexpected(started.error());
         }
         return thread;
     }
 
-    Result<Owned<Mutex>> create_mutex() noexcept override {
+    Result<Owned<Mutex>> create_mutex() noexcept override
+    {
         auto mutex = make_owned_nothrow<Mutex, ZephyrMutex>();
-        if (!mutex) {
+        if (!mutex)
+        {
             return fail(ErrorCode::resource_exhausted);
         }
         return mutex;
     }
 
-    Result<Owned<Semaphore>> create_semaphore(unsigned initial,
-                                              unsigned ceiling) noexcept override {
-        if (ceiling == 0 || initial > ceiling) {
+    Result<Owned<Semaphore>> create_semaphore(unsigned initial, unsigned ceiling) noexcept override
+    {
+        if (ceiling == 0 || initial > ceiling)
+        {
             return fail(ErrorCode::invalid_argument);
         }
         auto semaphore = make_owned_nothrow<Semaphore, ZephyrSemaphore>(clock_, initial, ceiling);
-        if (!semaphore) {
+        if (!semaphore)
+        {
             return fail(ErrorCode::resource_exhausted);
         }
         return semaphore;
@@ -268,10 +318,11 @@ private:
     Clock& clock_;
 };
 
-}  // namespace
+} // namespace
 
-std::unique_ptr<Threading> make_threading(Clock& clock) noexcept {
+std::unique_ptr<Threading> make_threading(Clock& clock) noexcept
+{
     return detail::make_unique_nothrow<ZephyrThreading>(clock);
 }
 
-}  // namespace adl::platform::zephyr
+} // namespace adl::platform::zephyr

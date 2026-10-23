@@ -8,16 +8,17 @@
 //
 // This header is internal to libs/platform: it includes OS headers.
 
-#include <pthread.h>
-
-#include <cstddef>
-
 #include "adl/platform/error.hpp"
 #include "adl/platform/host.hpp"
 #include "adl/platform/threads.hpp"
 #include "adl/platform/time.hpp"
 
-namespace adl::platform::posix_os {
+#include <pthread.h>
+
+#include <cstddef>
+
+namespace adl::platform::posix_os
+{
 
 // ---- per operating system -------------------------------------------------
 
@@ -37,8 +38,7 @@ namespace adl::platform::posix_os {
 // Waits on `condition` (with `mutex` held) for at most `timeout`, which is
 // positive and finite. Returns 0 when woken (possibly spuriously), ETIMEDOUT
 // when the time ran out, or another errno value.
-[[nodiscard]] int wait_condition(pthread_cond_t& condition, pthread_mutex_t& mutex,
-                                 Duration timeout) noexcept;
+[[nodiscard]] int wait_condition(pthread_cond_t& condition, pthread_mutex_t& mutex, Duration timeout) noexcept;
 
 // Gives a thread the scheduling the abstract level maps to; the thread calls it
 // on itself before its entry function runs. Always called, for `normal` too,
@@ -60,7 +60,8 @@ void name_current_thread(const char* name) noexcept;
 // ---- shared -----------------------------------------------------------------
 
 [[nodiscard]] ErrorCode map_errno(int error) noexcept;
-[[nodiscard]] inline std::unexpected<Error> fail_errno(int error) noexcept {
+[[nodiscard]] inline std::unexpected<Error> fail_errno(int error) noexcept
+{
     return fail(map_errno(error), error);
 }
 
@@ -68,9 +69,10 @@ void name_current_thread(const char* name) noexcept;
 // what an int holds, -1 for `forever`.
 [[nodiscard]] int to_poll_milliseconds(Duration timeout) noexcept;
 
-}  // namespace adl::platform::posix_os
+} // namespace adl::platform::posix_os
 
-namespace adl::platform::posix {
+namespace adl::platform::posix
+{
 
 [[nodiscard]] std::unique_ptr<Clock> make_clock() noexcept;
 [[nodiscard]] std::unique_ptr<MemoryProvider> make_memory() noexcept;
@@ -78,4 +80,4 @@ namespace adl::platform::posix {
 [[nodiscard]] std::unique_ptr<Threading> make_threading(Clock& clock) noexcept;
 [[nodiscard]] std::unique_ptr<Network> make_network(Clock& clock) noexcept;
 
-}  // namespace adl::platform::posix
+} // namespace adl::platform::posix

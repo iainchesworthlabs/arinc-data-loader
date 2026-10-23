@@ -6,7 +6,6 @@
 #include <QLocale>
 #include <QSettings>
 #include <QVariantMap>
-
 #include <algorithm>
 #include <array>
 #include <string_view>
@@ -14,10 +13,13 @@
 
 using namespace Qt::StringLiterals;
 
-namespace adl::ui {
-namespace {
+namespace adl::ui
+{
+namespace
+{
 
-struct LanguageInfo {
+struct LanguageInfo
+{
     std::string_view code;
     std::string_view native_name;
     // The typeface the window is set in. Archivo, the design's face, has no Hebrew letters; the
@@ -47,28 +49,32 @@ constexpr std::array<LanguageInfo, 8> kLanguages{{
 
 constexpr QLatin1StringView kSettingsKey{"language/code"};
 
-[[nodiscard]] QLatin1StringView latin1(std::string_view text) {
+[[nodiscard]] QLatin1StringView latin1(std::string_view text)
+{
     return QLatin1StringView{text.data(), static_cast<qsizetype>(text.size())};
 }
 
-[[nodiscard]] bool is_supported(const QString& code) {
-    return std::ranges::any_of(
-        kLanguages, [&code](const LanguageInfo& info) { return code == latin1(info.code); });
+[[nodiscard]] bool is_supported(const QString& code)
+{
+    return std::ranges::any_of(kLanguages, [&code](const LanguageInfo& info) { return code == latin1(info.code); });
 }
 
 // Maps a system locale to one of kLanguages, or "en" when there is no catalogue for it.
-[[nodiscard]] QString language_for_locale(const QLocale& locale) {
+[[nodiscard]] QString language_for_locale(const QLocale& locale)
+{
     const QString name = QLocale::languageToCode(locale.language());
     return is_supported(name) ? name : QStringLiteral("en");
 }
 
-}  // namespace
+} // namespace
 
-LanguageManager::LanguageManager(QGuiApplication& app, QQmlEngine& engine, QString catalogue,
-                                 QObject* parent)
-    : QObject(parent), app_(app), engine_(engine), catalogue_(std::move(catalogue)) {}
+LanguageManager::LanguageManager(QGuiApplication& app, QQmlEngine& engine, QString catalogue, QObject* parent)
+    : QObject(parent), app_(app), engine_(engine), catalogue_(std::move(catalogue))
+{
+}
 
-void LanguageManager::applyInitialLanguage() {
+void LanguageManager::applyInitialLanguage()
+{
     const QSettings settings;
     const QString saved = settings.value(kSettingsKey).toString();
     const QString initial = is_supported(saved) ? saved : language_for_locale(QLocale::system());
@@ -79,28 +85,33 @@ void LanguageManager::applyInitialLanguage() {
     current_language_ = initial;
 }
 
-bool LanguageManager::rightToLeft() const {
+bool LanguageManager::rightToLeft() const
+{
     return QLocale(current_language_).textDirection() == Qt::RightToLeft;
 }
 
-QVariantList LanguageManager::availableLanguages() const {
+QVariantList LanguageManager::availableLanguages() const
+{
     QVariantList result;
     result.reserve(static_cast<qsizetype>(kLanguages.size()));
-    for (const LanguageInfo& info : kLanguages) {
+    for (const LanguageInfo& info : kLanguages)
+    {
         QVariantMap entry;
         entry["code"] = QString{latin1(info.code)};
-        entry["name"] = QString::fromUtf8(info.native_name.data(),
-                                          static_cast<qsizetype>(info.native_name.size()));
+        entry["name"] = QString::fromUtf8(info.native_name.data(), static_cast<qsizetype>(info.native_name.size()));
         result << entry;
     }
     return result;
 }
 
-bool LanguageManager::setLanguage(const QString& code) {
-    if (!is_supported(code)) {
+bool LanguageManager::setLanguage(const QString& code)
+{
+    if (!is_supported(code))
+    {
         return false;
     }
-    if (code == current_language_) {
+    if (code == current_language_)
+    {
         return true;
     }
 
@@ -119,27 +130,31 @@ bool LanguageManager::setLanguage(const QString& code) {
     return true;
 }
 
-void LanguageManager::applyFont(const QString& code) {
-    const auto language = std::ranges::find_if(
-        kLanguages, [&code](const LanguageInfo& info) { return code == latin1(info.code); });
-    if (language == kLanguages.end()) {
+void LanguageManager::applyFont(const QString& code)
+{
+    const auto language =
+        std::ranges::find_if(kLanguages, [&code](const LanguageInfo& info) { return code == latin1(info.code); });
+    if (language == kLanguages.end())
+    {
         return;
     }
     // Only a face that is registered: a build or a test that has not registered the bundled fonts
     // keeps the font it has.
-    const QString family =
-        QString::fromUtf8(language->family.data(), static_cast<qsizetype>(language->family.size()));
-    if (!QFontDatabase::families().contains(family)) {
+    const QString family = QString::fromUtf8(language->family.data(), static_cast<qsizetype>(language->family.size()));
+    if (!QFontDatabase::families().contains(family))
+    {
         return;
     }
     QFont font = QGuiApplication::font();
-    if (font.family() != family) {
+    if (font.family() != family)
+    {
         font.setFamily(family);
         QGuiApplication::setFont(font);
     }
 }
 
-void LanguageManager::installTranslators(const QString& code) {
+void LanguageManager::installTranslators(const QString& code)
+{
     // Each translator's previous language is replaced in place, so a failed load below leaves
     // the old translator removed rather than half installed.
     app_.removeTranslator(&qt_translator_);
@@ -150,21 +165,22 @@ void LanguageManager::installTranslators(const QString& code) {
     const QString catalogue_directory = QStringLiteral(":/i18n");
 
     // Qt keeps its own catalogue in one qt_<code>.qm per language; English has none.
-    if (code != "en"_L1 &&
-        qt_translator_.load(locale, QStringLiteral("qt"), QStringLiteral("_"),
-                            QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
+    if (code != "en"_L1 && qt_translator_.load(locale, QStringLiteral("qt"), QStringLiteral("_"),
+                                               QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+    {
         app_.installTranslator(&qt_translator_);
     }
 
     // The application's own are in the resources, English included: its catalogue holds the
     // plural forms of the source strings and nothing else.
-    if (ui_translator_.load(locale, QStringLiteral("adl_ui"), QStringLiteral("_"),
-                            catalogue_directory)) {
+    if (ui_translator_.load(locale, QStringLiteral("adl_ui"), QStringLiteral("_"), catalogue_directory))
+    {
         app_.installTranslator(&ui_translator_);
     }
-    if (app_translator_.load(locale, catalogue_, QStringLiteral("_"), catalogue_directory)) {
+    if (app_translator_.load(locale, catalogue_, QStringLiteral("_"), catalogue_directory))
+    {
         app_.installTranslator(&app_translator_);
     }
 }
 
-}  // namespace adl::ui
+} // namespace adl::ui

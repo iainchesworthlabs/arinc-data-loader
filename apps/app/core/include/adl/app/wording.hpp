@@ -5,17 +5,18 @@
 // them in English (for logs and tests); the application says them through the translators, as
 // Messages so a language switch reaches the ones already shown.
 
-#include <cstdint>
-#include <string_view>
-
-#include <QCoreApplication>
-
 #include "adl/app/message.hpp"
 #include "adl/arinc615a/data_loader.hpp"
 
-namespace adl::app {
+#include <QCoreApplication>
+#include <cstdint>
+#include <string_view>
 
-class Wording {
+namespace adl::app
+{
+
+class Wording
+{
     Q_DECLARE_TR_FUNCTIONS(Wording)
 
 public:
@@ -27,12 +28,11 @@ public:
     [[nodiscard]] static Message transfer(adl::arinc615a::TransferOutcome outcome);
     // A notice of the engine as a line for the operator: what happened, to which file, and the
     // number it carries said in the unit it is in (seconds, files, a transfer's outcome).
-    [[nodiscard]] static Message notice(adl::arinc615a::Notice notice, std::string_view subject,
-                                        std::uint32_t value);
+    [[nodiscard]] static Message notice(adl::arinc615a::Notice notice, std::string_view subject, std::uint32_t value);
 
 private:
     // The notice's own sentence, before the file and the number.
     [[nodiscard]] static Message notice_phrase(adl::arinc615a::Notice notice);
 };
 
-}  // namespace adl::app
+} // namespace adl::app

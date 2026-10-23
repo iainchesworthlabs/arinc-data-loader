@@ -5,7 +5,8 @@
 
 class QQuickWindow;
 
-namespace adl::app {
+namespace adl::app
+{
 
 // Turns the window's frame loop into trace data: one frame mark per swap, and plots of the frame
 // interval and of the time the render thread spent drawing the frame. Tracy's GPU zones would need
@@ -15,7 +16,8 @@ namespace adl::app {
 // Must be destroyed after the window: the connections belong to the window, and a queued render
 // signal must never find a half-destroyed profiler. main.cpp holds it in an optional and resets
 // the engine first.
-class FrameProfiler : public QObject {
+class FrameProfiler : public QObject
+{
     Q_OBJECT
 
 public:
@@ -30,4 +32,4 @@ private:
     QElapsedTimer render_clock_;
 };
 
-}  // namespace adl::app
+} // namespace adl::app

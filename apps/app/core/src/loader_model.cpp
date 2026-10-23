@@ -1,22 +1,22 @@
 #include "adl/app/loader_model.hpp"
 
-#include <QDateTime>
-#include <QDir>
-#include <QMetaObject>
-#include <QTimer>
-
 #include "adl/app/address.hpp"
 #include "adl/app/download_directory.hpp"
 #include "adl/arinc615a/data_loader.hpp"
 
 #include <adl/profiling.hpp>
 
-namespace adl::app {
+#include <QDateTime>
+#include <QDir>
+#include <QMetaObject>
+#include <QTimer>
 
-LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> settings,
-                         QObject* parent)
-    : QObject(parent),
-      settings_(settings != nullptr ? std::move(settings) : std::make_unique<AppSettings>()) {
+namespace adl::app
+{
+
+LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> settings, QObject* parent)
+    : QObject(parent), settings_(settings != nullptr ? std::move(settings) : std::make_unique<AppSettings>())
+{
     register_metatypes();
 
     // The operator's preferences: the log's length now, and the target fields filled in - the
@@ -24,11 +24,13 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
     // off), the defaults otherwise (and again whenever the operator clears a field).
     events_.set_capacity(settings_->logCapacity());
     target_address_ = settings_->lastTargetAddress();
-    if (target_address_.isEmpty()) {
+    if (target_address_.isEmpty())
+    {
         target_address_ = settings_->defaultTargetAddress();
     }
     thw_id_pos_ = settings_->lastThwIdPos();
-    if (thw_id_pos_.isEmpty()) {
+    if (thw_id_pos_.isEmpty())
+    {
         thw_id_pos_ = settings_->defaultThwIdPos();
     }
 
@@ -38,77 +40,86 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
 
     // The worker's thread emits these; the receiver (this) lives on the window's thread, so Qt
     // queues them and they arrive here in the order they were emitted.
-    connect(worker_, &EngineWorker::log_line, this,
-            [this](const EventEntry& entry) { events_.append(entry); });
-    connect(worker_, &EngineWorker::targets_found, this, [this](const QList<FoundTarget>& found) {
-        targets_.reset(found);
-        selected_target_row_ = -1;
-        Q_EMIT selectedTargetChanged();
-    });
+    connect(worker_, &EngineWorker::log_line, this, [this](const EventEntry& entry) { events_.append(entry); });
+    connect(worker_, &EngineWorker::targets_found, this,
+            [this](const QList<FoundTarget>& found)
+            {
+                targets_.reset(found);
+                selected_target_row_ = -1;
+                Q_EMIT selectedTargetChanged();
+            });
     connect(worker_, &EngineWorker::configuration_read, this,
             [this](const QList<HardwareRow>& rows) { configuration_.reset(rows); });
-    connect(worker_, &EngineWorker::media_set_read, this, [this](const MediaSetSummary& summary) {
-        media_set_ = summary;
-        // A set that cannot be read keeps the loads of the last readable one, so a transient
-        // problem (a file gone for a moment) does not throw the operator's ticks away; nothing
-        // can be uploaded while the error is set, and the next successful read replaces them.
-        if (summary.error.isEmpty()) {
-            loads_.reset(summary.loads);
-            files_.reset(summary.files);
-        }
-        Q_EMIT mediaSetChanged();
-        refresh_availability();
-    });
-    connect(
-        worker_, &EngineWorker::validation_finished, this, [this](const ValidationReport& report) {
-            Message detail;
-            if (report.error.isEmpty()) {
-                // One count to a sentence: the loads and the files are phrases of their own.
-                detail = Message::translated(
-                    &LoaderModel::tr, QT_TR_NOOP("%1, %2, all check values verified"),
-                    {Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n load(s)"), {},
-                                         report.loads),
-                     Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n file(s)"), {},
-                                         report.files)});
-                if (!report.findings.isEmpty()) {
-                    detail = Message::sequence(
-                        {detail,
-                         Message::translated(
-                             &LoaderModel::tr,
-                             QT_TR_N_NOOP("; %n warning(s) against the standard's recommendations"),
-                             {}, static_cast<int>(report.findings.size()))});
+    connect(worker_, &EngineWorker::media_set_read, this,
+            [this](const MediaSetSummary& summary)
+            {
+                media_set_ = summary;
+                // A set that cannot be read keeps the loads of the last readable one, so a transient
+                // problem (a file gone for a moment) does not throw the operator's ticks away; nothing
+                // can be uploaded while the error is set, and the next successful read replaces them.
+                if (summary.error.isEmpty())
+                {
+                    loads_.reset(summary.loads);
+                    files_.reset(summary.files);
                 }
-            }
-            set_validation(report.error.isEmpty() ? 2 : 3, report.error, report.findings, detail);
-        });
+                Q_EMIT mediaSetChanged();
+                refresh_availability();
+            });
+    connect(worker_, &EngineWorker::validation_finished, this,
+            [this](const ValidationReport& report)
+            {
+                Message detail;
+                if (report.error.isEmpty())
+                {
+                    // One count to a sentence: the loads and the files are phrases of their own.
+                    detail = Message::translated(
+                        &LoaderModel::tr, QT_TR_NOOP("%1, %2, all check values verified"),
+                        {Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n load(s)"), {}, report.loads),
+                         Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n file(s)"), {}, report.files)});
+                    if (!report.findings.isEmpty())
+                    {
+                        detail = Message::sequence(
+                            {detail,
+                             Message::translated(&LoaderModel::tr,
+                                                 QT_TR_N_NOOP("; %n warning(s) against the standard's recommendations"),
+                                                 {}, static_cast<int>(report.findings.size()))});
+                    }
+                }
+                set_validation(report.error.isEmpty() ? 2 : 3, report.error, report.findings, detail);
+            });
     connect(worker_, &EngineWorker::upload_progress, this,
-            [this](int list_ratio, const QList<LoadProgressRow>& rows) {
+            [this](int list_ratio, const QList<LoadProgressRow>& rows)
+            {
                 loads_.apply_progress(rows);
                 set_progress(list_ratio);
             });
     connect(worker_, &EngineWorker::download_progress, this,
-            [this](int list_ratio, const QList<FileProgressRow>& rows) {
+            [this](int list_ratio, const QList<FileProgressRow>& rows)
+            {
                 downloads_.apply_progress(rows);
                 set_progress(list_ratio);
             });
     connect(worker_, &EngineWorker::download_list, this,
-            [this](const QList<DownloadFileRow>& rows) {
+            [this](const QList<DownloadFileRow>& rows)
+            {
                 downloads_.set_locked(false);
                 downloads_.reset_operator(rows);
                 download_choice_pending_ = true;
                 Q_EMIT downloadChoicePendingChanged();
             });
     connect(&loads_, &LoadModel::selection_changed, this, [this] { refresh_availability(); });
-    connect(&downloads_, &DownloadModel::selection_changed, this, [this] {
-        const int selected = downloads_.checked_count();
-        if (selected != download_selected_count_) {
-            download_selected_count_ = selected;
-            Q_EMIT downloadSelectionChanged();
-        }
-        refresh_availability();
-    });
-    connect(worker_, &EngineWorker::finished, this,
-            [this](const OperationSummary& summary) { on_finished(summary); });
+    connect(&downloads_, &DownloadModel::selection_changed, this,
+            [this]
+            {
+                const int selected = downloads_.checked_count();
+                if (selected != download_selected_count_)
+                {
+                    download_selected_count_ = selected;
+                    Q_EMIT downloadSelectionChanged();
+                }
+                refresh_availability();
+            });
+    connect(worker_, &EngineWorker::finished, this, [this](const OperationSummary& summary) { on_finished(summary); });
 
     thread_.setObjectName(QStringLiteral("engine"));
     connect(&thread_, &QThread::started, worker_, [] { adl::profiling::thread_name("engine"); });
@@ -120,48 +131,51 @@ LoaderModel::LoaderModel(HostFactory host_factory, std::unique_ptr<AppSettings> 
     refresh_availability();
 }
 
-Message LoaderModel::no_target_selected() {
-    return Message::translated(&LoaderModel::tr,
-                               QT_TR_NOOP("No target is selected; looking for one first."));
+Message LoaderModel::no_target_selected()
+{
+    return Message::translated(&LoaderModel::tr, QT_TR_NOOP("No target is selected; looking for one first."));
 }
 
-LoaderModel::~LoaderModel() {
+LoaderModel::~LoaderModel()
+{
     worker_->request_abort();
     thread_.quit();
     thread_.wait();
 }
 
-QString LoaderModel::activity() const {
-    switch (job_) {
-        case Job::none:
-            return {};
-        case Job::find:
-            return tr("Looking for targets...");
-        case Job::information:
-            return abort_requested_ ? tr("Stopping the operation...")
-                                    : tr("Reading the target's configuration...");
-        case Job::upload:
-            return abort_requested_ ? tr("Stopping the operation...")
-                                    : tr("Uploading to the target...");
-        case Job::download_media:
-        case Job::download_operator:
-            return abort_requested_ ? tr("Stopping the operation...")
-                                    : tr("Downloading from the target...");
-        case Job::media_set:
-            return tr("Reading the media set...");
-        case Job::validate:
-            return tr("Checking the media set...");
+QString LoaderModel::activity() const
+{
+    switch (job_)
+    {
+    case Job::none:
+        return {};
+    case Job::find:
+        return tr("Looking for targets...");
+    case Job::information:
+        return abort_requested_ ? tr("Stopping the operation...") : tr("Reading the target's configuration...");
+    case Job::upload:
+        return abort_requested_ ? tr("Stopping the operation...") : tr("Uploading to the target...");
+    case Job::download_media:
+    case Job::download_operator:
+        return abort_requested_ ? tr("Stopping the operation...") : tr("Downloading from the target...");
+    case Job::media_set:
+        return tr("Reading the media set...");
+    case Job::validate:
+        return tr("Checking the media set...");
     }
     return {};
 }
 
-void LoaderModel::setTargetAddress(const QString& address) {
+void LoaderModel::setTargetAddress(const QString& address)
+{
     QString trimmed = address.trimmed();
-    if (trimmed.isEmpty()) {
+    if (trimmed.isEmpty())
+    {
         // The operator cleared the field: the default comes back.
         trimmed = settings_->defaultTargetAddress();
     }
-    if (trimmed == target_address_) {
+    if (trimmed == target_address_)
+    {
         return;
     }
     target_address_ = trimmed;
@@ -170,12 +184,15 @@ void LoaderModel::setTargetAddress(const QString& address) {
     refresh_availability();
 }
 
-void LoaderModel::setThwIdPos(const QString& thw_id_pos) {
+void LoaderModel::setThwIdPos(const QString& thw_id_pos)
+{
     QString trimmed = thw_id_pos.trimmed();
-    if (trimmed.isEmpty()) {
+    if (trimmed.isEmpty())
+    {
         trimmed = settings_->defaultThwIdPos();
     }
-    if (trimmed == thw_id_pos_) {
+    if (trimmed == thw_id_pos_)
+    {
         return;
     }
     thw_id_pos_ = trimmed;
@@ -187,55 +204,65 @@ void LoaderModel::setThwIdPos(const QString& thw_id_pos) {
 // What was observed against one target does not describe another. Editing the address or the
 // THW_ID_POS drops the FIND selection, the configuration read from the previous target and a
 // transfer receipt whose inputs no longer hold; the activity log keeps the history.
-void LoaderModel::reconcile_target() {
-    if (selected_target_row_ != -1) {
+void LoaderModel::reconcile_target()
+{
+    if (selected_target_row_ != -1)
+    {
         selected_target_row_ = -1;
         Q_EMIT selectedTargetChanged();
     }
     configuration_.reset({});
-    if (result_is_transfer_) {
+    if (result_is_transfer_)
+    {
         set_result(0, {}, {});
     }
 }
 
-bool LoaderModel::targetValid() const {
+bool LoaderModel::targetValid() const
+{
     // The id is checked the way the loader checks it (not just for being there), so a button is
     // not enabled for an operation the loader would only refuse after the request was made.
-    return parse_ipv4(target_address_).has_value() &&
-           adl::arinc615a::is_valid_thw_id_pos(thw_id_pos_.toStdString());
+    return parse_ipv4(target_address_).has_value() && adl::arinc615a::is_valid_thw_id_pos(thw_id_pos_.toStdString());
 }
 
-QString LoaderModel::mediaSetTitle() const {
-    if (media_set_.path.isEmpty() || !media_set_.error.isEmpty()) {
+QString LoaderModel::mediaSetTitle() const
+{
+    if (media_set_.path.isEmpty() || !media_set_.error.isEmpty())
+    {
         return {};
     }
     // One count to a sentence: the members and the loads are phrases of their own.
-    return Message::translated(&LoaderModel::tr, QT_TR_NOOP("%1: %2, %3"),
-                               {Message::verbatim(media_set_.part_number),
-                                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n member(s)"),
-                                                    {}, media_set_.members),
-                                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n load(s)"),
-                                                    {}, static_cast<int>(media_set_.loads.size()))})
+    return Message::translated(
+               &LoaderModel::tr, QT_TR_NOOP("%1: %2, %3"),
+               {Message::verbatim(media_set_.part_number),
+                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n member(s)"), {}, media_set_.members),
+                Message::translated(&LoaderModel::tr, QT_TR_N_NOOP("%n load(s)"), {},
+                                    static_cast<int>(media_set_.loads.size()))})
         .text();
 }
 
-bool LoaderModel::canUpload() const {
+bool LoaderModel::canUpload() const
+{
     // The set has to have been checked valid (validationState 2): choosing a set leaves it not
     // valid until the check has run and passed; findings do not count against it.
-    return !busy() && (targetValid() || settings_->autoFindBeforeOperation()) &&
-           media_set_.error.isEmpty() && selectedLoadCount() > 0 && validation_state_ == 2;
+    return !busy() && (targetValid() || settings_->autoFindBeforeOperation()) && media_set_.error.isEmpty() &&
+           selectedLoadCount() > 0 && validation_state_ == 2;
 }
 
-bool LoaderModel::canDownload() const {
-    if (busy() || !(targetValid() || settings_->autoFindBeforeOperation())) {
+bool LoaderModel::canDownload() const
+{
+    if (busy() || !(targetValid() || settings_->autoFindBeforeOperation()))
+    {
         return false;
     }
-    if (settings_->downloadDirectory().trimmed().isEmpty()) {
+    if (settings_->downloadDirectory().trimmed().isEmpty())
+    {
         return false;
     }
     // The files go into a directory named after the id: one a directory cannot be named after
     // is refused here, before anything is made (the worker checks again).
-    if (targetValid() && !can_download_from(thw_id_pos_.toStdString())) {
+    if (targetValid() && !can_download_from(thw_id_pos_.toStdString()))
+    {
         return false;
     }
     // The media defined mode needs at least one name; the operator defined mode needs nothing
@@ -243,66 +270,82 @@ bool LoaderModel::canDownload() const {
     return download_mode_ == 1 || downloads_.rowCount() > 0;
 }
 
-void LoaderModel::setDownloadMode(int mode) {
-    if (mode != 0 && mode != 1) {
+void LoaderModel::setDownloadMode(int mode)
+{
+    if (mode != 0 && mode != 1)
+    {
         return;
     }
-    if (mode == download_mode_) {
+    if (mode == download_mode_)
+    {
         return;
     }
     download_mode_ = mode;
     // The two modes are different lists (the operator's own names, or the target's list to
     // choose from): switching starts the new mode with an empty one.
-    if (mode == 0) {
+    if (mode == 0)
+    {
         downloads_.reset_media({});
-    } else {
+    }
+    else
+    {
         downloads_.reset_operator({});
     }
     Q_EMIT downloadChanged();
     refresh_availability();
 }
 
-const FoundTarget* LoaderModel::selected_target() const {
+const FoundTarget* LoaderModel::selected_target() const
+{
     return selected_target_row_ >= 0 ? targets_.at(selected_target_row_) : nullptr;
 }
 
-QString LoaderModel::selectedTargetHardwareId() const {
+QString LoaderModel::selectedTargetHardwareId() const
+{
     const FoundTarget* target = selected_target();
     return target != nullptr ? target->hardware_id : QString{};
 }
 
-QString LoaderModel::selectedTargetPosition() const {
+QString LoaderModel::selectedTargetPosition() const
+{
     const FoundTarget* target = selected_target();
     return target != nullptr ? target->position : QString{};
 }
 
-QString LoaderModel::selectedTargetTypeName() const {
+QString LoaderModel::selectedTargetTypeName() const
+{
     const FoundTarget* target = selected_target();
     return target != nullptr ? target->type_name : QString{};
 }
 
-QString LoaderModel::selectedTargetLiteralName() const {
+QString LoaderModel::selectedTargetLiteralName() const
+{
     const FoundTarget* target = selected_target();
     return target != nullptr ? target->literal_name : QString{};
 }
 
-QString LoaderModel::selectedTargetManufacturer() const {
+QString LoaderModel::selectedTargetManufacturer() const
+{
     const FoundTarget* target = selected_target();
     return target != nullptr ? target->manufacturer_code : QString{};
 }
 
-QString LoaderModel::selectedTargetAddress() const {
+QString LoaderModel::selectedTargetAddress() const
+{
     const FoundTarget* target = selected_target();
     return target != nullptr ? target->address : QString{};
 }
 
-void LoaderModel::setDefaultTargetAddress(const QString& address) {
+void LoaderModel::setDefaultTargetAddress(const QString& address)
+{
     const QString trimmed = address.trimmed();
-    if (trimmed == settings_->defaultTargetAddress()) {
+    if (trimmed == settings_->defaultTargetAddress())
+    {
         return;
     }
     settings_->setDefaultTargetAddress(trimmed);
-    if (target_address_.isEmpty()) {
+    if (target_address_.isEmpty())
+    {
         target_address_ = trimmed;
         Q_EMIT targetChanged();
         refresh_availability();
@@ -310,13 +353,16 @@ void LoaderModel::setDefaultTargetAddress(const QString& address) {
     Q_EMIT preferencesChanged();
 }
 
-void LoaderModel::setDefaultThwIdPos(const QString& thw_id_pos) {
+void LoaderModel::setDefaultThwIdPos(const QString& thw_id_pos)
+{
     const QString trimmed = thw_id_pos.trimmed();
-    if (trimmed == settings_->defaultThwIdPos()) {
+    if (trimmed == settings_->defaultThwIdPos())
+    {
         return;
     }
     settings_->setDefaultThwIdPos(trimmed);
-    if (thw_id_pos_.isEmpty()) {
+    if (thw_id_pos_.isEmpty())
+    {
         thw_id_pos_ = trimmed;
         Q_EMIT targetChanged();
         refresh_availability();
@@ -324,29 +370,34 @@ void LoaderModel::setDefaultThwIdPos(const QString& thw_id_pos) {
     Q_EMIT preferencesChanged();
 }
 
-void LoaderModel::setControlPort(int port) {
-    if (port == settings_->controlPort()) {
+void LoaderModel::setControlPort(int port)
+{
+    if (port == settings_->controlPort())
+    {
         return;
     }
     settings_->setControlPort(port);
     Q_EMIT preferencesChanged();
 }
 
-void LoaderModel::setDownloadDirectory(const QString& chosen) {
+void LoaderModel::setDownloadDirectory(const QString& chosen)
+{
     // A FolderDialog's selectedFolder is a QUrl, and QML hands it over as "file:///...": the
     // engine is given a path.
-    const QString directory = chosen.startsWith(QStringLiteral("file:"), Qt::CaseInsensitive)
-                                  ? QUrl(chosen).toLocalFile()
-                                  : chosen;
-    if (directory == settings_->downloadDirectory()) {
+    const QString directory =
+        chosen.startsWith(QStringLiteral("file:"), Qt::CaseInsensitive) ? QUrl(chosen).toLocalFile() : chosen;
+    if (directory == settings_->downloadDirectory())
+    {
         return;
     }
     settings_->setDownloadDirectory(directory);
     Q_EMIT preferencesChanged();
 }
 
-void LoaderModel::setAutoFindBeforeOperation(bool enabled) {
-    if (enabled == settings_->autoFindBeforeOperation()) {
+void LoaderModel::setAutoFindBeforeOperation(bool enabled)
+{
+    if (enabled == settings_->autoFindBeforeOperation())
+    {
         return;
     }
     settings_->setAutoFindBeforeOperation(enabled);
@@ -354,16 +405,20 @@ void LoaderModel::setAutoFindBeforeOperation(bool enabled) {
     Q_EMIT preferencesChanged();
 }
 
-void LoaderModel::setValidateOnOpen(bool enabled) {
-    if (enabled == settings_->validateOnOpen()) {
+void LoaderModel::setValidateOnOpen(bool enabled)
+{
+    if (enabled == settings_->validateOnOpen())
+    {
         return;
     }
     settings_->setValidateOnOpen(enabled);
     Q_EMIT preferencesChanged();
 }
 
-void LoaderModel::setLogCapacity(int capacity) {
-    if (capacity == settings_->logCapacity()) {
+void LoaderModel::setLogCapacity(int capacity)
+{
+    if (capacity == settings_->logCapacity())
+    {
         return;
     }
     settings_->setLogCapacity(capacity);
@@ -371,51 +426,62 @@ void LoaderModel::setLogCapacity(int capacity) {
     Q_EMIT preferencesChanged();
 }
 
-void LoaderModel::refresh_availability() {
+void LoaderModel::refresh_availability()
+{
     const bool can_read = canReadInformation();
-    if (can_read != could_read_information_) {
+    if (can_read != could_read_information_)
+    {
         could_read_information_ = can_read;
         Q_EMIT canReadInformationChanged();
     }
     const bool can_upload = canUpload();
     const int selected = selectedLoadCount();
-    if (can_upload != could_upload_ || selected != selected_loads_) {
+    if (can_upload != could_upload_ || selected != selected_loads_)
+    {
         could_upload_ = can_upload;
         selected_loads_ = selected;
         Q_EMIT canUploadChanged();
     }
     const bool can_download = canDownload();
-    if (can_download != could_download_) {
+    if (can_download != could_download_)
+    {
         could_download_ = can_download;
         Q_EMIT canDownloadChanged();
     }
 }
 
-void LoaderModel::set_progress(int percent) {
-    if (percent != progress_) {
+void LoaderModel::set_progress(int percent)
+{
+    if (percent != progress_)
+    {
         progress_ = percent;
         Q_EMIT progressChanged();
     }
 }
 
-void LoaderModel::set_job(Job job) {
+void LoaderModel::set_job(Job job)
+{
     const bool was_busy = busy();
     const bool could_abort = canAbort();
     job_ = job;
     abort_requested_ = false;
     loads_.set_locked(busy());
-    if (was_busy != busy()) {
+    if (was_busy != busy())
+    {
         Q_EMIT busyChanged();
     }
     Q_EMIT activityChanged();
-    if (could_abort != canAbort()) {
+    if (could_abort != canAbort())
+    {
         Q_EMIT canAbortChanged();
     }
     refresh_availability();
 }
 
-bool LoaderModel::begin(Job job) {
-    if (busy()) {
+bool LoaderModel::begin(Job job)
+{
+    if (busy())
+    {
         return false;
     }
     // A request or a choice left over from an earlier job must not abort or answer this one.
@@ -423,20 +489,21 @@ bool LoaderModel::begin(Job job) {
     set_result(0, {}, {});
     job_load_count_ = selectedLoadCount();
     set_progress(-1);
-    if (download_choice_pending_) {
+    if (download_choice_pending_)
+    {
         download_choice_pending_ = false;
         Q_EMIT downloadChoicePendingChanged();
     }
-    if ((job == Job::download_media || job == Job::download_operator) &&
-        !last_download_directory_.isEmpty()) {
+    if ((job == Job::download_media || job == Job::download_operator) && !last_download_directory_.isEmpty())
+    {
         // The directory shown is the last download's; a new one is its own.
         last_download_directory_.clear();
         Q_EMIT downloadDirectoryChanged();
     }
     // The target an operation starts against is the one the next session starts against. Only
     // an operation has a target: a media set read or a check does not.
-    if (job == Job::information || job == Job::upload || job == Job::download_media ||
-        job == Job::download_operator) {
+    if (job == Job::information || job == Job::upload || job == Job::download_media || job == Job::download_operator)
+    {
         settings_->setLastTargetAddress(target_address_);
         settings_->setLastThwIdPos(thw_id_pos_);
     }
@@ -444,52 +511,70 @@ bool LoaderModel::begin(Job job) {
     return true;
 }
 
-void LoaderModel::on_finished(const OperationSummary& summary) {
+void LoaderModel::on_finished(const OperationSummary& summary)
+{
     const Job ended = job_;
-    result_is_transfer_ = ended == Job::information || ended == Job::upload ||
-                          ended == Job::download_media || ended == Job::download_operator;
+    result_is_transfer_ = ended == Job::information || ended == Job::upload || ended == Job::download_media ||
+                          ended == Job::download_operator;
     result_was_download_ = ended == Job::download_media || ended == Job::download_operator;
     result_load_count_ = job_load_count_;
     result_time_ = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
     set_result(summary.success ? 1 : 2, summary.outcome, summary.detail);
-    if (!summary.success && !quiet_job_) {
+    if (!summary.success && !quiet_job_)
+    {
         set_error(summary.outcome, summary.detail, summary.hint);
     }
     set_job(Job::none);
-    if (summary.media_set_changed) {
+    if (summary.media_set_changed)
+    {
         // What was checked is not what is on the disk any more: the check no longer stands.
         set_validation(0, {}, {}, {});
     }
-    if (ended == Job::media_set) {
-        if (!media_set_.error.isEmpty()) {
+    if (ended == Job::media_set)
+    {
+        if (!media_set_.error.isEmpty())
+        {
             // The set could not be read: it cannot be valid, and the reason is shown.
             set_validation(3, media_set_.error, {}, {});
             quiet_job_ = false;
-        } else if (settings_->validateOnOpen()) {
+        }
+        else if (settings_->validateOnOpen())
+        {
             checkMediaSet();
-        } else {
+        }
+        else
+        {
             quiet_job_ = false;
         }
-    } else if (ended == Job::validate) {
+    }
+    else if (ended == Job::validate)
+    {
         quiet_job_ = false;
-    } else if (ended == Job::find && pending_ != Pending::none) {
+    }
+    else if (ended == Job::find && pending_ != Pending::none)
+    {
         run_pending_after_find(summary.success);
     }
-    if (ended == Job::download_media || ended == Job::download_operator) {
+    if (ended == Job::download_media || ended == Job::download_operator)
+    {
         downloads_.set_locked(false);
-        if (download_choice_pending_) {
+        if (download_choice_pending_)
+        {
             download_choice_pending_ = false;
             Q_EMIT downloadChoicePendingChanged();
         }
-        if (!summary.download_directory.isEmpty()) {
+        if (!summary.download_directory.isEmpty())
+        {
             last_download_directory_ = summary.download_directory;
             Q_EMIT downloadDirectoryChanged();
         }
     }
 }
 
-void LoaderModel::set_result(int state, const Message& text, const Message& detail) {
-    if (state == 0) {
+void LoaderModel::set_result(int state, const Message& text, const Message& detail)
+{
+    if (state == 0)
+    {
         result_is_transfer_ = false;
         result_was_download_ = false;
         result_load_count_ = 0;
@@ -501,7 +586,8 @@ void LoaderModel::set_result(int state, const Message& text, const Message& deta
     Q_EMIT resultChanged();
 }
 
-void LoaderModel::set_error(const Message& text, const Message& detail, const Message& hint) {
+void LoaderModel::set_error(const Message& text, const Message& detail, const Message& hint)
+{
     last_error_text_ = text;
     last_error_detail_ = detail;
     last_error_hint_ = hint;
@@ -509,8 +595,8 @@ void LoaderModel::set_error(const Message& text, const Message& detail, const Me
     Q_EMIT errorChanged();
 }
 
-void LoaderModel::set_validation(int state, const QString& error, const QStringList& findings,
-                                 const Message& detail) {
+void LoaderModel::set_validation(int state, const QString& error, const QStringList& findings, const Message& detail)
+{
     validation_state_ = state;
     validation_error_ = error;
     validation_findings_ = findings;
@@ -519,19 +605,21 @@ void LoaderModel::set_validation(int state, const QString& error, const QStringL
     refresh_availability();
 }
 
-void LoaderModel::run_pending_after_find(bool found) {
+void LoaderModel::run_pending_after_find(bool found)
+{
     const Pending pending = pending_;
     pending_ = Pending::none;
-    if (!found) {
-        return;  // the FIND failure is already shown
+    if (!found)
+    {
+        return; // the FIND failure is already shown
     }
-    if (targets_.rowCount() != 1) {
+    if (targets_.rowCount() != 1)
+    {
         // None or several: the FIND result stays on the screen, and the operation is not started.
-        set_result(1, result_text_,
-                   Message::translated(
-                       &LoaderModel::tr,
-                       QT_TR_NOOP("Choose the target from the list, then run the operation "
-                                  "again.")));
+        set_result(
+            1, result_text_,
+            Message::translated(&LoaderModel::tr, QT_TR_NOOP("Choose the target from the list, then run the operation "
+                                                             "again.")));
         return;
     }
     selectTarget(0);
@@ -541,45 +629,46 @@ void LoaderModel::run_pending_after_find(bool found) {
     // named after the id, return without a word. Stop, and say why.
     const std::string thw_id_pos = thw_id_pos_.toStdString();
     const bool id_is_valid = adl::arinc615a::is_valid_thw_id_pos(thw_id_pos);
-    if (!id_is_valid || (pending == Pending::download && !can_download_from(thw_id_pos))) {
+    if (!id_is_valid || (pending == Pending::download && !can_download_from(thw_id_pos)))
+    {
         const Message text = Message::translated(
-            &LoaderModel::tr,
-            QT_TR_NOOP("The target that answered cannot be used: its THW_ID_POS is \"%1\"."),
+            &LoaderModel::tr, QT_TR_NOOP("The target that answered cannot be used: its THW_ID_POS is \"%1\"."),
             {Message::verbatim(thw_id_pos_)});
         const Message detail =
             id_is_valid
-                ? Message::translated(
-                      &LoaderModel::tr,
-                      QT_TR_NOOP("A download goes into a folder named for the THW_ID_POS, so the "
-                                 "name cannot hold a colon, an asterisk, a question mark, quotes, "
-                                 "angle brackets or a bar."))
-                : Message::translated(
-                      &LoaderModel::tr,
-                      QT_TR_NOOP("A THW_ID_POS is 1 to 240 characters, none of them a control "
-                                 "character, a slash or a backslash."));
+                ? Message::translated(&LoaderModel::tr,
+                                      QT_TR_NOOP("A download goes into a folder named for the THW_ID_POS, so the "
+                                                 "name cannot hold a colon, an asterisk, a question mark, quotes, "
+                                                 "angle brackets or a bar."))
+                : Message::translated(&LoaderModel::tr,
+                                      QT_TR_NOOP("A THW_ID_POS is 1 to 240 characters, none of them a control "
+                                                 "character, a slash or a backslash."));
         events_.append({Severity::error, text});
         set_result(2, text, detail);
         set_error(text, detail, {});
         return;
     }
-    switch (pending) {
-        case Pending::information:
-            readInformation();
-            break;
-        case Pending::upload:
-            uploadSelected();
-            break;
-        case Pending::download:
-            downloadSelected();
-            break;
-        case Pending::none:
-            break;
+    switch (pending)
+    {
+    case Pending::information:
+        readInformation();
+        break;
+    case Pending::upload:
+        uploadSelected();
+        break;
+    case Pending::download:
+        downloadSelected();
+        break;
+    case Pending::none:
+        break;
     }
 }
 
-void LoaderModel::chooseMediaSet(const QUrl& directory) {
+void LoaderModel::chooseMediaSet(const QUrl& directory)
+{
     const adl::profiling::Zone zone{"app: choose media set"};
-    if (!begin(Job::media_set)) {
+    if (!begin(Job::media_set))
+    {
         return;
     }
     // A new set is not the one that was checked; the check (with validateOnOpen) follows the
@@ -592,9 +681,11 @@ void LoaderModel::chooseMediaSet(const QUrl& directory) {
     QMetaObject::invokeMethod(worker_, &EngineWorker::read_media_set, Qt::QueuedConnection, native);
 }
 
-void LoaderModel::checkMediaSet() {
+void LoaderModel::checkMediaSet()
+{
     const adl::profiling::Zone zone{"app: check media set"};
-    if (media_set_.path.isEmpty() || !begin(Job::validate)) {
+    if (media_set_.path.isEmpty() || !begin(Job::validate))
+    {
         return;
     }
     set_validation(1, {}, {}, {});
@@ -602,47 +693,57 @@ void LoaderModel::checkMediaSet() {
                               QDir::toNativeSeparators(media_set_.path));
 }
 
-void LoaderModel::restore_last_media_set() {
+void LoaderModel::restore_last_media_set()
+{
     const QString path = settings_->lastMediaSetDirectory();
-    if (path.isEmpty() || !QDir(path).exists()) {
+    if (path.isEmpty() || !QDir(path).exists())
+    {
         return;
     }
     quiet_job_ = true;
     chooseMediaSet(QUrl::fromLocalFile(path));
 }
 
-void LoaderModel::selectAllLoads(bool selected) {
+void LoaderModel::selectAllLoads(bool selected)
+{
     loads_.check_all(selected);
 }
 
-void LoaderModel::findTargets(const QString& address) {
+void LoaderModel::findTargets(const QString& address)
+{
     const adl::profiling::Zone zone{"app: find targets"};
-    if (!begin(Job::find)) {
+    if (!begin(Job::find))
+    {
         return;
     }
-    QMetaObject::invokeMethod(worker_, &EngineWorker::find, Qt::QueuedConnection,
-                              address.trimmed());
+    QMetaObject::invokeMethod(worker_, &EngineWorker::find, Qt::QueuedConnection, address.trimmed());
 }
 
-void LoaderModel::selectTarget(int row) {
+void LoaderModel::selectTarget(int row)
+{
     const FoundTarget* target = targets_.at(row);
-    if (target == nullptr) {
+    if (target == nullptr)
+    {
         return;
     }
     setTargetAddress(target->address);
     setThwIdPos(target->thw_id_pos());
-    if (selected_target_row_ != row) {
+    if (selected_target_row_ != row)
+    {
         selected_target_row_ = row;
         Q_EMIT selectedTargetChanged();
     }
 }
 
-void LoaderModel::readInformation() {
+void LoaderModel::readInformation()
+{
     const adl::profiling::Zone zone{"app: read information"};
-    if (!targetValid()) {
+    if (!targetValid())
+    {
         // The operator's preference: look for the target first, and go on only when exactly one
         // answers.
-        if (!settings_->autoFindBeforeOperation() || !begin(Job::find)) {
+        if (!settings_->autoFindBeforeOperation() || !begin(Job::find))
+        {
             return;
         }
         pending_ = Pending::information;
@@ -650,22 +751,26 @@ void LoaderModel::readInformation() {
         QMetaObject::invokeMethod(worker_, &EngineWorker::find, Qt::QueuedConnection, QString{});
         return;
     }
-    if (!begin(Job::information)) {
+    if (!begin(Job::information))
+    {
         return;
     }
     configuration_.reset({});
-    QMetaObject::invokeMethod(worker_, &EngineWorker::read_information, Qt::QueuedConnection,
-                              target_address_, thw_id_pos_,
-                              static_cast<quint16>(settings_->controlPort()));
+    QMetaObject::invokeMethod(worker_, &EngineWorker::read_information, Qt::QueuedConnection, target_address_,
+                              thw_id_pos_, static_cast<quint16>(settings_->controlPort()));
 }
 
-void LoaderModel::uploadSelected() {
+void LoaderModel::uploadSelected()
+{
     const adl::profiling::Zone zone{"app: upload selected"};
-    if (!canUpload()) {
+    if (!canUpload())
+    {
         return;
     }
-    if (!targetValid()) {
-        if (!begin(Job::find)) {
+    if (!targetValid())
+    {
+        if (!begin(Job::find))
+        {
             return;
         }
         pending_ = Pending::upload;
@@ -673,22 +778,26 @@ void LoaderModel::uploadSelected() {
         QMetaObject::invokeMethod(worker_, &EngineWorker::find, Qt::QueuedConnection, QString{});
         return;
     }
-    if (!begin(Job::upload)) {
+    if (!begin(Job::upload))
+    {
         return;
     }
     loads_.begin_upload();
-    QMetaObject::invokeMethod(worker_, &EngineWorker::upload, Qt::QueuedConnection, target_address_,
-                              thw_id_pos_, loads_.checked_loads(),
-                              static_cast<quint16>(settings_->controlPort()));
+    QMetaObject::invokeMethod(worker_, &EngineWorker::upload, Qt::QueuedConnection, target_address_, thw_id_pos_,
+                              loads_.checked_loads(), static_cast<quint16>(settings_->controlPort()));
 }
 
-void LoaderModel::downloadSelected() {
+void LoaderModel::downloadSelected()
+{
     const adl::profiling::Zone zone{"app: download selected"};
-    if (!canDownload()) {
+    if (!canDownload())
+    {
         return;
     }
-    if (!targetValid()) {
-        if (!begin(Job::find)) {
+    if (!targetValid())
+    {
+        if (!begin(Job::find))
+        {
             return;
         }
         pending_ = Pending::download;
@@ -697,52 +806,65 @@ void LoaderModel::downloadSelected() {
         return;
     }
     const Job job = download_mode_ == 0 ? Job::download_media : Job::download_operator;
-    if (!begin(job)) {
+    if (!begin(job))
+    {
         return;
     }
     downloads_.set_locked(true);
-    if (job == Job::download_operator) {
+    if (job == Job::download_operator)
+    {
         // The target's list comes while the operation runs; until it has arrived, the rows of
         // the last list (if any) are gone and the window says it is waiting.
         downloads_.reset_operator({});
-    } else {
+    }
+    else
+    {
         downloads_.begin_download();
     }
     const quint16 port = static_cast<quint16>(settings_->controlPort());
-    if (job == Job::download_media) {
-        QMetaObject::invokeMethod(worker_, &EngineWorker::download_media, Qt::QueuedConnection,
-                                  target_address_, thw_id_pos_, downloads_.names(),
-                                  settings_->downloadDirectory(), port);
-    } else {
-        QMetaObject::invokeMethod(worker_, &EngineWorker::download_operator, Qt::QueuedConnection,
-                                  target_address_, thw_id_pos_, settings_->downloadDirectory(),
-                                  port);
+    if (job == Job::download_media)
+    {
+        QMetaObject::invokeMethod(worker_, &EngineWorker::download_media, Qt::QueuedConnection, target_address_,
+                                  thw_id_pos_, downloads_.names(), settings_->downloadDirectory(), port);
+    }
+    else
+    {
+        QMetaObject::invokeMethod(worker_, &EngineWorker::download_operator, Qt::QueuedConnection, target_address_,
+                                  thw_id_pos_, settings_->downloadDirectory(), port);
     }
 }
 
-void LoaderModel::addDownloadFile(const QString& name) {
-    if (busy()) {
+void LoaderModel::addDownloadFile(const QString& name)
+{
+    if (busy())
+    {
         return;
     }
     const QString trimmed = name.trimmed();
-    if (trimmed.isEmpty()) {
+    if (trimmed.isEmpty())
+    {
         return;
     }
-    if (downloads_.rowCount() >= static_cast<int>(adl::arinc615a::DataLoader::max_expected_files)) {
+    if (downloads_.rowCount() >= static_cast<int>(adl::arinc615a::DataLoader::max_expected_files))
+    {
         return;
     }
     static_cast<void>(downloads_.add_name(trimmed));
 }
 
-void LoaderModel::removeDownloadFile(int row) {
-    if (busy()) {
+void LoaderModel::removeDownloadFile(int row)
+{
+    if (busy())
+    {
         return;
     }
     downloads_.remove_row(row);
 }
 
-void LoaderModel::confirmDownloadSelection() {
-    if (!download_choice_pending_) {
+void LoaderModel::confirmDownloadSelection()
+{
+    if (!download_choice_pending_)
+    {
         return;
     }
     download_choice_pending_ = false;
@@ -755,8 +877,10 @@ void LoaderModel::confirmDownloadSelection() {
     Q_EMIT downloadChoicePendingChanged();
 }
 
-void LoaderModel::chooseNoDownloadFiles() {
-    if (!download_choice_pending_) {
+void LoaderModel::chooseNoDownloadFiles()
+{
+    if (!download_choice_pending_)
+    {
         return;
     }
     download_choice_pending_ = false;
@@ -765,18 +889,22 @@ void LoaderModel::chooseNoDownloadFiles() {
     Q_EMIT downloadChoicePendingChanged();
 }
 
-void LoaderModel::abort() {
-    if (!canAbort()) {
+void LoaderModel::abort()
+{
+    if (!canAbort())
+    {
         return;
     }
     abort_requested_ = true;
     worker_->request_abort();
-    Q_EMIT activityChanged();  // the activity text changes
+    Q_EMIT activityChanged(); // the activity text changes
     Q_EMIT canAbortChanged();
 }
 
-void LoaderModel::completeFirstRun() {
-    if (settings_->firstRunComplete()) {
+void LoaderModel::completeFirstRun()
+{
+    if (settings_->firstRunComplete())
+    {
         return;
     }
     settings_->setFirstRunComplete(true);
@@ -787,12 +915,15 @@ void LoaderModel::completeFirstRun() {
     Q_EMIT firstRunChanged();
 }
 
-void LoaderModel::clearLog() {
+void LoaderModel::clearLog()
+{
     events_.clear();
 }
 
-void LoaderModel::dismissError() {
-    if (last_error_text_.isEmpty() && last_error_detail_.isEmpty() && last_error_hint_.isEmpty()) {
+void LoaderModel::dismissError()
+{
+    if (last_error_text_.isEmpty() && last_error_detail_.isEmpty() && last_error_hint_.isEmpty())
+    {
         return;
     }
     last_error_text_ = {};
@@ -802,7 +933,8 @@ void LoaderModel::dismissError() {
     Q_EMIT errorChanged();
 }
 
-void LoaderModel::retranslate() {
+void LoaderModel::retranslate()
+{
     events_.retranslate();
     targets_.retranslate();
     configuration_.retranslate();
@@ -815,4 +947,4 @@ void LoaderModel::retranslate() {
     Q_EMIT validationChanged();
 }
 
-}  // namespace adl::app
+} // namespace adl::app

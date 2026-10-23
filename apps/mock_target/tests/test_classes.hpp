@@ -4,7 +4,8 @@
 
 // The model: MockTargetModel on its worker thread, against the loader's engine over the fake
 // platform (so no real network is touched and no real time passes).
-class MockModelTest : public QObject {
+class MockModelTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:

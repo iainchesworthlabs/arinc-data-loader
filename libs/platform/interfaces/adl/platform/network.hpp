@@ -17,6 +17,10 @@
 // enumeration or name resolution. AFDX (Appendix E) has no broadcast, so a
 // FIND over it is a series of unicast sends, which this already does.
 
+#include "adl/platform/error.hpp"
+#include "adl/platform/owned.hpp"
+#include "adl/platform/time.hpp"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -25,78 +29,99 @@
 #include <span>
 #include <string_view>
 
-#include "adl/platform/error.hpp"
-#include "adl/platform/owned.hpp"
-#include "adl/platform/time.hpp"
+namespace adl::platform
+{
 
-namespace adl::platform {
-
-struct Ipv4Address {
+struct Ipv4Address
+{
     std::array<std::uint8_t, 4> octets{};
 
-    [[nodiscard]] static constexpr Ipv4Address any() noexcept { return {}; }
-    [[nodiscard]] static constexpr Ipv4Address loopback() noexcept {
+    [[nodiscard]] static constexpr Ipv4Address any() noexcept
+    {
+        return {};
+    }
+    [[nodiscard]] static constexpr Ipv4Address loopback() noexcept
+    {
         return Ipv4Address{{127, 0, 0, 1}};
     }
     // The limited broadcast address, 255.255.255.255.
-    [[nodiscard]] static constexpr Ipv4Address broadcast() noexcept {
+    [[nodiscard]] static constexpr Ipv4Address broadcast() noexcept
+    {
         return Ipv4Address{{255, 255, 255, 255}};
     }
 
     // "a.b.c.d", each part decimal 0 to 255 with no sign, blank or leading
     // zero beyond a single "0" (so "010" is refused rather than read as octal).
-    [[nodiscard]] static constexpr std::optional<Ipv4Address> parse(
-        std::string_view text) noexcept {
+    [[nodiscard]] static constexpr std::optional<Ipv4Address> parse(std::string_view text) noexcept
+    {
         Ipv4Address result;
         std::size_t index = 0;
         std::size_t position = 0;
-        while (index < 4) {
+        while (index < 4)
+        {
             std::size_t digits = 0;
             unsigned value = 0;
-            while (position < text.size() && text[position] >= '0' && text[position] <= '9') {
+            while (position < text.size() && text[position] >= '0' && text[position] <= '9')
+            {
                 value = value * 10 + static_cast<unsigned>(text[position] - '0');
                 ++digits;
                 ++position;
-                if (digits > 3 || value > 255) {
+                if (digits > 3 || value > 255)
+                {
                     return std::nullopt;
                 }
             }
-            if (digits == 0 || (digits > 1 && text[position - digits] == '0')) {
+            if (digits == 0 || (digits > 1 && text[position - digits] == '0'))
+            {
                 return std::nullopt;
             }
             result.octets[index++] = static_cast<std::uint8_t>(value);
-            if (index < 4) {
-                if (position >= text.size() || text[position] != '.') {
+            if (index < 4)
+            {
+                if (position >= text.size() || text[position] != '.')
+                {
                     return std::nullopt;
                 }
                 ++position;
             }
         }
-        if (position != text.size()) {
+        if (position != text.size())
+        {
             return std::nullopt;
         }
         return result;
     }
 
     friend constexpr bool operator==(const Ipv4Address&, const Ipv4Address&) noexcept = default;
-    [[nodiscard]] constexpr bool is_any() const noexcept { return *this == any(); }
-    [[nodiscard]] constexpr bool is_broadcast() const noexcept { return *this == broadcast(); }
+    [[nodiscard]] constexpr bool is_any() const noexcept
+    {
+        return *this == any();
+    }
+    [[nodiscard]] constexpr bool is_broadcast() const noexcept
+    {
+        return *this == broadcast();
+    }
 };
 
 // Writes "a.b.c.d" and a terminating NUL into `out` (16 bytes always suffice)
 // and returns the length without the NUL.
-constexpr std::size_t format(Ipv4Address address, std::span<char, 16> out) noexcept {
+constexpr std::size_t format(Ipv4Address address, std::span<char, 16> out) noexcept
+{
     std::size_t length = 0;
-    for (std::size_t i = 0; i < 4; ++i) {
+    for (std::size_t i = 0; i < 4; ++i)
+    {
         const unsigned value = address.octets[i];
-        if (value >= 100) {
+        if (value >= 100)
+        {
             out[length++] = static_cast<char>('0' + value / 100);
         }
-        if (value >= 10) {
+        if (value >= 10)
+        {
             out[length++] = static_cast<char>('0' + (value / 10) % 10);
         }
         out[length++] = static_cast<char>('0' + value % 10);
-        if (i < 3) {
+        if (i < 3)
+        {
             out[length++] = '.';
         }
     }
@@ -104,14 +129,16 @@ constexpr std::size_t format(Ipv4Address address, std::span<char, 16> out) noexc
     return length;
 }
 
-struct Endpoint {
+struct Endpoint
+{
     Ipv4Address address;
     std::uint16_t port = 0;
 
     friend constexpr bool operator==(const Endpoint&, const Endpoint&) noexcept = default;
 };
 
-struct UdpOptions {
+struct UdpOptions
+{
     // Port 0 asks for an unused one (read it back with local_endpoint()). An
     // address of 0.0.0.0 listens on every interface; a specific one chooses the
     // interface, which also chooses the one a broadcast leaves by.
@@ -127,8 +154,9 @@ struct UdpOptions {
     std::size_t receive_buffer_bytes = 0;
 };
 
-struct Datagram {
-    std::size_t size = 0;  // bytes written to the buffer
+struct Datagram
+{
+    std::size_t size = 0; // bytes written to the buffer
     Endpoint source;
     // The datagram was larger than the buffer: `size` bytes were kept and the
     // rest discarded. For TFTP that is a block bigger than the negotiated size.
@@ -140,7 +168,8 @@ struct Datagram {
 // port and one socket per transfer in flight, a handful in all.
 inline constexpr std::size_t max_wait_sockets = 64;
 
-class UdpSocket {
+class UdpSocket
+{
 public:
     virtual ~UdpSocket() = default;
 
@@ -158,11 +187,11 @@ public:
     // is the result when none came. An ICMP "port unreachable" from an earlier
     // send is never reported here as an error on any platform: it is not a
     // datagram and the next wait goes on as if it had not happened.
-    [[nodiscard]] virtual Result<Datagram> receive_from(std::span<std::byte> buffer,
-                                                        Duration timeout) noexcept = 0;
+    [[nodiscard]] virtual Result<Datagram> receive_from(std::span<std::byte> buffer, Duration timeout) noexcept = 0;
 };
 
-class Network {
+class Network
+{
 public:
     virtual ~Network() = default;
 
@@ -173,8 +202,7 @@ public:
     // spans are the same length), and the result is how many are ready: 0 is a
     // time-out, not an error. The sockets must have been opened by this Network,
     // and there are at most max_wait_sockets of them (`invalid_argument` if not).
-    [[nodiscard]] virtual Result<std::size_t> wait_readable(std::span<UdpSocket* const> sockets,
-                                                            Duration timeout,
+    [[nodiscard]] virtual Result<std::size_t> wait_readable(std::span<UdpSocket* const> sockets, Duration timeout,
                                                             std::span<bool> ready) noexcept = 0;
 
     // The largest payload send_to accepts: 65507 bytes for IPv4 UDP. (A TFTP
@@ -182,4 +210,4 @@ public:
     [[nodiscard]] virtual std::size_t max_datagram_bytes() const noexcept = 0;
 };
 
-}  // namespace adl::platform
+} // namespace adl::platform

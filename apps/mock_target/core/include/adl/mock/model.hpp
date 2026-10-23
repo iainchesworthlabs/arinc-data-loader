@@ -9,6 +9,15 @@
 // Everything the engine reports is copied into Qt values before the worker emits a signal, so
 // the signals are queued calls carrying copies, in order, to the window's thread.
 
+#include "adl/mock/engine.hpp"
+#include "adl/mock/link.hpp"
+#include "adl/ui/message.hpp"
+
+#include <QAbstractListModel>
+#include <QList>
+#include <QObject>
+#include <QString>
+#include <QThread>
 #include <expected>
 #include <filesystem>
 #include <functional>
@@ -18,40 +27,35 @@
 #include <string_view>
 #include <vector>
 
-#include <QAbstractListModel>
-#include <QList>
-#include <QObject>
-#include <QString>
-#include <QThread>
-
-#include "adl/mock/engine.hpp"
-#include "adl/mock/link.hpp"
-#include "adl/ui/message.hpp"
-
-namespace adl::mock {
+namespace adl::mock
+{
 
 // One line of the activity log.
-struct LogEntry {
-    int severity = 0;  // adl::mock::Severity
+struct LogEntry
+{
+    int severity = 0; // adl::mock::Severity
     QString time;
     QString text;
 };
 
 // One file the target has stored, as the stored-files list shows it.
-struct StoredFileRow {
+struct StoredFileRow
+{
     QString name;
     qint64 size = 0;
     QString path;
 };
 
 // The activity log: what the engine reported, oldest first, with its severity, time and text.
-class ActivityModel : public QAbstractListModel {
+class ActivityModel : public QAbstractListModel
+{
     Q_OBJECT
 
 public:
     // The shared LogView reads the roles by number, and the numbers are those of the loader's
     // EventModel (Qt::UserRole + 1, + 2, + 3: severity, text, time). Keep them equal.
-    enum Role {
+    enum Role
+    {
         SeverityRole = Qt::UserRole + 1,
         // Named "message" in QML because a delegate of a Label cannot carry a "text" role
         // (Label has a final property of that name).
@@ -73,11 +77,13 @@ private:
 };
 
 // The files of the uploads the target has received, as stored under the storage directory.
-class StoredFilesModel : public QAbstractListModel {
+class StoredFilesModel : public QAbstractListModel
+{
     Q_OBJECT
 
 public:
-    enum Role {
+    enum Role
+    {
         NameRole = Qt::UserRole,
         SizeRole,
         PathRole,
@@ -115,7 +121,8 @@ using LinkFactory = std::function<std::expected<std::unique_ptr<TargetLink>, QSt
 // queues one session (a configuration snapshot), which runs until the stop is asked for. The
 // stop cannot be a queued call (the worker's thread is inside the loop), so it is a flag the
 // link carries and the loop polls.
-class MockWorker : public QObject {
+class MockWorker : public QObject
+{
     Q_OBJECT
 
 public:
@@ -168,7 +175,8 @@ private:
     std::uint64_t stopped_through_ = 0;
 };
 
-class MockTargetModel : public QObject {
+class MockTargetModel : public QObject
+{
     Q_OBJECT
 
     Q_PROPERTY(bool running READ running NOTIFY runningChanged)
@@ -179,8 +187,7 @@ class MockTargetModel : public QObject {
     Q_PROPERTY(QString typeName READ typeName WRITE setTypeName NOTIFY identityChanged)
     Q_PROPERTY(QString position READ position WRITE setPosition NOTIFY identityChanged)
     Q_PROPERTY(QString literalName READ literalName WRITE setLiteralName NOTIFY identityChanged)
-    Q_PROPERTY(QString manufacturerCode READ manufacturerCode WRITE setManufacturerCode NOTIFY
-                   identityChanged)
+    Q_PROPERTY(QString manufacturerCode READ manufacturerCode WRITE setManufacturerCode NOTIFY identityChanged)
 
     // The ports it listens on.
     Q_PROPERTY(int tftpPort READ tftpPort WRITE setTftpPort NOTIFY portsChanged)
@@ -191,27 +198,18 @@ class MockTargetModel : public QObject {
 
     // How it works.
     Q_PROPERTY(int thinkTimeMs READ thinkTimeMs WRITE setThinkTimeMs NOTIFY behaviourChanged)
-    Q_PROPERTY(
-        int statusPeriodSec READ statusPeriodSec WRITE setStatusPeriodSec NOTIFY behaviourChanged)
-    Q_PROPERTY(QString storageDirectory READ storageDirectory WRITE setStorageDirectory NOTIFY
-                   storageDirectoryChanged)
+    Q_PROPERTY(int statusPeriodSec READ statusPeriodSec WRITE setStatusPeriodSec NOTIFY behaviourChanged)
+    Q_PROPERTY(QString storageDirectory READ storageDirectory WRITE setStorageDirectory NOTIFY storageDirectoryChanged)
 
     // The injections (all default to "behave").
-    Q_PROPERTY(int waitFirstSeconds READ waitFirstSeconds WRITE setWaitFirstSeconds NOTIFY
-                   injectionsChanged)
-    Q_PROPERTY(bool waitEveryRequest READ waitEveryRequest WRITE setWaitEveryRequest NOTIFY
-                   injectionsChanged)
+    Q_PROPERTY(int waitFirstSeconds READ waitFirstSeconds WRITE setWaitFirstSeconds NOTIFY injectionsChanged)
+    Q_PROPERTY(bool waitEveryRequest READ waitEveryRequest WRITE setWaitEveryRequest NOTIFY injectionsChanged)
     // "" or "information" / "upload" / "downloadMedia" / "downloadOperator".
-    Q_PROPERTY(QString refuseOperation READ refuseOperation WRITE setRefuseOperation NOTIFY
-                   injectionsChanged)
-    Q_PROPERTY(
-        int dropStatusEvery READ dropStatusEvery WRITE setDropStatusEvery NOTIFY injectionsChanged)
-    Q_PROPERTY(bool corruptServedFile READ corruptServedFile WRITE setCorruptServedFile NOTIFY
-                   injectionsChanged)
-    Q_PROPERTY(
-        bool wrongChecksum READ wrongChecksum WRITE setWrongChecksum NOTIFY injectionsChanged)
-    Q_PROPERTY(int abortAfterStatuses READ abortAfterStatuses WRITE setAbortAfterStatuses NOTIFY
-                   injectionsChanged)
+    Q_PROPERTY(QString refuseOperation READ refuseOperation WRITE setRefuseOperation NOTIFY injectionsChanged)
+    Q_PROPERTY(int dropStatusEvery READ dropStatusEvery WRITE setDropStatusEvery NOTIFY injectionsChanged)
+    Q_PROPERTY(bool corruptServedFile READ corruptServedFile WRITE setCorruptServedFile NOTIFY injectionsChanged)
+    Q_PROPERTY(bool wrongChecksum READ wrongChecksum WRITE setWrongChecksum NOTIFY injectionsChanged)
+    Q_PROPERTY(int abortAfterStatuses READ abortAfterStatuses WRITE setAbortAfterStatuses NOTIFY injectionsChanged)
     Q_PROPERTY(bool silent READ silent WRITE setSilent NOTIFY injectionsChanged)
 
     // What is happening.
@@ -221,48 +219,110 @@ class MockTargetModel : public QObject {
     Q_PROPERTY(QObject* storedFiles READ storedFiles CONSTANT)
 
 public:
-    explicit MockTargetModel(LinkFactory factory = system_link_factory(),
-                             QObject* parent = nullptr);
+    explicit MockTargetModel(LinkFactory factory = system_link_factory(), QObject* parent = nullptr);
     // Asks the session to stop and waits for the engine's thread to finish.
     ~MockTargetModel() override;
 
-    [[nodiscard]] bool running() const noexcept { return running_; }
-    [[nodiscard]] QString errorText() const { return error_text_.text(); }
+    [[nodiscard]] bool running() const noexcept
+    {
+        return running_;
+    }
+    [[nodiscard]] QString errorText() const
+    {
+        return error_text_.text();
+    }
 
-    [[nodiscard]] QString hardwareId() const { return hardware_id_; }
-    [[nodiscard]] QString typeName() const { return type_name_; }
-    [[nodiscard]] QString position() const { return position_; }
-    [[nodiscard]] QString literalName() const { return literal_name_; }
-    [[nodiscard]] QString manufacturerCode() const { return manufacturer_code_; }
+    [[nodiscard]] QString hardwareId() const
+    {
+        return hardware_id_;
+    }
+    [[nodiscard]] QString typeName() const
+    {
+        return type_name_;
+    }
+    [[nodiscard]] QString position() const
+    {
+        return position_;
+    }
+    [[nodiscard]] QString literalName() const
+    {
+        return literal_name_;
+    }
+    [[nodiscard]] QString manufacturerCode() const
+    {
+        return manufacturer_code_;
+    }
     void setHardwareId(const QString& value);
     void setTypeName(const QString& value);
     void setPosition(const QString& value);
     void setLiteralName(const QString& value);
     void setManufacturerCode(const QString& value);
 
-    [[nodiscard]] int tftpPort() const noexcept { return tftp_port_; }
-    [[nodiscard]] int findPort() const noexcept { return find_port_; }
+    [[nodiscard]] int tftpPort() const noexcept
+    {
+        return tftp_port_;
+    }
+    [[nodiscard]] int findPort() const noexcept
+    {
+        return find_port_;
+    }
     void setTftpPort(int value);
     void setFindPort(int value);
-    [[nodiscard]] bool loopbackOnly() const noexcept { return loopback_only_; }
+    [[nodiscard]] bool loopbackOnly() const noexcept
+    {
+        return loopback_only_;
+    }
     void setLoopbackOnly(bool value);
 
-    [[nodiscard]] int thinkTimeMs() const noexcept { return think_time_ms_; }
-    [[nodiscard]] int statusPeriodSec() const noexcept { return status_period_sec_; }
+    [[nodiscard]] int thinkTimeMs() const noexcept
+    {
+        return think_time_ms_;
+    }
+    [[nodiscard]] int statusPeriodSec() const noexcept
+    {
+        return status_period_sec_;
+    }
     void setThinkTimeMs(int value);
     void setStatusPeriodSec(int value);
 
-    [[nodiscard]] QString storageDirectory() const { return storage_directory_; }
+    [[nodiscard]] QString storageDirectory() const
+    {
+        return storage_directory_;
+    }
     void setStorageDirectory(const QString& value);
 
-    [[nodiscard]] int waitFirstSeconds() const noexcept { return wait_first_seconds_; }
-    [[nodiscard]] bool waitEveryRequest() const noexcept { return wait_every_request_; }
-    [[nodiscard]] QString refuseOperation() const { return refuse_operation_; }
-    [[nodiscard]] int dropStatusEvery() const noexcept { return drop_status_every_; }
-    [[nodiscard]] bool corruptServedFile() const noexcept { return corrupt_served_file_; }
-    [[nodiscard]] bool wrongChecksum() const noexcept { return wrong_checksum_; }
-    [[nodiscard]] int abortAfterStatuses() const noexcept { return abort_after_statuses_; }
-    [[nodiscard]] bool silent() const noexcept { return silent_; }
+    [[nodiscard]] int waitFirstSeconds() const noexcept
+    {
+        return wait_first_seconds_;
+    }
+    [[nodiscard]] bool waitEveryRequest() const noexcept
+    {
+        return wait_every_request_;
+    }
+    [[nodiscard]] QString refuseOperation() const
+    {
+        return refuse_operation_;
+    }
+    [[nodiscard]] int dropStatusEvery() const noexcept
+    {
+        return drop_status_every_;
+    }
+    [[nodiscard]] bool corruptServedFile() const noexcept
+    {
+        return corrupt_served_file_;
+    }
+    [[nodiscard]] bool wrongChecksum() const noexcept
+    {
+        return wrong_checksum_;
+    }
+    [[nodiscard]] int abortAfterStatuses() const noexcept
+    {
+        return abort_after_statuses_;
+    }
+    [[nodiscard]] bool silent() const noexcept
+    {
+        return silent_;
+    }
     void setWaitFirstSeconds(int value);
     void setWaitEveryRequest(bool value);
     void setRefuseOperation(const QString& value);
@@ -272,10 +332,22 @@ public:
     void setAbortAfterStatuses(int value);
     void setSilent(bool value);
 
-    [[nodiscard]] QString currentOperation() const { return current_operation_; }
-    [[nodiscard]] int progress() const noexcept { return progress_; }
-    [[nodiscard]] QObject* activity() { return &activity_; }
-    [[nodiscard]] QObject* storedFiles() { return &stored_files_; }
+    [[nodiscard]] QString currentOperation() const
+    {
+        return current_operation_;
+    }
+    [[nodiscard]] int progress() const noexcept
+    {
+        return progress_;
+    }
+    [[nodiscard]] QObject* activity()
+    {
+        return &activity_;
+    }
+    [[nodiscard]] QObject* storedFiles()
+    {
+        return &stored_files_;
+    }
 
 public Q_SLOTS:
     // Starts serving on the worker's thread with a snapshot of the properties.
@@ -341,7 +413,7 @@ private:
     StoredFilesModel stored_files_;
 };
 
-}  // namespace adl::mock
+} // namespace adl::mock
 
 Q_DECLARE_METATYPE(adl::mock::Config)
 Q_DECLARE_METATYPE(adl::mock::LogEntry)

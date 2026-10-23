@@ -4,16 +4,17 @@
 // names, pathnames and target hardware IDs against what it recommends. The checks
 // return Findings: a name that departs from the standard can still be read.
 
-#include <string_view>
-
 #include "adl/arinc665/finding.hpp"
 
-namespace adl::arinc665 {
+#include <string_view>
+
+namespace adl::arinc665
+{
 
 // The file name extensions of ARINC 665-3 and the standards around it.
-inline constexpr std::string_view header_file_extension = "LUH";  // 2.2.2.1
-inline constexpr std::string_view data_file_extension = "LUP";    // 2.2.2.2, recommended
-inline constexpr std::string_view batch_file_extension = "LUB";   // 2.3.1
+inline constexpr std::string_view header_file_extension = "LUH"; // 2.2.2.1
+inline constexpr std::string_view data_file_extension = "LUP";   // 2.2.2.2, recommended
+inline constexpr std::string_view batch_file_extension = "LUB";  // 2.3.1
 
 // The names the standard gives the three lists in the root of every media
 // member (section 3.2.1).
@@ -66,4 +67,4 @@ inline constexpr std::string_view exconfig_ldr_file_name = "EXCONFIG.LDR";
 // to 15 characters beginning with a manufacturer's code.
 [[nodiscard]] Findings check_target_hardware_id(std::string_view id);
 
-}  // namespace adl::arinc665
+} // namespace adl::arinc665

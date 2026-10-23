@@ -1,16 +1,17 @@
 // FIND (Attachment 3), the data loader's side: the state machine on its own, and the runner
 // broadcasting over the fake network to simulated targets.
 
-#include <catch2/catch_test_macros.hpp>
-
 #include "adl/arinc615a/find.hpp"
 #include "adl/arinc615a/find_client.hpp"
 #include "rig.hpp"
 
+#include <catch2/catch_test_macros.hpp>
+
 using namespace adl::arinc615a;
 using namespace adl::test;
 
-namespace {
+namespace
+{
 
 using std::chrono::milliseconds;
 using std::chrono::seconds;
@@ -18,7 +19,8 @@ using std::chrono::seconds;
 constexpr Endpoint target_a{Address{{10, 0, 0, 2}}, 1001};
 constexpr Endpoint target_b{Address{{10, 0, 0, 3}}, 1001};
 
-Bytes answer_bytes(const FindAnswer& answer) {
+Bytes answer_bytes(const FindAnswer& answer)
+{
     Bytes bytes(find_max_answer_size);
     const auto size = encode_find_answer(answer, bytes);
     bytes.resize(size.value_or(0));
@@ -28,9 +30,10 @@ Bytes answer_bytes(const FindAnswer& answer) {
 const FindAnswer left{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
 const FindAnswer right{"HNPFMS", "FMS", "R", "FMS RIGHT", "HNP"};
 
-}  // namespace
+} // namespace
 
-TEST_CASE("the FIND request is the opcode, a null and 0x10", "[engine][find]") {
+TEST_CASE("the FIND request is the opcode, a null and 0x10", "[engine][find]")
+{
     FindClient client{FindConfig{}};
     client.start(Instant{});
     const auto request = client.request();
@@ -44,8 +47,8 @@ TEST_CASE("the FIND request is the opcode, a null and 0x10", "[engine][find]") {
     CHECK(client.destinations()[0] == Address::broadcast());
 }
 
-TEST_CASE("valid answers are registered for three seconds and then the window closes",
-          "[engine][find]") {
+TEST_CASE("valid answers are registered for three seconds and then the window closes", "[engine][find]")
+{
     FindClient client{FindConfig{}};
     client.start(Instant{});
     CHECK(client.next_wake() == Instant{seconds(3)});
@@ -68,7 +71,8 @@ TEST_CASE("valid answers are registered for three seconds and then the window cl
     CHECK(client.targets()[1].position.view() == "R");
 }
 
-TEST_CASE("an answer after the window is not registered", "[engine][find]") {
+TEST_CASE("an answer after the window is not registered", "[engine][find]")
+{
     FindClient client{FindConfig{}};
     client.start(Instant{});
     client.on_datagram(Instant{seconds(3) + Duration(1)}, target_a, answer_bytes(left));
@@ -78,20 +82,21 @@ TEST_CASE("an answer after the window is not registered", "[engine][find]") {
     CHECK(client.targets().empty());
 }
 
-TEST_CASE("what is not a valid answer is ignored", "[engine][find]") {
+TEST_CASE("what is not a valid answer is ignored", "[engine][find]")
+{
     FindClient client{FindConfig{}};
     client.start(Instant{});
     const Bytes good = answer_bytes(left);
     REQUIRE(good.size() > 4);
 
     Bytes request(8);
-    request.resize(encode_find_request(request).value_or(0));  // our own request, looped back
+    request.resize(encode_find_request(request).value_or(0)); // our own request, looped back
     client.on_datagram(Instant{}, target_a, request);
 
-    Bytes cut(good.begin(), good.end() - 1);  // no packet terminator
+    Bytes cut(good.begin(), good.end() - 1); // no packet terminator
     client.on_datagram(Instant{}, target_a, cut);
     Bytes trailing = good;
-    trailing.push_back(std::byte{0});  // bytes after the terminator
+    trailing.push_back(std::byte{0}); // bytes after the terminator
     client.on_datagram(Instant{}, target_a, trailing);
     Bytes opcode = good;
     opcode.at(1) = std::byte{9};
@@ -114,12 +119,12 @@ TEST_CASE("what is not a valid answer is ignored", "[engine][find]") {
     CHECK(client.targets().size() == 1);
 }
 
-TEST_CASE("an answer repeated is registered once, and a second identity from one host is kept",
-          "[engine][find]") {
+TEST_CASE("an answer repeated is registered once, and a second identity from one host is kept", "[engine][find]")
+{
     FindClient client{FindConfig{}};
     client.start(Instant{});
     client.on_datagram(Instant{}, target_a, answer_bytes(left));
-    client.on_datagram(Instant{}, target_a, answer_bytes(left));  // the same answer again
+    client.on_datagram(Instant{}, target_a, answer_bytes(left)); // the same answer again
     CHECK(client.targets().size() == 1);
     CHECK(client.ignored() == 1);
     // A concentrator answering for another unit (3-5, the commentary on proxies).
@@ -130,12 +135,13 @@ TEST_CASE("an answer repeated is registered once, and a second identity from one
     CHECK(client.targets().size() == 3);
 }
 
-TEST_CASE("there is room for a limited number of targets", "[engine][find]") {
+TEST_CASE("there is room for a limited number of targets", "[engine][find]")
+{
     FindClient client{FindConfig{}};
     client.start(Instant{});
-    for (std::size_t i = 0; i < FindClient::max_targets + 5; ++i) {
-        const Endpoint from{Address{{10, 1, static_cast<std::uint8_t>(i >> 8),
-                                     static_cast<std::uint8_t>(i & 0xFF)}},
+    for (std::size_t i = 0; i < FindClient::max_targets + 5; ++i)
+    {
+        const Endpoint from{Address{{10, 1, static_cast<std::uint8_t>(i >> 8), static_cast<std::uint8_t>(i & 0xFF)}},
                             1001};
         client.on_datagram(Instant{}, from, answer_bytes(left));
     }
@@ -143,7 +149,8 @@ TEST_CASE("there is room for a limited number of targets", "[engine][find]") {
     CHECK(client.ignored() == 5);
 }
 
-TEST_CASE("starting again forgets the last registration", "[engine][find]") {
+TEST_CASE("starting again forgets the last registration", "[engine][find]")
+{
     FindClient client{FindConfig{}};
     client.start(Instant{});
     client.on_datagram(Instant{}, target_a, answer_bytes(left));
@@ -155,7 +162,8 @@ TEST_CASE("starting again forgets the last registration", "[engine][find]") {
     CHECK(client.next_wake() == Instant{seconds(13)});
 }
 
-TEST_CASE("the runner finds the targets on the network", "[engine][find][runner]") {
+TEST_CASE("the runner finds the targets on the network", "[engine][find][runner]")
+{
     adl::fake::FakeWorld world(3);
     adl::fake::FakeNetwork network(world);
     adl::fake::FakeHost loader(world, network, adl::platform::Ipv4Address{{10, 0, 0, 1}});
@@ -163,11 +171,11 @@ TEST_CASE("the runner finds the targets on the network", "[engine][find][runner]
     plan_a.find_answer = left;
     SimPlan plan_b;
     plan_b.find_answer = right;
-    plan_b.find_answer_copies = 2;  // a target that answers twice
+    plan_b.find_answer_copies = 2; // a target that answers twice
     SimPlan plan_late;
     plan_late.find_answer = FindAnswer{"LATE", "X", "1", "TOO LATE", "ACM"};
-    plan_late.find_delay = milliseconds(3500);  // after the window
-    SimPlan plan_silent;                        // answers nothing
+    plan_late.find_delay = milliseconds(3500); // after the window
+    SimPlan plan_silent;                       // answers nothing
     SimTarget a(world, network, adl::platform::Ipv4Address{{10, 0, 0, 2}}, plan_a);
     SimTarget b(world, network, adl::platform::Ipv4Address{{10, 0, 0, 3}}, plan_b);
     SimTarget late(world, network, adl::platform::Ipv4Address{{10, 0, 0, 4}}, plan_late);
@@ -186,7 +194,8 @@ TEST_CASE("the runner finds the targets on the network", "[engine][find][runner]
     CHECK(found[1].literal_name.view() == "FMS RIGHT");
 }
 
-TEST_CASE("FIND to listed addresses reaches only those", "[engine][find][runner]") {
+TEST_CASE("FIND to listed addresses reaches only those", "[engine][find][runner]")
+{
     adl::fake::FakeWorld world(4);
     adl::fake::FakeNetwork network(world);
     adl::fake::FakeHost loader(world, network, adl::platform::Ipv4Address{{10, 0, 0, 1}});
@@ -209,9 +218,11 @@ TEST_CASE("FIND to listed addresses reaches only those", "[engine][find][runner]
     CHECK(found[0].literal_name.view() == "FMS RIGHT");
 }
 
-TEST_CASE("a lossy network still finds what gets through", "[engine][find][runner]") {
+TEST_CASE("a lossy network still finds what gets through", "[engine][find][runner]")
+{
     unsigned total = 0;
-    for (std::uint64_t seed = 1; seed <= 20; ++seed) {
+    for (std::uint64_t seed = 1; seed <= 20; ++seed)
+    {
         adl::fake::FakeWorld world(seed);
         adl::fake::FakeNetwork network(world);
         adl::fake::LinkProfile profile;
@@ -226,20 +237,21 @@ TEST_CASE("a lossy network still finds what gets through", "[engine][find][runne
         std::array<FindTarget, 4> found{};
         const auto count = runner.find(FindConfig{}, found);
         REQUIRE(count);
-        CHECK(*count <= 1);  // never registered twice, whatever was duplicated
+        CHECK(*count <= 1); // never registered twice, whatever was duplicated
         total += static_cast<unsigned>(*count);
     }
-    CHECK(total > 5);   // some got through...
-    CHECK(total < 20);  // ...and some did not: FIND has no retry
+    CHECK(total > 5);  // some got through...
+    CHECK(total < 20); // ...and some did not: FIND has no retry
 }
 
-TEST_CASE("the runner reports a FIND port that is taken", "[engine][find][runner]") {
+TEST_CASE("the runner reports a FIND port that is taken", "[engine][find][runner]")
+{
     adl::fake::FakeWorld world(5);
     adl::fake::FakeNetwork network(world);
     adl::fake::FakeHost loader(world, network, adl::platform::Ipv4Address{{10, 0, 0, 1}});
     adl::platform::UdpOptions options;
     options.local = adl::platform::Endpoint{adl::platform::Ipv4Address::any(), 1001};
-    auto holder = loader.network().open_udp(options);  // no reuse
+    auto holder = loader.network().open_udp(options); // no reuse
     REQUIRE(holder);
     Runner runner(loader);
     std::array<FindTarget, 1> found{};

@@ -9,48 +9,61 @@
 // that adapter is where this class is replaced, and every method below says
 // unsupported until it is.
 
-#include <memory>
-
 #include "adl/platform/files.hpp"
 #include "detail/nothrow.hpp"
 #include "ghs178b/ghs178b_services.hpp"
 
-namespace adl::platform::ghs178b {
-namespace {
+#include <memory>
 
-class UnsupportedFileSystem final : public FileSystem {
+namespace adl::platform::ghs178b
+{
+namespace
+{
+
+class UnsupportedFileSystem final : public FileSystem
+{
 public:
-    Result<Owned<ReadFile>> open_read(std::string_view) noexcept override {
+    Result<Owned<ReadFile>> open_read(std::string_view) noexcept override
+    {
         return fail(ErrorCode::unsupported);
     }
 
-    Result<Owned<WriteFile>> create(std::string_view, CreateMode) noexcept override {
+    Result<Owned<WriteFile>> create(std::string_view, CreateMode) noexcept override
+    {
         return fail(ErrorCode::unsupported);
     }
 
-    Result<FileInfo> stat(std::string_view) noexcept override {
+    Result<FileInfo> stat(std::string_view) noexcept override
+    {
         return fail(ErrorCode::unsupported);
     }
 
-    Result<void> make_directory(std::string_view) noexcept override {
+    Result<void> make_directory(std::string_view) noexcept override
+    {
         return fail(ErrorCode::unsupported);
     }
 
-    Result<void> remove(std::string_view) noexcept override { return fail(ErrorCode::unsupported); }
-
-    Result<void> rename(std::string_view, std::string_view) noexcept override {
+    Result<void> remove(std::string_view) noexcept override
+    {
         return fail(ErrorCode::unsupported);
     }
 
-    Result<void> list(std::string_view, DirectoryVisitor, void*) noexcept override {
+    Result<void> rename(std::string_view, std::string_view) noexcept override
+    {
+        return fail(ErrorCode::unsupported);
+    }
+
+    Result<void> list(std::string_view, DirectoryVisitor, void*) noexcept override
+    {
         return fail(ErrorCode::unsupported);
     }
 };
 
-}  // namespace
+} // namespace
 
-std::unique_ptr<FileSystem> make_files() noexcept {
+std::unique_ptr<FileSystem> make_files() noexcept
+{
     return detail::make_unique_nothrow<UnsupportedFileSystem>();
 }
 
-}  // namespace adl::platform::ghs178b
+} // namespace adl::platform::ghs178b

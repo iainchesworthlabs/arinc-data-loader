@@ -4,25 +4,30 @@
 // library and private to it. Everything is big endian. Neither class allocates, throws or
 // reads or writes outside the span it was given.
 
+#include "adl/arinc615a/error.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <span>
 #include <string_view>
 
-#include "adl/arinc615a/error.hpp"
-
-namespace adl::arinc615a::detail {
+namespace adl::arinc615a::detail
+{
 
 // A byte is printable text if it is not a control character (0x00 to 0x1F, 0x7F). 8-bit
 // values above 0x7F are let through: the standard says "8-bit ASCII" and nothing more.
-[[nodiscard]] constexpr bool is_text_byte(unsigned char c) noexcept {
+[[nodiscard]] constexpr bool is_text_byte(unsigned char c) noexcept
+{
     return c >= 0x20U && c != 0x7FU;
 }
 
-[[nodiscard]] constexpr bool is_text(std::string_view text) noexcept {
-    for (const char c : text) {
-        if (!is_text_byte(static_cast<unsigned char>(c))) {
+[[nodiscard]] constexpr bool is_text(std::string_view text) noexcept
+{
+    for (const char c : text)
+    {
+        if (!is_text_byte(static_cast<unsigned char>(c)))
+        {
             return false;
         }
     }
@@ -32,7 +37,8 @@ namespace adl::arinc615a::detail {
 // Writes into a span, and keeps counting when the span is full, so that one pass over a
 // value also measures it. The first thing that goes wrong is remembered (like a stream's
 // error flag); after that nothing more is written.
-class Writer {
+class Writer
+{
 public:
     explicit Writer(std::span<std::byte> out) noexcept : out_(out) {}
 
@@ -59,12 +65,17 @@ public:
 
     void patch_u32(std::size_t at, std::uint32_t value) noexcept;
 
-    void fail(Error error) noexcept {
-        if (!error_) {
+    void fail(Error error) noexcept
+    {
+        if (!error_)
+        {
             error_ = error;
         }
     }
-    [[nodiscard]] std::size_t size() const noexcept { return size_; }
+    [[nodiscard]] std::size_t size() const noexcept
+    {
+        return size_;
+    }
 
     // The bytes written, or the first error, or buffer_too_small.
     [[nodiscard]] Result<std::size_t> finish() const noexcept;
@@ -82,24 +93,41 @@ private:
 
 // Reads from a span. After the first failure every read returns zero or nothing, so a
 // decoder can read a whole structure and look once at the end.
-class Reader {
+class Reader
+{
 public:
     explicit Reader(std::span<const std::byte> data) noexcept : data_(data) {}
 
-    [[nodiscard]] bool ok() const noexcept { return !error_.has_value(); }
-    [[nodiscard]] Error error() const noexcept { return error_.value_or(Error::truncated); }
-    [[nodiscard]] Result<void> status() const noexcept {
+    [[nodiscard]] bool ok() const noexcept
+    {
+        return !error_.has_value();
+    }
+    [[nodiscard]] Error error() const noexcept
+    {
+        return error_.value_or(Error::truncated);
+    }
+    [[nodiscard]] Result<void> status() const noexcept
+    {
         return error_ ? Result<void>{std::unexpected{*error_}} : Result<void>{};
     }
-    void fail(Error error) noexcept {
-        if (!error_) {
+    void fail(Error error) noexcept
+    {
+        if (!error_)
+        {
             error_ = error;
         }
     }
 
-    [[nodiscard]] std::size_t position() const noexcept { return position_; }
-    [[nodiscard]] std::size_t remaining() const noexcept { return data_.size() - position_; }
-    [[nodiscard]] std::span<const std::byte> rest() const noexcept {
+    [[nodiscard]] std::size_t position() const noexcept
+    {
+        return position_;
+    }
+    [[nodiscard]] std::size_t remaining() const noexcept
+    {
+        return data_.size() - position_;
+    }
+    [[nodiscard]] std::span<const std::byte> rest() const noexcept
+    {
         return data_.subspan(position_);
     }
 
@@ -127,4 +155,4 @@ private:
     std::optional<Error> error_;
 };
 
-}  // namespace adl::arinc615a::detail
+} // namespace adl::arinc615a::detail

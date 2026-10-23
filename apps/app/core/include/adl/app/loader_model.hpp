@@ -6,13 +6,6 @@
 // (FIND, an Information operation, an Upload, the reading of a media set or the checking of
 // one); while one runs, `busy` is true and the others are refused.
 
-#include <memory>
-
-#include <QObject>
-#include <QStringList>
-#include <QThread>
-#include <QUrl>
-
 #include "adl/app/engine_worker.hpp"
 #include "adl/app/events.hpp"
 #include "adl/app/host_access.hpp"
@@ -20,9 +13,17 @@
 #include "adl/app/models.hpp"
 #include "adl/app/settings.hpp"
 
-namespace adl::app {
+#include <QObject>
+#include <QStringList>
+#include <QThread>
+#include <QUrl>
+#include <memory>
 
-class LoaderModel : public QObject {
+namespace adl::app
+{
+
+class LoaderModel : public QObject
+{
     Q_OBJECT
 
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
@@ -39,18 +40,12 @@ class LoaderModel : public QObject {
     Q_PROPERTY(bool canReadInformation READ canReadInformation NOTIFY canReadInformationChanged)
     // The target chosen from the FIND list, for its properties: the row, or -1 for none.
     Q_PROPERTY(int selectedTargetIndex READ selectedTargetIndex NOTIFY selectedTargetChanged)
-    Q_PROPERTY(
-        QString selectedTargetHardwareId READ selectedTargetHardwareId NOTIFY selectedTargetChanged)
-    Q_PROPERTY(
-        QString selectedTargetPosition READ selectedTargetPosition NOTIFY selectedTargetChanged)
-    Q_PROPERTY(
-        QString selectedTargetTypeName READ selectedTargetTypeName NOTIFY selectedTargetChanged)
-    Q_PROPERTY(QString selectedTargetLiteralName READ selectedTargetLiteralName NOTIFY
-                   selectedTargetChanged)
-    Q_PROPERTY(QString selectedTargetManufacturer READ selectedTargetManufacturer NOTIFY
-                   selectedTargetChanged)
-    Q_PROPERTY(
-        QString selectedTargetAddress READ selectedTargetAddress NOTIFY selectedTargetChanged)
+    Q_PROPERTY(QString selectedTargetHardwareId READ selectedTargetHardwareId NOTIFY selectedTargetChanged)
+    Q_PROPERTY(QString selectedTargetPosition READ selectedTargetPosition NOTIFY selectedTargetChanged)
+    Q_PROPERTY(QString selectedTargetTypeName READ selectedTargetTypeName NOTIFY selectedTargetChanged)
+    Q_PROPERTY(QString selectedTargetLiteralName READ selectedTargetLiteralName NOTIFY selectedTargetChanged)
+    Q_PROPERTY(QString selectedTargetManufacturer READ selectedTargetManufacturer NOTIFY selectedTargetChanged)
+    Q_PROPERTY(QString selectedTargetAddress READ selectedTargetAddress NOTIFY selectedTargetChanged)
     // An upload needs a media set that was read, at least one of its loads ticked, the set
     // checked valid and a target (typed, or one the automatic FIND will find).
     Q_PROPERTY(bool canUpload READ canUpload NOTIFY canUploadChanged)
@@ -66,13 +61,11 @@ class LoaderModel : public QObject {
     // mode, at least one named file.
     Q_PROPERTY(bool canDownload READ canDownload NOTIFY canDownloadChanged)
     Q_PROPERTY(int downloadMode READ downloadMode WRITE setDownloadMode NOTIFY downloadChanged)
-    Q_PROPERTY(
-        bool downloadChoicePending READ downloadChoicePending NOTIFY downloadChoicePendingChanged)
+    Q_PROPERTY(bool downloadChoicePending READ downloadChoicePending NOTIFY downloadChoicePendingChanged)
     Q_PROPERTY(int downloadSelectedCount READ downloadSelectedCount NOTIFY downloadSelectionChanged)
     // The DNLD_DATA_<THW_ID_POS>_<number> directory the last download was written into, or
     // empty while none has run.
-    Q_PROPERTY(
-        QString lastDownloadDirectory READ lastDownloadDirectory NOTIFY downloadDirectoryChanged)
+    Q_PROPERTY(QString lastDownloadDirectory READ lastDownloadDirectory NOTIFY downloadDirectoryChanged)
 
     // The outcome of the last job: 0 none yet, 1 it succeeded, 2 it did not. A media set read or
     // check also has an outcome, but it is not a transfer; `resultIsTransfer` says whether the
@@ -125,44 +118,58 @@ class LoaderModel : public QObject {
     // The operator's preferences, saved as they are changed. lastMediaSetDirectory is set by
     // choosing a media set, not typed.
     Q_PROPERTY(QString lastMediaSetDirectory READ lastMediaSetDirectory NOTIFY preferencesChanged)
-    Q_PROPERTY(QString defaultTargetAddress READ defaultTargetAddress WRITE setDefaultTargetAddress
-                   NOTIFY preferencesChanged)
-    Q_PROPERTY(QString defaultThwIdPos READ defaultThwIdPos WRITE setDefaultThwIdPos NOTIFY
-                   preferencesChanged)
-    Q_PROPERTY(int controlPort READ controlPort WRITE setControlPort NOTIFY preferencesChanged)
-    Q_PROPERTY(QString downloadDirectory READ downloadDirectory WRITE setDownloadDirectory NOTIFY
-                   preferencesChanged)
-    Q_PROPERTY(bool autoFindBeforeOperation READ autoFindBeforeOperation WRITE
-                   setAutoFindBeforeOperation NOTIFY preferencesChanged)
     Q_PROPERTY(
-        bool validateOnOpen READ validateOnOpen WRITE setValidateOnOpen NOTIFY preferencesChanged)
+        QString defaultTargetAddress READ defaultTargetAddress WRITE setDefaultTargetAddress NOTIFY preferencesChanged)
+    Q_PROPERTY(QString defaultThwIdPos READ defaultThwIdPos WRITE setDefaultThwIdPos NOTIFY preferencesChanged)
+    Q_PROPERTY(int controlPort READ controlPort WRITE setControlPort NOTIFY preferencesChanged)
+    Q_PROPERTY(QString downloadDirectory READ downloadDirectory WRITE setDownloadDirectory NOTIFY preferencesChanged)
+    Q_PROPERTY(bool autoFindBeforeOperation READ autoFindBeforeOperation WRITE setAutoFindBeforeOperation NOTIFY
+                   preferencesChanged)
+    Q_PROPERTY(bool validateOnOpen READ validateOnOpen WRITE setValidateOnOpen NOTIFY preferencesChanged)
     Q_PROPERTY(int logCapacity READ logCapacity WRITE setLogCapacity NOTIFY preferencesChanged)
 
 public:
-    explicit LoaderModel(HostFactory host_factory = system_host_factory(),
-                         std::unique_ptr<AppSettings> settings = {}, QObject* parent = nullptr);
+    explicit LoaderModel(HostFactory host_factory = system_host_factory(), std::unique_ptr<AppSettings> settings = {},
+                         QObject* parent = nullptr);
     // Aborts what is running and waits for the engine's thread to finish, which for an operation
     // the target has to confirm can take up to the data load protocol time-out (13 seconds).
     ~LoaderModel() override;
 
-    [[nodiscard]] bool busy() const noexcept { return job_ != Job::none; }
-    [[nodiscard]] bool firstRun() const { return !settings_->firstRunComplete(); }
+    [[nodiscard]] bool busy() const noexcept
+    {
+        return job_ != Job::none;
+    }
+    [[nodiscard]] bool firstRun() const
+    {
+        return !settings_->firstRunComplete();
+    }
     [[nodiscard]] QString activity() const;
-    [[nodiscard]] bool canAbort() const noexcept {
+    [[nodiscard]] bool canAbort() const noexcept
+    {
         return (job_ == Job::information || job_ == Job::upload || job_ == Job::download_media ||
                 job_ == Job::download_operator) &&
                !abort_requested_;
     }
 
-    [[nodiscard]] QString targetAddress() const { return target_address_; }
-    [[nodiscard]] QString thwIdPos() const { return thw_id_pos_; }
+    [[nodiscard]] QString targetAddress() const
+    {
+        return target_address_;
+    }
+    [[nodiscard]] QString thwIdPos() const
+    {
+        return thw_id_pos_;
+    }
     void setTargetAddress(const QString& address);
     void setThwIdPos(const QString& thw_id_pos);
     [[nodiscard]] bool targetValid() const;
-    [[nodiscard]] bool canReadInformation() const {
+    [[nodiscard]] bool canReadInformation() const
+    {
         return !busy() && (targetValid() || settings_->autoFindBeforeOperation());
     }
-    [[nodiscard]] int selectedTargetIndex() const noexcept { return selected_target_row_; }
+    [[nodiscard]] int selectedTargetIndex() const noexcept
+    {
+        return selected_target_row_;
+    }
     [[nodiscard]] QString selectedTargetHardwareId() const;
     [[nodiscard]] QString selectedTargetPosition() const;
     [[nodiscard]] QString selectedTargetTypeName() const;
@@ -170,69 +177,191 @@ public:
     [[nodiscard]] QString selectedTargetManufacturer() const;
     [[nodiscard]] QString selectedTargetAddress() const;
     [[nodiscard]] bool canUpload() const;
-    [[nodiscard]] int selectedLoadCount() const noexcept { return loads_.checked_count(); }
-    [[nodiscard]] int progress() const noexcept { return progress_; }
+    [[nodiscard]] int selectedLoadCount() const noexcept
+    {
+        return loads_.checked_count();
+    }
+    [[nodiscard]] int progress() const noexcept
+    {
+        return progress_;
+    }
 
     [[nodiscard]] bool canDownload() const;
-    [[nodiscard]] int downloadMode() const noexcept { return download_mode_; }
+    [[nodiscard]] int downloadMode() const noexcept
+    {
+        return download_mode_;
+    }
     void setDownloadMode(int mode);
-    [[nodiscard]] bool downloadChoicePending() const noexcept { return download_choice_pending_; }
-    [[nodiscard]] int downloadSelectedCount() const noexcept { return download_selected_count_; }
-    [[nodiscard]] QString lastDownloadDirectory() const { return last_download_directory_; }
+    [[nodiscard]] bool downloadChoicePending() const noexcept
+    {
+        return download_choice_pending_;
+    }
+    [[nodiscard]] int downloadSelectedCount() const noexcept
+    {
+        return download_selected_count_;
+    }
+    [[nodiscard]] QString lastDownloadDirectory() const
+    {
+        return last_download_directory_;
+    }
 
-    [[nodiscard]] int resultState() const noexcept { return result_state_; }
-    [[nodiscard]] bool resultIsTransfer() const noexcept { return result_is_transfer_; }
-    [[nodiscard]] bool resultWasDownload() const noexcept { return result_was_download_; }
-    [[nodiscard]] QString resultText() const { return result_text_.text(); }
-    [[nodiscard]] QString resultDetail() const { return result_detail_.text(); }
-    [[nodiscard]] int resultLoadCount() const noexcept { return result_load_count_; }
-    [[nodiscard]] QString resultTime() const { return result_time_; }
-    [[nodiscard]] QString lastErrorText() const { return last_error_text_.text(); }
-    [[nodiscard]] QString lastErrorDetail() const { return last_error_detail_.text(); }
-    [[nodiscard]] QString lastErrorHint() const { return last_error_hint_.text(); }
+    [[nodiscard]] int resultState() const noexcept
+    {
+        return result_state_;
+    }
+    [[nodiscard]] bool resultIsTransfer() const noexcept
+    {
+        return result_is_transfer_;
+    }
+    [[nodiscard]] bool resultWasDownload() const noexcept
+    {
+        return result_was_download_;
+    }
+    [[nodiscard]] QString resultText() const
+    {
+        return result_text_.text();
+    }
+    [[nodiscard]] QString resultDetail() const
+    {
+        return result_detail_.text();
+    }
+    [[nodiscard]] int resultLoadCount() const noexcept
+    {
+        return result_load_count_;
+    }
+    [[nodiscard]] QString resultTime() const
+    {
+        return result_time_;
+    }
+    [[nodiscard]] QString lastErrorText() const
+    {
+        return last_error_text_.text();
+    }
+    [[nodiscard]] QString lastErrorDetail() const
+    {
+        return last_error_detail_.text();
+    }
+    [[nodiscard]] QString lastErrorHint() const
+    {
+        return last_error_hint_.text();
+    }
 
-    [[nodiscard]] QString mediaSetPath() const { return media_set_.path; }
+    [[nodiscard]] QString mediaSetPath() const
+    {
+        return media_set_.path;
+    }
     [[nodiscard]] QString mediaSetTitle() const;
-    [[nodiscard]] QString mediaSetPartNumber() const { return media_set_.part_number; }
-    [[nodiscard]] int mediaSetMemberCount() const noexcept { return media_set_.members; }
-    [[nodiscard]] int mediaSetBatchCount() const noexcept { return media_set_.batches; }
+    [[nodiscard]] QString mediaSetPartNumber() const
+    {
+        return media_set_.part_number;
+    }
+    [[nodiscard]] int mediaSetMemberCount() const noexcept
+    {
+        return media_set_.members;
+    }
+    [[nodiscard]] int mediaSetBatchCount() const noexcept
+    {
+        return media_set_.batches;
+    }
     // The rows of the loads and files lists, as properties a binding can follow: the models are
     // CONSTANT objects, so a binding that calls their rowCount() is evaluated once and never again.
-    [[nodiscard]] int loadCount() const { return loads_.rowCount(); }
-    [[nodiscard]] int fileCount() const { return files_.rowCount(); }
-    [[nodiscard]] QString mediaSetError() const { return media_set_.error; }
-    [[nodiscard]] QStringList mediaSetFindings() const { return media_set_.findings; }
+    [[nodiscard]] int loadCount() const
+    {
+        return loads_.rowCount();
+    }
+    [[nodiscard]] int fileCount() const
+    {
+        return files_.rowCount();
+    }
+    [[nodiscard]] QString mediaSetError() const
+    {
+        return media_set_.error;
+    }
+    [[nodiscard]] QStringList mediaSetFindings() const
+    {
+        return media_set_.findings;
+    }
 
-    [[nodiscard]] int validationState() const noexcept { return validation_state_; }
-    [[nodiscard]] QString validationError() const { return validation_error_; }
-    [[nodiscard]] QStringList validationFindings() const { return validation_findings_; }
-    [[nodiscard]] QString validationDetail() const { return validation_detail_.text(); }
+    [[nodiscard]] int validationState() const noexcept
+    {
+        return validation_state_;
+    }
+    [[nodiscard]] QString validationError() const
+    {
+        return validation_error_;
+    }
+    [[nodiscard]] QStringList validationFindings() const
+    {
+        return validation_findings_;
+    }
+    [[nodiscard]] QString validationDetail() const
+    {
+        return validation_detail_.text();
+    }
 
-    [[nodiscard]] QObject* targets() { return &targets_; }
-    [[nodiscard]] QObject* events() { return &events_; }
-    [[nodiscard]] QObject* configuration() { return &configuration_; }
-    [[nodiscard]] QObject* loads() { return &loads_; }
-    [[nodiscard]] QObject* files() { return &files_; }
-    [[nodiscard]] QObject* downloads() { return &downloads_; }
+    [[nodiscard]] QObject* targets()
+    {
+        return &targets_;
+    }
+    [[nodiscard]] QObject* events()
+    {
+        return &events_;
+    }
+    [[nodiscard]] QObject* configuration()
+    {
+        return &configuration_;
+    }
+    [[nodiscard]] QObject* loads()
+    {
+        return &loads_;
+    }
+    [[nodiscard]] QObject* files()
+    {
+        return &files_;
+    }
+    [[nodiscard]] QObject* downloads()
+    {
+        return &downloads_;
+    }
 
-    [[nodiscard]] QString lastMediaSetDirectory() const {
+    [[nodiscard]] QString lastMediaSetDirectory() const
+    {
         return settings_->lastMediaSetDirectory();
     }
-    [[nodiscard]] QString defaultTargetAddress() const { return settings_->defaultTargetAddress(); }
+    [[nodiscard]] QString defaultTargetAddress() const
+    {
+        return settings_->defaultTargetAddress();
+    }
     void setDefaultTargetAddress(const QString& address);
-    [[nodiscard]] QString defaultThwIdPos() const { return settings_->defaultThwIdPos(); }
+    [[nodiscard]] QString defaultThwIdPos() const
+    {
+        return settings_->defaultThwIdPos();
+    }
     void setDefaultThwIdPos(const QString& thw_id_pos);
-    [[nodiscard]] int controlPort() const { return settings_->controlPort(); }
+    [[nodiscard]] int controlPort() const
+    {
+        return settings_->controlPort();
+    }
     void setControlPort(int port);
-    [[nodiscard]] QString downloadDirectory() const { return settings_->downloadDirectory(); }
+    [[nodiscard]] QString downloadDirectory() const
+    {
+        return settings_->downloadDirectory();
+    }
     void setDownloadDirectory(const QString& directory);
-    [[nodiscard]] bool autoFindBeforeOperation() const {
+    [[nodiscard]] bool autoFindBeforeOperation() const
+    {
         return settings_->autoFindBeforeOperation();
     }
     void setAutoFindBeforeOperation(bool enabled);
-    [[nodiscard]] bool validateOnOpen() const { return settings_->validateOnOpen(); }
+    [[nodiscard]] bool validateOnOpen() const
+    {
+        return settings_->validateOnOpen();
+    }
     void setValidateOnOpen(bool enabled);
-    [[nodiscard]] int logCapacity() const { return settings_->logCapacity(); }
+    [[nodiscard]] int logCapacity() const
+    {
+        return settings_->logCapacity();
+    }
     void setLogCapacity(int capacity);
 
 public Q_SLOTS:
@@ -307,7 +436,8 @@ Q_SIGNALS:
     void preferencesChanged();
 
 private:
-    enum class Job {
+    enum class Job
+    {
         none,
         find,
         information,
@@ -319,7 +449,13 @@ private:
     };
     // What the automatic FIND was run for, so the operation follows it when exactly one target
     // answered.
-    enum class Pending { none, information, upload, download };
+    enum class Pending
+    {
+        none,
+        information,
+        upload,
+        download
+    };
 
     static Message no_target_selected();
     bool begin(Job job);
@@ -330,8 +466,7 @@ private:
     // Tells the window when what it may start has changed.
     void refresh_availability();
     void set_progress(int percent);
-    void set_validation(int state, const QString& error, const QStringList& findings,
-                        const Message& detail);
+    void set_validation(int state, const QString& error, const QStringList& findings, const Message& detail);
     // Drops what belonged to the target that was being addressed before the address or
     // THW_ID_POS changed.
     void reconcile_target();
@@ -373,7 +508,7 @@ private:
     bool result_was_download_ = false;
     Message result_text_;
     Message result_detail_;
-    int job_load_count_ = 0;  // the ticked loads when the running job started
+    int job_load_count_ = 0; // the ticked loads when the running job started
     int result_load_count_ = 0;
     QString result_time_;
     Message last_error_text_;
@@ -388,4 +523,4 @@ private:
     std::unique_ptr<AppSettings> settings_;
 };
 
-}  // namespace adl::app
+} // namespace adl::app

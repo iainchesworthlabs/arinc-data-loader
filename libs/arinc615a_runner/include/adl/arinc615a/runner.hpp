@@ -10,27 +10,30 @@
 // the loader through a RunController, which is polled between waits (the interval is in
 // RunOptions) from the same thread.
 
-#include <cstddef>
-#include <optional>
-#include <span>
-
 #include "adl/arinc615a/data_loader.hpp"
 #include "adl/arinc615a/find_client.hpp"
 #include "adl/platform/error.hpp"
 #include "adl/platform/host.hpp"
 
-namespace adl::arinc615a {
+#include <cstddef>
+#include <optional>
+#include <span>
+
+namespace adl::arinc615a
+{
 
 // Polled by the runner between waits, on its thread. It may make at most one call to the loader
 // each time it is polled (abort() or provide_selection()): the runner carries out the
 // commands that call left, and a second call would replace them.
-class RunController {
+class RunController
+{
 public:
     virtual ~RunController() = default;
     virtual void on_poll(DataLoader& loader, Instant now) noexcept = 0;
 };
 
-struct RunOptions {
+struct RunOptions
+{
     RunController* controller = nullptr;
     // The interface the control socket and every transfer socket are bound to. 0.0.0.0 (the
     // default) listens on every interface, which is what a target on the network needs and what
@@ -43,11 +46,13 @@ struct RunOptions {
 
 // Why run() could not run the operation at all (as opposed to the operation failing, which is
 // an Outcome).
-struct RunError {
-    enum class Stage : std::uint8_t {
-        start,           // the loader refused the request: `engine` says why
-        control_socket,  // the control port could not be opened: `platform` says why
-        wait,            // waiting on the sockets failed
+struct RunError
+{
+    enum class Stage : std::uint8_t
+    {
+        start,          // the loader refused the request: `engine` says why
+        control_socket, // the control port could not be opened: `platform` says why
+        wait,           // waiting on the sockets failed
     };
     Stage stage = Stage::start;
     Error engine = Error::invalid_value;
@@ -57,23 +62,22 @@ struct RunError {
 // Runs one operation of a DataLoader, or a FIND, over the platform's sockets and
 // clock. run() and find() block the calling thread until the operation has an
 // outcome or the FIND window has closed.
-class Runner {
+class Runner
+{
 public:
     explicit Runner(adl::platform::Host& host) noexcept : host_(host) {}
 
     // Runs `operation` against the target `loader` was configured for, until it has an outcome
     // and nothing is left open. The socket on the loader's control port is held for the
     // duration.
-    [[nodiscard]] std::expected<Outcome, RunError> run(DataLoader& loader,
-                                                       const Operation& operation,
+    [[nodiscard]] std::expected<Outcome, RunError> run(DataLoader& loader, const Operation& operation,
                                                        const RunOptions& options = {}) noexcept;
 
     // FIND: broadcasts the request (or sends it to each configured address), collects answers
     // for the window and copies up to out.size() of the targets that answered into `out`.
     // Returns how many. The socket is bound to port 1001, which the standard has the answer
     // come back to.
-    [[nodiscard]] adl::platform::Result<std::size_t> find(const FindConfig& config,
-                                                          std::span<FindTarget> out,
+    [[nodiscard]] adl::platform::Result<std::size_t> find(const FindConfig& config, std::span<FindTarget> out,
                                                           std::uint16_t port = find_port) noexcept;
 
 private:
@@ -82,4 +86,4 @@ private:
 
 [[nodiscard]] Instant to_instant(adl::platform::Instant at) noexcept;
 
-}  // namespace adl::arinc615a
+} // namespace adl::arinc615a

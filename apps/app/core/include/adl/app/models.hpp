@@ -3,20 +3,23 @@
 // The lists the window shows. Each is a QAbstractListModel that is replaced or appended to on
 // the window's thread only, from the signals of the worker.
 
+#include "adl/app/events.hpp"
+
 #include <QAbstractListModel>
 #include <QDateTime>
 #include <QList>
 
-#include "adl/app/events.hpp"
-
-namespace adl::app {
+namespace adl::app
+{
 
 // What FIND found, one row per target.
-class TargetModel : public QAbstractListModel {
+class TargetModel : public QAbstractListModel
+{
     Q_OBJECT
 
 public:
-    enum Role {
+    enum Role
+    {
         AddressRole = Qt::UserRole + 1,
         HardwareIdRole,
         PositionRole,
@@ -42,11 +45,17 @@ private:
 };
 
 // The activity log: what the target said and what the loader did, oldest first.
-class EventModel : public QAbstractListModel {
+class EventModel : public QAbstractListModel
+{
     Q_OBJECT
 
 public:
-    enum Role { SeverityRole = Qt::UserRole + 1, TextRole, TimeRole };
+    enum Role
+    {
+        SeverityRole = Qt::UserRole + 1,
+        TextRole,
+        TimeRole
+    };
 
     // The most lines kept when nothing else is asked; older ones are dropped. The operator's
     // preference (logCapacity) can change it per instance.
@@ -58,8 +67,14 @@ public:
     [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override;
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
-    [[nodiscard]] int capacity() const noexcept { return capacity_; }
-    void set_capacity(int capacity) noexcept { capacity_ = capacity < 1 ? 1 : capacity; }
+    [[nodiscard]] int capacity() const noexcept
+    {
+        return capacity_;
+    }
+    void set_capacity(int capacity) noexcept
+    {
+        capacity_ = capacity < 1 ? 1 : capacity;
+    }
 
     void append(const EventEntry& entry);
     void clear();
@@ -67,7 +82,8 @@ public:
     void retranslate();
 
 private:
-    struct Line {
+    struct Line
+    {
         EventEntry entry;
         QDateTime time;
     };
@@ -76,11 +92,18 @@ private:
 };
 
 // The files of the media set that was read, one row per file, from FILES.LUM.
-class FileModel : public QAbstractListModel {
+class FileModel : public QAbstractListModel
+{
     Q_OBJECT
 
 public:
-    enum Role { NameRole = Qt::UserRole + 1, MemberRole, PathnameRole, CrcRole };
+    enum Role
+    {
+        NameRole = Qt::UserRole + 1,
+        MemberRole,
+        PathnameRole,
+        CrcRole
+    };
 
     explicit FileModel(QObject* parent = nullptr) : QAbstractListModel(parent) {}
 
@@ -95,11 +118,17 @@ private:
 };
 
 // What an Information operation found: hardware, each followed by its parts.
-class ConfigurationModel : public QAbstractListModel {
+class ConfigurationModel : public QAbstractListModel
+{
     Q_OBJECT
 
 public:
-    enum Role { LevelRole = Qt::UserRole + 1, TitleRole, DetailRole };
+    enum Role
+    {
+        LevelRole = Qt::UserRole + 1,
+        TitleRole,
+        DetailRole
+    };
 
     explicit ConfigurationModel(QObject* parent = nullptr) : QAbstractListModel(parent) {}
 
@@ -117,19 +146,21 @@ private:
 
 // The loads of the media set that was read: what each is, whether the operator has ticked it for
 // an upload, and, while an upload runs, how far the target has got with it.
-class LoadModel : public QAbstractListModel {
+class LoadModel : public QAbstractListModel
+{
     Q_OBJECT
 
 public:
-    enum Role {
+    enum Role
+    {
         PartNumberRole = Qt::UserRole + 1,
         HeaderFileRole,
         DetailRole,
-        CheckedRole,     // writable: the operator's tick
-        RatioRole,       // percent done, or -1 when the load is not in an upload
-        LoadStatusRole,  // the target's word for it ("in progress"), or empty
-        FailedRole,      // the target gave up on it
-        ProblemRole,     // what the target said about it, when it said more
+        CheckedRole,    // writable: the operator's tick
+        RatioRole,      // percent done, or -1 when the load is not in an upload
+        LoadStatusRole, // the target's word for it ("in progress"), or empty
+        FailedRole,     // the target gave up on it
+        ProblemRole,    // what the target said about it, when it said more
     };
 
     explicit LoadModel(QObject* parent = nullptr) : QAbstractListModel(parent) {}
@@ -147,7 +178,10 @@ public:
     void reset(QList<LoadSummary> loads);
 
     // While locked (a job runs) the ticks cannot be changed.
-    void set_locked(bool locked) noexcept { locked_ = locked; }
+    void set_locked(bool locked) noexcept
+    {
+        locked_ = locked;
+    }
     void check_all(bool checked);
     [[nodiscard]] int checked_count() const noexcept;
     [[nodiscard]] QList<LoadSummary> checked_loads() const;
@@ -164,7 +198,8 @@ Q_SIGNALS:
     void selection_changed();
 
 private:
-    struct Row {
+    struct Row
+    {
         LoadSummary load;
         bool checked = false;
         int ratio = -1;
@@ -182,18 +217,20 @@ private:
 // written down; in the operator defined mode they are the target's list (.LNL), each with the
 // operator's tick, which is the choice sent back. While a download runs the rows carry its
 // progress, matched to the download status files by name.
-class DownloadModel : public QAbstractListModel {
+class DownloadModel : public QAbstractListModel
+{
     Q_OBJECT
 
 public:
-    enum Role {
+    enum Role
+    {
         NameRole = Qt::UserRole + 1,
-        DescriptionRole,  // the target's word for the file (.LNL), or empty
-        CheckedRole,      // writable: the operator's tick (operator defined mode only)
-        RatioRole,        // percent done, or -1 when the row is not in the running download
-        FileStatusRole,   // the target's word for it ("in progress"), or empty
-        FailedRole,       // the target gave up on it
-        ProblemRole,      // what the target said about it, when it said more
+        DescriptionRole, // the target's word for the file (.LNL), or empty
+        CheckedRole,     // writable: the operator's tick (operator defined mode only)
+        RatioRole,       // percent done, or -1 when the row is not in the running download
+        FileStatusRole,  // the target's word for it ("in progress"), or empty
+        FailedRole,      // the target gave up on it
+        ProblemRole,     // what the target said about it, when it said more
     };
 
     explicit DownloadModel(QObject* parent = nullptr) : QAbstractListModel(parent) {}
@@ -229,14 +266,18 @@ public:
     void retranslate();
 
     // While locked (the download runs, or the choice has been made) the ticks cannot change.
-    void set_locked(bool locked) noexcept { locked_ = locked; }
+    void set_locked(bool locked) noexcept
+    {
+        locked_ = locked;
+    }
 
 Q_SIGNALS:
     // The number of ticked files, or the list itself, may have changed.
     void selection_changed();
 
 private:
-    struct Row {
+    struct Row
+    {
         QString name;
         QString description;
         bool checked = false;
@@ -254,4 +295,4 @@ private:
     bool choice_mode_ = false;
 };
 
-}  // namespace adl::app
+} // namespace adl::app

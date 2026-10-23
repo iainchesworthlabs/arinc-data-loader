@@ -21,6 +21,12 @@
 // engine's own DirectoryFileSource, so a host that is not the desktop's (the tests' fake one)
 // supplies the bytes.
 
+#include "adl/arinc615a/file_io.hpp"
+#include "adl/arinc665/media_files.hpp"
+#include "adl/arinc665/media_set.hpp"
+#include "adl/arinc665/sha1.hpp"
+#include "adl/platform/files.hpp"
+
 #include <array>
 #include <cstdint>
 #include <expected>
@@ -31,32 +37,30 @@
 #include <string_view>
 #include <vector>
 
-#include "adl/arinc615a/file_io.hpp"
-#include "adl/arinc665/media_files.hpp"
-#include "adl/arinc665/media_set.hpp"
-#include "adl/arinc665/sha1.hpp"
-#include "adl/platform/files.hpp"
-
-namespace adl::app {
+namespace adl::app
+{
 
 // The files of a media set and where each is: built once, when the set is read.
-class MediaSetIndex {
+class MediaSetIndex
+{
 public:
     // What a file was when the set was checked.
-    struct Fingerprint {
+    struct Fingerprint
+    {
         std::uint64_t size = 0;
         adl::arinc665::Sha1::Digest sha1{};
 
         friend bool operator==(const Fingerprint&, const Fingerprint&) = default;
     };
 
-    struct Entry {
+    struct Entry
+    {
         std::string name;
-        std::string path;  // UTF-8, '/' separated, absolute if the root was
+        std::string path; // UTF-8, '/' separated, absolute if the root was
         std::uint16_t crc16 = 0;
         std::uint16_t member = 0;
-        std::string pathname;                    // the directory in the member, as FILES.LUM has it
-        std::optional<Fingerprint> fingerprint;  // empty: the index was made without the bytes
+        std::string pathname;                   // the directory in the member, as FILES.LUM has it
+        std::optional<Fingerprint> fingerprint; // empty: the index was made without the bytes
 
         // "DATA.BIN (member 2, \LOAD\)": a file as the operator can find it.
         [[nodiscard]] std::string describe() const;
@@ -64,16 +68,19 @@ public:
 
     // Maps each file of `list` to a path below `root` (member directory, then the file's own
     // directory). Fails with a description if a pathname is not one a tree can hold.
-    [[nodiscard]] static std::expected<MediaSetIndex, std::string> make(
-        const std::filesystem::path& root, const adl::arinc665::FilesList& list);
+    [[nodiscard]] static std::expected<MediaSetIndex, std::string> make(const std::filesystem::path& root,
+                                                                        const adl::arinc665::FilesList& list);
 
     // As above, and takes the fingerprint of every file from `members`, the set as it was read
     // (and checked). Fails with a description if a listed file is not among them.
-    [[nodiscard]] static std::expected<MediaSetIndex, std::string> make(
-        const std::filesystem::path& root, const adl::arinc665::FilesList& list,
-        std::span<const adl::arinc665::MediaMember> members);
+    [[nodiscard]] static std::expected<MediaSetIndex, std::string>
+    make(const std::filesystem::path& root, const adl::arinc665::FilesList& list,
+         std::span<const adl::arinc665::MediaMember> members);
 
-    [[nodiscard]] const std::vector<Entry>& entries() const noexcept { return entries_; }
+    [[nodiscard]] const std::vector<Entry>& entries() const noexcept
+    {
+        return entries_;
+    }
 
     // The description of the first file (in the order of FILES.LUM) that is missing from `files`
     // or no longer what it was when the index was made, reading each one in full; empty if the
@@ -85,31 +92,30 @@ public:
     // whose CRC is `crc16`. With one file of the name, a CRC that differs is not a reason to
     // refuse it (the target will say if what it received does not match what it expected);
     // with several and no CRC that fits, there is no such file. Null if there is none.
-    [[nodiscard]] const Entry* find(std::string_view name,
-                                    std::optional<std::uint16_t> crc16) const noexcept;
+    [[nodiscard]] const Entry* find(std::string_view name, std::optional<std::uint16_t> crc16) const noexcept;
 
 private:
     std::vector<Entry> entries_;
 };
 
 // A FileSource over an index. Holds a reference to both, which have to outlive it.
-class MediaTreeSource final : public adl::arinc615a::FileSource {
+class MediaTreeSource final : public adl::arinc615a::FileSource
+{
 public:
     static constexpr std::size_t max_open = 8;
 
     MediaTreeSource(adl::platform::FileSystem& files, const MediaSetIndex& index);
 
-    adl::arinc615a::IoResult<adl::arinc615a::SourceFile> open(
-        std::string_view name,
-        const std::optional<adl::arinc615a::ChecksumOption>& checksum) noexcept override;
-    adl::arinc615a::IoResult<std::size_t> read(adl::arinc615a::SourceHandle file,
-                                               std::uint64_t offset,
+    adl::arinc615a::IoResult<adl::arinc615a::SourceFile>
+    open(std::string_view name, const std::optional<adl::arinc615a::ChecksumOption>& checksum) noexcept override;
+    adl::arinc615a::IoResult<std::size_t> read(adl::arinc615a::SourceHandle file, std::uint64_t offset,
                                                std::span<std::byte> out) noexcept override;
     void close(adl::arinc615a::SourceHandle file) noexcept override;
 
     // The description of the file that open() refused because it was not what the set was
     // when it was checked (the first one, if several); empty if there was none.
-    [[nodiscard]] const std::optional<std::string>& changed_file() const noexcept {
+    [[nodiscard]] const std::optional<std::string>& changed_file() const noexcept
+    {
         return changed_;
     }
 
@@ -120,4 +126,4 @@ private:
     std::optional<std::string> changed_;
 };
 
-}  // namespace adl::app
+} // namespace adl::app

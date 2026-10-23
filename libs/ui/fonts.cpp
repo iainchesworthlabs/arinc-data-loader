@@ -6,9 +6,11 @@
 #include <QGuiApplication>
 #include <QString>
 
-namespace adl::ui {
+namespace adl::ui
+{
 
-void register_fonts() {
+void register_fonts()
+{
     // Archivo is SIL OFL 1.1; fonts/OFL.txt ships beside the faces. Static weights rather than
     // the variable font, because Qt's font database resolves named static weights on every
     // platform this builds for.
@@ -18,12 +20,13 @@ void register_fonts() {
     // weights the design uses from Google's variable font; LanguageManager makes it the
     // application's typeface for those two languages, and Theme.headingFamily follows. There is no
     // Chinese or Japanese face here: those scripts are drawn in the system's own CJK fonts.
-    for (const char* face :
-         {":/adl/fonts/Archivo-Regular.ttf", ":/adl/fonts/Archivo-Medium.ttf",
-          ":/adl/fonts/Archivo-SemiBold.ttf", ":/adl/fonts/Archivo-ExtraBold.ttf",
-          ":/adl/fonts/NotoSansHebrew-Regular.ttf", ":/adl/fonts/NotoSansHebrew-Medium.ttf",
-          ":/adl/fonts/NotoSansHebrew-SemiBold.ttf", ":/adl/fonts/NotoSansHebrew-ExtraBold.ttf"}) {
-        if (QFontDatabase::addApplicationFont(QString::fromLatin1(face)) < 0) {
+    for (const char* face : {":/adl/fonts/Archivo-Regular.ttf", ":/adl/fonts/Archivo-Medium.ttf",
+                             ":/adl/fonts/Archivo-SemiBold.ttf", ":/adl/fonts/Archivo-ExtraBold.ttf",
+                             ":/adl/fonts/NotoSansHebrew-Regular.ttf", ":/adl/fonts/NotoSansHebrew-Medium.ttf",
+                             ":/adl/fonts/NotoSansHebrew-SemiBold.ttf", ":/adl/fonts/NotoSansHebrew-ExtraBold.ttf"})
+    {
+        if (QFontDatabase::addApplicationFont(QString::fromLatin1(face)) < 0)
+        {
             qWarning("could not register bundled font %s", face);
         }
     }
@@ -33,4 +36,4 @@ void register_fonts() {
     QGuiApplication::setFont(default_font);
 }
 
-}  // namespace adl::ui
+} // namespace adl::ui

@@ -32,18 +32,20 @@
 // configured into the kernel image, and the tree has no client task-creation
 // call (docs/platform-ghs.md).
 
-#include <INTEGRITY.h>
-
-#include <memory>
-
 #include "adl/platform/threads.hpp"
 #include "adl/platform/time.hpp"
 #include "detail/nothrow.hpp"
 #include "ghs/ghs_native.hpp"
 #include "ghs178b/ghs178b_services.hpp"
 
-namespace adl::platform::ghs178b {
-namespace {
+#include <INTEGRITY.h>
+
+#include <memory>
+
+namespace adl::platform::ghs178b
+{
+namespace
+{
 
 // The priority of the clock and semaphore activities, a proposal in the
 // vendor module's style of a constant per activity: 100 sits between the
@@ -57,26 +59,30 @@ constexpr Value activity_priority = 100;
 // from here, which is what the status checks in wait() are for.
 constexpr Value first_activity_id = 64;
 
-class Ghs178bMutex final : public Mutex {
+class Ghs178bMutex final : public Mutex
+{
 public:
     explicit Ghs178bMutex(Semaphore semaphore) noexcept : semaphore_(semaphore) {}
 
-    void lock() noexcept override {
+    void lock() noexcept override
+    {
         // Nothing is logged when the wait fails: there is no logging channel
         // here, and a failed wait means the semaphore was closed under us,
         // which the caller cannot act on either.
         (void)WaitForSemaphore(semaphore_);
     }
 
-    bool try_lock() noexcept override {
+    bool try_lock() noexcept override
+    {
         // Success means this task now holds the semaphore; any other value
         // means it does not, and the distinction is not one the interface
         // exposes.
         return TryToObtainSemaphore(semaphore_) == Success;
     }
 
-    void unlock() noexcept override {
-        (void)ReleaseSemaphore(semaphore_);  // as in lock(): nothing to log
+    void unlock() noexcept override
+    {
+        (void)ReleaseSemaphore(semaphore_); // as in lock(): nothing to log
     }
 
     // Nothing to undo: the semaphore is a kernel object owned by the
@@ -87,23 +93,22 @@ private:
     Semaphore semaphore_{NULLSemaphore};
 };
 
-class Ghs178bSemaphore final : public Semaphore {
+class Ghs178bSemaphore final : public Semaphore
+{
 public:
-    Ghs178bSemaphore(Semaphore semaphore, Clock alarm_clock, Activity clock_activity,
-                     Activity sem_activity, Value clock_activity_id, Value sem_activity_id,
-                     unsigned initial, unsigned ceiling, Clock& clock) noexcept
-        : semaphore_(semaphore),
-          alarm_clock_(alarm_clock),
-          clock_activity_(clock_activity),
-          sem_activity_(sem_activity),
-          clock_activity_id_(clock_activity_id),
-          sem_activity_id_(sem_activity_id),
-          count_(initial),
-          ceiling_(ceiling),
-          clock_(clock) {}
+    Ghs178bSemaphore(Semaphore semaphore, Clock alarm_clock, Activity clock_activity, Activity sem_activity,
+                     Value clock_activity_id, Value sem_activity_id, unsigned initial, unsigned ceiling,
+                     Clock& clock) noexcept
+        : semaphore_(semaphore), alarm_clock_(alarm_clock), clock_activity_(clock_activity),
+          sem_activity_(sem_activity), clock_activity_id_(clock_activity_id), sem_activity_id_(sem_activity_id),
+          count_(initial), ceiling_(ceiling), clock_(clock)
+    {
+    }
 
-    Result<void> post() noexcept override {
-        if (count_ >= ceiling_) {
+    Result<void> post() noexcept override
+    {
+        if (count_ >= ceiling_)
+        {
             // The interface says so: a signal nobody has consumed is not lost
             // silently. Do not ReleaseSemaphore here - with the receive armed
             // the kernel would consume the count into the activity and the
@@ -111,19 +116,22 @@ public:
             return fail(ErrorCode::resource_exhausted);
         }
         const Error released = ReleaseSemaphore(semaphore_);
-        if (released != Success) {
+        if (released != Success)
+        {
             return ghs::fail_native(released);
         }
         ++count_;
         return {};
     }
 
-    Result<void> wait(Duration timeout) noexcept override {
+    Result<void> wait(Duration timeout) noexcept override
+    {
         // A post() that arrived while nobody waited completed the armed
         // receive; take that token first. (The vendor module re-arms an
         // activity right after it completed - the evidence this hand-off is
         // the way the kernel delivers.)
-        if (GetActivityStatus(sem_activity_) == Success) {
+        if (GetActivityStatus(sem_activity_) == Success)
+        {
             (void)AsynchronousReceive(sem_activity_, reinterpret_cast<Object>(semaphore_), NULL);
             take();
             return {};
@@ -131,8 +139,10 @@ public:
         // A leftover completed clock activity would swallow the next alarm;
         // re-arm it (an error here means it is already armed and waiting).
         (void)AsynchronousReceive(clock_activity_, reinterpret_cast<Object>(alarm_clock_), NULL);
-        if (timeout <= Duration::zero()) {
-            if (TryToObtainSemaphore(semaphore_) == Success) {
+        if (timeout <= Duration::zero())
+        {
+            if (TryToObtainSemaphore(semaphore_) == Success)
+            {
                 take();
                 return {};
             }
@@ -140,13 +150,15 @@ public:
         }
         const bool finite = timeout != forever;
         Instant deadline{};
-        if (finite) {
+        if (finite)
+        {
             // The time is read from the primary: the virtual alarm clock is
             // created with CLOCK_ALARM only and cannot be read itself; the
             // two share the timer driver, so the bases agree.
             Time now_time{};
             const Error read = GetClockTime(PrimaryClock, &now_time);
-            if (read != Success) {
+            if (read != Success)
+            {
                 // Without a time there is no deadline to honour; the caller
                 // hears the native reason rather than a made-up one.
                 return ghs::fail_native(read);
@@ -155,26 +167,32 @@ public:
             // Absolute time, as kernel/clock.c documents; see clock_ghs178b.cpp.
             const Time deadline_time = ghs::add_duration(now_time, timeout);
             const Error armed = SetClockAlarm(alarm_clock_, false, NULL, &deadline_time);
-            if (armed != Success) {
+            if (armed != Success)
+            {
                 return poll_until(deadline);
             }
-        } else {
-            (void)SetClockAlarm(alarm_clock_, false, NULL, NULL);  // disarm, defensively
         }
-        if (!receive_armed(
-                AsynchronousReceive(sem_activity_, reinterpret_cast<Object>(semaphore_), NULL))) {
+        else
+        {
+            (void)SetClockAlarm(alarm_clock_, false, NULL, NULL); // disarm, defensively
+        }
+        if (!receive_armed(AsynchronousReceive(sem_activity_, reinterpret_cast<Object>(semaphore_), NULL)))
+        {
             // Without the armed receive a release lands in the kernel count,
             // where polling can still see it.
             return poll_until(finite ? deadline : Instant{Duration::max()});
         }
-        for (;;) {
+        for (;;)
+        {
             Value id = 0;
             WaitForActivity(&id);
-            if (id == sem_activity_id_) {
-                if (GetActivityStatus(sem_activity_) == Success) {
-                    (void)AsynchronousReceive(sem_activity_, reinterpret_cast<Object>(semaphore_),
-                                              NULL);
-                    if (finite) {
+            if (id == sem_activity_id_)
+            {
+                if (GetActivityStatus(sem_activity_) == Success)
+                {
+                    (void)AsynchronousReceive(sem_activity_, reinterpret_cast<Object>(semaphore_), NULL);
+                    if (finite)
+                    {
                         (void)SetClockAlarm(alarm_clock_, false, NULL, NULL);
                     }
                     take();
@@ -184,22 +202,24 @@ public:
                 // unique within one Threading): not our token; stay waiting.
                 continue;
             }
-            if (id == clock_activity_id_) {
-                (void)AsynchronousReceive(clock_activity_, reinterpret_cast<Object>(alarm_clock_),
-                                          NULL);
-                if (finite && clock_.now() >= deadline) {
+            if (id == clock_activity_id_)
+            {
+                (void)AsynchronousReceive(clock_activity_, reinterpret_cast<Object>(alarm_clock_), NULL);
+                if (finite && clock_.now() >= deadline)
+                {
                     return fail(ErrorCode::timeout);
                 }
                 continue;
             }
             // Some other activity of the task completed - another semaphore's
             // clock, say - which is not a signal for this wait.
-            if (GetActivityStatus(sem_activity_) == Success) {
+            if (GetActivityStatus(sem_activity_) == Success)
+            {
                 // A token also arrived in this wake: take it here rather than
                 // lose it to a re-arm.
-                (void)AsynchronousReceive(sem_activity_, reinterpret_cast<Object>(semaphore_),
-                                          NULL);
-                if (finite) {
+                (void)AsynchronousReceive(sem_activity_, reinterpret_cast<Object>(semaphore_), NULL);
+                if (finite)
+                {
                     (void)SetClockAlarm(alarm_clock_, false, NULL, NULL);
                 }
                 take();
@@ -218,30 +238,37 @@ private:
     // WaitingForSend (a receive also answers WaitingForReceive in the kernel)
     // when the activity was already waiting for the semaphore - both are the
     // state a wait needs; anything else means the receive is not pending.
-    [[nodiscard]] static bool receive_armed(Error error) noexcept {
+    [[nodiscard]] static bool receive_armed(Error error) noexcept
+    {
         return error == Success || error == WaitingForSend || error == WaitingForReceive;
     }
 
-    void take() noexcept {
+    void take() noexcept
+    {
         // The count always includes this token (post() counted it into the
         // armed activity); the guard is defence in depth.
-        if (count_ > 0) {
+        if (count_ > 0)
+        {
             --count_;
         }
     }
 
-    Result<void> poll_until(Instant deadline) noexcept {
+    Result<void> poll_until(Instant deadline) noexcept
+    {
         // The degradation when the alarm or the receive cannot be armed: poll
         // the semaphore and yield, watching the same deadline. Only reached
         // with no armed receive, so a release lands in the kernel count where
         // TryToObtainSemaphore can see it. With an endless deadline this is a
         // busy loop - the price of a forever wait without the alarm machinery.
-        for (;;) {
-            if (TryToObtainSemaphore(semaphore_) == Success) {
+        for (;;)
+        {
+            if (TryToObtainSemaphore(semaphore_) == Success)
+            {
                 take();
                 return {};
             }
-            if (clock_.now() >= deadline) {
+            if (clock_.now() >= deadline)
+            {
                 return fail(ErrorCode::timeout);
             }
             Yield();
@@ -259,11 +286,13 @@ private:
     Clock& clock_;
 };
 
-class Ghs178bThreading final : public Threading {
+class Ghs178bThreading final : public Threading
+{
 public:
     explicit Ghs178bThreading(Clock& clock) noexcept : clock_(clock) {}
 
-    Result<Owned<Thread>> spawn(const ThreadSpec&) noexcept override {
+    Result<Owned<Thread>> spawn(const ThreadSpec&) noexcept override
+    {
         // Application tasks are configured into the kernel image, and the
         // tree has no client task-creation call (docs/platform-ghs.md); the
         // runner and the application are static tasks the image starts. The
@@ -271,7 +300,8 @@ public:
         return fail(ErrorCode::unsupported);
     }
 
-    Result<Owned<Mutex>> create_mutex() noexcept override {
+    Result<Owned<Mutex>> create_mutex() noexcept override
+    {
         // A priority-ceiling lock (INTEGRITY's "highest locker"). The first
         // argument is the ceiling priority a locker is raised to; 1, the most
         // urgent, is passed so that every task of the partition may lock it
@@ -281,24 +311,28 @@ public:
         // argument is a guess to settle against the product's priority plan.
         Semaphore semaphore = NULLSemaphore;
         const Error created = CreateHighestLockerSemaphore(1, &semaphore);
-        if (created != Success) {
+        if (created != Success)
+        {
             return ghs::fail_native(created);
         }
         auto mutex = make_owned_nothrow<Mutex, Ghs178bMutex>(semaphore);
-        if (!mutex) {
+        if (!mutex)
+        {
             return fail(ErrorCode::resource_exhausted);
         }
         return mutex;
     }
 
-    Result<Owned<Semaphore>> create_semaphore(unsigned initial,
-                                              unsigned ceiling) noexcept override {
-        if (initial > ceiling || ceiling == 0) {
+    Result<Owned<Semaphore>> create_semaphore(unsigned initial, unsigned ceiling) noexcept override
+    {
+        if (initial > ceiling || ceiling == 0)
+        {
             return fail(ErrorCode::invalid_argument);
         }
         Semaphore semaphore = NULLSemaphore;
         const Error created_semaphore = CreateSemaphore(initial, &semaphore);
-        if (created_semaphore != Success) {
+        if (created_semaphore != Success)
+        {
             return ghs::fail_native(created_semaphore);
         }
         // The timed wait's machinery, all per object (see the file comment):
@@ -308,7 +342,8 @@ public:
         // failure here fails the creation with the native reason.
         Clock alarm_clock = NULLClock;
         const Error created_clock = CreateVirtualClock(PrimaryClock, CLOCK_ALARM, &alarm_clock);
-        if (created_clock != Success) {
+        if (created_clock != Success)
+        {
             return ghs::fail_native(created_clock);
         }
         const Value clock_id = next_id_++;
@@ -316,29 +351,31 @@ public:
         Activity clock_activity = NULLActivity;
         const Error created_clock_activity =
             CreateActivity(CurrentTask(), activity_priority, false, clock_id, &clock_activity);
-        if (created_clock_activity != Success) {
+        if (created_clock_activity != Success)
+        {
             return ghs::fail_native(created_clock_activity);
         }
-        const Error armed_clock =
-            AsynchronousReceive(clock_activity, reinterpret_cast<Object>(alarm_clock), NULL);
-        if (armed_clock != Success) {
+        const Error armed_clock = AsynchronousReceive(clock_activity, reinterpret_cast<Object>(alarm_clock), NULL);
+        if (armed_clock != Success)
+        {
             return ghs::fail_native(armed_clock);
         }
         Activity sem_activity = NULLActivity;
         const Error created_sem_activity =
             CreateActivity(CurrentTask(), activity_priority, false, sem_id, &sem_activity);
-        if (created_sem_activity != Success) {
+        if (created_sem_activity != Success)
+        {
             return ghs::fail_native(created_sem_activity);
         }
-        const Error armed_sem =
-            AsynchronousReceive(sem_activity, reinterpret_cast<Object>(semaphore), NULL);
-        if (armed_sem != Success) {
+        const Error armed_sem = AsynchronousReceive(sem_activity, reinterpret_cast<Object>(semaphore), NULL);
+        if (armed_sem != Success)
+        {
             return ghs::fail_native(armed_sem);
         }
-        auto sem = make_owned_nothrow<Semaphore, Ghs178bSemaphore>(
-            semaphore, alarm_clock, clock_activity, sem_activity, clock_id, sem_id, initial,
-            ceiling, clock_);
-        if (!sem) {
+        auto sem = make_owned_nothrow<Semaphore, Ghs178bSemaphore>(semaphore, alarm_clock, clock_activity, sem_activity,
+                                                                   clock_id, sem_id, initial, ceiling, clock_);
+        if (!sem)
+        {
             return fail(ErrorCode::resource_exhausted);
         }
         return sem;
@@ -351,10 +388,11 @@ private:
     Value next_id_ = first_activity_id;
 };
 
-}  // namespace
+} // namespace
 
-std::unique_ptr<Threading> make_threading(Clock& clock) noexcept {
+std::unique_ptr<Threading> make_threading(Clock& clock) noexcept
+{
     return detail::make_unique_nothrow<Ghs178bThreading>(clock);
 }
 
-}  // namespace adl::platform::ghs178b
+} // namespace adl::platform::ghs178b

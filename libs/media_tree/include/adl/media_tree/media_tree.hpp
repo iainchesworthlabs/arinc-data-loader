@@ -5,6 +5,8 @@
 // names are limited to ones every platform accepts, so that a tree written on one
 // can be read on another. Failures are returned, not thrown.
 
+#include "adl/arinc665/media_set.hpp"
+
 #include <cstdint>
 #include <expected>
 #include <filesystem>
@@ -13,29 +15,30 @@
 #include <string_view>
 #include <vector>
 
-#include "adl/arinc665/media_set.hpp"
-
-namespace adl::media_tree {
+namespace adl::media_tree
+{
 
 // Why writing or reading a tree failed. Failures are returned, never thrown, as
 // in adl::arinc665.
-enum class TreeError {
-    no_members,         // nothing to write, or no member directory to read
-    invalid_member,     // a sequence number outside 1 to 255, or given twice
-    invalid_pathname,   // a pathname that is not "\", "\dir\", ... or has a bad directory name
-    invalid_file_name,  // a name that cannot be a file on every platform
-    duplicate_file,     // two files of one name in one directory of a member
-    already_exists,     // a member directory that is there already and not empty
+enum class TreeError
+{
+    no_members,        // nothing to write, or no member directory to read
+    invalid_member,    // a sequence number outside 1 to 255, or given twice
+    invalid_pathname,  // a pathname that is not "\", "\dir\", ... or has a bad directory name
+    invalid_file_name, // a name that cannot be a file on every platform
+    duplicate_file,    // two files of one name in one directory of a member
+    already_exists,    // a member directory that is there already and not empty
     cannot_create_directory,
     cannot_write_file,
     cannot_read_file,
-    not_a_directory,   // the root is missing, or is a file
-    unexpected_entry,  // something in the tree that is not a member, directory or plain file
+    not_a_directory,  // the root is missing, or is a file
+    unexpected_entry, // something in the tree that is not a member, directory or plain file
 };
 
 // The error, and the path (native, absolute or as given) it concerns; for a
 // pathname or a file name that is not valid, the offending text as given.
-struct TreeFailure {
+struct TreeFailure
+{
     TreeError error = TreeError::no_members;
     std::filesystem::path path;
 };
@@ -83,7 +86,6 @@ using TreeResult = std::expected<T, TreeFailure>;
 // than followed.
 //
 // What it reads can be given to adl::arinc665::read_media_set().
-[[nodiscard]] TreeResult<std::vector<arinc665::MediaMember>> read_media_set_tree(
-    const std::filesystem::path& root);
+[[nodiscard]] TreeResult<std::vector<arinc665::MediaMember>> read_media_set_tree(const std::filesystem::path& root);
 
-}  // namespace adl::media_tree
+} // namespace adl::media_tree

@@ -12,13 +12,14 @@
 // arrived, so a transfer that fails leaves no half file, and it never overwrites a file that
 // is already there.
 
-#include <array>
-#include <string>
-
 #include "adl/arinc615a/file_io.hpp"
 #include "adl/platform/files.hpp"
 
-namespace adl::arinc615a {
+#include <array>
+#include <string>
+
+namespace adl::arinc615a
+{
 
 // Whether `name` may be used as a file name inside a directory: portable, at most 254
 // characters, and not ending in ".part", the suffix a file has while it is being received.
@@ -26,16 +27,15 @@ namespace adl::arinc615a {
 
 // Reads the files of a load from the directory, by name, through the platform's
 // file system. At most max_open files are open at once.
-class DirectoryFileSource final : public FileSource {
+class DirectoryFileSource final : public FileSource
+{
 public:
     static constexpr std::size_t max_open = 8;
 
     DirectoryFileSource(adl::platform::FileSystem& files, std::string_view directory);
 
-    IoResult<SourceFile> open(std::string_view name,
-                              const std::optional<ChecksumOption>& checksum) noexcept override;
-    IoResult<std::size_t> read(SourceHandle file, std::uint64_t offset,
-                               std::span<std::byte> out) noexcept override;
+    IoResult<SourceFile> open(std::string_view name, const std::optional<ChecksumOption>& checksum) noexcept override;
+    IoResult<std::size_t> read(SourceHandle file, std::uint64_t offset, std::span<std::byte> out) noexcept override;
     void close(SourceHandle file) noexcept override;
 
 private:
@@ -46,20 +46,21 @@ private:
 
 // Writes the files a target sends into the directory, as described above. At most
 // max_open files are open at once.
-class DirectoryFileSink final : public FileSink {
+class DirectoryFileSink final : public FileSink
+{
 public:
     static constexpr std::size_t max_open = 8;
 
     DirectoryFileSink(adl::platform::FileSystem& files, std::string_view directory);
 
-    IoResult<SinkHandle> open(std::string_view name,
-                              std::optional<std::uint64_t> expected_size) noexcept override;
+    IoResult<SinkHandle> open(std::string_view name, std::optional<std::uint64_t> expected_size) noexcept override;
     IoResult<void> write(SinkHandle file, std::span<const std::byte> data) noexcept override;
     IoResult<void> finish(SinkHandle file, const ReceivedFile& received) noexcept override;
     void discard(SinkHandle file) noexcept override;
 
 private:
-    struct Open {
+    struct Open
+    {
         adl::platform::Owned<adl::platform::WriteFile> file;
         std::string final_path;
         std::string temporary_path;
@@ -70,4 +71,4 @@ private:
     std::array<Open, max_open> open_;
 };
 
-}  // namespace adl::arinc615a
+} // namespace adl::arinc615a

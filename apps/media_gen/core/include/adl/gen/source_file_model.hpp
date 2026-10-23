@@ -8,29 +8,32 @@
 // applies, and have to be unique, case-insensitively, so the model revalidates every row
 // whenever anything changes.
 
+#include "adl/gen/generator_worker.hpp"
+
 #include <QAbstractListModel>
 #include <QList>
 #include <QString>
 #include <QUrl>
 
-#include "adl/gen/generator_worker.hpp"
+namespace adl::gen
+{
 
-namespace adl::gen {
-
-class SourceFileModel : public QAbstractListModel {
+class SourceFileModel : public QAbstractListModel
+{
     Q_OBJECT
 
     // Whether any row asks for a check value in the header file (the Check value column).
     Q_PROPERTY(bool anyCheckValue READ any_check_value NOTIFY filesChanged)
 
 public:
-    enum Role {
-        SourcePathRole = Qt::UserRole + 1,  // the path on disk, read-only
-        FileNameRole,                       // the name on the media set, writable
-        KindRole,                           // "data" or "support", writable
-        CheckTypeRole,                      // the check value type's index, writable
-        SizeRole,                           // human readable, read-only
-        MessageRole,                        // the row's validation message, read-only
+    enum Role
+    {
+        SourcePathRole = Qt::UserRole + 1, // the path on disk, read-only
+        FileNameRole,                      // the name on the media set, writable
+        KindRole,                          // "data" or "support", writable
+        CheckTypeRole,                     // the check value type's index, writable
+        SizeRole,                          // human readable, read-only
+        MessageRole,                       // the row's validation message, read-only
     };
 
     // The kinds a row's KindRole can hold.
@@ -73,12 +76,13 @@ Q_SIGNALS:
     void filesChanged();
 
 private:
-    struct Row {
+    struct Row
+    {
         QString source_path;
         QString file_name;
         QString kind = data_kind;
-        int check_type = 0;  // CheckValueType::none
-        qint64 size = -1;    // bytes, or -1 when it could not be read
+        int check_type = 0; // CheckValueType::none
+        qint64 size = -1;   // bytes, or -1 when it could not be read
         QString message;
     };
 
@@ -88,4 +92,4 @@ private:
     QList<Row> rows_;
 };
 
-}  // namespace adl::gen
+} // namespace adl::gen

@@ -1,38 +1,42 @@
 // Conformance: the clock and the memory provider.
 
-#include <algorithm>
+#include "host_under_test.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <vector>
 
-#include "host_under_test.hpp"
+#include <algorithm>
+#include <vector>
 
 using namespace adl::platform;
 using namespace adl::test;
 using namespace std::chrono_literals;
 
-TEST_CASE("a clock never goes backwards", "[platform][conformance][clock]") {
+TEST_CASE("a clock never goes backwards", "[platform][conformance][clock]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
     Clock& clock = under.host().clock();
 
     Instant previous = clock.now();
-    for (int i = 0; i < 2000; ++i) {
+    for (int i = 0; i < 2000; ++i)
+    {
         const Instant next = clock.now();
         REQUIRE(next >= previous);
         previous = next;
     }
 }
 
-TEST_CASE("sleeping takes at least the time asked and not wildly more",
-          "[platform][conformance][clock]") {
+TEST_CASE("sleeping takes at least the time asked and not wildly more", "[platform][conformance][clock]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
     Clock& clock = under.host().clock();
 
-    for (const Duration asked : {Duration(1ms), Duration(20ms), Duration(55ms)}) {
+    for (const Duration asked : {Duration(1ms), Duration(20ms), Duration(55ms)})
+    {
         CAPTURE(asked.count());
         const Instant before = clock.now();
         clock.sleep_for(asked);
@@ -44,8 +48,8 @@ TEST_CASE("sleeping takes at least the time asked and not wildly more",
     }
 }
 
-TEST_CASE("sleeping for nothing, or for a negative time, returns at once",
-          "[platform][conformance][clock]") {
+TEST_CASE("sleeping for nothing, or for a negative time, returns at once", "[platform][conformance][clock]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -58,7 +62,8 @@ TEST_CASE("sleeping for nothing, or for a negative time, returns at once",
     CHECK(clock.now() - before < 250ms);
 }
 
-TEST_CASE("sleep_until waits for the instant", "[platform][conformance][clock]") {
+TEST_CASE("sleep_until waits for the instant", "[platform][conformance][clock]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -69,32 +74,36 @@ TEST_CASE("sleep_until waits for the instant", "[platform][conformance][clock]")
     CHECK(clock.now() >= target);
 }
 
-TEST_CASE("the wall clock gives a plausible date or says it cannot",
-          "[platform][conformance][clock]") {
+TEST_CASE("the wall clock gives a plausible date or says it cannot", "[platform][conformance][clock]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
 
     const auto seconds = under.host().clock().wall_time_seconds();
-    if (seconds.has_value()) {
+    if (seconds.has_value())
+    {
         // After 2020-09-13 and before 2100.
         CHECK(*seconds > 1'600'000'000);
         CHECK(*seconds < 4'102'444'800);
-    } else {
+    }
+    else
+    {
         CHECK(seconds.error().code == ErrorCode::unsupported);
     }
 }
 
-TEST_CASE("memory is acquired zero-filled, aligned, writable and released",
-          "[platform][conformance][memory]") {
+TEST_CASE("memory is acquired zero-filled, aligned, writable and released", "[platform][conformance][memory]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
     MemoryProvider& memory = under.host().memory();
 
-    for (const std::size_t alignment :
-         {std::size_t{1}, std::size_t{16}, std::size_t{64}, std::size_t{4096}}) {
-        for (const std::size_t bytes : {std::size_t{1}, std::size_t{100}, std::size_t{70'000}}) {
+    for (const std::size_t alignment : {std::size_t{1}, std::size_t{16}, std::size_t{64}, std::size_t{4096}})
+    {
+        for (const std::size_t bytes : {std::size_t{1}, std::size_t{100}, std::size_t{70'000}})
+        {
             CAPTURE(alignment, bytes);
             auto region = memory.acquire(bytes, alignment, MemoryUse::general);
             REQUIRE(region.has_value());
@@ -108,7 +117,8 @@ TEST_CASE("memory is acquired zero-filled, aligned, writable and released",
     }
 }
 
-TEST_CASE("memory regions are independent and can be moved", "[platform][conformance][memory]") {
+TEST_CASE("memory regions are independent and can be moved", "[platform][conformance][memory]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -129,27 +139,29 @@ TEST_CASE("memory regions are independent and can be moved", "[platform][conform
     CHECK(moved.size() == 0);
 }
 
-TEST_CASE("memory that cannot be given is refused with a reason",
-          "[platform][conformance][memory]") {
+TEST_CASE("memory that cannot be given is refused with a reason", "[platform][conformance][memory]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
     MemoryProvider& memory = under.host().memory();
 
-    SECTION("nothing") {
+    SECTION("nothing")
+    {
         auto region = memory.acquire(0, 16, MemoryUse::general);
         REQUIRE_FALSE(region.has_value());
         CHECK(region.error().code == ErrorCode::invalid_argument);
     }
-    SECTION("an alignment that is not a power of two") {
+    SECTION("an alignment that is not a power of two")
+    {
         auto region = memory.acquire(64, 24, MemoryUse::general);
         REQUIRE_FALSE(region.has_value());
         CHECK(region.error().code == ErrorCode::invalid_argument);
     }
 }
 
-TEST_CASE("memory beyond what there is gives resource_exhausted",
-          "[platform][conformance][memory]") {
+TEST_CASE("memory beyond what there is gives resource_exhausted", "[platform][conformance][memory]")
+{
     // Only the fake is asked: under the sanitizers a real allocator aborts the process on
     // an impossible request instead of returning null, as the sanitizer builds are meant
     // to. The real providers map the system's refusal (ENOMEM, ERROR_NOT_ENOUGH_MEMORY) to
@@ -162,16 +174,20 @@ TEST_CASE("memory beyond what there is gives resource_exhausted",
 }
 
 TEST_CASE("resident memory is granted, or refused with a reason the caller can act on",
-          "[platform][conformance][memory]") {
+          "[platform][conformance][memory]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
 
     auto region = under.host().memory().acquire(16 * 1024, 4096, MemoryUse::resident);
-    if (region.has_value()) {
+    if (region.has_value())
+    {
         CHECK(region->size() == 16 * 1024);
         std::fill(region->bytes().begin(), region->bytes().end(), std::byte{7});
-    } else {
+    }
+    else
+    {
         const ErrorCode code = region.error().code;
         CHECK((code == ErrorCode::resource_exhausted || code == ErrorCode::permission_denied ||
                code == ErrorCode::unsupported));

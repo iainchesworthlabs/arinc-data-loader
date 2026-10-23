@@ -6,7 +6,8 @@
 
 class QQuickWindow;
 
-namespace adl::ui {
+namespace adl::ui
+{
 
 // Restores a window's last size and position from QSettings and saves them when it closes. The
 // category is "window" under the application's organisation/name; a remembered position whose
@@ -32,4 +33,4 @@ inline constexpr int title_bar_min_visible_height = 24;
 // top edge, fails.
 [[nodiscard]] bool title_bar_reachable(const QRect& window, const QList<QRect>& screens);
 
-}  // namespace adl::ui
+} // namespace adl::ui

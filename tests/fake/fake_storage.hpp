@@ -7,6 +7,9 @@
 // of the same kind). FakeMemory is a MemoryProvider with a budget, to test what
 // happens when a start-up allocation fails.
 
+#include "adl/platform/files.hpp"
+#include "adl/platform/memory.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <map>
@@ -16,19 +19,17 @@
 #include <string_view>
 #include <vector>
 
-#include "adl/platform/files.hpp"
-#include "adl/platform/memory.hpp"
+namespace adl::fake
+{
 
-namespace adl::fake {
-
-class MemoryFileSystem final : public platform::FileSystem {
+class MemoryFileSystem final : public platform::FileSystem
+{
 public:
     MemoryFileSystem();
 
-    platform::Result<platform::Owned<platform::ReadFile>> open_read(
-        std::string_view path) noexcept override;
-    platform::Result<platform::Owned<platform::WriteFile>> create(
-        std::string_view path, platform::CreateMode mode) noexcept override;
+    platform::Result<platform::Owned<platform::ReadFile>> open_read(std::string_view path) noexcept override;
+    platform::Result<platform::Owned<platform::WriteFile>> create(std::string_view path,
+                                                                  platform::CreateMode mode) noexcept override;
     platform::Result<platform::FileInfo> stat(std::string_view path) noexcept override;
     platform::Result<void> make_directory(std::string_view path) noexcept override;
     platform::Result<void> remove(std::string_view path) noexcept override;
@@ -46,18 +47,26 @@ public:
 
     // The most bytes all files together may hold; a write beyond it fails with
     // `no_space`, as a full flash does. Unlimited by default.
-    void set_capacity(std::uint64_t bytes) noexcept { capacity_ = bytes; }
+    void set_capacity(std::uint64_t bytes) noexcept
+    {
+        capacity_ = bytes;
+    }
     [[nodiscard]] std::uint64_t used_bytes() const noexcept;
 
     // The next write fails with this error, once.
-    void fail_next_write(platform::ErrorCode code) noexcept { write_failure_ = code; }
+    void fail_next_write(platform::ErrorCode code) noexcept
+    {
+        write_failure_ = code;
+    }
 
 private:
     friend class MemoryWriteFile;
-    struct Content {
+    struct Content
+    {
         std::vector<std::byte> bytes;
     };
-    struct Node {
+    struct Node
+    {
         bool directory = false;
         std::shared_ptr<Content> content;
     };
@@ -71,7 +80,8 @@ private:
     std::optional<platform::ErrorCode> write_failure_;
 };
 
-class FakeMemory final : public platform::MemoryProvider {
+class FakeMemory final : public platform::MemoryProvider
+{
 public:
     platform::Result<platform::MemoryRegion> acquire(std::size_t bytes, std::size_t alignment,
                                                      platform::MemoryUse use) noexcept override;
@@ -79,10 +89,19 @@ public:
 
     // At most this many bytes may be out at once; further requests fail with
     // `resource_exhausted`.
-    void set_budget(std::size_t bytes) noexcept { budget_ = bytes; }
+    void set_budget(std::size_t bytes) noexcept
+    {
+        budget_ = bytes;
+    }
     // Refuse `resident` requests as a platform with no locked memory would.
-    void deny_resident(bool deny) noexcept { deny_resident_ = deny; }
-    [[nodiscard]] std::size_t outstanding_bytes() const noexcept { return outstanding_; }
+    void deny_resident(bool deny) noexcept
+    {
+        deny_resident_ = deny;
+    }
+    [[nodiscard]] std::size_t outstanding_bytes() const noexcept
+    {
+        return outstanding_;
+    }
 
 private:
     std::size_t budget_ = ~std::size_t{0};
@@ -90,4 +109,4 @@ private:
     bool deny_resident_ = false;
 };
 
-}  // namespace adl::fake
+} // namespace adl::fake

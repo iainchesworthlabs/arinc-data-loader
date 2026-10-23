@@ -2,40 +2,46 @@
 // real concurrency run on the real host only; the fake runs a thread when it is
 // joined, so it cannot show two of them at once.
 
-#include <atomic>
+#include "host_under_test.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+
+#include <atomic>
 #include <cstring>
 #include <vector>
-
-#include "host_under_test.hpp"
 
 using namespace adl::platform;
 using namespace adl::test;
 using namespace std::chrono_literals;
 
-namespace {
+namespace
+{
 
-struct Counter {
+struct Counter
+{
     std::atomic<int> value{0};
 };
 
-void bump(void* argument) noexcept {
+void bump(void* argument) noexcept
+{
     static_cast<Counter*>(argument)->value.fetch_add(1);
 }
 
-[[nodiscard]] std::span<const std::byte> bytes_of(const std::string& text) {
+[[nodiscard]] std::span<const std::byte> bytes_of(const std::string& text)
+{
     return {reinterpret_cast<const std::byte*>(text.data()), text.size()};
 }
 
-[[nodiscard]] std::string text_of(std::span<const std::byte> bytes) {
+[[nodiscard]] std::string text_of(std::span<const std::byte> bytes)
+{
     return {reinterpret_cast<const char*>(bytes.data()), bytes.size()};
 }
 
-}  // namespace
+} // namespace
 
-TEST_CASE("a thread runs its entry function and join waits for it",
-          "[platform][conformance][threads]") {
+TEST_CASE("a thread runs its entry function and join waits for it", "[platform][conformance][threads]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -55,8 +61,8 @@ TEST_CASE("a thread runs its entry function and join waits for it",
     CHECK(counter.value.load() == 1);
 }
 
-TEST_CASE("destroying a thread that has not been joined waits for it",
-          "[platform][conformance][threads]") {
+TEST_CASE("destroying a thread that has not been joined waits for it", "[platform][conformance][threads]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -71,7 +77,8 @@ TEST_CASE("destroying a thread that has not been joined waits for it",
     CHECK(counter.value.load() == 1);
 }
 
-TEST_CASE("a thread needs an entry function", "[platform][conformance][threads]") {
+TEST_CASE("a thread needs an entry function", "[platform][conformance][threads]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -80,14 +87,14 @@ TEST_CASE("a thread needs an entry function", "[platform][conformance][threads]"
     CHECK(thread.error().code == ErrorCode::invalid_argument);
 }
 
-TEST_CASE("a thread can be started at each priority and says what happened",
-          "[platform][conformance][threads]") {
+TEST_CASE("a thread can be started at each priority and says what happened", "[platform][conformance][threads]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
 
-    for (const Priority level :
-         {Priority::lowest, Priority::low, Priority::normal, Priority::high, Priority::highest}) {
+    for (const Priority level : {Priority::lowest, Priority::low, Priority::normal, Priority::high, Priority::highest})
+    {
         CAPTURE(static_cast<int>(level));
         Counter counter;
         ThreadSpec spec;
@@ -102,15 +109,16 @@ TEST_CASE("a thread can be started at each priority and says what happened",
                outcome == PriorityOutcome::unsupported));
         REQUIRE((*thread)->join().has_value());
         CHECK(counter.value.load() == 1);
-        if (level == Priority::normal && !under.is_fake()) {
+        if (level == Priority::normal && !under.is_fake())
+        {
             // The default level is always available.
             CHECK(outcome == PriorityOutcome::applied);
         }
     }
 }
 
-TEST_CASE("a mutex excludes, and try_lock says whether it got the lock",
-          "[platform][conformance][threads]") {
+TEST_CASE("a mutex excludes, and try_lock says whether it got the lock", "[platform][conformance][threads]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -130,7 +138,8 @@ TEST_CASE("a mutex excludes, and try_lock says whether it got the lock",
     (*mutex)->unlock();
 }
 
-TEST_CASE("a semaphore counts, times out, and has a ceiling", "[platform][conformance][threads]") {
+TEST_CASE("a semaphore counts, times out, and has a ceiling", "[platform][conformance][threads]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -164,20 +173,19 @@ TEST_CASE("a semaphore counts, times out, and has a ceiling", "[platform][confor
     CHECK_FALSE((*semaphore)->wait(Duration::zero()).has_value());
 }
 
-TEST_CASE("a semaphore with no ceiling or a start above it is refused",
-          "[platform][conformance][threads]") {
+TEST_CASE("a semaphore with no ceiling or a start above it is refused", "[platform][conformance][threads]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
-    CHECK(under.host().threads().create_semaphore(0, 0).error().code ==
-          ErrorCode::invalid_argument);
-    CHECK(under.host().threads().create_semaphore(3, 2).error().code ==
-          ErrorCode::invalid_argument);
+    CHECK(under.host().threads().create_semaphore(0, 0).error().code == ErrorCode::invalid_argument);
+    CHECK(under.host().threads().create_semaphore(3, 2).error().code == ErrorCode::invalid_argument);
 }
 
 // ---- message queues -------------------------------------------------------
 
-TEST_CASE("a queue delivers messages whole and in order", "[platform][conformance][ipc]") {
+TEST_CASE("a queue delivers messages whole and in order", "[platform][conformance][ipc]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -188,12 +196,14 @@ TEST_CASE("a queue delivers messages whole and in order", "[platform][conformanc
     CHECK((*queue)->size() == 0);
 
     const std::vector<std::string> messages{"a", "", "sixteen bytes!!!", "four"};
-    for (const auto& message : messages) {
+    for (const auto& message : messages)
+    {
         REQUIRE((*queue)->send(bytes_of(message), Duration::zero()).has_value());
     }
     CHECK((*queue)->size() == 4);
 
-    SECTION("a full queue refuses another and says so") {
+    SECTION("a full queue refuses another and says so")
+    {
         const std::string extra = "x";
         auto refused = (*queue)->send(bytes_of(extra), Duration::zero());
         REQUIRE_FALSE(refused.has_value());
@@ -206,9 +216,11 @@ TEST_CASE("a queue delivers messages whole and in order", "[platform][conformanc
         CHECK((*queue)->size() == 4);
     }
 
-    SECTION("receiving gives the messages back as they were sent") {
+    SECTION("receiving gives the messages back as they were sent")
+    {
         std::array<std::byte, 16> out{};
-        for (const auto& message : messages) {
+        for (const auto& message : messages)
+        {
             const auto got = (*queue)->receive(out, Duration::zero());
             REQUIRE(got.has_value());
             CHECK(text_of({out.data(), *got}) == message);
@@ -219,15 +231,18 @@ TEST_CASE("a queue delivers messages whole and in order", "[platform][conformanc
         CHECK(empty.error().code == ErrorCode::timeout);
     }
 
-    SECTION("the ring wraps") {
+    SECTION("the ring wraps")
+    {
         std::array<std::byte, 16> out{};
-        for (int round = 0; round < 20; ++round) {
+        for (int round = 0; round < 20; ++round)
+        {
             const std::string message = "round " + std::to_string(round);
             REQUIRE((*queue)->receive(out, Duration::zero()).has_value());
             REQUIRE((*queue)->send(bytes_of(message), Duration::zero()).has_value());
         }
         // The four from the start are gone; the last four rounds are in, in order.
-        for (const int round : {16, 17, 18, 19}) {
+        for (const int round : {16, 17, 18, 19})
+        {
             const auto got = (*queue)->receive(out, Duration::zero());
             REQUIRE(got.has_value());
             CHECK(text_of({out.data(), *got}) == "round " + std::to_string(round));
@@ -236,8 +251,8 @@ TEST_CASE("a queue delivers messages whole and in order", "[platform][conformanc
     }
 }
 
-TEST_CASE("a queue refuses a message too long and a buffer too short",
-          "[platform][conformance][ipc]") {
+TEST_CASE("a queue refuses a message too long and a buffer too short", "[platform][conformance][ipc]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -245,20 +260,19 @@ TEST_CASE("a queue refuses a message too long and a buffer too short",
     REQUIRE(queue.has_value());
 
     const std::string too_long = "123456789";
-    CHECK((*queue)->send(bytes_of(too_long), Duration::zero()).error().code ==
-          ErrorCode::invalid_argument);
+    CHECK((*queue)->send(bytes_of(too_long), Duration::zero()).error().code == ErrorCode::invalid_argument);
     CHECK((*queue)->size() == 0);
 
     const std::string fits = "12345678";
     REQUIRE((*queue)->send(bytes_of(fits), Duration::zero()).has_value());
     std::array<std::byte, 7> short_buffer{};
-    CHECK((*queue)->receive(short_buffer, Duration::zero()).error().code ==
-          ErrorCode::invalid_argument);
+    CHECK((*queue)->receive(short_buffer, Duration::zero()).error().code == ErrorCode::invalid_argument);
     // The message is still there.
     CHECK((*queue)->size() == 1);
 }
 
-TEST_CASE("a queue is made from a valid description only", "[platform][conformance][ipc]") {
+TEST_CASE("a queue is made from a valid description only", "[platform][conformance][ipc]")
+{
     const auto kind = GENERATE(HostKind::fake, HostKind::real);
     CAPTURE(kind);
     HostUnderTest under(kind);
@@ -267,7 +281,8 @@ TEST_CASE("a queue is made from a valid description only", "[platform][conforman
     CHECK(ipc.create_queue(QueueSpec{0, 4, {}}).error().code == ErrorCode::invalid_argument);
     CHECK(ipc.create_queue(QueueSpec{8, 0, {}}).error().code == ErrorCode::invalid_argument);
 
-    SECTION("with storage from the caller") {
+    SECTION("with storage from the caller")
+    {
         std::vector<std::byte> storage(QueueSpec::storage_required(8, 3));
         auto queue = ipc.create_queue(QueueSpec{8, 3, storage});
         REQUIRE(queue.has_value());
@@ -279,23 +294,27 @@ TEST_CASE("a queue is made from a valid description only", "[platform][conforman
         CHECK(text_of({out.data(), *got}) == message);
 
         std::vector<std::byte> too_small(8);
-        CHECK(ipc.create_queue(QueueSpec{8, 3, too_small}).error().code ==
-              ErrorCode::invalid_argument);
+        CHECK(ipc.create_queue(QueueSpec{8, 3, too_small}).error().code == ErrorCode::invalid_argument);
     }
 }
 
 // ---- concurrency: real host only -------------------------------------------
 
-namespace {
+namespace
+{
 
-struct Producer {
+struct Producer
+{
     MessageQueue* queue = nullptr;
     int count = 0;
-    void run() noexcept {
-        for (int i = 0; i < count; ++i) {
+    void run() noexcept
+    {
+        for (int i = 0; i < count; ++i)
+        {
             std::array<std::byte, 4> message{};
             std::memcpy(message.data(), &i, sizeof i);
-            if (!queue->send(message, 5s).has_value()) {
+            if (!queue->send(message, 5s).has_value())
+            {
                 failed = true;
                 return;
             }
@@ -304,28 +323,35 @@ struct Producer {
     std::atomic<bool> failed{false};
 };
 
-struct Incrementer {
+struct Incrementer
+{
     Mutex* mutex = nullptr;
     long* shared = nullptr;
     int times = 0;
-    void run() noexcept {
-        for (int i = 0; i < times; ++i) {
+    void run() noexcept
+    {
+        for (int i = 0; i < times; ++i)
+        {
             LockGuard guard(*mutex);
             ++*shared;
         }
     }
 };
 
-struct Waiter {
+struct Waiter
+{
     Semaphore* semaphore = nullptr;
     std::atomic<bool> got{false};
-    void run() noexcept { got = semaphore->wait(5s).has_value(); }
+    void run() noexcept
+    {
+        got = semaphore->wait(5s).has_value();
+    }
 };
 
-}  // namespace
+} // namespace
 
-TEST_CASE("a queue passes messages between threads without loss or reordering",
-          "[platform][conformance][ipc][real]") {
+TEST_CASE("a queue passes messages between threads without loss or reordering", "[platform][conformance][ipc][real]")
+{
     HostUnderTest under(HostKind::real);
     // Room for 3 only, so that the producer has to wait for the consumer.
     auto queue = under.host().ipc().create_queue(QueueSpec{4, 3, {}});
@@ -338,7 +364,8 @@ TEST_CASE("a queue passes messages between threads without loss or reordering",
     REQUIRE(thread.has_value());
 
     std::array<std::byte, 4> out{};
-    for (int expected = 0; expected < producer.count; ++expected) {
+    for (int expected = 0; expected < producer.count; ++expected)
+    {
         const auto got = (*queue)->receive(out, 5s);
         REQUIRE(got.has_value());
         REQUIRE(*got == 4);
@@ -350,8 +377,8 @@ TEST_CASE("a queue passes messages between threads without loss or reordering",
     CHECK_FALSE(producer.failed.load());
 }
 
-TEST_CASE("a mutex keeps the count right under contention",
-          "[platform][conformance][threads][real]") {
+TEST_CASE("a mutex keeps the count right under contention", "[platform][conformance][threads][real]")
+{
     HostUnderTest under(HostKind::real);
     auto mutex = under.host().threads().create_mutex();
     REQUIRE(mutex.has_value());
@@ -361,7 +388,8 @@ TEST_CASE("a mutex keeps the count right under contention",
     constexpr int times = 20'000;
     std::vector<Incrementer> jobs(workers);
     std::vector<Owned<Thread>> threads;
-    for (auto& job : jobs) {
+    for (auto& job : jobs)
+    {
         job.mutex = mutex->get();
         job.shared = &shared;
         job.times = times;
@@ -369,14 +397,15 @@ TEST_CASE("a mutex keeps the count right under contention",
         REQUIRE(thread.has_value());
         threads.push_back(std::move(*thread));
     }
-    for (auto& thread : threads) {
+    for (auto& thread : threads)
+    {
         REQUIRE(thread->join().has_value());
     }
     CHECK(shared == static_cast<long>(workers) * times);
 }
 
-TEST_CASE("a semaphore wakes a thread that is waiting on it",
-          "[platform][conformance][threads][real]") {
+TEST_CASE("a semaphore wakes a thread that is waiting on it", "[platform][conformance][threads][real]")
+{
     HostUnderTest under(HostKind::real);
     auto semaphore = under.host().threads().create_semaphore(0, 1);
     REQUIRE(semaphore.has_value());
@@ -394,7 +423,8 @@ TEST_CASE("a semaphore wakes a thread that is waiting on it",
 }
 
 TEST_CASE("a wait that is not signalled gives up when its time is up, whatever else runs",
-          "[platform][conformance][threads][real]") {
+          "[platform][conformance][threads][real]")
+{
     HostUnderTest under(HostKind::real);
     auto semaphore = under.host().threads().create_semaphore(0, 1);
     REQUIRE(semaphore.has_value());

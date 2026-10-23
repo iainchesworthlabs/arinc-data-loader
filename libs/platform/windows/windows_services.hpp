@@ -4,21 +4,24 @@
 // names no Windows type (DWORD is an unsigned long), so including it does not
 // pull <windows.h> into a translation unit that does not need it.
 
+#include "adl/platform/host.hpp"
+
 #include <memory>
 #include <string_view>
 
-#include "adl/platform/host.hpp"
-
-namespace adl::platform::windows {
+namespace adl::platform::windows
+{
 
 // GetLastError() values and WSAGetLastError() values, in terms of ErrorCode.
 [[nodiscard]] ErrorCode map_win32(unsigned long error) noexcept;
 [[nodiscard]] ErrorCode map_winsock(int error) noexcept;
 
-[[nodiscard]] inline std::unexpected<Error> fail_win32(unsigned long error) noexcept {
+[[nodiscard]] inline std::unexpected<Error> fail_win32(unsigned long error) noexcept
+{
     return fail(map_win32(error), static_cast<int>(error));
 }
-[[nodiscard]] inline std::unexpected<Error> fail_winsock(int error) noexcept {
+[[nodiscard]] inline std::unexpected<Error> fail_winsock(int error) noexcept
+{
     return fail(map_winsock(error), error);
 }
 
@@ -36,4 +39,4 @@ namespace adl::platform::windows {
 // not start.
 [[nodiscard]] Result<std::unique_ptr<Network>> make_network(Clock& clock) noexcept;
 
-}  // namespace adl::platform::windows
+} // namespace adl::platform::windows

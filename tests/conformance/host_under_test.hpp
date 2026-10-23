@@ -11,32 +11,44 @@
 //     HostUnderTest under(kind);
 //     auto& host = under.host();
 
-#include <catch2/catch_test_macros.hpp>
-#include <memory>
-#include <string>
-#include <string_view>
-
 #include "adl/platform/host.hpp"
 #include "fake_host.hpp"
 #include "temp_dir.hpp"
 
-namespace adl::test {
+#include <catch2/catch_test_macros.hpp>
 
-enum class HostKind { fake, real };
+#include <memory>
+#include <string>
+#include <string_view>
 
-inline std::ostream& operator<<(std::ostream& out, HostKind kind) {
+namespace adl::test
+{
+
+enum class HostKind
+{
+    fake,
+    real
+};
+
+inline std::ostream& operator<<(std::ostream& out, HostKind kind)
+{
     return out << (kind == HostKind::fake ? "fake host" : "real host");
 }
 
-class HostUnderTest {
+class HostUnderTest
+{
 public:
-    explicit HostUnderTest(HostKind kind) : kind_(kind) {
-        if (kind == HostKind::fake) {
+    explicit HostUnderTest(HostKind kind) : kind_(kind)
+    {
+        if (kind == HostKind::fake)
+        {
             fake_ = std::make_unique<fake::FakeSystem>();
             // The fake file system has no temporary directory; give it one.
             scratch_ = "/scratch";
             REQUIRE(fake_->host().files().make_directory(scratch_).has_value());
-        } else {
+        }
+        else
+        {
             auto made = platform::make_host();
             REQUIRE(made.has_value());
             real_ = std::move(*made);
@@ -45,16 +57,30 @@ public:
         }
     }
 
-    [[nodiscard]] HostKind kind() const noexcept { return kind_; }
-    [[nodiscard]] bool is_fake() const noexcept { return kind_ == HostKind::fake; }
-    [[nodiscard]] platform::Host& host() noexcept {
+    [[nodiscard]] HostKind kind() const noexcept
+    {
+        return kind_;
+    }
+    [[nodiscard]] bool is_fake() const noexcept
+    {
+        return kind_ == HostKind::fake;
+    }
+    [[nodiscard]] platform::Host& host() noexcept
+    {
         return is_fake() ? static_cast<platform::Host&>(fake_->host()) : *real_;
     }
-    [[nodiscard]] fake::FakeSystem& fake_system() noexcept { return *fake_; }
+    [[nodiscard]] fake::FakeSystem& fake_system() noexcept
+    {
+        return *fake_;
+    }
 
     // A directory that exists, is empty, and is the host's to write in.
-    [[nodiscard]] const std::string& scratch() const noexcept { return scratch_; }
-    [[nodiscard]] std::string in_scratch(std::string_view name) const {
+    [[nodiscard]] const std::string& scratch() const noexcept
+    {
+        return scratch_;
+    }
+    [[nodiscard]] std::string in_scratch(std::string_view name) const
+    {
         return scratch_ + "/" + std::string(name);
     }
 
@@ -66,4 +92,4 @@ private:
     std::string scratch_;
 };
 
-}  // namespace adl::test
+} // namespace adl::test

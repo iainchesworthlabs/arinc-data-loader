@@ -8,17 +8,22 @@
 #include <cstdint>
 #include <span>
 
-namespace adl::arinc665 {
+namespace adl::arinc665
+{
 
 // MD5 as RFC 1321 defines it, the check value ARINC 665-3 section 5.3.1 names
 // (type 4). Feed bytes with update() and read digest() at any point; reset()
 // starts again.
-class Md5 {
+class Md5
+{
 public:
     static constexpr std::size_t digest_size = 16;
     using Digest = std::array<std::byte, digest_size>;
 
-    void reset() noexcept { *this = Md5{}; }
+    void reset() noexcept
+    {
+        *this = Md5{};
+    }
     void update(std::span<const std::byte> data) noexcept;
 
     // The digest of everything fed in so far. It does not disturb the running
@@ -34,4 +39,4 @@ private:
     std::uint64_t total_bytes_ = 0;
 };
 
-}  // namespace adl::arinc665
+} // namespace adl::arinc665

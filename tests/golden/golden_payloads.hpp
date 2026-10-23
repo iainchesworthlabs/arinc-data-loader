@@ -6,7 +6,8 @@
 
 #include <string_view>
 
-namespace adl::test::golden {
+namespace adl::test::golden
+{
 
 inline constexpr std::string_view header_file_hex =
     "000000818004000000000014000000210000003100000063000000790000001d000000280000007b000f41434d3437"
@@ -92,4 +93,4 @@ inline constexpr std::string_view files_list_member_2_hex =
     "60"
     "5ec6";
 
-}  // namespace adl::test::golden
+} // namespace adl::test::golden

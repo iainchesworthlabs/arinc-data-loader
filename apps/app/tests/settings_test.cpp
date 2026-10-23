@@ -1,23 +1,25 @@
-#include <memory>
+#include "adl/app/settings.hpp"
+#include "test_classes.hpp"
 
 #include <QSettings>
 #include <QTemporaryDir>
 #include <QTest>
-
-#include "adl/app/settings.hpp"
-#include "test_classes.hpp"
+#include <memory>
 
 using namespace adl::app;
 
-namespace {
+namespace
+{
 
-std::unique_ptr<AppSettings> settings_at(const QString& path) {
+std::unique_ptr<AppSettings> settings_at(const QString& path)
+{
     return std::make_unique<AppSettings>(std::make_unique<QSettings>(path, QSettings::IniFormat));
 }
 
-}  // namespace
+} // namespace
 
-void SettingsTest::the_defaults_hold_without_a_stored_value() {
+void SettingsTest::the_defaults_hold_without_a_stored_value()
+{
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const QString path = directory.filePath(QStringLiteral("settings.ini"));
@@ -36,7 +38,8 @@ void SettingsTest::the_defaults_hold_without_a_stored_value() {
     QVERIFY(settings->lastThwIdPos().isEmpty());
 }
 
-void SettingsTest::what_is_written_is_read_back() {
+void SettingsTest::what_is_written_is_read_back()
+{
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const QString path = directory.filePath(QStringLiteral("settings.ini"));
@@ -64,7 +67,8 @@ void SettingsTest::what_is_written_is_read_back() {
     QCOMPARE(read_back->logCapacity(), 500);
 }
 
-void SettingsTest::numbers_out_of_range_are_kept_as_they_were() {
+void SettingsTest::numbers_out_of_range_are_kept_as_they_were()
+{
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const QString path = directory.filePath(QStringLiteral("settings.ini"));
@@ -87,7 +91,8 @@ void SettingsTest::numbers_out_of_range_are_kept_as_they_were() {
     QCOMPARE(settings->logCapacity(), 500);
 }
 
-void SettingsTest::the_first_run_is_complete_only_once() {
+void SettingsTest::the_first_run_is_complete_only_once()
+{
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const QString path = directory.filePath(QStringLiteral("settings.ini"));
@@ -103,7 +108,8 @@ void SettingsTest::the_first_run_is_complete_only_once() {
     QCOMPARE(read_back->firstRunComplete(), true);
 }
 
-void SettingsTest::the_target_of_the_last_operation_is_remembered() {
+void SettingsTest::the_target_of_the_last_operation_is_remembered()
+{
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const QString path = directory.filePath(QStringLiteral("settings.ini"));

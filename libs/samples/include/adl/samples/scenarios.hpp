@@ -1,26 +1,27 @@
 #pragma once
 
-#include <cstddef>
-#include <span>
-#include <string_view>
-#include <vector>
-
 #include "adl/arinc665/batch_file.hpp"
 #include "adl/arinc665/error.hpp"
 #include "adl/arinc665/load.hpp"
 #include "adl/arinc665/media_set.hpp"
 
-namespace adl::samples {
+#include <cstddef>
+#include <span>
+#include <string_view>
+#include <vector>
+
+namespace adl::samples
+{
 
 // ---- The scenario of tests/golden/make_golden.py, input for input ----
 // Change one and the script has to change with it.
 
-inline constexpr const char* sample_load_part_number = "ACM47-1234-5678";  // Appendix E's example
+inline constexpr const char* sample_load_part_number = "ACM47-1234-5678"; // Appendix E's example
 inline constexpr const char* sample_batch_part_number = "ACM4C-0100-0200";
 inline constexpr const char* sample_media_set_part_number = "ACM-SET-0001";
 
 [[nodiscard]] std::vector<std::byte> sample_data_1();
-[[nodiscard]] std::vector<std::byte> sample_data_2();  // five bytes: three words, one half full
+[[nodiscard]] std::vector<std::byte> sample_data_2(); // five bytes: three words, one half full
 [[nodiscard]] std::vector<std::byte> sample_support();
 
 // Every part of the header file is present: a load type, target hardware with
@@ -48,12 +49,13 @@ inline constexpr const char* sample_media_set_part_number = "ACM-SET-0001";
 [[nodiscard]] arinc665::Result<arinc665::MediaSetSpec> combined_media_set_spec();
 
 // A sample media set by name, for the program that writes them.
-struct Scenario {
-    std::string_view name;         // also the name of its directory
-    std::string_view description;  // one line
+struct Scenario
+{
+    std::string_view name;        // also the name of its directory
+    std::string_view description; // one line
     arinc665::Result<arinc665::MediaSetSpec> (*make)();
 };
 
 [[nodiscard]] std::span<const Scenario> scenarios();
 
-}  // namespace adl::samples
+} // namespace adl::samples

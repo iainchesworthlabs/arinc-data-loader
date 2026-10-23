@@ -5,8 +5,9 @@
 
 #include "adl/ui/message.hpp"
 
-namespace adl::app {
+namespace adl::app
+{
 
 using adl::ui::Message;
 
-}  // namespace adl::app
+} // namespace adl::app

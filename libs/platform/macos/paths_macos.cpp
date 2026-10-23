@@ -1,3 +1,5 @@
+#include "adl/platform/paths.hpp"
+
 #include <mach-o/dyld.h>
 
 #include <cstdint>
@@ -6,17 +8,18 @@
 #include <string>
 #include <system_error>
 
-#include "adl/platform/paths.hpp"
+namespace adl::platform
+{
 
-namespace adl::platform {
-
-std::filesystem::path executable_path() {
+std::filesystem::path executable_path()
+{
     // The first call fails on purpose: it reports the length the name needs.
     std::uint32_t size = 0;
     ::_NSGetExecutablePath(nullptr, &size);
 
     std::string buffer(size, '\0');
-    if (::_NSGetExecutablePath(buffer.data(), &size) != 0) {
+    if (::_NSGetExecutablePath(buffer.data(), &size) != 0)
+    {
         return {};
     }
     buffer.resize(std::strlen(buffer.c_str()));
@@ -27,4 +30,4 @@ std::filesystem::path executable_path() {
     return error ? std::filesystem::path{buffer} : resolved;
 }
 
-}  // namespace adl::platform
+} // namespace adl::platform

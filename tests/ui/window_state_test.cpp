@@ -6,7 +6,8 @@
 // when the window closes. The settings are the program's QSettings, moved into a scratch
 // directory.
 
-#include <algorithm>
+#include "adl/ui/window_state.hpp"
+#include "scratch_settings.hpp"
 
 #include <QGuiApplication>
 #include <QPoint>
@@ -17,30 +18,32 @@
 #include <QSize>
 #include <QTest>
 #include <QWindow>
+#include <algorithm>
 
-#include "adl/ui/window_state.hpp"
-#include "scratch_settings.hpp"
-
-namespace {
+namespace
+{
 
 // The default size the tests give the window: small enough for the offscreen platform's screen.
 constexpr int default_width = 600;
 constexpr int default_height = 400;
 constexpr QSize minimum{400, 300};
 
-QRect available() {
+QRect available()
+{
     return QGuiApplication::primaryScreen()->availableGeometry();
 }
 
 // Where a window with no usable stored position is put: centred across, a third of the free height
 // down.
-QPoint default_position(const QSize& size) {
+QPoint default_position(const QSize& size)
+{
     const QRect area = available();
     return {area.x() + std::max(0, (area.width() - size.width()) / 2),
             area.y() + std::max(0, (area.height() - size.height()) / 3)};
 }
 
-void store(int x, int y, int width, int height, bool placed = true, bool maximized = false) {
+void store(int x, int y, int width, int height, bool placed = true, bool maximized = false)
+{
     QSettings settings;
     settings.setValue(QStringLiteral("window/x"), x);
     settings.setValue(QStringLiteral("window/y"), y);
@@ -51,24 +54,28 @@ void store(int x, int y, int width, int height, bool placed = true, bool maximiz
     settings.sync();
 }
 
-void configure(QQuickWindow& window) {
+void configure(QQuickWindow& window)
+{
     window.setMinimumSize(minimum);
     adl::ui::install_window_state(&window, default_width, default_height);
 }
 
-}  // namespace
+} // namespace
 
-class WindowStateTest : public QObject {
+class WindowStateTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
-    void init() {
+    void init()
+    {
         // An empty settings directory for every test.
         adl::test::scratch_settings().next();
         QVERIFY(QGuiApplication::primaryScreen() != nullptr);
     }
 
-    void opens_at_the_default_size_and_place_when_nothing_was_stored() {
+    void opens_at_the_default_size_and_place_when_nothing_was_stored()
+    {
         QQuickWindow window;
         configure(window);
 
@@ -76,7 +83,8 @@ private Q_SLOTS:
         QCOMPARE(window.position(), default_position(window.size()));
     }
 
-    void a_stored_size_and_position_come_back() {
+    void a_stored_size_and_position_come_back()
+    {
         const QRect area = available();
         const QPoint where{area.x() + 30, area.y() + 20};
         store(where.x(), where.y(), 500, 350);
@@ -88,7 +96,8 @@ private Q_SLOTS:
         QCOMPARE(window.position(), where);
     }
 
-    void a_size_below_the_minimum_is_raised() {
+    void a_size_below_the_minimum_is_raised()
+    {
         store(available().x() + 10, available().y() + 10, 120, 90);
 
         QQuickWindow window;
@@ -97,7 +106,8 @@ private Q_SLOTS:
         QCOMPARE(window.size(), minimum);
     }
 
-    void a_size_larger_than_the_screen_allows_is_brought_inside_it() {
+    void a_size_larger_than_the_screen_allows_is_brought_inside_it()
+    {
         store(0, 0, 100000, 100000);
 
         QQuickWindow window;
@@ -110,7 +120,8 @@ private Q_SLOTS:
         QCOMPARE(window.height(), std::max(minimum.height(), area.height() - 80));
     }
 
-    void a_position_on_no_screen_is_ignored() {
+    void a_position_on_no_screen_is_ignored()
+    {
         store(available().right() + 20000, available().bottom() + 20000, 500, 350);
 
         QQuickWindow window;
@@ -122,7 +133,8 @@ private Q_SLOTS:
         QVERIFY(available().intersects(QRect(window.position(), window.size())));
     }
 
-    void a_position_that_was_never_saved_is_not_used() {
+    void a_position_that_was_never_saved_is_not_used()
+    {
         // A position without the "placed" mark is a leftover, not the operator's choice.
         store(available().x() + 77, available().y() + 55, 500, 350, false);
 
@@ -132,7 +144,8 @@ private Q_SLOTS:
         QCOMPARE(window.position(), default_position(window.size()));
     }
 
-    void a_maximised_window_opens_maximised() {
+    void a_maximised_window_opens_maximised()
+    {
         store(available().x() + 10, available().y() + 10, 500, 350, true, true);
 
         // Installing the state shows the window maximised by itself (a show() after it would
@@ -143,7 +156,8 @@ private Q_SLOTS:
         QCOMPARE(window.visibility(), QWindow::Maximized);
     }
 
-    void closing_stores_the_size_and_position() {
+    void closing_stores_the_size_and_position()
+    {
         QQuickWindow window;
         configure(window);
         window.show();
@@ -167,7 +181,8 @@ private Q_SLOTS:
         QCOMPARE(next.geometry(), QRect(area.x() + 40, area.y() + 30, 520, 360));
     }
 
-    void closing_a_maximised_window_keeps_the_size_it_would_restore_to() {
+    void closing_a_maximised_window_keeps_the_size_it_would_restore_to()
+    {
         const QRect area = available();
         store(area.x() + 12, area.y() + 14, 500, 350, true, true);
 
@@ -187,7 +202,8 @@ private Q_SLOTS:
     }
 };
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     QGuiApplication application(argc, argv);
     QGuiApplication::setOrganizationName(QStringLiteral("adl-tests"));
     QGuiApplication::setApplicationName(QStringLiteral("adl_window_state_tests"));

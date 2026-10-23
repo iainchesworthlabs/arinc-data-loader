@@ -2,7 +2,8 @@
 
 #include <QString>
 
-namespace adl::ui {
+namespace adl::ui
+{
 
 // The name of the environment variable that moves the programs' settings (see below).
 inline constexpr const char* settings_directory_variable = "ADL_SETTINGS_DIR";
@@ -23,4 +24,4 @@ QString redirect_settings_from_environment();
 // The same, for a directory chosen by the caller (a test).
 void redirect_settings_to(const QString& directory);
 
-}  // namespace adl::ui
+} // namespace adl::ui

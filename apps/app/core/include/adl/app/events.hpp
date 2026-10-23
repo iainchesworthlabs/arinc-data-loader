@@ -7,27 +7,36 @@
 // what comes from the target or the libraries (names, identifiers, the target's descriptions) is
 // a QString and stays as it was given.
 
+#include "adl/app/message.hpp"
+
 #include <QList>
 #include <QMetaType>
 #include <QString>
 #include <QStringList>
 #include <QtGlobal>
 
-#include "adl/app/message.hpp"
+namespace adl::app
+{
 
-namespace adl::app {
-
-enum class Severity : int { info = 0, notice = 1, warning = 2, error = 3 };
+enum class Severity : int
+{
+    info = 0,
+    notice = 1,
+    warning = 2,
+    error = 3
+};
 
 // One line of the activity log.
-struct EventEntry {
+struct EventEntry
+{
     Severity severity = Severity::info;
     Message text;
 };
 
 // A target that answered FIND.
-struct FoundTarget {
-    QString address;  // dotted decimal
+struct FoundTarget
+{
+    QString address; // dotted decimal
     QString hardware_id;
     QString type_name;
     QString position;
@@ -41,8 +50,13 @@ struct FoundTarget {
 };
 
 // One line of what an Information operation found: a piece of hardware or one of its parts.
-struct HardwareRow {
-    enum class Level : int { hardware = 0, part = 1 };
+struct HardwareRow
+{
+    enum class Level : int
+    {
+        hardware = 0,
+        part = 1
+    };
     Level level = Level::hardware;
     Message title;
     Message detail;
@@ -53,7 +67,8 @@ struct HardwareRow {
 // `hint` is what the operator can do about a failure the application can recognise (a media
 // set that cannot be read, a host that cannot be started, an address that is not one, an
 // abort the target did not confirm). Empty when there is nothing honest to say.
-struct OperationSummary {
+struct OperationSummary
+{
     bool success = false;
     Message outcome;
     Message detail;
@@ -71,7 +86,8 @@ struct OperationSummary {
 };
 
 // One load of a media set.
-struct LoadSummary {
+struct LoadSummary
+{
     QString part_number;
     QString header_file;
     int data_files = 0;
@@ -80,24 +96,26 @@ struct LoadSummary {
 };
 
 // One file of a media set, as FILES.LUM lists it.
-struct MediaFileSummary {
+struct MediaFileSummary
+{
     QString name;
-    QString pathname;  // from the root of the member, as FILES.LUM writes it ("\" for the root)
-    int member = 0;    // the member the file is on
-    QString crc16;     // the file's 16-bit CRC, four hexadecimal digits
+    QString pathname; // from the root of the member, as FILES.LUM writes it ("\" for the root)
+    int member = 0;   // the member the file is on
+    QString crc16;    // the file's 16-bit CRC, four hexadecimal digits
 };
 
 // What reading a media set from a directory found. `error` is set, and the rest empty, when
 // it could not be read.
-struct MediaSetSummary {
+struct MediaSetSummary
+{
     QString path;
     QString error;
     QString part_number;
     int members = 0;
     int batches = 0;
     QList<LoadSummary> loads;
-    QList<MediaFileSummary> files;  // every file of the set but FILES.LUM, from FILES.LUM
-    QStringList findings;  // where the set differs from what the standard says it should be
+    QList<MediaFileSummary> files; // every file of the set but FILES.LUM, from FILES.LUM
+    QStringList findings;          // where the set differs from what the standard says it should be
 };
 
 // How checking a media set went. A set that could not be read has `error` set and is not
@@ -105,7 +123,8 @@ struct MediaSetSummary {
 // and do not make a set invalid (a set that reads is structurally valid: the read verifies
 // every file and its check values, so a read error is what makes it invalid, and nothing
 // else).
-struct ValidationReport {
+struct ValidationReport
+{
     QString path;
     QString error;
     int loads = 0;
@@ -114,36 +133,39 @@ struct ValidationReport {
 };
 
 // How one load of an upload is going, from an upload status file (6.4.5).
-struct LoadProgressRow {
+struct LoadProgressRow
+{
     QString header_file;
     QString part_number;
-    int ratio = 0;  // percent, 0 to 100
+    int ratio = 0; // percent, 0 to 100
     Message status;
     QString description;
-    bool failed = false;  // the target gave up on this load
+    bool failed = false; // the target gave up on this load
 };
 
 // How one file of a download is going, from a download status file (6.4.7) and from which
 // files have arrived. The protocol gives no figure per file, so the ratio is 100 once the
 // file has arrived and 0 while it has not; the status is the target's word for it.
-struct FileProgressRow {
+struct FileProgressRow
+{
     QString name;
-    int ratio = 0;  // percent: 100 when the file has arrived, 0 while the target is at it
+    int ratio = 0; // percent: 100 when the file has arrived, 0 while the target is at it
     Message status;
     QString description;
-    bool failed = false;  // the target gave up on this file
+    bool failed = false; // the target gave up on this file
 };
 
 // One file of the target's list of an operator defined download (.LNL, 6.4.8).
-struct DownloadFileRow {
+struct DownloadFileRow
+{
     QString name;
-    QString description;  // empty when the target gave none
+    QString description; // empty when the target gave none
 };
 
 // Qt needs to know these to carry them in a queued signal. Safe to call more than once.
 void register_metatypes();
 
-}  // namespace adl::app
+} // namespace adl::app
 
 Q_DECLARE_METATYPE(adl::app::EventEntry)
 Q_DECLARE_METATYPE(adl::app::FoundTarget)

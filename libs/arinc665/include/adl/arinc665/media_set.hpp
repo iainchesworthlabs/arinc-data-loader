@@ -5,13 +5,6 @@
 // files; read_media_set() does the reverse and checks what it finds. No file
 // system is used here; adl::media_tree maps members to directories.
 
-#include <cstddef>
-#include <cstdint>
-#include <optional>
-#include <span>
-#include <string>
-#include <vector>
-
 #include "adl/arinc665/batch_file.hpp"
 #include "adl/arinc665/check_value_type.hpp"
 #include "adl/arinc665/error.hpp"
@@ -20,12 +13,21 @@
 #include "adl/arinc665/media_files.hpp"
 #include "adl/arinc665/part_number.hpp"
 
-namespace adl::arinc665 {
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <span>
+#include <string>
+#include <vector>
+
+namespace adl::arinc665
+{
 
 // A file as it sits on one member of a media set. The pathname is the
 // directory it is in, from the root of the member and ending in a backslash
 // ("\" for the root); the name is the file's own.
-struct MediaFile {
+struct MediaFile
+{
     std::string pathname = "\\";
     std::string name;
     std::vector<std::byte> bytes;
@@ -35,14 +37,16 @@ struct MediaFile {
 
 // One medium of a media set (a disk, a card, a CD): its number in the set and
 // the files on it.
-struct MediaMember {
+struct MediaMember
+{
     std::uint16_t sequence_number = 1;
     std::vector<MediaFile> files;
 };
 
 // Where one of a load's data or support files goes, if not with the header file.
-struct FilePlacement {
-    std::uint16_t member = 0;  // 0: the same member as the header file
+struct FilePlacement
+{
+    std::uint16_t member = 0; // 0: the same member as the header file
     // A directory below the load's part root directory, ending in a backslash
     // ("disk001\"), or empty for the part root directory itself. Files with the
     // same name in one load are told apart this way (section 3.2.4).
@@ -51,7 +55,8 @@ struct FilePlacement {
 
 // A load, and where it goes in a media set: the member that holds its header file
 // and where its data and support files are put (see FilePlacement).
-struct PlacedLoad {
+struct PlacedLoad
+{
     Load load;
     // The part root directory (section 3.2.4.1.1), starting and ending with a
     // backslash. Empty: the load's part number without its hyphens, which the
@@ -65,8 +70,9 @@ struct PlacedLoad {
 };
 
 // A batch file, and the member and directory it is placed in.
-struct PlacedBatch {
-    std::string file_name;  // for example "ACM47.LUB"
+struct PlacedBatch
+{
+    std::string file_name; // for example "ACM47.LUB"
     BatchFile batch;
     std::uint16_t member = 1;
     std::string pathname = "\\";
@@ -75,15 +81,17 @@ struct PlacedBatch {
 // A file on the media set that is not part of a load or a batch, which the
 // standard allows (section 3.2.1): NON_LOAD.CRC and DISK.DIR for Boeing legacy
 // loads, for instance.
-struct PlacedFile {
+struct PlacedFile
+{
     MediaFile file;
     std::uint16_t member = 1;
 };
 
 // What a person decides about a media set; build_media_set() works out the rest.
-struct MediaSetSpec {
+struct MediaSetSpec
+{
     PartNumber media_set_part_number;
-    std::uint8_t number_of_members = 1;  // 1 to 255
+    std::uint8_t number_of_members = 1; // 1 to 255
     std::vector<PlacedLoad> loads;
     std::vector<PlacedBatch> batches;
     std::vector<PlacedFile> other_files;
@@ -109,13 +117,15 @@ struct MediaSetSpec {
 [[nodiscard]] Result<std::vector<MediaMember>> build_media_set(const MediaSetSpec& spec);
 
 // A batch file as read from a media set: its name and what it decodes to.
-struct ReadBatch {
+struct ReadBatch
+{
     std::string file_name;
     BatchFile batch;
 };
 
 // What reading a media set found.
-struct MediaSet {
+struct MediaSet
+{
     LoadsList loads_list;
     FilesList files_list;
     std::optional<BatchesList> batches_list;
@@ -138,4 +148,4 @@ struct MediaSet {
 // and a load that needs one fails with Error::file_not_found.
 [[nodiscard]] Result<MediaSet> read_media_set(std::span<const MediaMember> members);
 
-}  // namespace adl::arinc665
+} // namespace adl::arinc665

@@ -5,16 +5,16 @@
 // tests can run it against files in memory and make the file system misbehave. Nothing here is
 // Qt but the text that is shown to the operator.
 
+#include "adl/app/message.hpp"
+#include "adl/platform/files.hpp"
+
+#include <QString>
 #include <expected>
 #include <string>
 #include <string_view>
 
-#include <QString>
-
-#include "adl/app/message.hpp"
-#include "adl/platform/files.hpp"
-
-namespace adl::app {
+namespace adl::app
+{
 
 // The most numbered directories a download looks through before it gives up.
 inline constexpr unsigned max_download_directories = 10'000;
@@ -40,11 +40,11 @@ inline constexpr unsigned max_download_directories = 10'000;
 // loader may look for a free number at once, so a number that is taken between looking and
 // making is not an error: the next one is tried. Returns the platform path (UTF-8, '/'
 // separated) of the new directory, or what to tell the operator.
-[[nodiscard]] std::expected<std::string, Message> make_download_directory(
-    adl::platform::FileSystem& files, std::string_view directory, std::string_view thw_id_pos);
+[[nodiscard]] std::expected<std::string, Message>
+make_download_directory(adl::platform::FileSystem& files, std::string_view directory, std::string_view thw_id_pos);
 
 // Removes `path` if it is a directory with nothing in it, and says whether it did. A directory
 // that holds anything, however little, and anything that is not a directory are left alone.
 [[nodiscard]] bool remove_if_empty(adl::platform::FileSystem& files, std::string_view path);
 
-}  // namespace adl::app
+} // namespace adl::app
