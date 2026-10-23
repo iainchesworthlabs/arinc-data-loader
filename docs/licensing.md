@@ -7,9 +7,9 @@ licence.
 ## Summary
 
 1. **The project is GPL-3.0-or-later** (`LICENSE`, `vcpkg.json`). Source files
-   (C++, QML, CMake, Python, shell and PowerShell) carry an
-   `SPDX-License-Identifier: GPL-3.0-or-later` line; `REUSE.toml` gives every other file the
-   same licence and the copyright holder, and the fonts their own. `reuse lint` checks it,
+   (C++, QML, CMake, Python, shell and PowerShell) carry a one-line SPDX comment naming
+   GPL-3.0-or-later; `REUSE.toml` gives every other file the same licence and the copyright
+   holder, and the fonts their own. `reuse lint` checks it,
    and the licence texts are in `LICENSES/`.
 2. **The third-party code in use is a build tool (vcpkg) and a test framework
    (Catch2, BSL-1.0).** Neither is linked into anything that is distributed. The two RTOS test programs
