@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# libs/ui is read by QML (language_manager: camelCase methods, beside snake_case ones) and keeps the tables of
+# language_manager.cpp in Qt's kPascalCase beside lower-case constants elsewhere. Everything else keeps the repository's names (the .clang-tidy above).
+InheritParentConfig: true
+CheckOptions:
+  readability-identifier-naming.MethodCase: aNy_CasE
+  readability-identifier-naming.ConstexprVariableCase: aNy_CasE

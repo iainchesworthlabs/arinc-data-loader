@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The model classes of the loader are read by QML, which names properties, signals, slots and invokable
+# functions in camelCase (the classes behind them keep snake_case, so a method may be either); the roles of a
+# list model are Qt's own PascalCase names (SourcePathRole).
+# Everything else keeps the repository's names (the .clang-tidy above).
+InheritParentConfig: true
+CheckOptions:
+  readability-identifier-naming.MethodCase: aNy_CasE
+  readability-identifier-naming.EnumConstantCase: aNy_CasE
