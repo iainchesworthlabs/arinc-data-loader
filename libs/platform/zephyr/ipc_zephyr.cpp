@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/platform/ipc.hpp"
 #include "adl/platform/memory.hpp"
 #include "detail/nothrow.hpp"

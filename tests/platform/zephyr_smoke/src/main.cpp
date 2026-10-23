@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // A smoke test of the Zephyr platform layer on a board built with the Zephyr SDK's own toolchain
 // (GCC, picolibc and its libstdc++, no exceptions): a Cortex-M3 under QEMU. It is not the
 // conformance suite, which needs Catch2 and a file system and runs on native_sim

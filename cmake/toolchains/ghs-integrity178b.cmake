@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # ---------------------------------------------------------------------------
 # ghs-integrity178b.cmake - cross toolchain for INTEGRITY-178B on PowerPC.
 #

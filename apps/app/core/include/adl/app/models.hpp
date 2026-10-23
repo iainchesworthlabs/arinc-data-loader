@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The lists the window shows. Each is a QAbstractListModel that is replaced or appended to on

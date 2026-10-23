@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
 
 // The shape that says what a status word says, so a state is never colour alone: a check, a warning

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """MkDocs hook: links that leave docs/ become links to the file on GitHub.
 
 The pages are written for GitHub's file view, where `[README](../README.md)` works. On the built site

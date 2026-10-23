@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Writes SHA256SUMS for a directory of release files and signs every file in it with the release
 # key: one detached, ASCII-armoured PGP signature per file, <file>.asc.

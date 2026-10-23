@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // How ARINC 665 files are laid out on the wire, shared by every file in the

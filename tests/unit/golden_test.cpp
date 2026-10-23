@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The library's output, byte for byte, against files written independently by
 // tests/golden/make_golden.py from the tables and figures of the standard.
 

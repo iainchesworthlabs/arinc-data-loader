@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The application's tests (apps/app): QtTest, headless. The logic is tested without a window
 # against the simulated target on the fake platform (adl_sim_target), and the window's QML is
 # loaded once, offscreen, to prove it compiles and binds to the model.

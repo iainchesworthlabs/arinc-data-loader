@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // check_media_set.cpp: read a media set folder and report what the library finds in it.
 #include "adl/arinc665/media_set.hpp"
 #include "adl/media_tree/media_tree.hpp"

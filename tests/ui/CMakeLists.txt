@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The window's UI suite, with Qt Quick Test: every tst_*.qml file under qml/ is one TestCase, run
 # offscreen against the application's real Main.qml and LoaderModel. Clicks, typing, menu-free
 # buttons and the dialogs' fields are Qt Quick Test events on the real items, so the QML handlers,

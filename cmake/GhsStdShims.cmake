@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # ---------------------------------------------------------------------------
 # GhsStdShims.cmake - the C++23-or-bust policy for the GHS platforms, and the
 # escape hatch that keeps the interfaces untouched.

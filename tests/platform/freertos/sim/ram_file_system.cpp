@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ram_file_system.hpp"
 
 #include <cstring>

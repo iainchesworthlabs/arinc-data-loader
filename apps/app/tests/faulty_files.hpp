@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A file system that is the in-memory one until a test makes it misbehave: a path that cannot be

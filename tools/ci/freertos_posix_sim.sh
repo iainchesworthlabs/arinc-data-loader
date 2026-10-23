@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Builds the FreeRTOS test program (tests/platform/freertos) for the kernel's POSIX simulator
 # port and runs it: the platform layer's conformance suite and the 615A engine tests, in a

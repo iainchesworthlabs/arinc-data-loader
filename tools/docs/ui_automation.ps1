@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Helpers for driving the three Qt applications through Windows UI Automation and keeping a
 # picture of their windows. Dot-sourced by capture_screenshots.ps1; nothing here is specific to a
 # screen. Windows only: the pictures are taken with PrintWindow, so the window may be partly

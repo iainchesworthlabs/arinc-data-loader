@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The protocol files of ARINC 615A-3 section 6.4, which the target and the data loader

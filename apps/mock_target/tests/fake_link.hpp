@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A TargetLink over the fake in-memory network: an Agent at the target's address, so the mock

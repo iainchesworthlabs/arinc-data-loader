@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The runner: the one piece of the 615A library that calls the platform. It owns no protocol.

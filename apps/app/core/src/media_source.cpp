@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/app/media_source.hpp"
 
 #include "adl/arinc665/check_value_type.hpp"

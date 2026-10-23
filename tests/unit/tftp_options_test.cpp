@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The TFTP options of RFCs 2347 to 2349 and the ones 615A adds (section 5.3.2.3.8), and the
 // WAIT and ABORT messages carried in error packets (sections 5.3.2.3.4 and 5.3.2.3.6).
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The mock target's engine, headless: the loader's real engine (DataLoader and Runner over a
 // fake host) runs whole operations against the mock engine over the fake network, so the mock
 // target is proven to be a valid 615A target for the loader. FIND, Information, Upload (byte

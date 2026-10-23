@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The check value types of ARINC 665 Table 5.1, with their titles and the number

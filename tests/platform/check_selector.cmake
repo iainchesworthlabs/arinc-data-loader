@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # ---------------------------------------------------------------------------
 # The selector (cmake/Platform.cmake) learns the target the way
 # docs/platform-isolation.md says, and refuses a platform that has no code to

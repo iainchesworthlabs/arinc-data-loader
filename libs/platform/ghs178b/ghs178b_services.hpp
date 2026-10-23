@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The factories the INTEGRITY-178B host (host_ghs178b.cpp) assembles its

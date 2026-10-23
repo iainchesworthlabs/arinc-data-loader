@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # ---------------------------------------------------------------------------
 # FindIntegrity.cmake - find a Green Hills INTEGRITY 5.x installation, the
 # board package that goes with it, and the GHS toolchain that builds for it.

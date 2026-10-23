@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The documentation site: docs/ built by MkDocs into a static site (mkdocs.yml, docs/ci.md,
 # "Documentation site").
 #

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
 
 // The keys that scroll a read-only list or log: Up and Down by a line, PageUp and PageDown by a

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The data loader's side of an ARINC 615A operation: Information (5.4.2), Upload (5.4.3, the

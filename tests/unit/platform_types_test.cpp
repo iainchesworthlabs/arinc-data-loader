@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/platform/error.hpp"
 #include "adl/platform/network.hpp"
 #include "adl/platform/time.hpp"

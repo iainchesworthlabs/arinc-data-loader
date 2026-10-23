@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The figures of ARINC 615A-3 that the codecs check against, and that the

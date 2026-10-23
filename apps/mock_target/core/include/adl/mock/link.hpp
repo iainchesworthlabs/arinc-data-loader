@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The seam the mock target's engine runs over: a small interface of datagrams and timers that

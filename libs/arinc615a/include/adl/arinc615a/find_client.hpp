@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // FIND, the data loader's side (Attachment 3): the loader broadcasts one request on UDP port

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The header file (.LUH) of a load, ARINC 665-3 section 2.2.3: a model of it, field

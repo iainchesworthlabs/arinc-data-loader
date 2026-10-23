@@ -1,4 +1,5 @@
 #!/usr/bin/env pwsh
+# SPDX-License-Identifier: GPL-3.0-or-later
 #requires -Version 7.0
 #
 # Works out what a run of the release workflow is releasing, and whether it may publish, from the event

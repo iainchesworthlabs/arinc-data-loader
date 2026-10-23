@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A bounded message queue built from a Threading's own Mutex and Semaphore, as

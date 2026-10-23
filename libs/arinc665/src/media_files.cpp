@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/arinc665/media_files.hpp"
 
 #include "adl/arinc665/naming.hpp"

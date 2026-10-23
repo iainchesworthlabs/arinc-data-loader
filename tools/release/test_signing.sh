@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Self-test for sign_release.sh and verify_release.sh, with throw-away keys made here (the release key
 # is never involved): a release is signed and verified; a signature on a changed file, a file missing

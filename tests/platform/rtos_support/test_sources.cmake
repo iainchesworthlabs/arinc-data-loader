@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The test sources the RTOS test programs share (tests/platform/zephyr, tests/platform/freertos):
 # the same files tests/CMakeLists.txt builds into adl_platform_tests and adl_engine_tests for the
 # desktop platforms, listed here for the programs that cannot use that file because they are

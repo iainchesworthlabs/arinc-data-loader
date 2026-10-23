@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The values of the file format version field that ARINC 665-3 gives to its load,

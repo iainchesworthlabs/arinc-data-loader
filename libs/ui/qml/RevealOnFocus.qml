@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
 
 // Scrolls a view so the item holding the keyboard focus is on screen. A Flickable does not follow

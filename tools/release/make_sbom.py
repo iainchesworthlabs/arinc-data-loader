@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Writes the release's software bill of materials, as SPDX 2.3 and as CycloneDX 1.6 (JSON).
 
     python make_sbom.py --version 0.1.0 --tag v0.1.0 --commit <sha> --packages <dir> --build-info <dir>

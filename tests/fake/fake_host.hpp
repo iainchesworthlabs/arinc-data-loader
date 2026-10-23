@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A Host made of the fakes: a fake clock, network, files, memory, threads and

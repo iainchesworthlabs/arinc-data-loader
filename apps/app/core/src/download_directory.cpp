@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/app/download_directory.hpp"
 
 #include "adl/app/text.hpp"

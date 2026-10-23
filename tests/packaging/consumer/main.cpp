@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // One call into each library of the development package, so that a missing header, a library that
 // was not installed or a link dependency the package config forgot to carry fails the build or the
 // run.

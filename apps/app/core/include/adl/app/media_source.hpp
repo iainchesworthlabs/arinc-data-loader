@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Where the files of an upload come from: a media set that is on disk as a tree, one directory

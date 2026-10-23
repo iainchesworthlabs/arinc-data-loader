@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Keeps a test program's QSettings out of the operator's real settings (the registry key on

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Runs an application's lupdate project over a copy of its Qt Linguist catalogues and fails if the
 # result differs from the committed files in anything but the <location> lines.
 #

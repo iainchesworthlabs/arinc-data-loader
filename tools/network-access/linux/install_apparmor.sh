@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Installs (or removes) the AppArmor profiles for adl_app, adl_mock_target and adl_media_gen.
 #
 #   sudo ./install_apparmor.sh --bin-dir /path/to/bin [--qt-dir /path/to/Qt/6.12.0/gcc_64]

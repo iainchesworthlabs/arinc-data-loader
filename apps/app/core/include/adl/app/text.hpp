@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Conversion of the libraries' text to Qt strings. The libraries are free of Qt

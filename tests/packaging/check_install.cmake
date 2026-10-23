@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Installs the development component of a finished build into a scratch prefix, then builds a small
 # program against it with find_package(adl) and runs it: the proof that what the development package
 # holds is enough, and that nothing in it points back into the source or build tree.

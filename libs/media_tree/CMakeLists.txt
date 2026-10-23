@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Media sets on a disk: writes the members of a media set to a directory tree
 # and reads one back. It uses std::filesystem only, which is the same on every
 # platform the project targets, so it needs nothing from libs/platform; the

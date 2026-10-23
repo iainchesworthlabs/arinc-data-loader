@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The platform library: one implementation of every interfaces/ header, for the
 # platform cmake/Platform.cmake selected. Which files those are, and what they
 # link against, is declared by that platform's platform.cmake; nothing here

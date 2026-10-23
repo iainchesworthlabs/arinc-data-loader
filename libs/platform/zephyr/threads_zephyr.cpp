@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/platform/threads.hpp"
 #include "detail/nothrow.hpp"
 #include "zephyr/zephyr_os.hpp"

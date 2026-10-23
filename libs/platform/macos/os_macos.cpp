@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // What macOS does differently from the other POSIX systems; see
 // posix/posix_os.hpp for what each function is for.
 

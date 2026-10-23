@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/arinc615a/data_loader.hpp"
 
 #include <adl/profiling.hpp>

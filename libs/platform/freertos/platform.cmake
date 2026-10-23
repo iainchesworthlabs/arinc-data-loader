@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # FreeRTOS. Included by cmake/Platform.cmake and by the FreeRTOS test project's own
 # CMakeLists.txt; the contract it fills in is described at the top of cmake/Platform.cmake.
 #

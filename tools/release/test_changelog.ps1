@@ -1,4 +1,5 @@
 #!/usr/bin/env pwsh
+# SPDX-License-Identifier: GPL-3.0-or-later
 #requires -Version 7.0
 #
 # Self-test for Changelog.ps1: the tool that decides what a release says, and whether a pull

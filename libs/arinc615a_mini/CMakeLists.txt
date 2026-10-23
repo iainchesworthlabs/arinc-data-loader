@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # A second, independent TFTP implementation (lock-step blocks, a two second time-out and one
 # retry, the options the loader uses, WAIT and ABORT), deliberately plain, sharing no code with
 # the engine, so that the engine is checked against a second reading of RFC 1350 and ARINC

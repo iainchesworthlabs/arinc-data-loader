@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A directory that exists for the length of a test and is removed after it, for the RTOS

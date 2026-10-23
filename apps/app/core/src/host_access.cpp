@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/app/host_access.hpp"
 
 #include <QCoreApplication>

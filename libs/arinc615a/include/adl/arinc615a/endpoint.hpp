@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Who a datagram is from or for: an IPv4 address and a UDP port. The engine works in these

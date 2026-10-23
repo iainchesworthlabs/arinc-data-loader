@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Conformance: threads, locks, semaphores and message queues. The checks that need
 // real concurrency run on the real host only; the fake runs a thread when it is
 // joined, so it cannot show two of them at once.

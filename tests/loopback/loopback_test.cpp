@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The loader's real 615A engine against the mock target's engine, end to end over real UDP
 // sockets on the loopback interface: adl::arinc615a::DataLoader driven by adl::arinc615a::Runner
 // over the host adl::platform::make_host() returns, and adl::mock::MockEngine driven by run()

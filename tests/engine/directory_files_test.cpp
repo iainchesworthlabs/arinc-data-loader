@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The FileSource and FileSink over a directory of the platform's files, on the fake file system.
 
 #include "adl/arinc615a/directory_files.hpp"

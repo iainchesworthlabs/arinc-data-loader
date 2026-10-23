@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/platform/host.hpp"
 #include "adl/platform/ring_ipc.hpp"
 #include "detail/nothrow.hpp"

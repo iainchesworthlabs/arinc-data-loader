@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/arinc615a/directory_files.hpp"
 
 #include "adl/arinc665/portable_name.hpp"

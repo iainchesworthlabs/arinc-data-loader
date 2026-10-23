@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Checks a downloaded release the way docs/verifying-releases.md describes: the PGP signatures against
 # the project's release key, the SHA-256 sums, and (with the GitHub CLI) the build-provenance

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The CRCs of ARINC 665 section 4.3 (8, 16 and 32 bits) as one class template,

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // QNX Neutrino. UNBUILT AND UNTESTED: this file has never been compiled against
 // the QNX headers, and nothing in CI or in this repository can run it. It is the
 // handful of places where QNX differs from the shared POSIX implementation

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // What a FreeRTOS product tells the platform layer before it asks for a Host.

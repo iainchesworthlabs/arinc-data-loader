@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/platform/files.hpp"
 #include "detail/nothrow.hpp"
 #include "detail/path_rules.hpp"

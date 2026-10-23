@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // FIND (Attachment 3), the data loader's side: the state machine on its own, and the runner
 // broadcasting over the fake network to simulated targets.
 

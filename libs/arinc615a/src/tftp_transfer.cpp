@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/arinc615a/tftp_transfer.hpp"
 
 #include <adl/profiling.hpp>

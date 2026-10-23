@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The FIND packets of ARINC 615A-3 Attachment 3: an opcode, zero-terminated strings and a
 // final 0x10, with the field limits of 3-6.
 

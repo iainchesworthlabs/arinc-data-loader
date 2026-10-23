@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A FileSource and FileSink over a directory of the platform's file system: the simplest

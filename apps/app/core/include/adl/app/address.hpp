@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A target's IPv4 address as the operator types it and sees it. Parsing is strict,

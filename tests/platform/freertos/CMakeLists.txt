@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The FreeRTOS test program: the platform layer's conformance suite and the 615A engine tests, run
 # by Catch2 in a FreeRTOS task on the kernel's POSIX simulator port, over lwIP's UDP sockets (its
 # loopback interface) and littlefs (a RAM block device). The FreeRTOS counterpart of the Zephyr

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ui_harness.hpp"
 
 #include "adl/app/models.hpp"

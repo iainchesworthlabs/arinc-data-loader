@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A host that is another host until a test makes its network or its files misbehave: the way to

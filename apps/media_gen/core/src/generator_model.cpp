@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/gen/generator_model.hpp"
 
 #include "adl/arinc665/check_value_type.hpp"

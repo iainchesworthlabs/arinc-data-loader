@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Packets and files come from the network, and a loader must meet a damaged or hostile
 // one without crashing, hanging or reading past its end. These run every 615A decoder
 // over every truncation and every single-byte and single-bit change of a good one, and

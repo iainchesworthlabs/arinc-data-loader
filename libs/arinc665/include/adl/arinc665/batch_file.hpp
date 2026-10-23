@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The batch file (.LUB) of ARINC 665-3 section 2.3: its model, and the functions

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Networking: IPv4 UDP datagrams, which is all 615A uses. TFTP (RFC 1350) runs

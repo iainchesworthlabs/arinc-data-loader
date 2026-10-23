@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Where the worker gets the platform from. The window uses the real host; a test hands over a

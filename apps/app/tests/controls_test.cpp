@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/app/engine_worker.hpp"
 #include "adl/arinc615a/data_loader.hpp"
 #include "test_classes.hpp"

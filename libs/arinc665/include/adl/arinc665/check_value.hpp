@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The check value a file or a load can carry (ARINC 665-3 section 5): its type

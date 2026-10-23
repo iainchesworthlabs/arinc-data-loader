@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // One TFTP file transfer, as a state machine that is driven and does nothing of its own: it

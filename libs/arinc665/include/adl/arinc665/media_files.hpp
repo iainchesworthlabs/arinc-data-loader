@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The three list files in the root of every member of a media set, LOADS.LUM,

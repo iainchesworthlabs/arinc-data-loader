@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // littlefs on a block device that is an array in RAM, for the simulator program: the file system

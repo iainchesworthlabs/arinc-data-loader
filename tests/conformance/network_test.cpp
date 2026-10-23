@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Conformance: UDP networking. Every check runs against the fake network and,
 // over the loopback interface, against the real one. The loopback tests at the
 // end (tagged [integration]) are the real host only: they use real threads.

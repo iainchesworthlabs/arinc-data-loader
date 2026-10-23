@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // What INTEGRITY 5.0.8 does differently from the other POSIX systems; see
 // posix/posix_os.hpp for what each function is for. UNBUILT AND UNTESTED: this
 // file has never been compiled against the INTEGRITY 5.0.8 headers, and the

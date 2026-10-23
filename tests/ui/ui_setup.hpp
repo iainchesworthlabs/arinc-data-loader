@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The setup of the Qt Quick Test run: one Harness (the application's real model, the simulated

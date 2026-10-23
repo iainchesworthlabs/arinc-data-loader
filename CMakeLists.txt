@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # CMake 4 is required; the version range keeps policy behaviour current up to 4.4.
 cmake_minimum_required(VERSION 3.28...4.4)
 

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # ---------------------------------------------------------------------------
 # ghs-integrity508.cmake - cross toolchain for INTEGRITY 5.0.8 on PowerPC.
 #

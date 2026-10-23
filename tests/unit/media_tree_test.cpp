@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Media sets on a disk: the members of a set written to a directory tree and read
 // back, with the standard's backslash pathnames mapped to the platform's paths.
 

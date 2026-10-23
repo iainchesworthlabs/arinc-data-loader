@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The words for what the 615A library reports as enumerations - how an operation ended, a status

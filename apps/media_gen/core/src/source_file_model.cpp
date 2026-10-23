@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/gen/source_file_model.hpp"
 
 #include "adl/arinc665/naming.hpp"

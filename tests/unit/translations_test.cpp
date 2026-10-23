@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The Qt Linguist catalogues of the three applications and of the interface they share
 // (libs/ui/translations, apps/app/translations, apps/media_gen/translations,
 // apps/mock_target/translations), read as files rather than through Qt: these cases run in the

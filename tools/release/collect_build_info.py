@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Records what one build leg of the release workflow built with, for the SBOM.
 
     python collect_build_info.py --leg <windows|linux|macos> --build-dir <dir> --packages <dir>

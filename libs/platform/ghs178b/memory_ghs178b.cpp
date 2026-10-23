@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // INTEGRITY-178B (GHS). UNBUILT AND UNTESTED: this file has never been
 // compiled against the INTEGRITY-178B headers; see docs/platform-ghs.md.
 //

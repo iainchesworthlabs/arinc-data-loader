@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The TFTP packets of ARINC 615A-3 section 5.3.2: RFC 1350 with options, octet mode only,
 // block numbers that wrap to 1, and a WRQ acknowledged with block 0.
 

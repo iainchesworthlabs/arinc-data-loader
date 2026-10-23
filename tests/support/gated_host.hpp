@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A Host that forwards everything to another one and can hold the thread that is using it at a

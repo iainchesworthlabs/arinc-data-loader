@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "freertos/environment.hpp"
 #include "freertos/freertos_os.hpp"
 

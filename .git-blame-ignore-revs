@@ -1,3 +1,4 @@
 # Mass-reformat commits, skipped by git blame (git config blame.ignoreRevsFile .git-blame-ignore-revs).
-# Format with the template's clang-format style.
+# Format with the template's clang-format style, then add the SPDX line to the source files.
 99d0bbfcc94671cc65780907f25e6a4b360f7ba6
+eb81cf19f8804685e175546cb39b80dea92f2eab

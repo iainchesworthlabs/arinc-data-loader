@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Zephyr. Included by cmake/Platform.cmake and by this directory's own CMakeLists.txt (the
 # Zephyr module); the contract it fills in is described at the top of cmake/Platform.cmake.
 #

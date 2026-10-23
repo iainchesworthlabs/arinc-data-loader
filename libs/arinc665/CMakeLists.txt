@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The ARINC 665 library: the media set, load and integrity-check logic. It is
 # GUI-free and platform-free: nothing here includes an operating system header,
 # and what differs between operating systems arrives through

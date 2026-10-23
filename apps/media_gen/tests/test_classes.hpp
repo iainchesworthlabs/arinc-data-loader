@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The generator's tests, one class. Each test is a slot; main.cpp runs them all.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Loads the generator's window (argv[1], the path of GeneratorWindow.qml) with the real model,
 // offscreen, fills the form, starts a generation through the window's own Generate button and
 // fails if the window does not load, the generation does not end with a verified media set or the

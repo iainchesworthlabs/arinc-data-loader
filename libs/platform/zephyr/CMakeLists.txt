@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The Zephyr module's build (zephyr/module.yml names this directory). Zephyr includes it
 # while it configures the application's image; nothing else in this repository does.
 #

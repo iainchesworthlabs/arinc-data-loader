@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The protocol files of ARINC 615A-3 section 6.4: their layouts, round trips, the choices
 // docs/arinc615a-codec.md records, and each way a file can be damaged.
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The FIND packets of Attachment 3: the data loader broadcasts a request on UDP port 1001
