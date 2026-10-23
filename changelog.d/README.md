@@ -13,8 +13,8 @@ Create `changelog.d/<name>.<category>.md`:
   issue or pull request (`1234`, `rtos-ports`, `crc32-reflection`);
 - `<category>` is one of the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) headings:
   `added`, `changed`, `deprecated`, `removed`, `fixed` or `security`;
-- the file holds the entry's text and nothing else: one paragraph, wrapped as you like, with no
-  leading `- ` and no heading. Say what a user will notice, in the user's words, and link the
+- the file holds the entry's text and nothing else: one paragraph that opens with a bold summary
+  sentence (`**Summary.** The rest.`), wrapped as you like, with no leading `- ` and no heading. Say what a user will notice, in the user's words, and link the
   page in `docs/` that explains it. Two entries are two files.
 
 ```text
