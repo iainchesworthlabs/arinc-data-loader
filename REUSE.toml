@@ -1,0 +1,22 @@
+version = 1
+
+# Files without an SPDX header take the licence below; files with a header keep theirs.
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Iain Chesworth Labs contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# The typefaces the applications embed, under the SIL Open Font License, with the licence
+# text that ships beside them.
+[[annotations]]
+path = ["libs/ui/fonts/Archivo-*.ttf", "libs/ui/fonts/OFL.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo)"
+SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+path = ["libs/ui/fonts/NotoSansHebrew-*.ttf", "libs/ui/fonts/NotoSansHebrew-OFL.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "2022 The Noto Project Authors (https://github.com/notofonts/hebrew)"
+SPDX-License-Identifier = "OFL-1.1"
