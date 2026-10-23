@@ -37,13 +37,12 @@ jobs:
       contents: read
 
     steps:
-      # fetch-depth: 0 for vcpkg's version resolution against the deps/vcpkg
-      # submodule - see ci.yml.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: recursive
-          fetch-depth: 0
           persist-credentials: false
+
+      - name: Set up vcpkg
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3

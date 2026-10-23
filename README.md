@@ -120,7 +120,7 @@ from it, with a picture of every screen.
 ## Build
 
 ```sh
-git clone --recurse-submodules https://github.com/iainchesworthlabs/arinc-data-loader
+git clone https://github.com/iainchesworthlabs/arinc-data-loader
 cd arinc-data-loader
 cmake --preset windows-msvc-debug      # or linux-gcc-debug, macos-clang-debug
 cmake --build --preset windows-msvc-debug

@@ -53,7 +53,7 @@
 #      included: what they need from the build arrives as a compile definition
 #      CMake passes in, not as a macro the source declares.
 #
-# Not scanned, deliberately: third_party/ and deps/ (vendored code, with its own
+# Not scanned, deliberately: third_party/, deps/ and cmake/icl/ (vendored code, with its own
 # licence and conventions), anything git ignores (build output, generated
 # headers), and shader sources (GLSL has no operating system to branch on).
 #
@@ -108,6 +108,10 @@ $candidates = @(Get-ChildItem -LiteralPath $scanRoots -Recurse -File |
     })
 $rootCMake = Join-Path $Root 'CMakeLists.txt'
 if (Test-Path -LiteralPath $rootCMake) { $candidates += Get-Item -LiteralPath $rootCMake }
+
+# cmake/icl/ is vendored from icl-common-infra (cmake/icl/SOURCE names the commit) and has its own
+# conventions: its platform selector tests the operating system by design.
+$candidates = @($candidates | Where-Object { -not (Get-RelativePath $_.FullName).StartsWith('cmake/icl/') })
 
 # Ask git which files are source rather than pattern-matching directory names:
 # .gitignore already carries that answer (build trees, generated headers) and

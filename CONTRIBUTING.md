@@ -40,7 +40,7 @@ This project follows
 options. The short version, on Windows:
 
 ```sh
-git clone --recurse-submodules https://github.com/iainchesworthlabs/arinc-data-loader
+git clone https://github.com/iainchesworthlabs/arinc-data-loader
 cd arinc-data-loader
 cmake --preset windows-msvc-debug
 cmake --build --preset windows-msvc-debug

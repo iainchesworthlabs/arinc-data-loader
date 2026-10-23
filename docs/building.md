@@ -14,7 +14,7 @@ in CI; macOS has never been tried by hand.
 | CMake | 4.0 or newer | The presets require it. 4.4.0 was used |
 | Ninja | any recent | The presets use the Ninja generator |
 | A C++23 compiler | MSVC from Visual Studio 2022 17.x or Visual Studio 2026; GCC 14 or newer; AppleClang 16 or newer | The code uses `std::expected` and `<span>`. The `linux-gcc-*` presets set the compiler to `g++`, so that is the one used; with an older `g++` on the path, configure with `-DCMAKE_CXX_COMPILER=<path to a newer g++>` |
-| Git | any recent | The vendored vcpkg is a submodule |
+| Git | any recent | vcpkg is cloned from the fork at configure time |
 | PowerShell 7 (`pwsh`) | 7.0 or newer | For the [platform-isolation check](platform-isolation.md#enforcement). Optional: without it the `platform.isolation` test is not registered |
 | Python 3 | | The project's own CMake does not use it. It installs the pinned tools with `pip` (clang-format, clang-tidy, gcovr, MkDocs: the files in `.github/requirements`) and, when someone regenerates the golden payloads by hand, runs `tests/golden/make_golden.py` and `make_golden_615a.py` |
 | clang-tidy | 23.1.3 | Only for the `linux-gcc-tidy` preset: the PyPI wheel pinned in `.github/requirements/static-analysis.txt` ([nightly analysis](static-analysis.md)) |
@@ -27,42 +27,29 @@ for Apple silicon; an Intel Mac is not covered.
 ## Clone
 
 ```sh
-git clone --recurse-submodules https://github.com/iainchesworthlabs/arinc-data-loader
+git clone https://github.com/iainchesworthlabs/arinc-data-loader
 cd arinc-data-loader
 ```
 
-vcpkg is the git submodule `deps/vcpkg` (a fork of vcpkg that the project's organisation keeps), so the
-dependency provider is pinned by the commit and nothing has to be installed
-machine-wide. If you cloned without `--recurse-submodules`, the first configure
-initialises it for you when it finds a `.git` directory; or do it yourself:
+Dependencies come from vcpkg in manifest mode. The manifest's `builtin-baseline` (`vcpkg.json`) names a
+commit of the organisation's vcpkg fork (`iainchesworthlabs/vcpkg`); vcpkg reads the ports of that
+commit from a checkout whose history holds it. `cmake/icl/IclVcpkgRoot.cmake` finds or makes that
+checkout at configure time, so nothing has to be installed machine-wide. It uses the first of these
+that applies:
 
-```sh
-git submodule update --init deps/vcpkg
-```
+1. `-DCMAKE_TOOLCHAIN_FILE=...` (or an IDE that sets it), used as it is.
+2. `ADL_VCPKG_ROOT`, a vcpkg checkout you manage yourself. A different commit from the baseline is a
+   warning, since a baseline newer than the scripts it is built with can fail.
+3. `ADL_VCPKG_STORE`, else `ICL_VCPKG_STORE`: a shared store (below).
+4. `VCPKG_ROOT`, which CI sets.
 
-The submodule is cloned with its whole history (about 125 MB), and not with `--depth 1`. The manifest's
-`builtin-baseline` (`vcpkg.json`) is a vcpkg commit other than the one the submodule pins, and vcpkg
-reads that commit and the older versions of each port out of the submodule's history. In a shallow
-submodule the first configure of a build with tests (the default, which needs Catch2) stops with
-"failed to `git show` versions/baseline.json". If `deps/vcpkg` is shallow already, deepen it and
-configure again:
-
-```sh
-git -C deps/vcpkg fetch --unshallow
-cmake --fresh --preset <name>
-```
-
-A clone made this way needs nothing else for a libraries-only build, and no shared store:
-`cmake --preset <name> -DADL_BUILD_APP=OFF` downloads and builds Catch2 on the first configure and
-needs no Qt.
+With none of them set, a configure that needs vcpkg stops and lists these options. A libraries-only
+build (`cmake --preset <name> -DADL_BUILD_APP=OFF`) still needs vcpkg for Catch2 unless
+`-DADL_BUILD_TESTS=OFF`, and needs no Qt.
 
 ## Sharing vcpkg between checkouts
 
-By default every checkout has its own copy of vcpkg: the `deps/vcpkg`
-submodule. That is what a fresh clone and CI use, and nothing needs setting up.
-If you keep several checkouts or worktrees (or several repositories that use
-vcpkg), that is a lot of copies. Point them at one shared **store** instead;
-set this once per machine, in your environment:
+Set a shared **store** once per machine, in your environment:
 
 ```sh
 # Windows (new terminals and Visual Studio pick it up after a restart)
@@ -71,44 +58,24 @@ setx ICL_VCPKG_STORE C:\icl\vcpkg
 export ICL_VCPKG_STORE=$HOME/.cache/icl/vcpkg
 ```
 
-`ICL_VCPKG_STORE` is read by every Iain Chesworth Labs repository that carries
-the same `cmake/VcpkgRoot.cmake`, so they all share the one directory.
-`ADL_VCPKG_STORE` overrides it for ARINC Data Loader alone.
+`ICL_VCPKG_STORE` is read by every Iain Chesworth Labs repository that vendors `cmake/icl`, so they all
+share the one directory. `ADL_VCPKG_STORE` overrides it for ARINC Data Loader alone.
 
-The first configure clones the fork the submodule points at into
-`<store>/mirror`, and checks out the commit this checkout pins into
-`<store>/<first 12 characters of the commit>`. Every checkout (of this
-repository or another) that pins the same commit uses that directory; when a pin
-moves (a vcpkg bump), the new commit gets a directory of its own, and nothing
-that already exists is touched. That is the point of a directory per commit
-rather than one shared checkout: a checkout of another branch, or a build that
-is running, never has vcpkg change under it. A repository whose submodule points
-at a different fork has its commit fetched into the same mirror. Directories of
-old commits can be deleted when you no longer need them
+The first configure clones the fork into `<store>/mirror` and checks out the baseline commit into
+`<store>/<first 12 characters of the commit>`. Every checkout (of this repository or another) that
+pins the same commit uses that directory; when the baseline moves, the new commit gets a directory of
+its own, and nothing that already exists is touched. That is the point of a directory per commit rather
+than one shared checkout: a checkout of another branch, or a build that is running, never has vcpkg
+change under it. Directories of old commits can be deleted when you no longer need them
 (`git -C <store>/mirror worktree remove <dir>`).
 
-Already have a full clone of your fork somewhere? Set `ICL_VCPKG_MIRROR` (or
-`ADL_VCPKG_MIRROR`) to it and the store makes its checkouts from that instead of
-cloning again.
+Already have a full clone of the fork somewhere? Set `ICL_VCPKG_MIRROR` (or `ADL_VCPKG_MIRROR`) to it
+and the store makes its checkouts from that instead of cloning again.
 
-A build directory remembers the vcpkg it was first configured with, so after
-the pin moves, configure it again with `cmake --fresh --preset <name>` (CMake
-says so). Build artifacts are separate from all this: share the downloads,
-binary cache and installed tree with `VCPKG_DOWNLOADS`,
+A build directory remembers the vcpkg it was first configured with, so after the baseline moves,
+configure it again with `cmake --fresh --preset <name>` (CMake says so). Build artifacts are separate
+from all this: share the downloads, binary cache and installed tree with `VCPKG_DOWNLOADS`,
 `VCPKG_BINARY_SOURCES` and `VCPKG_INSTALLED_DIR`, as vcpkg documents.
-
-Two other ways in, for when the store does not fit:
-
-- `ADL_VCPKG_ROOT` names one vcpkg checkout you manage yourself. There is no
-  organisation-wide equivalent on purpose: one directory cannot be at the commit
-  every repository pins. A different commit from the pin is a warning, since a
-  baseline newer than the scripts it is built with can fail.
-- `-DCMAKE_TOOLCHAIN_FILE=...` (or an IDE that sets it) is used as it is.
-
-Avoid pointing `deps/vcpkg` itself at a shared directory with a junction or
-symlink: deleting that checkout (or a worktree of it) can then empty the shared
-copy for everyone, and a dead link makes git report only that it "cannot find
-the current revision". The configure says which link is dead.
 
 ## First build
 

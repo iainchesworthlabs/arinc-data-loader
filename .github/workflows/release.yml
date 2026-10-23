@@ -181,18 +181,12 @@ jobs:
             qt_host: mac
             qt_arch: clang_64
     steps:
-      # fetch-depth: 0 for vcpkg's version resolution - see ci.yml.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: recursive
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Restore vcpkg binaries
-        id: vcpkg-cache
-        uses: ./.github/actions/vcpkg-cache/restore
-        with:
-          triplet: ${{ matrix.triplet }}
+      - name: Set up vcpkg
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -292,12 +286,10 @@ jobs:
           retention-days: 30
 
       # Saved even when a later step fails - see ci.yml.
-      - name: Save vcpkg binaries
+      - name: Save the vcpkg caches
         if: ${{ always() }}
-        uses: ./.github/actions/vcpkg-cache/save
-        with:
-          triplet: ${{ matrix.triplet }}
-          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+        continue-on-error: true
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
   # The software bill of materials (SPDX and CycloneDX, checked against their schemas), and the
   # directory of files that is signed and published.

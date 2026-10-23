@@ -218,7 +218,7 @@ What it scans: `libs`, `apps`, `tests`, `tools` and `cmake`, and the top-level
 `CMakeLists.txt`. It asks git which files count, so build output and anything
 git ignores are skipped, while a new file that is not yet committed is still
 checked; outside a git work tree it scans everything, and says how many files it
-skipped. `deps/` is not scanned: vcpkg is not first-party code.
+skipped. `cmake/icl/` is not scanned: it is vendored from icl-common-infra.
 
 What it does not do: it is a pattern scan, not a parser. It cannot tell that a
 portable-looking call behaves differently on two systems, and compiler tests in

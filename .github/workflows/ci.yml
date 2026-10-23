@@ -225,25 +225,16 @@ jobs:
         shell: bash
         run: echo "only documentation changed; nothing to do"
 
-      # fetch-depth: 0 is required, not just nice-to-have: with a
-      # builtin-baseline, vcpkg reads historical versions out of the
-      # deps/vcpkg submodule's git history, and checkout's default is a
-      # depth-1 submodule clone that does not have them.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ needs.plan.outputs.code == 'true' }}
         with:
-          submodules: recursive
-          fetch-depth: 0
           persist-credentials: false
 
       # vcpkg's `files` binary-cache provider plus actions/cache (its x-gha
       # provider was removed). Keyed per triplet; see docs/ci.md.
-      - name: Restore vcpkg binaries
+      - name: Set up vcpkg
         if: ${{ needs.plan.outputs.code == 'true' }}
-        id: vcpkg-cache
-        uses: ./.github/actions/vcpkg-cache/restore
-        with:
-          triplet: ${{ matrix.triplet }}
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Install CMake 4 + Ninja
         if: ${{ needs.plan.outputs.code == 'true' }}
@@ -323,14 +314,11 @@ jobs:
           retention-days: 14
 
       # Saved even when a later step fails: otherwise a red leg throws away
-      # every package vcpkg had already built. Only saves when packages were
-      # added since the restore - see .github/actions/vcpkg-cache.
-      - name: Save vcpkg binaries
+      # every package vcpkg had already built.
+      - name: Save the vcpkg caches
         if: ${{ always() && needs.plan.outputs.code == 'true' }}
-        uses: ./.github/actions/vcpkg-cache/save
-        with:
-          triplet: ${{ matrix.triplet }}
-          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+        continue-on-error: true
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
   # Line and branch coverage of the portable code (the libraries, the platform
   # interfaces, the media tree, the samples, the runner and the payload writer),
@@ -359,21 +347,14 @@ jobs:
         shell: bash
         run: echo "only documentation changed; nothing to do"
 
-      # fetch-depth: 0 for vcpkg's version resolution - see build-and-test.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ needs.plan.outputs.code == 'true' }}
         with:
-          submodules: recursive
-          fetch-depth: 0
           persist-credentials: false
 
-      # Same triplet, same archives as the Linux (GCC) leg.
-      - name: Restore vcpkg binaries
+      - name: Set up vcpkg
         if: ${{ needs.plan.outputs.code == 'true' }}
-        id: vcpkg-cache
-        uses: ./.github/actions/vcpkg-cache/restore
-        with:
-          triplet: x64-linux
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Install CMake 4 + Ninja
         if: ${{ needs.plan.outputs.code == 'true' }}
@@ -466,12 +447,10 @@ jobs:
           retention-days: 14
 
       # Saved even when a later step fails - see build-and-test.
-      - name: Save vcpkg binaries
+      - name: Save the vcpkg caches
         if: ${{ always() && needs.plan.outputs.code == 'true' }}
-        uses: ./.github/actions/vcpkg-cache/save
-        with:
-          triplet: x64-linux
-          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+        continue-on-error: true
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
   # The Zephyr platform (libs/platform/zephyr) on native_sim: Zephyr's kernel, its IPv4/UDP
   # stack over its loopback interface and littlefs on simulated flash, built as a host process,
