@@ -28,7 +28,7 @@ ctest --preset windows-msvc-debug -L system
 ctest --preset windows-msvc-debug -L ui        # the tests that load or drive a window
 ```
 
-The `fuzz` label is a fourth: the replay of the fuzzers' seeds and past crashes, registered only by the `linux-fuzz` preset ([Fuzzing](fuzzing.md)).
+The `perf` label marks the benchmarks of the `linux-perf` preset ([Performance](performance.md)). The `fuzz` label is another: the replay of the fuzzers' seeds and past crashes, registered only by the `linux-fuzz` preset ([Fuzzing](fuzzing.md)).
 
 The `ui` label is a second label, beside the tier: the `ui.*` tests, `app.qml`, `media_gen.qml` and
 `mock.qml` carry it. They need the Qt kit.

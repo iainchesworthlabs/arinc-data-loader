@@ -157,6 +157,7 @@ nav:
       - Building: building.md
       - Testing: testing.md
       - Fuzzing: fuzzing.md
+      - Performance: performance.md
       - CI: ci.md
       - Static analysis: static-analysis.md
       - Profiling: profiling.md

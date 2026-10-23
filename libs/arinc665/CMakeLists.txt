@@ -43,6 +43,11 @@ if(ADL_ENABLE_FUZZING)
     add_subdirectory(fuzz)
 endif()
 
+# The micro-benchmarks of this library, when they are asked for (cmake/Perf.cmake).
+if(ADL_BUILD_BENCHMARKS)
+    add_subdirectory(bench)
+endif()
+
 # Only the top-level project installs (cmake/AdlInstall.cmake); a project of its own that builds this
 # library for a target (tests/platform/freertos) has no install rules to add it to.
 if(COMMAND adl_install_library)

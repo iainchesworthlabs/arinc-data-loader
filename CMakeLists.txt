@@ -21,7 +21,7 @@ icl_resolve_vcpkg("${CMAKE_CURRENT_SOURCE_DIR}" ADL)
 # prebuilt dependency found via CMAKE_PREFIX_PATH (see cmake/FindQt6.cmake),
 # not built by vcpkg.
 # ---------------------------------------------------------------------------
-if(NOT DEFINED ADL_BUILD_TESTS OR ADL_BUILD_TESTS)
+if(NOT DEFINED ADL_BUILD_TESTS OR ADL_BUILD_TESTS OR ADL_BUILD_BENCHMARKS)
     list(APPEND VCPKG_MANIFEST_FEATURES "tests")
 endif()
 
@@ -59,6 +59,7 @@ include(CompilerWarnings)
 include(StaticAnalysis)
 include(Sanitizers)
 include(Fuzzing)
+include(Perf)
 # Vendored from icl-common-infra (cmake/icl/SOURCE): ICL_SANITIZERS picks a sanitizer set for every
 # configuration (the linux-asan-ubsan, linux-tsan and windows-msvc-asan presets), and icl::hardening
 # adds the stack protector, control-flow protection, RELRO and the like to every target below.
@@ -104,7 +105,7 @@ add_subdirectory(libs/platform)
 
 # Tests are registered from the source directories too (the translation checks sit beside the
 # catalogues they check), so testing has to be on before any of them is added.
-if(ADL_BUILD_TESTS OR ADL_ENABLE_FUZZING)
+if(ADL_BUILD_TESTS OR ADL_ENABLE_FUZZING OR ADL_BUILD_BENCHMARKS)
     enable_testing()
 endif()
 

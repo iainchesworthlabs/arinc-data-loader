@@ -224,6 +224,15 @@ if(ADL_PWSH)
     set_tests_properties(docs.paths PROPERTIES LABELS "system")
 endif()
 
+# The script that compares the benchmarks with the budget (tools/ci/perf_compare.py) is held to what it
+# promises: a result over the limit, a missing or surplus entry and a few nanoseconds of noise.
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME ci.perf_compare
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_perf_compare.py")
+    set_tests_properties(ci.perf_compare PROPERTIES LABELS "system")
+endif()
+
 # The program that writes the sample media sets: it runs on a directory of its
 # own (emptied first, since it never overwrites), and refuses what it cannot use.
 add_test(NAME tools.write_payloads.clean
