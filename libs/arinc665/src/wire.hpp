@@ -4,6 +4,9 @@
 // library and private to it. Everything is counted in 16-bit words, and every
 // multi-byte value is most significant byte first (section 3.4).
 
+#include "adl/arinc665/check_value.hpp"
+#include "adl/arinc665/error.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -13,10 +16,8 @@
 #include <utility>
 #include <vector>
 
-#include "adl/arinc665/check_value.hpp"
-#include "adl/arinc665/error.hpp"
-
-namespace adl::arinc665::detail {
+namespace adl::arinc665::detail
+{
 
 // The widest a count, a string length or a check value length can be: they are
 // 16-bit fields.
@@ -25,21 +26,37 @@ inline constexpr std::size_t max_field_value = 0xFFFFU;
 // Writes fields to a file. Like a stream, it remembers the first thing that went
 // wrong (a value that does not fit its field): after that ok() is false, and the
 // caller checks status() once at the end.
-class WordWriter {
+class WordWriter
+{
 public:
-    [[nodiscard]] bool ok() const noexcept { return !error_.has_value(); }
-    [[nodiscard]] Result<void> status() const noexcept {
+    [[nodiscard]] bool ok() const noexcept
+    {
+        return !error_.has_value();
+    }
+    [[nodiscard]] Result<void> status() const noexcept
+    {
         return error_ ? Result<void>{std::unexpected{*error_}} : Result<void>{};
     }
-    void fail(Error error) noexcept {
-        if (!error_) {
+    void fail(Error error) noexcept
+    {
+        if (!error_)
+        {
             error_ = error;
         }
     }
 
-    [[nodiscard]] std::size_t words() const noexcept { return bytes_.size() / 2; }
-    [[nodiscard]] std::span<const std::byte> view() const noexcept { return bytes_; }
-    [[nodiscard]] std::vector<std::byte> take() noexcept { return std::move(bytes_); }
+    [[nodiscard]] std::size_t words() const noexcept
+    {
+        return bytes_.size() / 2;
+    }
+    [[nodiscard]] std::span<const std::byte> view() const noexcept
+    {
+        return bytes_;
+    }
+    [[nodiscard]] std::vector<std::byte> take() noexcept
+    {
+        return std::move(bytes_);
+    }
 
     void u16(std::uint16_t value);
     void u32(std::uint32_t value);
@@ -78,18 +95,32 @@ private:
 // Reads fields from a file. Like a stream, it remembers the first thing that went
 // wrong: after that every read returns zero or empty, and ok() is false, so a
 // decoder can read a whole section and check once at the end.
-class WordReader {
+class WordReader
+{
 public:
     explicit WordReader(std::span<const std::byte> data) noexcept : data_(data) {}
 
-    [[nodiscard]] bool ok() const noexcept { return !error_.has_value(); }
-    [[nodiscard]] Error error() const noexcept { return error_.value_or(Error::truncated); }
-    [[nodiscard]] Result<void> status() const noexcept {
+    [[nodiscard]] bool ok() const noexcept
+    {
+        return !error_.has_value();
+    }
+    [[nodiscard]] Error error() const noexcept
+    {
+        return error_.value_or(Error::truncated);
+    }
+    [[nodiscard]] Result<void> status() const noexcept
+    {
         return error_ ? Result<void>{std::unexpected{*error_}} : Result<void>{};
     }
 
-    [[nodiscard]] std::size_t size_words() const noexcept { return data_.size() / 2; }
-    [[nodiscard]] std::size_t position() const noexcept { return position_ / 2; }
+    [[nodiscard]] std::size_t size_words() const noexcept
+    {
+        return data_.size() / 2;
+    }
+    [[nodiscard]] std::size_t position() const noexcept
+    {
+        return position_ / 2;
+    }
 
     // Moves to `word`; the end of the data is a valid place to be. Anywhere
     // past it is Error::bad_pointer.
@@ -106,15 +137,17 @@ public:
     [[nodiscard]] OptionalCheckValue check_value();
 
     // Records `error` as the first failure, if there is not one already.
-    void fail(Error error) noexcept {
-        if (!error_) {
+    void fail(Error error) noexcept
+    {
+        if (!error_)
+        {
             error_ = error;
         }
     }
 
 private:
     std::span<const std::byte> data_;
-    std::size_t position_ = 0;  // bytes
+    std::size_t position_ = 0; // bytes
     std::optional<Error> error_;
 };
 
@@ -122,4 +155,4 @@ private:
 [[nodiscard]] std::uint16_t crc16(std::span<const std::byte> data) noexcept;
 [[nodiscard]] std::uint32_t crc32(std::span<const std::byte> data) noexcept;
 
-}  // namespace adl::arinc665::detail
+} // namespace adl::arinc665::detail

@@ -7,40 +7,46 @@
 // Zephyr's loopback interface. It prints one "SMOKE:" line per check and ends with the count of
 // failures, which tools/ci/zephyr_qemu_smoke.sh reads.
 
+#include "adl/platform/host.hpp"
+
+#include <zephyr/kernel.h>
+
 #include <array>
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
 
-#include "adl/platform/host.hpp"
-
-#include <zephyr/kernel.h>
-
 using namespace adl::platform;
 using namespace std::chrono_literals;
 
-namespace {
+namespace
+{
 
 std::atomic<int> threads_run{0};
 int failures = 0;
 
-void check(bool ok, const char* what) {
+void check(bool ok, const char* what)
+{
     std::printf("SMOKE: %s %s\n", ok ? "ok  " : "FAIL", what);
-    if (!ok) {
+    if (!ok)
+    {
         ++failures;
     }
 }
 
-void worker(void* argument) noexcept {
+void worker(void* argument) noexcept
+{
     threads_run.fetch_add(1);
     (void)static_cast<Semaphore*>(argument)->post();
 }
 
-}  // namespace
+} // namespace
 
-int main() {
+int main()
+{
     auto made = make_host();
-    if (!made) {
+    if (!made)
+    {
         std::printf("SMOKE: FAIL no host\n");
         std::printf("SMOKE: 1 failure(s)\n");
         return 1;
@@ -57,9 +63,11 @@ int main() {
 
     auto semaphore = host.threads().create_semaphore(0, 8);
     check(semaphore.has_value(), "a semaphore is made");
-    if (semaphore) {
-        for (const Priority level : {Priority::lowest, Priority::low, Priority::normal,
-                                     Priority::high, Priority::highest}) {
+    if (semaphore)
+    {
+        for (const Priority level :
+             {Priority::lowest, Priority::low, Priority::normal, Priority::high, Priority::highest})
+        {
             ThreadSpec spec;
             spec.priority = level;
             spec.entry = &worker;
@@ -74,7 +82,8 @@ int main() {
 
     auto mutex = host.threads().create_mutex();
     check(mutex.has_value(), "a mutex is made");
-    if (mutex) {
+    if (mutex)
+    {
         (*mutex)->lock();
         check(!(*mutex)->try_lock(), "try_lock by the holder fails");
         (*mutex)->unlock();
@@ -94,20 +103,19 @@ int main() {
     auto first = host.network().open_udp(options);
     auto second = host.network().open_udp(options);
     check(first.has_value() && second.has_value(), "two UDP sockets are opened");
-    if (first && second) {
+    if (first && second)
+    {
         std::array<std::byte, 1400> payload{};
         payload[0] = std::byte{42};
         payload[1399] = std::byte{7};
-        check((*first)->send_to((*second)->local_endpoint(), payload).has_value(),
-              "a 1400 byte datagram is sent");
+        check((*first)->send_to((*second)->local_endpoint(), payload).has_value(), "a 1400 byte datagram is sent");
         std::array<std::byte, 2000> in{};
         const auto got = (*second)->receive_from(in, 2s);
         check(got.has_value() && got->size == 1400 && !got->truncated && in[0] == std::byte{42} &&
                   in[1399] == std::byte{7},
               "it arrives whole");
         const auto none = (*second)->receive_from(in, 50ms);
-        check(!none.has_value() && none.error().code == ErrorCode::timeout,
-              "a receive with nothing to read times out");
+        check(!none.has_value() && none.error().code == ErrorCode::timeout, "a receive with nothing to read times out");
     }
 
     std::printf("SMOKE: %d failure(s)\n", failures);

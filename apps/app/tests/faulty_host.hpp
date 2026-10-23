@@ -8,10 +8,12 @@
 #include "fake_host.hpp"
 #include "faulty_files.hpp"
 
-namespace adl::test {
+namespace adl::test
+{
 
 // The network of another host, with the calls a test can fail.
-class FaultyNetwork final : public adl::platform::Network {
+class FaultyNetwork final : public adl::platform::Network
+{
 public:
     explicit FaultyNetwork(adl::platform::Network& inner) : inner_(inner) {}
 
@@ -19,42 +21,79 @@ public:
     std::optional<adl::platform::ErrorCode> open_fails;
     std::optional<adl::platform::ErrorCode> wait_fails;
 
-    adl::platform::Result<adl::platform::Owned<adl::platform::UdpSocket>> open_udp(
-        const adl::platform::UdpOptions& options) noexcept override {
-        if (open_fails) {
+    adl::platform::Result<adl::platform::Owned<adl::platform::UdpSocket>>
+    open_udp(const adl::platform::UdpOptions& options) noexcept override
+    {
+        if (open_fails)
+        {
             return adl::platform::fail(*open_fails);
         }
         return inner_.open_udp(options);
     }
-    adl::platform::Result<std::size_t> wait_readable(
-        std::span<adl::platform::UdpSocket* const> sockets, adl::platform::Duration timeout,
-        std::span<bool> ready) noexcept override {
-        if (wait_fails) {
+    adl::platform::Result<std::size_t> wait_readable(std::span<adl::platform::UdpSocket* const> sockets,
+                                                     adl::platform::Duration timeout,
+                                                     std::span<bool> ready) noexcept override
+    {
+        if (wait_fails)
+        {
             return adl::platform::fail(*wait_fails);
         }
         return inner_.wait_readable(sockets, timeout, ready);
     }
-    std::size_t max_datagram_bytes() const noexcept override { return inner_.max_datagram_bytes(); }
+    std::size_t max_datagram_bytes() const noexcept override
+    {
+        return inner_.max_datagram_bytes();
+    }
 
 private:
     adl::platform::Network& inner_;
 };
 
-class FaultyHost final : public adl::platform::Host {
+class FaultyHost final : public adl::platform::Host
+{
 public:
     explicit FaultyHost(adl::fake::FakeHost& inner)
-        : inner_(inner), network_(inner.network()), files_(inner.fake_files()) {}
+        : inner_(inner), network_(inner.network()), files_(inner.fake_files())
+    {
+    }
 
-    adl::platform::HostInfo info() const noexcept override { return inner_.info(); }
-    adl::platform::Clock& clock() noexcept override { return inner_.clock(); }
-    adl::platform::MemoryProvider& memory() noexcept override { return inner_.memory(); }
-    adl::platform::FileSystem& files() noexcept override { return files_; }
-    adl::platform::Threading& threads() noexcept override { return inner_.threads(); }
-    adl::platform::Network& network() noexcept override { return network_; }
-    adl::platform::Ipc& ipc() noexcept override { return inner_.ipc(); }
+    adl::platform::HostInfo info() const noexcept override
+    {
+        return inner_.info();
+    }
+    adl::platform::Clock& clock() noexcept override
+    {
+        return inner_.clock();
+    }
+    adl::platform::MemoryProvider& memory() noexcept override
+    {
+        return inner_.memory();
+    }
+    adl::platform::FileSystem& files() noexcept override
+    {
+        return files_;
+    }
+    adl::platform::Threading& threads() noexcept override
+    {
+        return inner_.threads();
+    }
+    adl::platform::Network& network() noexcept override
+    {
+        return network_;
+    }
+    adl::platform::Ipc& ipc() noexcept override
+    {
+        return inner_.ipc();
+    }
 
-    [[nodiscard]] FaultyNetwork& faulty_network() noexcept { return network_; }
-    [[nodiscard]] FaultyFileSystem& faulty_files() noexcept { return files_; }
+    [[nodiscard]] FaultyNetwork& faulty_network() noexcept
+    {
+        return network_;
+    }
+    [[nodiscard]] FaultyFileSystem& faulty_files() noexcept
+    {
+        return files_;
+    }
 
 private:
     adl::fake::FakeHost& inner_;
@@ -62,4 +101,4 @@ private:
     FaultyFileSystem files_;
 };
 
-}  // namespace adl::test
+} // namespace adl::test

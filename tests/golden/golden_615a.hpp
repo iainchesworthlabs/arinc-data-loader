@@ -6,14 +6,14 @@
 
 #include <string_view>
 
-namespace adl::test::golden {
+namespace adl::test::golden
+{
 
 inline constexpr std::string_view rrq_lui_hex =
     "0001484e50464d535f4c2e4c5549006f6374657400626c6b73697a650031303234007473697a65003000706f7274"
     "003136313500";
 
-inline constexpr std::string_view rrq_checksum_hex =
-    "00014150502e4c5550006f6374657400636865636b73756d5f32004231433200";
+inline constexpr std::string_view rrq_checksum_hex = "00014150502e4c5550006f6374657400636865636b73756d5f32004231433200";
 
 inline constexpr std::string_view wrq_lus_hex =
     "0002484e50464d535f4c2e4c5553006f6374657400626c6b73697a650031343030007473697a650038370074696d"
@@ -21,8 +21,7 @@ inline constexpr std::string_view wrq_lus_hex =
 
 inline constexpr std::string_view wrq_plain_hex = "0002484e50464d535f4c2e4c4353006f6374657400";
 
-inline constexpr std::string_view oack_hex =
-    "0006626c6b73697a65003130323400636865636b73756d5f3300444541444245454600";
+inline constexpr std::string_view oack_hex = "0006626c6b73697a65003130323400636865636b73756d5f3300444541444245454600";
 
 inline constexpr std::string_view ack_0_hex = "00040000";
 
@@ -39,20 +38,17 @@ inline constexpr std::string_view error_wait_hex = "00050000574149543a353000";
 
 inline constexpr std::string_view error_abort_hex = "0005000041424f52543a3130303400";
 
-inline constexpr std::string_view error_file_not_found_hex =
-    "0005000146696c65206e6f7420666f756e6400";
+inline constexpr std::string_view error_file_not_found_hex = "0005000146696c65206e6f7420666f756e6400";
 
 inline constexpr std::string_view find_request_hex = "00010010";
 
-inline constexpr std::string_view find_answer_hex =
-    "0002484e50464d5300464d53004c00464d53204c45465400484e500010";
+inline constexpr std::string_view find_answer_hex = "0002484e50464d5300464d53004c00464d53204c45465400484e500010";
 
 inline constexpr std::string_view find_answer_empty_hex = "0002000000000010";
 
 inline constexpr std::string_view initialization_accepted_hex = "000000094134000100";
 
-inline constexpr std::string_view initialization_denied_hex =
-    "00000016413410000d42757379206c6f6164696e6700";
+inline constexpr std::string_view initialization_denied_hex = "00000016413410000d42757379206c6f6164696e6700";
 
 inline constexpr std::string_view configuration_list_hex =
     "000000804134000209464d53204c4546540007534e303030310000020c484e502d48572d30303031000241000846"
@@ -73,8 +69,7 @@ inline constexpr std::string_view upload_status_hex =
     "4d34372d313233342d35363738003130300003000a41434d34382e4c5548001041434d34462d353535352d363636"
     "360020203500040845726173696e6700";
 
-inline constexpr std::string_view upload_status_start_hex =
-    "0000001441340001000000000000002020300000";
+inline constexpr std::string_view upload_status_start_hex = "0000001441340001000000000000002020300000";
 
 inline constexpr std::string_view download_request_hex =
     "0000002241340002094c4f47312e42494e0004deadbeef094c4f47322e42494e0000";
@@ -86,7 +81,6 @@ inline constexpr std::string_view download_status_hex =
 inline constexpr std::string_view download_list_hex =
     "0000002e41340002094c4f47312e42494e00104d61696e74656e616e6365206c6f6700094c4f47322e42494e0000";
 
-inline constexpr std::string_view download_answer_hex =
-    "0000001c41340002094c4f47312e42494e00094c4f47322e42494e00";
+inline constexpr std::string_view download_answer_hex = "0000001c41340002094c4f47312e42494e00094c4f47322e42494e00";
 
-}  // namespace adl::test::golden
+} // namespace adl::test::golden

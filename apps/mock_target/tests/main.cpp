@@ -1,11 +1,12 @@
 // QtTest has one main per executable; this one runs every test class and fails if any does.
 
+#include "test_classes.hpp"
+
 #include <QCoreApplication>
 #include <QTest>
 
-#include "test_classes.hpp"
-
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     QCoreApplication application(argc, argv);
     int failed = 0;
     {

@@ -6,6 +6,14 @@
 // demonstrations on real UDP sockets and is tested headless. It is deliberately minimal and
 // single-threaded: the engine calls it from its one thread, and nothing here starts a thread.
 
+#include "adl/arinc615a/endpoint.hpp"
+#include "adl/arinc615a/time.hpp"
+#include "adl/platform/error.hpp"
+#include "adl/platform/host.hpp"
+#include "adl/platform/network.hpp"
+#include "adl/platform/owned.hpp"
+#include "adl/platform/time.hpp"
+
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -16,19 +24,13 @@
 #include <string>
 #include <vector>
 
-#include "adl/arinc615a/endpoint.hpp"
-#include "adl/arinc615a/time.hpp"
-#include "adl/platform/error.hpp"
-#include "adl/platform/host.hpp"
-#include "adl/platform/network.hpp"
-#include "adl/platform/owned.hpp"
-#include "adl/platform/time.hpp"
-
-namespace adl::mock {
+namespace adl::mock
+{
 
 class MockEngine;
 
-class TargetLink {
+class TargetLink
+{
 public:
     virtual ~TargetLink() = default;
 
@@ -61,8 +63,8 @@ public:
 
     // Receives one datagram queued for `port` without waiting, if there is one. False when
     // there is none (or the datagram was larger than `out` and has been dropped).
-    virtual bool receive(std::uint16_t port, adl::arinc615a::Endpoint& from,
-                         std::span<std::byte> out, std::size_t& size) = 0;
+    virtual bool receive(std::uint16_t port, adl::arinc615a::Endpoint& from, std::span<std::byte> out,
+                         std::size_t& size) = 0;
 
     // The clock of the link: the platform's monotonic clock, or the fake world's.
     [[nodiscard]] virtual adl::arinc615a::Instant now() const noexcept = 0;
@@ -82,15 +84,16 @@ public:
 // waits on all of them with Network::wait_readable, and keeps the after() callbacks in a
 // min-heap of deadlines that wait() fires as they fall due. It owns the Host, which the
 // factory made on the engine's thread (once per session, like the application's).
-class RealTargetLink final : public TargetLink {
+class RealTargetLink final : public TargetLink
+{
 public:
     explicit RealTargetLink(std::unique_ptr<adl::platform::Host> host) : host_(std::move(host)) {}
 
-    void send(std::uint16_t from_port, const adl::arinc615a::Endpoint& to,
-              std::span<const std::byte> payload) override;
+    void send(std::uint16_t from_port, const adl::arinc615a::Endpoint& to, std::span<const std::byte> payload) override;
     void after(adl::arinc615a::Duration delay, std::function<void()> action) override;
     bool bind(std::uint16_t port, std::string& error) override;
-    void set_local_address(const adl::arinc615a::Address& address) noexcept override {
+    void set_local_address(const adl::arinc615a::Address& address) noexcept override
+    {
         local_ = adl::platform::Ipv4Address{address.octets};
     }
     [[nodiscard]] std::vector<std::uint16_t> ports() const override;
@@ -98,8 +101,12 @@ public:
     bool receive(std::uint16_t port, adl::arinc615a::Endpoint& from, std::span<std::byte> out,
                  std::size_t& size) override;
     [[nodiscard]] adl::arinc615a::Instant now() const noexcept override;
-    void request_stop() noexcept override { stop_.store(true, std::memory_order_release); }
-    [[nodiscard]] bool stop_requested() const noexcept override {
+    void request_stop() noexcept override
+    {
+        stop_.store(true, std::memory_order_release);
+    }
+    [[nodiscard]] bool stop_requested() const noexcept override
+    {
         return stop_.load(std::memory_order_acquire);
     }
 
@@ -114,4 +121,4 @@ private:
     std::atomic<bool> stop_{false};
 };
 
-}  // namespace adl::mock
+} // namespace adl::mock

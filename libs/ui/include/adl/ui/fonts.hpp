@@ -1,6 +1,7 @@
 #pragma once
 
-namespace adl::ui {
+namespace adl::ui
+{
 
 // Registers the bundled Archivo faces and makes Archivo the application's default typeface, and
 // registers the Noto Sans Hebrew faces LanguageManager switches to for Hebrew and Yiddish.
@@ -9,4 +10,4 @@ namespace adl::ui {
 // font.
 void register_fonts();
 
-}  // namespace adl::ui
+} // namespace adl::ui

@@ -2,9 +2,6 @@
 // lengths, a 16-bit pointer to the next entry. These put a payload on each side of
 // each limit.
 
-#include <catch2/catch_test_macros.hpp>
-#include <string>
-
 #include "adl/arinc665/batch_file.hpp"
 #include "adl/arinc665/header_file.hpp"
 #include "adl/arinc665/load.hpp"
@@ -12,12 +9,18 @@
 #include "adl/arinc665/media_set.hpp"
 #include "bytes.hpp"
 
+#include <catch2/catch_test_macros.hpp>
+
+#include <string>
+
 using namespace adl::arinc665;
 using adl::test::bytes_of;
 
-namespace {
+namespace
+{
 
-HeaderFile small_header() {
+HeaderFile small_header()
+{
     HeaderFile header;
     header.load_part_number = PartNumber{"ACM47-1234-5678"};
     header.target_hardware_ids = {"ACME"};
@@ -25,9 +28,10 @@ HeaderFile small_header() {
     return header;
 }
 
-}  // namespace
+} // namespace
 
-TEST_CASE("a text field can be 65535 characters and not one more", "[limits]") {
+TEST_CASE("a text field can be 65535 characters and not one more", "[limits]")
+{
     auto header = small_header();
 
     header.load_type = LoadType{std::string(65'535, 'D'), 1};
@@ -41,7 +45,8 @@ TEST_CASE("a text field can be 65535 characters and not one more", "[limits]") {
     CHECK(encode_header_file(header).error() == Error::field_too_large);
 }
 
-TEST_CASE("a count can be 65535 and not one more", "[limits]") {
+TEST_CASE("a count can be 65535 and not one more", "[limits]")
+{
     auto header = small_header();
 
     header.target_hardware_ids.assign(65'535, "ACME");
@@ -55,7 +60,8 @@ TEST_CASE("a count can be 65535 and not one more", "[limits]") {
     CHECK(encode_header_file(header).error() == Error::field_too_large);
 }
 
-TEST_CASE("a pointer to the next entry reaches 65535 words and no further", "[limits]") {
+TEST_CASE("a pointer to the next entry reaches 65535 words and no further", "[limits]")
+{
     // An entry is its pointer, its text and its numbers. With names and part numbers of the
     // greatest length an entry is too long for the 16-bit pointer that opens it.
     auto header = small_header();
@@ -75,33 +81,34 @@ TEST_CASE("a pointer to the next entry reaches 65535 words and no further", "[li
     CHECK(decoded->data_files[1].file_name.size() == 65'535);
 }
 
-TEST_CASE("a check value fills at most 65531 bytes of its 16-bit length", "[limits]") {
+TEST_CASE("a check value fills at most 65531 bytes of its 16-bit length", "[limits]")
+{
     auto header = small_header();
 
     // The length counts itself and the type, so the value can be 65535 - 4, rounded down
     // to whole words.
-    header.load_check_value =
-        CheckValue{static_cast<CheckValueType>(200), std::vector<std::byte>(65'530)};
+    header.load_check_value = CheckValue{static_cast<CheckValueType>(200), std::vector<std::byte>(65'530)};
     CHECK(encode_header_file(header).has_value());
 
-    header.load_check_value =
-        CheckValue{static_cast<CheckValueType>(200), std::vector<std::byte>(65'532)};
+    header.load_check_value = CheckValue{static_cast<CheckValueType>(200), std::vector<std::byte>(65'532)};
     CHECK(encode_header_file(header).error() == Error::field_too_large);
 }
 
-TEST_CASE("a load of many files builds, reads and verifies", "[limits]") {
+TEST_CASE("a load of many files builds, reads and verifies", "[limits]")
+{
     LoadSpec spec;
     spec.header_file_name = "ACM80.LUH";
     spec.part_number = PartNumber{"ACM80-1234-5678"};
     spec.target_hardware_ids = {"ACME"};
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 1000; ++i)
+    {
         const std::string name = "FILE" + std::to_string(i) + ".LUP";
-        spec.data_files.push_back(
-            {name, PartNumber{}, bytes_of(name + name), CheckValueType::crc16});
+        spec.data_files.push_back({name, PartNumber{}, bytes_of(name + name), CheckValueType::crc16});
     }
-    for (int i = 0; i < 300; ++i) {
-        spec.support_files.push_back({"S" + std::to_string(i) + ".TXT", PartNumber{},
-                                      bytes_of("support"), CheckValueType::none});
+    for (int i = 0; i < 300; ++i)
+    {
+        spec.support_files.push_back(
+            {"S" + std::to_string(i) + ".TXT", PartNumber{}, bytes_of("support"), CheckValueType::none});
     }
     spec.load_check_type = CheckValueType::sha1;
 
@@ -116,13 +123,15 @@ TEST_CASE("a load of many files builds, reads and verifies", "[limits]") {
     CHECK(*decoded == load->header);
 }
 
-TEST_CASE("a large file is covered by its CRC and check value", "[limits]") {
+TEST_CASE("a large file is covered by its CRC and check value", "[limits]")
+{
     LoadSpec spec;
     spec.header_file_name = "ACM81.LUH";
     spec.part_number = PartNumber{"ACM81-1234-5678"};
     spec.target_hardware_ids = {"ACME"};
     std::vector<std::byte> big(3 * 1024 * 1024);
-    for (std::size_t i = 0; i < big.size(); ++i) {
+    for (std::size_t i = 0; i < big.size(); ++i)
+    {
         big[i] = static_cast<std::byte>((i * 31U + i / 251U) & 0xFFU);
     }
     spec.data_files.push_back({"BIG.LUP", PartNumber{}, big, CheckValueType::sha1});
@@ -139,19 +148,22 @@ TEST_CASE("a large file is covered by its CRC and check value", "[limits]") {
     CHECK(verify_load(damaged).error() == Error::bad_crc);
 }
 
-TEST_CASE("a media set of many loads and files builds and reads", "[limits]") {
+TEST_CASE("a media set of many loads and files builds and reads", "[limits]")
+{
     MediaSetSpec set_spec;
     set_spec.media_set_part_number = PartNumber{"BIG-SET"};
     set_spec.number_of_members = 3;
-    for (int i = 0; i < 40; ++i) {
+    for (int i = 0; i < 40; ++i)
+    {
         LoadSpec spec;
         spec.header_file_name = "ACM" + std::to_string(100 + i) + ".LUH";
         spec.part_number = PartNumber{"ACM47-" + std::to_string(1000 + i) + "-0001"};
         spec.target_hardware_ids = {"ACME", "0A2B"};
-        for (int j = 0; j < 5; ++j) {
+        for (int j = 0; j < 5; ++j)
+        {
             const std::string name = "D" + std::to_string(j) + ".LUP";
-            spec.data_files.push_back({name, PartNumber{}, bytes_of(spec.header_file_name + name),
-                                       CheckValueType::crc32});
+            spec.data_files.push_back(
+                {name, PartNumber{}, bytes_of(spec.header_file_name + name), CheckValueType::crc32});
         }
         PlacedLoad placed;
         placed.load = build_load(spec).value();
@@ -169,16 +181,18 @@ TEST_CASE("a media set of many loads and files builds and reads", "[limits]") {
     CHECK(set->files_list.files.size() == 3 + 40 * 6);
 }
 
-TEST_CASE("a batch of many targets and loads reads back", "[limits]") {
+TEST_CASE("a batch of many targets and loads reads back", "[limits]")
+{
     BatchFile batch;
     batch.batch_part_number = PartNumber{"ACM4C-0100-0200"};
     batch.comment = std::string(5000, 'c');
-    for (int i = 0; i < 200; ++i) {
+    for (int i = 0; i < 200; ++i)
+    {
         BatchTarget target;
         target.target_hardware_id_position = "ACME-" + std::to_string(i);
-        for (int j = 0; j < 10; ++j) {
-            target.loads.push_back(
-                {"ACM" + std::to_string(j) + ".LUH", PartNumber{"ACM47-1234-5678"}});
+        for (int j = 0; j < 10; ++j)
+        {
+            target.loads.push_back({"ACM" + std::to_string(j) + ".LUH", PartNumber{"ACM47-1234-5678"}});
         }
         batch.targets.push_back(std::move(target));
     }
@@ -191,11 +205,12 @@ TEST_CASE("a batch of many targets and loads reads back", "[limits]") {
     CHECK(*decoded == batch);
 }
 
-TEST_CASE("a file list with a long path and name reads back", "[limits]") {
+TEST_CASE("a file list with a long path and name reads back", "[limits]")
+{
     FilesList list;
     list.identity = MediaSetIdentity{PartNumber{"SET"}, 1, 1};
     FilesListEntry entry;
-    entry.file_name = std::string(255, 'F');  // the longest file name section 2.2.2 allows
+    entry.file_name = std::string(255, 'F'); // the longest file name section 2.2.2 allows
     entry.pathname = "\\" + std::string(200, 'A') + "\\" + std::string(200, 'B') + "\\";
     list.files.assign(50, entry);
 

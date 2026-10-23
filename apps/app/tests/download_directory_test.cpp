@@ -1,31 +1,34 @@
-#include <string>
-
-#include <QTest>
-
 #include "adl/app/download_directory.hpp"
 #include "fake_storage.hpp"
 #include "faulty_files.hpp"
 #include "test_classes.hpp"
 
+#include <QTest>
+#include <string>
+
 using namespace adl::app;
 using adl::platform::ErrorCode;
 using adl::platform::FileKind;
 
-namespace {
+namespace
+{
 
-bool is_directory(adl::platform::FileSystem& files, std::string_view path) {
+bool is_directory(adl::platform::FileSystem& files, std::string_view path)
+{
     const auto info = files.stat(path);
     return info.has_value() && info->kind == FileKind::directory;
 }
 
-}  // namespace
+} // namespace
 
-void DownloadDirectoryTest::the_directory_is_named_after_the_target_and_a_number() {
+void DownloadDirectoryTest::the_directory_is_named_after_the_target_and_a_number()
+{
     QCOMPARE(download_directory_name("HNPFMS_L", 1), std::string("DNLD_DATA_HNPFMS_L_1"));
     QCOMPARE(download_directory_name("A", 12), std::string("DNLD_DATA_A_12"));
 }
 
-void DownloadDirectoryTest::only_an_id_that_can_name_a_directory_can_be_downloaded_from() {
+void DownloadDirectoryTest::only_an_id_that_can_name_a_directory_can_be_downloaded_from()
+{
     QVERIFY(can_download_from("HNPFMS_L"));
     QVERIFY(can_download_from("A"));
     QVERIFY(can_download_from("pos 2"));
@@ -44,18 +47,20 @@ void DownloadDirectoryTest::only_an_id_that_can_name_a_directory_can_be_download
     QVERIFY(!can_download_from("caf\xC3\xA9"));
 }
 
-void DownloadDirectoryTest::a_chain_of_directories_is_made_and_a_directory_is_left_alone() {
+void DownloadDirectoryTest::a_chain_of_directories_is_made_and_a_directory_is_left_alone()
+{
     adl::fake::MemoryFileSystem files;
     QVERIFY(make_directory_chain(files, "/a/b/c").has_value());
     QVERIFY(is_directory(files, "/a"));
     QVERIFY(is_directory(files, "/a/b"));
     QVERIFY(is_directory(files, "/a/b/c"));
     files.put("/a/b/c/keep.txt", "kept");
-    QVERIFY(make_directory_chain(files, "/a/b/c").has_value());  // there already
+    QVERIFY(make_directory_chain(files, "/a/b/c").has_value()); // there already
     QVERIFY(files.get("/a/b/c/keep.txt").has_value());
 }
 
-void DownloadDirectoryTest::a_chain_says_why_it_could_not_be_made() {
+void DownloadDirectoryTest::a_chain_says_why_it_could_not_be_made()
+{
     adl::fake::MemoryFileSystem memory;
     adl::test::FaultyFileSystem files(memory);
 
@@ -89,11 +94,14 @@ void DownloadDirectoryTest::a_chain_says_why_it_could_not_be_made() {
     // Another loader made the directory first: it is there, which is what was wanted. If what
     // took the name is not a directory, it is not.
     files.make_directory_fails.clear();
-    files.before_make_directory = [&](std::string_view path) {
-        if (path == "/race") {
+    files.before_make_directory = [&](std::string_view path)
+    {
+        if (path == "/race")
+        {
             static_cast<void>(memory.make_directory("/race"));
         }
-        if (path == "/race-file") {
+        if (path == "/race-file")
+        {
             memory.put("/race-file", "a file took the name");
         }
     };
@@ -104,7 +112,8 @@ void DownloadDirectoryTest::a_chain_says_why_it_could_not_be_made() {
     QVERIFY(chain.error().text().contains(QStringLiteral("cannot create /race-file")));
 }
 
-void DownloadDirectoryTest::a_download_directory_takes_the_lowest_free_number() {
+void DownloadDirectoryTest::a_download_directory_takes_the_lowest_free_number()
+{
     adl::fake::MemoryFileSystem files;
     auto made = make_download_directory(files, "/dl/here", "HNPFMS_L");
     QVERIFY(made.has_value());
@@ -128,13 +137,16 @@ void DownloadDirectoryTest::a_download_directory_takes_the_lowest_free_number() 
     QCOMPARE(*made, std::string("/dl/here/DNLD_DATA_HNPFMS_L_4"));
 }
 
-void DownloadDirectoryTest::a_number_taken_between_looking_and_making_is_not_an_error() {
+void DownloadDirectoryTest::a_number_taken_between_looking_and_making_is_not_an_error()
+{
     adl::fake::MemoryFileSystem memory;
     adl::test::FaultyFileSystem files(memory);
     // Two loaders look at the same time: by the time this one makes number 1, the other has.
     int races = 0;
-    files.before_make_directory = [&](std::string_view path) {
-        if (path.ends_with("/DNLD_DATA_HNPFMS_L_1") || path.ends_with("/DNLD_DATA_HNPFMS_L_2")) {
+    files.before_make_directory = [&](std::string_view path)
+    {
+        if (path.ends_with("/DNLD_DATA_HNPFMS_L_1") || path.ends_with("/DNLD_DATA_HNPFMS_L_2"))
+        {
             ++races;
             static_cast<void>(memory.make_directory(path));
         }
@@ -143,11 +155,12 @@ void DownloadDirectoryTest::a_number_taken_between_looking_and_making_is_not_an_
     QVERIFY(made.has_value());
     QCOMPARE(races, 2);
     QCOMPARE(*made, std::string("/dl/DNLD_DATA_HNPFMS_L_3"));
-    QVERIFY(is_directory(memory, "/dl/DNLD_DATA_HNPFMS_L_1"));  // the other loader's, untouched
+    QVERIFY(is_directory(memory, "/dl/DNLD_DATA_HNPFMS_L_1")); // the other loader's, untouched
     QVERIFY(is_directory(memory, "/dl/DNLD_DATA_HNPFMS_L_2"));
 }
 
-void DownloadDirectoryTest::a_download_directory_says_why_it_could_not_be_made() {
+void DownloadDirectoryTest::a_download_directory_says_why_it_could_not_be_made()
+{
     adl::fake::MemoryFileSystem memory;
     adl::test::FaultyFileSystem files(memory);
 
@@ -177,7 +190,8 @@ void DownloadDirectoryTest::a_download_directory_says_why_it_could_not_be_made()
     QVERIFY(made.error().text().contains(QStringLiteral("download folders")));
 }
 
-void DownloadDirectoryTest::only_an_empty_directory_is_removed() {
+void DownloadDirectoryTest::only_an_empty_directory_is_removed()
+{
     adl::fake::MemoryFileSystem memory;
     adl::test::FaultyFileSystem files(memory);
 

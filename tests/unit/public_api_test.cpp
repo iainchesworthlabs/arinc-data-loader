@@ -3,16 +3,6 @@
 // protocol field show, so every one of them is named here rather than only the paths the larger
 // tests happen to take.
 
-#include <array>
-#include <chrono>
-#include <cstddef>
-#include <cstdint>
-#include <span>
-#include <string_view>
-#include <vector>
-
-#include <catch2/catch_test_macros.hpp>
-
 #include "adl/arinc615a/checksum.hpp"
 #include "adl/arinc615a/data_loader.hpp"
 #include "adl/arinc615a/error.hpp"
@@ -23,27 +13,43 @@
 #include "adl/arinc665/crc.hpp"
 #include "adl/arinc665/error.hpp"
 
-namespace {
+#include <catch2/catch_test_macros.hpp>
+
+#include <array>
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <span>
+#include <string_view>
+#include <vector>
+
+namespace
+{
 
 using adl::arinc615a::Duration;
 using adl::arinc615a::Instant;
 
-[[nodiscard]] std::vector<std::byte> bytes_of(std::string_view text) {
+[[nodiscard]] std::vector<std::byte> bytes_of(std::string_view text)
+{
     std::vector<std::byte> bytes(text.size());
-    for (std::size_t i = 0; i < text.size(); ++i) {
+    for (std::size_t i = 0; i < text.size(); ++i)
+    {
         bytes[i] = static_cast<std::byte>(text[i]);
     }
     return bytes;
 }
 
 // The listener with no overrides: every default has to be callable and harmless.
-class SilentListener final : public adl::arinc615a::OperationListener {};
+class SilentListener final : public adl::arinc615a::OperationListener
+{
+};
 
 // One CRC type: the whole string, then the same bytes in two pieces after a reset, and the
 // one-call helper. The value is not a check value from the standard (crc_test.cpp holds those);
 // this is about the generic machinery being the same however it is fed.
 template <typename CrcType>
-void check_generic_crc(std::span<const std::byte> bytes) {
+void check_generic_crc(std::span<const std::byte> bytes)
+{
     CrcType crc;
     crc.update(bytes);
     const typename CrcType::value_type whole = crc.value();
@@ -54,23 +60,26 @@ void check_generic_crc(std::span<const std::byte> bytes) {
     CHECK(adl::arinc665::crc_of<CrcType>(bytes) == whole);
 }
 
-}  // namespace
+} // namespace
 
-TEST_CASE("every 615A failure has a sentence", "[error][to-string]") {
+TEST_CASE("every 615A failure has a sentence", "[error][to-string]")
+{
     using adl::arinc615a::Error;
     constexpr std::array<Error, 10> errors{
         Error::buffer_too_small, Error::truncated,   Error::bad_length,     Error::unknown_opcode,
         Error::unsupported_mode, Error::bad_version, Error::malformed_text, Error::invalid_value,
         Error::field_too_large,  Error::bad_option,
     };
-    for (const Error error : errors) {
+    for (const Error error : errors)
+    {
         const std::string_view text = adl::arinc615a::to_string(error);
         CHECK_FALSE(text.empty());
         CHECK(text != "unknown error");
     }
 }
 
-TEST_CASE("every 665 failure has a sentence", "[error][to-string]") {
+TEST_CASE("every 665 failure has a sentence", "[error][to-string]")
+{
     using adl::arinc665::Error;
     constexpr std::array<Error, 11> errors{
         Error::unsupported_check_type,
@@ -85,15 +94,16 @@ TEST_CASE("every 665 failure has a sentence", "[error][to-string]") {
         Error::inconsistent,
         Error::file_not_found,
     };
-    for (const Error error : errors) {
+    for (const Error error : errors)
+    {
         const std::string_view text = adl::arinc665::to_string(error);
         CHECK_FALSE(text.empty());
         CHECK(text != "unknown error");
     }
 }
 
-TEST_CASE("every status code says what it means, and which fields may carry it",
-          "[status][to-string]") {
+TEST_CASE("every status code says what it means, and which fields may carry it", "[status][to-string]")
+{
     using adl::arinc615a::StatusCode;
     using adl::arinc615a::StatusField;
     constexpr std::array<StatusCode, 10> codes{
@@ -108,11 +118,11 @@ TEST_CASE("every status code says what it means, and which fields may carry it",
         StatusCode::aborted_by_operator,
         StatusCode::item_failed,
     };
-    for (const StatusCode code : codes) {
+    for (const StatusCode code : codes)
+    {
         CHECK(adl::arinc615a::is_known(code));
         CHECK_FALSE(adl::arinc615a::to_string(code).empty());
-        CHECK((adl::arinc615a::allowed_in(StatusField::operation, code) ||
-               code == StatusCode::operation_denied ||
+        CHECK((adl::arinc615a::allowed_in(StatusField::operation, code) || code == StatusCode::operation_denied ||
                code == StatusCode::operation_not_supported || code == StatusCode::item_failed));
     }
     CHECK_FALSE(adl::arinc615a::is_known(static_cast<StatusCode>(0x9999)));
@@ -124,18 +134,18 @@ TEST_CASE("every status code says what it means, and which fields may carry it",
     CHECK_FALSE(adl::arinc615a::description_is_meaningful(StatusCode::completed));
 }
 
-TEST_CASE("every transfer outcome and checksum verdict has a sentence", "[to-string]") {
+TEST_CASE("every transfer outcome and checksum verdict has a sentence", "[to-string]")
+{
     using adl::arinc615a::ChecksumVerdict;
     using adl::arinc615a::TransferOutcome;
     constexpr std::array<TransferOutcome, 11> outcomes{
-        TransferOutcome::running,        TransferOutcome::succeeded,
-        TransferOutcome::timed_out,      TransferOutcome::peer_error,
-        TransferOutcome::peer_abort,     TransferOutcome::wait_requested,
-        TransferOutcome::option_refused, TransferOutcome::protocol_error,
-        TransferOutcome::size_mismatch,  TransferOutcome::local_error,
-        TransferOutcome::aborted,
+        TransferOutcome::running,        TransferOutcome::succeeded,      TransferOutcome::timed_out,
+        TransferOutcome::peer_error,     TransferOutcome::peer_abort,     TransferOutcome::wait_requested,
+        TransferOutcome::option_refused, TransferOutcome::protocol_error, TransferOutcome::size_mismatch,
+        TransferOutcome::local_error,    TransferOutcome::aborted,
     };
-    for (const TransferOutcome outcome : outcomes) {
+    for (const TransferOutcome outcome : outcomes)
+    {
         CHECK_FALSE(std::string_view{adl::arinc615a::to_string(outcome)}.empty());
     }
     constexpr std::array<ChecksumVerdict, 4> verdicts{
@@ -144,12 +154,14 @@ TEST_CASE("every transfer outcome and checksum verdict has a sentence", "[to-str
         ChecksumVerdict::matched,
         ChecksumVerdict::mismatched,
     };
-    for (const ChecksumVerdict verdict : verdicts) {
+    for (const ChecksumVerdict verdict : verdicts)
+    {
         CHECK_FALSE(std::string_view{adl::arinc615a::to_string(verdict)}.empty());
     }
 }
 
-TEST_CASE("every notice has a sentence", "[notice][to-string]") {
+TEST_CASE("every notice has a sentence", "[notice][to-string]")
+{
     using adl::arinc615a::Notice;
     constexpr std::array<Notice, 13> notices{
         Notice::status_counter_gap, Notice::status_duplicate,
@@ -160,15 +172,17 @@ TEST_CASE("every notice has a sentence", "[notice][to-string]") {
         Notice::option_fallback,    Notice::port_option_ignored,
         Notice::files_missing,
     };
-    for (const Notice notice : notices) {
+    for (const Notice notice : notices)
+    {
         CHECK_FALSE(std::string_view{adl::arinc615a::to_string(notice)}.empty());
     }
 }
 
-TEST_CASE("every check value type has a name and the length Table 5.1 gives it",
-          "[check-value][to-string]") {
+TEST_CASE("every check value type has a name and the length Table 5.1 gives it", "[check-value][to-string]")
+{
     using adl::arinc665::CheckValueType;
-    struct Entry {
+    struct Entry
+    {
         CheckValueType type;
         std::size_t length;
     };
@@ -180,13 +194,15 @@ TEST_CASE("every check value type has a name and the length Table 5.1 gives it",
         {CheckValueType::md5, 16},
         {CheckValueType::sha1, 20},
     }};
-    for (const Entry& entry : types) {
+    for (const Entry& entry : types)
+    {
         CHECK_FALSE(adl::arinc665::to_string(entry.type).empty());
         CHECK(adl::arinc665::check_value_length(entry.type) == entry.length);
     }
 }
 
-TEST_CASE("the engine's clock saturates instead of wrapping", "[time][limits]") {
+TEST_CASE("the engine's clock saturates instead of wrapping", "[time][limits]")
+{
     using adl::arinc615a::never;
     CHECK(never + Duration{1} == never);
     CHECK(Instant{Duration::max()} + Duration{1} == never);
@@ -196,13 +212,12 @@ TEST_CASE("the engine's clock saturates instead of wrapping", "[time][limits]") 
     CHECK(Instant{Duration{10}} + Duration{5} == Instant{Duration{15}});
     CHECK(Instant{Duration{10}} - Duration{5} == Instant{Duration{5}});
     CHECK(Instant{Duration{10}} - Instant{Duration{5}} == Duration{5});
-    CHECK(adl::arinc615a::earlier_of(Instant{Duration{5}}, Instant{Duration{9}}) ==
-          Instant{Duration{5}});
+    CHECK(adl::arinc615a::earlier_of(Instant{Duration{5}}, Instant{Duration{9}}) == Instant{Duration{5}});
     CHECK(adl::arinc615a::whole_seconds(3) == std::chrono::seconds{3});
 }
 
-TEST_CASE("the generic CRC starts again, can be fed in pieces, and crc_of agrees",
-          "[crc][generic]") {
+TEST_CASE("the generic CRC starts again, can be fed in pieces, and crc_of agrees", "[crc][generic]")
+{
     using adl::arinc665::Crc16;
     using adl::arinc665::Crc32;
     using adl::arinc665::Crc8;
@@ -212,7 +227,8 @@ TEST_CASE("the generic CRC starts again, can be fed in pieces, and crc_of agrees
     check_generic_crc<Crc32>(bytes);
 }
 
-TEST_CASE("the default listener says nothing and cancels a choice", "[loader][listener]") {
+TEST_CASE("the default listener says nothing and cancels a choice", "[loader][listener]")
+{
     SilentListener listener;
     adl::arinc615a::FileSelection selection;
     CHECK(selection.select("A.BIN"));
@@ -237,6 +253,5 @@ TEST_CASE("the default listener says nothing and cancels a choice", "[loader][li
     listener.on_file_received("A.BIN", received);
     listener.on_file_sent("A.BIN", 1);
     listener.on_notice(adl::arinc615a::Notice::waiting, "target", 5);
-    CHECK(listener.on_download_list(files, selection) ==
-          adl::arinc615a::SelectionDecision::cancelled);
+    CHECK(listener.on_download_list(files, selection) == adl::arinc615a::SelectionDecision::cancelled);
 }

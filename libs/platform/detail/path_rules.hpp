@@ -6,22 +6,27 @@
 // another, and so a name that reached the loader from a target cannot mean one
 // thing on Windows and another on Linux.
 
-#include <string_view>
-
 #include "adl/platform/error.hpp"
 
-namespace adl::platform::detail {
+#include <string_view>
 
-[[nodiscard]] inline Result<void> check_path(std::string_view path) noexcept {
-    if (path.empty()) {
+namespace adl::platform::detail
+{
+
+[[nodiscard]] inline Result<void> check_path(std::string_view path) noexcept
+{
+    if (path.empty())
+    {
         return fail(ErrorCode::invalid_argument);
     }
-    for (const char c : path) {
-        if (c == '\0' || c == '\\') {
+    for (const char c : path)
+    {
+        if (c == '\0' || c == '\\')
+        {
             return fail(ErrorCode::invalid_argument);
         }
     }
     return {};
 }
 
-}  // namespace adl::platform::detail
+} // namespace adl::platform::detail

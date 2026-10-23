@@ -4,7 +4,8 @@
 
 #include <QObject>
 
-class GeneratorTest : public QObject {
+class GeneratorTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:

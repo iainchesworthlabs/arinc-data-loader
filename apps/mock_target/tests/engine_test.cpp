@@ -4,6 +4,12 @@
 // for byte), the two Download modes, an operator abort with its confirmation, and the
 // injection controls.
 
+#include "adl/arinc615a/directory_files.hpp"
+#include "adl/arinc615a/find_client.hpp"
+#include "adl/arinc615a/runner.hpp"
+#include "fake_link.hpp"
+#include "loader_rig.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <array>
@@ -11,57 +17,67 @@
 #include <string>
 #include <vector>
 
-#include "adl/arinc615a/directory_files.hpp"
-#include "adl/arinc615a/find_client.hpp"
-#include "adl/arinc615a/runner.hpp"
-#include "fake_link.hpp"
-#include "loader_rig.hpp"
-
 using namespace adl::arinc615a;
 using namespace adl::mock;
 using namespace adl::test;
 
-namespace {
+namespace
+{
 
 // What the mock target reported, for the assertions.
-struct EngineRecorder final : public EngineListener {
+struct EngineRecorder final : public EngineListener
+{
     std::vector<std::pair<int, std::string>> lines;
     std::vector<std::string> operations;
     std::vector<int> progress;
     std::vector<UploadRecord> uploads;
 
-    void log(Severity severity, std::string_view text) override {
+    void log(Severity severity, std::string_view text) override
+    {
         lines.emplace_back(static_cast<int>(severity), std::string{text});
     }
-    void operation_changed(std::string_view name) override { operations.emplace_back(name); }
-    void progress_changed(int percent) override { progress.push_back(percent); }
-    void upload_received(const UploadRecord& record) override { uploads.push_back(record); }
+    void operation_changed(std::string_view name) override
+    {
+        operations.emplace_back(name);
+    }
+    void progress_changed(int percent) override
+    {
+        progress.push_back(percent);
+    }
+    void upload_received(const UploadRecord& record) override
+    {
+        uploads.push_back(record);
+    }
 
-    [[nodiscard]] bool contains(std::string_view part) const {
-        return std::ranges::any_of(lines,
-                                   [part](const auto& line) { return line.second.contains(part); });
+    [[nodiscard]] bool contains(std::string_view part) const
+    {
+        return std::ranges::any_of(lines, [part](const auto& line) { return line.second.contains(part); });
     }
 };
 
 // A mock target over the fake link, started, with its listener.
-struct MockTarget {
+struct MockTarget
+{
     MockRig rig;
     EngineRecorder listener;
     MockEngine engine{&listener};
     FakeTargetLink link{rig.world, rig.network, rig.target_address};
     Config config{};
 
-    explicit MockTarget(Config with = {}) : config(std::move(with)) {
+    explicit MockTarget(Config with = {}) : config(std::move(with))
+    {
         link.attach(engine);
         const auto error = engine.start(link, config);
         REQUIRE_FALSE(error);
-        if (error) {
+        if (error)
+        {
             FAIL("the engine could not start: " + *error);
         }
     }
 };
 
-TEST_CASE("FIND is answered with the configured identity", "[mock][find]") {
+TEST_CASE("FIND is answered with the configured identity", "[mock][find]")
+{
     MockTarget target;
     std::array<FindTarget, 8> answers{};
     Runner runner(target.rig.loader_host);
@@ -77,12 +93,11 @@ TEST_CASE("FIND is answered with the configured identity", "[mock][find]") {
     CHECK(target.listener.contains("answered FIND"));
 }
 
-TEST_CASE("an Information operation delivers the configuration", "[mock][information]") {
+TEST_CASE("an Information operation delivers the configuration", "[mock][information]")
+{
     Config config;
     config.information = {adl::mock::HardwareItem{
-        "FMS LEFT",
-        "SN-0001",
-        {{"ACM47-1234-5678", "", "FMS 1 OPS"}, {"ACM47-8765-4321", "A", "FMS 1 DATA"}}}};
+        "FMS LEFT", "SN-0001", {{"ACM47-1234-5678", "", "FMS 1 OPS"}, {"ACM47-8765-4321", "A", "FMS 1 DATA"}}}};
     MockTarget target(config);
     LoaderRecorder recorder;
     LoaderServices services;
@@ -103,7 +118,8 @@ TEST_CASE("an Information operation delivers the configuration", "[mock][informa
     CHECK(target.listener.contains("Information operation finished: completed"));
 }
 
-TEST_CASE("an Upload delivers every file byte for byte", "[mock][upload]") {
+TEST_CASE("an Upload delivers every file byte for byte", "[mock][upload]")
+{
     MockTarget target;
     const adl::arinc665::Load load = make_load(30000, 7);
     put_load_files(target.rig.loader_host, load);
@@ -121,11 +137,13 @@ TEST_CASE("an Upload delivers every file byte for byte", "[mock][upload]") {
 
     // Every file arrived at the target, byte for byte.
     CHECK(target.engine.stored().at(load.header_file_name) == load.header_bytes);
-    for (const auto& file : load.data_files) {
+    for (const auto& file : load.data_files)
+    {
         INFO(file.name);
         CHECK(target.engine.stored().at(file.name) == file.bytes);
     }
-    for (const auto& file : load.support_files) {
+    for (const auto& file : load.support_files)
+    {
         INFO(file.name);
         CHECK(target.engine.stored().at(file.name) == file.bytes);
     }
@@ -133,20 +151,21 @@ TEST_CASE("an Upload delivers every file byte for byte", "[mock][upload]") {
     // The completed upload was handed over for storage.
     REQUIRE(target.listener.uploads.size() == 1);
     CHECK(target.listener.uploads[0].load_part_number == adl::samples::sample_load_part_number);
-    CHECK(target.listener.uploads[0].files.size() ==
-          1 + load.data_files.size() + load.support_files.size());
+    CHECK(target.listener.uploads[0].files.size() == 1 + load.data_files.size() + load.support_files.size());
 
     // Progress climbed to 100, and the log tells the story.
     CHECK(std::ranges::find(target.listener.progress, 100) != target.listener.progress.end());
     CHECK(target.listener.contains("read " + load.header_file_name + " ("));
-    for (const auto& file : load.data_files) {
+    for (const auto& file : load.data_files)
+    {
         CHECK(target.listener.contains("read " + file.name + " ("));
     }
     REQUIRE_FALSE(recorder.status_codes.empty());
     CHECK(recorder.status_codes.back() == StatusCode::completed);
 }
 
-TEST_CASE("a media defined Download writes the held files", "[mock][download]") {
+TEST_CASE("a media defined Download writes the held files", "[mock][download]")
+{
     Config config;
     config.holds = {HeldFile{"F1.BIN", pattern(5000, 11), "file one"},
                     HeldFile{"F2.BIN", pattern(300, 12), "file two"}};
@@ -169,10 +188,10 @@ TEST_CASE("a media defined Download writes the held files", "[mock][download]") 
     CHECK(target.listener.contains("Download (media defined) operation finished: completed"));
 }
 
-TEST_CASE("an operator defined Download serves only the chosen files", "[mock][download]") {
+TEST_CASE("an operator defined Download serves only the chosen files", "[mock][download]")
+{
     Config config;
-    config.holds = {HeldFile{"A.BIN", pattern(100, 21), "a"},
-                    HeldFile{"B.BIN", pattern(200, 22), "b"}};
+    config.holds = {HeldFile{"A.BIN", pattern(100, 21), "a"}, HeldFile{"B.BIN", pattern(200, 22), "b"}};
     MockTarget target(config);
     MemorySink sink;
     LoaderRecorder recorder;
@@ -189,7 +208,8 @@ TEST_CASE("an operator defined Download serves only the chosen files", "[mock][d
     CHECK(sink.files.at("B.BIN") == config.holds[1].content);
 }
 
-TEST_CASE("an operator abort in the middle of an Upload is confirmed", "[mock][abort]") {
+TEST_CASE("an operator abort in the middle of an Upload is confirmed", "[mock][abort]")
+{
     MockTarget target;
     const adl::arinc665::Load load = make_load(3'000'000, 9);
     put_load_files(target.rig.loader_host, load);
@@ -203,8 +223,7 @@ TEST_CASE("an operator abort in the middle of an Upload is confirmed", "[mock][a
     services.listener = &recorder;
     RunOptions options;
     options.controller = &controller;
-    const auto outcome =
-        target.rig.run(UploadOperation{UploadRequest{references}}, services, options);
+    const auto outcome = target.rig.run(UploadOperation{UploadRequest{references}}, services, options);
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::aborted_by_operator);
     CHECK(outcome->abort_confirmed);
@@ -213,8 +232,8 @@ TEST_CASE("an operator abort in the middle of an Upload is confirmed", "[mock][a
     CHECK(recorder.status_codes.back() == StatusCode::aborted_by_operator);
 }
 
-TEST_CASE("an operator abort the moment the first status file arrives is confirmed at once",
-          "[mock][abort]") {
+TEST_CASE("an operator abort the moment the first status file arrives is confirmed at once", "[mock][abort]")
+{
     // The timing of the loopback test over real sockets, replayed on the fake network where
     // it is exact: the target is slow to start and then reports every second, and the abort
     // comes as soon as the first status file has been read, while that file's transfer is
@@ -240,8 +259,7 @@ TEST_CASE("an operator abort the moment the first status file arrives is confirm
     RunOptions options;
     options.controller = &controller;
     const auto started = target.rig.world.now();
-    const auto outcome =
-        target.rig.run(UploadOperation{UploadRequest{references}}, services, options);
+    const auto outcome = target.rig.run(UploadOperation{UploadRequest{references}}, services, options);
     const auto took = target.rig.world.now() - started;
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::aborted_by_operator);
@@ -256,10 +274,10 @@ TEST_CASE("an operator abort the moment the first status file arrives is confirm
     CHECK(took < std::chrono::seconds(5));
 }
 
-TEST_CASE("a refused Upload is denied by the target", "[mock][injections]") {
+TEST_CASE("a refused Upload is denied by the target", "[mock][injections]")
+{
     Config config;
-    config.refusal =
-        Refusal{adl::mock::OperationKind::upload, StatusCode::operation_denied, "not today"};
+    config.refusal = Refusal{adl::mock::OperationKind::upload, StatusCode::operation_denied, "not today"};
     MockTarget target(config);
     const adl::arinc665::Load load = make_load();
     const std::vector<LoadReference> references = upload_references(load);
@@ -273,7 +291,8 @@ TEST_CASE("a refused Upload is denied by the target", "[mock][injections]") {
     CHECK(recorder.initialization_text == std::vector<std::string>{"not today"});
 }
 
-TEST_CASE("a silent target ends the operation with the DLP time-out", "[mock][injections]") {
+TEST_CASE("a silent target ends the operation with the DLP time-out", "[mock][injections]")
+{
     Config config;
     config.silent = true;
     MockTarget target(config);
@@ -286,7 +305,8 @@ TEST_CASE("a silent target ends the operation with the DLP time-out", "[mock][in
     CHECK(target.listener.contains("goes silent"));
 }
 
-TEST_CASE("a garbage initialization file is a protocol error", "[mock][injections]") {
+TEST_CASE("a garbage initialization file is a protocol error", "[mock][injections]")
+{
     Config config;
     config.garbage_init = true;
     MockTarget target(config);
@@ -298,7 +318,8 @@ TEST_CASE("a garbage initialization file is a protocol error", "[mock][injection
     CHECK(outcome->code == OutcomeCode::protocol_error);
 }
 
-TEST_CASE("a wrong checksum option on a download is reported and kept", "[mock][injections]") {
+TEST_CASE("a wrong checksum option on a download is reported and kept", "[mock][injections]")
+{
     Config config;
     config.holds = {HeldFile{"F1.BIN", pattern(2000, 31), ""}};
     config.wrong_checksum = true;
@@ -313,10 +334,11 @@ TEST_CASE("a wrong checksum option on a download is reported and kept", "[mock][
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::completed);
     CHECK(recorder.saw(Notice::checksum_mismatch));
-    CHECK(sink.files.contains("F1.BIN"));  // kept all the same (5.3.2.3.8.5)
+    CHECK(sink.files.contains("F1.BIN")); // kept all the same (5.3.2.3.8.5)
 }
 
-TEST_CASE("a lost status file is reported as a gap by the counter", "[mock][injections]") {
+TEST_CASE("a lost status file is reported as a gap by the counter", "[mock][injections]")
+{
     Config config;
     config.drop_status_every = 2;
     MockTarget target(config);
@@ -337,7 +359,8 @@ TEST_CASE("a lost status file is reported as a gap by the counter", "[mock][inje
     CHECK(target.listener.contains("lost (injection)"));
 }
 
-TEST_CASE("the target aborts the operation after N status files", "[mock][injections]") {
+TEST_CASE("the target aborts the operation after N status files", "[mock][injections]")
+{
     Config config;
     config.abort_after_statuses = 2;
     MockTarget target(config);
@@ -356,7 +379,8 @@ TEST_CASE("the target aborts the operation after N status files", "[mock][inject
     CHECK(recorder.status_codes.back() == StatusCode::aborted_by_target);
 }
 
-TEST_CASE("a WAIT answer makes the loader ask again", "[mock][injections]") {
+TEST_CASE("a WAIT answer makes the loader ask again", "[mock][injections]")
+{
     Config config;
     config.wait_first_seconds = 1;
     MockTarget target(config);
@@ -370,4 +394,4 @@ TEST_CASE("a WAIT answer makes the loader ask again", "[mock][injections]") {
     CHECK(target.listener.contains("answers the request with WAIT:1"));
 }
 
-}  // namespace
+} // namespace

@@ -1,10 +1,12 @@
+#include "adl/platform/paths.hpp"
+
 #include <catch2/catch_test_macros.hpp>
+
 #include <filesystem>
 #include <string>
 
-#include "adl/platform/paths.hpp"
-
-TEST_CASE("the executable path names the running test program", "[platform]") {
+TEST_CASE("the executable path names the running test program", "[platform]")
+{
     const auto path = adl::platform::executable_path();
 
     REQUIRE_FALSE(path.empty());

@@ -1,12 +1,15 @@
 #include "adl/app/events.hpp"
 
-namespace adl::app {
+namespace adl::app
+{
 
-QString FoundTarget::thw_id_pos() const {
+QString FoundTarget::thw_id_pos() const
+{
     return position.isEmpty() ? hardware_id : hardware_id + QLatin1Char('_') + position;
 }
 
-void register_metatypes() {
+void register_metatypes()
+{
     qRegisterMetaType<Message>();
     qRegisterMetaType<EventEntry>();
     qRegisterMetaType<FoundTarget>();
@@ -28,4 +31,4 @@ void register_metatypes() {
     qRegisterMetaType<MediaSetSummary>();
 }
 
-}  // namespace adl::app
+} // namespace adl::app

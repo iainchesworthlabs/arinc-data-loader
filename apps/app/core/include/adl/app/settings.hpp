@@ -1,18 +1,19 @@
 #pragma once
 
-#include <memory>
-
 #include <QSettings>
 #include <QString>
+#include <memory>
 
-namespace adl::app {
+namespace adl::app
+{
 
 // The operator's preferences, held in QSettings. The application sets its name and
 // organisation (main.cpp), so a QSettings made without arguments finds the right place;
 // a test hands over a QSettings bound to a file of its own. Loaded once, when LoaderModel is
 // made, and every change is written through at once (QSettings is cheap, and the value has
 // to survive a crash).
-class AppSettings {
+class AppSettings
+{
 public:
     // The defaults, used where nothing is stored or what is stored is not usable.
     static constexpr int default_control_port = 59;
@@ -79,4 +80,4 @@ private:
     QString default_download_directory_;
 };
 
-}  // namespace adl::app
+} // namespace adl::app

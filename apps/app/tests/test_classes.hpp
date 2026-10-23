@@ -3,7 +3,8 @@
 #include <QObject>
 
 // Plain functions of the application's core.
-class AddressTest : public QObject {
+class AddressTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -14,7 +15,8 @@ private Q_SLOTS:
 };
 
 // What the engine's notices say.
-class NoticeTextTest : public QObject {
+class NoticeTextTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -25,7 +27,8 @@ private Q_SLOTS:
 };
 
 // The lists the window shows.
-class ModelsTest : public QObject {
+class ModelsTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -45,7 +48,8 @@ private Q_SLOTS:
 
 // The operator's controls of a running job (the runner's controller): the abort and the
 // deferred choice of files.
-class ControlsTest : public QObject {
+class ControlsTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -54,7 +58,8 @@ private Q_SLOTS:
 };
 
 // The operator's preferences in QSettings.
-class SettingsTest : public QObject {
+class SettingsTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -67,7 +72,8 @@ private Q_SLOTS:
 
 // The worker's jobs called directly: what the window never asks for, and every way an operation
 // can fail to run.
-class EngineWorkerTest : public QObject {
+class EngineWorkerTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -83,7 +89,8 @@ private Q_SLOTS:
 };
 
 // Where a download is written: its numbered directory, and its removal when nothing arrived.
-class DownloadDirectoryTest : public QObject {
+class DownloadDirectoryTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -98,7 +105,8 @@ private Q_SLOTS:
 };
 
 // Finding the file the target asks for in a media set on disk.
-class MediaSourceTest : public QObject {
+class MediaSourceTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -116,7 +124,8 @@ private Q_SLOTS:
 
 // Whole jobs through LoaderModel: the engine on its own thread, against the simulated target on
 // the fake platform (so no real network is touched and no real time passes).
-class LoaderModelTest : public QObject {
+class LoaderModelTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -176,7 +185,8 @@ private Q_SLOTS:
 };
 
 // Message: a phrase that is translated when it is read.
-class MessageTest : public QObject {
+class MessageTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:
@@ -188,7 +198,8 @@ private Q_SLOTS:
 };
 
 // Where a window is put back: the signed coordinate and the reachable title bar.
-class WindowStateTest : public QObject {
+class WindowStateTest : public QObject
+{
     Q_OBJECT
 
 private Q_SLOTS:

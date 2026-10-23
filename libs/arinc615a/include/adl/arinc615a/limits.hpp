@@ -3,13 +3,14 @@
 // The figures of ARINC 615A-3 that the codecs check against, and that the
 // protocol engine above them uses. Section numbers are 615A-3's.
 
+#include "adl/arinc615a/time.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <string_view>
 
-#include "adl/arinc615a/time.hpp"
-
-namespace adl::arinc615a {
+namespace adl::arinc615a
+{
 
 // Section 6.4: the Protocol Version of Supplement 3, two ASCII characters, always the
 // second field of a protocol file.
@@ -66,4 +67,4 @@ inline constexpr Duration tftp_dally = whole_seconds(2);
 // Attachment 3, 3-2: how long the data loader collects FIND answers.
 inline constexpr Duration find_window = whole_seconds(3);
 
-}  // namespace adl::arinc615a
+} // namespace adl::arinc615a

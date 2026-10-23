@@ -2,7 +2,8 @@
 
 class QQuickWindow;
 
-namespace adl::ui {
+namespace adl::ui
+{
 
 // The flag that asks a program to prove it can show its window and then leave.
 inline constexpr const char* smoke_test_flag = "--smoke-test";
@@ -16,4 +17,4 @@ inline constexpr const char* smoke_test_flag = "--smoke-test";
 // whose QML fails to load exits 1 before this is reached. Does nothing without the flag.
 void install_smoke_test(QQuickWindow* window);
 
-}  // namespace adl::ui
+} // namespace adl::ui

@@ -4,10 +4,10 @@
 // a second argument it saves what the window looks like there. The platform's graphics are not
 // used: the test's environment asks for the offscreen platform and the software renderer.
 
-#include <cstdio>
-#include <expected>
-#include <functional>
-#include <memory>
+#include "adl/mock/model.hpp"
+#include "adl/ui/fonts.hpp"
+#include "adl/ui/language_manager.hpp"
+#include "fake_link.hpp"
 
 #include <QEventLoop>
 #include <QGuiApplication>
@@ -22,22 +22,26 @@
 #include <QTimer>
 #include <QUrl>
 #include <QVariant>
+#include <cstdio>
+#include <expected>
+#include <functional>
+#include <memory>
 
-#include "adl/mock/model.hpp"
-#include "adl/ui/fonts.hpp"
-#include "adl/ui/language_manager.hpp"
-#include "fake_link.hpp"
-
-namespace {
+namespace
+{
 
 // The item called `name` in the visual tree below `root` (a delegate's items are not always
 // children of anything a QObject search would find).
-QQuickItem* find_item(QQuickItem* root, const QString& name) {
-    if (root->objectName() == name) {
+QQuickItem* find_item(QQuickItem* root, const QString& name)
+{
+    if (root->objectName() == name)
+    {
         return root;
     }
-    for (QQuickItem* child : root->childItems()) {
-        if (QQuickItem* found = find_item(child, name)) {
+    for (QQuickItem* child : root->childItems())
+    {
+        if (QQuickItem* found = find_item(child, name))
+        {
             return found;
         }
     }
@@ -45,32 +49,40 @@ QQuickItem* find_item(QQuickItem* root, const QString& name) {
 }
 
 // Lets the window and the model's signals run until the job is done (or 20 seconds pass).
-bool wait_until(const std::function<bool()>& done) {
+bool wait_until(const std::function<bool()>& done)
+{
     QEventLoop loop;
     QTimer poll;
     QTimer limit;
     limit.setSingleShot(true);
     bool timed_out = false;
-    QObject::connect(&poll, &QTimer::timeout, &loop, [&] {
-        if (done()) {
-            loop.quit();
-        }
-    });
-    QObject::connect(&limit, &QTimer::timeout, &loop, [&] {
-        timed_out = true;
-        loop.quit();
-    });
+    QObject::connect(&poll, &QTimer::timeout, &loop,
+                     [&]
+                     {
+                         if (done())
+                         {
+                             loop.quit();
+                         }
+                     });
+    QObject::connect(&limit, &QTimer::timeout, &loop,
+                     [&]
+                     {
+                         timed_out = true;
+                         loop.quit();
+                     });
     poll.start(10);
     limit.start(20000);
     loop.exec();
     return !timed_out;
 }
 
-}  // namespace
+} // namespace
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     QGuiApplication application(argc, argv);
-    if (argc > 3) {
+    if (argc > 3)
+    {
         std::fprintf(stderr, "usage: adl_mock_qml_test [picture.png]\n");
         return 2;
     }
@@ -81,17 +93,19 @@ int main(int argc, char* argv[]) {
     adl::fake::FakeWorld world(2);
     adl::fake::FakeNetwork network(world);
     adl::mock::MockTargetModel model(
-        [&world, &network]() -> std::expected<std::unique_ptr<adl::mock::TargetLink>, QString> {
+        [&world, &network]() -> std::expected<std::unique_ptr<adl::mock::TargetLink>, QString>
+        {
             return std::unique_ptr<adl::mock::TargetLink>(
-                std::make_unique<adl::test::FakeTargetLink>(
-                    world, network, adl::platform::Ipv4Address{{10, 0, 0, 2}}));
+                std::make_unique<adl::test::FakeTargetLink>(world, network, adl::platform::Ipv4Address{{10, 0, 0, 2}}));
         });
 
     QQmlApplicationEngine engine;
     int complaints = 0;
     QObject::connect(&engine, &QQmlApplicationEngine::warnings,
-                     [&complaints](const QList<QQmlError>& warnings) {
-                         for (const QQmlError& warning : warnings) {
+                     [&complaints](const QList<QQmlError>& warnings)
+                     {
+                         for (const QQmlError& warning : warnings)
+                         {
                              std::fprintf(stderr, "QML: %s\n", qPrintable(warning.toString()));
                              ++complaints;
                          }
@@ -100,24 +114,24 @@ int main(int argc, char* argv[]) {
         {{QStringLiteral("app"), QVariant::fromValue(&model)},
          // ADL_DARK=1 renders in the dark scheme (the window sets a dark palette, which is what
          // a dark desktop theme supplies), so both schemes can be checked and pictured.
-         {QStringLiteral("renderDark"),
-          QVariant::fromValue(qEnvironmentVariable("ADL_DARK") == QStringLiteral("1"))}});
+         {QStringLiteral("renderDark"), QVariant::fromValue(qEnvironmentVariable("ADL_DARK") == QStringLiteral("1"))}});
     // The picker in the header reads the language manager, exactly as the application's does.
-    adl::ui::LanguageManager language_manager(application, engine,
-                                              QStringLiteral("adl_mock_target"));
-    language_manager.setLanguage(QStringLiteral("fr"));  // English by way of another: a change
+    adl::ui::LanguageManager language_manager(application, engine, QStringLiteral("adl_mock_target"));
+    language_manager.setLanguage(QStringLiteral("fr")); // English by way of another: a change
     language_manager.setLanguage(QStringLiteral("en"));
     QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &model,
                      &adl::mock::MockTargetModel::retranslate);
     engine.rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
     engine.loadFromModule("ArincMockTarget", "TargetWindow");
 
-    if (engine.rootObjects().size() != 1) {
+    if (engine.rootObjects().size() != 1)
+    {
         std::fprintf(stderr, "the window did not load\n");
         return 1;
     }
     auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst());
-    if (window == nullptr || window->title() != QStringLiteral("ARINC Mock Target")) {
+    if (window == nullptr || window->title() != QStringLiteral("ARINC Mock Target"))
+    {
         std::fprintf(stderr, "the root object is not the mock target window\n");
         return 1;
     }
@@ -126,21 +140,23 @@ int main(int argc, char* argv[]) {
     QQuickItem* start = find_item(content, QStringLiteral("startButton"));
     QQuickItem* stop = find_item(content, QStringLiteral("stopButton"));
     QQuickItem* hardware = find_item(content, QStringLiteral("hardwareIdField"));
-    if (start == nullptr || stop == nullptr || hardware == nullptr) {
-        std::fprintf(stderr,
-                     "the Start, Stop or hardware identifier controls are not in the window\n");
+    if (start == nullptr || stop == nullptr || hardware == nullptr)
+    {
+        std::fprintf(stderr, "the Start, Stop or hardware identifier controls are not in the window\n");
         return 1;
     }
 
     // The "This computer only" check box is wired to the model.
     QQuickItem* loopback = find_item(content, QStringLiteral("loopbackOnlyField"));
-    if (loopback == nullptr) {
+    if (loopback == nullptr)
+    {
         std::fprintf(stderr, "the loopback-only check box is not in the window\n");
         return 1;
     }
     model.setLoopbackOnly(true);
     QCoreApplication::processEvents();
-    if (!loopback->property("checked").toBool()) {
+    if (!loopback->property("checked").toBool())
+    {
         std::fprintf(stderr, "the loopback-only check box does not follow the model\n");
         return 1;
     }
@@ -151,38 +167,43 @@ int main(int argc, char* argv[]) {
     QQuickItem* header_chip = find_item(content, QStringLiteral("headerFaultChip"));
     QQuickItem* footer_chip = find_item(content, QStringLiteral("footerFaultChip"));
     QQuickItem* rail = find_item(content, QStringLiteral("rail"));
-    if (header_chip == nullptr || footer_chip == nullptr || rail == nullptr) {
+    if (header_chip == nullptr || footer_chip == nullptr || rail == nullptr)
+    {
         std::fprintf(stderr, "the fault chips or the rail are not in the window\n");
         return 1;
     }
-    if (header_chip->isVisible() || footer_chip->isVisible()) {
+    if (header_chip->isVisible() || footer_chip->isVisible())
+    {
         std::fprintf(stderr, "a fault chip is shown with no injection armed\n");
         return 1;
     }
     model.setSilent(true);
     model.setWaitEveryRequest(true);
     QCoreApplication::processEvents();
-    if (!header_chip->isVisible() || !footer_chip->isVisible()) {
+    if (!header_chip->isVisible() || !footer_chip->isVisible())
+    {
         std::fprintf(stderr, "an armed injection is not shown in the header and the footer\n");
         return 1;
     }
-    if (header_chip->property("text").toString() != QStringLiteral("2 faults injected")) {
-        std::fprintf(stderr, "the fault chip says '%s'\n",
-                     qPrintable(header_chip->property("text").toString()));
+    if (header_chip->property("text").toString() != QStringLiteral("2 faults injected"))
+    {
+        std::fprintf(stderr, "the fault chip says '%s'\n", qPrintable(header_chip->property("text").toString()));
         return 1;
     }
     // Pressing the chip scrolls the rail to the block that changes the injections.
     QQuickItem* flickable = rail->property("contentItem").value<QQuickItem*>();
     QMetaObject::invokeMethod(header_chip, "clicked");
     QCoreApplication::processEvents();
-    if (flickable == nullptr || flickable->property("contentY").toDouble() <= 0.0) {
+    if (flickable == nullptr || flickable->property("contentY").toDouble() <= 0.0)
+    {
         std::fprintf(stderr, "the fault chip did not scroll the rail to the injections\n");
         return 1;
     }
     model.setSilent(false);
     model.setWaitEveryRequest(false);
     QCoreApplication::processEvents();
-    if (header_chip->isVisible() || footer_chip->isVisible()) {
+    if (header_chip->isVisible() || footer_chip->isVisible())
+    {
         std::fprintf(stderr, "a fault chip stayed after the injections were reset\n");
         return 1;
     }
@@ -190,54 +211,64 @@ int main(int argc, char* argv[]) {
     // What the operator does: start the target with the window's own button, watch the log
     // fill, and stop it again with the window's own button. The primary action follows the
     // state: Start while stopped, Stop while serving.
-    if (!start->property("primary").toBool() || stop->property("primary").toBool()) {
+    if (!start->property("primary").toBool() || stop->property("primary").toBool())
+    {
         std::fprintf(stderr, "Start is not the primary action while the target is stopped\n");
         return 1;
     }
     // The footer's state mark is a ToneGlyph, as the loader's is: a dot while stopped, the play
     // mark while serving, never a coloured disc alone.
     QQuickItem* mark = find_item(content, QStringLiteral("statusMark"));
-    if (mark == nullptr || mark->property("glyph").toString() != QStringLiteral("dot")) {
+    if (mark == nullptr || mark->property("glyph").toString() != QStringLiteral("dot"))
+    {
         std::fprintf(stderr, "the footer's state mark is not a dot while the target is stopped\n");
         return 1;
     }
     QMetaObject::invokeMethod(start, "click");
-    if (!model.running()) {
+    if (!model.running())
+    {
         std::fprintf(stderr, "the window's Start button did not start the target\n");
         return 1;
     }
     QCoreApplication::processEvents();
-    if (start->property("primary").toBool() || !stop->property("primary").toBool()) {
+    if (start->property("primary").toBool() || !stop->property("primary").toBool())
+    {
         std::fprintf(stderr, "Stop is not the primary action while the target is serving\n");
         return 1;
     }
-    if (mark->property("glyph").toString() != QStringLiteral("busy")) {
+    if (mark->property("glyph").toString() != QStringLiteral("busy"))
+    {
         std::fprintf(stderr, "the footer's state mark is not the play mark while serving\n");
         return 1;
     }
     auto* activity = qobject_cast<adl::mock::ActivityModel*>(model.activity());
-    if (!wait_until([&] { return activity->rowCount() > 0; })) {
+    if (!wait_until([&] { return activity->rowCount() > 0; }))
+    {
         std::fprintf(stderr, "the activity log stayed empty\n");
         return 1;
     }
     QCoreApplication::processEvents();
     QMetaObject::invokeMethod(stop, "click");
-    if (model.running()) {
+    if (model.running())
+    {
         std::fprintf(stderr, "the window's Stop button did not stop the target\n");
         return 1;
     }
     QCoreApplication::processEvents();
-    if (mark->property("glyph").toString() != QStringLiteral("dot")) {
+    if (mark->property("glyph").toString() != QStringLiteral("dot"))
+    {
         std::fprintf(stderr, "the footer's state mark did not go back to a dot\n");
         return 1;
     }
 
     const QImage picture = window->grabWindow();
-    if (picture.isNull()) {
+    if (picture.isNull())
+    {
         std::fprintf(stderr, "the window could not be drawn\n");
         return 1;
     }
-    if (argc > 1 && !picture.save(QString::fromLocal8Bit(argv[1]))) {
+    if (argc > 1 && !picture.save(QString::fromLocal8Bit(argv[1])))
+    {
         std::fprintf(stderr, "the picture could not be saved\n");
         return 1;
     }
@@ -246,30 +277,35 @@ int main(int argc, char* argv[]) {
     // the picker is on the left of the window, in English on the right. A second argument keeps
     // a picture of the mirrored window.
     QQuickItem* picker = find_item(window->contentItem(), QStringLiteral("languagePicker"));
-    if (picker == nullptr) {
+    if (picker == nullptr)
+    {
         std::fprintf(stderr, "the window has no language picker\n");
         return 1;
     }
-    const auto picker_centre = [&] {
-        return picker->mapToScene(QPointF{picker->width() / 2, 0}).x();
-    };
-    if (picker_centre() < window->width() / 2.0) {
+    const auto picker_centre = [&] { return picker->mapToScene(QPointF{picker->width() / 2, 0}).x(); };
+    if (picker_centre() < window->width() / 2.0)
+    {
         std::fprintf(stderr, "the language picker is not on the right in English\n");
         return 1;
     }
-    for (const QString& code : {QStringLiteral("he"), QStringLiteral("yi")}) {
-        if (!language_manager.setLanguage(code)) {
+    for (const QString& code : {QStringLiteral("he"), QStringLiteral("yi")})
+    {
+        if (!language_manager.setLanguage(code))
+        {
             std::fprintf(stderr, "the language %s is not accepted\n", qPrintable(code));
             return 1;
         }
         QCoreApplication::processEvents();
-        if (picker_centre() > window->width() / 2.0) {
+        if (picker_centre() > window->width() / 2.0)
+        {
             std::fprintf(stderr, "the header did not mirror in %s\n", qPrintable(code));
             return 1;
         }
-        if (code == QStringLiteral("he") && argc > 2) {
+        if (code == QStringLiteral("he") && argc > 2)
+        {
             const QImage mirrored = window->grabWindow();
-            if (mirrored.isNull() || !mirrored.save(QString::fromLocal8Bit(argv[2]))) {
+            if (mirrored.isNull() || !mirrored.save(QString::fromLocal8Bit(argv[2])))
+            {
                 std::fprintf(stderr, "the right-to-left picture could not be saved\n");
                 return 1;
             }
@@ -277,7 +313,8 @@ int main(int argc, char* argv[]) {
     }
     language_manager.setLanguage(QStringLiteral("en"));
     QCoreApplication::processEvents();
-    if (picker_centre() < window->width() / 2.0) {
+    if (picker_centre() < window->width() / 2.0)
+    {
         std::fprintf(stderr, "English did not put the header back\n");
         return 1;
     }
@@ -286,7 +323,8 @@ int main(int argc, char* argv[]) {
     // LogView reads the model's roles by number, so a model that numbered them otherwise would
     // copy no time and call every line INFO.
     QQuickItem* log_view = find_item(window->contentItem(), QStringLiteral("activityLog"));
-    if (log_view == nullptr) {
+    if (log_view == nullptr)
+    {
         std::fprintf(stderr, "the window has no activity log\n");
         return 1;
     }
@@ -294,14 +332,14 @@ int main(int argc, char* argv[]) {
     activity->append({3, QStringLiteral("12:34:57"), QStringLiteral("an error")});
     QVariant copied;
     if (!QMetaObject::invokeMethod(log_view, "plainText", qReturnArg(copied)) ||
-        !copied.toString().endsWith(
-            QStringLiteral("12:34:56  WARN  a warning\n12:34:57  ERROR  an error"))) {
-        std::fprintf(stderr, "Ctrl+C in the activity log would copy '%s'\n",
-                     qPrintable(copied.toString()));
+        !copied.toString().endsWith(QStringLiteral("12:34:56  WARN  a warning\n12:34:57  ERROR  an error")))
+    {
+        std::fprintf(stderr, "Ctrl+C in the activity log would copy '%s'\n", qPrintable(copied.toString()));
         return 1;
     }
 
-    if (complaints != 0) {
+    if (complaints != 0)
+    {
         std::fprintf(stderr, "%d QML complaint(s)\n", complaints);
         return 1;
     }

@@ -12,15 +12,16 @@
 //
 // This header is internal to libs/platform: it includes OS headers.
 
-#include <INTEGRITY.h>
-
-#include <cstdint>
-
 #include "adl/platform/error.hpp"
 #include "adl/platform/threads.hpp"
 #include "adl/platform/time.hpp"
 
-namespace adl::platform::ghs {
+#include <INTEGRITY.h>
+
+#include <cstdint>
+
+namespace adl::platform::ghs
+{
 
 // The fixed reasons the interface cares about, from the native Error enum. The
 // names are the enum members in INTEGRITY.h; `other` carries the number in
@@ -32,11 +33,13 @@ namespace adl::platform::ghs {
 // posix sources pull in <pthread.h>, which the 178B tree does not have.
 [[nodiscard]] ErrorCode map_errno(int error) noexcept;
 
-[[nodiscard]] inline std::unexpected<Error> fail_native(Error error) noexcept {
+[[nodiscard]] inline std::unexpected<Error> fail_native(Error error) noexcept
+{
     return fail(map_error(error), static_cast<int>(error));
 }
 
-[[nodiscard]] inline std::unexpected<Error> fail_errno(int error) noexcept {
+[[nodiscard]] inline std::unexpected<Error> fail_errno(int error) noexcept
+{
     return fail(map_errno(error), error);
 }
 
@@ -53,20 +56,22 @@ namespace adl::platform::ghs {
 // tree's own default of 127 (ind_crt0.c sets that for an application task) and
 // stays clear of the system's top and bottom; settle it against the product's
 // priority plan before flying, as the desktops' plans are.
-constexpr Value native_priority(Priority level) noexcept {
-    switch (level) {
-        case Priority::lowest:
-            return 250;
-        case Priority::low:
-            return 200;
-        case Priority::normal:
-            return 127;
-        case Priority::high:
-            return 60;
-        case Priority::highest:
-            return 40;
+constexpr Value native_priority(Priority level) noexcept
+{
+    switch (level)
+    {
+    case Priority::lowest:
+        return 250;
+    case Priority::low:
+        return 200;
+    case Priority::normal:
+        return 127;
+    case Priority::high:
+        return 60;
+    case Priority::highest:
+        return 40;
     }
     return 127;
 }
 
-}  // namespace adl::platform::ghs
+} // namespace adl::platform::ghs

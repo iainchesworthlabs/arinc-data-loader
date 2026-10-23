@@ -16,16 +16,6 @@
 // model writes it to storage. One operation at a time; when one ends (whatever the status)
 // the engine is ready for the next.
 
-#include <cstddef>
-#include <cstdint>
-#include <functional>
-#include <map>
-#include <memory>
-#include <optional>
-#include <span>
-#include <string>
-#include <vector>
-
 #include "adl/arinc615a/endpoint.hpp"
 #include "adl/arinc615a/find.hpp"
 #include "adl/arinc615a/limits.hpp"
@@ -37,15 +27,33 @@
 #include "adl/arinc665/files.hpp"
 #include "adl/mock/link.hpp"
 
-namespace adl::mock {
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <optional>
+#include <span>
+#include <string>
+#include <vector>
+
+namespace adl::mock
+{
 
 using adl::arinc615a_mini::Bytes;
 
 // How much a log line matters (the model maps these to its own severities).
-enum class Severity : std::uint8_t { info = 0, notice = 1, warning = 2, error = 3 };
+enum class Severity : std::uint8_t
+{
+    info = 0,
+    notice = 1,
+    warning = 2,
+    error = 3
+};
 
 // A file of a completed upload, as the model writes it to storage.
-struct StoredFile {
+struct StoredFile
+{
     std::string name;
     Bytes bytes;
 
@@ -54,14 +62,16 @@ struct StoredFile {
 
 // One completed upload: the load's part number (from the .LUR) and the files the target
 // read for it, header first. Handed to the listener when the operation ends completed.
-struct UploadRecord {
+struct UploadRecord
+{
     std::string load_part_number;
     std::vector<StoredFile> files;
 };
 
 // What the engine reports. Everything is a plain string or number, valid during the call
 // only; the model copies it into Qt values and emits a signal.
-class EngineListener {
+class EngineListener
+{
 public:
     virtual ~EngineListener() = default;
 
@@ -76,7 +86,8 @@ public:
 };
 
 // Which of the four operations.
-enum class OperationKind : std::uint8_t {
+enum class OperationKind : std::uint8_t
+{
     information,
     upload,
     download_media,
@@ -84,19 +95,22 @@ enum class OperationKind : std::uint8_t {
 };
 
 // A part and a piece of hardware the target reports in its configuration list (.LCL).
-struct HardwarePart {
+struct HardwarePart
+{
     std::string part_number;
     std::string amendment;
     std::string designation;
 };
-struct HardwareItem {
+struct HardwareItem
+{
     std::string literal_name;
     std::string serial_number;
     std::vector<HardwarePart> parts;
 };
 
 // A file the target holds, served in a download.
-struct HeldFile {
+struct HeldFile
+{
     std::string name;
     Bytes content;
     std::string description;
@@ -104,15 +118,17 @@ struct HeldFile {
 
 // Refusing one operation: its initialization file answers with `code` (0x1000 denied or
 // 0x1002 not supported) and `text`.
-struct Refusal {
+struct Refusal
+{
     OperationKind kind = OperationKind::information;
     adl::arinc615a::StatusCode code = adl::arinc615a::StatusCode::operation_denied;
     std::string text;
 };
 
-struct Config {
+struct Config
+{
     // ---- identity ----
-    std::string thw = "HNPFMS_L";  // <THW_ID_POS>: the stem of the protocol file names
+    std::string thw = "HNPFMS_L"; // <THW_ID_POS>: the stem of the protocol file names
     adl::arinc615a::FindAnswer find_answer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
     adl::arinc615a::Duration find_delay = std::chrono::milliseconds(50);
     unsigned find_copies = 1;
@@ -125,28 +141,29 @@ struct Config {
     // ---- how it works ----
     adl::arinc615a::Duration think_time = std::chrono::seconds(1);
     adl::arinc615a::Duration status_period = std::chrono::seconds(4);
-    std::size_t request_block_size = 512;  // asked for when the engine writes a file
+    std::size_t request_block_size = 512; // asked for when the engine writes a file
 
     // ---- the initialization file ----
-    std::uint16_t wait_first_seconds = 0;  // answer the first request with WAIT:x
-    bool wait_always = false;              // ... and every later one too
+    std::uint16_t wait_first_seconds = 0; // answer the first request with WAIT:x
+    bool wait_always = false;             // ... and every later one too
     std::optional<Refusal> refusal;
-    bool garbage_init = false;  // serve an initialization file of an invalid structure
+    bool garbage_init = false; // serve an initialization file of an invalid structure
 
     // ---- injections (all default to "behave") ----
-    bool corrupt_served = false;     // flip a bit in the initialization file and in each held
-                                     // file a download writes back (nothing else is altered)
-    bool wrong_checksum = false;     // a wrong check value option on what it writes
-    unsigned drop_status_every = 0;  // lose every Nth status file (0: lose none)
-    std::optional<std::size_t> abort_after_statuses;  // send 0x1003 after this many
-    bool silent = false;  // after the first status file: answer nothing (the DLP time-out)
+    bool corrupt_served = false;                     // flip a bit in the initialization file and in each held
+                                                     // file a download writes back (nothing else is altered)
+    bool wrong_checksum = false;                     // a wrong check value option on what it writes
+    unsigned drop_status_every = 0;                  // lose every Nth status file (0: lose none)
+    std::optional<std::size_t> abort_after_statuses; // send 0x1003 after this many
+    bool silent = false;                             // after the first status file: answer nothing (the DLP time-out)
 
     // ---- data ----
-    std::vector<HardwareItem> information;  // empty: the default list
-    std::vector<HeldFile> holds;            // the files a download serves
+    std::vector<HardwareItem> information; // empty: the default list
+    std::vector<HeldFile> holds;           // the files a download serves
 };
 
-class MockEngine final : public adl::arinc615a_mini::MiniHost {
+class MockEngine final : public adl::arinc615a_mini::MiniHost
+{
 public:
     explicit MockEngine(EngineListener* listener = nullptr);
     ~MockEngine() override;
@@ -158,8 +175,7 @@ public:
 
     // A datagram arrived on `port`. The fake link's agent calls this directly; over a real
     // link run() feeds the datagrams it receives.
-    void on_datagram(std::uint16_t port, const adl::arinc615a::Endpoint& from,
-                     std::span<const std::byte> payload);
+    void on_datagram(std::uint16_t port, const adl::arinc615a::Endpoint& from, std::span<const std::byte> payload);
 
     // The loop for a real link: waits on the ports, feeds the datagrams, and lets the link
     // fire the timers, until the link asks to stop. Not used over the fake.
@@ -167,21 +183,35 @@ public:
 
     // Why run() returned of its own accord (a failed wait), or start() failed; empty when
     // the stop was asked for.
-    [[nodiscard]] const std::string& last_error() const noexcept { return last_error_; }
+    [[nodiscard]] const std::string& last_error() const noexcept
+    {
+        return last_error_;
+    }
 
     // MiniHost, for the MiniTransfers.
-    void send(std::uint16_t from_port, const adl::arinc615a::Endpoint& to,
-              std::span<const std::byte> payload) override;
+    void send(std::uint16_t from_port, const adl::arinc615a::Endpoint& to, std::span<const std::byte> payload) override;
     void after(adl::arinc615a::Duration delay, std::function<void()> action) override;
 
     // ---- state, for the tests ----
     // What happened, each line prefixed with the seconds of the link's clock.
-    [[nodiscard]] const std::vector<std::string>& log() const noexcept { return log_; }
+    [[nodiscard]] const std::vector<std::string>& log() const noexcept
+    {
+        return log_;
+    }
     // The files it has read from the loader, by name (the last read wins).
-    [[nodiscard]] const std::map<std::string, Bytes>& stored() const noexcept { return stored_; }
-    [[nodiscard]] bool operation_running() const noexcept { return operation_started_; }
+    [[nodiscard]] const std::map<std::string, Bytes>& stored() const noexcept
+    {
+        return stored_;
+    }
+    [[nodiscard]] bool operation_running() const noexcept
+    {
+        return operation_started_;
+    }
     // The list's percentage 0..100, or -1 between operations.
-    [[nodiscard]] int progress() const noexcept { return reported_progress_; }
+    [[nodiscard]] int progress() const noexcept
+    {
+        return reported_progress_;
+    }
     // "Information" and so on, or empty between operations.
     [[nodiscard]] std::string current_operation() const;
 
@@ -195,28 +225,38 @@ private:
     using MiniResult = adl::arinc615a_mini::MiniResult;
     using MiniTransfer = adl::arinc615a_mini::MiniTransfer;
 
-    enum class Kind { information, upload, download_media, download_operator };
+    enum class Kind
+    {
+        information,
+        upload,
+        download_media,
+        download_operator
+    };
 
-    struct StatusSpec {
+    struct StatusSpec
+    {
         StatusCode code = StatusCode::in_progress;
         std::uint16_t exception_timer = 0;
         std::string text;
     };
 
     // One file of a load, as the header file lists it, with the check value to ask for.
-    struct UploadFile {
+    struct UploadFile
+    {
         std::string name;
         std::optional<ChecksumOption> checksum;
     };
     // One load of the upload request being worked through.
-    struct UploadLoad {
+    struct UploadLoad
+    {
         std::string header_name;
         std::string part_number;
         std::vector<UploadFile> files;
         std::size_t files_done = 0;
     };
     // One file of a download request.
-    struct DownloadRequested {
+    struct DownloadRequested
+    {
         std::string name;
         bool failed = false;
     };
@@ -242,8 +282,7 @@ private:
     void read_file(const std::string& name, std::optional<ChecksumOption> checksum,
                    std::function<void(MiniResult::Kind, const Bytes&)> then, unsigned attempt = 0);
     [[nodiscard]] std::optional<ChecksumOption> checksum_for(const Bytes& content) const;
-    [[nodiscard]] std::optional<ChecksumOption> checksum_for_file(
-        const adl::arinc665::UserSuppliedFile& file) const;
+    [[nodiscard]] std::optional<ChecksumOption> checksum_for_file(const adl::arinc665::UserSuppliedFile& file) const;
 
     // Status files.
     void post_status(StatusSpec spec);
@@ -316,4 +355,4 @@ private:
     bool checksum_acknowledged_ = false;
 };
 
-}  // namespace adl::mock
+} // namespace adl::mock

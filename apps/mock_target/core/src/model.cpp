@@ -1,70 +1,82 @@
 #include "adl/mock/model.hpp"
 
-#include <algorithm>
-#include <fstream>
-#include <iterator>
-#include <string>
-
-#include <QDir>
-#include <QMetaObject>
-#include <QTime>
-#include <QUrl>
-
 #include "adl/arinc615a/limits.hpp"
 #include "adl/arinc665/portable_name.hpp"
 #include "adl/platform/host.hpp"
 #include "adl/platform/paths.hpp"
 
-namespace adl::mock {
+#include <QDir>
+#include <QMetaObject>
+#include <QTime>
+#include <QUrl>
+#include <algorithm>
+#include <fstream>
+#include <iterator>
+#include <string>
 
-namespace {
+namespace adl::mock
+{
 
-[[nodiscard]] QString to_qstring(std::string_view text) {
+namespace
+{
+
+[[nodiscard]] QString to_qstring(std::string_view text)
+{
     return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
 }
 
-[[nodiscard]] Bytes to_bytes(std::string_view text) {
+[[nodiscard]] Bytes to_bytes(std::string_view text)
+{
     Bytes bytes(text.size());
     std::transform(text.begin(), text.end(), bytes.begin(),
                    [](char c) { return std::byte{static_cast<std::uint8_t>(c)}; });
     return bytes;
 }
 
-[[nodiscard]] QString time_now() {
+[[nodiscard]] QString time_now()
+{
     return QTime::currentTime().toString(QStringLiteral("hh:mm:ss"));
 }
 
-[[nodiscard]] bool is_plain_character(char c) noexcept {
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' ||
-           c == '_' || c == '-';
+[[nodiscard]] bool is_plain_character(char c) noexcept
+{
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '_' ||
+           c == '-';
 }
 
-[[nodiscard]] std::filesystem::path fs_path(std::string_view utf8) {
+[[nodiscard]] std::filesystem::path fs_path(std::string_view utf8)
+{
     return std::filesystem::path(to_qstring(utf8).toStdU16String());
 }
 
-}  // namespace
+} // namespace
 
-bool is_storable_name(std::string_view name) noexcept {
+bool is_storable_name(std::string_view name) noexcept
+{
     return name.size() <= 254 && adl::arinc665::is_portable_file_name(name) &&
            std::ranges::all_of(name, is_plain_character);
 }
 
-std::string storage_directory_name(std::string_view part_number) {
+std::string storage_directory_name(std::string_view part_number)
+{
     std::string result;
     result.reserve(part_number.size());
-    for (const char c : part_number.substr(0, 254)) {
+    for (const char c : part_number.substr(0, 254))
+    {
         result.push_back(is_plain_character(c) ? c : '_');
     }
-    if (result.empty()) {
+    if (result.empty())
+    {
         return "_";
     }
     // Windows drops a trailing dot (and with it a name made of dots only), and a device name is
     // a device in any directory.
-    if (result.back() == '.') {
+    if (result.back() == '.')
+    {
         result.back() = '_';
     }
-    if (adl::arinc665::is_device_name(result)) {
+    if (adl::arinc665::is_device_name(result))
+    {
         result.insert(result.begin(), '_');
     }
     return result;
@@ -74,38 +86,45 @@ std::string storage_directory_name(std::string_view part_number) {
 
 ActivityModel::ActivityModel(QObject* parent) : QAbstractListModel(parent) {}
 
-int ActivityModel::rowCount(const QModelIndex& parent) const {
+int ActivityModel::rowCount(const QModelIndex& parent) const
+{
     return parent.isValid() ? 0 : static_cast<int>(entries_.size());
 }
 
-QVariant ActivityModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid() || index.row() < 0 || index.row() >= rowCount()) {
+QVariant ActivityModel::data(const QModelIndex& index, int role) const
+{
+    if (!index.isValid() || index.row() < 0 || index.row() >= rowCount())
+    {
         return {};
     }
     const LogEntry& entry = entries_[static_cast<std::size_t>(index.row())];
-    switch (role) {
-        case SeverityRole:
-            return entry.severity;
-        case TimeRole:
-            return entry.time;
-        case TextRole:
-            return entry.text;
-        default:
-            return {};
+    switch (role)
+    {
+    case SeverityRole:
+        return entry.severity;
+    case TimeRole:
+        return entry.time;
+    case TextRole:
+        return entry.text;
+    default:
+        return {};
     }
 }
 
-QHash<int, QByteArray> ActivityModel::roleNames() const {
+QHash<int, QByteArray> ActivityModel::roleNames() const
+{
     return {{SeverityRole, "severity"}, {TimeRole, "time"}, {TextRole, "message"}};
 }
 
-void ActivityModel::append(const LogEntry& entry) {
+void ActivityModel::append(const LogEntry& entry)
+{
     beginInsertRows({}, rowCount(), rowCount());
     entries_.push_back(entry);
     endInsertRows();
 }
 
-void ActivityModel::clear() {
+void ActivityModel::clear()
+{
     beginResetModel();
     entries_.clear();
     endResetModel();
@@ -113,37 +132,45 @@ void ActivityModel::clear() {
 
 StoredFilesModel::StoredFilesModel(QObject* parent) : QAbstractListModel(parent) {}
 
-int StoredFilesModel::rowCount(const QModelIndex& parent) const {
+int StoredFilesModel::rowCount(const QModelIndex& parent) const
+{
     return parent.isValid() ? 0 : static_cast<int>(rows_.size());
 }
 
-QVariant StoredFilesModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid() || index.row() < 0 || index.row() >= rowCount()) {
+QVariant StoredFilesModel::data(const QModelIndex& index, int role) const
+{
+    if (!index.isValid() || index.row() < 0 || index.row() >= rowCount())
+    {
         return {};
     }
     const StoredFileRow& row = rows_[static_cast<std::size_t>(index.row())];
-    switch (role) {
-        case NameRole:
-            return row.name;
-        case SizeRole:
-            return row.size;
-        case PathRole:
-            return row.path;
-        default:
-            return {};
+    switch (role)
+    {
+    case NameRole:
+        return row.name;
+    case SizeRole:
+        return row.size;
+    case PathRole:
+        return row.path;
+    default:
+        return {};
     }
 }
 
-QHash<int, QByteArray> StoredFilesModel::roleNames() const {
+QHash<int, QByteArray> StoredFilesModel::roleNames() const
+{
     return {{NameRole, "name"}, {SizeRole, "size"}, {PathRole, "path"}};
 }
 
-void StoredFilesModel::append(const QList<StoredFileRow>& rows) {
-    if (rows.isEmpty()) {
+void StoredFilesModel::append(const QList<StoredFileRow>& rows)
+{
+    if (rows.isEmpty())
+    {
         return;
     }
     beginInsertRows({}, rowCount(), rowCount() + static_cast<int>(rows.size()) - 1);
-    for (const StoredFileRow& row : rows) {
+    for (const StoredFileRow& row : rows)
+    {
         rows_.push_back(row);
     }
     endInsertRows();
@@ -151,13 +178,15 @@ void StoredFilesModel::append(const QList<StoredFileRow>& rows) {
 
 // ---- The worker ------------------------------------------------------------------------------
 
-LinkFactory system_link_factory() {
-    return []() -> std::expected<std::unique_ptr<TargetLink>, QString> {
+LinkFactory system_link_factory()
+{
+    return []() -> std::expected<std::unique_ptr<TargetLink>, QString>
+    {
         auto host = adl::platform::make_host();
-        if (!host) {
-            return std::unexpected(
-                QStringLiteral("the platform could not start (%1)")
-                    .arg(QString::fromLatin1(adl::platform::to_string(host.error().code))));
+        if (!host)
+        {
+            return std::unexpected(QStringLiteral("the platform could not start (%1)")
+                                       .arg(QString::fromLatin1(adl::platform::to_string(host.error().code))));
         }
         return std::unique_ptr<TargetLink>(std::make_unique<RealTargetLink>(std::move(*host)));
     };
@@ -165,11 +194,13 @@ LinkFactory system_link_factory() {
 
 // What the engine reports, copied into Qt values and emitted as queued signals. It runs on the
 // worker's thread, inside the engine's loop.
-class MockWorker::Adapter final : public EngineListener {
+class MockWorker::Adapter final : public EngineListener
+{
 public:
     explicit Adapter(MockWorker& worker) : worker_(worker) {}
 
-    void log(Severity severity, std::string_view text) override {
+    void log(Severity severity, std::string_view text) override
+    {
         LogEntry entry;
         entry.severity = static_cast<int>(severity);
         entry.time = time_now();
@@ -177,52 +208,66 @@ public:
         Q_EMIT worker_.log_line(entry);
     }
 
-    void operation_changed(std::string_view name) override {
+    void operation_changed(std::string_view name) override
+    {
         Q_EMIT worker_.operation_changed(to_qstring(name));
     }
 
-    void progress_changed(int percent) override { Q_EMIT worker_.progress_changed(percent); }
+    void progress_changed(int percent) override
+    {
+        Q_EMIT worker_.progress_changed(percent);
+    }
 
-    void upload_received(const UploadRecord& record) override { worker_.store_upload(record); }
+    void upload_received(const UploadRecord& record) override
+    {
+        worker_.store_upload(record);
+    }
 
 private:
     MockWorker& worker_;
 };
 
 MockWorker::MockWorker(LinkFactory factory, QObject* parent)
-    : QObject(parent), factory_(std::move(factory)), adapter_(std::make_unique<Adapter>(*this)) {}
+    : QObject(parent), factory_(std::move(factory)), adapter_(std::make_unique<Adapter>(*this))
+{
+}
 
 MockWorker::~MockWorker() = default;
 
-void MockWorker::request_stop() noexcept {
+void MockWorker::request_stop() noexcept
+{
     const std::scoped_lock lock{link_mutex_};
     stopped_through_ = sessions_queued_;
-    if (current_link_ != nullptr) {
+    if (current_link_ != nullptr)
+    {
         current_link_->request_stop();
     }
 }
 
-void MockWorker::session_queued() noexcept {
+void MockWorker::session_queued() noexcept
+{
     const std::scoped_lock lock{link_mutex_};
     ++sessions_queued_;
 }
 
-void MockWorker::start_session(Config config, QString storage_directory) {
+void MockWorker::start_session(Config config, QString storage_directory)
+{
     std::uint64_t mine = 0;
     {
         const std::scoped_lock lock{link_mutex_};
         mine = ++sessions_begun_;
         // Stopped before it started.
-        if (mine <= stopped_through_) {
+        if (mine <= stopped_through_)
+        {
             return;
         }
     }
-    storage_path_ = storage_directory.trimmed().isEmpty()
-                        ? std::filesystem::path{}
-                        : std::filesystem::path(storage_directory.toStdU16String());
+    storage_path_ = storage_directory.trimmed().isEmpty() ? std::filesystem::path{}
+                                                          : std::filesystem::path(storage_directory.toStdU16String());
 
     auto made = factory_();
-    if (!made) {
+    if (!made)
+    {
         Q_EMIT error_occurred(made.error());
         return;
     }
@@ -231,7 +276,8 @@ void MockWorker::start_session(Config config, QString storage_directory) {
         const std::scoped_lock lock{link_mutex_};
         current_link_ = link_.get();
         // A stop that came while the link was being made found no link to stop.
-        if (mine <= stopped_through_) {
+        if (mine <= stopped_through_)
+        {
             link_->request_stop();
         }
     }
@@ -239,11 +285,15 @@ void MockWorker::start_session(Config config, QString storage_directory) {
     link_->attach(*engine_);
 
     read_holds(config);
-    if (const auto error = engine_->start(*link_, std::move(config))) {
+    if (const auto error = engine_->start(*link_, std::move(config)))
+    {
         Q_EMIT error_occurred(to_qstring(*error));
-    } else {
+    }
+    else
+    {
         engine_->run();
-        if (!link_->stop_requested() && !engine_->last_error().empty()) {
+        if (!link_->stop_requested() && !engine_->last_error().empty())
+        {
             Q_EMIT error_occurred(to_qstring(engine_->last_error()));
         }
     }
@@ -256,84 +306,87 @@ void MockWorker::start_session(Config config, QString storage_directory) {
     link_.reset();
 }
 
-void MockWorker::read_holds(Config& config) {
-    if (!storage_path_.empty()) {
+void MockWorker::read_holds(Config& config)
+{
+    if (!storage_path_.empty())
+    {
         const std::filesystem::path holds = storage_path_ / "holds";
         std::error_code ec;
-        if (std::filesystem::is_directory(holds, ec)) {
+        if (std::filesystem::is_directory(holds, ec))
+        {
             std::vector<HeldFile> found;
             // The non-throwing iteration: a folder the account cannot list (or one that changes
             // while it is read) ends the list, it does not end the program.
             std::filesystem::directory_iterator it(holds, ec);
-            for (const std::filesystem::directory_iterator end; !ec && it != end;
-                 it.increment(ec)) {
+            for (const std::filesystem::directory_iterator end; !ec && it != end; it.increment(ec))
+            {
                 const std::filesystem::directory_entry& entry = *it;
-                if (!entry.is_regular_file(ec)) {
+                if (!entry.is_regular_file(ec))
+                {
                     ec.clear();
                     continue;
                 }
                 std::ifstream in(entry.path(), std::ios::binary);
-                const std::vector<char> text{std::istreambuf_iterator<char>(in),
-                                             std::istreambuf_iterator<char>()};
+                const std::vector<char> text{std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
                 Bytes bytes(text.size());
                 std::transform(text.begin(), text.end(), bytes.begin(),
                                [](char c) { return std::byte{static_cast<std::uint8_t>(c)}; });
-                found.push_back(HeldFile{adl::platform::to_utf8(entry.path().filename().u8string()),
-                                         std::move(bytes), ""});
+                found.push_back(
+                    HeldFile{adl::platform::to_utf8(entry.path().filename().u8string()), std::move(bytes), ""});
             }
-            std::ranges::sort(found,
-                              [](const HeldFile& a, const HeldFile& b) { return a.name < b.name; });
+            std::ranges::sort(found, [](const HeldFile& a, const HeldFile& b) { return a.name < b.name; });
             config.holds = std::move(found);
         }
     }
-    if (config.holds.empty()) {
-        const std::string note =
-            "The mock target serves the files it holds from <storage>/holds in a download.\n"
-            "Put files there and ask for them by name.\n";
+    if (config.holds.empty())
+    {
+        const std::string note = "The mock target serves the files it holds from <storage>/holds in a download.\n"
+                                 "Put files there and ask for them by name.\n";
         config.holds.push_back(HeldFile{"DEMO.TXT", to_bytes(note), "a demonstration file"});
     }
 }
 
-void MockWorker::store_upload(const UploadRecord& record) {
-    if (storage_path_.empty()) {
+void MockWorker::store_upload(const UploadRecord& record)
+{
+    if (storage_path_.empty())
+    {
         Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
                          tr("The storage folder is not set, so the upload is not stored.")});
         return;
     }
     std::error_code ec;
     std::filesystem::create_directories(storage_path_, ec);
-    if (ec) {
+    if (ec)
+    {
         Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The storage folder could not be made: %1.")
-                             .arg(QString::fromStdString(ec.message()))});
+                         tr("The storage folder could not be made: %1.").arg(QString::fromStdString(ec.message()))});
         return;
     }
-    const std::filesystem::path part_dir =
-        storage_path_ / fs_path(storage_directory_name(record.load_part_number));
+    const std::filesystem::path part_dir = storage_path_ / fs_path(storage_directory_name(record.load_part_number));
     std::filesystem::create_directories(part_dir, ec);
-    if (ec) {
+    if (ec)
+    {
         Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The load's folder could not be made: %1.")
-                             .arg(QString::fromStdString(ec.message()))});
+                         tr("The load's folder could not be made: %1.").arg(QString::fromStdString(ec.message()))});
         return;
     }
     QList<StoredFileRow> rows;
-    for (const StoredFile& file : record.files) {
-        if (!is_storable_name(file.name)) {
-            Q_EMIT log_line(
-                {static_cast<int>(Severity::warning), time_now(),
-                 tr("%1 was not stored: not a safe file name.").arg(to_qstring(file.name))});
+    for (const StoredFile& file : record.files)
+    {
+        if (!is_storable_name(file.name))
+        {
+            Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
+                             tr("%1 was not stored: not a safe file name.").arg(to_qstring(file.name))});
             continue;
         }
         const std::filesystem::path path = part_dir / fs_path(file.name);
         std::ofstream out(path, std::ios::binary | std::ios::trunc);
-        out.write(reinterpret_cast<const char*>(file.bytes.data()),
-                  static_cast<std::streamsize>(file.bytes.size()));
+        out.write(reinterpret_cast<const char*>(file.bytes.data()), static_cast<std::streamsize>(file.bytes.size()));
         out.close();
-        if (!out) {
-            Q_EMIT log_line(
-                {static_cast<int>(Severity::warning), time_now(),
-                 tr("%1 could not be written to the storage folder.").arg(to_qstring(file.name))});
+        if (!out)
+        {
+            Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
+                             tr("%1 could not be written to the storage folder.").arg(to_qstring(file.name))});
             continue;
         }
         StoredFileRow row;
@@ -342,14 +395,16 @@ void MockWorker::store_upload(const UploadRecord& record) {
         row.path = QDir::toNativeSeparators(to_qstring(adl::platform::to_utf8(path.u8string())));
         rows.append(row);
     }
-    if (!rows.isEmpty()) {
+    if (!rows.isEmpty())
+    {
         Q_EMIT stored_files_changed(rows);
     }
 }
 
 // ---- The model -------------------------------------------------------------------------------
 
-MockTargetModel::MockTargetModel(LinkFactory factory, QObject* parent) : QObject(parent) {
+MockTargetModel::MockTargetModel(LinkFactory factory, QObject* parent) : QObject(parent)
+{
     qRegisterMetaType<adl::mock::Config>();
     qRegisterMetaType<adl::mock::LogEntry>();
     qRegisterMetaType<adl::mock::StoredFileRow>();
@@ -360,226 +415,282 @@ MockTargetModel::MockTargetModel(LinkFactory factory, QObject* parent) : QObject
 
     // The worker's thread emits these; the receiver (this) lives on the window's thread, so Qt
     // queues them and they arrive here in the order they were emitted.
-    connect(worker_, &MockWorker::log_line, this, [this](const LogEntry& entry) {
-        activity_.append(entry);
-        Q_EMIT logLine(entry);
-    });
-    connect(worker_, &MockWorker::operation_changed, this, [this](const QString& name) {
-        if (name != current_operation_) {
-            current_operation_ = name;
-            Q_EMIT operationChanged();
-        }
-    });
-    connect(worker_, &MockWorker::progress_changed, this, [this](int percent) {
-        if (percent != progress_) {
-            progress_ = percent;
-            Q_EMIT progressChanged();
-        }
-    });
+    connect(worker_, &MockWorker::log_line, this,
+            [this](const LogEntry& entry)
+            {
+                activity_.append(entry);
+                Q_EMIT logLine(entry);
+            });
+    connect(worker_, &MockWorker::operation_changed, this,
+            [this](const QString& name)
+            {
+                if (name != current_operation_)
+                {
+                    current_operation_ = name;
+                    Q_EMIT operationChanged();
+                }
+            });
+    connect(worker_, &MockWorker::progress_changed, this,
+            [this](int percent)
+            {
+                if (percent != progress_)
+                {
+                    progress_ = percent;
+                    Q_EMIT progressChanged();
+                }
+            });
     connect(worker_, &MockWorker::stored_files_changed, this,
-            [this](const QList<StoredFileRow>& rows) {
+            [this](const QList<StoredFileRow>& rows)
+            {
                 stored_files_.append(rows);
                 Q_EMIT storedFilesChanged();
             });
-    connect(worker_, &MockWorker::error_occurred, this, [this](const QString& text) {
-        set_error(adl::ui::Message::verbatim(text));
-        if (running_) {
-            running_ = false;
-            Q_EMIT runningChanged();
-        }
-        Q_EMIT errorOccurred();
-    });
+    connect(worker_, &MockWorker::error_occurred, this,
+            [this](const QString& text)
+            {
+                set_error(adl::ui::Message::verbatim(text));
+                if (running_)
+                {
+                    running_ = false;
+                    Q_EMIT runningChanged();
+                }
+                Q_EMIT errorOccurred();
+            });
 
     thread_.setObjectName(QStringLiteral("mock-engine"));
     thread_.start();
 }
 
-MockTargetModel::~MockTargetModel() {
+MockTargetModel::~MockTargetModel()
+{
     worker_->request_stop();
     thread_.quit();
     thread_.wait();
 }
 
-void MockTargetModel::set_error(const adl::ui::Message& text) {
-    if (text.text() == error_text_.text()) {
+void MockTargetModel::set_error(const adl::ui::Message& text)
+{
+    if (text.text() == error_text_.text())
+    {
         return;
     }
     error_text_ = text;
     Q_EMIT errorTextChanged();
 }
 
-void MockTargetModel::retranslate() {
+void MockTargetModel::retranslate()
+{
     Q_EMIT errorTextChanged();
 }
 
-void MockTargetModel::setHardwareId(const QString& value) {
-    if (value == hardware_id_) {
+void MockTargetModel::setHardwareId(const QString& value)
+{
+    if (value == hardware_id_)
+    {
         return;
     }
     hardware_id_ = value;
     Q_EMIT identityChanged();
 }
 
-void MockTargetModel::setTypeName(const QString& value) {
-    if (value == type_name_) {
+void MockTargetModel::setTypeName(const QString& value)
+{
+    if (value == type_name_)
+    {
         return;
     }
     type_name_ = value;
     Q_EMIT identityChanged();
 }
 
-void MockTargetModel::setPosition(const QString& value) {
-    if (value == position_) {
+void MockTargetModel::setPosition(const QString& value)
+{
+    if (value == position_)
+    {
         return;
     }
     position_ = value;
     Q_EMIT identityChanged();
 }
 
-void MockTargetModel::setLiteralName(const QString& value) {
-    if (value == literal_name_) {
+void MockTargetModel::setLiteralName(const QString& value)
+{
+    if (value == literal_name_)
+    {
         return;
     }
     literal_name_ = value;
     Q_EMIT identityChanged();
 }
 
-void MockTargetModel::setManufacturerCode(const QString& value) {
-    if (value == manufacturer_code_) {
+void MockTargetModel::setManufacturerCode(const QString& value)
+{
+    if (value == manufacturer_code_)
+    {
         return;
     }
     manufacturer_code_ = value;
     Q_EMIT identityChanged();
 }
 
-void MockTargetModel::setTftpPort(int value) {
-    if (value == tftp_port_) {
+void MockTargetModel::setTftpPort(int value)
+{
+    if (value == tftp_port_)
+    {
         return;
     }
     tftp_port_ = value;
     Q_EMIT portsChanged();
 }
 
-void MockTargetModel::setFindPort(int value) {
-    if (value == find_port_) {
+void MockTargetModel::setFindPort(int value)
+{
+    if (value == find_port_)
+    {
         return;
     }
     find_port_ = value;
     Q_EMIT portsChanged();
 }
 
-void MockTargetModel::setLoopbackOnly(bool value) {
-    if (value == loopback_only_) {
+void MockTargetModel::setLoopbackOnly(bool value)
+{
+    if (value == loopback_only_)
+    {
         return;
     }
     loopback_only_ = value;
     Q_EMIT portsChanged();
 }
 
-void MockTargetModel::setThinkTimeMs(int value) {
-    if (value == think_time_ms_) {
+void MockTargetModel::setThinkTimeMs(int value)
+{
+    if (value == think_time_ms_)
+    {
         return;
     }
     think_time_ms_ = value;
     Q_EMIT behaviourChanged();
 }
 
-void MockTargetModel::setStatusPeriodSec(int value) {
-    if (value == status_period_sec_) {
+void MockTargetModel::setStatusPeriodSec(int value)
+{
+    if (value == status_period_sec_)
+    {
         return;
     }
     status_period_sec_ = value;
     Q_EMIT behaviourChanged();
 }
 
-void MockTargetModel::setStorageDirectory(const QString& value) {
+void MockTargetModel::setStorageDirectory(const QString& value)
+{
     QString path = value.trimmed();
-    if (path.startsWith(QStringLiteral("file:"))) {
-        path = QUrl(path).toLocalFile();  // what a FolderDialog hands over
+    if (path.startsWith(QStringLiteral("file:")))
+    {
+        path = QUrl(path).toLocalFile(); // what a FolderDialog hands over
     }
-    if (path == storage_directory_) {
+    if (path == storage_directory_)
+    {
         return;
     }
     storage_directory_ = path;
     Q_EMIT storageDirectoryChanged();
 }
 
-void MockTargetModel::setWaitFirstSeconds(int value) {
-    if (value == wait_first_seconds_) {
+void MockTargetModel::setWaitFirstSeconds(int value)
+{
+    if (value == wait_first_seconds_)
+    {
         return;
     }
     wait_first_seconds_ = value;
     Q_EMIT injectionsChanged();
 }
 
-void MockTargetModel::setWaitEveryRequest(bool value) {
-    if (value == wait_every_request_) {
+void MockTargetModel::setWaitEveryRequest(bool value)
+{
+    if (value == wait_every_request_)
+    {
         return;
     }
     wait_every_request_ = value;
     Q_EMIT injectionsChanged();
 }
 
-void MockTargetModel::setRefuseOperation(const QString& value) {
-    if (value == refuse_operation_) {
+void MockTargetModel::setRefuseOperation(const QString& value)
+{
+    if (value == refuse_operation_)
+    {
         return;
     }
     refuse_operation_ = value;
     Q_EMIT injectionsChanged();
 }
 
-void MockTargetModel::setDropStatusEvery(int value) {
-    if (value == drop_status_every_) {
+void MockTargetModel::setDropStatusEvery(int value)
+{
+    if (value == drop_status_every_)
+    {
         return;
     }
     drop_status_every_ = value;
     Q_EMIT injectionsChanged();
 }
 
-void MockTargetModel::setCorruptServedFile(bool value) {
-    if (value == corrupt_served_file_) {
+void MockTargetModel::setCorruptServedFile(bool value)
+{
+    if (value == corrupt_served_file_)
+    {
         return;
     }
     corrupt_served_file_ = value;
     Q_EMIT injectionsChanged();
 }
 
-void MockTargetModel::setWrongChecksum(bool value) {
-    if (value == wrong_checksum_) {
+void MockTargetModel::setWrongChecksum(bool value)
+{
+    if (value == wrong_checksum_)
+    {
         return;
     }
     wrong_checksum_ = value;
     Q_EMIT injectionsChanged();
 }
 
-void MockTargetModel::setAbortAfterStatuses(int value) {
-    if (value == abort_after_statuses_) {
+void MockTargetModel::setAbortAfterStatuses(int value)
+{
+    if (value == abort_after_statuses_)
+    {
         return;
     }
     abort_after_statuses_ = value;
     Q_EMIT injectionsChanged();
 }
 
-void MockTargetModel::setSilent(bool value) {
-    if (value == silent_) {
+void MockTargetModel::setSilent(bool value)
+{
+    if (value == silent_)
+    {
         return;
     }
     silent_ = value;
     Q_EMIT injectionsChanged();
 }
 
-Config MockTargetModel::make_config() const {
+Config MockTargetModel::make_config() const
+{
     Config config;
     const QString hardware = hardware_id_.trimmed();
     const QString at_position = position_.trimmed();
-    config.thw = hardware.toStdString() +
-                 (at_position.isEmpty() ? std::string{} : "_" + at_position.toStdString());
-    config.find_answer = adl::arinc615a::FindAnswer{
-        hardware.toStdString(), type_name_.trimmed().toStdString(), at_position.toStdString(),
-        literal_name_.trimmed().toStdString(), manufacturer_code_.trimmed().toStdString()};
+    config.thw = hardware.toStdString() + (at_position.isEmpty() ? std::string{} : "_" + at_position.toStdString());
+    config.find_answer = adl::arinc615a::FindAnswer{hardware.toStdString(), type_name_.trimmed().toStdString(),
+                                                    at_position.toStdString(), literal_name_.trimmed().toStdString(),
+                                                    manufacturer_code_.trimmed().toStdString()};
     config.tftp_port = static_cast<std::uint16_t>(tftp_port_);
     config.find_port = static_cast<std::uint16_t>(find_port_);
-    if (loopback_only_) {
+    if (loopback_only_)
+    {
         config.bind_address = adl::arinc615a::Address::loopback();
     }
     config.think_time = std::chrono::milliseconds(think_time_ms_);
@@ -590,50 +701,63 @@ Config MockTargetModel::make_config() const {
     config.drop_status_every = static_cast<unsigned>(std::max(drop_status_every_, 0));
     config.corrupt_served = corrupt_served_file_;
     config.wrong_checksum = wrong_checksum_;
-    if (abort_after_statuses_ > 0) {
+    if (abort_after_statuses_ > 0)
+    {
         config.abort_after_statuses = static_cast<std::size_t>(abort_after_statuses_);
     }
     config.silent = silent_;
 
-    const auto make_refusal = [](OperationKind kind) {
+    const auto make_refusal = [](OperationKind kind)
+    {
         Refusal refusal;
         refusal.kind = kind;
         refusal.code = adl::arinc615a::StatusCode::operation_denied;
         refusal.text = "refused by the mock target";
         return refusal;
     };
-    if (refuse_operation_ == QLatin1String("information")) {
+    if (refuse_operation_ == QLatin1String("information"))
+    {
         config.refusal = make_refusal(OperationKind::information);
-    } else if (refuse_operation_ == QLatin1String("upload")) {
+    }
+    else if (refuse_operation_ == QLatin1String("upload"))
+    {
         config.refusal = make_refusal(OperationKind::upload);
-    } else if (refuse_operation_ == QLatin1String("downloadMedia")) {
+    }
+    else if (refuse_operation_ == QLatin1String("downloadMedia"))
+    {
         config.refusal = make_refusal(OperationKind::download_media);
-    } else if (refuse_operation_ == QLatin1String("downloadOperator")) {
+    }
+    else if (refuse_operation_ == QLatin1String("downloadOperator"))
+    {
         config.refusal = make_refusal(OperationKind::download_operator);
     }
     return config;
 }
 
-void MockTargetModel::start() {
-    if (running_) {
+void MockTargetModel::start()
+{
+    if (running_)
+    {
         return;
     }
-    if (tftp_port_ < 1 || tftp_port_ > 65535 || find_port_ < 1 || find_port_ > 65535) {
+    if (tftp_port_ < 1 || tftp_port_ > 65535 || find_port_ < 1 || find_port_ > 65535)
+    {
         set_error(adl::ui::Message::translated(
-            &MockTargetModel::tr,
-            QT_TR_NOOP("The TFTP and FIND ports must each be between 1 and 65535.")));
+            &MockTargetModel::tr, QT_TR_NOOP("The TFTP and FIND ports must each be between 1 and 65535.")));
         return;
     }
     set_error({});
     worker_->session_queued();
     running_ = true;
     Q_EMIT runningChanged();
-    QMetaObject::invokeMethod(worker_, &MockWorker::start_session, Qt::QueuedConnection,
-                              make_config(), storage_directory_);
+    QMetaObject::invokeMethod(worker_, &MockWorker::start_session, Qt::QueuedConnection, make_config(),
+                              storage_directory_);
 }
 
-void MockTargetModel::stop() {
-    if (!running_) {
+void MockTargetModel::stop()
+{
+    if (!running_)
+    {
         return;
     }
     worker_->request_stop();
@@ -641,8 +765,9 @@ void MockTargetModel::stop() {
     Q_EMIT runningChanged();
 }
 
-void MockTargetModel::clearLog() {
+void MockTargetModel::clearLog()
+{
     activity_.clear();
 }
 
-}  // namespace adl::mock
+} // namespace adl::mock

@@ -8,7 +8,8 @@
 
 #include <string_view>
 
-namespace adl::arinc665 {
+namespace adl::arinc665
+{
 
 // CON, PRN, AUX, NUL, COM1 to COM9, LPT1 to LPT9, CONIN$ and CONOUT$ in any case, with or
 // without an extension: on Windows these are devices, whatever directory they are named in.
@@ -21,4 +22,4 @@ namespace adl::arinc665 {
 // macOS), and the length is not limited here.
 [[nodiscard]] bool is_portable_file_name(std::string_view name) noexcept;
 
-}  // namespace adl::arinc665
+} // namespace adl::arinc665

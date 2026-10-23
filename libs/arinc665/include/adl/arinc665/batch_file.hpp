@@ -4,20 +4,22 @@
 // that write it to bytes, read it back and check it. A batch names loads that a
 // maintainer can select together, grouped by the target they go to.
 
-#include <cstddef>
-#include <span>
-#include <string>
-#include <vector>
-
 #include "adl/arinc665/error.hpp"
 #include "adl/arinc665/file_format_version.hpp"
 #include "adl/arinc665/finding.hpp"
 #include "adl/arinc665/part_number.hpp"
 
-namespace adl::arinc665 {
+#include <cstddef>
+#include <span>
+#include <string>
+#include <vector>
+
+namespace adl::arinc665
+{
 
 // One load in a batch: its header file's name and its part number.
-struct BatchLoad {
+struct BatchLoad
+{
     std::string header_file_name;
     PartNumber load_part_number;
 
@@ -26,8 +28,9 @@ struct BatchLoad {
 
 // The loads for one position of one piece of target hardware: a Target HW ID
 // Load-List block (section 2.3.1).
-struct BatchTarget {
-    std::string target_hardware_id_position;  // THW_ID_POS as ARINC 615A defines it
+struct BatchTarget
+{
+    std::string target_hardware_id_position; // THW_ID_POS as ARINC 615A defines it
     std::vector<BatchLoad> loads;
 
     friend bool operator==(const BatchTarget&, const BatchTarget&) = default;
@@ -35,10 +38,11 @@ struct BatchTarget {
 
 // A batch file (<name>.LUB, Table 2.3.1-1): a series of loads that a maintainer
 // can select in one go, grouped by the target they go to.
-struct BatchFile {
+struct BatchFile
+{
     FileFormatVersion format_version = FileFormatVersion::batch;
     PartNumber batch_part_number;
-    std::string comment;  // empty: no comment
+    std::string comment; // empty: no comment
     std::vector<BatchTarget> targets;
 
     friend bool operator==(const BatchFile&, const BatchFile&) = default;
@@ -53,4 +57,4 @@ struct BatchFile {
 // Part numbers and names the standard says should follow its recommendations.
 [[nodiscard]] Findings check_batch_file(const BatchFile& batch);
 
-}  // namespace adl::arinc665
+} // namespace adl::arinc665

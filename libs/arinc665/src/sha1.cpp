@@ -3,32 +3,38 @@
 #include <algorithm>
 #include <bit>
 
-namespace adl::arinc665 {
+namespace adl::arinc665
+{
 
-void Sha1::update(std::span<const std::byte> data) noexcept {
+void Sha1::update(std::span<const std::byte> data) noexcept
+{
     total_bytes_ += data.size();
-    while (!data.empty()) {
+    while (!data.empty())
+    {
         const std::size_t take = std::min(data.size(), buffer_.size() - buffer_size_);
-        std::copy_n(data.begin(), take,
-                    buffer_.begin() + static_cast<std::ptrdiff_t>(buffer_size_));
+        std::copy_n(data.begin(), take, buffer_.begin() + static_cast<std::ptrdiff_t>(buffer_size_));
         buffer_size_ += take;
         data = data.subspan(take);
-        if (buffer_size_ == buffer_.size()) {
+        if (buffer_size_ == buffer_.size())
+        {
             process_block(buffer_.data());
             buffer_size_ = 0;
         }
     }
 }
 
-void Sha1::process_block(const std::byte* block) noexcept {
+void Sha1::process_block(const std::byte* block) noexcept
+{
     std::array<std::uint32_t, 80> w{};
-    for (std::size_t i = 0; i < 16; ++i) {
+    for (std::size_t i = 0; i < 16; ++i)
+    {
         w[i] = (std::to_integer<std::uint32_t>(block[4 * i]) << 24) |
                (std::to_integer<std::uint32_t>(block[4 * i + 1]) << 16) |
                (std::to_integer<std::uint32_t>(block[4 * i + 2]) << 8) |
                std::to_integer<std::uint32_t>(block[4 * i + 3]);
     }
-    for (std::size_t i = 16; i < 80; ++i) {
+    for (std::size_t i = 16; i < 80; ++i)
+    {
         w[i] = std::rotl(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
     }
 
@@ -38,19 +44,27 @@ void Sha1::process_block(const std::byte* block) noexcept {
     std::uint32_t d = state_[3];
     std::uint32_t e = state_[4];
 
-    for (std::size_t i = 0; i < 80; ++i) {
+    for (std::size_t i = 0; i < 80; ++i)
+    {
         std::uint32_t f = 0;
         std::uint32_t k = 0;
-        if (i < 20) {
+        if (i < 20)
+        {
             f = (b & c) | (~b & d);
             k = 0x5A827999U;
-        } else if (i < 40) {
+        }
+        else if (i < 40)
+        {
             f = b ^ c ^ d;
             k = 0x6ED9EBA1U;
-        } else if (i < 60) {
+        }
+        else if (i < 60)
+        {
             f = (b & c) | (b & d) | (c & d);
             k = 0x8F1BBCDCU;
-        } else {
+        }
+        else
+        {
             f = b ^ c ^ d;
             k = 0xCA62C1D6U;
         }
@@ -69,7 +83,8 @@ void Sha1::process_block(const std::byte* block) noexcept {
     state_[4] += e;
 }
 
-Sha1::Digest Sha1::digest() const noexcept {
+Sha1::Digest Sha1::digest() const noexcept
+{
     // Pad a copy: a 1 bit, zeros up to 56 bytes into a block, then the length in
     // bits as 64 bits, most significant byte first.
     Sha1 copy = *this;
@@ -78,18 +93,21 @@ Sha1::Digest Sha1::digest() const noexcept {
 
     std::array<std::byte, 72> padding{};
     padding[0] = std::byte{0x80};
-    for (std::size_t i = 0; i < 8; ++i) {
+    for (std::size_t i = 0; i < 8; ++i)
+    {
         padding[pad_length + i] = static_cast<std::byte>((bit_length >> (56 - 8 * i)) & 0xFFU);
     }
     copy.update(std::span<const std::byte>{padding}.first(pad_length + 8));
 
     Digest result{};
-    for (std::size_t i = 0; i < copy.state_.size(); ++i) {
-        for (std::size_t j = 0; j < 4; ++j) {
+    for (std::size_t i = 0; i < copy.state_.size(); ++i)
+    {
+        for (std::size_t j = 0; j < 4; ++j)
+        {
             result[4 * i + j] = static_cast<std::byte>((copy.state_[i] >> (24 - 8 * j)) & 0xFFU);
         }
     }
     return result;
 }
 
-}  // namespace adl::arinc665
+} // namespace adl::arinc665

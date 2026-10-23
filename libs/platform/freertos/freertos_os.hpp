@@ -4,10 +4,6 @@
 // libs/platform/freertos: it includes FreeRTOS's headers, which the rest of the program
 // never sees.
 
-#include <cstddef>
-#include <cstdint>
-#include <memory>
-
 #include "adl/platform/error.hpp"
 #include "adl/platform/host.hpp"
 #include "adl/platform/time.hpp"
@@ -18,7 +14,12 @@
 #include <semphr.h>
 #include <task.h>
 
-namespace adl::platform::freertos_os {
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+
+namespace adl::platform::freertos_os
+{
 
 // The environment the product set (environment.hpp), read when a Host is made.
 [[nodiscard]] const freertos::Environment& environment() noexcept;
@@ -36,35 +37,41 @@ inline constexpr Duration longest_kernel_wait = std::chrono::hours(1);
 // it got what it waited for) until it does or `timeout` has passed by `clock`, whatever the
 // kernel's rounding of one wait. `forever` waits for ever. A timeout of zero tries once.
 template <class Attempt>
-[[nodiscard]] bool wait_for(Clock& clock, Duration timeout, Attempt&& attempt) noexcept {
+[[nodiscard]] bool wait_for(Clock& clock, Duration timeout, Attempt&& attempt) noexcept
+{
     const Instant deadline = timeout == forever ? Instant{forever} : clock.now() + timeout;
-    for (;;) {
+    for (;;)
+    {
         Duration remaining = forever;
-        if (timeout != forever) {
+        if (timeout != forever)
+        {
             remaining = deadline - clock.now();
-            if (remaining < Duration::zero()) {
+            if (remaining < Duration::zero())
+            {
                 remaining = Duration::zero();
             }
         }
-        if (attempt(to_ticks(remaining == forever ? longest_kernel_wait : remaining))) {
+        if (attempt(to_ticks(remaining == forever ? longest_kernel_wait : remaining)))
+        {
             return true;
         }
-        if (timeout != forever && deadline - clock.now() <= Duration::zero()) {
+        if (timeout != forever && deadline - clock.now() <= Duration::zero())
+        {
             return false;
         }
     }
 }
 
-}  // namespace adl::platform::freertos_os
+} // namespace adl::platform::freertos_os
 
-namespace adl::platform::freertos {
+namespace adl::platform::freertos
+{
 
 [[nodiscard]] std::unique_ptr<Clock> make_clock() noexcept;
 [[nodiscard]] std::unique_ptr<MemoryProvider> make_memory() noexcept;
 [[nodiscard]] std::unique_ptr<FileSystem> make_files(::lfs* mounted) noexcept;
-[[nodiscard]] std::unique_ptr<Threading> make_threading(Clock& clock,
-                                                        unsigned network_task_priority) noexcept;
+[[nodiscard]] std::unique_ptr<Threading> make_threading(Clock& clock, unsigned network_task_priority) noexcept;
 [[nodiscard]] std::unique_ptr<Network> make_network(Clock& clock) noexcept;
 [[nodiscard]] std::unique_ptr<Ipc> make_ipc(Clock& clock) noexcept;
 
-}  // namespace adl::platform::freertos
+} // namespace adl::platform::freertos

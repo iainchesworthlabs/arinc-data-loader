@@ -7,15 +7,17 @@
 // VxWorks msgQ, a Zephyr k_msgq, a QNX channel), which can be used from an
 // interrupt and does priority inheritance.
 
-#include <cstddef>
-#include <memory>
-
 #include "adl/platform/ipc.hpp"
 #include "adl/platform/threads.hpp"
 
-namespace adl::platform {
+#include <cstddef>
+#include <memory>
 
-class RingIpc final : public Ipc {
+namespace adl::platform
+{
+
+class RingIpc final : public Ipc
+{
 public:
     explicit RingIpc(Threading& threads) noexcept : threads_(threads) {}
 
@@ -25,4 +27,4 @@ private:
     Threading& threads_;
 };
 
-}  // namespace adl::platform
+} // namespace adl::platform

@@ -7,7 +7,8 @@
 #include <QTranslator>
 #include <QVariantList>
 
-namespace adl::ui {
+namespace adl::ui
+{
 
 // Owns an application's translators, the persisted language preference, and what a language
 // switch touches: the installed translators, the layout direction (right to left for the
@@ -24,21 +25,24 @@ namespace adl::ui {
 // `app` and `engine` must outlive this object. Declare it after the engine in main.cpp, so the
 // QML tree is gone before the manager is (a binding still reading it while the engine tears down
 // would see a null).
-class LanguageManager : public QObject {
+class LanguageManager : public QObject
+{
     Q_OBJECT
     Q_PROPERTY(QString currentLanguage READ currentLanguage NOTIFY currentLanguageChanged)
     Q_PROPERTY(bool rightToLeft READ rightToLeft NOTIFY currentLanguageChanged)
 
 public:
-    LanguageManager(QGuiApplication& app, QQmlEngine& engine, QString catalogue,
-                    QObject* parent = nullptr);
+    LanguageManager(QGuiApplication& app, QQmlEngine& engine, QString catalogue, QObject* parent = nullptr);
 
     // Installs the translators for the initial language - the persisted preference, falling back
     // to the system locale and then to "en" - and sets the layout direction. Called once from
     // main(), before the QML is loaded, so the first frame is already in the right language.
     void applyInitialLanguage();
 
-    [[nodiscard]] QString currentLanguage() const { return current_language_; }
+    [[nodiscard]] QString currentLanguage() const
+    {
+        return current_language_;
+    }
 
     // Whether the current language reads right to left: Hebrew and Yiddish.
     [[nodiscard]] bool rightToLeft() const;
@@ -72,4 +76,4 @@ private:
     QString current_language_ = QStringLiteral("en");
 };
 
-}  // namespace adl::ui
+} // namespace adl::ui

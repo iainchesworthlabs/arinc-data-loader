@@ -4,7 +4,8 @@
 
 class QQmlContext;
 
-namespace adl::ui {
+namespace adl::ui
+{
 
 // The version and provenance block the About dialogs show: version, git describe, full commit,
 // branch, build target and Qt version, with a dirty marker when the tree had uncommitted tracked
@@ -20,4 +21,4 @@ QString licence_notices();
 // version block above) and appLicenceNotices (the text of the Licences dialog).
 void set_about_properties(QQmlContext& context, const QString& application_name);
 
-}  // namespace adl::ui
+} // namespace adl::ui

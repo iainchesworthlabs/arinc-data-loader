@@ -15,9 +15,11 @@
 // littlefs header).
 struct lfs;
 
-namespace adl::platform::freertos {
+namespace adl::platform::freertos
+{
 
-struct Environment {
+struct Environment
+{
     // A mounted littlefs (lfs_mount has succeeded), which must outlive every Host made after
     // this call and must have been built thread-safe (LFS_THREADSAFE, with the lock and
     // unlock of its configuration), because the runner, the application and the engine's
@@ -36,4 +38,4 @@ struct Environment {
 // earlier keep the one they were made with.
 void set_environment(const Environment& environment) noexcept;
 
-}  // namespace adl::platform::freertos
+} // namespace adl::platform::freertos

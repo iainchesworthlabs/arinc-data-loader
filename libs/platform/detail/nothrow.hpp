@@ -8,12 +8,14 @@
 #include <new>
 #include <utility>
 
-namespace adl::platform::detail {
+namespace adl::platform::detail
+{
 
 // nullptr if the allocation fails. T's constructor must not throw.
 template <class T, class... Args>
-[[nodiscard]] std::unique_ptr<T> make_unique_nothrow(Args&&... args) noexcept {
+[[nodiscard]] std::unique_ptr<T> make_unique_nothrow(Args&&... args) noexcept
+{
     return std::unique_ptr<T>(new (std::nothrow) T(std::forward<Args>(args)...));
 }
 
-}  // namespace adl::platform::detail
+} // namespace adl::platform::detail

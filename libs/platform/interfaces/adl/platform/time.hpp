@@ -6,13 +6,14 @@
 // date, and a way to sleep. A wall clock is separate and optional: a target
 // without a battery-backed clock reports `unsupported`.
 
+#include "adl/platform/error.hpp"
+
 #include <chrono>
 #include <compare>
 #include <cstdint>
 
-#include "adl/platform/error.hpp"
-
-namespace adl::platform {
+namespace adl::platform
+{
 
 // Signed nanoseconds in 64 bits: 292 years either way, with no rounding to
 // worry about in the protocol's whole-second figures.
@@ -24,7 +25,8 @@ inline constexpr Duration forever = Duration::max();
 
 // A point on the monotonic clock. Its origin is arbitrary (boot, process start)
 // and is the same only within one Clock; compare Instants of one clock.
-struct Instant {
+struct Instant
+{
     Duration since_origin{};
 
     friend constexpr auto operator<=>(const Instant&, const Instant&) noexcept = default;
@@ -32,32 +34,40 @@ struct Instant {
 
 // Adding to an Instant saturates rather than wrapping, so `now + forever` is a
 // deadline that never arrives.
-[[nodiscard]] constexpr Instant operator+(Instant at, Duration by) noexcept {
-    if (by > Duration::zero() && at.since_origin > Duration::max() - by) {
+[[nodiscard]] constexpr Instant operator+(Instant at, Duration by) noexcept
+{
+    if (by > Duration::zero() && at.since_origin > Duration::max() - by)
+    {
         return Instant{Duration::max()};
     }
-    if (by < Duration::zero() && at.since_origin < Duration::min() - by) {
+    if (by < Duration::zero() && at.since_origin < Duration::min() - by)
+    {
         return Instant{Duration::min()};
     }
     return Instant{at.since_origin + by};
 }
 
-[[nodiscard]] constexpr Instant operator-(Instant at, Duration by) noexcept {
-    if (by > Duration::zero() && at.since_origin < Duration::min() + by) {
+[[nodiscard]] constexpr Instant operator-(Instant at, Duration by) noexcept
+{
+    if (by > Duration::zero() && at.since_origin < Duration::min() + by)
+    {
         return Instant{Duration::min()};
     }
-    if (by < Duration::zero() && at.since_origin > Duration::max() + by) {
+    if (by < Duration::zero() && at.since_origin > Duration::max() + by)
+    {
         return Instant{Duration::max()};
     }
     return Instant{at.since_origin - by};
 }
 
-[[nodiscard]] constexpr Duration operator-(Instant later, Instant earlier) noexcept {
+[[nodiscard]] constexpr Duration operator-(Instant later, Instant earlier) noexcept
+{
     return later.since_origin - earlier.since_origin;
 }
 
 // The monotonic clock and the means to wait on it. One per Host.
-class Clock {
+class Clock
+{
 public:
     virtual ~Clock() = default;
 
@@ -74,12 +84,14 @@ public:
     // clock. Never used to measure an interval.
     [[nodiscard]] virtual Result<std::int64_t> wall_time_seconds() noexcept = 0;
 
-    void sleep_until(Instant at) noexcept {
+    void sleep_until(Instant at) noexcept
+    {
         const Duration remaining = at - now();
-        if (remaining > Duration::zero()) {
+        if (remaining > Duration::zero())
+        {
             sleep_for(remaining);
         }
     }
 };
 
-}  // namespace adl::platform
+} // namespace adl::platform

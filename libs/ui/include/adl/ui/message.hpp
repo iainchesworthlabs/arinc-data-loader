@@ -21,14 +21,15 @@
 // phrase (a number of loads inside a sentence) as well as text that is never translated (a path, a
 // file name, a hardware identifier, a word of the standard).
 
-#include <vector>
-
 #include <QMetaType>
 #include <QString>
+#include <vector>
 
-namespace adl::ui {
+namespace adl::ui
+{
 
-class Message {
+class Message
+{
 public:
     // The tr() of the class the message is made in.
     using Translate = QString (*)(const char* source, const char* disambiguation, int count);
@@ -52,7 +53,13 @@ public:
     [[nodiscard]] bool isEmpty() const;
 
 private:
-    enum class Kind { empty, verbatim, translated, sequence };
+    enum class Kind
+    {
+        empty,
+        verbatim,
+        translated,
+        sequence
+    };
 
     Kind kind_ = Kind::empty;
     QString verbatim_;
@@ -63,6 +70,6 @@ private:
     std::vector<Message> parts_;
 };
 
-}  // namespace adl::ui
+} // namespace adl::ui
 
 Q_DECLARE_METATYPE(adl::ui::Message)

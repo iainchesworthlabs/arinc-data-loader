@@ -6,15 +6,16 @@
 // unverified assumptions are named in each implementation file and in
 // docs/platform-ghs.md.
 
-#include <memory>
-
 #include "adl/platform/files.hpp"
 #include "adl/platform/memory.hpp"
 #include "adl/platform/network.hpp"
 #include "adl/platform/threads.hpp"
 #include "adl/platform/time.hpp"
 
-namespace adl::platform::ghs178b {
+#include <memory>
+
+namespace adl::platform::ghs178b
+{
 
 // make_network() takes no Clock: the sockets bound a receive time-out with
 // GetClockTime on PrimaryClock, the same timer driver the host's Clock reads,
@@ -25,4 +26,4 @@ namespace adl::platform::ghs178b {
 [[nodiscard]] std::unique_ptr<Threading> make_threading(Clock& clock) noexcept;
 [[nodiscard]] std::unique_ptr<Network> make_network() noexcept;
 
-}  // namespace adl::platform::ghs178b
+} // namespace adl::platform::ghs178b

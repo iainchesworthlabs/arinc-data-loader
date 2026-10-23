@@ -8,22 +8,22 @@
 // cannot be queued calls (the worker's thread is busy in the job): they are flags the runner
 // reads between its waits, through the RunController.
 
-#include <atomic>
-#include <memory>
-#include <mutex>
-#include <string>
-
-#include <QList>
-#include <QObject>
-#include <QString>
-#include <QStringList>
-
 #include "adl/app/events.hpp"
 #include "adl/app/host_access.hpp"
 #include "adl/app/media_source.hpp"
 #include "adl/arinc615a/runner.hpp"
 
-namespace adl::app {
+#include <QList>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <string>
+
+namespace adl::app
+{
 
 // The operator's controls of a running operation, handed to the runner as its controller. Both
 // are written from the window's thread (request_abort, post_selection) and turned into a call
@@ -34,19 +34,25 @@ namespace adl::app {
 // choice no longer matters. Each is issued once per job, and clear() is called before a job is
 // queued, so a request or a choice left over from an earlier job cannot stop or answer the
 // next.
-class OperationGate final : public adl::arinc615a::RunController {
+class OperationGate final : public adl::arinc615a::RunController
+{
 public:
     // Thread safe. Asks the job that is running (or the next one to start) to abort.
-    void request_abort() noexcept { abort_requested_.store(true, std::memory_order_release); }
+    void request_abort() noexcept
+    {
+        abort_requested_.store(true, std::memory_order_release);
+    }
     // Thread safe. Hands the operator's file choice to the job that is running. The names are
     // copied at once; an empty list is the choice "none".
     void post_selection(QStringList names) noexcept;
     // Forgets a request and a choice. Called before a job is queued, never while one is running.
     void clear() noexcept;
-    [[nodiscard]] bool abort_requested() const noexcept {
+    [[nodiscard]] bool abort_requested() const noexcept
+    {
         return abort_requested_.load(std::memory_order_acquire);
     }
-    [[nodiscard]] bool selection_posted() const noexcept {
+    [[nodiscard]] bool selection_posted() const noexcept
+    {
         return selection_ready_.load(std::memory_order_acquire);
     }
 
@@ -60,11 +66,12 @@ private:
     std::atomic<bool> selection_ready_{false};
     std::mutex selection_mutex_;
     QStringList selection_;
-    bool abort_issued_ = false;      // the runner's thread only
-    bool selection_issued_ = false;  // the runner's thread only
+    bool abort_issued_ = false;     // the runner's thread only
+    bool selection_issued_ = false; // the runner's thread only
 };
 
-class EngineWorker : public QObject {
+class EngineWorker : public QObject
+{
     Q_OBJECT
 
 public:
@@ -72,13 +79,22 @@ public:
 
     // Thread safe. Asks the job that is running (or the next one to start) to abort. A FIND and
     // the reading of a media set have no abort: they end by themselves within seconds.
-    void request_abort() noexcept { controls_.request_abort(); }
+    void request_abort() noexcept
+    {
+        controls_.request_abort();
+    }
     // Forgets the abort request and the file choice of a previous job. Called before a job is
     // queued, never while one is running.
-    void clear_controls() noexcept { controls_.clear(); }
+    void clear_controls() noexcept
+    {
+        controls_.clear();
+    }
     // Thread safe. Hands the operator's file choice of an operator defined download to the job
     // that is running. An empty list is the choice "none", which cancels the download.
-    void post_selection(QStringList names) noexcept { controls_.post_selection(std::move(names)); }
+    void post_selection(QStringList names) noexcept
+    {
+        controls_.post_selection(std::move(names));
+    }
 
 public Q_SLOTS:
     // FIND: broadcasts (or, for a non-empty dotted address, asks that one host) and collects the
@@ -96,8 +112,8 @@ public Q_SLOTS:
     void validate_media_set(const QString& path);
     // An Upload operation (6.3.2) of `loads`, which have to be loads of the media set read last,
     // to the target at `address`.
-    void upload(const QString& address, const QString& thw_id_pos,
-                QList<adl::app::LoadSummary> loads, quint16 control_port);
+    void upload(const QString& address, const QString& thw_id_pos, QList<adl::app::LoadSummary> loads,
+                quint16 control_port);
     // A media defined Download (6.3.3): the files `names` name, to the target at `address`. The
     // files land in a new DNLD_DATA_<THW_ID_POS>_<number> directory (5.4.4.3) under
     // `download_directory`. A name that is not a safe file name is refused before the operation
@@ -108,8 +124,8 @@ public Q_SLOTS:
     // files comes back as the download_list signal while the operation runs; the operator's
     // choice reaches the loader through post_selection (an empty choice cancels). The files land
     // in a new DNLD_DATA_<THW_ID_POS>_<number> directory (5.4.4.3) under `download_directory`.
-    void download_operator(const QString& address, const QString& thw_id_pos,
-                           const QString& download_directory, quint16 control_port);
+    void download_operator(const QString& address, const QString& thw_id_pos, const QString& download_directory,
+                           quint16 control_port);
 
 Q_SIGNALS:
     // A line for the activity log.
@@ -133,19 +149,16 @@ private:
     // Ends the job with `text` as the outcome, and `hint` (when known) as what the operator can
     // do about it. `download_directory` (when set) is a directory that was made for the job and
     // is reported all the same, so the operator knows where it is.
-    void fail(const Message& text, const Message& hint = {},
-              const QString& download_directory = {});
+    void fail(const Message& text, const Message& hint = {}, const QString& download_directory = {});
     // Runs `operation` against the target and reports how it ended; the part the Information,
     // Upload and Download operations share. `listener`, `source` and `sink` live for the call;
     // `download_path` (when set) is the directory made for a download's files (platform path):
     // it is reported in the summary, or removed when nothing was received.
     // `media` (an upload's source) says if it refused a file that had changed since the check.
-    void run_operation(adl::platform::Host& host, const adl::arinc615a::Address& target,
-                       const QString& thw_id_pos, const adl::arinc615a::Operation& operation,
-                       adl::arinc615a::OperationListener& listener,
-                       adl::arinc615a::FileSource* source, adl::arinc615a::FileSink* sink,
-                       quint16 control_port, const std::string& download_path = {},
-                       const MediaTreeSource* media = nullptr);
+    void run_operation(adl::platform::Host& host, const adl::arinc615a::Address& target, const QString& thw_id_pos,
+                       const adl::arinc615a::Operation& operation, adl::arinc615a::OperationListener& listener,
+                       adl::arinc615a::FileSource* source, adl::arinc615a::FileSink* sink, quint16 control_port,
+                       const std::string& download_path = {}, const MediaTreeSource* media = nullptr);
     // The part the two Download modes share: the host, the DNLD_DATA directory and the runner.
     void run_download(const adl::arinc615a::Address& target, const QString& thw_id_pos,
                       const adl::arinc615a::Operation& operation, const QString& download_directory,
@@ -157,4 +170,4 @@ private:
     OperationGate controls_;
 };
 
-}  // namespace adl::app
+} // namespace adl::app

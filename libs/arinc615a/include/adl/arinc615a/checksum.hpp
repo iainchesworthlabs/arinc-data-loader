@@ -7,32 +7,36 @@
 // handled exactly like one that does, and the transfer does not fail. So the verifier only
 // reports; it never decides anything.
 
+#include "adl/arinc615a/tftp.hpp"
+#include "adl/arinc665/integrity_checker.hpp"
+
 #include <cstddef>
 #include <optional>
 #include <span>
 
-#include "adl/arinc615a/tftp.hpp"
-#include "adl/arinc665/integrity_checker.hpp"
+namespace adl::arinc615a
+{
 
-namespace adl::arinc615a {
-
-enum class ChecksumVerdict : unsigned char {
-    not_given,    // the target sent no checksum option
-    unsupported,  // the algorithm cannot be calculated here (the option was not acknowledged)
+enum class ChecksumVerdict : unsigned char
+{
+    not_given,   // the target sent no checksum option
+    unsupported, // the algorithm cannot be calculated here (the option was not acknowledged)
     matched,
     mismatched,
 };
 
-[[nodiscard]] constexpr const char* to_string(ChecksumVerdict verdict) noexcept {
-    switch (verdict) {
-        case ChecksumVerdict::not_given:
-            return "no checksum given";
-        case ChecksumVerdict::unsupported:
-            return "checksum algorithm not supported";
-        case ChecksumVerdict::matched:
-            return "checksum matched";
-        case ChecksumVerdict::mismatched:
-            return "checksum did not match";
+[[nodiscard]] constexpr const char* to_string(ChecksumVerdict verdict) noexcept
+{
+    switch (verdict)
+    {
+    case ChecksumVerdict::not_given:
+        return "no checksum given";
+    case ChecksumVerdict::unsupported:
+        return "checksum algorithm not supported";
+    case ChecksumVerdict::matched:
+        return "checksum matched";
+    case ChecksumVerdict::mismatched:
+        return "checksum did not match";
     }
     return "unknown";
 }
@@ -41,14 +45,17 @@ enum class ChecksumVerdict : unsigned char {
 // only if it does (RFC 2347: an option the receiver does not take is left out of the OACK).
 [[nodiscard]] bool can_calculate(const ChecksumOption& option) noexcept;
 
-class ChecksumVerifier {
+class ChecksumVerifier
+{
 public:
     // Starts checking against `option`, or does nothing if there is none or it cannot be
     // calculated (finish() then says so).
     void begin(const std::optional<ChecksumOption>& option) noexcept;
 
-    void update(std::span<const std::byte> data) noexcept {
-        if (checker_) {
+    void update(std::span<const std::byte> data) noexcept
+    {
+        if (checker_)
+        {
             checker_->update(data);
         }
     }
@@ -64,4 +71,4 @@ private:
     ChecksumVerdict state_ = ChecksumVerdict::not_given;
 };
 
-}  // namespace adl::arinc615a
+} // namespace adl::arinc615a

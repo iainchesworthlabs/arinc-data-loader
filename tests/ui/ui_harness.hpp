@@ -6,11 +6,10 @@
 // it between test cases and answers the questions a QML test cannot ask the model directly (what
 // the target read, what a download wrote, how many rows a list holds).
 
-#include <condition_variable>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <vector>
+#include "adl/app/loader_model.hpp"
+#include "gated_host.hpp"
+#include "rig.hpp"
+#include "upload_fixture.hpp"
 
 #include <QObject>
 #include <QString>
@@ -18,25 +17,33 @@
 #include <QUrl>
 #include <QVariantList>
 #include <QVariantMap>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <vector>
 
-#include "adl/app/loader_model.hpp"
-#include "gated_host.hpp"
-#include "rig.hpp"
-#include "upload_fixture.hpp"
+namespace adl::ui_test
+{
 
-namespace adl::ui_test {
-
-class Harness : public QObject {
+class Harness : public QObject
+{
     Q_OBJECT
 
 public:
     explicit Harness(QObject* parent = nullptr);
     ~Harness() override;
 
-    [[nodiscard]] adl::app::LoaderModel& model() noexcept { return *model_; }
+    [[nodiscard]] adl::app::LoaderModel& model() noexcept
+    {
+        return *model_;
+    }
 
     // False when the media set could not be written; the QML suite fails rather than runs.
-    [[nodiscard]] Q_INVOKABLE bool ready() const noexcept { return ready_; }
+    [[nodiscard]] Q_INVOKABLE bool ready() const noexcept
+    {
+        return ready_;
+    }
     [[nodiscard]] Q_INVOKABLE QString mediaSetPath() const;
     [[nodiscard]] Q_INVOKABLE QUrl mediaSetUrl() const;
     [[nodiscard]] Q_INVOKABLE QString downloadDirectory() const;
@@ -109,8 +116,7 @@ public:
     [[nodiscard]] Q_INVOKABLE bool gateReached() const;
 
 private:
-    [[nodiscard]] std::optional<std::vector<std::byte>> downloadedBytes(const QString& name,
-                                                                        int number) const;
+    [[nodiscard]] std::optional<std::vector<std::byte>> downloadedBytes(const QString& name, int number) const;
 
     // The settings live outside the media set's directory: a stray file at the root of a media
     // set is exactly what the tree reader refuses.
@@ -128,4 +134,4 @@ private:
     bool ready_ = false;
 };
 
-}  // namespace adl::ui_test
+} // namespace adl::ui_test

@@ -5,7 +5,11 @@
 // drive. Qt Quick Test creates the QGuiApplication, then calls applicationAvailable(), and then
 // qmlEngineAvailable() for the engine the test files are loaded into.
 
-#include <memory>
+#include "adl/ui/fonts.hpp"
+#include "adl/ui/language_manager.hpp"
+#include "adl/ui/version.hpp"
+#include "scratch_settings.hpp"
+#include "ui_harness.hpp"
 
 #include <QGuiApplication>
 #include <QObject>
@@ -13,16 +17,13 @@
 #include <QQmlEngine>
 #include <QQuickStyle>
 #include <QUrl>
+#include <memory>
 
-#include "adl/ui/fonts.hpp"
-#include "adl/ui/language_manager.hpp"
-#include "adl/ui/version.hpp"
-#include "scratch_settings.hpp"
-#include "ui_harness.hpp"
+namespace adl::ui_test
+{
 
-namespace adl::ui_test {
-
-class UiSetup : public QObject {
+class UiSetup : public QObject
+{
     Q_OBJECT
 
 public:
@@ -30,7 +31,8 @@ public:
     ~UiSetup() override = default;
 
 public Q_SLOTS:
-    void applicationAvailable() {
+    void applicationAvailable()
+    {
         QQuickStyle::setStyle(QStringLiteral("Fusion"));
         // Whatever reads a QSettings without arguments reads a scratch directory, never the
         // operator's real settings (the Harness's model has a settings file of its own): the
@@ -46,29 +48,32 @@ public Q_SLOTS:
         harness_ = std::make_unique<Harness>();
     }
 
-    void qmlEngineAvailable(QQmlEngine* engine) {
+    void qmlEngineAvailable(QQmlEngine* engine)
+    {
         engine->rootContext()->setContextProperty(QStringLiteral("appModel"), &harness_->model());
         engine->rootContext()->setContextProperty(QStringLiteral("harness"), harness_.get());
         // The picker's manager, as the application registers it: a test switches the language
         // through it, and the window (layout direction, retranslation) follows. English is put
         // back by every test file that changes it.
-        auto* languages =
-            new adl::ui::LanguageManager(*qGuiApp, *engine, QStringLiteral("adl_app"), engine);
-        QObject::connect(languages, &adl::ui::LanguageManager::currentLanguageChanged,
-                         &harness_->model(), &adl::app::LoaderModel::retranslate);
+        auto* languages = new adl::ui::LanguageManager(*qGuiApp, *engine, QStringLiteral("adl_app"), engine);
+        QObject::connect(languages, &adl::ui::LanguageManager::currentLanguageChanged, &harness_->model(),
+                         &adl::app::LoaderModel::retranslate);
         engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), languages);
         adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
-        engine->rootContext()->setContextProperty(
-            QStringLiteral("mainQmlUrl"), QUrl::fromLocalFile(QString::fromUtf8(ADL_MAIN_QML)));
+        engine->rootContext()->setContextProperty(QStringLiteral("mainQmlUrl"),
+                                                  QUrl::fromLocalFile(QString::fromUtf8(ADL_MAIN_QML)));
     }
 
     // After every test file has run and its window has gone: stop the engine's thread before the
     // application is torn down.
-    void cleanupTestCase() { harness_.reset(); }
+    void cleanupTestCase()
+    {
+        harness_.reset();
+    }
 
 private:
     std::unique_ptr<adl::test::ScratchSettings> scratch_;
     std::unique_ptr<Harness> harness_;
 };
 
-}  // namespace adl::ui_test
+} // namespace adl::ui_test

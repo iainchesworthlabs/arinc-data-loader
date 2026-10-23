@@ -9,11 +9,13 @@
 #include <compare>
 #include <cstdint>
 
-namespace adl::arinc615a {
+namespace adl::arinc615a
+{
 
 using Duration = std::chrono::nanoseconds;
 
-struct Instant {
+struct Instant
+{
     Duration since_origin{};
 
     friend constexpr auto operator<=>(const Instant&, const Instant&) noexcept = default;
@@ -23,36 +25,45 @@ struct Instant {
 inline constexpr Instant never{Duration::max()};
 
 // Adding to an Instant saturates, so `never + x` stays never.
-[[nodiscard]] constexpr Instant operator+(Instant at, Duration by) noexcept {
-    if (by > Duration::zero() && at.since_origin > Duration::max() - by) {
+[[nodiscard]] constexpr Instant operator+(Instant at, Duration by) noexcept
+{
+    if (by > Duration::zero() && at.since_origin > Duration::max() - by)
+    {
         return never;
     }
-    if (by < Duration::zero() && at.since_origin < Duration::min() - by) {
+    if (by < Duration::zero() && at.since_origin < Duration::min() - by)
+    {
         return Instant{Duration::min()};
     }
     return Instant{at.since_origin + by};
 }
 
-[[nodiscard]] constexpr Instant operator-(Instant at, Duration by) noexcept {
-    if (by > Duration::zero() && at.since_origin < Duration::min() + by) {
+[[nodiscard]] constexpr Instant operator-(Instant at, Duration by) noexcept
+{
+    if (by > Duration::zero() && at.since_origin < Duration::min() + by)
+    {
         return Instant{Duration::min()};
     }
-    if (by < Duration::zero() && at.since_origin > Duration::max() + by) {
+    if (by < Duration::zero() && at.since_origin > Duration::max() + by)
+    {
         return never;
     }
     return Instant{at.since_origin - by};
 }
 
-[[nodiscard]] constexpr Duration operator-(Instant later, Instant earlier) noexcept {
+[[nodiscard]] constexpr Duration operator-(Instant later, Instant earlier) noexcept
+{
     return later.since_origin - earlier.since_origin;
 }
 
-[[nodiscard]] constexpr Instant earlier_of(Instant a, Instant b) noexcept {
+[[nodiscard]] constexpr Instant earlier_of(Instant a, Instant b) noexcept
+{
     return a < b ? a : b;
 }
 
-[[nodiscard]] constexpr Duration whole_seconds(std::uint32_t count) noexcept {
+[[nodiscard]] constexpr Duration whole_seconds(std::uint32_t count) noexcept
+{
     return std::chrono::seconds(count);
 }
 
-}  // namespace adl::arinc615a
+} // namespace adl::arinc615a

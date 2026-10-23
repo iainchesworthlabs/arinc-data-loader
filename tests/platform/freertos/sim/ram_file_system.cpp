@@ -2,11 +2,12 @@
 
 #include <cstring>
 
-namespace adl::test {
+namespace adl::test
+{
 
 RamFileSystem::RamFileSystem(std::size_t block_size, std::size_t block_count)
-    : flash_(block_size * block_count, std::uint8_t{0xFF}),
-      mutex_(xSemaphoreCreateRecursiveMutex()) {
+    : flash_(block_size * block_count, std::uint8_t{0xFF}), mutex_(xSemaphoreCreateRecursiveMutex())
+{
     config_.context = this;
     config_.read = &RamFileSystem::read;
     config_.prog = &RamFileSystem::program;
@@ -22,54 +23,62 @@ RamFileSystem::RamFileSystem(std::size_t block_size, std::size_t block_count)
     config_.lookahead_size = 128;
     config_.block_cycles = 500;
 
-    mounted_ =
-        mutex_ != nullptr && lfs_format(&lfs_, &config_) == 0 && lfs_mount(&lfs_, &config_) == 0;
+    mounted_ = mutex_ != nullptr && lfs_format(&lfs_, &config_) == 0 && lfs_mount(&lfs_, &config_) == 0;
 }
 
-RamFileSystem::~RamFileSystem() {
-    if (mounted_) {
+RamFileSystem::~RamFileSystem()
+{
+    if (mounted_)
+    {
         (void)lfs_unmount(&lfs_);
     }
-    if (mutex_ != nullptr) {
+    if (mutex_ != nullptr)
+    {
         vSemaphoreDelete(mutex_);
     }
 }
 
-int RamFileSystem::read(const lfs_config* config, lfs_block_t block, lfs_off_t offset, void* buffer,
-                        lfs_size_t size) {
+int RamFileSystem::read(const lfs_config* config, lfs_block_t block, lfs_off_t offset, void* buffer, lfs_size_t size)
+{
     auto* self = static_cast<RamFileSystem*>(config->context);
     std::memcpy(buffer, self->flash_.data() + block * config->block_size + offset, size);
     return 0;
 }
 
-int RamFileSystem::program(const lfs_config* config, lfs_block_t block, lfs_off_t offset,
-                           const void* buffer, lfs_size_t size) {
+int RamFileSystem::program(const lfs_config* config, lfs_block_t block, lfs_off_t offset, const void* buffer,
+                           lfs_size_t size)
+{
     auto* self = static_cast<RamFileSystem*>(config->context);
     std::memcpy(self->flash_.data() + block * config->block_size + offset, buffer, size);
     return 0;
 }
 
-int RamFileSystem::erase(const lfs_config* config, lfs_block_t block) {
+int RamFileSystem::erase(const lfs_config* config, lfs_block_t block)
+{
     auto* self = static_cast<RamFileSystem*>(config->context);
     std::memset(self->flash_.data() + block * config->block_size, 0xFF, config->block_size);
     return 0;
 }
 
-int RamFileSystem::sync(const lfs_config* /*config*/) {
+int RamFileSystem::sync(const lfs_config* /*config*/)
+{
     return 0;
 }
 
-int RamFileSystem::lock(const lfs_config* config) {
+int RamFileSystem::lock(const lfs_config* config)
+{
     auto* self = static_cast<RamFileSystem*>(config->context);
-    while (xSemaphoreTakeRecursive(self->mutex_, portMAX_DELAY) != pdTRUE) {
+    while (xSemaphoreTakeRecursive(self->mutex_, portMAX_DELAY) != pdTRUE)
+    {
     }
     return 0;
 }
 
-int RamFileSystem::unlock(const lfs_config* config) {
+int RamFileSystem::unlock(const lfs_config* config)
+{
     auto* self = static_cast<RamFileSystem*>(config->context);
     (void)xSemaphoreGiveRecursive(self->mutex_);
     return 0;
 }
 
-}  // namespace adl::test
+} // namespace adl::test
