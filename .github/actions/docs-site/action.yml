@@ -19,7 +19,7 @@ runs:
     # in it is checked against its hash. --no-build means nothing is compiled on the runner.
     - name: Install MkDocs (hash-locked)
       shell: bash
-      run: |
+      run: | # zizmor: ignore[github-env] RUNNER_TEMP-derived, not attacker-influenced
         set -euo pipefail
         uv venv --python 3.13 "$RUNNER_TEMP/docs-venv"
         uv pip install --python "$RUNNER_TEMP/docs-venv/bin/python" --require-hashes --no-build \
