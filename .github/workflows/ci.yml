@@ -234,7 +234,7 @@ jobs:
       # provider was removed). Keyed per triplet; see docs/ci.md.
       - name: Set up vcpkg
         if: ${{ needs.plan.outputs.code == 'true' }}
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Install CMake 4 + Ninja
         if: ${{ needs.plan.outputs.code == 'true' }}
@@ -318,7 +318,7 @@ jobs:
       - name: Save the vcpkg caches
         if: ${{ always() && needs.plan.outputs.code == 'true' }}
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
   # Line and branch coverage of the portable code (the libraries, the platform
   # interfaces, the media tree, the samples, the runner and the payload writer),
@@ -354,7 +354,7 @@ jobs:
 
       - name: Set up vcpkg
         if: ${{ needs.plan.outputs.code == 'true' }}
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Install CMake 4 + Ninja
         if: ${{ needs.plan.outputs.code == 'true' }}
@@ -450,7 +450,7 @@ jobs:
       - name: Save the vcpkg caches
         if: ${{ always() && needs.plan.outputs.code == 'true' }}
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
   # The Zephyr platform (libs/platform/zephyr) on native_sim: Zephyr's kernel, its IPv4/UDP
   # stack over its loopback interface and littlefs on simulated flash, built as a host process,

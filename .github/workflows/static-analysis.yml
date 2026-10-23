@@ -55,7 +55,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -103,7 +103,7 @@ jobs:
       - name: Save the vcpkg caches
         if: ${{ always() }}
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
   # MSVC Code Analysis (/analyze) over the libraries, the tests and the three
   # Qt applications. The applications are included here, unlike clang-tidy:
@@ -121,7 +121,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -163,7 +163,7 @@ jobs:
       - name: Save the vcpkg caches
         if: ${{ always() }}
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
   # The sanitizer leg the per-commit CI does not have: Clang's ASan and UBSan
   # over the libraries and tests. The Linux and macOS legs use GCC and
@@ -182,7 +182,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -217,7 +217,7 @@ jobs:
       - name: Save the vcpkg caches
         if: ${{ always() }}
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
   # Optional: SonarQube (or SonarQube Cloud). It is off until an administrator
   # sets the repository variable SONAR_HOST_URL (https://sonarcloud.io for the
@@ -240,7 +240,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -263,4 +263,4 @@ jobs:
       - name: Save the vcpkg caches
         if: ${{ always() }}
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
