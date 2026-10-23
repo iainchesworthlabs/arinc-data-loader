@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // A test only Zephyr can run: a thread on a stack the caller made. The conformance suite spawns
 // threads with the platform's stacks (dynamic); a platform that must not allocate gives the thread
 // its own, as K_KERNEL_STACK_DEFINE makes it, and the port has to use it as it is.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # ---------------------------------------------------------------------------
 # AdlPackage.cmake - the CPack settings, shared by every desktop platform.
 #

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Files and memory in memory. MemoryFileSystem is a whole file system held in

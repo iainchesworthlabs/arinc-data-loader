@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/mock/engine.hpp"
 
 #include "adl/arinc615a/limits.hpp"

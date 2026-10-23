@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Helpers for the 615A codec tests: encode a value into a vector of exactly the size the

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The plain values that cross from the engine's thread to the window: every one is a copy

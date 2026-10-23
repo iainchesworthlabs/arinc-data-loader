@@ -1,4 +1,5 @@
 #!/usr/bin/env pwsh
+# SPDX-License-Identifier: GPL-3.0-or-later
 #requires -Version 7.0
 #
 # Creates (or updates) the two environments the release workflow uses and, if asked, stores the signing

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/gen/generator_worker.hpp"
 
 #include "adl/arinc665/batch_file.hpp"

@@ -1,4 +1,5 @@
 #!/usr/bin/env pwsh
+# SPDX-License-Identifier: GPL-3.0-or-later
 #requires -Version 7.0
 #
 # Proves a runtime package works on a machine with no Qt: unpacks it into an empty directory, checks

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // QtTest has one main per executable; this one runs every test class and fails if any does.
 
 #include "scratch_settings.hpp"

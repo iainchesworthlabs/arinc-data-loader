@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # A smoke test of the Zephyr platform layer on a Cortex-M3 (mps2/an385) under QEMU, built with the
 # Zephyr SDK's GCC and picolibc, without exceptions. See src/main.cpp for what it checks and
 # tools/ci/zephyr_qemu_smoke.sh for how it is built and run. The repository is a Zephyr module

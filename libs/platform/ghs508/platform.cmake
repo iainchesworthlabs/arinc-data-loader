@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # INTEGRITY 5.0.8, the commercial Green Hills INTEGRITY. Included by
 # cmake/Platform.cmake; the contract it fills in is described at the top of
 # that file, and docs/platform-ghs.md is the review that shaped this.

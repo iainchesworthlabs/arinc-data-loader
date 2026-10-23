@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Whole operations, from the runner on the fake platform to a simulated target and back: an
 // Information, an Upload of a media set built with adl::arinc665, the two Downloads, and what
 // happens to them when datagrams are lost, repeated and reordered, the target asks to wait,

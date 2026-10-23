@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The directory a download is written into: DNLD_DATA_<THW_ID_POS>_<number> under the operator's

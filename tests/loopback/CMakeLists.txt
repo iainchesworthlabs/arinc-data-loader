@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The loopback integration test (tests/loopback): the loader's real 615A engine (DataLoader
 # driven by Runner over the real platform host) against the mock target's engine (MockEngine
 # driven by run() over its RealTargetLink), end to end over real UDP sockets on 127.0.0.1: the

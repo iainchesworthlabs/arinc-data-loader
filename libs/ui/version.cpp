@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/ui/version.hpp"
 
 #include "adl/ui/build_info.hpp"

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
 """An independent writer for the ARINC 615A-3 packets and protocol files, used to make
 the golden payloads the C++ tests compare against.
 

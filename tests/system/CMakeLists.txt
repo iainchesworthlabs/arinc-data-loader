@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # System tests: the programs a user runs, started as processes rather than linked into a test.
 # The Qt applications are started offscreen with --smoke-test and must draw their window's first
 # frame and exit 0; an application that cannot load its QML exits at once with an error, and one

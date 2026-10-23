@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The engine on its own thread. The 615A runner blocks and is single-threaded, so the window

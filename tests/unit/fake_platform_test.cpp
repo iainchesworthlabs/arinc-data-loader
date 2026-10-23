@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The fake platform itself: its clock, its event queue, its network with faults,
 // its storage and threads. The conformance tests show that it behaves like a real
 // host; these show what it adds, which is what the engine's tests are built on.

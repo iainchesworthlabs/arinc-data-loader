@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The names a file may have on every platform this project runs on, so that a tree written on one

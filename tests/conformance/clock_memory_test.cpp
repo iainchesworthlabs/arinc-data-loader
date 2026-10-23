@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Conformance: the clock and the memory provider.
 
 #include "host_under_test.hpp"

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The second Qt application: a window over the libraries with which an operator picks files from
 # disk and generates an ARINC 665 media set as the directory tree the data loader (apps/app)
 # uploads to a target.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The Qt-Core part of the shared interface code, as a library the three applications' cores link:
 # Message, a phrase translated when it is read, so what a model holds in the operator's language
 # follows a language switch. The rest of libs/ui (the QML components, fonts, window state, language

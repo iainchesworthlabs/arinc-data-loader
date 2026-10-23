@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // MD5, the check value of type 4 in ARINC 665. A streaming calculation with fixed

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Threads, locks and semaphores without a second thread. A fake "thread" does

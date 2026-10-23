@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The status codes of ARINC 615A-3 Table 6.4.10-1, and which of them each status

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The model, headless: MockTargetModel on its worker thread against the loader's engine over
 // the fake platform. Starting and stopping, the log lines and progress arriving as signals, and
 // a whole Upload whose files the worker writes to the storage directory.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The widths of the fields in the formats are limits: 16-bit counts and string
 // lengths, a 16-bit pointer to the next entry. These put a payload on each side of
 // each limit.

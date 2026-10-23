@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // What an upload through LoaderModel needs: a media set (the sample load, with some data in it)

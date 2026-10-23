@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The mock target's engine: the behavior of an ARINC 615A target, written like the loader's

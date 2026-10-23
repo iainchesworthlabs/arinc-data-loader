@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
 
 // A three-square busy mark. The squares light in sequence; under reduced motion they are all

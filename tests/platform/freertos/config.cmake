@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The configuration of the FreeRTOS simulator program: FreeRTOSConfig.h, the options of lwIP
 # (lwipopts.h) and the compiler adaptation lwIP asks the port for (arch/cc.h).
 #

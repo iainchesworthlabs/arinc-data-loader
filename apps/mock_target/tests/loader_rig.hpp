@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // What the mock target's tests need on the loader's side: the loader's real engine (DataLoader

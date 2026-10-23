@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Threads, locks and signals. The protocol core is sans-I/O and owns no

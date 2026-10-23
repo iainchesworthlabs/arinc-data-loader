@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The ARINC 615A library: the TFTP packets and the protocol files of ARINC 615A-3, written
 # into and read out of bytes. It is GUI-free and platform-free: nothing here includes an
 # operating system header, and it never sends or receives a packet itself; the engine

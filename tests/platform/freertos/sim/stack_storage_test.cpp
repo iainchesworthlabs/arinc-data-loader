@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // A test only FreeRTOS can run: a thread on a stack the caller made. The conformance suite spawns
 // threads with the kernel's heap; a platform that must not allocate gives the task its own stack
 // (xTaskCreateStatic), and the port has to use it as it is and let go of it when the task is gone.

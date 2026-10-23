@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/arinc665/integrity_checker.hpp"
 
 #include <adl/profiling.hpp>

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // What an end-to-end test of an operation needs: a loader host and a simulated target on one

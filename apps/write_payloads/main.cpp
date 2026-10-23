@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Writes sample media sets to a directory, so that other loaders can be tried on
 // them and the 615A work has something to load. Each scenario gets a directory of
 // its own with one directory per media set member (member_001, ...). Every set is

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The shared INTEGRITY mappings; see ghs_native.hpp. UNBUILT: like everything
 // under ghs/, this has never been compiled against the INTEGRITY headers.
 

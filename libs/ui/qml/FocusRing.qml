@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
 
 // The keyboard focus ring: 2 px of accent ink, two pixels outside the control's own border. Put

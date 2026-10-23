@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The TFTP transfer state machine (adl/arinc615a/tftp_transfer.hpp) on its own: two of them
 // across a link in memory, and one at a time with every datagram written out by hand.
 

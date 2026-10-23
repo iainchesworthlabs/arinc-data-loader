@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Shared QML: one design system for the three ARINC applications.
 #
 # The QML files are not a separate module. Each application's qt_add_qml_module includes them

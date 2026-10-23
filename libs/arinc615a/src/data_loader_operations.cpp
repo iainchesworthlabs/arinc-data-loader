@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The operations of section 5.4 on top of the slots of data_loader.cpp: what the initialization
 // file, the status files, the lists and the files of a download mean, when the data load protocol
 // time-out has run out, and how an operation is interrupted (5.4.5.2, 6.3.5).

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A small TFTP endpoint, written for the simulated target (tests/engine) and used by the mock

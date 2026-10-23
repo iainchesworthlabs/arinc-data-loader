@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The FreeRTOS simulator program: Catch2 run in a FreeRTOS task, over the real platform layer
 // (libs/platform/freertos) on the kernel's POSIX simulator port: a Linux process whose tasks are
 // the kernel's own, with lwIP's UDP sockets over its loopback interface and littlefs on a RAM

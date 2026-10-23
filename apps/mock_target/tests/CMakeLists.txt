@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The mock target's tests (apps/mock_target): the engine headless against the loader's real
 # engine (DataLoader and Runner over the fake platform, on one fake network), the model on its
 # worker thread, and the window loaded offscreen.

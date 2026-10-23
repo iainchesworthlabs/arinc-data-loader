@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The generator's tests (apps/media_gen): QtTest, headless. The logic is tested without a window
 # against media sets written to a temporary directory and read back with the libraries (and with
 # the data loader's own reader, which proves the sets load), and the window's QML is loaded once,

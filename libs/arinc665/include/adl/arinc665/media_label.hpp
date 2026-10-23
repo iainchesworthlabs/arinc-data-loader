@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The text of the label on a member of a media set (ARINC 665-3 section 3.3): the

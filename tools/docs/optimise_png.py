@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Re-saves PNG screenshots with an adaptive 256-colour palette (no dithering).
 
 The windows are flat colours with anti-aliased text, so a palette of 256 colours keeps them

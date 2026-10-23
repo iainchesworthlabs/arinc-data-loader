@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Two TftpTransfers joined by a link in memory, on a clock the test owns: the client and the

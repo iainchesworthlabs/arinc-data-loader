@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/app/notice_text.hpp"
 
 #include "adl/app/wording.hpp"

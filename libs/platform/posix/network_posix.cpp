@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/platform/network.hpp"
 #include "detail/nothrow.hpp"
 #include "posix/posix_os.hpp"

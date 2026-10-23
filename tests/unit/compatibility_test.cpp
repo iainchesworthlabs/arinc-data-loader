@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The media sets of Appendix F: loads that other loaders can use too. They are
 // built here the way the appendix says, and read back through the whole of the
 // rules in sections 3.2.4.1 and 3.2.4.2.

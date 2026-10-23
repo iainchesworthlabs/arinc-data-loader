@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The 615A runner: the one piece of the 615A library that calls the platform. It opens the
 # sockets the engine asks for, waits on them from one thread, and hands the datagrams and the
 # time to adl::arinc615a's state machines (the DataLoader and the FindClient) and carries out what

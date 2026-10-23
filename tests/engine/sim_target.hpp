@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A simulated 615A target on the fake network: an adl::fake::Agent that behaves as section 5.4

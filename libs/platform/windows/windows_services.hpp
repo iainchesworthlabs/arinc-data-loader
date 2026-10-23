@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // What the Windows implementations share. Internal to libs/platform/windows: it

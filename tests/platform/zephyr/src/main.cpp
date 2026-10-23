@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The Zephyr test program: Catch2 run on Zephyr's main thread, over the real platform layer
 // (libs/platform/zephyr) on whatever board the program is built for. CI builds it for
 // native_sim, where Zephyr's kernel, network stack and file system run as a host process.

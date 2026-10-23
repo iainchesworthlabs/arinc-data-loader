@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Builds the Zephyr test program (tests/platform/zephyr) for the qemu_cortex_a9 board with the
 # Zephyr SDK's own toolchain (GCC, picolibc, the SDK's libstdc++ with exceptions) and runs it in

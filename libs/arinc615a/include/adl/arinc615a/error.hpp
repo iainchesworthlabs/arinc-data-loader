@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The error type of the ARINC 615A codecs and the Result alias their encoders and

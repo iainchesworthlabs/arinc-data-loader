@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The Windows SDK headers depend on their order (winsock2.h before windows.h, both before mswsock.h), so
 // clang-format leaves them as they are.
 // clang-format off

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // What the Qt Quick Test suite drives: the application's real LoaderModel on its engine thread,

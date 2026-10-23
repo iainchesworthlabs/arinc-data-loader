@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The application's logic, without the window: the engine on its own thread (a worker that runs the
 # 615A runner's jobs and reports through signals), the models the window shows, and LoaderModel,
 # the one object the window talks to. Qt Core only (no GUI, no QML), so it is tested headless.

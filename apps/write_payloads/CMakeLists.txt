@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 add_executable(adl_write_payloads main.cpp)
 target_link_libraries(adl_write_payloads
     PRIVATE

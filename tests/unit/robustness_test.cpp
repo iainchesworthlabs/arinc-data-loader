@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Files come from outside, from a medium or a network, and a loader must meet a
 // damaged or hostile one without crashing, hanging or reading past its end. These
 // run every decoder over every truncation and every single-byte change of a good

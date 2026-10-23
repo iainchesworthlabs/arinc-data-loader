@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // QNX Neutrino. UNBUILT AND UNTESTED, like everything in this directory; see
 // docs/platform-abstraction.md ("Status of each platform").
 

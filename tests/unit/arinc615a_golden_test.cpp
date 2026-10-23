@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The library's packets and protocol files, byte for byte, against the ones written
 // independently by tests/golden/make_golden_615a.py from the tables of the standard.
 

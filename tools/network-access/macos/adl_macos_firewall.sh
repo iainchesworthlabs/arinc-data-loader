@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Tells the macOS application firewall to let the ARINC Data Loader programs accept incoming
 # UDP, so that "Do you want the application to accept incoming network connections?" is not
 # asked (it is asked once per program, the first time it listens on the network, when the

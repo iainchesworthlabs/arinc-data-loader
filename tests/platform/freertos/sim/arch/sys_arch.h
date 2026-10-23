@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // lwIP's operating system types, on FreeRTOS: the port header lwIP asks for as

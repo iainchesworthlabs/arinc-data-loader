@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Sample loads, batches and media sets: the scenario the golden tests compare
 # with a second implementation, and the ARINC 615 and Boeing 777 layouts of
 # Appendix F. The tests build their cases from them and so does the program that

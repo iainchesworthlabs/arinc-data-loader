@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // lwIP's system layer (sys_arch) on FreeRTOS, for the simulator program: semaphores, mutexes,
 // mailboxes, threads and the clock, in the terms lwIP's sys.h asks for them. This is the port
 // a product's SDK usually brings with its lwIP; it is here because the simulator is a product

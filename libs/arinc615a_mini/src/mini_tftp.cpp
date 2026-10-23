@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/arinc615a_mini/mini_tftp.hpp"
 
 #include "adl/arinc615a/limits.hpp"

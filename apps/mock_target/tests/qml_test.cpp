@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Loads the mock target's window (argv[1], the path of TargetWindow.qml) with the real model
 // offscreen, starts and stops the target through the window's own buttons, and fails if the
 // window does not load, the buttons do not work or the QML engine has a single complaint. With

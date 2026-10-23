@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Checks that the SPDX document lists every typeface the programs embed.
 
 The bill of materials names the typefaces by hand (make_sbom.py), so a face added to libs/ui/fonts without

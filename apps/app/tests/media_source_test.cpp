@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/app/media_source.hpp"
 #include "fake_storage.hpp"
 #include "test_classes.hpp"

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Installs the Zephyr SDK's Arm toolchain and host tools (dtc, gperf, QEMU) for Linux x86-64 into a
 # directory, by downloading the release files of tools/ci/zephyr_sdk.sha256 straight from

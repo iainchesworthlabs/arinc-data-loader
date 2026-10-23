@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # ---------------------------------------------------------------------------
 # AdlInstall.cmake - what `cmake --install` puts where, and the CMake package.
 #

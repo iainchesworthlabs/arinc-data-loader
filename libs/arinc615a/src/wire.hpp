@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // How the bytes of the 615A formats are written and read, shared by every codec in the

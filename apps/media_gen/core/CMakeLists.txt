@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The generator's logic, without the window: the worker that builds the media set on its own
 # thread, the list of files the operator chose, and GeneratorModel, the one object the window
 # talks to. Qt Core only (no GUI, no QML), so it is tested headless. Everything that depends on

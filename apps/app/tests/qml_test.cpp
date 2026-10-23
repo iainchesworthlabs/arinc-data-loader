@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Loads the application's window (the compiled ArincDataLoader QML module) with the real model,
 // offscreen, drives the first-run screen, then runs a FIND and an Information operation through
 // the model against a simulated target on the fake platform while the window is showing, then

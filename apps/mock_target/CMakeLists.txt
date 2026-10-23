@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The mock target application: a Qt Quick window over the mock engine (core/), which behaves as
 # an ARINC 615A target over adl::platform's real UDP sockets, so the data loader application
 # (apps/app) can be demonstrated against it end to end: FIND, Information, Upload, Download and

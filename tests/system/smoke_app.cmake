@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Starts one of the built application programs offscreen with --smoke-test and requires that it
 # creates its window: the program draws its first frame, prints "smoke-test: first frame drawn"
 # and exits 0. A program that cannot create its window (a QML error, a missing module, a missing

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // SHA-1, the check value of type 5 in ARINC 665. A streaming calculation with

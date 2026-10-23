@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 #requires -Version 5.1
 <#
 .SYNOPSIS

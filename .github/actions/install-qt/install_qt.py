@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Installs the prebuilt Qt kit (6.x, desktop) from download.qt.io, checking every archive against
 SHA-256 values pinned in this repository before unpacking it, or writes those pins.
 

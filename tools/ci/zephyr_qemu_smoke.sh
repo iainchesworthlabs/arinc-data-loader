@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Builds the Zephyr smoke test (tests/platform/zephyr_smoke) for a Cortex-M3 board with the Zephyr
 # SDK's own toolchain (GCC, picolibc, no exceptions) and runs it in QEMU. The CI job

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The Qt application: a thin layer over the libraries. Qt is the prebuilt kit (QT_ROOT_DIR, or the
 # aqtinstall layout each platform fragment lists), found by cmake/FindQt6.cmake - not vcpkg.
 #

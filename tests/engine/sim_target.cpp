@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "sim_target.hpp"
 
 #include "adl/arinc615a/limits.hpp"

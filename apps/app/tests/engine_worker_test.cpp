@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The worker's jobs called directly, on this thread: what the window never asks for (an id no
 // directory can be named after), and the ways an operation can fail to run at all.
 

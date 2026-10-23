@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The names ARINC 665-3 gives to the files of a media set, and checks of file

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The packets and protocol files that tests/golden/make_golden_615a.py writes, built

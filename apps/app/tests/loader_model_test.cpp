@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/app/loader_model.hpp"
 #include "adl/app/media_set_summary.hpp"
 #include "adl/app/message.hpp"

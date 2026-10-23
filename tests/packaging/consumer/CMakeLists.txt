@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # A program built the way a user of the development package builds one: find_package(adl) against an
 # install tree, and nothing from the source tree. tests/packaging/check_install.cmake installs the
 # development component into a scratch prefix, configures this project against it, builds it and runs it.

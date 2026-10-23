@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The wording of the engine's notices (Notice, in adl/arinc615a/data_loader.hpp)

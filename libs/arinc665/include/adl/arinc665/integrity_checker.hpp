@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // IntegrityChecker, which runs the CRC, MD5 or SHA-1 calculation that a

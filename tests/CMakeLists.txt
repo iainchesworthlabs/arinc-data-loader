@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 find_package(Catch2 3 CONFIG REQUIRED)
 include(Catch)
 

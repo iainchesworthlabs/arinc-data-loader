@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # ---------------------------------------------------------------------------
 # FindIntegrity178.cmake - find the INTEGRITY-178B kernel/BSP tree and the GHS
 # toolchain that builds for it.

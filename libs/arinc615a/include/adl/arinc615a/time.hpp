@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Time as the engine sees it: a point on a clock it is told the reading of, and a span. The

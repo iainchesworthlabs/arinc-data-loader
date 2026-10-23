@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Checks the release's SBOM documents against their formal specifications.
 
     python validate_sbom.py <file.spdx.json | file.cdx.json>...

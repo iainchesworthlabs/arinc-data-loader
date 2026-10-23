@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The small public vocabulary of the two libraries: the enums, their names, the check value
 // lengths and the arithmetic of the engine's clock. These are the values a log line, a dump and a
 // protocol field show, so every one of them is named here rather than only the paths the larger

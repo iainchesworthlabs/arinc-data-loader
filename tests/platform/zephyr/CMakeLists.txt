@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The Zephyr test program: the platform layer's conformance suite and the 615A engine tests,
 # run by Catch2 on Zephyr. Built with west or cmake as any Zephyr application is, for native_sim
 # in CI (docs/building.md, docs/testing.md); this is the Zephyr counterpart of the

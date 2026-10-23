@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Builds the Zephyr test program (tests/platform/zephyr) for the native_sim board and runs it:
 # the platform layer's conformance suite and the 615A engine tests, on Zephyr's kernel, network

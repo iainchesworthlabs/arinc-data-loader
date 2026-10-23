@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // A sequence of T that is either a caller's array or the entries of a decoded file,

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Time. The protocol runs on durations (a 2 second TFTP time-out, a 13 second

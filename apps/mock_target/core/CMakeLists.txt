@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 # The mock target's logic, without the window: a 615A target engine (the protocol files served
 # and written through adl::arinc615a's codecs, the TFTP of adl::arinc615a_mini), a TargetLink
 # seam that runs it over adl::platform's real sockets, and MockTargetModel, which runs the engine

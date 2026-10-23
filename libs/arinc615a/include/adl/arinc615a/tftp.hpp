@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // The TFTP packets ARINC 615A-3 uses (section 5.3.2): RFC 1350 with the option

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/ui/window_state.hpp"
 #include "test_classes.hpp"
 

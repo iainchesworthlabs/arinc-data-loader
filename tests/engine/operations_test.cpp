@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The data loader with every datagram written out by hand: what it sends and when, what it
 // refuses, and the figures of Attachment 4, without a network or a target in the way.
 

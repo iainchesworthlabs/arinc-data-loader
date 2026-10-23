@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 // Helpers for damaging files on purpose: changing a field, then putting the CRC
