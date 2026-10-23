@@ -176,7 +176,7 @@ The full index is [docs/README.md](docs/README.md).
 | [The application](docs/app.md), [the generator](docs/media-gen.md), [the mock target](docs/mock-target.md) | The three programs, for developers |
 | [Design overhaul](docs/design-overhaul.md), [design system](docs/design-system.md) | The human-factors analysis and the shared look |
 | [Translations](docs/translations.md), [translation glossaries](docs/translation-glossaries.md) | The eight languages, how a language is switched and the window mirrored, and the glossaries the drafts chose |
-| [Roadmap](docs/roadmap.md), [licensing](docs/licensing.md), [branch protection](docs/branch-protection.md), [specs](docs/specs/README.md) | What is planned, licences, repository rules, the standards |
+| [Roadmap](docs/roadmap.md), [licensing](docs/licensing.md), [repository settings](docs/repository-settings.md), [specs](docs/specs/README.md) | What is planned, licences, repository rules, the standards |
 
 ## Contributing
 

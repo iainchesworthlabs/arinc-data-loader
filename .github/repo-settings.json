@@ -1,0 +1,22 @@
+{
+  "repository": {
+    "description": "An ARINC 615A and 665 data loader in C++23, written from the standards: a data loader, a media set generator and a mock target (Qt 6), and libraries for ARINC 665 media sets and the ARINC 615A protocol. Windows, Linux and macOS. Not yet checked against real equipment.",
+    "homepage": "https://iainchesworthlabs.github.io/arinc-data-loader/"
+  },
+  "topics": [
+    "aircraft",
+    "arinc",
+    "arinc-615a",
+    "arinc-665",
+    "avionics",
+    "cmake",
+    "cpp",
+    "cpp23",
+    "cross-platform",
+    "data-loader",
+    "qt-quick",
+    "qt6",
+    "tftp",
+    "vcpkg"
+  ]
+}

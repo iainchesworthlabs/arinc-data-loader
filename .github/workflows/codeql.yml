@@ -12,7 +12,7 @@ name: CodeQL
 # required check: an alert is something to triage, not a blocked merge.
 #
 # No merge_group: this workflow produces no required check, and a queue entry
-# would burn a full CodeQL build for nothing (docs/branch-protection.md).
+# would burn a full CodeQL build for nothing (docs/repository-settings.md).
 
 on:
   schedule:

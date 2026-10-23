@@ -16,10 +16,8 @@ version: 2
 # Dependabot cannot see the runner image labels, the CMake and Ninja versions
 # in the workflows, or the compilers; docs/ci.md lists those pins.
 #
-# Every PR targets develop: gitflow only lets release/hotfix/support branches
-# (or develop itself) open a PR against main. branch-name-check.yml and the
-# branch-names ruleset allow the dependabot/* prefix, which is not
-# configurable.
+# Every PR targets develop, the trunk. The Policy job and the branch-names
+# ruleset allow the dependabot/* prefix, which is not configurable.
 #
 # cooldown waits a week after a version is published before proposing it, so
 # the community has time to catch a compromised release before this repository

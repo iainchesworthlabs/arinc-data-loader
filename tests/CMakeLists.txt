@@ -222,14 +222,6 @@ if(ADL_PWSH)
             "${PROJECT_SOURCE_DIR}/tools/checks/check_doc_paths.ps1"
             -Root "${PROJECT_SOURCE_DIR}")
     set_tests_properties(docs.paths PROPERTIES LABELS "system")
-
-    # Which changed files make a pull request "documentation only", so that the build legs say "nothing
-    # to build" (tools/ci/changed_code.ps1, docs/ci.md). A file wrongly on that list skips a build.
-    add_test(NAME ci.changed_code
-        COMMAND "${ADL_PWSH}" -NoProfile -File
-            "${PROJECT_SOURCE_DIR}/tools/ci/test_changed_code.ps1"
-            -Root "${PROJECT_SOURCE_DIR}")
-    set_tests_properties(ci.changed_code PROPERTIES LABELS "system")
 endif()
 
 # The program that writes the sample media sets: it runs on a directory of its
