@@ -19,7 +19,7 @@ set(ADL_UI_TRANSLATIONS_DIR "${CMAKE_SOURCE_DIR}/libs/ui/translations")
 # The languages the three applications ship a catalogue for besides English (whose catalogue holds
 # only the plural forms of the source strings). The table of names the picker shows is in
 # libs/ui/language_manager.cpp; a language is added to both.
-set(ADL_TRANSLATED_LANGUAGES de es fr he ja yi zh)
+set(ADL_TRANSLATED_LANGUAGES de es fr he ja yi zh_CN)
 set(ADL_UI_NOTICES_FILE "${CMAKE_BINARY_DIR}/notices/NOTICES.txt")
 
 # ---- version and provenance -------------------------------------------------
@@ -339,6 +339,8 @@ function(adl_add_ui_support target)
         FILES ${_adl_ui_qm_files})
     add_dependencies(${target} adl_ui_lrelease)
     target_sources(${target} PRIVATE
+        "${CMAKE_SOURCE_DIR}/libs/ui/include/adl/ui/language_codes.hpp"
+        "${CMAKE_SOURCE_DIR}/libs/ui/language_codes.cpp"
         "${CMAKE_SOURCE_DIR}/libs/ui/include/adl/ui/language_manager.hpp"
         "${CMAKE_SOURCE_DIR}/libs/ui/language_manager.cpp"
         "${CMAKE_SOURCE_DIR}/libs/ui/fonts.cpp"

@@ -10,7 +10,9 @@ The loader, the generator and the mock target all have a language picker (the lo
 Preferences, the other two's in the header, beside About) and offer the same eight languages:
 English (the source), French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese.
 The choice is kept per program (QSettings, `language/code`), applies to the open window at once
-and, on a first start, follows the system's language when it is one of these.
+and, on a first start, follows the system's language when it is one of these. Chinese is `zh_CN`, the
+name of its catalogue and of the saved choice (release 0.1.0 saved `zh`, which still selects it): the
+catalogue is Simplified Chinese, so a system set to Traditional Chinese starts in English.
 
 **The seven translations are machine-drafted first versions.** They were written for this project
 without a translator; no speaker of French, Spanish, German, Yiddish, Hebrew, Chinese or Japanese has
@@ -28,7 +30,7 @@ smaller claim than that every translation is right. The terms to look at first a
 | Generator | `apps/media_gen/qml`, `apps/media_gen/core` | `apps/media_gen/translations/adl_media_gen_<code>.ts` |
 | Mock target | `apps/mock_target/qml`, `apps/mock_target/core` (its model; the 615A engine's activity lines are not translated) | `apps/mock_target/translations/adl_mock_target_<code>.ts` |
 
-Each family has one file per language (`de es fr he ja yi zh`) and an English file, `_en.ts`, which
+Each family has one file per language (`de es fr he ja yi zh_CN`) and an English file, `_en.ts`, which
 holds only the plural forms (see below). `cmake/AdlUi.cmake` (`adl_add_app_translations`,
 `adl_generate_ui_translations`) runs lupdate with `-no-obsolete`, compiles the files with lrelease
 and embeds the `.qm` under `:/i18n`; the shared interface's are embedded in each program by

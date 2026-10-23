@@ -27,6 +27,10 @@ int main(int argc, char* argv[])
     }
     int failed = 0;
     {
+        LanguageCodesTest test;
+        failed += QTest::qExec(&test, argc, argv);
+    }
+    {
         AddressTest test;
         failed += QTest::qExec(&test, argc, argv);
     }

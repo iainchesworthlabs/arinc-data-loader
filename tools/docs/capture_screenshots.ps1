@@ -672,7 +672,7 @@ function Invoke-LanguagePass {
         # programs bundle, so these show the system's own fonts. The language is stored the way
         # the language manager stores it, and a window found by its identifiers (the accessible
         # names are in the language of the window).
-        foreach ($shot in @(@{ Code = 'ja'; Name = 'app-workbench-japanese' }, @{ Code = 'zh'; Name = 'app-workbench-chinese' })) {
+        foreach ($shot in @(@{ Code = 'ja'; Name = 'app-workbench-japanese' }, @{ Code = 'zh_CN'; Name = 'app-workbench-chinese' })) {
             Set-ProgramLanguage $keys.loader $shot.Code
             $app = Start-Loader
             Start-Sleep -Milliseconds 800

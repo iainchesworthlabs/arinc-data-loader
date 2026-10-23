@@ -45,7 +45,7 @@ struct Language
     std::size_t forms;
 };
 constexpr std::array<Language, 7> kLanguages{
-    {{"de", 2}, {"es", 2}, {"fr", 2}, {"he", 2}, {"ja", 1}, {"yi", 2}, {"zh", 1}}};
+    {{"de", 2}, {"es", 2}, {"fr", 2}, {"he", 2}, {"ja", 1}, {"yi", 2}, {"zh_CN", 1}}};
 
 // One family of catalogues: <directory>/<base>_<code>.ts for each language, and <base>_en.ts
 // for English, which holds the plural messages and nothing else.
