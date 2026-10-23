@@ -1,16 +1,22 @@
-#include "adl/platform/network.hpp"
-#include "detail/nothrow.hpp"
-#include "windows/windows_services.hpp"
-
-#include <mswsock.h>
-#include <windows.h>
+// The Windows SDK headers depend on their order (winsock2.h before windows.h, both before mswsock.h), so
+// clang-format leaves them as they are.
+// clang-format off
 #include <winsock2.h>
 #include <ws2tcpip.h>
+
+#include <windows.h>
+
+#include <mswsock.h>
 
 #include <array>
 #include <bit>
 #include <cstring>
 #include <memory>
+
+#include "adl/platform/network.hpp"
+#include "detail/nothrow.hpp"
+#include "windows/windows_services.hpp"
+// clang-format on
 
 namespace adl::platform::windows
 {

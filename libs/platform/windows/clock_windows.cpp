@@ -1,8 +1,12 @@
+// The Windows SDK headers depend on their order (winsock2.h before windows.h, both before mswsock.h), so
+// clang-format leaves them as they are.
+// clang-format off
+#include <windows.h>
+
 #include "adl/platform/time.hpp"
 #include "detail/nothrow.hpp"
 #include "windows/windows_services.hpp"
-
-#include <windows.h>
+// clang-format on
 
 namespace adl::platform::windows
 {

@@ -1,8 +1,6 @@
-#include "adl/platform/files.hpp"
-#include "detail/nothrow.hpp"
-#include "detail/path_rules.hpp"
-#include "windows/windows_services.hpp"
-
+// The Windows SDK headers depend on their order (winsock2.h before windows.h, both before mswsock.h), so
+// clang-format leaves them as they are.
+// clang-format off
 #include <windows.h>
 
 #include <array>
@@ -10,6 +8,12 @@
 #include <optional>
 #include <string_view>
 #include <utility>
+
+#include "adl/platform/files.hpp"
+#include "detail/nothrow.hpp"
+#include "detail/path_rules.hpp"
+#include "windows/windows_services.hpp"
+// clang-format on
 
 namespace adl::platform::windows
 {

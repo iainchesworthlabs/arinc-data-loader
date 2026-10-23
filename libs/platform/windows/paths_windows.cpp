@@ -1,9 +1,13 @@
-#include "adl/platform/paths.hpp"
-
+// The Windows SDK headers depend on their order (winsock2.h before windows.h, both before mswsock.h), so
+// clang-format leaves them as they are.
+// clang-format off
 #include <windows.h>
 
 #include <filesystem>
 #include <string>
+
+#include "adl/platform/paths.hpp"
+// clang-format on
 
 namespace adl::platform
 {
