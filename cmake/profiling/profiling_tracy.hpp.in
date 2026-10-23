@@ -5,7 +5,7 @@
 // header is written by CMake: one flavour calls Tracy, the other does nothing, and both offer the
 // same names to the instrumented files.
 //
-// Tracy 0.14.1 (vcpkg's "profiling" manifest feature, selected by -DADL_ENABLE_TRACY=ON).
+// Tracy 0.13.1 (vcpkg's "profiling" manifest feature, selected by -DADL_ENABLE_TRACY=ON).
 
 #pragma once
 

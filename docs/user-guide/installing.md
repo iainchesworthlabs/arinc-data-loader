@@ -2,14 +2,31 @@
 
 ## Getting the programs
 
-There is no installer or download package yet. The programs are built from the source code, once,
-on the machine that will use them; [Building](../building.md) lists what is needed (CMake, Ninja,
-a C++23 compiler and the Qt 6.12 libraries) and gives the commands. A Release build is the one to
-use for work: `windows-msvc-release` on Windows, `linux-gcc-release` on Linux and
-`macos-clang-release` on a Mac. The Debug builds are for developers and, on Windows, cannot open
-the system's file dialogs (see [Building](../building.md#presets)).
+There is no installer. Each [release on GitHub](https://github.com/iainchesworthlabs/arinc-data-loader/releases)
+carries a portable package that holds the programs and the Qt files they need, so nothing has to be
+installed first:
 
-The build produces these programs in `build/<preset>/bin`:
+| System | Package | To start |
+| --- | --- | --- |
+| Windows (x86-64) | `arinc-data-loader-<version>-windows-x86_64.zip` | Unpack the folder and double-click `adl_app.exe` (or `adl_media_gen.exe`, `adl_mock_target.exe`) |
+| Linux (x86-64) | `arinc-data-loader-<version>-linux-x86_64.tar.gz` | Unpack, then run `bin/adl_app` (the archive also holds `.desktop` files and icons for a launcher) |
+| macOS 14.4 or later (Apple silicon) | `arinc-data-loader-<version>-macos-arm64.dmg` | Open the disk image and drag the applications onto the `Applications` link |
+
+The packages are **not signed for any operating system's store**: Windows SmartScreen, macOS
+Gatekeeper and similar checks may warn the first time a program starts, because the project has no
+certificate they would trust. What a download can be checked against instead (a PGP signature, a
+checksum list, a build attestation and a bill of materials) is in
+[Verifying a release](../verifying-releases.md); do that before the first start if the warning matters
+to you.
+
+The other way is to build the programs from the source code, once, on the machine that will use
+them; [Building](../building.md) lists what is needed (CMake, Ninja, a C++23 compiler and the Qt 6.12
+libraries) and gives the commands. A Release build is the one to use for work: `windows-msvc-release`
+on Windows, `linux-gcc-release` on Linux and `macos-clang-release` on a Mac. The Debug builds are for
+developers and, on Windows, cannot open the system's file dialogs (see
+[Building](../building.md#presets)).
+
+A build produces these programs in `build/<preset>/bin`, and a package holds the same four:
 
 | File | Program |
 | --- | --- |
@@ -19,10 +36,16 @@ The build produces these programs in `build/<preset>/bin`:
 | `adl_write_payloads` | A command-line tool that writes sample media sets to a folder, for trying other loaders |
 
 On Windows the build copies the Qt libraries next to the programs, so each can be started from
-anywhere: double-click it, or run it from a shell. On Linux they find Qt the way the build did; on a
-Mac they are application bundles and are not yet packaged for moving to another Mac.
+anywhere: double-click it, or run it from a shell. A Linux build finds Qt the way the build did (the
+Linux package carries its own Qt). On a Mac the programs are application bundles, with Qt inside.
 
-Starting a program opens its window; there are no command-line options. Closing the window ends the
+Starting a program opens its window. The programs take one option, `--smoke-test`, which draws the
+first frame, prints `smoke-test: first frame drawn` and exits with code 0; you do not need it.
+(`adl_write_payloads` is a command-line program, see
+[Sample media sets](choose-a-media-set.md#sample-media-sets).) Each program keeps its settings in the
+system's per-user settings store; to keep them in a folder instead (when the programs run from a USB
+drive, for example) set the environment variable `ADL_SETTINGS_DIR` to that folder
+([Where files go](files-and-limits.md#where-files-go)). Closing the window ends the
 program (if the loader is busy it asks first, see
 [the loader](loader.md#closing-the-window-during-an-operation)).
 
@@ -43,7 +66,9 @@ screen once; every later start goes straight to the workbench.
 
 The programs talk over UDP. The first time one of them listens on the network, the operating
 system's firewall may stop and ask whether to allow it. The questions are the system's, the answers
-are yours, and the programs never change a firewall setting themselves. What each program opens:
+are yours, and the programs never change a firewall setting themselves. The helper scripts named in this
+section (`tools/network-access/`) are in the source tree and in no release package: take them from the
+repository at the tag of the release you use. What each program opens:
 
 | Program | Listens on | When |
 | --- | --- | --- |
@@ -104,6 +129,11 @@ has reserved (`netsh interface ipv4 show excludedportrange protocol=udp` lists t
 
 ### Linux
 
+In the commands below, `build/linux-gcc-release/bin` is where a build from source puts the programs; in
+the release package they are in `bin/` (`bin/adl_app`, `bin/adl_mock_target`).
+
+
+
 **Ports below 1024.** Linux lets only root (or a program with the `CAP_NET_BIND_SERVICE` capability)
 bind ports below 1024. The mock target needs 59 and 1001, and the loader needs its control port,
 which is **59 by default**, so on a normal account the loader fails at the start of an operation
@@ -116,8 +146,10 @@ until you do one of these (options 1 and 2 checked on Ubuntu 26.04):
    sudo setcap cap_net_bind_service=+ep build/linux-gcc-release/bin/adl_app
    ```
 
-   `getcap` shows it and `setcap -r` takes it away. A rebuild replaces the file and with it the
-   capability, so repeat it after building. It does not take effect on a filesystem mounted `nosuid`
+      `getcap` shows it and `setcap -r` takes it away. A rebuild replaces the file and with it the
+   capability, so repeat it after building. The release package's programs find the Qt libraries in
+   the package's `lib/` folder through a path relative to the program; whether that still works for a
+   program that has a capability has not been checked, so try it before relying on it. It does not take effect on a filesystem mounted `nosuid`
    (many `/tmp` mounts; the build folder is normally fine). The system also ignores `LD_LIBRARY_PATH`
    for such a program, so a Qt that is found only through that variable is not found; install Qt where
    the system's loader looks, or record its folder in the program's RPATH.

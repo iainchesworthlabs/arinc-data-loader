@@ -168,6 +168,17 @@ The summary.
     }
     Test-Case 'a release listed twice is refused' 1 (Invoke-Tool $root @('-Mode', 'Assemble', '-Version', '0.1.0')) 'no fragments'
 
+    $root = New-Tree 'notes-links'
+    Set-Fragment $root 'a.added.md' 'See [the page](docs/a.md#x), [the site](https://example.org/p), [here](#top), [the folder](./docs/) and [the root](/x).'
+    Test-Case 'a release with links is assembled' 0 (Invoke-Tool $root @('-Mode', 'Assemble', '-Version', '0.1.0', '-Date', '2026-01-02'))
+    $linked = Invoke-Tool $root @('-Mode', 'Notes', '-Version', '0.1.0', '-LinkBase', 'https://example.test/blob/v0.1.0')
+    Test-Case 'a relative link is written out in full' 0 $linked '[the page](https://example.test/blob/v0.1.0/docs/a.md#x)'
+    Test-Case 'a link that starts with ./ is written out in full' 0 $linked '[the folder](https://example.test/blob/v0.1.0/docs/)'
+    Test-Case 'a link with a scheme is left alone' 0 $linked '[the site](https://example.org/p)'
+    Test-Case 'a link to an anchor is left alone' 0 $linked '[here](#top)'
+    Test-Case 'a link from the root is left alone' 0 $linked '[the root](/x)'
+    Test-Case 'without -LinkBase the links stay as written' 0 (Invoke-Tool $root @('-Mode', 'Notes', '-Version', '0.1.0')) '[the page](docs/a.md#x)'
+
     $root = New-Tree 'assemble-empty'
     Test-Case 'assembling with no fragments fails' 1 (Invoke-Tool $root @('-Mode', 'Assemble', '-Version', '1.0.0')) 'nothing to release'
     Test-Case 'a non-semantic version is refused' 2 (Invoke-Tool $root @('-Mode', 'Assemble', '-Version', '1.0'))

@@ -25,6 +25,8 @@
 #                fragments. -WhatIf shows what it would do.
 #   Notes        -Version <semver>: prints the body of that release's section
 #                (what a GitHub release shows), to stdout or to -OutFile.
+#                -LinkBase <url> turns the relative links in it into links
+#                under that address (a release page cannot resolve them).
 #   PullRequest  -Base <ref>: the pull request adds a fragment, or carries the
 #                no-changelog label (-Labels), or is a branch that does not
 #                need one (-HeadRef release/*, hotfix/*, dependabot/*).
@@ -45,6 +47,7 @@ param(
     [string]$HeadRef = '',
     [string[]]$Labels = @(),
     [string]$OutFile,
+    [string]$LinkBase,
     [string]$RepoUrl = 'https://github.com/iainchesworthlabs/arinc-data-loader',
     [string]$IntegrationBranch = 'develop'
 )
@@ -266,6 +269,14 @@ function Invoke-Notes {
     $section = Get-ReleaseSection $Version
     # The body is everything after the heading, trimmed.
     $body = (($section.Lines | Select-Object -Skip 1) -join "`n").Trim() + "`n"
+    if ($LinkBase) {
+        # A release page resolves a relative link against its own address, not against the repository,
+        # so a link such as docs/app.md has to be written out in full. Links with a scheme, a
+        # leading "/" or "#" are left as they are.
+        $prefix = $LinkBase.TrimEnd('/') + '/'
+        $body = [regex]::Replace($body, '\]\((?!#|/|[A-Za-z][A-Za-z0-9+.-]*:)(?:\./)?([^)\s]+)\)',
+            [System.Text.RegularExpressions.MatchEvaluator] { param($m) "]($prefix$($m.Groups[1].Value))" })
+    }
     if ($OutFile) {
         Write-Lf $OutFile $body
         Write-Host "release notes for $Version written to $OutFile"

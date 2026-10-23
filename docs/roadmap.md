@@ -160,7 +160,7 @@ What is left of the application:
 
 ## 5. Profiling
 
-Tracy 0.14.1, as an opt-in build: `cmake/Tracy.cmake`, the `profiling` vcpkg feature
+Tracy 0.13.1, as an opt-in build: `cmake/Tracy.cmake`, the `profiling` vcpkg feature
 and `-DADL_ENABLE_TRACY=ON` are the switch, and the zones are in the libraries, the
 application's engine and window, and its frame loop (frame marks, the frame interval
 and the render thread's time as plots). What is left is the trace work itself: an

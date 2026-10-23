@@ -18,8 +18,11 @@ The documentation, with a [user's guide](docs/user-guide/index.md), is published
 Version 0.1.0, a preliminary release. The libraries, the data loader and its two companion
 applications work end to end against each other on one machine, and the libraries are tested
 against simulated targets and over loopback sockets. **Nothing has been checked against a real
-target, a real loader, or another tool's media sets**, and there is no installer yet (the programs
-are built from source). What exists:
+target, a real loader, or another tool's media sets**. There is no installer: each
+[release](https://github.com/iainchesworthlabs/arinc-data-loader/releases) carries a portable
+package for Windows (x86-64), Linux (x86-64) and macOS (Apple silicon), signed with the project's
+release key and listed with its checksums and bill of materials
+([Verifying a release](docs/verifying-releases.md)), or the programs can be built from source. What exists:
 
 - **`adl::arinc665`**, a library with no GUI and no operating system code, that
   writes and reads everything ARINC 665-3 defines: loads (header, data and
@@ -73,7 +76,7 @@ are built from source). What exists:
     that say what went wrong and, where it is known, what to do about it. The window is in
     eight languages (Hebrew and Yiddish mirror the whole window; the translations are machine-drafted and not yet reviewed by speakers, see [docs/translations.md](docs/translations.md)), and a profiling
     build instruments the libraries, the engine and the window's frame loop with Tracy
-    0.14.1 ([docs/profiling.md](docs/profiling.md)).
+    0.13.1 ([docs/profiling.md](docs/profiling.md)).
   - **`adl_media_gen`**, the media set generator ([docs/media-gen.md](docs/media-gen.md)):
     files chosen from disk are turned into a valid ARINC 665 load and media set, written
     as the directory tree the loader opens, and verified by reading it back.

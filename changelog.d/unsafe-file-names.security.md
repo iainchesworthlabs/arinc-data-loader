@@ -1,1 +1,0 @@
-File names that a target chooses in a download, and that a media set or the mock target would store, are checked by one rule on every system: no colon (an NTFS stream), no device name such as `NUL`, `CON` or `COM1`, no trailing dot or space, no separator ([the loader](docs/app.md)).
