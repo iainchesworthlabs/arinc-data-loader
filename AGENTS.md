@@ -27,9 +27,10 @@ changing the repository.
   system is chosen by CMake, in `libs/platform/<name>/`, behind the interfaces in `libs/platform/interfaces/`
   ([docs/platform-isolation.md](docs/platform-isolation.md)). The count is held at zero by
   `tools/preprocessor-baseline.json`.
-- Names: `snake_case` for namespaces, functions and variables; `PascalCase` for types; `UPPER_SNAKE_CASE` for
-  constants and enumerators. Private members of existing classes end in an underscore (`name_`); a new class
-  follows the same until the members are renamed. The properties, signals, slots and invokable functions that QML
+- Names: `snake_case` for namespaces, functions and variables; `PascalCase` for types; `m_PascalCase` for private
+  members; `UPPER_SNAKE_CASE` for constants and enumerators. The code written before the rule keeps its names for
+  now (private members end in an underscore, `name_`; enumerators and constants are lower case) and is renamed
+  separately, so do not mix the two styles inside one class or one enum. The properties, signals, slots and invokable functions that QML
   sees are `camelCase`. Allman braces; run `clang-format` on changed files (`.clang-format` is the template's).
 - Return `std::expected` for recoverable errors in library code. Do not throw across a library boundary.
 - Every new behaviour has a test with a label (`unit`, `integration`, `system`, `ui`). Every function that parses
