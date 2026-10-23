@@ -4,13 +4,22 @@
   "enforcement": "active",
   "conditions": {
     "ref_name": {
-      "include": ["refs/heads/develop"],
+      "include": [
+        "refs/heads/develop"
+      ],
       "exclude": []
     }
   },
   "rules": [
-    { "type": "deletion" },
-    { "type": "non_fast_forward" },
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "required_linear_history"
+    },
     {
       "type": "pull_request",
       "parameters": {
@@ -18,8 +27,10 @@
         "dismiss_stale_reviews_on_push": true,
         "require_code_owner_review": false,
         "require_last_push_approval": false,
-        "required_review_thread_resolution": false,
-        "allowed_merge_methods": ["merge"]
+        "required_review_thread_resolution": true,
+        "allowed_merge_methods": [
+          "squash"
+        ]
       }
     },
     {
@@ -28,26 +39,15 @@
         "strict_required_status_checks_policy": false,
         "do_not_enforce_on_create": false,
         "required_status_checks": [
-          { "context": "Validate gitflow branch name" },
-          { "context": "Validate commit and PR text" },
-          { "context": "clang-format" },
-          { "context": "platform-isolation" },
-          { "context": "Plan build legs" },
-          { "context": "Windows (MSVC)" },
-          { "context": "Linux (GCC)" },
-          { "context": "macOS (AppleClang)" },
-          { "context": "Coverage (Linux, GCC)" },
-          { "context": "Scan dependency diff" },
-          { "context": "Docs build (strict)" }
+          {
+            "context": "CI Status"
+          },
+          {
+            "context": "Scan dependency diff"
+          }
         ]
       }
     }
   ],
-  "bypass_actors": [
-    {
-      "actor_id": 5,
-      "actor_type": "RepositoryRole",
-      "bypass_mode": "pull_request"
-    }
-  ]
+  "bypass_actors": []
 }
