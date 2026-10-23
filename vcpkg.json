@@ -5,7 +5,7 @@
   "description": "An ARINC 615A and 665 data loader, written from the standards.",
   "homepage": "https://github.com/iainchesworthlabs/arinc-data-loader",
   "license": "GPL-3.0-or-later",
-  "builtin-baseline": "9e593bb18ea69cc5095e012465dcd675a822ed0d",
+  "builtin-baseline": "9eec002df1cd109f8f104cd966a763daf9751489",
   "dependencies": [],
   "default-features": [],
   "features": {
