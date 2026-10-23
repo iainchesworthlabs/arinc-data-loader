@@ -16,6 +16,8 @@ Please check [docs/roadmap.md](docs/roadmap.md) and
 [docs/architecture.md](docs/architecture.md) for what is planned and what is
 deliberately not built yet.
 
+Automated contributors also follow [AGENTS.md](AGENTS.md).
+
 ## Branching model
 
 Development is trunk-based:
