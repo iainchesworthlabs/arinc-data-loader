@@ -2,16 +2,17 @@
 cmake_minimum_required(VERSION 3.28...4.4)
 
 # ---------------------------------------------------------------------------
-# vcpkg (pinned by the git submodule at deps/vcpkg).
+# vcpkg, in manifest mode, pinned by "builtin-baseline" in vcpkg.json.
 #
-# The submodule pins the dependency provider so builds are reproducible
-# without a machine-wide vcpkg or a VCPKG_ROOT env var. Which checkout of that
-# commit a configure uses - the submodule's own, or one shared between your
-# checkouts through ICL_VCPKG_STORE - is decided in cmake/VcpkgRoot.cmake,
-# which sets CMAKE_TOOLCHAIN_FILE. The presets deliberately do not.
+# Which checkout of the labs' vcpkg fork a configure uses - the one named by
+# VCPKG_ROOT, or one shared between your checkouts through ICL_VCPKG_STORE - is
+# decided in cmake/icl/IclVcpkgRoot.cmake (vendored from icl-common-infra; see
+# cmake/icl/SOURCE), which sets CMAKE_TOOLCHAIN_FILE. The presets deliberately
+# do not. The project prefix is ADL, so ADL_VCPKG_ROOT and ADL_VCPKG_STORE
+# override the shared variables for this project.
 # ---------------------------------------------------------------------------
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcpkgRoot.cmake")
-adl_resolve_vcpkg("${CMAKE_CURRENT_SOURCE_DIR}")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/icl/IclVcpkgRoot.cmake")
+icl_resolve_vcpkg("${CMAKE_CURRENT_SOURCE_DIR}" ADL)
 
 # ---------------------------------------------------------------------------
 # Select vcpkg manifest features BEFORE project() (the vcpkg toolchain reads

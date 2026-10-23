@@ -37,7 +37,7 @@ Install the hooks once per clone with `git config core.hooksPath tools/hooks`.
 | `static-analysis.yml` | the nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
 | `dependency-review.yml` | fails a PR that adds a moderate-or-worse vulnerable dependency | no - skipped |
 | `scorecard.yml` | OpenSSF Scorecard score and badge, from `main` | no - skipped |
-| Dependabot (`.github/dependabot.yml`) | Actions pins, the pinned CI tooling, the vcpkg baseline plus its submodule | yes |
+| Dependabot (`.github/dependabot.yml`) | Actions pins, the pinned CI tooling, the vcpkg baseline | yes |
 
 Every workflow declares `permissions: {}` at the top and gives each job only
 what it names; every checkout sets `persist-credentials: false`; every
@@ -210,8 +210,7 @@ tests that start the three application programs and `system.notices`, the `tools
 the `translations.current.*` tests (lupdate over a copy of each set of catalogues; they fail when the
 catalogues no longer match the sources), and the repository checks `platform.fragments` (every platform
 fragment satisfies the platform contract, on whichever host this is), `platform.selector`,
-`platform.vcpkg_root` (which vcpkg checkout a configure uses, tried against a fake repository, with no
-network), `platform.isolation` (the same script as the `platform-isolation` job), `docs.links` (every
+`platform.isolation` (the same script as the `platform-isolation` job), `docs.links` (every
 relative link and `#anchor` of the Markdown files resolves, pictures included), `docs.paths` (every
 repository path that a Markdown file names in a code span exists) and `ci.changed_code` (the list of files
 that make a change documentation-only, [below](#documentation-only-changes)); the last four need `pwsh`,
@@ -387,38 +386,23 @@ It is a visible check but not a required one yet: requiring it means adding
 workflow in one commit (`docs/branch-protection.md`), which is the maintainer's
 call.
 
-## The vcpkg binary cache
+## The vcpkg checkout and its caches
 
-Dependencies come from vcpkg (the `deps/vcpkg` submodule, manifest mode; the
-only one CI uses is Catch2, behind the `tests` feature - Tracy is behind the
-opt-in `profiling` feature, which no CI job turns on). Every job that runs
-vcpkg uses the same two composite actions,
-`.github/actions/vcpkg-cache/restore` and `/save`, which wrap vcpkg's `files`
-binary-cache provider around `actions/cache`:
+Dependencies come from vcpkg in manifest mode (the only one CI uses is Catch2, behind the `tests`
+feature - Tracy is behind the opt-in `profiling` feature, which no CI job turns on). Every job that runs
+vcpkg starts with the shared `setup-vcpkg` action of `icl-common-infra`: it clones the labs' fork, checks
+out the commit named by `builtin-baseline`, bootstraps it, exports `VCPKG_ROOT` (which
+`cmake/icl/IclVcpkgRoot.cmake` picks up), and restores vcpkg's binary and download caches with
+`actions/cache`. The last step of the job, `save-vcpkg-cache` (`if: always()`, so a red leg keeps what
+it built), saves them again when something was added.
 
-| Step | What it does |
-| --- | --- |
-| restore | Points `VCPKG_BINARY_SOURCES` at `$RUNNER_TEMP/vcpkg-cache` and fills it from the newest entry whose key starts `vcpkg-binary-cache-<triplet>-`. |
-| *(build)* | vcpkg restores every archive whose ABI hash matches and builds only the rest. |
-| save | Runs with `if: always()`, so a red leg keeps what it built. Stores the directory under `vcpkg-binary-cache-<triplet>-<hash of its file listing>`, only if an archive was added since the restore and the key is not already readable from this ref. |
-
-The key carries the **triplet and nothing else** (`x64-windows`, `x64-linux`,
-`arm64-osx`): vcpkg's ABI hash already covers what changes the binaries, and
-every archive holds both the debug and the release variant. `Linux (GCC)` and
-`Coverage (Linux, GCC)` share `x64-linux`.
-
-An Actions cache entry is readable from its own ref, the base branch of a pull
-request and the default branch, nothing else. So `develop` is where the cache
-every pull request starts from is made: a push to `develop` (or `main`) is
-never cancelled by the next push (`cancel-in-progress` is off for them), and
-the first run on a new branch is cold. With Catch2 as the only port CI builds, a cold
-run costs minutes, not hours; the cache earns its keep mostly on macOS.
-
-`actions/checkout` runs with `fetch-depth: 0` and `submodules: recursive` on
-the vcpkg-using jobs: with a `builtin-baseline`, vcpkg reads historical port
-versions out of the submodule's git history, and the default depth-1
-submodule clone does not have them. The same holds on a developer's machine:
-[Building](building.md#clone) clones the submodule in full, not with `--depth 1`.
+The keys carry the runner OS and architecture, the baseline commit and the manifest, so a baseline bump
+starts from the nearest older entry and builds only the packages that changed. An Actions cache entry is
+readable from its own ref, the base branch of a pull request and the default branch, nothing else, so
+`develop` is where the cache every pull request starts from is made: a push to `develop` (or `main`) is
+never cancelled by the next push (`cancel-in-progress` is off for them), and the first run on a new
+branch is cold. With Catch2 as the only port CI builds, a cold run costs minutes, not hours; the cache
+earns its keep mostly on macOS.
 
 ## What the Zephyr jobs cache, and what they never ask the GitHub API
 
@@ -461,7 +445,7 @@ Python packages come from PyPI.
 | The Qt archives | The SHA-256 of each, in `.github/requirements/qt-archives.sha256` | By hand: `install_qt.py lock` |
 | Qt | `version` input of the `install-qt` step in `ci.yml`, `release.yml` and `static-analysis.yml` (6.12.0) | By hand, together with the Qt archive pins |
 | CMake and Ninja (`lukka/get-cmake`) | `cmakeVersion` / `ninjaVersion`, exact, and one the pinned action's catalog lists | By hand, with the action |
-| vcpkg and the ports | The submodule commit and `builtin-baseline` | Dependabot (`vcpkg` + `gitsubmodule`, one monthly PR); by hand |
+| vcpkg and the ports | `builtin-baseline` in `vcpkg.json` (a commit of the fork) | Dependabot (`vcpkg`, monthly); by hand |
 | Runner images | The label (`ubuntu-24.04`, `ubuntu-26.04`, `windows-2025-vs2026`, `macos-26`) | By hand |
 
 Not pinned: the compilers (each is what its image ships), and anything an
@@ -538,9 +522,8 @@ The three legs (Windows MSVC, Linux GCC, macOS AppleClang) have all run on
 3. **The sanitizer runtime**: ASan/UBSan on the hosted image (on Windows, the
    ASan runtime DLL that `adl_deploy_sanitizer_runtime` copies next to the
    tests, found next to the compiler).
-4. **The vcpkg submodule**: a clone without enough history for the baseline
-   (`fetch-depth: 0` is set for that reason; on a developer's machine,
-   `git -C deps/vcpkg fetch --unshallow` repairs a submodule made with `--depth 1`).
+4. **The vcpkg checkout**: the baseline commit missing from the fork (the fork's nightly sync normally
+   prevents it), or a store directory left half-made by an interrupted configure.
 5. **Coverage**: gcovr refusing a counter, or a figure below the minimum. The
    report step passes `--gcov-ignore-parse-errors negative_hits.warn_once_per_file`
    for the known gcov bug, and the coverage preset updates counters atomically.

@@ -50,19 +50,12 @@ jobs:
     permissions:
       contents: read
     steps:
-      # fetch-depth: 0 for vcpkg's version resolution against the deps/vcpkg
-      # submodule - see ci.yml.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: recursive
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Restore vcpkg binaries
-        id: vcpkg-cache
-        uses: ./.github/actions/vcpkg-cache/restore
-        with:
-          triplet: x64-linux
+      - name: Set up vcpkg
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -107,12 +100,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Save vcpkg binaries
+      - name: Save the vcpkg caches
         if: ${{ always() }}
-        uses: ./.github/actions/vcpkg-cache/save
-        with:
-          triplet: x64-linux
-          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+        continue-on-error: true
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
 
   # MSVC Code Analysis (/analyze) over the libraries, the tests and the three
   # Qt applications. The applications are included here, unlike clang-tidy:
@@ -125,18 +116,12 @@ jobs:
     permissions:
       contents: read
     steps:
-      # fetch-depth: 0 for vcpkg's version resolution - see ci.yml.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: recursive
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Restore vcpkg binaries
-        id: vcpkg-cache
-        uses: ./.github/actions/vcpkg-cache/restore
-        with:
-          triplet: x64-windows
+      - name: Set up vcpkg
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -175,12 +160,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Save vcpkg binaries
+      - name: Save the vcpkg caches
         if: ${{ always() }}
-        uses: ./.github/actions/vcpkg-cache/save
-        with:
-          triplet: x64-windows
-          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+        continue-on-error: true
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
 
   # The sanitizer leg the per-commit CI does not have: Clang's ASan and UBSan
   # over the libraries and tests. The Linux and macOS legs use GCC and
@@ -194,18 +177,12 @@ jobs:
     permissions:
       contents: read
     steps:
-      # fetch-depth: 0 for vcpkg's version resolution - see ci.yml.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: recursive
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Restore vcpkg binaries
-        id: vcpkg-cache
-        uses: ./.github/actions/vcpkg-cache/restore
-        with:
-          triplet: x64-linux
+      - name: Set up vcpkg
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -237,12 +214,10 @@ jobs:
           UBSAN_OPTIONS: print_stacktrace=1
         run: ctest --preset linux-clang-debug
 
-      - name: Save vcpkg binaries
+      - name: Save the vcpkg caches
         if: ${{ always() }}
-        uses: ./.github/actions/vcpkg-cache/save
-        with:
-          triplet: x64-linux
-          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+        continue-on-error: true
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
 
   # Optional: SonarQube (or SonarQube Cloud). It is off until an administrator
   # sets the repository variable SONAR_HOST_URL (https://sonarcloud.io for the
@@ -260,18 +235,12 @@ jobs:
       contents: read
     steps:
       # A full history gives Sonar the blame it uses for new-code periods, and
-      # fetch-depth: 0 is needed by vcpkg anyway.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: recursive
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Restore vcpkg binaries
-        id: vcpkg-cache
-        uses: ./.github/actions/vcpkg-cache/restore
-        with:
-          triplet: x64-linux
+      - name: Set up vcpkg
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -291,9 +260,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
-      - name: Save vcpkg binaries
+      - name: Save the vcpkg caches
         if: ${{ always() }}
-        uses: ./.github/actions/vcpkg-cache/save
-        with:
-          triplet: x64-linux
-          restored: ${{ steps.vcpkg-cache.outputs.listing }}
+        continue-on-error: true
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@513b3c60a24497ebdced02e4b2b808666dfbf28b # v0.1.6
