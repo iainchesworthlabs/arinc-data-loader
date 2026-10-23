@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # PlatformContract.cmake - what a platform fragment
-# (src/platforms/<name>/platform.cmake) has to declare, and the check that it
+# (libs/platform/<name>/platform.cmake) has to declare, and the check that it
 # did. The contract itself is described at the top of cmake/Platform.cmake.
 #
 # Shared by the selector (which checks the one fragment it includes, at

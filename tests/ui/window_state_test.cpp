@@ -1,4 +1,4 @@
-// What install_window_state promises (src/ui/include/adl/ui/window_state.hpp and section 8 of
+// What install_window_state promises (libs/ui/include/adl/ui/window_state.hpp and section 8 of
 // docs/design-overhaul.md), checked on a bare window on the offscreen platform: where a window
 // opens when nothing was stored, that a stored size and position come back, that a size below the
 // window's minimum is raised and one larger than the screen allows is brought inside it, that a

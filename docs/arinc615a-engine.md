@@ -1,9 +1,9 @@
 # ARINC 615A engine
 
-`adl::arinc615a` (`src/arinc615a`) is, beside the [codec](arinc615a-codec.md), the data loader's side of
+`adl::arinc615a` (`libs/arinc615a`) is, beside the [codec](arinc615a-codec.md), the data loader's side of
 ARINC 615A-3: the TFTP transfer, the Information, Upload and Download operations of section 5.4, the
 time-outs and retries of Attachment 4, and FIND (Attachment 3). `adl::arinc615a_runner`
-(`src/arinc615a_runner`) is the thin layer that drives it over `adl::platform`. This page says how it is
+(`libs/arinc615a_runner`) is the thin layer that drives it over `adl::platform`. This page says how it is
 built, what the standard leaves unclear and what was chosen, and what has and has not been checked.
 [The coverage page](arinc615a-coverage.md) maps the standard onto it section by section. Section numbers
 are 615A-3's, which is not in the repository ([docs/specs](specs/README.md)).
@@ -27,7 +27,7 @@ application, [the application](app.md), is a window over this engine.
 | `runner.hpp` (runner library) | `Runner`: sockets, the wait, the clock, `RunController` |
 | `directory_files.hpp` (runner library) | `DirectoryFileSource` and `DirectoryFileSink` over a directory of the platform's files |
 
-A second TFTP implementation, `adl::arinc615a_mini` (`src/arinc615a_mini`), is not part of the engine. It is written separately from it, on the codec, and is the TFTP of the simulated target of the tests and of the
+A second TFTP implementation, `adl::arinc615a_mini` (`libs/arinc615a_mini`), is not part of the engine. It is written separately from it, on the codec, and is the TFTP of the simulated target of the tests and of the
 mock target application. It uses the codec and the figures in `limits.hpp`, so the 2 s time-out, the retry count
 and the default block size are not independently checked.
 
@@ -52,7 +52,7 @@ list it writes, and TFTP server, on its control port (59, or the one the `port` 
 everything the target starts, so several slots are open at once. `Runner` waits on all of them from one
 thread with `Network::wait_readable`.
 
-What the runner does is small enough to read in one sitting (`src/arinc615a_runner/src/runner.cpp`), which is
+What the runner does is small enough to read in one sitting (`libs/arinc615a_runner/src/runner.cpp`), which is
 the point: anything that can send a UDP datagram and tell the time can drive the engine, an RTOS port included (the FreeRTOS and Zephyr ports are experimental), and a test can drive it with no network at all ([Testing](#what-has-been-checked-and-what-has-not)).
 
 ### Memory, buffers and lifetimes
@@ -297,7 +297,7 @@ over a link in memory with a seed for loss, duplication and reordering, and one 
 written out), the loader with hand-written datagrams (what it sends and when, to the nanosecond at the figures
 of Attachment 4), and whole operations through the runner on the fake platform against a **simulated target**
 (`tests/engine/sim_target.cpp`) that has its own TFTP endpoint (`adl::arinc615a_mini`,
-`src/arinc615a_mini/src/mini_tftp.cpp`) sharing no code with the
+`libs/arinc615a_mini/src/mini_tftp.cpp`) sharing no code with the
 engine. A full load of a media set built with `adl::arinc665::build_media_set` goes to the target, and files
 come back in a media defined and an operator defined download, also over a network that loses, repeats and
 reorders datagrams, with the target asking to wait, going silent, aborting, announcing an exception timer,

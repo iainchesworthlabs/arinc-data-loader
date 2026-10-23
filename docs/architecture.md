@@ -4,7 +4,7 @@
 
 ```text
             +--------------------------------------+
-            |  application (Qt 6.12, src/app)      |
+            |  application (Qt 6.12, apps/app)     |
             +------------------+-------------------+
                                |
                     +----------v-----------+
@@ -13,40 +13,40 @@
                           |           |
           +---------------v--+   +----v-----------------+
           | adl::arinc615a   |   |  adl::platform       |
-          | codec and engine |   |  src/platforms       |
+          | codec and engine |   |  libs/platform       |
           | (sans-I/O)       |   |                      |
           +--------+---------+   |  files, memory,      |
                    |             |  threads, clock,     |
           +--------v---------+   |  UDP, queues         |
           | adl::arinc665    |   +----------------------+
-          | src/arinc665     |
+          | libs/arinc665    |
           +------------------+
 
-   adl::media_tree (src/media_tree): members <-> a directory tree, over adl::arinc665
-   adl::samples (src/samples): the sample sets; adl_write_payloads writes them out
-   adl::arinc615a_mini (src/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
+   adl::media_tree (libs/media_tree): members <-> a directory tree, over adl::arinc665
+   adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
+   adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target application
 ```
 
-- **`src/arinc665`** is the ARINC 665 library: loads, batches and media sets
+- **`libs/arinc665`** is the ARINC 665 library: loads, batches and media sets
   (written, read and verified), media labels, part numbers, CRCs and check values.
   It is GUI-free and platform-free. It includes no operating
   system header and nothing from Qt.
-- **`src/media_tree`** puts a media set on a disk: the members of a set written to
+- **`libs/media_tree`** puts a media set on a disk: the members of a set written to
   a directory tree, one directory per member, and read back, with the standard's
   backslash pathnames mapped to native paths. It uses `std::filesystem`, which is
   the same on every platform, so it holds no platform code and `adl::arinc665`
   keeps its freedom from file I/O. It refuses names that cannot be files on every
   platform, so that a tree written on one system reads on another, and never
   overwrites or follows a link.
-- **`src/samples`** is the sample loads and media sets (the golden scenario of
+- **`libs/samples`** is the sample loads and media sets (the golden scenario of
   `tests/golden/make_golden.py` and the ARINC 615 and Boeing 777 layouts of
   Appendix F), as data. The tests build from it, and so does
-  **`src/write_payloads`**, the `adl_write_payloads` program that writes them to a
+  **`apps/write_payloads`**, the `adl_write_payloads` program that writes them to a
   directory so that other loaders can be tried on them.
-- **`src/platforms`** is the only place that knows which operating system this
+- **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
-  `src/platforms/interfaces/adl/platform/`, with one implementation per platform
+  `libs/platform/interfaces/adl/platform/`, with one implementation per platform
   beside it: files, memory, threads and priorities, a clock, UDP sockets and
   message queues, gathered in a `Host` that the runner is handed (a real one
   from `make_host()`, or the fake in `tests/fake`). [Platform
@@ -54,7 +54,7 @@
   [platform abstraction](platform-abstraction.md) the design, how each of seven operating systems and two INTEGRITY
   ports (which have [a page of their own](platform-ghs.md)) provides each service, and what has and has not been
   verified.
-- **`src/arinc615a`** is the ARINC 615A library, the data loader's side of the protocol. Its codec
+- **`libs/arinc615a`** is the ARINC 615A library, the data loader's side of the protocol. Its codec
   is the TFTP packets with their options (and the WAIT and ABORT messages), the FIND packets and the
   twelve protocol files of section 6.4, each written into a buffer the caller supplies and read back
   as views over the bytes, with every length checked. Its engine is **sans-I/O**: state machines
@@ -69,21 +69,21 @@
   that library's check value numbers and checksums only). [ARINC 615A codec](arinc615a-codec.md) has the
   layouts, [ARINC 615A engine](arinc615a-engine.md) the design and the choices made where the standard is
   unclear, and [ARINC 615A coverage](arinc615a-coverage.md) the standard section by section.
-- **`src/arinc615a_mini`** is a second, independent TFTP implementation (lock-step blocks, the time-out and
+- **`libs/arinc615a_mini`** is a second, independent TFTP implementation (lock-step blocks, the time-out and
   retry, the options the loader uses, WAIT and ABORT), deliberately plain and written on the codec, so that the engine is checked against another reading of the standard and not against itself. It uses the codec and the figures in `limits.hpp` (the time-outs, the retry count and the default block size), so those are not independently checked. It is the TFTP of the simulated target of `tests/engine` and of the mock target application.
-- **`src/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
+- **`libs/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
   opens the sockets the engine asks for, waits on all of them from one thread with
   `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.
   It also has a `FileSource` and a `FileSink` over a directory of the platform's files. That is what
   makes the engine portable to an RTOS (a port replaces the runner) and testable without a network (the
   tests replace the platform with the fake and the target with a simulated one).
-- **`src/app`**, **`src/media_gen`** and **`src/mock_target`** are the Qt 6.12 applications, thin layers
+- **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock
   target over real sockets. The engine runs on a thread of its own (the runner blocks), reports to the
   window through queued signals, and is aborted through an atomic flag the runner polls. Each
   application's `core/` is its logic without a window, tested headless; each `qml/` is its view.
-  **`src/ui`** is the shared design system and window chrome for all three (the same QML source is
+  **`libs/ui`** is the shared design system and window chrome for all three (the same QML source is
   compiled into each application's module). Qt is used in these directories only, and the
   applications build when `ADL_BUILD_APP` is on (the default on a desktop where Qt 6.12 is found). [The application](app.md) has the threading,
   what it shows and what it does not do yet; [the design overhaul](design-overhaul.md) has the
@@ -108,19 +108,19 @@ route to remove it.
 
 | Directory | Target | Alias | Namespace | Headers |
 | --- | --- | --- | --- | --- |
-| `src/arinc665` | `adl_arinc665` | `adl::arinc665` | `adl::arinc665` | `adl/arinc665/*.hpp` |
-| `src/media_tree` | `adl_media_tree` | `adl::media_tree` | `adl::media_tree` | `adl/media_tree/*.hpp` |
-| `src/samples` | `adl_samples` | `adl::samples` | `adl::samples` | `adl/samples/*.hpp` |
-| `src/arinc615a` | `adl_arinc615a` | `adl::arinc615a` | `adl::arinc615a` | `adl/arinc615a/*.hpp` |
-| `src/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
-| `src/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
-| `src/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
-| `src/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
-| `src/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/*.hpp` |
-| `src/platforms` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
-| `src/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
+| `libs/arinc665` | `adl_arinc665` | `adl::arinc665` | `adl::arinc665` | `adl/arinc665/*.hpp` |
+| `libs/media_tree` | `adl_media_tree` | `adl::media_tree` | `adl::media_tree` | `adl/media_tree/*.hpp` |
+| `libs/samples` | `adl_samples` | `adl::samples` | `adl::samples` | `adl/samples/*.hpp` |
+| `libs/arinc615a` | `adl_arinc615a` | `adl::arinc615a` | `adl::arinc615a` | `adl/arinc615a/*.hpp` |
+| `libs/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
+| `libs/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
+| `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
+| `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
+| `apps/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/*.hpp` |
+| `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
+| `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
-The programs are `adl_app`, `adl_media_gen`, `adl_mock_target` and `adl_write_payloads`. The rest of `src/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target` and `adl_write_payloads`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
 applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
@@ -155,7 +155,7 @@ users.
   through `adl::media_tree`. A media set is read from `MediaMember`s, the files of
   each in memory; getting them from a directory is `adl::media_tree`'s job.
 - **Three layers inside the library.** The bottom is bytes: `WordWriter` and
-  `WordReader` (private, `src/arinc665/src/wire.hpp`), the CRCs, MD5 and SHA-1. Above it each
+  `WordReader` (private, `libs/arinc665/src/wire.hpp`), the CRCs, MD5 and SHA-1. Above it each
   file format is a plain model type with an `encode_*` and a `decode_*` function:
   `HeaderFile`, `BatchFile`, `LoadsList`, `FilesList`, `BatchesList`. At the top
   are the operations that need several files, `build_load`/`verify_load` and

@@ -1,6 +1,6 @@
 // The Qt Linguist catalogues of the three applications and of the interface they share
-// (src/ui/translations, src/app/translations, src/media_gen/translations,
-// src/mock_target/translations), read as files rather than through Qt: these cases run in the
+// (libs/ui/translations, apps/app/translations, apps/media_gen/translations,
+// apps/mock_target/translations), read as files rather than through Qt: these cases run in the
 // plain unit-test program on every CI leg, Qt installed or not. What they hold the catalogues to is
 // what a reader of a catalogue cannot see at a glance and what a hand edit or a machine pass gets
 // wrong: a message left unfinished or vanished, an empty translation, a dropped placeholder or

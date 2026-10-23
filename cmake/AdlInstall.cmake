@@ -19,10 +19,10 @@
 #
 # Not shipped: adl::samples and adl::arinc615a_mini are the fixtures the tests and the mock target
 # are built on (a second, independent TFTP implementation, kept apart from the engine on purpose),
-# not an interface anyone should depend on; the code behind the three applications (src/app/core,
-# src/ui) is their implementation, written for Qt and for those programs. Where the operating system
+# not an interface anyone should depend on; the code behind the three applications (apps/app/core,
+# libs/ui) is their implementation, written for Qt and for those programs. Where the operating system
 # differs is not decided here: the destinations that depend on it come from the platform's fragment
-# (src/platforms/<name>/platform.cmake), the one place that knows which operating system this is.
+# (libs/platform/<name>/platform.cmake), the one place that knows which operating system this is.
 #
 # The packages are made by CPack from these rules (cmake/AdlPackage.cmake).
 # ---------------------------------------------------------------------------

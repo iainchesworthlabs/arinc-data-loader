@@ -45,7 +45,7 @@ target_link_libraries(my_tool PRIVATE adl::media_tree)
 They are static libraries, so the package needs nothing at run time. **Not** shipped, on purpose:
 `adl::samples` and `adl::arinc615a_mini` are test fixtures (the second, independent TFTP
 implementation exists to check the engine against, and is not an interface), and the code behind the
-applications (`src/app`, `src/ui`, ...) is written for those programs and for Qt. Before 1.0 the API is not
+applications (`apps/app`, `libs/ui`, ...) is written for those programs and for Qt. Before 1.0 the API is not
 stable: the package's version file accepts the same minor version only (`SameMinorVersion`).
 
 ### What is not shipped, and why
@@ -212,7 +212,7 @@ releases it signed, so a compromise is also announced on the releases it touches
 - **The SBOM** lists what the build reported, never a guess: the first-party programs and libraries,
   Qt (by reference to the kit's own SPDX documents), the typefaces, the runtime files Qt's deployment
   tool placed in a package, the vcpkg packages used for the tests (Catch2: in no package), and the
-  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with hash-locked validators, and the SPDX document is checked to list every typeface in `src/ui/fonts` (`tools/release/check_sbom_fonts.py`).
+  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with hash-locked validators, and the SPDX document is checked to list every typeface in `libs/ui/fonts` (`tools/release/check_sbom_fonts.py`).
 - **The attestations and the signature are independent.** A compromised runner could produce a package
   and an honest-looking attestation of it; a compromised key could sign anything. Together they say the
   maintainer's key signed what the maintainer's workflow built.

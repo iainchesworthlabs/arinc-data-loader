@@ -36,7 +36,7 @@ env:
   VCPKG_DISABLE_METRICS: "1"
 
 jobs:
-  # clang-tidy over every translation unit under src/, with .clang-tidy and
+  # clang-tidy over every translation unit under libs/ and apps/, with .clang-tidy and
   # --warnings-as-errors=* (cmake/StaticAnalysis.cmake). The build is the
   # analysis, so the analyzer sees exactly the flags the build uses. The tests
   # are not tidied: Catch2's REQUIRE/CHECK macros expand to code the checks

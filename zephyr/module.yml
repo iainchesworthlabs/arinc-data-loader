@@ -3,5 +3,5 @@
 # CONFIG_ADL_PLATFORM=y; docs/building.md has the details.
 name: arinc-data-loader
 build:
-  cmake: src/platforms/zephyr
-  kconfig: src/platforms/zephyr/Kconfig
+  cmake: libs/platform/zephyr
+  kconfig: libs/platform/zephyr/Kconfig

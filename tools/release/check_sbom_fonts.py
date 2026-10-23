@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Checks that the SPDX document lists every typeface the programs embed.
 
-The bill of materials names the typefaces by hand (make_sbom.py), so a face added to src/ui/fonts without
+The bill of materials names the typefaces by hand (make_sbom.py), so a face added to libs/ui/fonts without
 a line there would ship without being listed. This compares the families of the font files with the
 packages of the document: a family is the file name before its first hyphen (Archivo-Medium.ttf is
 Archivo, NotoSansHebrew-Regular.ttf is NotoSansHebrew), and a package matches when its name, with the
@@ -44,7 +44,7 @@ def main(argv: list[str]) -> int:
     present = listed(document)
     missing = sorted(family for family in wanted if family.lower() not in present)
     for family in missing:
-        print(f"{argv[1]}: the typeface {family} is embedded in the programs (src/ui/fonts) and is not "
+        print(f"{argv[1]}: the typeface {family} is embedded in the programs (libs/ui/fonts) and is not "
               f"listed in the bill of materials; add it to tools/release/make_sbom.py", file=sys.stderr)
     if missing:
         return 1

@@ -10,14 +10,14 @@
 
 include(Notices)
 
-set(ADL_UI_QML_DIR "${CMAKE_SOURCE_DIR}/src/ui/qml")
-set(ADL_UI_FONT_DIR "${CMAKE_SOURCE_DIR}/src/ui/fonts")
+set(ADL_UI_QML_DIR "${CMAKE_SOURCE_DIR}/libs/ui/qml")
+set(ADL_UI_FONT_DIR "${CMAKE_SOURCE_DIR}/libs/ui/fonts")
 set(ADL_UI_NOTICES_DIR "${CMAKE_SOURCE_DIR}/notices")
-set(ADL_UI_TRANSLATIONS_DIR "${CMAKE_SOURCE_DIR}/src/ui/translations")
+set(ADL_UI_TRANSLATIONS_DIR "${CMAKE_SOURCE_DIR}/libs/ui/translations")
 
 # The languages the three applications ship a catalogue for besides English (whose catalogue holds
 # only the plural forms of the source strings). The table of names the picker shows is in
-# src/ui/language_manager.cpp; a language is added to both.
+# libs/ui/language_manager.cpp; a language is added to both.
 set(ADL_TRANSLATED_LANGUAGES de es fr he ja yi zh)
 set(ADL_UI_NOTICES_FILE "${CMAKE_BINARY_DIR}/notices/NOTICES.txt")
 
@@ -81,7 +81,7 @@ endforeach()
 
 set(ADL_UI_GENERATED_INCLUDE_DIR "${CMAKE_BINARY_DIR}/generated/adl_ui/include")
 file(MAKE_DIRECTORY "${ADL_UI_GENERATED_INCLUDE_DIR}/adl/ui")
-configure_file("${CMAKE_SOURCE_DIR}/src/ui/version.hpp.in"
+configure_file("${CMAKE_SOURCE_DIR}/libs/ui/version.hpp.in"
                "${ADL_UI_GENERATED_INCLUDE_DIR}/adl/ui/build_info.hpp"
                @ONLY)
 
@@ -155,7 +155,7 @@ function(adl_generate_ui_notices)
     endif()
     string(REGEX MATCH "^[0-9]+\\.[0-9]+" _adl_qt_series "${Qt6_VERSION}")
 
-    # What differs by platform is the platform's own to say (src/platforms/<name>/platform.cmake).
+    # What differs by platform is the platform's own to say (libs/platform/<name>/platform.cmake).
     set(_adl_fragments header qt ${ADL_PLATFORM_NOTICE_FRAGMENTS} fonts)
     if(ADL_ENABLE_TRACY)
         list(APPEND _adl_fragments tracy)
@@ -202,7 +202,7 @@ endfunction()
 # ---- translations -----------------------------------------------------------
 # Each application has a catalogue of its own (<directory>/<base>_<code>.ts for the languages in
 # ADL_TRANSLATED_LANGUAGES, and <base>_en.ts which holds only the plural forms English needs),
-# and the interface the three share has one more, src/ui/translations/adl_ui_<code>.ts, so a
+# and the interface the three share has one more, libs/ui/translations/adl_ui_<code>.ts, so a
 # string a shared component draws is translated once. LanguageManager installs both.
 #
 # Setting the files up: `cmake --build <dir> --target update_translations` extracts the strings
@@ -338,14 +338,14 @@ function(adl_add_ui_support target)
         FILES ${_adl_ui_qm_files})
     add_dependencies(${target} adl_ui_lrelease)
     target_sources(${target} PRIVATE
-        "${CMAKE_SOURCE_DIR}/src/ui/include/adl/ui/language_manager.hpp"
-        "${CMAKE_SOURCE_DIR}/src/ui/language_manager.cpp"
-        "${CMAKE_SOURCE_DIR}/src/ui/fonts.cpp"
-        "${CMAKE_SOURCE_DIR}/src/ui/window_state.cpp"
-        "${CMAKE_SOURCE_DIR}/src/ui/settings_location.cpp"
-        "${CMAKE_SOURCE_DIR}/src/ui/smoke_test.cpp"
-        "${CMAKE_SOURCE_DIR}/src/ui/version.cpp")
+        "${CMAKE_SOURCE_DIR}/libs/ui/include/adl/ui/language_manager.hpp"
+        "${CMAKE_SOURCE_DIR}/libs/ui/language_manager.cpp"
+        "${CMAKE_SOURCE_DIR}/libs/ui/fonts.cpp"
+        "${CMAKE_SOURCE_DIR}/libs/ui/window_state.cpp"
+        "${CMAKE_SOURCE_DIR}/libs/ui/settings_location.cpp"
+        "${CMAKE_SOURCE_DIR}/libs/ui/smoke_test.cpp"
+        "${CMAKE_SOURCE_DIR}/libs/ui/version.cpp")
     target_include_directories(${target} PRIVATE
-        "${CMAKE_SOURCE_DIR}/src/ui/include"
+        "${CMAKE_SOURCE_DIR}/libs/ui/include"
         "${ADL_UI_GENERATED_INCLUDE_DIR}")
 endfunction()

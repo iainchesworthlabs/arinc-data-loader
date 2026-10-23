@@ -75,14 +75,14 @@ jobs:
           "$RUNNER_TEMP/lint-venv/bin/clang-format" --version
 
       # Any difference is a failure; --dry-run --Werror reports file:line.
-      - name: Check formatting (src/ and tests/)
+      - name: Check formatting (libs/, apps/ and tests/)
         shell: bash
         run: |
-          mapfile -d '' files < <(find src tests -type f \( \
+          mapfile -d '' files < <(find libs apps tests -type f \( \
             -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' -o -name '*.hh' \
             -o -name '*.cxx' -o -name '*.hxx' -o -name '*.inl' -o -name '*.ipp' \) -print0)
           if [ "${#files[@]}" -eq 0 ]; then
-            echo "::error::no C++ sources found under src/ and tests/"
+            echo "::error::no C++ sources found under libs/, apps/ and tests/"
             exit 1
           fi
           echo "checking ${#files[@]} file(s) with $(clang-format --version)"
@@ -93,7 +93,7 @@ jobs:
 
   # The no-#ifdef rule (docs/platform-isolation.md): the operating system is a
   # CMake decision, so no platform code, OS header or runtime OS test may sit
-  # outside src/platforms. Cheap, fast and deliberately not behind the build
+  # outside libs/platform. Cheap, fast and deliberately not behind the build
   # legs, so a violation is reported even while a porting leg is red.
   platform-isolation:
     name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - platform-isolation' || 'platform-isolation' }}
@@ -283,7 +283,7 @@ jobs:
           host: ${{ matrix.qt_host }}
           arch: ${{ matrix.qt_arch }}
 
-      # ADL_BUILD_APP builds the Qt application and its tests (src/app, tests/app).
+      # ADL_BUILD_APP builds the Qt application and its tests (apps/app, apps/app/tests).
       - name: Configure
         if: ${{ needs.plan.outputs.code == 'true' }}
         shell: bash
@@ -340,7 +340,7 @@ jobs:
   # cmake/CoverageReport.cmake holds the figures and the gcovr switches; this job
   # only builds, tests and calls it. The report is uploaded either way, so a red
   # gate still has the numbers to look at. A second pass measures the Qt applications'
-  # window-free logic (src/app/core, src/mock_target/core, src/media_gen/core) at a lower
+  # window-free logic (apps/app/core, apps/mock_target/core, apps/media_gen/core) at a lower
   # floor; the windows' QML cannot be measured and is exercised by the UI suite.
   coverage:
     name: ${{ github.event_name == 'workflow_dispatch' && 'dispatch - Coverage (Linux, GCC)' || 'Coverage (Linux, GCC)' }}
@@ -411,7 +411,7 @@ jobs:
           fi
 
       # The prebuilt Qt kit, as on the Linux (GCC) leg: the second coverage pass measures the
-      # applications' window-free logic (src/*/core), which needs the applications built.
+      # applications' window-free logic (apps/*/core), which needs the applications built.
       - name: Install Qt
         if: ${{ needs.plan.outputs.code == 'true' }}
         uses: ./.github/actions/install-qt
@@ -453,7 +453,7 @@ jobs:
         if: ${{ always() && needs.plan.outputs.code == 'true' && hashFiles('build/linux-gcc-coverage/coverage/summary.json') != '' }}
         shell: bash
         run: |
-          jq -r '"### Coverage of src/ (minimum: 90% lines, 80% branches)\n\n| | covered | total | percent |\n|---|---|---|---|\n| lines | \(.line_covered // 0) | \(.line_total // 0) | \(.line_percent // 0) |\n| branches | \(.branch_covered // 0) | \(.branch_total // 0) | \(.branch_percent // 0) |"' \
+          jq -r '"### Coverage of libs/ (minimum: 90% lines, 80% branches)\n\n| | covered | total | percent |\n|---|---|---|---|\n| lines | \(.line_covered // 0) | \(.line_total // 0) | \(.line_percent // 0) |\n| branches | \(.branch_covered // 0) | \(.branch_total // 0) | \(.branch_percent // 0) |"' \
             build/linux-gcc-coverage/coverage/summary.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload coverage report
@@ -473,7 +473,7 @@ jobs:
           triplet: x64-linux
           restored: ${{ steps.vcpkg-cache.outputs.listing }}
 
-  # The Zephyr platform (src/platforms/zephyr) on native_sim: Zephyr's kernel, its IPv4/UDP
+  # The Zephyr platform (libs/platform/zephyr) on native_sim: Zephyr's kernel, its IPv4/UDP
   # stack over its loopback interface and littlefs on simulated flash, built as a host process,
   # running the platform conformance suite and the 615A engine tests (tests/platform/zephyr,
   # tools/ci/zephyr_native_sim.sh). NOT a required check: it is new, and it joins the rulesets
@@ -641,7 +641,7 @@ jobs:
           export ZEPHYR_SDK_INSTALL_DIR="$RUNNER_TEMP/zephyr-sdk"
           bash arinc-data-loader/tools/ci/zephyr_qemu_suite.sh
 
-  # The FreeRTOS platform (src/platforms/freertos) on the kernel's POSIX simulator port: the
+  # The FreeRTOS platform (libs/platform/freertos) on the kernel's POSIX simulator port: the
   # real kernel in a Linux process, lwIP's UDP sockets over its loopback interface and littlefs
   # on a RAM block device, running the platform conformance suite and the 615A engine tests
   # (tests/platform/freertos, tools/ci/freertos_posix_sim.sh). NOT a required check, for the

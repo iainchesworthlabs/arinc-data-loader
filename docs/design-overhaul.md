@@ -1,7 +1,7 @@
 # The design overhaul
 
 This is the human-factors analysis and the design direction behind the redesign of the three Qt
-applications in `src/app`, `src/media_gen` and `src/mock_target`. It records what was wrong, why it
+applications in `apps/app`, `apps/media_gen` and `apps/mock_target`. It records what was wrong, why it
 matters for the people who load software onto avionics targets, what the new window is for, and
 what remains open. The implementation is commit `dbb6e4a`; the before-state citations are to its
 parent, `a33a9c8`. The prose describes the windows as they are in the code now; where an item from
@@ -257,7 +257,7 @@ so a mode cannot change under a live dialogue.
 The before windows shared no design system: the loader had rounded blue cards from the UI pass, the
 generator and mock target were plain Fusion group boxes with different red validation text, and the
 three used different words for the same thing (`THW_ID_POS`, "Hardware ID" + "Position", "Target
-hardware IDs"). The new windows share `src/ui`: one `Theme.qml`, one button, one field, one chip,
+hardware IDs"). The new windows share `libs/ui`: one `Theme.qml`, one button, one field, one chip,
 one log, one header, one footer and one dialog (the segmented control is used by the loader only).
 The screenshots show the family resemblance; the three windows share the same files, not three
 copies of them. The words are not all unified: the mock target still takes a hardware ID and a
@@ -446,7 +446,7 @@ in view. The rail has the same widths as the other two windows' rails.
 
 ## 7. The design system
 
-The implementation lives in `src/ui`:
+The implementation lives in `libs/ui`:
 
 - `qml/Theme.qml` — Signal palette, type scale, spacing, focus, motion.
 - `qml/AppButton.qml`, `AppCheckBox.qml`, `AppComboBox.qml`, `AppSpinBox.qml`,
@@ -650,17 +650,17 @@ The next pass is done when:
 
 ## 13. Reading the code
 
-- `src/ui/` — the design system and window chrome.
-- `src/app/qml/Main.qml` — the loader shell, target and media set rails, action bar.
-- `src/app/qml/UploadPanel.qml` — the upload plan, preflight, payload, receipt.
-- `src/app/qml/DownloadPanel.qml` — the download modes, files and destination.
-- `src/app/qml/ActivityDock.qml` — activity and target configuration.
-- `src/app/qml/FirstRunScreen.qml` — the first-run screen.
-- `src/app/qml/PreferencesDialog.qml`, `MediaSetPropertiesDialog.qml`,
+- `libs/ui/` — the design system and window chrome.
+- `apps/app/qml/Main.qml` — the loader shell, target and media set rails, action bar.
+- `apps/app/qml/UploadPanel.qml` — the upload plan, preflight, payload, receipt.
+- `apps/app/qml/DownloadPanel.qml` — the download modes, files and destination.
+- `apps/app/qml/ActivityDock.qml` — activity and target configuration.
+- `apps/app/qml/FirstRunScreen.qml` — the first-run screen.
+- `apps/app/qml/PreferencesDialog.qml`, `MediaSetPropertiesDialog.qml`,
   `TargetPropertiesDialog.qml` — the loader's own dialogs; the About and Licences dialogs
-  (`src/ui/qml/AboutDialog.qml`, `LicencesDialog.qml`) are shared.
-- `src/media_gen/qml/GeneratorWindow.qml` — the generator.
-- `src/mock_target/qml/TargetWindow.qml` — the mock target.
+  (`libs/ui/qml/AboutDialog.qml`, `LicencesDialog.qml`) are shared.
+- `apps/media_gen/qml/GeneratorWindow.qml` — the generator.
+- `apps/mock_target/qml/TargetWindow.qml` — the mock target.
 - [`docs/design-system.md`](design-system.md) — the token and component reference.
 - [`docs/design/screenshots`](design/screenshots) — before; [`docs/images`](images) — now.
 

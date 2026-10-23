@@ -15,7 +15,7 @@
         tools/release/*.sh read;
       * mkdocs.yml, or under changelog.d/;
       * a Markdown file at the root of the repository (README.md, CHANGELOG.md, ...).
-    Everything else is code, which includes anything CTest reads: the Markdown files under src/ and
+    Everything else is code, which includes anything CTest reads: the Markdown files under libs/, apps/ and
     tools/, LICENSE (the notices test), the scripts the documentation tests are made of, the workflows.
 
     The answer is "code=true" or "code=false", written to the output and, when GITHUB_OUTPUT is set, to

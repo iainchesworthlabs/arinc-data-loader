@@ -101,7 +101,7 @@ Two things to see in it:
   that has the members some other way use the second step alone.
 
 To make a media set instead, `adl::arinc665::build_media_set` takes a description of the loads and returns the
-members, and `adl::media_tree::write_media_set_tree` writes them to a folder. `src/write_payloads/main.cpp` does
+members, and `adl::media_tree::write_media_set_tree` writes them to a folder. `apps/write_payloads/main.cpp` does
 both and then reads the folder back, and is the shortest complete program of that kind in the repository.
 
 ## The ARINC 615A part

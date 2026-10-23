@@ -18,11 +18,11 @@ sets and their lists, labels, part numbers, CRCs and check values. It is written
 read and verified, and compared byte for byte with a second implementation
 written from the standard's tables. See [ARINC 665 coverage](arinc665-coverage.md).
 
-Media sets can be put on a disk: `adl::media_tree` (`src/media_tree`) writes the
+Media sets can be put on a disk: `adl::media_tree` (`libs/media_tree`) writes the
 members of a set to a directory tree, one directory per member, and reads one
 back, mapping the standard's backslash pathnames to native paths. It uses
 `std::filesystem` only, so it is not platform code, and `adl::arinc665` stays free
-of file I/O. `adl_write_payloads` (`src/write_payloads`) writes the sample media
+of file I/O. `adl_write_payloads` (`apps/write_payloads`) writes the sample media
 sets of `adl::samples` to a directory (the golden scenario and the ARINC 615 and
 Boeing 777 layouts of Appendix F), for trying other loaders and for the 615A work
 to load.
@@ -39,7 +39,7 @@ What is left:
 
 ## 3. ARINC 615A
 
-`src/arinc615a`, from `docs/specs/615A-3.pdf`: the protocol engine over TFTP and
+`libs/arinc615a`, from `docs/specs/615A-3.pdf`: the protocol engine over TFTP and
 UDP, with the Find, Information, Upload and Download operations. It loads what
 `adl::arinc665` makes. Built in three pull requests, all done:
 
@@ -84,7 +84,7 @@ What is left of the 615A work:
   sans-I/O and the platform layer has a fragment per platform — but there is no program that answers
   `.LCI` and writes the status files: `adl_mock_target` does that only as a desktop demonstration
   ([docs/mock-target.md](mock-target.md)). The shape is a fourth build output beside the source-side
-  tools: an `ADL_BUILD_TARGET` option, a `src/target_app` built the way `src/app` is, presets for the
+  tools: an `ADL_BUILD_TARGET` option, a `src/target_app` built the way `apps/app` is, presets for the
   embedded platforms that select it, sharing the codec and the protocol-file writers in
   `adl::arinc615a`. [Building](building.md#what-cmake-builds) lists what exists today.
 
@@ -92,7 +92,7 @@ What is left from stage 1: the embedded ports are unbuilt or designs (section 6)
 
 ## 4. The application
 
-A Qt 6.12 application in `src/app` (Qt Quick), a thin layer over the libraries. Qt is not
+A Qt 6.12 application in `apps/app` (Qt Quick), a thin layer over the libraries. Qt is not
 from vcpkg: it is the prebuilt kit found through `QT_ROOT_DIR` by `cmake/FindQt6.cmake`; the platform
 fragments declare where each system keeps Qt and the two hooks the application needs
 (`adl_platform_configure_app`, `adl_platform_deploy_qt_runtime`). CI installs the kit with a pinned
@@ -119,11 +119,11 @@ slices; [the application](app.md) says what each does.
    unreadable set cannot be uploaded, findings are warnings, files changed on disk are caught by a
    re-check — and error handling that says what failed and, where it is known, what to do about it.
    Tested through `LoaderModel` and the window ([the application](app.md)).
-4. **The media set generator (done).** `src/media_gen`, a second Qt application: pick files from disk,
+4. **The media set generator (done).** `apps/media_gen`, a second Qt application: pick files from disk,
    describe the load and the media set, and generate the directory tree the loader opens — built with
    `adl::arinc665` and `adl::media_tree`, verified by reading it back, and read in the tests through the
    loader's own summary ([the generator](media-gen.md)).
-5. **The mock target (done).** `src/mock_target`, a third Qt application: a 615A target over real
+5. **The mock target (done).** `apps/mock_target`, a third Qt application: a 615A target over real
    sockets, so the dialogues can be demonstrated end to end without an embedded box — FIND, Information,
    Upload (with checksums checked and the files stored to disk), both Download modes, aborts, and the
    failure injections that show the loader coping ([the mock target](mock-target.md)). Its engine runs in
@@ -140,7 +140,7 @@ slices; [the application](app.md) says what each does.
    schemes rendered in the offscreen tests).
 7. **The window's minimum set (done).** The design layer the sibling applications have, brought to the
    loader: one design-token file (`Theme.qml`) and a small component library over it
-   (`AppButton`, `SegmentedControl`, `FocusRing` and others, in `src/ui/qml`); a first-run screen that sets the essentials
+   (`AppButton`, `SegmentedControl`, `FocusRing` and others, in `libs/ui/qml`); a first-run screen that sets the essentials
    once; the address and `<THW_ID_POS>` of the last operation remembered across sessions; and the
    language machinery — `qt_add_translations` over an English catalogue, a `LanguageManager` that
    persists the choice, follows the system locale, sets the layout direction and retranslates the
@@ -190,7 +190,7 @@ them with its SDK's), and if the product has the
 alternatives, add FreeRTOS+TCP and a FAT file system as ports of
 `network_freertos.cpp` and `files_freertos.cpp`. For the rest:
 
-- an implementation of each platform interface in `src/platforms/vxworks` (the
+- an implementation of each platform interface in `libs/platform/vxworks` (the
   fragment and the branch in `cmake/Platform.cmake` already exist), with a
   toolchain file for the cross compiler. First find out which APIs the 178C
   profile allows (sockets, a file system, `pthread`, dynamic allocation after

@@ -2,14 +2,14 @@
 
 > **Principle.** The operating system is a CMake decision, not a source-code
 > one. Everything that differs between platforms lives in
-> `src/platforms/<name>/`, behind a header in `src/platforms/interfaces/`, and
+> `libs/platform/<name>/`, behind a header in `libs/platform/interfaces/`, and
 > the platform's own `platform.cmake` says which of those files are compiled and
 > what they link against. Shared code - everything else - does not know which
 > platforms exist: no `#ifdef`, no OS header, no runtime "which OS am I on".
 
-Adding a platform is therefore two edits: a new `src/platforms/<name>/`
+Adding a platform is therefore two edits: a new `libs/platform/<name>/`
 directory, and one branch in the selector, `cmake/Platform.cmake`. Nothing in
-`src/arinc665`, the application, the tests or any other CMake file needs to learn the
+`libs/arinc665`, the application, the tests or any other CMake file needs to learn the
 platform's name.
 
 This is a rule for every contributor, and it is enforced by a check (see
@@ -19,7 +19,7 @@ This is a rule for every contributor, and it is enforced by a check (see
 ## The layout
 
 ```text
-src/platforms/
+libs/platform/
   interfaces/adl/platform/   what the program needs from a platform: one header each
     paths.hpp, host.hpp, files.hpp, memory.hpp, threads.hpp, time.hpp,
     network.hpp, ipc.hpp, error.hpp, owned.hpp, ring_ipc.hpp
@@ -54,7 +54,7 @@ platform's own directory when the implementations genuinely differ.
 `cmake/Platform.cmake` is the **only** CMake file that tests `WIN32`, `APPLE` or
 `UNIX` (and `ANDROID`, `IOS` and `EMSCRIPTEN`, which it turns into an error
 saying which platforms are targets), or `CMAKE_SYSTEM_NAME`. It maps them to a
-platform name, includes `src/platforms/<name>/platform.cmake`, and then checks that
+platform name, includes `libs/platform/<name>/platform.cmake`, and then checks that
 the fragment filled in the whole contract (`cmake/PlatformContract.cmake`). Every
 other CMake file reads what the fragment declared.
 
@@ -82,9 +82,9 @@ The contract:
 
 | What | Declared as | Read by |
 | --- | --- | --- |
-| Source files compiled into `adl_platform` (relative to `src/platforms`) | `ADL_PLATFORM_SOURCES` | `src/platforms/CMakeLists.txt` |
-| System libraries `adl_platform` links | `ADL_PLATFORM_LINK_LIBRARIES` | `src/platforms/CMakeLists.txt` |
-| Compile definitions, for `adl_platform` only (Windows: `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE _WIN32_WINNT=0x0A00`) | `ADL_PLATFORM_COMPILE_DEFINITIONS` | `src/platforms/CMakeLists.txt` |
+| Source files compiled into `adl_platform` (relative to `libs/platform`) | `ADL_PLATFORM_SOURCES` | `libs/platform/CMakeLists.txt` |
+| System libraries `adl_platform` links | `ADL_PLATFORM_LINK_LIBRARIES` | `libs/platform/CMakeLists.txt` |
+| Compile definitions, for `adl_platform` only (Windows: `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE _WIN32_WINNT=0x0A00`) | `ADL_PLATFORM_COMPILE_DEFINITIONS` | `libs/platform/CMakeLists.txt` |
 | The name in the version block (`Windows`, `Linux`, `macOS`) | `ADL_PLATFORM_DISPLAY_NAME` | The configure summary, the applications' version block (`cmake/AdlUi.cmake`) |
 | Whether this is a desktop (installers, the Qt applications and notices exist) | `ADL_PLATFORM_DESKTOP` | `CMakeLists.txt`, which looks for Qt and builds the applications by default only on a desktop; checked by the contract |
 | For a desktop only: the notice fragments the platform adds, one sentence on where the programs get Qt, and the strings the generated notices must contain | `ADL_PLATFORM_NOTICE_FRAGMENTS`, `ADL_PLATFORM_NOTICE_QT_DEPLOYMENT`, `ADL_PLATFORM_NOTICE_EXPECTED` | `cmake/AdlUi.cmake`, `tests/system/check_notices.cmake` |
@@ -93,8 +93,8 @@ The contract:
 | Optional: where the platform's image is built, for a platform the top-level project does not build | `ADL_PLATFORM_PROJECT` | `cmake/Platform.cmake`, which refuses to configure and says where to go |
 | Where an installed Qt lives | `ADL_PLATFORM_QT_SEARCH_ROOTS`, `ADL_PLATFORM_QT_ARCH_DIRS` | `cmake/FindQt6.cmake` |
 | For a desktop only: where the programs and the documents are installed, which CPack generators make the runtime and the development package, and the hooks that install a program and configure packaging | `ADL_PLATFORM_INSTALL_BINDIR`, `ADL_PLATFORM_INSTALL_DOCDIR`, `ADL_PLATFORM_PACKAGE_RUNTIME_GENERATORS`, `ADL_PLATFORM_PACKAGE_DEVELOPMENT_GENERATORS`, `adl_platform_install_app(<target> <qml_dir>)`, `adl_platform_configure_packaging()` | `cmake/AdlInstall.cmake`, `cmake/AdlPackage.cmake`; checked by `cmake/PlatformContract.cmake` |
-| What makes a Qt application a program of this desktop (no console window on Windows, a bundle on macOS) | `adl_platform_configure_app(<target>)` | `src/app`, `src/media_gen` and `src/mock_target` `CMakeLists.txt` |
-| Qt's runtime beside a program, including the QML modules in `<qml_dir>` (`windeployqt` on Windows) | `adl_platform_deploy_qt_runtime(<target> <qml_dir>)` | the same three, and the `CMakeLists.txt` of `tests/app`, `tests/media_gen`, `tests/mock_target` and `tests/ui` |
+| What makes a Qt application a program of this desktop (no console window on Windows, a bundle on macOS) | `adl_platform_configure_app(<target>)` | `apps/app`, `apps/media_gen` and `apps/mock_target` `CMakeLists.txt` |
+| Qt's runtime beside a program, including the QML modules in `<qml_dir>` (`windeployqt` on Windows) | `adl_platform_deploy_qt_runtime(<target> <qml_dir>)` | the same three, and the `CMakeLists.txt` of `apps/app/tests`, `apps/media_gen/tests`, `apps/mock_target/tests` and `tests/ui` |
 
 The full contract is the header comment of `cmake/Platform.cmake`. A fragment
 that forgets part of it fails the configure by name, not three files away. A
@@ -106,7 +106,7 @@ they stay in `cmake/CompilerWarnings.cmake`, `Sanitizers.cmake` and
 
 ## Adding a platform
 
-1. Create `src/platforms/<name>/` with one implementation of each interface
+1. Create `libs/platform/<name>/` with one implementation of each interface
    (`paths_<name>.cpp` and the files named in
    [platform abstraction](platform-abstraction.md); use a `posix/` file where the
    implementation is the same) and a `platform.cmake` that fills in the
@@ -150,7 +150,7 @@ The cases already in the tree:
 
 **Do**
 
-- Declare what the program needs from the OS in `src/platforms/interfaces/`, in
+- Declare what the program needs from the OS in `libs/platform/interfaces/`, in
   `namespace adl::platform`, with a comment saying that there is one definition
   per platform.
 - Implement it once per platform, and list each file in the `platform.cmake` of
@@ -163,13 +163,13 @@ The cases already in the tree:
 **Don't**
 
 - Add `#if`, `#ifdef`, `#ifndef`, `#elif`, `#else` or `#endif` anywhere in
-  first-party C++ (`src/`, `tests/`, `tools/`), platform directories included.
+  first-party C++ (`libs/`, `apps/`, `tests/`, `tools/`), platform directories included.
   They are already selected by CMake.
 - Add `#define` or `#undef` there either. Use `constexpr`, an inline function or
   a template; a value the build has to hand the program arrives as a compile
   definition or a generated header. `#include` and `#pragma once` are fine.
 - Include an OS header (`<windows.h>`, `<unistd.h>`, `<sys/...>`, the Apple
-  frameworks, `<mach-o/dyld.h>`, `<emscripten.h>`) outside `src/platforms/` and
+  frameworks, `<mach-o/dyld.h>`, `<emscripten.h>`) outside `libs/platform/` and
   `tests/platform/`.
 - Ask the OS what it is at run time (`QSysInfo`, `QOperatingSystemVersion`,
   `Q_OS_*`, `platformName()`, QML's `Qt.platform`) outside the platform section.
@@ -184,11 +184,11 @@ The cases already in the tree:
 its own as well, so a violation shows even while a platform's build is red. It
 fails, with a `file:line` for each finding, on:
 
-1. any preprocessor conditional in first-party C++ (`src/`, `tests/`, `tools/`),
+1. any preprocessor conditional in first-party C++ (`libs/`, `apps/`, `tests/`, `tools/`),
    deliberately broader than "no OS macros": an `#if 0` or a feature `#ifdef`
    counts too. The platform directories are not exempt;
 2. an OS header, or an OS-querying API (`QSysInfo`, `Q_OS_*`, `platformName()`,
-   `Qt.platform`, ...), outside `src/platforms/` and `tests/platform/`. QML and
+   `Qt.platform`, ...), outside `libs/platform/` and `tests/platform/`. QML and
    JavaScript files are scanned for the APIs too. (The conformance tests and the
    fake use only the platform interfaces and the standard library, so they are
    outside the exemption and pass the check as any shared code does.);
@@ -211,10 +211,10 @@ pwsh ./tools/checks/check_platform_isolation.ps1
 ```
 
 It exits 0 when clean, 1 when it found violations, and 2 when it was started
-somewhere that has no `src/platforms/`. A finding is also printed as a GitHub
+somewhere that has no `libs/platform/`. A finding is also printed as a GitHub
 Actions annotation, so on a pull request it lands on the line.
 
-What it scans: `src`, `tests`, `tools` and `cmake`, and the top-level
+What it scans: `libs`, `apps`, `tests`, `tools` and `cmake`, and the top-level
 `CMakeLists.txt`. It asks git which files count, so build output and anything
 git ignores are skipped, while a new file that is not yet committed is still
 checked; outside a git work tree it scans everything, and says how many files it

@@ -4,7 +4,7 @@
 # that never shows its window runs into the time-out. Their settings go to a directory under the
 # build tree (ADL_SETTINGS_DIR), never the real registry key or configuration file. The deeper
 # end-to-end behaviour is in tests/ui (the window driven through Qt Quick Test), the loopback
-# integration test (a whole 615A operation over real sockets) and tests/app's QML test.
+# integration test (a whole 615A operation over real sockets) and apps/app/tests's QML test.
 
 if(NOT ADL_BUILD_APP)
     return()

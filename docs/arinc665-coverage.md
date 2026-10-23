@@ -26,7 +26,7 @@ standard says "should"). Section numbers are those of the 665-3 edition in
   Nothing here has yet been checked against a load written by someone else's
   tool, which is the next thing to do (see [Not yet verified](#not-yet-verified)).
 - The files of a media set are written and read in memory. Putting them on a disk
-  is not part of this library: `adl::media_tree` (`src/media_tree`) writes the
+  is not part of this library: `adl::media_tree` (`libs/media_tree`) writes the
   members to a directory tree and reads one back, mapping the standard's backslash
   pathnames to native paths (`media_tree_test`).
 

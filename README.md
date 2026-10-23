@@ -85,10 +85,10 @@ release key and listed with its checksums and bill of materials
     Upload and Download dialogues and stores what an upload left in it, so the loader can
     be demonstrated end to end without an embedded box — and it can be made to misbehave
     (WAIT, refuse, drop status files, a wrong checksum, an abort, silence) to watch the
-    loader cope. Its TFTP is `adl::arinc615a_mini` (`src/arinc615a_mini`), the second,
+    loader cope. Its TFTP is `adl::arinc615a_mini` (`libs/arinc615a_mini`), the second,
     independent TFTP implementation the tests were written around, shared now with the
     mock target so the two ends of a dialogue share no transfer code.
-  - **One design system** (`src/ui`) for all three windows, in the ICL Forge Modernist
+  - **One design system** (`libs/ui`) for all three windows, in the ICL Forge Modernist
     language: the Signal palette, Archivo, zero radius, the 4/8/12/16/24/32 rhythm, and one
     set of controls. The human-factors analysis behind it, with before/after screenshots, is
     in [docs/design-overhaul.md](docs/design-overhaul.md); the token and component reference
@@ -132,27 +132,29 @@ ctest --preset windows-msvc-debug
 ## Layout
 
 ```text
-src/arinc665/        the ARINC 665 library (platform-free, GUI-free)
-src/arinc615a/       the ARINC 615A codec and engine: TFTP, FIND, the operations (platform-free)
-src/arinc615a_mini/  the second, independent TFTP implementation, shared by the tests' simulated
-                     target and the mock target application
-src/arinc615a_runner/ the runner that drives the engine over adl::platform
-src/media_tree/      media sets on a disk: a directory per member
-src/samples/         the sample loads and media sets
-src/write_payloads/  adl_write_payloads, which writes the samples to a directory
-src/app/             adl_app: the data loader window (Qt Quick), preferences, validation, FIND,
-                     Information, Upload and Download
-src/ui/              the shared design system and window chrome for the three applications
-src/media_gen/       adl_media_gen: the media set generator window (Qt Quick)
-src/mock_target/     adl_mock_target: a 615A target over real sockets, for demonstrations
-src/platforms/       everything that differs between operating systems
-tests/               unit, integration and system tests; the fake platform; the Qt Quick Test UI suite
-cmake/               the platform selector, warnings, static analysis, sanitizers, coverage, Tracy, Qt
-tools/               repository checks, commit policy, git hooks, release and repository-setup
-                     scripts, the simulator jobs' scripts, the documentation build and screenshots,
-                     firewall and AppArmor helpers
-docs/                the user's guide, architecture, roadmap, CI, static analysis, coverage of 665 and 615A,
-                     the three applications, the 615A codec and engine, docs/specs
+libs/arinc665/          the ARINC 665 library (platform-free, GUI-free)
+libs/arinc615a/         the ARINC 615A codec and engine: TFTP, FIND, the operations (platform-free)
+libs/arinc615a_mini/    the second, independent TFTP implementation, shared by the tests' simulated
+                        target and the mock target application
+libs/arinc615a_runner/  the runner that drives the engine over adl::platform
+libs/media_tree/        media sets on a disk: a directory per member
+libs/samples/           the sample loads and media sets
+libs/platform/          everything that differs between operating systems
+libs/ui/                the shared design system and window chrome for the three applications
+apps/app/               adl_app: the data loader window (Qt Quick), preferences, validation, FIND,
+                        Information, Upload and Download
+apps/media_gen/         adl_media_gen: the media set generator window (Qt Quick)
+apps/mock_target/       adl_mock_target: a 615A target over real sockets, for demonstrations
+apps/write_payloads/    adl_write_payloads, which writes the samples to a directory
+apps/*/tests/           each application's own tests
+tests/                  unit, integration and system tests that span libraries; the fake platform;
+                        the Qt Quick Test UI suite
+cmake/                  the platform selector, warnings, static analysis, sanitizers, coverage, Tracy, Qt
+tools/                  repository checks, commit policy, git hooks, release and repository-setup
+                        scripts, the simulator jobs' scripts, the documentation build and screenshots,
+                        firewall and AppArmor helpers
+docs/                   the user's guide, architecture, roadmap, CI, static analysis, coverage of 665 and 615A,
+                        the three applications, the 615A codec and engine, docs/specs
 ```
 
 The operating system is chosen by CMake, never by the source: there is no `#ifdef`

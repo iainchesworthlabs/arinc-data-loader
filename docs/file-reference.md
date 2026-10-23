@@ -6,7 +6,7 @@ The standard describes media, not a folder of members, so the folder layout of a
 
 ## The media set on disk
 
-A media set is a folder that holds one folder per member and nothing else. The generator writes it, `adl_write_payloads` writes the samples in the same form, and the loader opens it. `adl::media_tree` ([`media_tree.cpp`](../src/media_tree/src/media_tree.cpp)) writes and reads the folders. `build_media_set` ([`media_set.cpp`](../src/arinc665/src/media_set.cpp)) decides which file goes on which member.
+A media set is a folder that holds one folder per member and nothing else. The generator writes it, `adl_write_payloads` writes the samples in the same form, and the loader opens it. `adl::media_tree` ([`media_tree.cpp`](../libs/media_tree/src/media_tree.cpp)) writes and reads the folders. `build_media_set` ([`media_set.cpp`](../libs/arinc665/src/media_set.cpp)) decides which file goes on which member.
 
 ### One member
 
@@ -69,7 +69,7 @@ ACM-SET-0001/
 
 Each member has its own list files. A member that gets no data file holds only its list files.
 
-The source is `GeneratorWorker::run` in [`generator_worker.cpp`](../src/media_gen/core/src/generator_worker.cpp). [Make a media set](user-guide/make-a-media-set.md#how-the-files-are-placed) describes the same placement in words.
+The source is `GeneratorWorker::run` in [`generator_worker.cpp`](../apps/media_gen/core/src/generator_worker.cpp). [Make a media set](user-guide/make-a-media-set.md#how-the-files-are-placed) describes the same placement in words.
 
 ### What a program may choose
 
@@ -143,7 +143,7 @@ Every download writes into a new folder, `<download folder>/DNLD_DATA_<THW_ID_PO
 - **A file whose check value does not match is kept.** The log says so.
 - **Not written:** the protocol files, and the `DNLD_INFO_...` folder that the standard also lists (5.4.4.3).
 
-Sources: [`download_directory.cpp`](../src/app/core/src/download_directory.cpp), [`engine_worker.cpp`](../src/app/core/src/engine_worker.cpp) and [`directory_files.cpp`](../src/arinc615a_runner/src/directory_files.cpp). The operator's view is [Download](user-guide/download.md#where-the-files-go).
+Sources: [`download_directory.cpp`](../apps/app/core/src/download_directory.cpp), [`engine_worker.cpp`](../apps/app/core/src/engine_worker.cpp) and [`directory_files.cpp`](../libs/arinc615a_runner/src/directory_files.cpp). The operator's view is [Download](user-guide/download.md#where-the-files-go).
 
 ### The generator's output
 
@@ -155,7 +155,7 @@ The generator writes `<output folder>/<media set part number>/member_NNN/...`.
 - Each source file is read whole into memory.
 - The generator writes one load per media set.
 
-Source: [`generator_worker.cpp`](../src/media_gen/core/src/generator_worker.cpp). The operator's view is [Make a media set](user-guide/make-a-media-set.md#generate).
+Source: [`generator_worker.cpp`](../apps/media_gen/core/src/generator_worker.cpp). The operator's view is [Make a media set](user-guide/make-a-media-set.md#generate).
 
 ### The mock target's storage and `holds`
 
@@ -166,7 +166,7 @@ The storage folder is chosen in the mock target's window. With none, the target 
 - **A download** serves the ordinary files directly inside `<storage folder>/holds`. Folders inside `holds` are skipped. The list is read once, when Start is pressed, so a file added later is served after a stop and a start. The program does not make `holds`.
 - **With no storage folder, or nothing in `holds`,** the target holds one text file, `DEMO.TXT`.
 
-Source: [`model.cpp`](../src/mock_target/core/src/model.cpp). The operator's view is [Run the mock target](user-guide/mock-target.md#03-storage).
+Source: [`model.cpp`](../apps/mock_target/core/src/model.cpp). The operator's view is [Run the mock target](user-guide/mock-target.md#03-storage).
 
 ### Settings and the log
 
@@ -238,7 +238,7 @@ adl_write_payloads --list
 - Each scenario is read back from disk and verified before it is reported. The report is one line, `<name>: <n> members, <n> files, <n> loads, <n> batches, <n> findings -> <folder>`, followed by one indented line for each finding.
 - The exit status is 0 when every scenario was written and verified, 1 when one failed to build, write, read back or verify, and 2 for a usage error.
 
-The program is in [`main.cpp`](../src/write_payloads/main.cpp) and the scenarios are in [`scenarios.cpp`](../src/samples/src/scenarios.cpp). The release packages carry the program: beside the others in the Windows zip, in `bin/` in the Linux archive, and in `tools/` in the macOS disk image ([Releasing](releasing.md#what-a-release-contains)). [Building](building.md#writing-sample-payloads) shows the commands. The trees it writes have not been read by another loader.
+The program is in [`main.cpp`](../apps/write_payloads/main.cpp) and the scenarios are in [`scenarios.cpp`](../libs/samples/src/scenarios.cpp). The release packages carry the program: beside the others in the Windows zip, in `bin/` in the Linux archive, and in `tools/` in the macOS disk image ([Releasing](releasing.md#what-a-release-contains)). [Building](building.md#writing-sample-payloads) shows the commands. The trees it writes have not been read by another loader.
 
 ### Scenarios
 

@@ -7,7 +7,7 @@
 # A build only ever includes the one fragment for the platform it targets, so
 # the other four are exercised by their own CI legs alone, and a typo in one
 # (a source file that was renamed, a hook that was never defined) would surface
-# there, late, if at all. This holds every src/platforms/*/platform.cmake to
+# there, late, if at all. This holds every libs/platform/*/platform.cmake to
 # cmake/PlatformContract.cmake: every variable and hook defined, every file it
 # compiles present. It finds the platforms by globbing, so a platform added
 # tomorrow is checked without anyone listing it here.
@@ -27,7 +27,7 @@ if(NOT REPO_ROOT)
 endif()
 
 set(PROJECT_SOURCE_DIR "${REPO_ROOT}")
-set(_app_dir "${REPO_ROOT}/src/platforms")
+set(_app_dir "${REPO_ROOT}/libs/platform")
 list(APPEND CMAKE_MODULE_PATH "${REPO_ROOT}/cmake")
 include(PlatformContract)
 
@@ -62,7 +62,7 @@ endif()
 
 file(GLOB _fragments "${_app_dir}/*/platform.cmake")
 if(NOT _fragments)
-    message(FATAL_ERROR "No src/platforms/*/platform.cmake found under ${REPO_ROOT}.")
+    message(FATAL_ERROR "No libs/platform/*/platform.cmake found under ${REPO_ROOT}.")
 endif()
 
 set(_failures "")
@@ -72,7 +72,7 @@ foreach(_fragment IN LISTS _fragments)
 
     if(NOT _name IN_LIST _selected)
         list(APPEND _failures
-            "src/platforms/${_name}/ has a platform.cmake but cmake/Platform.cmake has no branch that selects it.")
+            "libs/platform/${_name}/ has a platform.cmake but cmake/Platform.cmake has no branch that selects it.")
         continue()
     endif()
 
@@ -96,7 +96,7 @@ endforeach()
 foreach(_name IN LISTS _selected)
     if(NOT EXISTS "${_app_dir}/${_name}/platform.cmake")
         list(APPEND _failures
-            "cmake/Platform.cmake selects '${_name}', but src/platforms/${_name}/platform.cmake does not exist.")
+            "cmake/Platform.cmake selects '${_name}', but libs/platform/${_name}/platform.cmake does not exist.")
     endif()
 endforeach()
 

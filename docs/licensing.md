@@ -30,13 +30,13 @@ licence.
    repository.** See below.
 6. **Archivo and Noto Sans Hebrew are bundled with the applications**, both under
    the SIL Open Font License 1.1.
-   - Archivo: `src/ui/fonts/Archivo-Regular.ttf`, `-Medium.ttf`, `-SemiBold.ttf`
-     and `-ExtraBold.ttf`, with the licence text in `src/ui/fonts/OFL.txt`. The
+   - Archivo: `libs/ui/fonts/Archivo-Regular.ttf`, `-Medium.ttf`, `-SemiBold.ttf`
+     and `-ExtraBold.ttf`, with the licence text in `libs/ui/fonts/OFL.txt`. The
      faces are resources of each application and are not modified.
    - Noto Sans Hebrew, for the Hebrew and Yiddish windows (Archivo has no Hebrew
-     letters): `src/ui/fonts/NotoSansHebrew-Regular.ttf`, `-Medium.ttf`,
+     letters): `libs/ui/fonts/NotoSansHebrew-Regular.ttf`, `-Medium.ttf`,
      `-SemiBold.ttf` and `-ExtraBold.ttf`, with the licence text in
-     `src/ui/fonts/NotoSansHebrew-OFL.txt`. They are static instances cut from the
+     `libs/ui/fonts/NotoSansHebrew-OFL.txt`. They are static instances cut from the
      variable font the Noto Project publishes; the letters are not otherwise
      changed. They are resources of each application too.
 

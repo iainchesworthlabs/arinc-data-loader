@@ -166,7 +166,7 @@ A local `clang-tidy` of a single file, against a configured tree, is the fast
 loop; it uses the same `.clang-tidy`:
 
 ```sh
-clang-tidy -p build/linux-gcc-tidy src/arinc665/src/load.cpp
+clang-tidy -p build/linux-gcc-tidy libs/arinc665/src/load.cpp
 ```
 
 On Windows, `clang-tidy -p build/windows-msvc-debug ...` parses an MSVC compile
@@ -188,7 +188,7 @@ it**. When the finding is wrong, the exception is narrow and says why:
   array zero-fills before the member initialisers run.
 - MSVC: `#pragma warning(suppress : <id>)` on the expression, or
   `/wd<id>` for one source file where its target is added (the C6101 case is in
-  `src/platforms/CMakeLists.txt`) - not for the project.
+  `libs/platform/CMakeLists.txt`) - not for the project.
 - Never a global `/wd` or a new disabled check without the reason in the file
   and a line here.
 

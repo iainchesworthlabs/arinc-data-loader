@@ -39,8 +39,8 @@ endif()
 # What the engine tests need beyond the module's libraries: the sample loads and the second
 # TFTP implementation the simulated target is written with.
 list(PREPEND CMAKE_MODULE_PATH "${ADL_REPO_ROOT}/cmake")
-add_subdirectory("${ADL_REPO_ROOT}/src/samples" adl_samples)
-add_subdirectory("${ADL_REPO_ROOT}/src/arinc615a_mini" adl_arinc615a_mini)
+add_subdirectory("${ADL_REPO_ROOT}/libs/samples" adl_samples)
+add_subdirectory("${ADL_REPO_ROOT}/libs/arinc615a_mini" adl_arinc615a_mini)
 
 # Zephyr's flags for them, as the module gives its libraries (-std=c++23 in particular).
 foreach(_lib IN ITEMS adl_samples adl_arinc615a_mini)

@@ -1,12 +1,12 @@
 # The shared design system
 
-`src/ui` is one source of colour, type, geometry and component anatomy for `adl_app`,
+`libs/ui` is one source of colour, type, geometry and component anatomy for `adl_app`,
 `adl_media_gen` and `adl_mock_target`. It is the ICL Forge Modernist system (the Signal palette,
 Archivo, zero radius, the 4/8/12/16/24/32 rhythm) applied to an avionics loading console. ICL Forge
 is a separate application whose code is not in this repository.
 
 A view names a token; it does not name a hex value or a pixel size. The token file is
-`src/ui/qml/Theme.qml`. The components are the QML files beside it. `cmake/AdlUi.cmake` lists them
+`libs/ui/qml/Theme.qml`. The components are the QML files beside it. `cmake/AdlUi.cmake` lists them
 (`ADL_UI_QML_FILES`), gives each a root resource alias and passes them to each application's QML
 module, and adds the bundled Archivo faces, so the same source is compiled into each window
 without a second type registry. A new component has to be added to that list.
@@ -97,7 +97,7 @@ Rules:
 ## Type
 
 Archivo (SIL OFL 1.1) is bundled and registered before the engine starts (`register_fonts()` in
-`src/ui/fonts.cpp`, which also makes Archivo the application font); the platform UI face is the
+`libs/ui/fonts.cpp`, which also makes Archivo the application font); the platform UI face is the
 fallback if registration fails. Identifiers, numbers and ordinals are Cascadia Mono → Consolas →
 monospace.
 
@@ -143,7 +143,7 @@ chip) that grows with its label; the chrome bands under Geometry are fixed.
   1366×768 display at 125% has about 1093×614, which is short of the minimum height before the
   taskbar is taken off, so there the bottom of the window is off the screen
   (the generator and the mock target keep 1120×760 until they are brought down too).
-  `install_window_state()` (`src/ui/window_state.cpp`) restores the saved size, clamped between the
+  `install_window_state()` (`libs/ui/window_state.cpp`) restores the saved size, clamped between the
   minimum and the screen's available area less 48 px wide and 80 px high, and restores the saved
   position only if a usable part of the window's title bar (96×24 px of its top 32 px) still lies
   on a screen's available area; otherwise the window is centred horizontally and placed a third of
@@ -337,7 +337,7 @@ what happened or where.
   this list: it is the small library `adl_ui_message` that the three applications' cores link.
 - Fonts: `Archivo-Regular/Medium/SemiBold/ExtraBold.ttf` with `OFL.txt`, and
   `NotoSansHebrew-Regular/Medium/SemiBold/ExtraBold.ttf` with `NotoSansHebrew-OFL.txt`, in
-  `src/ui/fonts`.
+  `libs/ui/fonts`.
 - Window geometry uses `QSettings` (the application's default settings) under `window/x`,
   `window/y`, `window/width`, `window/height`, `window/maximized` and `window/placed`, written when
   the window closes and when the application quits.

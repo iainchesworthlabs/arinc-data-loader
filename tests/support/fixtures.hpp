@@ -2,7 +2,7 @@
 
 // The sample load, batch and media set the tests share. They are the scenario of
 // tests/golden/make_golden.py, input for input: change one and the other has to
-// change with it. They live in adl::samples (src/samples), where the program that
+// change with it. They live in adl::samples (libs/samples), where the program that
 // writes sample payloads uses them too; the functions that build a load, which can
 // fail in principle, are unwrapped here so that a test fails by throwing.
 

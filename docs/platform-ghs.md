@@ -8,7 +8,7 @@ still unknown.
 
 Green Hills is the vendor, INTEGRITY the operating system, MULTI (with `ccppc`,
 `cxppc`, `gbuild`) the toolchain. VxWorks is Wind River's product and its
-`src/platforms/vxworks/` design fragment is untouched by this work.
+`libs/platform/vxworks/` design fragment is untouched by this work.
 
 ## Status
 
@@ -106,7 +106,7 @@ a product has to supply: the tree declares no API for them, so the port says `un
 ## The shape
 
 ```text
-src/platforms/
+libs/platform/
   ghs/            the INTEGRITY-178B native helpers (error mapping, Time
                   conversion, priority map); not a platform, listed like posix/
                   and exempt from the fragment rule
@@ -205,7 +205,7 @@ compile.
 The decision, stated once so it is never re-argued file by file:
 
 - **The interfaces are C++23 and stay C++23.** Nothing in
-  `src/platforms/interfaces/adl/platform/` is weakened for a toolchain, and no
+  `libs/platform/interfaces/adl/platform/` is weakened for a toolchain, and no
   platform code is written to an older standard.
 - **The GHS toolchain is assumed to support the C++23 language.** A 2008-era
   MULTI would not; the toolchain this work targets does. The standard
@@ -213,13 +213,13 @@ The decision, stated once so it is never re-argued file by file:
   cover.
 - **A missing standard header gets a shim on the GHS side**, never a change to
   an interface. The five headers that the interfaces and the platform sources include and that are C++20 or newer — `<expected>`, `<span>`, `<bit>`, `<compare>`, `<filesystem>` — have
-  shims in `src/platforms/ghs/std/` (GHS's extensionless-header convention),
+  shims in `libs/platform/ghs/std/` (GHS's extensionless-header convention),
   each providing exactly what this code base uses and no more, so a use that
   appears fails to compile against the shim, which is the point.
 - **Selection is automatic, and per header.** `cmake/GhsStdShims.cmake`
   compiles a probe per header with the located toolchain; for each header it
   lacks, the matching shim's own directory
-  (`src/platforms/ghs/std/<header>/`) is prepended to the platform's include
+  (`libs/platform/ghs/std/<header>/`) is prepended to the platform's include
   path, ahead of the toolchain's own headers, which is what makes the shim
   shadow the missing one. One directory per shim, so a toolchain that is short
   `std::expected` and nothing else sees exactly that one shim and never

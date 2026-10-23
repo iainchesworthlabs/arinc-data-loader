@@ -65,12 +65,12 @@ include(Docs)
 # Options
 # ---------------------------------------------------------------------------
 option(ADL_BUILD_TESTS "Build the unit, integration and system test suites" ON)
-# The three Qt applications (src/app, src/media_gen, src/mock_target) are the source side's
+# The three Qt applications (apps/app, apps/media_gen, apps/mock_target) are the source side's
 # programs, so they build by default on a desktop - the only place Qt exists. A target build
 # (ADL_TARGET_PLATFORM names an RTOS, or an embedded toolchain sets it) has no Qt and no use for
 # them and leaves them off. The default also needs a kit that can actually be found: a desktop
 # without Qt configures the libraries alone rather than failing, and an explicit
-# -DADL_BUILD_APP=ON still fails loudly in src/app. Qt is the prebuilt kit found through
+# -DADL_BUILD_APP=ON still fails loudly in apps/app. Qt is the prebuilt kit found through
 # QT_ROOT_DIR or the search roots each platform's fragment lists (cmake/FindQt6.cmake).
 if(ADL_PLATFORM_DESKTOP)
     find_package(Qt6 6.12 QUIET COMPONENTS Core Gui Qml Quick QuickControls2 LinguistTools)
@@ -88,9 +88,9 @@ unset(_adl_app_default)
 # Targets
 # ---------------------------------------------------------------------------
 # Everything that differs between operating systems, behind the interfaces in
-# src/platforms/interfaces. Compiled from the sources the selected platform's
+# libs/platform/interfaces. Compiled from the sources the selected platform's
 # platform.cmake names.
-add_subdirectory(src/platforms)
+add_subdirectory(libs/platform)
 
 # Tests are registered from the source directories too (the translation checks sit beside the
 # catalogues they check), so testing has to be on before any of them is added.
@@ -100,42 +100,42 @@ endif()
 
 # The ARINC 665 library holds the media set, load and integrity-check logic. It
 # is GUI-free and platform-free.
-add_subdirectory(src/arinc665)
+add_subdirectory(libs/arinc665)
 
 # The ARINC 615A library: the TFTP packets and protocol files, as bytes in and out.
 # Platform-free, and it builds no ARINC 665 model.
-add_subdirectory(src/arinc615a)
+add_subdirectory(libs/arinc615a)
 
 # A second, independent TFTP implementation (shared by the simulated target of the tests and
 # the mock target application), so the engine is checked against a second reading of the
 # standard and not against itself. Platform-free: it uses only the codec.
-add_subdirectory(src/arinc615a_mini)
+add_subdirectory(libs/arinc615a_mini)
 
 # The 615A runner: opens the sockets the engine asks for and drives its state machines over
 # adl::platform. The only 615A code that calls the platform.
-add_subdirectory(src/arinc615a_runner)
+add_subdirectory(libs/arinc615a_runner)
 
 # A media set on a disk: a directory tree with one directory per member. Plain
 # std::filesystem, so it needs nothing from the platform section either.
-add_subdirectory(src/media_tree)
+add_subdirectory(libs/media_tree)
 
 # Sample loads and media sets, for the tests and for the program below.
-add_subdirectory(src/samples)
+add_subdirectory(libs/samples)
 
 # adl_write_payloads: writes the sample media sets to a directory, for trying
 # other loaders on them.
-add_subdirectory(src/write_payloads)
+add_subdirectory(apps/write_payloads)
 
 # The Qt application: a thin layer over the libraries above, and the only place Qt is used.
 if(ADL_BUILD_APP)
-    add_subdirectory(src/ui)
-    add_subdirectory(src/app)
+    add_subdirectory(libs/ui)
+    add_subdirectory(apps/app)
     # The mock target: a Qt application that behaves as an ARINC 615A target over real
     # sockets, for demonstrating the loader's dialogues end to end.
-    add_subdirectory(src/mock_target)
+    add_subdirectory(apps/mock_target)
     # The media set generator: a second Qt application that turns files chosen by the
     # operator into a valid ARINC 665 media set the loader can open.
-    add_subdirectory(src/media_gen)
+    add_subdirectory(apps/media_gen)
 endif()
 
 if(ADL_BUILD_TESTS)
