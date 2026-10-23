@@ -58,6 +58,13 @@ include(AdlInstall)
 include(CompilerWarnings)
 include(StaticAnalysis)
 include(Sanitizers)
+# Vendored from icl-common-infra (cmake/icl/SOURCE): ICL_SANITIZERS picks a sanitizer set for every
+# configuration (the linux-asan-ubsan, linux-tsan and windows-msvc-asan presets), and icl::hardening
+# adds the stack protector, control-flow protection, RELRO and the like to every target below.
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/icl/IclSanitizers.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/icl/IclHardening.cmake")
+# BUILD_INTERFACE keeps the dependency out of the installed adl package's exported targets.
+link_libraries("$<BUILD_INTERFACE:icl::hardening>")
 include(Coverage)
 include(Tracy)
 include(AdlUi)
