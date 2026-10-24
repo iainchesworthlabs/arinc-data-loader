@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "arinc-data-loader",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An ARINC 615A and 665 data loader, written from the standards.",
   "homepage": "https://github.com/iainchesworthlabs/arinc-data-loader",
   "license": "GPL-3.0-or-later",

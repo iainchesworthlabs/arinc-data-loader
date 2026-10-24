@@ -57,7 +57,7 @@ details: the advisory is where that is agreed.
 | 0.1.x (the latest release) | Yes |
 | anything older | No |
 
-Until 1.0, only the latest release receives fixes. Version 0.1.0 is a preliminary release.
+Until 1.0, only the latest release receives fixes. Version 0.1.1 is a preliminary release.
 
 ## Signed releases
 

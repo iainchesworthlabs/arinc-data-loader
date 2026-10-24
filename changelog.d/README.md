@@ -22,8 +22,7 @@ changelog.d/mock-target-stop-crash.fixed.md
 changelog.d/rtos-ports.added.md
 ```
 
-Several categories in one pull request are several files. `summary.md` is a free paragraph that
-opens a release's section; it is written once, by the person preparing the release.
+Several categories in one pull request are several files.
 
 ## When there is nothing to write
 

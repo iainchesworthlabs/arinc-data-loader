@@ -84,18 +84,19 @@ The workflow stops, and says why, when:
 
 ## Cutting a release
 
-1. **Version and changelog, in one pull request to `develop`.** Set the version in `CMakeLists.txt`
+1. **Version and changelog, in one pull request to `develop`** from a branch named `release/<major>.<minor>`
+   (`release/0.1`; the changelog check lets only a `release/` branch change `CHANGELOG.md`). Set the version in `CMakeLists.txt`
    (`project(ArincDataLoader VERSION 0.1.1 ...)`) and in `vcpkg.json`. In prose, `SECURITY.md`'s table
    of supported versions and the `find_package(adl 0.1 ...)` example above name the minor version:
-   change them when it changes. If the release needs an introduction, write it as a file called `summary.md` in the
-   `changelog.d` folder (the assembly takes it into the section). Then assemble the fragments:
+   change them when it changes. Then assemble the fragments:
 
    ```sh
    python3 <icl-common-infra>/scripts/changelog_tool.py assemble --version 0.1.1 --date YYYY-MM-DD
    ```
 
-   It writes the dated section of `CHANGELOG.md` and deletes the fragments. Read the result and edit
-   it as prose if it needs it. A pre-release can skip this step: `changelog_tool.py notes --version 0.1.1
+   It writes the dated section of `CHANGELOG.md` and deletes the fragments. Check that the section sits
+   below `## [Unreleased]`, add the version's comparison link at the foot, write an introduction under
+   the heading if the release needs one, and edit the rest as prose if it needs it. A pre-release can skip this step: `changelog_tool.py notes --version 0.1.1
    --allow-pending` prints the notes it would get.
 2. **Rehearse.** `gh workflow run release.yml --ref <branch>` builds, tests, packages and writes the
    SBOM on the three systems and publishes nothing (a pull request that touches the packaging does the

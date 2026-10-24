@@ -32,7 +32,7 @@ if(ADL_ENABLE_TRACY)
 endif()
 
 project(ArincDataLoader
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "An ARINC 615A and 665 data loader, written from the standards"
     HOMEPAGE_URL "https://github.com/iainchesworthlabs/arinc-data-loader"
     LANGUAGES CXX)
