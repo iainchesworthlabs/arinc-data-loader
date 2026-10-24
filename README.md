@@ -3,6 +3,15 @@
 An ARINC 615A and 665 data loader, written from the standards, in C++23, built with CMake for
 Windows, macOS and Linux.
 
+[![CI](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/codeql.yml/badge.svg)](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/codeql.yml)
+[![Static analysis](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/static-analysis.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/iainchesworthlabs/arinc-data-loader/badge)](https://securityscorecards.dev/viewer/?uri=github.com/iainchesworthlabs/arinc-data-loader)
+[![Documentation](https://img.shields.io/badge/docs-site-blue)](https://iainchesworthlabs.github.io/arinc-data-loader/)
+[![C++23](https://img.shields.io/badge/C%2B%2B-23-blue)](docs/building.md)
+[![Licence: GPL-3.0-or-later](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue)](LICENSE)
+[![Platforms: Windows, Linux, macOS](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](docs/building.md)
+
 ARINC 665 describes how loadable software is packaged: the header file, the data
 and support files, their check values, and the media set they travel on. ARINC
 615A describes how a data loader moves a load to (and from) a target over a

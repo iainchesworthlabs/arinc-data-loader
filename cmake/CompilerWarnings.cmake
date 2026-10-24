@@ -75,4 +75,6 @@ endif()
 # (std::string{directory} + "/" + name in apps/app/core/src/download_directory.cpp: "accessing
 # 9223372036854775806 bytes ... overlaps"), where the compiler assumes the longest possible
 # length for a string_view. The warning stays visible; it is not an error.
-target_compile_options(adl_warnings INTERFACE "$<$<CXX_COMPILER_ID:GNU>:-Wno-error=restrict>")
+# clang-tidy reads GCC's command line with Clang's front end, which does not know the flag and reports it.
+target_compile_options(adl_warnings INTERFACE
+    "$<$<AND:$<CXX_COMPILER_ID:GNU>,$<NOT:$<BOOL:${ADL_ENABLE_CLANG_TIDY}>>>:-Wno-error=restrict>")

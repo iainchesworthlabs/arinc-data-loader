@@ -129,6 +129,25 @@ The `adl::warnings`, `adl::sanitizers`, `adl::coverage` and `adl::tracy` targets
 are linked into every first-party target by the build, not by the libraries'
 users.
 
+## Names in the code
+
+The repository keeps the names it has, and `.clang-tidy` states them (`readability-identifier-naming`, checked
+by the nightly clang-tidy run). They are not the organisation template's; where the two differ, this
+repository's own convention governs its code.
+
+| Kind | Case | Example |
+| --- | --- | --- |
+| Namespaces, functions, methods, variables, parameters | `snake_case` | `adl::arinc665::decode_header_file` |
+| Classes, structs, enums, template parameters, type aliases | `PascalCase` | `MediaSetIndex`; a standard-library alias keeps its name (`value_type`) |
+| Enumerators | `snake_case` | `CheckValueType::md5` |
+| Constants, `constexpr` variables | `snake_case` | `sample_load_part_number` |
+| Private and protected data members | `snake_case` with a trailing underscore | `current_language_` |
+
+The classes QML reads (`apps/*/core` and `libs/ui`) name their properties, signals, slots and invokable functions
+in `camelCase`, which is QML's convention, and the roles of a list model take Qt's `PascalCase` (`SourcePathRole`);
+the `.clang-tidy` file in each of those directories allows both cases for a method. A new class follows the case of
+its neighbours.
+
 ## Choices the libraries make
 
 - **C++23, extensions off.** Every first-party target is built with warnings as

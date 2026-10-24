@@ -6,8 +6,8 @@
 # are the checks that need a whole program.
 #
 # The families are the ones that find defects: the Clang Static Analyzer, bug,
-# cert, concurrency, performance and portability. Style is not here - it is
-# .clang-format's and the compiler's - and the tests are not tidied: Catch2's
+# cert, concurrency, performance and portability, and the names (readability-identifier-naming).
+# Layout is not here - it is .clang-format's and the compiler's - and the tests are not tidied: Catch2's
 # REQUIRE/CHECK macros expand to code these checks cannot see through
 # (tests/CMakeLists.txt clears the launcher). The checks switched off below are
 # off for a reason, not for a count:
@@ -49,6 +49,7 @@ Checks: >
   concurrency-*,
   performance-*,
   portability-*,
+  readability-identifier-naming,
   -bugprone-easily-swappable-parameters,
   -bugprone-exception-escape,
   -bugprone-multi-level-implicit-pointer-conversion,
@@ -66,6 +67,30 @@ ExcludeHeaderFilterRegex: 'Program Files'
 FormatStyle: file
 
 CheckOptions:
+  # The names this repository already uses, and no others. They differ from the organisation
+  # template's (m_PascalCase members, UPPER_SNAKE_CASE enumerators and constants), and the repository's
+  # own convention governs its code (docs/architecture.md, "Names"). The QML-facing classes in
+  # apps/*/core and libs/ui have an override of their own beside them.
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.UnionCase: CamelCase
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.EnumConstantCase: lower_case
+  # Aliases are CamelCase, except the ones a standard container or iterator needs (value_type, const_iterator).
+  readability-identifier-naming.TypeAliasCase: aNy_CasE
+  readability-identifier-naming.TemplateParameterCase: CamelCase
+  readability-identifier-naming.FunctionCase: lower_case
+  readability-identifier-naming.MethodCase: lower_case
+  readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.ParameterCase: lower_case
+  readability-identifier-naming.ConstexprVariableCase: lower_case
+  readability-identifier-naming.ConstexprVariableIgnoredRegexp: '^table_$'
+  readability-identifier-naming.GlobalConstantCase: lower_case
+  readability-identifier-naming.PrivateMemberCase: lower_case
+  readability-identifier-naming.PrivateMemberSuffix: _
+  readability-identifier-naming.ProtectedMemberCase: lower_case
+  readability-identifier-naming.ProtectedMemberSuffix: _
   # Ignoring an error that the interface reports is sometimes the contract:
   # a cleanup after a failure cannot do better than try, and a best-effort send
   # is one. The code casts those to void to say so.
