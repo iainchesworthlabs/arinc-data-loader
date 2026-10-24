@@ -9,9 +9,9 @@
 #include <adl/profiling.hpp>
 
 #include <algorithm>
-#include <array>
 #include <map>
 #include <tuple>
+#include <vector>
 
 namespace adl::app
 {
@@ -59,7 +59,8 @@ using Fingerprint = MediaSetIndex::Fingerprint;
         return std::unexpected(size.error());
     }
     adl::arinc665::Sha1 sha1;
-    std::array<std::byte, 64 * 1024> block;
+    // On the heap: 64 KiB is more stack than a function should take (MSVC code analysis, C6262).
+    std::vector<std::byte> block(64 * 1024);
     std::uint64_t offset = 0;
     while (offset < *size)
     {
