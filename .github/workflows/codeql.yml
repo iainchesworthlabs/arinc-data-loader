@@ -1,18 +1,11 @@
 name: CodeQL
 
-# Static analysis (C++) with GitHub's CodeQL, on the nightly static-analysis
-# schedule rather than on every commit: a full CodeQL build takes longer than
-# the whole per-commit matrix, and its alerts are triaged in Security > Code
-# scanning, not read off a pull request. The rest of the nightly suite is
-# static-analysis.yml; docs/static-analysis.md explains how the two fit.
-#
-# Public-only: code scanning of a private repository needs a paid plan, so the
-# job is skipped - not red - while the repository is private, and starts running
-# the day it is made public (docs/ci.md, "Public-only workflows"). It is not a
-# required check: an alert is something to triage, not a blocked merge.
-#
-# No merge_group: this workflow produces no required check, and a queue entry
-# would burn a full CodeQL build for nothing (docs/repository-settings.md).
+# Code scanning by the shared workflow of icl-common-infra, nightly and on demand. It has no pull
+# request trigger, so an alert is triaged under Security > Code scanning and never blocks a merge,
+# and no merge_group trigger, so a queue entry does not spend a CodeQL build. A failed analysis opens or
+# updates the nightly-analysis issue. The C++ build is the lean one of the `linux-codeql` preset (the
+# libraries and the platform layer; docs/static-analysis.md). The rest of the nightly suite is
+# static-analysis.yml.
 
 on:
   schedule:
@@ -20,61 +13,21 @@ on:
     - cron: "17 13 * * *"
   workflow_dispatch:
 
-concurrency:
-  group: codeql-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions: {}
 
 jobs:
-  analyze:
-    name: Analyze (C++)
-    if: ${{ !github.event.repository.private }}
-    runs-on: ubuntu-26.04
-    timeout-minutes: 60
+  codeql:
+    name: CodeQL
     permissions:
       security-events: write
       contents: read
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
-        with:
-          languages: cpp
-          build-mode: manual
-
-      - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
-        with:
-          cmakeVersion: "4.4.2"
-          ninjaVersion: "1.13.2"
-
-      # The lean build: the libraries and the platform section, with no tests
-      # (so no vcpkg dependency to build: the manifest's default feature list
-      # is empty). Sanitizers off: CodeQL's build tracer sets its own LD_PRELOAD
-      # for the whole build step, which collides with ASan needing to be first
-      # in the preload chain, and a static analysis gets nothing from them.
-      # clang-tidy is off too: CodeQL traces the compiler, it does not need a
-      # second analyzer in the build. Module scanning is off because this tree
-      # has no C++ modules and the tracer does not need the -fdeps arguments.
-      - name: Configure (libraries and platform only)
-        run: >
-          cmake --preset linux-gcc-debug
-          -DADL_BUILD_TESTS=OFF
-          -DADL_ENABLE_SANITIZERS=OFF
-          -DCMAKE_CXX_SCAN_FOR_MODULES=OFF
-
-      - name: Build
-        run: cmake --build --preset linux-gcc-debug
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
-        with:
-          category: "/language:cpp"
+      issues: write
+    uses: iainchesworthlabs/icl-common-infra/.github/workflows/codeql.yml@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+    with:
+      runner: '["ubuntu-26.04"]'
+      languages: >-
+        [
+          {"language": "cpp", "build_mode": "manual", "preset": "linux-codeql", "vcpkg": false},
+          {"language": "python", "build_mode": "none"},
+          {"language": "actions", "build_mode": "none"}
+        ]

@@ -43,7 +43,7 @@ the tree that finishes must be the newest tree.
 | `clang-tidy (Linux, GCC)` | `static-analysis.yml` | ubuntu-26.04 | Every translation unit under `src/` was compiled through the pinned clang-tidy with `.clang-tidy`, the Clang Static Analyzer checks included, and `--warnings-as-errors=*`: no finding survived. |
 | `MSVC Code Analysis (Windows)` | `static-analysis.yml` | windows-2025-vs2026 | The libraries, the Catch2 tests and the three Qt applications were compiled with `/analyze /WX`, so MSVC's path-sensitive analysis and its Windows-specific rules found nothing in first-party code. |
 | `Clang ASan/UBSan (Linux)` | `static-analysis.yml` | ubuntu-26.04 | The libraries and tests build with `clang++` and run under clang's AddressSanitizer and UndefinedBehaviorSanitizer. The per-commit Linux leg uses GCC; this one is the Clang UBSan run MSVC cannot provide and AppleClang is not asked for nightly. |
-| `Analyze (C++)` | `codeql.yml` | ubuntu-26.04 | CodeQL's C++ queries ran over the build. Alerts appear under **Security -> Code scanning**; the job itself does not fail for an alert. |
+| `Analyze (cpp)`, `Analyze (python)`, `Analyze (actions)` | `codeql.yml` | ubuntu-26.04 | CodeQL's queries ran over the build (C++) or the files (the others). Alerts appear under **Security -> Code scanning**; the job itself does not fail for an alert. |
 | `SonarQube` | `static-analysis.yml` | ubuntu-26.04 | Optional and skipped until configured: the Sonar C++ analyzer scanned `src/` from the compile database and published to the configured server. Report only; it does not wait for the quality gate. |
 
 ### clang-tidy
@@ -103,14 +103,12 @@ the test step. The applications are off; Qt is not installed on this leg.
 
 ### CodeQL
 
-The C++ CodeQL build is the lean libraries-and-platform build
-(`-DADL_BUILD_TESTS=OFF -DADL_ENABLE_SANITIZERS=OFF
--DCMAKE_CXX_SCAN_FOR_MODULES=OFF`, no clang-tidy). CodeQL traces the compiler
-itself, and its build tracer sets an `LD_PRELOAD` that collides with ASan. The
-job requires a public repository (or a paid plan), so it
-is skipped while the repository is private; results are triaged in the
-repository's code-scanning alerts. It is not a required check, and it does not
-run on pull requests: a nightly alert is triaged, not merged.
+CodeQL runs through the shared workflow of `icl-common-infra` for C++, Python and the GitHub Actions
+workflows. The C++ build is the lean `linux-codeql` preset: the libraries and the platform layer, with
+no tests, no applications, no sanitizers and no module scanning. CodeQL traces the compiler itself, and
+its build tracer sets an `LD_PRELOAD` that collides with ASan. Results are triaged in the repository's
+code-scanning alerts. It is not a required check, and it does not run on pull requests: a nightly alert
+is triaged, not merged. A failed analysis opens or updates the `nightly-analysis` issue.
 
 ### SonarQube (optional)
 
