@@ -1,0 +1,125 @@
+name: Fuzz
+
+# The libFuzzer harnesses of libs/arinc665/fuzz and libs/arinc615a/fuzz (docs/fuzzing.md). The pull request
+# gate replays the seeds and the past crashes (the `Fuzz regression` job of ci.yml, a few seconds). This
+# workflow fuzzes:
+#
+#   push to develop   60 seconds per target ("fuzz-short"), one run at a time with at most one waiting
+#   schedule          10 minutes per target ("fuzz-nightly"), with the corpus kept between runs
+#   manual            the seconds named, on the branch named
+#
+# A crash fails the run, uploads the input that caused it as an artifact, and (on the schedule) opens or
+# updates one `nightly-analysis` issue. The fix adds the input to libs/<lib>/fuzz/regressions/<target>/.
+
+on:
+  push:
+    branches: [develop]
+  schedule:
+    # 14:47 UTC, the nightly hour of codeql.yml and static-analysis.yml plus the time they take.
+    - cron: "47 14 * * *"
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: Seconds to fuzz each target.
+        type: string
+        default: "60"
+
+concurrency:
+  group: fuzz-${{ github.event_name == 'push' && 'push' || github.ref }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  fuzz:
+    name: Fuzz (Linux, Clang)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      issues: write
+    env:
+      SECONDS_PER_TARGET: ${{ github.event_name == 'schedule' && '600' || github.event_name == 'workflow_dispatch' && inputs.seconds || '60' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install GCC
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        with:
+          export-compiler: "false"
+
+      - name: Install Clang
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-llvm@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+
+      - name: Set up CMake
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+
+      - name: Set up vcpkg
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+
+      - name: Configure and build
+        run: |
+          cmake --preset linux-fuzz
+          cmake --build --preset linux-fuzz
+
+      # The inputs found so far, kept between runs under a key of their own (the newest entry of the
+      # prefix is restored; each run saves a new one).
+      - name: Restore the fuzzing corpus
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz-work
+          key: fuzz-corpus-${{ github.run_id }}
+          restore-keys: fuzz-corpus-
+
+      # Every target, each from the committed seeds and regressions plus what earlier runs found. A
+      # new input goes to fuzz-work; a crash leaves its input in fuzz-crashes.
+      - name: Fuzz every target
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p fuzz-work fuzz-crashes
+          failed=0
+          for exe in build/linux-fuzz/bin/adl_fuzz_*; do
+            target="${exe##*/adl_fuzz_}"
+            dirs=(libs/*/fuzz/corpus/"$target" libs/*/fuzz/regressions/"$target")
+            mkdir -p "fuzz-work/$target"
+            echo "::group::$target ($SECONDS_PER_TARGET s)"
+            if ! "$exe" -max_total_time="$SECONDS_PER_TARGET" -artifact_prefix="fuzz-crashes/${target}-" \
+                  "fuzz-work/$target" "${dirs[@]}"; then
+              echo "::error::$target crashed; the input is in the fuzz-crashes artifact"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $failed
+
+      - name: Save the fuzzing corpus
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz-work
+          key: fuzz-corpus-${{ github.run_id }}
+
+      - name: Upload the crashing inputs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-crashes
+          path: fuzz-crashes
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Report the failure
+        if: failure() && github.event_name == 'schedule'
+        uses: iainchesworthlabs/icl-common-infra/actions/report-nightly-failure@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        with:
+          engine: libFuzzer
+          detail: A fuzz target crashed or the run failed. The crashing input is in the fuzz-crashes artifact of the run; add it to libs/<lib>/fuzz/regressions/<target>/ in the fix.
+
+      - name: Save the vcpkg caches
+        if: always()
+        continue-on-error: true
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
