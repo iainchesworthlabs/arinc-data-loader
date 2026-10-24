@@ -17,6 +17,8 @@
 set -euo pipefail
 
 repository=${ADL_REPOSITORY:-iainchesworthlabs/arinc-data-loader}
+# The attestations are made by the shared publish workflow of icl-common-infra, run for this repository.
+signer_workflow=${ADL_SIGNER_WORKFLOW:-iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml}
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 attestation=1
 args=()
@@ -73,7 +75,7 @@ if [ "$attestation" -eq 1 ]; then
     echo "-- build-provenance attestations"
     for file in *; do
         case "$file" in SHA512SUMS | *.asc) continue ;; esac
-        if gh attestation verify "$file" --repo "$repository" >/dev/null 2>"$work/attestation.log"; then
+        if gh attestation verify "$file" --repo "$repository" --signer-workflow "$signer_workflow" >/dev/null 2>"$work/attestation.log"; then
             echo "attested: $file"
         else
             echo "NOT ATTESTED: $file" >&2

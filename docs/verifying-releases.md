@@ -76,7 +76,8 @@ With the [GitHub CLI](https://cli.github.com/) (`gh`), after `gh auth login`:
 
 ```sh
 gh attestation verify arinc-data-loader-0.1.1-linux-x86_64.tar.gz \
-    --repo iainchesworthlabs/arinc-data-loader
+    --repo iainchesworthlabs/arinc-data-loader \
+    --signer-workflow iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml
 ```
 
 It prints the commit and the workflow run the file came from. `--source-ref refs/tags/v0.1.1` also
