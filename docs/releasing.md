@@ -84,7 +84,8 @@ The workflow stops, and says why, when:
 
 ## Cutting a release
 
-1. **Version and changelog, in one pull request to `develop`.** Set the version in `CMakeLists.txt`
+1. **Version and changelog, in one pull request to `develop`** from a branch named `release/<major>.<minor>`
+   (`release/0.1`; the changelog check lets only a `release/` branch change `CHANGELOG.md`). Set the version in `CMakeLists.txt`
    (`project(ArincDataLoader VERSION 0.1.1 ...)`) and in `vcpkg.json`. In prose, `SECURITY.md`'s table
    of supported versions and the `find_package(adl 0.1 ...)` example above name the minor version:
    change them when it changes. Then assemble the fragments:
