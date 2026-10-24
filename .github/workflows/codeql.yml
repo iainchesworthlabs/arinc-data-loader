@@ -42,7 +42,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3

@@ -103,7 +103,7 @@ The workflow stops, and says why, when:
 3. **Tag** the merge commit, for a trial first (`v0.1.1-rc.1`), then the release:
 
    ```sh
-   git tag -s v0.1.1 -m "ARINC Data Loader 0.1.1"
+   git tag -a v0.1.1 -m "ARINC Data Loader 0.1.1"
    git push origin v0.1.1
    ```
 
