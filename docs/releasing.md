@@ -87,8 +87,8 @@ The workflow stops, and says why, when:
 1. **Version and changelog, in one pull request to `develop`.** Set the version in `CMakeLists.txt`
    (`project(ArincDataLoader VERSION 0.1.1 ...)`) and in `vcpkg.json`. In prose, `SECURITY.md`'s table
    of supported versions and the `find_package(adl 0.1 ...)` example above name the minor version:
-   change them when it changes. If the release needs an introduction, write it as `changelog.d/summary.md`
-   (the assembly takes it into the section). Then assemble the fragments:
+   change them when it changes. If the release needs an introduction, write it as a file called `summary.md` in the
+   `changelog.d` folder (the assembly takes it into the section). Then assemble the fragments:
 
    ```sh
    python3 <icl-common-infra>/scripts/changelog_tool.py assemble --version 0.1.1 --date YYYY-MM-DD
@@ -154,7 +154,7 @@ workflow signs the four programs in place before CPack packs them:
 - `false`: nothing is signed; the Windows runtime package is named `...-windows-x86_64-unsigned.zip`.
 - `test`: signed with the organisation's test certificate (`WIN_TESTSIGN_PFX_BASE64` and
   `WIN_TESTSIGN_PFX_PASSWORD`); the package is `...-testsigned.zip`. Windows trusts it only on a machine
-  that has installed the test CA ([`docs/test-signing.md` in `icl-common-infra`](https://github.com/iainchesworthlabs/icl-common-infra/blob/develop/docs/test-signing.md)).
+  that has installed the test CA ([the test-signing page of `icl-common-infra`](https://github.com/iainchesworthlabs/icl-common-infra/blob/develop/docs/test-signing.md)).
   A final release refuses it.
 - `production`: not set up; the run fails until a signing service is chosen.
 
