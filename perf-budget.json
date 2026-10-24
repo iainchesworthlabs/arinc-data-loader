@@ -1,54 +1,54 @@
 {
   "threshold_percent": 50,
   "slack_ns": 50,
-  "enforce": false,
+  "enforce": true,
   "benchmarks": {
     "build the sample media set": {
-      "mean_ns": 17020
+      "mean_ns": 24468
     },
     "crc16 1 MiB": {
-      "mean_ns": 1778300
+      "mean_ns": 2616540
     },
     "crc32 1 MiB": {
-      "mean_ns": 2003320
+      "mean_ns": 2948800
     },
     "decode a 512 byte data packet": {
-      "mean_ns": 26
+      "mean_ns": 38
     },
     "decode a 8192 byte data packet": {
-      "mean_ns": 25
+      "mean_ns": 39
     },
     "decode a FIND answer": {
-      "mean_ns": 45
+      "mean_ns": 62
     },
     "decode a read request with the checksum option": {
-      "mean_ns": 47
+      "mean_ns": 83
     },
     "decode the sample header file": {
-      "mean_ns": 1071
+      "mean_ns": 1495
     },
     "encode a 512 byte data packet": {
-      "mean_ns": 11
+      "mean_ns": 20
     },
     "encode a 8192 byte data packet": {
-      "mean_ns": 66
+      "mean_ns": 106
     },
     "md5 1 MiB": {
-      "mean_ns": 1717290
+      "mean_ns": 2626860
     },
     "read and check the sample media set": {
-      "mean_ns": 19690
+      "mean_ns": 28063
     },
     "sha1 1 MiB": {
-      "mean_ns": 4063030
+      "mean_ns": 6086740
     }
   },
   "measured_on": {
-    "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+    "os": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.43",
     "machine": "x86_64",
-    "cpu": "AMD Ryzen 9 5950X 16-Core Processor",
-    "cpus": "20",
-    "runner": " ",
-    "compiler": ""
+    "cpu": "AMD EPYC 7763 64-Core Processor",
+    "cpus": "4",
+    "runner": "ubuntu26 20261023.163.3",
+    "compiler": "g++-16"
   }
 }
