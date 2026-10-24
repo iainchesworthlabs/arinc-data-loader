@@ -46,18 +46,18 @@ jobs:
           persist-credentials: false
 
       - name: Install GCC
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
         with:
           export-compiler: "false"
 
       - name: Install Clang
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-llvm@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-llvm@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
 
       - name: Set up CMake
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
 
       - name: Configure and build
         run: |
@@ -114,7 +114,7 @@ jobs:
 
       - name: Report the failure
         if: failure() && github.event_name == 'schedule'
-        uses: iainchesworthlabs/icl-common-infra/actions/report-nightly-failure@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
+        uses: iainchesworthlabs/icl-common-infra/actions/report-nightly-failure@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
         with:
           engine: libFuzzer
           detail: A fuzz target crashed or the run failed. The crashing input is in the fuzz-crashes artifact of the run; add it to libs/<lib>/fuzz/regressions/<target>/ in the fix.
@@ -122,4 +122,4 @@ jobs:
       - name: Save the vcpkg caches
         if: always()
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
