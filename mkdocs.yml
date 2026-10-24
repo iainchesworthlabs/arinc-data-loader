@@ -159,6 +159,7 @@ nav:
       - Fuzzing: fuzzing.md
       - CI: ci.md
       - Static analysis: static-analysis.md
+      - Security and threat model: security.md
       - Profiling: profiling.md
       - Repository settings: repository-settings.md
       - Releasing: releasing.md
