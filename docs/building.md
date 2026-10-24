@@ -311,7 +311,7 @@ in them and why). With a Release build of the applications:
 cmake --preset linux-gcc-release            # or windows-msvc-release, macos-clang-release
 cmake --build --preset linux-gcc-release
 cd build/linux-gcc-release && cpack -B packages
-pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.0-linux-x86_64.tar.gz
+pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.1-linux-x86_64.tar.gz
 ```
 
 `cpack` writes the runtime package (the three applications, `adl_write_payloads`, Qt's runtime files,

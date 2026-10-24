@@ -13,6 +13,19 @@ Changes that are waiting for the next release are kept as small files in
 [`changelog.d`](changelog.d/README.md), one per change, and are assembled into this file
 when a release is cut ([docs/releasing.md](docs/releasing.md)).
 
+## [0.1.1] - 2026-10-24
+
+A maintenance release. How the programs load and read data is unchanged. The Simplified Chinese
+translation is now named `zh_CN`, and the release files are signed and summed differently (see below).
+The source tree moved to `libs/` and `apps/`, CI and the repository settings follow the organisation's
+standard, and the parsers are fuzzed and benchmarked; none of that changes what is in a package.
+
+### Changed
+
+- **Simplified Chinese is now `zh_CN`.** It is the name of its catalogue and of the choice kept in the settings, and the language box calls it 简体中文. A choice of Chinese saved by release 0.1.0 (`zh`) still selects it. A computer set to Traditional Chinese now starts the programs in English, as it does for any language without a catalogue, and no longer in Simplified Chinese. See [Translations](docs/translations.md).
+
+- **Releases are signed with the organisation's release key and list SHA-512 sums.** From 0.1.1 a release carries `SHA512SUMS` in place of `SHA256SUMS`, and every file is signed with the key whose fingerprint is `FD13 CB8C AC83 1664 8CD9  74D0 8149 254C 4189 4DBE` (release 0.1.0 used another key). The Windows package is named `-unsigned` or `-testsigned` for how its programs are signed. See [Verifying a release](docs/verifying-releases.md).
+
 ## [0.1.0] - 2026-10-22
 
 The first preliminary release. It rebuilds an earlier Visual Studio project (a Win32 static library
@@ -212,5 +225,6 @@ These differ from the earlier Visual Studio project, whose code is not in this r
   checked against a SHA-256 pinned in the repository before it is unpacked, and the Python package that
   unpacks it is installed from a hash-locked requirements file.
 
-[Unreleased]: https://github.com/iainchesworthlabs/arinc-data-loader/compare/v0.1.0...develop
+[Unreleased]: https://github.com/iainchesworthlabs/arinc-data-loader/compare/v0.1.1...develop
+[0.1.1]: https://github.com/iainchesworthlabs/arinc-data-loader/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/iainchesworthlabs/arinc-data-loader/releases/tag/v0.1.0

@@ -14,7 +14,7 @@ for Windows, Linux and macOS:
 
 ## Status
 
-Version 0.1.0 is a preliminary release. The libraries and the three programs work end to end against each
+Version 0.1.1 is a preliminary release. The libraries and the three programs work end to end against each
 other on one machine. **Nothing has been checked against a real target, a real loader or another tool's media
 sets.** [What has been checked](status.md) says what has been and what has not.
 

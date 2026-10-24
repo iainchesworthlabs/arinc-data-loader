@@ -39,7 +39,7 @@ Loader and that work together:
 
 ## About this release
 
-This is a preliminary release (0.1.0). The programs work together and are tested against
+This is a preliminary release (0.1.1). The programs work together and are tested against
 simulated and mock targets, **but nothing has been checked against real equipment or another
 vendor's tools**. Read [limits](files-and-limits.md#what-has-not-been-checked) before relying on
 them for anything that matters. The standards themselves are not part of this software (see

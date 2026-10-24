@@ -26,7 +26,7 @@ The package is a zip (Windows) or a tar.gz (Linux, macOS) named
 `arinc-data-loader-<version>-<system>-<arch>`, which is the directory to give CMake:
 
 ```sh
-cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/arinc-data-loader-0.1.0-linux-x86_64
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/arinc-data-loader-0.1.1-linux-x86_64
 ```
 
 ```cmake

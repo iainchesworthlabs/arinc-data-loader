@@ -15,7 +15,7 @@ The documentation, with a [user's guide](docs/user-guide/index.md), is published
 
 ## Status
 
-Version 0.1.0, a preliminary release. The libraries, the data loader and its two companion
+Version 0.1.1, a preliminary release. The libraries, the data loader and its two companion
 applications work end to end against each other on one machine, and the libraries are tested
 against simulated targets and over loopback sockets. **Nothing has been checked against a real
 target, a real loader, or another tool's media sets**. There is no installer: each
