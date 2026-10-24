@@ -100,11 +100,15 @@ tools/release/verify_release.sh ./downloaded-release docs/signing-key.asc
 
 ## What the packages are, and what they are not
 
-- **The packages are not code-signed for an operating system.** There is no Authenticode signature on
-  Windows and no Developer ID signature or notarisation on macOS; the PGP signature above is the
-  project's own. Expect the system to warn the first time:
+- **The packages are not code-signed by a certificate that operating systems trust.** The four
+  Windows programs carry an Authenticode signature from the organisation's test certificate (the
+  package is named `-testsigned`; one built without signing is named `-unsigned`), and there is no
+  Developer ID signature or notarisation on macOS. The PGP signature above is the project's own.
+  Expect the system to warn the first time:
   - *Windows* (SmartScreen): "Windows protected your PC": choose **More info**, then **Run anyway**,
-    after you have verified the zip.
+    after you have verified the zip. The test signature is trusted only on a machine that has
+    installed the test CA
+    ([how](https://github.com/iainchesworthlabs/icl-common-infra/blob/develop/docs/test-signing.md)).
   - *macOS* (Gatekeeper): the bundles are signed ad hoc (which an Apple-silicon Mac needs to run them
     at all), not by an identified developer. After verifying the disk image, open the application
     with a right click, **Open**, or allow it under *System Settings, Privacy & Security*. A file
