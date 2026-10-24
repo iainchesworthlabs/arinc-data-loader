@@ -307,6 +307,19 @@
       }
     },
     {
+      "name": "linux-codeql",
+      "displayName": "Linux (CodeQL: the libraries and the platform layer)",
+      "description": "The lean build CodeQL traces: no tests, no applications, no sanitizers (its tracer's LD_PRELOAD collides with ASan), no module scanning",
+      "inherits": [
+        "linux-debug"
+      ],
+      "cacheVariables": {
+        "ADL_BUILD_TESTS": "OFF",
+        "ADL_BUILD_APP": "OFF",
+        "CMAKE_CXX_SCAN_FOR_MODULES": "OFF"
+      }
+    },
+    {
       "name": "linux-release",
       "displayName": "Linux (Release)",
       "inherits": [
@@ -416,6 +429,7 @@
     { "name": "ghs178b-ghs-debug", "configurePreset": "ghs178b-ghs-debug" },
     { "name": "ghs178b-ghs-release", "configurePreset": "ghs178b-ghs-release" },
     { "name": "linux-debug", "configurePreset": "linux-debug" },
+    { "name": "linux-codeql", "configurePreset": "linux-codeql" },
     { "name": "linux-release", "configurePreset": "linux-release" },
     { "name": "linux-asan-ubsan", "configurePreset": "linux-asan-ubsan" },
     { "name": "linux-tsan", "configurePreset": "linux-tsan" },
