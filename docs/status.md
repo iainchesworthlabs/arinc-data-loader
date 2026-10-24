@@ -82,7 +82,7 @@ The columns are the levels above. **yes**: the pages named below say it was done
 | Linux | `Linux (GCC)`: runs on `ubuntu-26.04`, builds `linux-gcc-debug` warning-free with AddressSanitizer and UBSan, and runs all of ctest. `Coverage (Linux, GCC)` also enforces the coverage minimum | `Linux (GCC, Release)`: as above for `linux-gcc-release` |
 | macOS | `macOS (AppleClang)`: runs on `macos-26` (Apple silicon), builds `macos-clang-debug` warning-free with AddressSanitizer and UBSan, and runs all of ctest | `macOS (AppleClang, Release)`: as above for `macos-clang-release` |
 
-The release workflow also builds a program against the development package and writes the software bill of materials. On a release branch or a version tag it signs and attests the files. The Release configuration is compiled nowhere else. The three simulator jobs (`Zephyr (native_sim)`, `FreeRTOS (POSIX simulator)` and `Zephyr (QEMU, SDK toolchain)`) are not required checks. The sources are [CI](ci.md#the-jobs-in-ciyml) and [Releasing](releasing.md).
+The release workflow also builds a program against the development package and writes the software bill of materials. On a version tag it signs and attests the files. The Release configuration is compiled nowhere else. The three simulator jobs (`Zephyr (native_sim)`, `FreeRTOS (POSIX simulator)` and `Zephyr (QEMU, SDK toolchain)`) are not required checks. The sources are [CI](ci.md#the-jobs-in-ciyml) and [Releasing](releasing.md).
 
 ## What is not done
 

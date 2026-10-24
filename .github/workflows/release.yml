@@ -1,30 +1,27 @@
 name: Release
 
 # Builds the Release configuration on the three desktops, runs every test tier against it, packages,
-# writes the SBOM and the checksums, signs, attests and (for a version tag only) drafts a GitHub
-# release. The process, the rules a tag has to meet, the one-time setup and the dry run are in
-# docs/releasing.md; how a downloader checks the result is docs/verifying-releases.md.
+# and writes the SBOM. For a version tag the shared publish workflow then writes SHA512SUMS, signs,
+# attests, runs tools/release/verify_release.sh over the result and drafts a GitHub release for the
+# maintainer to read and publish. The process and the one-time setup are in docs/releasing.md; how a
+# downloader checks the result is docs/verifying-releases.md.
 #
-#   push of a tag vX.Y.Z[-pre]   a real release: everything below, then a DRAFT release for the
-#                                maintainer to read and publish. The environment `release` holds
-#                                the publish step until the maintainer approves it.
-#   push to a release/* branch   a rehearsal of all of it, signing included, that publishes nothing.
-#   workflow_dispatch            the same rehearsal on the branch it is run on (`sign` can be
-#                                turned off). Only works once the workflow is on the default branch.
-#   pull_request                 build, test, package and SBOM only (no secrets, no signing), when a
-#                                change touches the packaging or this workflow.
+#   push of a tag vX.Y.Z[-suffix]  a release: everything below. The environment `release` holds the
+#                                  publish job until the maintainer approves it.
+#   workflow_dispatch              a rehearsal on the branch it is run on (`gh workflow run release.yml
+#                                  --ref <branch>`): builds, tests, packages and writes the SBOM, and
+#                                  publishes nothing.
+#   pull_request                   the same rehearsal, when a change touches the packaging or this
+#                                  workflow.
 #
-# Secrets exist only in the environment `release-signing`, which GitHub hands to a job only on a
-# release/* branch or a version tag (its deployment branch rules); a pull request never reaches it.
-# No job has more than it names, nothing runs on pull_request_target, and pull request data reaches
-# scripts through the environment, never by interpolation into a shell.
+# The signing key and the release bot's key are organisation secrets that only the shared publish
+# workflow reads, in the `release` environment. Nothing runs on pull_request_target, and pull request
+# data reaches scripts through the environment, never by interpolation into a shell.
 
 on:
   push:
     tags:
       - "v[0-9]*.[0-9]*.[0-9]*"
-    branches:
-      - "release/**"
   pull_request:
     branches: [develop]
     paths:
@@ -40,11 +37,6 @@ on:
       - "libs/platform/*/platform.cmake"
       - "tools/release/**"
   workflow_dispatch:
-    inputs:
-      sign:
-        description: "Sign and attest the rehearsal (needs the release-signing environment to allow this branch)"
-        type: boolean
-        default: true
 
 concurrency:
   group: release-${{ github.ref }}
@@ -57,100 +49,68 @@ env:
   VCPKG_DISABLE_METRICS: "1"
 
 jobs:
-  # What is being released, from the tag and the files at this commit; fails with the reason if the tag
-  # does not match them. Also proves the tools the later jobs trust still fail what they must.
-  prepare:
-    name: Prepare
+  # What is being released. For a tag: that it is semantic, that CMakeLists.txt and vcpkg.json carry
+  # its version, and that the release has notes. Otherwise the project's version, for a rehearsal.
+  version:
+    name: Version
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 10
     permissions:
       contents: read
     outputs:
       version: ${{ steps.info.outputs.version }}
       tag: ${{ steps.info.outputs.tag }}
-      release: ${{ steps.info.outputs.release }}
-      sign: ${{ steps.info.outputs.sign }}
       prerelease: ${{ steps.info.outputs.prerelease }}
     steps:
-      # The whole history, so the tagged commit can be checked to be on main.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Self-test the changelog tool and the signing scripts
-        shell: bash
-        run: |
-          pwsh ./tools/release/test_changelog.ps1
-          bash ./tools/release/test_signing.sh
+      - name: Compare the tag with the project version
+        if: github.ref_type == 'tag'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: python3 tools/ci/check_release_version.py "$TAG"
 
-      - name: Work out what is being released
+      - name: Work out the version
         id: info
-        shell: pwsh
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          REF_TYPE: ${{ github.ref_type }}
-          REF_NAME: ${{ github.ref_name }}
-          SIGN_INPUT: ${{ inputs.sign }}
-        run: >-
-          ./tools/release/Get-ReleaseInfo.ps1
-          -EventName $env:EVENT_NAME -RefType $env:REF_TYPE -RefName $env:REF_NAME
-          -Sign $env:SIGN_INPUT -GitHubOutput $env:GITHUB_OUTPUT
-
-      # The release notes are the changelog's section for the version, and a way to check the download.
-      - name: Write the release notes
-        if: ${{ steps.info.outputs.release == 'true' }}
         shell: bash
         env:
-          VERSION: ${{ steps.info.outputs.version }}
-          TAG: ${{ steps.info.outputs.tag }}
-          REPOSITORY: ${{ github.repository }}
+          TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          SIGN_WINDOWS: ${{ vars.SIGN_WINDOWS || 'false' }}
         run: |
-          mkdir notes
-          pwsh ./tools/release/Changelog.ps1 -Mode Notes -Version "$VERSION" -OutFile notes/release-notes.md \
-            -LinkBase "https://github.com/$REPOSITORY/blob/$TAG/"
-          fingerprint=$(gpg --show-keys --with-colons docs/release-signing-key.asc | awk -F: '/^fpr/ { print $10; exit }')
+          set -euo pipefail
+          if [ -n "$TAG" ]; then
+            version="${TAG#v}"
+          else
+            version="$(awk '/^project\(/ { in_project = 1 } in_project && $1 == "VERSION" { print $2; exit }' CMakeLists.txt)"
+          fi
+          prerelease=false
+          if [[ "$version" == *-* ]]; then prerelease=true; fi
+          # Test-signed files are for pre-releases and workflow artifacts only (standard D17).
+          if [ -n "$TAG" ] && [ "$prerelease" = false ] && [ "$SIGN_WINDOWS" = test ]; then
+            echo "::error::SIGN_WINDOWS is 'test', which a final release must not carry. Set it to 'false' or 'production' first."
+            exit 1
+          fi
           {
-            echo
-            echo "## Verifying this release"
-            echo
-            echo "Every file is listed in \`SHA256SUMS\`, each file (and \`SHA256SUMS\`) has a detached PGP signature"
-            echo "\`<file>.asc\` made with the release key \`$fingerprint\`, and each has a GitHub build-provenance"
-            echo "attestation. The steps are in [Verifying a release](https://github.com/$REPOSITORY/blob/$TAG/docs/verifying-releases.md)."
-            echo "The software bill of materials is \`arinc-data-loader-$VERSION.spdx.json\` (SPDX) and \`.cdx.json\` (CycloneDX)."
-          } >> notes/release-notes.md
+            echo "version=$version"
+            echo "tag=$TAG"
+            echo "prerelease=$prerelease"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Upload the release notes
-        if: ${{ steps.info.outputs.release == 'true' }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      - name: Check the release has notes
+        if: github.ref_type == 'tag'
+        uses: iainchesworthlabs/icl-common-infra/actions/release-notes@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
         with:
-          name: release-notes
-          path: notes/release-notes.md
-          if-no-files-found: error
-          retention-days: 30
-
-  # The documentation builds strictly (a link that points nowhere, a missing anchor or a page left out
-  # of the navigation fails it), before anything else is built: it takes a minute, the builds take an
-  # hour. The same build publishes the site when main is pushed (docs.yml).
-  docs:
-    name: Docs (strict)
-    needs: prepare
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/docs-site
+          version: ${{ steps.info.outputs.version }}
+          prerelease: ${{ steps.info.outputs.prerelease }}
+          output-file: ${{ runner.temp }}/notes.md
 
   # Configure, build, test (every tier) and package the Release preset on one desktop, then start the
   # programs from the unpacked packages with no Qt about.
   build:
     name: ${{ matrix.name }}
-    needs: [prepare, docs]
+    needs: version
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     permissions:
@@ -186,7 +146,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -220,7 +180,7 @@ jobs:
         shell: bash
         env:
           CMAKE_PRESET: ${{ matrix.preset }}
-          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
         run: cmake --preset "$CMAKE_PRESET" -DADL_BUILD_APP=ON "-DADL_RELEASE_VERSION=$RELEASE_VERSION"
 
       - name: Build
@@ -238,6 +198,31 @@ jobs:
           CMAKE_PRESET: ${{ matrix.preset }}
         run: ctest --preset "$CMAKE_PRESET"
 
+      - name: List the Windows programs
+        id: programs
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          CMAKE_PRESET: ${{ matrix.preset }}
+        run: |
+          $programs = 'adl_app', 'adl_media_gen', 'adl_mock_target', 'adl_write_payloads'
+          $files = ($programs | ForEach-Object { (Resolve-Path "build/$env:CMAKE_PRESET/bin/$_.exe").Path }) -join "`n"
+          "files<<EOF`n$files`nEOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      # The programs are signed where they are built; CPack copies them from there. SIGN_WINDOWS is
+      # false (nothing signed), test (the organisation's test certificate) or production (not set up).
+      # The runtime package then carries -unsigned or -testsigned in its name.
+      - name: Sign the Windows programs
+        id: sign
+        if: runner.os == 'Windows'
+        uses: iainchesworthlabs/icl-common-infra/actions/sign-windows@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        with:
+          mode: ${{ vars.SIGN_WINDOWS || 'false' }}
+          files: ${{ steps.programs.outputs.files }}
+          rename: "false"
+          pfx-base64: ${{ secrets.WIN_TESTSIGN_PFX_BASE64 }}
+          pfx-password: ${{ secrets.WIN_TESTSIGN_PFX_PASSWORD }}
+
       - name: Package
         shell: bash
         env:
@@ -247,6 +232,16 @@ jobs:
           mkdir dist
           find "build/$CMAKE_PRESET/packages" -maxdepth 1 -type f \( -name '*.zip' -o -name '*.tar.gz' -o -name '*.dmg' \) -exec cp {} dist/ \;
           ls -l dist
+
+      - name: Name the Windows package for how it was signed
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          SUFFIX: ${{ steps.sign.outputs.suffix }}
+        run: |
+          Get-ChildItem dist -Filter 'arinc-data-loader-*.zip' | Where-Object { $_.Name -notlike 'arinc-data-loader-dev-*' } |
+              ForEach-Object { Rename-Item -LiteralPath $_.FullName -NewName ($_.BaseName + $env:SUFFIX + $_.Extension) }
+          Get-ChildItem dist | Select-Object Name, Length
 
       # What the build's own tests cannot show: that a package works where the Qt kit is not. Each
       # runtime package is unpacked into an empty directory and its programs started from there;
@@ -289,13 +284,13 @@ jobs:
       - name: Save the vcpkg caches
         if: ${{ always() }}
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
 
   # The software bill of materials (SPDX and CycloneDX, checked against their schemas), and the
   # directory of files that is signed and published.
   assemble:
     name: SBOM
-    needs: [prepare, build]
+    needs: [version, build]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -332,8 +327,8 @@ jobs:
       - name: Write the SBOM
         shell: bash
         env:
-          VERSION: ${{ needs.prepare.outputs.version }}
-          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION: ${{ needs.version.outputs.version }}
+          TAG: ${{ needs.version.outputs.tag }}
           COMMIT: ${{ github.sha }}
         run: |
           mkdir release
@@ -343,7 +338,7 @@ jobs:
           cp dist/* release/
           # The public key travels with the release for convenience; what it is trusted by is its
           # fingerprint, which a downloader compares with SECURITY.md (docs/verifying-releases.md).
-          cp docs/release-signing-key.asc release/arinc-data-loader-release-key.pgp
+          cp docs/signing-key.asc release/arinc-data-loader-release-key.pgp
           "$RUNNER_TEMP/sbom-venv/bin/python" -I tools/release/validate_sbom.py \
             "release/arinc-data-loader-$VERSION.spdx.json" "release/arinc-data-loader-$VERSION.cdx.json"
           # Every typeface the programs embed must be in the bill of materials.
@@ -358,51 +353,12 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  # SHA256SUMS, and a detached PGP signature over every file. The only job that sees the key: it runs
-  # only for a release or a release-branch rehearsal, in the environment whose deployment rules are
-  # the release/* branches and the version tags, and does nothing but sign and check.
-  sign:
-    name: Sign
-    if: ${{ needs.prepare.outputs.sign == 'true' }}
-    needs: [prepare, assemble]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    environment: release-signing
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Download the files to sign
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-files
-          path: release
-
-      # The key must be the one committed as docs/release-signing-key.asc, and every signature is
-      # checked against that public key alone before the step passes.
-      - name: Write SHA256SUMS and sign
-        shell: bash
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
-        run: ./tools/release/sign_release.sh release docs/release-signing-key.asc
-
-      - name: Upload the signed files
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: release-signed
-          path: release
-          if-no-files-found: error
-          retention-days: 30
-
-  # GitHub build-provenance attestations for every file in SHA256SUMS (which names where each came
-  # from: this workflow, this commit), and the SPDX SBOM attested as describing the packages.
-  attest:
-    name: Attest
-    needs: [prepare, sign]
+  # The software bill of materials attested as describing the packages (the shared publish workflow
+  # attests where each file came from).
+  attest-sbom:
+    name: Attest the SBOM
+    if: github.ref_type == 'tag'
+    needs: [version, assemble]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -410,16 +366,11 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - name: Download the signed files
+      - name: Download the files
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: release-signed
+          name: release-files
           path: release
-
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
-        with:
-          subject-checksums: release/SHA256SUMS
 
       - name: Attest the SBOM
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
@@ -428,80 +379,28 @@ jobs:
             release/arinc-data-loader-*.zip
             release/arinc-data-loader-*.tar.gz
             release/arinc-data-loader-*.dmg
-          sbom-path: release/arinc-data-loader-${{ needs.prepare.outputs.version }}.spdx.json
+          sbom-path: release/arinc-data-loader-${{ needs.version.outputs.version }}.spdx.json
 
-  # What a downloader does, done to what was just produced: the signatures against the public key in
-  # the repository, the sums, and the attestations with the GitHub CLI.
-  verify:
-    name: Verify
-    needs: [prepare, attest]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      attestations: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Download the signed files
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-signed
-          path: release
-
-      # A new attestation can take a moment to be readable, so a failure is tried again.
-      - name: Verify signatures, checksums and attestations
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          for attempt in 1 2 3 4; do
-            if ./tools/release/verify_release.sh release docs/release-signing-key.asc; then
-              exit 0
-            fi
-            echo "verification failed (attempt $attempt of 4)"
-            sleep 20
-          done
-          exit 1
-
-  # A draft GitHub release for the maintainer to read and publish. Only for a version tag, and only
-  # after the maintainer approves the `release` environment.
+  # SHA512SUMS, the signatures, build provenance, tools/release/verify_release.sh and a draft GitHub
+  # release, then, for a version without a suffix, main moved to the tag. The project's own SBOMs are
+  # in the files, so the shared job writes none.
   publish:
-    name: Draft the release
-    if: ${{ needs.prepare.outputs.release == 'true' }}
-    needs: [prepare, verify]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    environment: release
+    name: Publish
+    if: github.ref_type == 'tag'
+    needs: [version, assemble, attest-sbom]
     permissions:
       contents: write
-    steps:
-      - name: Download the signed files
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-signed
-          path: release
-
-      - name: Download the release notes
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-notes
-          path: notes
-
-      - name: Create the draft release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          TAG: ${{ needs.prepare.outputs.tag }}
-          VERSION: ${{ needs.prepare.outputs.version }}
-          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
-        run: |
-          options=(--repo "$REPOSITORY" --draft --verify-tag --title "ARINC Data Loader $VERSION" --notes-file notes/release-notes.md)
-          if [ "$PRERELEASE" = true ]; then
-            options+=(--prerelease)
-          fi
-          gh release create "$TAG" "${options[@]}" release/*
-          echo "Drafted $TAG. Read it, then publish it from the Releases page." >> "$GITHUB_STEP_SUMMARY"
+      id-token: write
+      attestations: write
+    uses: iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+    with:
+      generate-sbom: false
+      public-key: docs/signing-key.asc
+      verify-script: tools/release/verify_release.sh
+      draft: true
+      title: ARINC Data Loader ${{ needs.version.outputs.version }}
+    secrets:
+      REPO_GPG_PRIVATE_KEY: ${{ secrets.REPO_GPG_PRIVATE_KEY }}
+      REPO_GPG_PASSPHRASE: ${{ secrets.REPO_GPG_PASSPHRASE }}
+      RELEASE_BOT_APP_ID: ${{ secrets.RELEASE_BOT_APP_ID }}
+      RELEASE_BOT_PRIVATE_KEY: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}

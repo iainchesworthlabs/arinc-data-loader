@@ -1,7 +1,7 @@
 # Changelog fragments
 
 A change that a person using the program would notice is recorded here, as one small file
-in the pull request that makes it. At release time `tools/release/Changelog.ps1` assembles
+in the pull request that makes it. At release time `changelog_tool.py assemble` (in `icl-common-infra`) assembles
 the files into a dated section of `CHANGELOG.md` and removes them
 ([docs/releasing.md](../docs/releasing.md)).
 
@@ -35,6 +35,5 @@ deliberate. Pull requests from `release/*`, `hotfix/*` and `dependabot/*` branch
 ## Checking
 
 ```sh
-pwsh ./tools/release/Changelog.ps1 -Mode Check
-pwsh ./tools/release/Changelog.ps1 -Mode PullRequest -Base origin/develop
+python3 <icl-common-infra>/scripts/check_changelog_fragment.py --base origin/develop
 ```

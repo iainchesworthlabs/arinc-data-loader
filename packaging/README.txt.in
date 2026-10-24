@@ -26,7 +26,7 @@ signed for any operating system's store: your system may warn the first time you
 Checking the download
 ---------------------
 
-Every file in a release is listed in SHA256SUMS, which is signed with the project's release
+Every file in a release is listed in SHA512SUMS, which is signed with the project's release
 key (a detached PGP signature), and carries a build-provenance attestation that ties it
 to the workflow run that built it. The steps are in
 docs/verifying-releases.md in the source, and at

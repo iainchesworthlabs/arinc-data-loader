@@ -61,17 +61,16 @@ Until 1.0, only the latest release receives fixes. Version 0.1.0 is a preliminar
 
 ## Signed releases
 
-A release's files are signed with a dedicated release key, listed in `SHA256SUMS`, and
+A release's files are signed with the organisation's release key, listed in `SHA512SUMS`, and
 attested by GitHub; [Verifying a release](docs/verifying-releases.md) says how to check them.
 The key is:
 
 ```text
-ARINC Data Loader Releases <iain.chesworth@gmail.com>
-Ed25519, created 2026-10-19, expires 2028-10-18
-Fingerprint: C6B4 AD93 067E B501 F450  5BCF 3FF3 6825 5329 8A53
+Iain Chesworth Labs Releases <iain.chesworth@gmail.com>
+Fingerprint: FD13 CB8C AC83 1664 8CD9  74D0 8149 254C 4189 4DBE
 ```
 
-The public key is [`docs/release-signing-key.asc`](docs/release-signing-key.asc). It is not on a
+The public key is [`docs/signing-key.asc`](docs/signing-key.asc). It is not on a
 keyserver. A key that does not have this fingerprint did not sign a release of this project; if you
 are shown one that claims to, report it as above. If the key is ever revoked or replaced, this
 section says so and gives the new fingerprint.

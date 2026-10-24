@@ -161,7 +161,7 @@ what to do instead of an `#ifdef`, and how to add a platform.
 
 ## Releases
 
-A release is cut by the maintainer from a `release/*` branch, following
+A release is cut by the maintainer by tagging `develop`, following
 [docs/releasing.md](docs/releasing.md); the release workflow builds, tests,
 packages, signs and drafts it. The packages and how to check them are described
 in [docs/verifying-releases.md](docs/verifying-releases.md).
