@@ -11,7 +11,7 @@
 mkdocs>=1.6,<2
 mkdocs-material>=9.5,<10
 # mkdocs.yml names pymdownx.slugs.slugify directly, so it is listed here and not left to Material.
-pymdown-extensions>=10.2
+pymdown-extensions>=12.3
 # certifi before 2026.10.19 bundles emSign root CAs with compromised intermediate CA keys
 # (GHSA-6q48-6c7w-9gw2, critical, published 2026-10-20); it comes in through requests, which mkdocs uses.
 certifi>=2026.10.19
