@@ -52,7 +52,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-    uses: iainchesworthlabs/icl-common-infra/.github/workflows/policy.yml@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+    uses: iainchesworthlabs/icl-common-infra/.github/workflows/policy.yml@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
   # What the change touches, and which legs to build.
   plan:
@@ -75,7 +75,7 @@ jobs:
           persist-credentials: false
 
       - name: Check out the shared scripts
-        uses: iainchesworthlabs/icl-common-infra/actions/checkout-infra@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/checkout-infra@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Check the vendored CMake modules
         run: python3 tools/ci/sync_cmake.py --check --infra .icl-infra
@@ -257,27 +257,27 @@ jobs:
 
       - name: Install GCC
         if: matrix.compiler == 'gcc' || matrix.compiler == 'clang'
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
         with:
           export-compiler: ${{ matrix.compiler == 'gcc' }}
 
       - name: Install Clang
         if: matrix.compiler == 'clang'
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-llvm@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-llvm@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       # Ninja needs cl.exe on PATH; the preset does not set up the Visual Studio environment itself.
       - name: Load the MSVC environment
         if: matrix.compiler == 'msvc'
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-msvc-env@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-msvc-env@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Set up CMake
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Set up ccache
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-ccache@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-ccache@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
         with:
           key: ${{ matrix.id }}
 
@@ -358,7 +358,7 @@ jobs:
       - name: Save the vcpkg caches
         if: always()
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
   # Replays the fuzzers' seed corpus and the inputs that once crashed them (libs/<lib>/fuzz/corpus and
   # regressions, docs/fuzzing.md): the parsers do not crash on any of them. A few seconds once built.
@@ -379,18 +379,18 @@ jobs:
           persist-credentials: false
 
       - name: Install GCC
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
         with:
           export-compiler: "false"
 
       - name: Install Clang
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-llvm@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-llvm@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Set up CMake
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Configure
         run: cmake --preset linux-fuzz
@@ -404,7 +404,7 @@ jobs:
       - name: Save the vcpkg caches
         if: always()
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
   # The micro-benchmarks (libs/*/bench, docs/performance.md) against perf-budget.json. Full tier only: it
   # needs a quiet runner, and the numbers are those of one runner class (ubuntu-26.04).
@@ -425,13 +425,13 @@ jobs:
           persist-credentials: false
 
       - name: Install GCC
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Set up CMake
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Configure and build
         run: |
@@ -458,7 +458,7 @@ jobs:
       - name: Save the vcpkg caches
         if: always()
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@6471335c6f49bfa69dbd5508da84478187d5952e # v0.1.7
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
   # Line and branch coverage of the portable code (the libraries, the platform interfaces, the media
   # tree, the samples, the runner and the payload writer), gated at the project minimum: 90% of lines
@@ -486,13 +486,13 @@ jobs:
           persist-credentials: false
 
       - name: Install GCC
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Set up CMake
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
@@ -576,14 +576,14 @@ jobs:
       - name: Save the vcpkg caches
         if: always()
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
   zizmor:
     name: Workflow analysis
     permissions:
       contents: read
       security-events: write
-    uses: iainchesworthlabs/icl-common-infra/.github/workflows/zizmor.yml@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+    uses: iainchesworthlabs/icl-common-infra/.github/workflows/zizmor.yml@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
   dependency-scan:
     name: Scan dependency diff
@@ -600,7 +600,7 @@ jobs:
           persist-credentials: false
       - name: Dependency review
         if: github.event_name == 'pull_request'
-        uses: iainchesworthlabs/icl-common-infra/actions/dependency-review@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/dependency-review@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
   # The one required check besides the dependency scan. It fails when a job failed, was cancelled,
   # or was skipped although the plan asked for it. The RTOS simulators below are not in `needs`:
@@ -615,7 +615,7 @@ jobs:
       contents: read
     steps:
       - name: Aggregate
-        uses: iainchesworthlabs/icl-common-infra/actions/ci-status@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/ci-status@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
         with:
           needs: ${{ toJSON(needs) }}
           expected: >-
@@ -662,7 +662,7 @@ jobs:
           sudo apt-get install --yes --no-install-recommends device-tree-compiler gperf
 
       - name: Set up CMake
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
@@ -733,7 +733,7 @@ jobs:
           sudo apt-get install --yes --no-install-recommends device-tree-compiler gperf qemu-system-arm
 
       - name: Set up CMake
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
@@ -811,7 +811,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up CMake
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Show the toolchain
         run: |

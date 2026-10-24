@@ -100,7 +100,7 @@ jobs:
 
       - name: Check the release has notes
         if: github.ref_type == 'tag'
-        uses: iainchesworthlabs/icl-common-infra/actions/release-notes@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/release-notes@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
         with:
           version: ${{ steps.info.outputs.version }}
           prerelease: ${{ steps.info.outputs.prerelease }}
@@ -146,7 +146,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -215,7 +215,7 @@ jobs:
       - name: Sign the Windows programs
         id: sign
         if: runner.os == 'Windows'
-        uses: iainchesworthlabs/icl-common-infra/actions/sign-windows@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/sign-windows@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
         with:
           mode: ${{ vars.SIGN_WINDOWS || 'false' }}
           files: ${{ steps.programs.outputs.files }}
@@ -284,7 +284,7 @@ jobs:
       - name: Save the vcpkg caches
         if: ${{ always() }}
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
 
   # The software bill of materials (SPDX and CycloneDX, checked against their schemas), and the
   # directory of files that is signed and published.
@@ -392,7 +392,7 @@ jobs:
       contents: write
       id-token: write
       attestations: write
-    uses: iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml@589f0510bb42b9a68995197108e861b23f59e68e # v0.1.10
+    uses: iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml@320b0f8af8036ac854a5f33a5ee9df96b164b866 # v0.1.11
     with:
       generate-sbom: false
       public-key: docs/signing-key.asc
