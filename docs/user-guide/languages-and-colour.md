@@ -5,9 +5,9 @@
 All three programs can change language: the loader in **Preferences > Language**, the generator
 and the mock target in the language box in their header, beside About. The list has eight: English,
 French (Français), Spanish (Español), German (Deutsch), Yiddish (ייִדיש), Hebrew (עברית), Simplified
-Chinese (中文) and Japanese (日本語). The choice applies to the open window at once and is
+Chinese (简体中文) and Japanese (日本語). The choice applies to the open window at once and is
 remembered (by each program for itself). On the first start the loader uses the system's language if it is one of these,
-otherwise English.
+otherwise English (a system set to Traditional Chinese starts in English, since the Chinese here is simplified).
 
 **What is and is not translated.** Every piece of text in the three programs is translated into
 the seven languages, but the translations are a **machine-drafted first version that no native

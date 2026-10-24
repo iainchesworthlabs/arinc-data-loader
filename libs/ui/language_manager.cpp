@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/ui/language_manager.hpp"
 
+#include "adl/ui/language_codes.hpp"
+
 #include <QFont>
 #include <QFontDatabase>
 #include <QLibraryInfo>
@@ -44,7 +46,7 @@ constexpr std::array<LanguageInfo, 8> kLanguages{{
     {"de", "Deutsch", kLatinFamily},
     {"yi", "ייִדיש", kHebrewFamily},
     {"he", "עברית", kHebrewFamily},
-    {"zh", "中文", kLatinFamily},
+    {"zh_CN", "简体中文", kLatinFamily},
     {"ja", "日本語", kLatinFamily},
 }};
 
@@ -63,7 +65,7 @@ constexpr QLatin1StringView kSettingsKey{"language/code"};
 // Maps a system locale to one of kLanguages, or "en" when there is no catalogue for it.
 [[nodiscard]] QString language_for_locale(const QLocale& locale)
 {
-    const QString name = QLocale::languageToCode(locale.language());
+    const QString name = language_code_for_locale(locale);
     return is_supported(name) ? name : QStringLiteral("en");
 }
 
@@ -77,7 +79,8 @@ LanguageManager::LanguageManager(QGuiApplication& app, QQmlEngine& engine, QStri
 void LanguageManager::applyInitialLanguage()
 {
     const QSettings settings;
-    const QString saved = settings.value(kSettingsKey).toString();
+    // A preference saved by release 0.1.0 may say "zh" for Simplified Chinese.
+    const QString saved = canonical_language_code(settings.value(kSettingsKey).toString());
     const QString initial = is_supported(saved) ? saved : language_for_locale(QLocale::system());
 
     installTranslators(initial);

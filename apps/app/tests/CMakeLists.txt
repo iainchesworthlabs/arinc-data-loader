@@ -24,7 +24,9 @@ add_executable(adl_app_tests
     test_classes.hpp
     upload_fixture.hpp
     window_state_test.cpp
-    "${PROJECT_SOURCE_DIR}/libs/ui/window_state.cpp")
+    language_codes_test.cpp
+    "${PROJECT_SOURCE_DIR}/libs/ui/window_state.cpp"
+    "${PROJECT_SOURCE_DIR}/libs/ui/language_codes.cpp")
 
 target_include_directories(adl_app_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"

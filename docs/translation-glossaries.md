@@ -267,7 +267,7 @@ is הפסק וסגור), and "Cancel" is ביטול.
 | engine | מאָטאָר |
 | time-out | טײַמאַוט |
 
-## Simplified Chinese (`zh`)
+## Simplified Chinese (`zh_CN`)
 
 | English | Simplified Chinese |
 | --- | --- |

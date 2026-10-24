@@ -421,7 +421,7 @@ int main(int argc, char* argv[])
         return 1;
     }
     for (const QString& code : {QStringLiteral("en"), QStringLiteral("fr"), QStringLiteral("es"), QStringLiteral("de"),
-                                QStringLiteral("zh"), QStringLiteral("ja")})
+                                QStringLiteral("zh_CN"), QStringLiteral("ja")})
     {
         if (QLocale(code).textDirection() != Qt::LeftToRight)
         {
@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
     // follows the script (right to left for Hebrew and Yiddish), and the text really changes -
     // which also proves the .qm resource was found and installed.
     for (const QString& code : {QStringLiteral("fr"), QStringLiteral("es"), QStringLiteral("de"), QStringLiteral("yi"),
-                                QStringLiteral("he"), QStringLiteral("zh"), QStringLiteral("ja")})
+                                QStringLiteral("he"), QStringLiteral("zh_CN"), QStringLiteral("ja")})
     {
         if (!language_manager.setLanguage(code))
         {

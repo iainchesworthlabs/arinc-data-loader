@@ -3,6 +3,18 @@
 
 #include <QObject>
 
+// The language codes: what a saved preference or a system locale selects.
+class LanguageCodesTest : public QObject
+{
+    Q_OBJECT
+
+private Q_SLOTS:
+    void a_preference_saved_by_0_1_0_for_chinese_selects_simplified_chinese();
+    void other_codes_are_left_as_they_are();
+    void a_locale_selects_its_language();
+    void chinese_is_simplified_chinese_only_in_the_simplified_script();
+};
+
 // Plain functions of the application's core.
 class AddressTest : public QObject
 {
