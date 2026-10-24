@@ -80,7 +80,6 @@ The workflow stops, and says why, when:
 | the tag is `vMAJOR.MINOR.PATCH[-suffix]` and the commit is on `develop` | the packages and the programs must say what the tag says |
 | `CMakeLists.txt` and `vcpkg.json` carry the version before the suffix | they are changed together |
 | `CHANGELOG.md` has a `## [x.y.z]` section (a pre-release may use the fragments still in `changelog.d`) | the release has notes |
-| `SIGN_WINDOWS` is `test` for a final release | test-signed files go to pre-releases only |
 
 ## Cutting a release
 
@@ -156,7 +155,7 @@ workflow signs the four programs in place before CPack packs them:
 - `test`: signed with the organisation's test certificate (`WIN_TESTSIGN_PFX_BASE64` and
   `WIN_TESTSIGN_PFX_PASSWORD`); the package is `...-testsigned.zip`. Windows trusts it only on a machine
   that has installed the test CA ([the test-signing page of `icl-common-infra`](https://github.com/iainchesworthlabs/icl-common-infra/blob/develop/docs/test-signing.md)).
-  A final release refuses it.
+  This project keeps `test` for final releases too, until a production certificate exists.
 - `production`: not set up; the run fails until a signing service is chosen.
 
 ## What the workflow trusts, and what it does not

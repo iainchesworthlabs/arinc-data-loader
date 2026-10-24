@@ -87,11 +87,6 @@ jobs:
           fi
           prerelease=false
           if [[ "$version" == *-* ]]; then prerelease=true; fi
-          # Test-signed files are for pre-releases and workflow artifacts only (standard D17).
-          if [ -n "$TAG" ] && [ "$prerelease" = false ] && [ "$SIGN_WINDOWS" = test ]; then
-            echo "::error::SIGN_WINDOWS is 'test', which a final release must not carry. Set it to 'false' or 'production' first."
-            exit 1
-          fi
           {
             echo "version=$version"
             echo "tag=$TAG"
