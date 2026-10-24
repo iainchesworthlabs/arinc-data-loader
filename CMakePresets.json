@@ -366,6 +366,20 @@
       }
     },
     {
+      "name": "linux-perf",
+      "displayName": "Linux (Release, micro-benchmarks)",
+      "description": "Builds the libraries and the Catch2 benchmarks only; ctest --preset linux-perf runs them and writes build/linux-perf/perf/*.xml for tools/ci/perf_compare.py",
+      "inherits": [
+        "linux-base",
+        "release"
+      ],
+      "cacheVariables": {
+        "ADL_BUILD_BENCHMARKS": "ON",
+        "ADL_BUILD_TESTS": "OFF",
+        "ADL_BUILD_APP": "OFF"
+      }
+    },
+    {
       "name": "macos-release",
       "displayName": "macOS (Release)",
       "inherits": [
@@ -408,7 +422,8 @@
     { "name": "linux-coverage", "configurePreset": "linux-coverage" },
     { "name": "macos-release", "configurePreset": "macos-release" },
     { "name": "windows-msvc-asan", "configurePreset": "windows-msvc-asan" },
-    { "name": "linux-fuzz", "configurePreset": "linux-fuzz" }
+    { "name": "linux-fuzz", "configurePreset": "linux-fuzz" },
+    { "name": "linux-perf", "configurePreset": "linux-perf" }
   ],
   "testPresets": [
     {
@@ -452,6 +467,7 @@
     { "name": "linux-coverage", "configurePreset": "linux-coverage", "inherits": ["base"] },
     { "name": "macos-release", "configurePreset": "macos-release", "inherits": ["base"] },
     { "name": "windows-msvc-asan", "configurePreset": "windows-msvc-asan", "inherits": ["base"] },
-    { "name": "linux-fuzz", "configurePreset": "linux-fuzz", "inherits": ["base"], "filter": { "include": { "label": "fuzz" } } }
+    { "name": "linux-fuzz", "configurePreset": "linux-fuzz", "inherits": ["base"], "filter": { "include": { "label": "fuzz" } } },
+    { "name": "linux-perf", "configurePreset": "linux-perf", "inherits": ["base"], "filter": { "include": { "label": "perf" } } }
   ]
 }

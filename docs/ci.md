@@ -184,6 +184,7 @@ find is therefore found once, on the merged tree, and not on every pull request.
 | `macOS (AppleClang, Release)` | macos-26 (Apple silicon) | Preset `macos-release`: AppleClang from Xcode builds warning-free and all of ctest passes. |
 | `Windows (MSVC, Release)` | windows-2025-vs2026 | Preset `windows-msvc-release` builds warning-free (`/W4 /WX`) and all of ctest passes. |
 | `Windows (MSVC, ASan)` | windows-2025-vs2026 | Preset `windows-msvc-asan`: the same under AddressSanitizer. |
+| `Benchmarks (Linux, GCC)` | ubuntu-26.04 | Preset `linux-perf`: the micro-benchmarks of the check values, the header file, the media set and the TFTP packets run, and none is over its limit in `perf-budget.json` ([Performance](performance.md)); the budget reports and does not fail until it has been filled in from this runner. Full tier. |
 | `Fuzz regression (Linux, Clang)` | ubuntu-26.04 | Preset `linux-fuzz` builds the libFuzzer harnesses with Clang 23, and every seed input and every past crash replays without a finding ([Fuzzing](fuzzing.md)). **Fast.** |
 | `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the ARINC 665 and 615A libraries, the second TFTP implementation, the runner, the media tree, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. A **second pass** measures the applications' window-free logic (`apps/app/core`, `apps/mock_target/core`, `apps/media_gen/core`, Qt's generated files left out) at a lower floor, set a little under what the suite measures ([testing](testing.md#coverage)), and fails when it measures too little; the job therefore installs the Qt kit and configures with `-DADL_BUILD_APP=ON`. The windows' QML cannot be measured and is covered by the UI suite on the build legs. **Fast.** |
 | `Workflow analysis` | ubuntu-24.04 | `zizmor` finds nothing in the workflows. |
@@ -299,7 +300,7 @@ gh workflow run ci.yml --ref <branch> -f legs=macos
 gh workflow run ci.yml --ref <branch> -f legs=clang-format,linux
 ```
 
-`legs` is comma-separated with no spaces: `clang-format`, `platform-isolation`, `docs`, `fuzz`,
+`legs` is comma-separated with no spaces: `clang-format`, `platform-isolation`, `docs`, `fuzz`, `perf`,
 `windows`, `linux`, `tsan`, `macos`, `coverage`, `zephyr`, `freertos`, or `all` (the default). An unknown name
 fails the run rather than running nothing. A dispatched run reports its aggregator as `dispatch - CI
 Status`, deliberately not the name of the required check: a run that skips legs would otherwise
