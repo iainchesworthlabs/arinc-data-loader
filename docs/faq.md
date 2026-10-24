@@ -36,7 +36,7 @@ The three programs are built for Windows, Linux and macOS with Qt 6.12. Windows 
 
 ### How do I check a download?
 
-Every release carries `SHA256SUMS`, a PGP signature for every file, and a GitHub build-provenance attestation for every file the sums list. Import the project's release key, compare its fingerprint with the one in `SECURITY.md` and in [CI](ci.md#the-release-signing-key) (the key is not on a keyserver), then check the signatures, the SHA-256 sums and the attestation. `tools/release/verify_release.sh` does all three and needs `gpg`, `sha256sum` and `gh`. If a check fails, do not run the file. See [Verifying a release](verifying-releases.md).
+Every release carries `SHA512SUMS`, a PGP signature for every file, and a GitHub build-provenance attestation for every file the sums list. Import the project's release key, compare its fingerprint with the one in `SECURITY.md` and in [Verifying a release](verifying-releases.md#the-release-key) (the key is not on a keyserver), then check the signatures, the SHA-512 sums and the attestation. `tools/release/verify_release.sh` does all three and needs `gpg`, `sha512sum` and `gh`. If a check fails, do not run the file. See [Verifying a release](verifying-releases.md).
 
 ### Why do the loader and the mock target ask the firewall for access, and which ports do they use?
 

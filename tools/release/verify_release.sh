@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Checks a downloaded release the way docs/verifying-releases.md describes: the PGP signatures against
-# the project's release key, the SHA-256 sums, and (with the GitHub CLI) the build-provenance
+# the organisation's release key, the SHA-512 sums, and (with the GitHub CLI) the build-provenance
 # attestation of every file.
 #
 #   tools/release/verify_release.sh <directory> [<public key file>] [--no-attestation]
 #
-# <directory> holds the files of one release as downloaded: the packages, SHA256SUMS, the SBOMs, and a
-# .asc beside each. The public key defaults to docs/release-signing-key.asc beside this script's
+# <directory> holds the files of one release as downloaded: the packages, SHA512SUMS, the SBOMs, and a
+# .asc beside each. The public key defaults to docs/signing-key.asc beside this script's
 # repository; its fingerprint is printed so it can be compared with SECURITY.md by eye. The attestation
 # check needs `gh` and a network; the release workflow runs the same script on what it just produced.
 #
@@ -31,7 +31,7 @@ if [ "${#args[@]}" -lt 1 ]; then
     exit 2
 fi
 directory=${args[0]}
-public_key=${args[1]:-$here/../../docs/release-signing-key.asc}
+public_key=${args[1]:-$here/../../docs/signing-key.asc}
 
 work=$(mktemp -d)
 trap 'GNUPGHOME="$work" gpgconf --kill gpg-agent 2>/dev/null || true; rm -rf "$work"' EXIT
@@ -57,14 +57,14 @@ for signature in *.asc; do
 done
 
 echo "-- checksums"
-if ! sha256sum --check --strict SHA256SUMS; then
+if ! sha512sum --check --strict SHA512SUMS; then
     failed=1
 fi
 # Every file that is not a signature or the sums themselves must be listed in them.
 for file in *; do
-    case "$file" in SHA256SUMS | *.asc) continue ;; esac
-    if ! grep -q -- "  $file\$" SHA256SUMS; then
-        echo "NOT LISTED in SHA256SUMS: $file" >&2
+    case "$file" in SHA512SUMS | *.asc) continue ;; esac
+    if ! grep -q -- "  $file\$" SHA512SUMS; then
+        echo "NOT LISTED in SHA512SUMS: $file" >&2
         failed=1
     fi
 done
@@ -72,9 +72,8 @@ done
 if [ "$attestation" -eq 1 ]; then
     echo "-- build-provenance attestations"
     for file in *; do
-        case "$file" in SHA256SUMS | *.asc) continue ;; esac
-        if gh attestation verify "$file" --repo "$repository" \
-                --signer-workflow "$repository/.github/workflows/release.yml" >/dev/null 2>"$work/attestation.log"; then
+        case "$file" in SHA512SUMS | *.asc) continue ;; esac
+        if gh attestation verify "$file" --repo "$repository" >/dev/null 2>"$work/attestation.log"; then
             echo "attested: $file"
         else
             echo "NOT ATTESTED: $file" >&2

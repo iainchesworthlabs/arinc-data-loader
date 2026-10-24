@@ -34,7 +34,7 @@ work only.
 | `ci.yml` | The gate: Policy, the planner, `clang-format`, `platform-isolation`, the documentation build, the build legs, coverage, workflow analysis, the dependency scan, and the aggregator `CI Status`; the RTOS simulators run beside it ([The jobs](#the-jobs-in-ciyml)) | yes |
 | `docs.yml` | Publishes the documentation site to GitHub Pages when `main` moves ([Documentation site](#documentation-site)) | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
-| `release.yml` | The Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on `release/*` branches and on packaging pull requests ([Releasing](releasing.md)) | yes |
+| `release.yml` | The Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on manual runs and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | The nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
 | `scorecard.yml` | OpenSSF Scorecard score, from the default branch | no - skipped |
 | `dependabot-auto-merge.yml` | Queues Dependabot's minor and patch updates of the Actions and the CI tooling once the checks pass | yes |
@@ -122,7 +122,7 @@ user's guide exist, no PDF, a minimum number of pages). Two workflows use it, so
 `branch-names` ruleset refuses a branch with a name outside its list. The deploying job runs in the
 `github-pages` environment (deployment branches: `main` only) and waits for the repository variable
 `PUBLISH_DOCS` to be `true`, so a repository that has not switched Pages on gets no failed run
-([Releasing](releasing.md#one-time-setup-done-once-per-repository)). Because `main` moves only with a
+([Releasing](releasing.md#setup)). Because `main` moves only with a
 release, the published site is the documentation of the latest release. There is one version of the site;
 old releases' pages are in the tag's tree on GitHub.
 
@@ -135,32 +135,16 @@ which removes hooks and the theme API this configuration uses.
 `release.yml` is described in [Releasing](releasing.md) and checked from the outside by
 [Verifying a release](verifying-releases.md). Where it sits among the others:
 
-- Its first job after *Prepare* is `Docs (strict)` (see above); the builds wait for it.
 - It is not a required check and carries no `merge_group` trigger. On a pull request it runs only
   when the change touches the packaging (`cmake/`, `packaging/`, `libs/platform/*/platform.cmake`,
   `tools/release/`, the Qt installer, the presets or the workflow itself), builds, tests, packages and
   writes the SBOM on the three systems, and has no secrets. It is the only place the Release
   configuration is compiled, and the only place `system.install_consumer` runs, before a release.
-- On a push to `release/*` or a version tag it also signs, attests and verifies. The job that signs runs
-  in the environment `release-signing`, which GitHub gives to those refs only; the job that drafts the
-  release runs in `release`, which waits for the maintainer.
+- On a version tag it also signs, attests and verifies, in the shared `release-publish.yml` of
+  `icl-common-infra`. That job runs in the environment `release`, which waits for the maintainer and
+  holds the signing key.
 - Every action in it is pinned like the others, `permissions: {}` is the workflow's default and each job
-  names what it needs (`id-token` and `attestations` for *Attest*, `contents: write` for *Draft the
-  release*), and nothing in it runs on `pull_request_target`.
-
-### The release signing key
-
-The public key is [`release-signing-key.asc`](release-signing-key.asc). Its fingerprint, also in
-[SECURITY.md](../SECURITY.md) and [Verifying a release](verifying-releases.md), is
-
-```text
-C6B4 AD93 067E B501 F450  5BCF 3FF3 6825 5329 8A53    (Ed25519, expires 2028-10-18)
-```
-
-The private key and its passphrase are the secrets `RELEASE_GPG_PRIVATE_KEY` and
-`RELEASE_GPG_PASSPHRASE` of the environment `release-signing`. `tools/release/sign_release.sh`
-refuses to sign unless the secret holds the key with this fingerprint, and verifies every signature
-against the public key in the repository before the step passes.
+  names what it needs, and nothing in it runs on `pull_request_target`.
 
 ## The jobs in `ci.yml`
 
@@ -325,7 +309,7 @@ that is why `codeql.yml` and `static-analysis.yml` do not have it.
 A pull request that changes what a user sees adds `changelog.d/<name>.<category>.md`
 ([changelog.d/README.md](../changelog.d/README.md)); the `no-changelog` label skips the check. The
 Policy job runs the check, and a malformed fragment fails even with the label. Pull requests from
-`release/*` and `dependabot/*` branches are not checked. A release assembles the fragments into
+`dependabot/*` branches are not checked. A release assembles the fragments into
 `CHANGELOG.md` ([Releasing](releasing.md)).
 
 ## The vcpkg checkout and its caches
