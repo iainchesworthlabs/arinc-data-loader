@@ -15,6 +15,9 @@
 # ---------------------------------------------------------------------------
 
 option(ADL_ENABLE_FUZZING "Build the libFuzzer harnesses (Clang only) and instrument the libraries for them" OFF)
+# The sanitizers the harnesses are built with. ClusterFuzzLite builds one sanitizer per run and passes
+# it in CFLAGS (.clusterfuzzlite/build.sh), so it sets this empty.
+set(ADL_FUZZING_SANITIZERS "address,undefined" CACHE STRING "Comma-separated -fsanitize= list for the libFuzzer harnesses; empty adds none")
 
 if(ADL_ENABLE_FUZZING)
     if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR MSVC)
@@ -26,13 +29,18 @@ if(ADL_ENABLE_FUZZING)
         endif()
     endforeach()
     unset(_adl_other)
+    set(_adl_fuzz_compile fuzzer-no-link)
+    if(ADL_FUZZING_SANITIZERS)
+        string(APPEND _adl_fuzz_compile ",${ADL_FUZZING_SANITIZERS}")
+        add_link_options(-fsanitize=${ADL_FUZZING_SANITIZERS})
+    endif()
     add_compile_options(
-        -fsanitize=fuzzer-no-link,address,undefined
+        -fsanitize=${_adl_fuzz_compile}
         -fno-sanitize-recover=all
         -fno-omit-frame-pointer
         -O1)
-    add_link_options(-fsanitize=address,undefined)
-    message(STATUS "Fuzzing enabled: libFuzzer harnesses with AddressSanitizer and UBSan")
+    unset(_adl_fuzz_compile)
+    message(STATUS "Fuzzing enabled: libFuzzer harnesses with sanitizers '${ADL_FUZZING_SANITIZERS}'")
 endif()
 
 function(adl_add_fuzz_target name library)

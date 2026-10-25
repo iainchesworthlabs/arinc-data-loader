@@ -6,6 +6,7 @@ version: 2
 #                    major update is its own PR and waits for a human.
 #   pip              weekly. The pinned CI tooling (clang-format, gcovr,
 #                    clang-tidy) in .github/requirements.
+#   docker           weekly. The digest of the ClusterFuzzLite base image in .clusterfuzzlite.
 #   vcpkg            monthly. The manifest's builtin-baseline. The baseline must
 #                    name a commit that exists in the labs' vcpkg fork
 #                    (iainchesworthlabs/vcpkg), which the fork's nightly sync
@@ -76,6 +77,16 @@ updates:
     target-branch: "develop"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
+    rebase-strategy: "disabled"
+
+  # The image ClusterFuzzLite builds the fuzzers in, pinned by digest.
+  - package-ecosystem: "docker"
+    directory: "/.clusterfuzzlite"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
     cooldown:
       default-days: 7
     rebase-strategy: "disabled"

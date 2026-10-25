@@ -55,5 +55,20 @@ corpus is meant to stay small and readable.
   Actions cache; they are not committed. A crash fails the run, uploads the input as the `fuzz-crashes`
   artifact, and on the nightly run opens or updates one `nightly-analysis` issue.
 
+- `clusterfuzzlite.yml` runs [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) on a ready pull
+  request that changes `libs/`, `cmake/` or the files in `.clusterfuzzlite/`: it builds the harnesses with
+  AddressSanitizer and fuzzes them for ten minutes between them. It is not a required check. The build is
+  `.clusterfuzzlite/build.sh` in the image of `.clusterfuzzlite/Dockerfile` (the OSS-Fuzz base builder,
+  pinned by digest and moved by Dependabot; its Clang is older than the one the `linux-fuzz` preset uses).
+  ClusterFuzzLite chooses the sanitizer and passes it in `CFLAGS`, so the build sets
+  `ADL_FUZZING_SANITIZERS` empty. To try it before a push, build the image from a clean copy of the
+  tracked files and run `compile` in it (`build/` would otherwise be sent to Docker too):
+
+  ```sh
+  docker build -t adl-cflite -f .clusterfuzzlite/Dockerfile .
+  docker run --rm -e SANITIZER=address -e FUZZING_ENGINE=libfuzzer -e ARCHITECTURE=x86_64 \
+      -e FUZZING_LANGUAGE=c++ -v "$PWD/out:/out" -v "$PWD/work:/work" adl-cflite compile
+  ```
+
 Fuzzing is separate from the sanitizer and Tracy builds: libFuzzer brings its own AddressSanitizer
 runtime, so `ADL_ENABLE_FUZZING` cannot be combined with `ICL_SANITIZERS`, Tracy or coverage.
