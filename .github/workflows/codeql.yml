@@ -1,13 +1,27 @@
 name: CodeQL
 
-# Code scanning by the shared workflow of icl-common-infra, nightly and on demand. It has no pull
-# request trigger, so an alert is triaged under Security > Code scanning and never blocks a merge,
-# and no merge_group trigger, so a queue entry does not spend a CodeQL build. A failed analysis opens or
-# updates the nightly-analysis issue. The C++ build is the lean one of the `linux-codeql` preset (the
-# libraries and the platform layer; docs/static-analysis.md). The rest of the nightly suite is
+# Code scanning by the shared workflow of icl-common-infra, nightly, on demand and on a ready pull
+# request that changes what it scans. It is not a required check, so an alert is triaged under
+# Security > Code scanning and never blocks a merge, and it has no merge_group trigger, so a queue
+# entry does not spend a CodeQL build. A failed nightly analysis opens or updates the
+# nightly-analysis issue. The C++ build is the lean one of the `linux-codeql` preset (the libraries
+# and the platform layer; docs/static-analysis.md). The rest of the nightly suite is
 # static-analysis.yml.
 
 on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/actions/**"
+      - ".github/workflows/**"
+      - "CMakeLists.txt"
+      - "CMakePresets.json"
+      - "apps/**"
+      - "cmake/**"
+      - "libs/**"
+      - "tools/**"
+      - "vcpkg.json"
   schedule:
     # 13:17 UTC, the same night as static-analysis.yml. GitHub's cron is UTC.
     - cron: "17 13 * * *"
@@ -15,9 +29,17 @@ on:
 
 permissions: {}
 
+# A newer push to a pull request supersedes the older analysis; a nightly or manual run is never
+# cancelled by a pull request.
+concurrency:
+  group: codeql-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   codeql:
     name: CodeQL
+    # Dependabot's pull requests get a read-only token, which cannot upload the results.
+    if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && github.actor != 'dependabot[bot]')
     permissions:
       security-events: write
       contents: read
