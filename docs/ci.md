@@ -35,7 +35,7 @@ work only.
 | `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
 | `clusterfuzzlite.yml` | Fuzzes the code a pull request changes for ten minutes with ClusterFuzzLite; not a required check ([Fuzzing](fuzzing.md#in-ci)) | yes |
 | `docs.yml` | Publishes the documentation site to GitHub Pages when `main` moves ([Documentation site](#documentation-site)) | yes |
-| `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
+| `codeql.yml` | CodeQL static analysis of the C++, Python and workflows, nightly and on a ready pull request that changes them; not a required check | no - skipped |
 | `release.yml` | The Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on manual runs and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | The nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
 | `scorecard.yml` | OpenSSF Scorecard score, from the default branch | no - skipped |
@@ -63,7 +63,7 @@ same holds for everything GitHub reads only from the default branch: Dependabot
 private-reporting link.
 
 `static-analysis.yml` and `codeql.yml` run on a nightly schedule, not on a
-push or a pull request. They are not required checks: a red night is read in
+push; `codeql.yml` also runs on a ready pull request that changes the code it scans. Neither is a required check: a red night is read in
 the morning, and a merge is not held for an analyzer. The jobs are clang-tidy
 over the libraries (`libs/` and `apps/`), MSVC Code Analysis over the libraries, tests and
 Qt applications, a Clang ASan/UBSan build and test run, CodeQL's C++ queries,
@@ -306,7 +306,7 @@ filters on paths.
 `ci.yml` also triggers on `merge_group`, because the queue evaluates the checks on its temporary
 `gh-readonly-queue/...` ref and GitHub only runs workflows that opt in there. A workflow that produces
 **no** required check must not carry `merge_group`, or every queue entry burns a run of it for nothing:
-that is why `codeql.yml` and `static-analysis.yml` do not have it.
+that is why `codeql.yml` (which has a `pull_request` trigger but no required check) and `static-analysis.yml` do not have it.
 
 ## The changelog fragment
 

@@ -107,8 +107,11 @@ CodeQL runs through the shared workflow of `icl-common-infra` for C++, Python an
 workflows. The C++ build is the lean `linux-codeql` preset: the libraries and the platform layer, with
 no tests, no applications, no sanitizers and no module scanning. CodeQL traces the compiler itself, and
 its build tracer sets an `LD_PRELOAD` that collides with ASan. Results are triaged in the repository's
-code-scanning alerts. It is not a required check, and it does not run on pull requests: a nightly alert
-is triaged, not merged. A failed analysis opens or updates the `nightly-analysis` issue.
+code-scanning alerts. It is not a required check: an alert is triaged, not merged. It runs nightly and on a
+ready pull request that changes `libs/`, `apps/`, `cmake/`, `tools/`, the CMake files or the workflows
+(not on Dependabot's pull requests, whose token cannot upload results), so that the OpenSSF Scorecard SAST
+check sees an analysis on each change. A failed nightly analysis opens or updates the `nightly-analysis`
+issue; a failed analysis on a pull request does not.
 
 ### SonarQube (optional)
 
