@@ -1,0 +1,59 @@
+name: ClusterFuzzLite
+
+# Fuzzes the code a pull request changes with ClusterFuzzLite (docs/fuzzing.md). It builds the same
+# libFuzzer harnesses as the `linux-fuzz` preset, in the image of .clusterfuzzlite/Dockerfile, and runs
+# them for ten minutes between them. A crash fails the run and the report names the input. This is an
+# addition to fuzz.yml, which keeps the corpus between runs and fuzzes after the merge, and it is not
+# one of the required checks: the gate replays the seeds and the past crashes (`Fuzz regression` in
+# ci.yml). The fix for a finding adds the input to libs/<lib>/fuzz/regressions/<target>/.
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".clusterfuzzlite/**"
+      - ".github/workflows/clusterfuzzlite.yml"
+      - "CMakeLists.txt"
+      - "cmake/**"
+      - "libs/**"
+  workflow_dispatch:
+
+concurrency:
+  group: clusterfuzzlite-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  fuzz:
+    name: ClusterFuzzLite (${{ matrix.sanitizer }})
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [address]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build the fuzzers
+        id: build
+        uses: google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          language: c++
+          sanitizer: ${{ matrix.sanitizer }}
+
+      - name: Run the fuzzers
+        uses: google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fuzz-seconds: 600
+          mode: code-change
+          sanitizer: ${{ matrix.sanitizer }}
+          report-unreproducible-crashes: false

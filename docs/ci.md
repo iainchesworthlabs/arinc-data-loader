@@ -33,13 +33,14 @@ work only.
 | --- | --- | --- |
 | `ci.yml` | The gate: Policy, the planner, `clang-format`, `platform-isolation`, the documentation build, the build legs, coverage, workflow analysis, the dependency scan, and the aggregator `CI Status`; the RTOS simulators run beside it ([The jobs](#the-jobs-in-ciyml)) | yes |
 | `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
+| `clusterfuzzlite.yml` | Fuzzes the code a pull request changes for ten minutes with ClusterFuzzLite; not a required check ([Fuzzing](fuzzing.md#in-ci)) | yes |
 | `docs.yml` | Publishes the documentation site to GitHub Pages when `main` moves ([Documentation site](#documentation-site)) | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, nightly | no - skipped |
 | `release.yml` | The Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on manual runs and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | The nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
 | `scorecard.yml` | OpenSSF Scorecard score, from the default branch | no - skipped |
 | `dependabot-auto-merge.yml` | Queues Dependabot's minor and patch updates of the Actions and the CI tooling once the checks pass | yes |
-| Dependabot (`.github/dependabot.yml`) | Actions pins, the pinned CI tooling, the vcpkg baseline | yes |
+| Dependabot (`.github/dependabot.yml`) | Actions pins, the pinned CI tooling, the ClusterFuzzLite base image, the vcpkg baseline | yes |
 
 Every workflow declares `permissions: {}` at the top and gives each job only what it names; every
 checkout sets `persist-credentials: false`; every third-party action, and every reusable workflow and
