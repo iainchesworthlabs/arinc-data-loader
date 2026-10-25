@@ -27,7 +27,7 @@ jobs:
       runner: '["ubuntu-26.04"]'
       languages: >-
         [
-          {"language": "cpp", "build_mode": "manual", "preset": "linux-codeql", "vcpkg": false},
+          {"language": "cpp", "build_mode": "manual", "preset": "linux-codeql", "vcpkg": true},
           {"language": "python", "build_mode": "none"},
           {"language": "actions", "build_mode": "none"}
         ]
