@@ -53,7 +53,9 @@ corpus is meant to stay small and readable.
 - `fuzz.yml` fuzzes each target for 60 seconds on every push to `develop` (one run at a time, with at
   most one waiting), and for ten minutes each night. The inputs it finds are kept between runs in the
   Actions cache; they are not committed. A crash fails the run, uploads the input as the `fuzz-crashes`
-  artifact, and on the nightly run opens or updates one `nightly-analysis` issue.
+  artifact, and on the nightly run opens or updates one `nightly-analysis` issue. The nightly run takes about
+  three hours (every target in turn, ten minutes each); the job's limit is 210 minutes, and a run that
+  hits it is reported in the same issue.
 
 - `clusterfuzzlite.yml` runs [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) on a ready pull
   request that changes `libs/`, `cmake/` or the files in `.clusterfuzzlite/`: it builds the harnesses with
