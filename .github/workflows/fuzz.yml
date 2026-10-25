@@ -34,7 +34,9 @@ jobs:
   fuzz:
     name: Fuzz (Linux, Clang)
     runs-on: ubuntu-26.04
-    timeout-minutes: 120
+    # The nightly run fuzzes every target (16 of them) for ten minutes one after the other: 160 minutes,
+    # plus the build and the cache. Raise this with the number of targets.
+    timeout-minutes: 210
     permissions:
       contents: read
       issues: write
@@ -112,12 +114,13 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
+      # A run that hits the time limit is cancelled, not failed, and would otherwise pass unnoticed.
       - name: Report the failure
-        if: failure() && github.event_name == 'schedule'
+        if: (failure() || cancelled()) && github.event_name == 'schedule'
         uses: iainchesworthlabs/icl-common-infra/actions/report-nightly-failure@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
         with:
           engine: libFuzzer
-          detail: A fuzz target crashed or the run failed. The crashing input is in the fuzz-crashes artifact of the run; add it to libs/<lib>/fuzz/regressions/<target>/ in the fix.
+          detail: A fuzz target crashed, or the run failed or ran out of time. A crashing input is in the fuzz-crashes artifact of the run; add it to libs/<lib>/fuzz/regressions/<target>/ in the fix. For a timeout, see timeout-minutes in fuzz.yml.
 
       - name: Save the vcpkg caches
         if: always()
