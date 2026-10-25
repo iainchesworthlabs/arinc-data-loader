@@ -45,7 +45,7 @@ SEEDS_615A = [
 def constants(path: Path) -> dict[str, bytes]:
     text = path.read_text(encoding="utf-8")
     found = {}
-    for m in re.finditer(r"inline constexpr std::string_view (\w+)\s*=\s*((?:\s*\"[0-9a-f]*\"\s*)+);", text):
+    for m in re.finditer(r"inline constexpr std::string_view (\w+)\s*=\s*((?:\"[0-9a-f]*\"\s*)+);", text):
         digits = "".join(re.findall(r"\"([0-9a-f]*)\"", m.group(2)))
         found[m.group(1)] = bytes.fromhex(digits)
     return found
