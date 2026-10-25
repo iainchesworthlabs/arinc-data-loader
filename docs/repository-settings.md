@@ -71,7 +71,7 @@ pass. A major update, and every vcpkg baseline update, waits for a person.
 
 ## Other scanners
 
-`scorecard.yml` publishes a score from `main`; it is not a check. CodeQL results appear under
+`scorecard.yml` publishes a score from `develop`, the default branch; it is not a check. CodeQL results appear under
 **Security, Code scanning**. CodeQL runs nightly, with clang-tidy, MSVC Code Analysis, a Clang ASan/UBSan
 build and the optional SonarQube scan ([Nightly static and dynamic analysis](static-analysis.md)). None of
 them is a required check, so none of them carries `merge_group`.

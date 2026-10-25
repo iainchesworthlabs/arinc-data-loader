@@ -1,13 +1,14 @@
 name: OSSF Scorecard
 
-# Supply-chain health score for the published repository, run against 'main'
-# only. Visible-only: the result is a score and a badge, not a pass/fail check.
+# Supply-chain health score for the published repository, run against the
+# default branch (develop) only. Visible-only: the result is a score and a
+# badge, not a pass/fail check.
 #
 # Public-only: Scorecard publishes to a public API and needs a public
 # repository, so the job is skipped - not red - while the repository is
 # private. The result is published only from a run on the default branch, so
-# the first one comes from the first push to main after the repository is made
-# public. branch_protection_rule re-runs the analysis when the rulesets
+# a push to develop starts one, and so does the weekly schedule.
+# branch_protection_rule re-runs the analysis when the rulesets
 # change, so the score follows them.
 #
 # The restrictions the Scorecard API puts on a workflow that publishes are
@@ -24,7 +25,7 @@ name: OSSF Scorecard
 on:
   branch_protection_rule:
   push:
-    branches: [main]
+    branches: [develop]
   schedule:
     - cron: "0 4 * * 1"
   workflow_dispatch:
