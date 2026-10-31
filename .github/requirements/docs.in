@@ -14,4 +14,4 @@ mkdocs-material>=9.5,<10
 pymdown-extensions>=12.3
 # certifi before 2026.10.19 bundles emSign root CAs with compromised intermediate CA keys
 # (GHSA-6q48-6c7w-9gw2, critical, published 2026-10-20); it comes in through requests, which mkdocs uses.
-certifi>=2026.10.19
+certifi>=2026.10.23
