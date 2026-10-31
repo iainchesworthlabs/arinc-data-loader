@@ -48,18 +48,18 @@ jobs:
           persist-credentials: false
 
       - name: Install GCC
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-gcc@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
         with:
           export-compiler: "false"
 
       - name: Install Clang
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-llvm@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-llvm@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
 
       - name: Set up CMake
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-cmake@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
 
       - name: Configure and build
         run: |
@@ -117,7 +117,7 @@ jobs:
       # A run that hits the time limit is cancelled, not failed, and would otherwise pass unnoticed.
       - name: Report the failure
         if: (failure() || cancelled()) && github.event_name == 'schedule'
-        uses: iainchesworthlabs/icl-common-infra/actions/report-nightly-failure@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/report-nightly-failure@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
         with:
           engine: libFuzzer
           detail: A fuzz target crashed, or the run failed or ran out of time. A crashing input is in the fuzz-crashes artifact of the run; add it to libs/<lib>/fuzz/regressions/<target>/ in the fix. For a timeout, see timeout-minutes in fuzz.yml.
@@ -125,4 +125,4 @@ jobs:
       - name: Save the vcpkg caches
         if: always()
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
