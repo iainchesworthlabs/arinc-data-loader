@@ -95,7 +95,7 @@ jobs:
 
       - name: Check the release has notes
         if: github.ref_type == 'tag'
-        uses: iainchesworthlabs/icl-common-infra/actions/release-notes@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/release-notes@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
         with:
           version: ${{ steps.info.outputs.version }}
           prerelease: ${{ steps.info.outputs.prerelease }}
@@ -141,7 +141,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up vcpkg
-        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
 
       - name: Install CMake 4 + Ninja
         uses: lukka/get-cmake@a89e43e22a96abafcd7a62db652a65ecd33052c9 # v4.4.4
@@ -210,7 +210,7 @@ jobs:
       - name: Sign the Windows programs
         id: sign
         if: runner.os == 'Windows'
-        uses: iainchesworthlabs/icl-common-infra/actions/sign-windows@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/sign-windows@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
         with:
           mode: ${{ vars.SIGN_WINDOWS || 'false' }}
           files: ${{ steps.programs.outputs.files }}
@@ -279,7 +279,7 @@ jobs:
       - name: Save the vcpkg caches
         if: ${{ always() }}
         continue-on-error: true
-        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+        uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
 
   # The software bill of materials (SPDX and CycloneDX, checked against their schemas), and the
   # directory of files that is signed and published.
@@ -310,7 +310,7 @@ jobs:
           path: info
 
       - name: Install uv
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
           enable-cache: false
 
@@ -387,7 +387,7 @@ jobs:
       contents: write
       id-token: write
       attestations: write
-    uses: iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml@0077552990ba3d132d2737e80cb2bcd5e1aeee31 # v0.1.12
+    uses: iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml@3e3b4da9b7808f4f0643eecf03134918fb67b082 # v0.1.13
     with:
       generate-sbom: false
       public-key: docs/signing-key.asc
