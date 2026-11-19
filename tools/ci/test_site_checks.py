@@ -336,6 +336,13 @@ class Pages(unittest.TestCase):
         self.put("faq/index.html", front("faq", body='<h1 style="color:red">t</h1>'))
         self.assertIn("style=", self.problems())
 
+    def test_the_company_shell_may_link_to_adl_and_the_page_may_not(self) -> None:
+        shell = '<header class="icl-header icl-header--next"><a href="/adl/">ARINC Data Loader</a></header><main id="main">'
+        self.put("faq/index.html", front("faq").replace('<main id="main">', shell))
+        self.assertEqual(self.problems(), "")
+        self.put("faq/index.html", front("faq", body='<h1>t</h1><a href="/adl/guide/">guide</a>'))
+        self.assertIn("/adl/guide/: write a relative link", self.problems())
+
     def test_a_mailto_link_is_found(self) -> None:
         self.put("faq/index.html", front("faq", body='<h1>t</h1><a href="mailto:someone@example.com">mail</a>'))
         self.assertIn("the owner's address is private", self.problems())

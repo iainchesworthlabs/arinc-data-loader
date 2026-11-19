@@ -153,8 +153,9 @@ from Material and are looked at in the browser.
 `tools/ci/check_site_pages.py` reads the built site. It builds the site itself when it is not given one (`--site <folder>` checks a site that
 is built already). Every page must have a title, one `h1` that is the first heading of its content, headings that do not skip a level, a
 canonical address, an alternative text on every picture, and links that lead to a file of the site and to an anchor that is in it. A link that
-starts with `/` is the company shell's (`/`, `/support/`, `/assets/v1/...`) and is not followed, but none may start with `/adl/`: the pages
-use relative links so that they work under a preview address.
+starts with `/` is the company shell's (`/`, `/support/`, `/assets/v1/...`) and is not followed, but none in a page's own content may start
+with `/adl/`: the pages use relative links so that they work under a preview address. The company header and footer are the kit's, and link to
+`/adl/` as every page of the company site does; the check leaves their links alone.
 
 The front pages (`tools/docs/theme/marketing.html`) are held to more, because a preview blocks every script and the company's contract asks
 for plain pages: `lang="en-AU"`; a description, and a title and description that no other front page has; no `script` except a JSON-LD data

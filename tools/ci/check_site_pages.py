@@ -11,8 +11,10 @@ Every page:
 - has a <title>, exactly one <h1> (the first heading of the main content), headings that do not skip a level, and a canonical address;
 - has an alternative text on every picture;
 - links to a file that exists, with an anchor that exists in it. Links that start with "/" are the company shell's
-  (/, /support/, /assets/v1/...) and are not followed, but none of them may start with /adl/ (the pages must work under a preview
-  address, so the pages of this site use relative links). An absolute link is allowed to GitHub and to gnu.org only on a front page.
+  (/, /support/, /assets/v1/...) and are not followed, but none of the page's own may start with /adl/ (the pages must work under a preview
+  address, so the pages of this site use relative links). The links inside the company header and footer (the kit's, which link to /adl/
+  as every page of the company site does) are not the page's and are not checked. An absolute link is allowed to GitHub and to gnu.org only
+  on a front page.
 
 The front pages (tools/docs/theme/marketing.html), which run under a preview that blocks every script, also have
 

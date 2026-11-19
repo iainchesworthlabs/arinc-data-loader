@@ -39,7 +39,10 @@ class Page(HTMLParser):
         self.lang = ""
         self.canonical = ""
         self.ids: set[str] = set()
-        self.refs: list[tuple[str, str, str]] = []  # (tag, attribute, value)
+        self.refs: list[tuple[str, str, str]] = []  # (tag, attribute, value), outside the company shell
+        # The links of the company shell: the kit's header and footer (<header class="icl-header">, <footer class="icl-footer">).
+        # They are the company site's own links, written root-absolute as the kit asks, and are kept apart from the page's.
+        self.shell_refs: list[tuple[str, str, str]] = []
         self.scripts: list[str] = []  # the type of each <script>
         self.styles = 0
         self.style_attrs = 0
@@ -52,7 +55,7 @@ class Page(HTMLParser):
         self.forms: list[dict] = []  # each: attrs, controls (tag, attrs, options, hidden), links (the hrefs inside the form)
         self.label_for: set[str] = set()  # the ids that a <label for> names
         self._form: dict | None = None
-        self._open: list[tuple[str, bool]] = []  # the open elements: (tag, aria-hidden)
+        self._open: list[tuple[str, bool, bool]] = []  # the open elements: (tag, aria-hidden, part of the company shell)
 
     def handle_starttag(self, tag, attrs):  # noqa: ANN001, ANN201
         a = {k: (v or "") for k, v in attrs}
@@ -89,17 +92,18 @@ class Page(HTMLParser):
         if tag == "link" and a.get("rel") == "canonical":
             self.canonical = a.get("href", "")
             return
+        refs = self.shell_refs if any(shell for _, _, shell in self._open) else self.refs
         for attribute in ("href", "src"):
             if attribute in a:
-                self.refs.append((tag, attribute, a[attribute]))
+                refs.append((tag, attribute, a[attribute]))
         if "srcset" in a:
             for part in a["srcset"].split(","):
                 if part.strip():
-                    self.refs.append((tag, "srcset", part.split()[0]))
+                    refs.append((tag, "srcset", part.split()[0]))
 
     def _form_start(self, tag: str, a: dict[str, str]) -> None:
         """Forms, their controls and their labels. An element hidden with aria-hidden hides what is inside it."""
-        hidden = any(h for _, h in self._open) or a.get("aria-hidden") == "true"
+        hidden = any(h for _, h, _ in self._open) or a.get("aria-hidden") == "true"
         if tag == "form":
             self._form = {"attrs": a, "controls": [], "links": []}
             self.forms.append(self._form)
@@ -112,12 +116,14 @@ class Page(HTMLParser):
         elif tag == "label" and "for" in a:
             self.label_for.add(a["for"])
         if tag not in VOID:
-            self._open.append((tag, a.get("aria-hidden") == "true"))
+            classes = a.get("class", "").split()
+            shell = (tag == "header" and "icl-header" in classes) or (tag == "footer" and "icl-footer" in classes)
+            self._open.append((tag, a.get("aria-hidden") == "true", shell))
 
     def handle_endtag(self, tag):  # noqa: ANN001, ANN201
         if tag == "form":
             self._form = None
-        while self._open and self._open[-1][0] != tag and any(t == tag for t, _ in self._open):
+        while self._open and self._open[-1][0] != tag and any(t == tag for t, _, _ in self._open):
             self._open.pop()  # an element whose end tag is optional (p, li, option) was left open
         if self._open and self._open[-1][0] == tag:
             self._open.pop()
