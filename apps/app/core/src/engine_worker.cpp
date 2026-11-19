@@ -332,73 +332,15 @@ private:
 
 } // namespace
 
-void OperationGate::post_selection(QStringList names) noexcept
+void OperationGate::post_selection(const QStringList& names) noexcept
 {
-    std::lock_guard lock(selection_mutex_);
-    selection_ = std::move(names);
-    selection_ready_.store(true, std::memory_order_release);
-}
-
-void OperationGate::clear() noexcept
-{
-    abort_requested_.store(false, std::memory_order_release);
-    selection_ready_.store(false, std::memory_order_release);
-    std::lock_guard lock(selection_mutex_);
-    selection_.clear();
-    // The runner's thread is idle when clear() runs: the flags of the last job are reset here,
-    // never while one is running.
-    abort_issued_ = false;
-    selection_issued_ = false;
-}
-
-QStringList OperationGate::take_selection() noexcept
-{
-    std::lock_guard lock(selection_mutex_);
-    QStringList choice = std::move(selection_);
-    selection_.clear();
-    return choice;
-}
-
-void OperationGate::on_poll(adl::arinc615a::DataLoader& loader, adl::arinc615a::Instant now) noexcept
-{
-    if (abort_requested() && !abort_issued_ && !loader.done())
+    std::vector<std::string> choice;
+    choice.reserve(static_cast<std::size_t>(names.size()));
+    for (const QString& name : names)
     {
-        abort_issued_ = true;
-        loader.abort(now, adl::arinc615a::StatusCode::aborted_by_operator);
-        return;
+        choice.push_back(name.toStdString());
     }
-    if (selection_posted() && !selection_issued_ && !loader.done())
-    {
-        selection_issued_ = true;
-        const QStringList choice = take_selection();
-        if (choice.isEmpty())
-        {
-            // "None": what a listener answering the target's list with
-            // SelectionDecision::cancelled would do. The target's next status file confirms
-            // the abort, as for the operator's own Abort.
-            loader.abort(now, adl::arinc615a::StatusCode::aborted_by_operator);
-            return;
-        }
-        std::vector<std::string> names;
-        names.reserve(static_cast<std::size_t>(choice.size()));
-        for (const QString& name : choice)
-        {
-            names.push_back(name.toStdString());
-        }
-        std::vector<std::string_view> views;
-        views.reserve(names.size());
-        for (const std::string& name : names)
-        {
-            views.push_back(name);
-        }
-        if (!loader.provide_selection(now, views) && !loader.done())
-        {
-            // The loader is not waiting for a choice (the target's list has not arrived): the
-            // choice is not lost, it is offered again at the next poll.
-            post_selection(choice);
-            selection_issued_ = false;
-        }
-    }
+    adl::loader_core::OperationGate::post_selection(std::move(choice));
 }
 
 EngineWorker::EngineWorker(HostFactory host_factory, QObject* parent)

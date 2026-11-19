@@ -118,6 +118,7 @@ target_link_libraries(adl_sim_target
 add_executable(adl_loader_core_tests
     loader_core/address_test.cpp
     loader_core/download_directory_test.cpp
+    loader_core/gate_test.cpp
     loader_core/media_set_check_test.cpp
     loader_core/media_source_test.cpp
     loader_core/operation_plan_test.cpp)

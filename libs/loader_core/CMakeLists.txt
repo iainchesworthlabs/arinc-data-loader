@@ -8,6 +8,7 @@
 add_library(adl_loader_core STATIC
     src/address.cpp
     src/download_directory.cpp
+    src/gate.cpp
     src/media_set_check.cpp
     src/media_source.cpp
     src/operation_plan.cpp)

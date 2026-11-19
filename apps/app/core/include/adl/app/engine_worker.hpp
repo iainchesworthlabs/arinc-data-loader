@@ -12,6 +12,7 @@
 #include "adl/app/events.hpp"
 #include "adl/app/host_access.hpp"
 #include "adl/arinc615a/runner.hpp"
+#include "adl/loader_core/gate.hpp"
 #include "adl/loader_core/media_source.hpp"
 #include "adl/loader_core/operation_plan.hpp"
 
@@ -19,57 +20,21 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
-#include <atomic>
 #include <memory>
-#include <mutex>
 #include <string>
 
 namespace adl::app
 {
 
-// The operator's controls of a running operation, handed to the runner as its controller. Both
-// are written from the window's thread (request_abort, post_selection) and turned into a call
-// to the loader by the runner's thread in on_poll: the request into one DataLoader::abort, the
-// choice into one DataLoader::provide_selection. An empty choice - "none" - is what a listener
-// answering the target's list with SelectionDecision::cancelled would do: one abort, with
-// aborted_by_operator. The abort wins if both have been made: once it has been asked for, a
-// choice no longer matters. Each is issued once per job, and clear() is called before a job is
-// queued, so a request or a choice left over from an earlier job cannot stop or answer the
-// next.
-class OperationGate final : public adl::arinc615a::RunController
+// The operator's controls of a running operation: adl::loader_core's gate (gate.hpp, which says how the abort
+// and the choice reach the runner's thread), with the file choice given as the Qt list the window holds.
+// Everything else - request_abort, clear, the two questions and on_poll - is the library's.
+class OperationGate final : public adl::loader_core::OperationGate
 {
 public:
-    // Thread safe. Asks the job that is running (or the next one to start) to abort.
-    void request_abort() noexcept
-    {
-        abort_requested_.store(true, std::memory_order_release);
-    }
     // Thread safe. Hands the operator's file choice to the job that is running. The names are
     // copied at once; an empty list is the choice "none".
-    void post_selection(QStringList names) noexcept;
-    // Forgets a request and a choice. Called before a job is queued, never while one is running.
-    void clear() noexcept;
-    [[nodiscard]] bool abort_requested() const noexcept
-    {
-        return abort_requested_.load(std::memory_order_acquire);
-    }
-    [[nodiscard]] bool selection_posted() const noexcept
-    {
-        return selection_ready_.load(std::memory_order_acquire);
-    }
-
-    void on_poll(adl::arinc615a::DataLoader& loader, adl::arinc615a::Instant now) noexcept override;
-
-private:
-    // The choice that was posted, once the runner's thread is reading it.
-    [[nodiscard]] QStringList take_selection() noexcept;
-
-    std::atomic<bool> abort_requested_{false};
-    std::atomic<bool> selection_ready_{false};
-    std::mutex selection_mutex_;
-    QStringList selection_;
-    bool abort_issued_ = false;     // the runner's thread only
-    bool selection_issued_ = false; // the runner's thread only
+    void post_selection(const QStringList& names) noexcept;
 };
 
 class EngineWorker : public QObject
