@@ -303,6 +303,16 @@ set_tests_properties(tools.write_payloads.no_output_directory PROPERTIES
 add_test(NAME tools.write_payloads.list COMMAND adl_write_payloads --list)
 set_tests_properties(tools.write_payloads.list PROPERTIES LABELS "system")
 
+# The folder is named with an accented letter, Japanese and a character outside the Basic Multilingual Plane, which
+# no Windows code page holds all of, and the program starts as a process with that name as its argument
+# (tests/system/write_payloads_unicode.cmake says how it is made sure the name reached it whole).
+add_test(NAME tools.write_payloads.unicode_folder
+    COMMAND "${CMAKE_COMMAND}"
+        "-DPROGRAM=$<TARGET_FILE:adl_write_payloads>"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/payloads-unicode"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/system/write_payloads_unicode.cmake")
+set_tests_properties(tools.write_payloads.unicode_folder PROPERTIES LABELS "system")
+
 # The application's tests (apps/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)
     add_subdirectory("${PROJECT_SOURCE_DIR}/apps/app/tests" apps/app/tests)
