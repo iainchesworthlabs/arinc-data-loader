@@ -3,6 +3,6 @@
 -#}
 {%- import "partials/links.html" as links -%}
 <nav class="adl-more" aria-label="More about ARINC Data Loader"><div class="icl-wrap">
-  <p>ARINC Data Loader is made by Iain Chesworth Labs. It is open source under the GNU General Public License, version 3 or later.</p>
+  <p>ARINC Data Loader is made by Iain Chesworth Labs. Every edition is open source under the GNU General Public License, version 3 or later; Pro and Enterprise add support and assurance. These pages describe version {{ config.extra.version }}.</p>
   <ul>{% for path, label in links.more %}<li><a href="{{ base_url }}/{{ path }}">{{ label }}</a></li>{% endfor %}<li><a href="{{ config.repo_url }}/releases">Releases on GitHub</a></li><li><a href="{{ config.repo_url }}">Source on GitHub</a></li></ul>
 </div></nav>

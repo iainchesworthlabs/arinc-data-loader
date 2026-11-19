@@ -4,7 +4,7 @@ description: >-
   installed from the hash-locked .github/requirements/docs.txt, and then checks what the build
   produced. The strictness is more than MkDocs' default: mkdocs.yml turns a link that points nowhere,
   a heading anchor that is not there and a page that is not in the navigation into errors. The checks
-  of the company kit and palette, of the site's address and of the site's layout (docs/ci.md,
+  of the company kit and palette, of the site's address, of its layout and of its pages (docs/ci.md,
   "Documentation site") run after it. The job must have checked the repository out. Used by docs.yml
   (pull requests and main), by ci.yml and by release.yml, so they cannot disagree about what a good
   build is.
@@ -59,11 +59,16 @@ runs:
         exit "$status"
 
     # The pinned company kit and the palette (Node is on every hosted image), the one place the address is
-    # written, and the table that says where each page of the first site went.
-    - name: Check the kit, the address and the layout
+    # written, the table that says where each page of the first site went, and the built pages (titles,
+    # headings, links, anchors, nothing loaded from another host).
+    - name: Check the kit, the address, the layout and the pages
       shell: bash
       run: |
         set -euo pipefail
         python3 tools/ci/check_site_kit.py
         python3 tools/ci/check_site_address.py
         python3 tools/ci/check_site_layout.py --site site
+        python3 tools/ci/check_site_pages.py --site site
+        python3 tools/ci/check_messages.py
+        python3 tools/ci/check_claims.py
+        python3 tools/ci/check_traceability.py

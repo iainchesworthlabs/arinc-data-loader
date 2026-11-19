@@ -13,5 +13,6 @@
   <a href="{{ base_url }}/">&larr; ARINC Data Loader</a>
   {% for path, label in links.bar %}<a href="{{ base_url }}/{{ path }}">{{ label }}</a>
   {% endfor %}
+  <span class="adl-guidebar__version">Describes version {{ config.extra.version }}</span>
 </div></div>
 {% endblock %}

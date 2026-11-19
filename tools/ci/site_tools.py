@@ -25,6 +25,9 @@ def build(root: Path, out: Path) -> int:
     return result.returncode
 
 
+VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
+
+
 class Page(HTMLParser):
     """The parts of a built page the checks look at."""
 
@@ -41,9 +44,30 @@ class Page(HTMLParser):
         self.styles = 0
         self.style_attrs = 0
         self.material = False
+        self.description = ""
+        self.headings: list[int] = []  # the levels of the headings of the main content, in order
+        self.images: list[dict[str, str]] = []  # the attributes of each <img>
+        self._main = 0  # > 0 inside <main> (the front pages) or the article of a Material page
+        self._stack: list[bool] = []
+        self.forms: list[dict] = []  # each: attrs, controls (tag, attrs, options, hidden), links (the hrefs inside the form)
+        self.label_for: set[str] = set()  # the ids that a <label for> names
+        self._form: dict | None = None
+        self._open: list[tuple[str, bool]] = []  # the open elements: (tag, aria-hidden)
 
     def handle_starttag(self, tag, attrs):  # noqa: ANN001, ANN201
         a = {k: (v or "") for k, v in attrs}
+        self._form_start(tag, a)
+        if tag in ("main", "article") and (tag == "main" or "md-typeset" in a.get("class", "").split()):
+            self._main += 1
+            self._stack.append(tag)
+        elif tag in ("main", "article"):
+            self._stack.append("")
+        if self._main and len(tag) == 2 and tag[0] == "h" and tag[1] in "123456":
+            self.headings.append(int(tag[1]))
+        if tag == "img":
+            self.images.append(a)
+        if tag == "meta" and a.get("name") == "description":
+            self.description = a.get("content", "")
         if tag == "html":
             self.lang = a.get("lang", "")
         if tag == "title":
@@ -73,9 +97,35 @@ class Page(HTMLParser):
                 if part.strip():
                     self.refs.append((tag, "srcset", part.split()[0]))
 
+    def _form_start(self, tag: str, a: dict[str, str]) -> None:
+        """Forms, their controls and their labels. An element hidden with aria-hidden hides what is inside it."""
+        hidden = any(h for _, h in self._open) or a.get("aria-hidden") == "true"
+        if tag == "form":
+            self._form = {"attrs": a, "controls": [], "links": []}
+            self.forms.append(self._form)
+        elif tag in ("input", "select", "textarea", "button") and self._form is not None:
+            self._form["controls"].append({"tag": tag, "attrs": a, "options": [], "hidden": hidden})
+        elif tag == "option" and self._form is not None and self._form["controls"] and self._form["controls"][-1]["tag"] == "select":
+            self._form["controls"][-1]["options"].append(a.get("value", ""))
+        elif tag == "a" and self._form is not None:
+            self._form["links"].append(a.get("href", ""))
+        elif tag == "label" and "for" in a:
+            self.label_for.add(a["for"])
+        if tag not in VOID:
+            self._open.append((tag, a.get("aria-hidden") == "true"))
+
     def handle_endtag(self, tag):  # noqa: ANN001, ANN201
+        if tag == "form":
+            self._form = None
+        while self._open and self._open[-1][0] != tag and any(t == tag for t, _ in self._open):
+            self._open.pop()  # an element whose end tag is optional (p, li, option) was left open
+        if self._open and self._open[-1][0] == tag:
+            self._open.pop()
         if tag == "title":
             self._in_title = False
+        if tag in ("main", "article") and self._stack:
+            if self._stack.pop():
+                self._main -= 1
 
     def handle_data(self, data):  # noqa: ANN001, ANN201
         if self._in_title:

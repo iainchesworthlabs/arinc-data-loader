@@ -8,7 +8,8 @@ Without --site it builds the site with `mkdocs build --strict` into a temporary 
 .github/requirements/docs.txt) and checks that. With --site it checks a folder that is already built.
 
 site_layout.json lists every page of the first documentation site (release 0.1.1, on GitHub Pages), the file that serves it now and its
-address on https://iainchesworthlabs.com/adl/ (`null`: the page is published on GitHub only). This check fails when
+address on https://iainchesworthlabs.com/adl/ (`null`: the page is published on GitHub only). A page the first site did not have, but
+that is not at the address its file name gives, has `"old": null`. This check fails when
 
 - a page that has an address is not in the built site, or its canonical address is not the one in the table;
 - a page that has no address (GitHub only) is in the built site, or its file is not in docs/;
@@ -47,9 +48,12 @@ def check(site: Path, root: Path) -> list[str]:
     for entry in entries:
         old, src, new = entry["old"], entry["src"], entry["new"]
         if not (root / "docs" / src).is_file():
-            problems.append(f"site_layout.json: docs/{src} (the page of {old or 'the home page'}) is not in docs/")
+            problems.append(f"site_layout.json: docs/{src} is not in docs/")
+        if old is None and new is None:
+            problems.append(f"site_layout.json: docs/{src} has no old address and no new one")
+            continue
         if new is None:
-            if (site / old / "index.html").is_file() and old not in addresses:
+            if old is not None and (site / old / "index.html").is_file() and old not in addresses:
                 problems.append(f"{old}: is published, but site_layout.json says it is on GitHub only")
             continue
         built = site / new / "index.html"
@@ -59,9 +63,11 @@ def check(site: Path, root: Path) -> list[str]:
         canonical = site_tools.parse(built).canonical
         if canonical != site_url + new:
             problems.append(f"{new}: its canonical address is {canonical!r}, not {site_url + new!r}")
-    for old in (e["old"] for e in entries):
+    for old in (e["old"] for e in entries if e["old"] is not None):
         if old and old not in addresses and (site / old / "index.html").is_file():
             problems.append(f"{old}: a page of the built site is at an old address that site_layout.json gives to another page")
+    if (site / "user-guide").exists():
+        problems.append("user-guide/: the guide is at guide/; a page of the built site is still under user-guide/")
     # The stubs.
     with tempfile.TemporaryDirectory(prefix="adl-stubs-") as tmp:
         out = Path(tmp)

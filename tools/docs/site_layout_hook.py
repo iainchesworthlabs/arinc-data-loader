@@ -3,8 +3,9 @@
 
 The files of docs/ stay where they are, because the code, the tests, CONTRIBUTING.md and the other pages cite them by path. The site
 has its own layout: the user's guide is /adl/guide/ (the folder user-guide/ in the repository) and the pages for programmers are
-under /adl/developers/. tools/docs/site_layout.json says, for each page of the first site (release 0.1.1), the file that now
-serves it and the address it has now. This hook applies that table to the files MkDocs found, and refuses to build when the
+under /adl/developers/. A page of docs/user-guide/ that the table does not name (a new page of the guide) goes under guide/ with its own name.
+tools/docs/site_layout.json says, for each page of the first site (release 0.1.1), the file that now
+serves it and the address it has now (and, with "old": null, the address of a new page that is not where its file name puts it). This hook applies that table to the files MkDocs found, and refuses to build when the
 table and the rest of the configuration disagree, so a page cannot be lost quietly:
 
 - a file in the table that is not in docs/;
@@ -26,8 +27,25 @@ def load() -> list[dict]:
     return json.loads(LAYOUT.read_text(encoding="utf-8"))["pages"]
 
 
+GUIDE_FOLDER = "user-guide/"
+
+
+def guide_destination(src_uri: str) -> str | None:
+    """The address of a page in docs/user-guide/ that the table does not name: the same name under guide/."""
+    if not (src_uri.startswith(GUIDE_FOLDER) and src_uri.endswith(".md")):
+        return None
+    stem = src_uri[len(GUIDE_FOLDER):-len(".md")]
+    return "guide/" + ("" if stem == "index" else stem + "/") + "index.html"
+
+
 def on_files(files, config):  # noqa: ANN001, ANN201 (MkDocs passes its own types)
     problems: list[str] = []
+    named = {entry["src"] for entry in load()}
+    for file in files:
+        if file.src_uri not in named and (destination := guide_destination(file.src_uri)):
+            file.dest_uri = destination
+            for cached in ("url", "abs_dest_path"):
+                file.__dict__.pop(cached, None)
     for entry in load():
         src, new = entry["src"], entry["new"]
         file = files.get_file_from_path(src)
