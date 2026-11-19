@@ -11,6 +11,7 @@ if(ADL_ENABLE_CLANG_TIDY)
 endif()
 
 add_executable(adl_unit_tests
+    unit/arguments_test.cpp
     unit/arinc615a_golden_test.cpp
     unit/arinc615a_robustness_test.cpp
     unit/batch_file_test.cpp

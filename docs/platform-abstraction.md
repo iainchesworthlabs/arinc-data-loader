@@ -120,7 +120,7 @@ is quoted.
 ### Why abstract classes, not link-time functions
 
 `paths.hpp` (the executable's path, the computer's name, and the folders for a user's data and for an
-administrator's files) is a set of free functions with one definition per
+administrator's files) and `arguments.hpp` ([below](#the-programs-arguments-argumentshpp)) are sets of free functions with one definition per
 platform, chosen at link time. That is right for something nothing replaces.
 The services here are replaced: the fake must stand in for the real ones in the
 same program. So they are abstract classes and the one choice made at link time
@@ -132,7 +132,7 @@ headers, compiled once per platform and per test; not worth it.
 ### Failure is a value; nothing throws
 
 Every operation returns `Result<T>` (`std::expected<T, adl::platform::Error>`),
-and every service interface function is `noexcept` (the free functions of `paths.hpp` are not). An `Error` is a code from a small
+and every service interface function is `noexcept` (the free functions of `paths.hpp` and `arguments.hpp` are not). An `Error` is a code from a small
 fixed set (`timeout`, `not_found`, `no_space`, `address_in_use` ...) and the
 system's own number, kept for the log and never branched on. Each platform maps
 errno, `GetLastError`, `WSAGetLastError` or its RTOS's status onto the codes
@@ -479,6 +479,47 @@ whole messages with timed `send` and `receive`.
   `send_to` on another socket is fine; two threads on one socket is not specified.
 - The message queue is not safe to use from an interrupt handler; an RTOS port
   that needs that provides the native one.
+
+## The program's arguments (`arguments.hpp`)
+
+A command-line program gets its arguments as UTF-8 on every system, so that a folder or a file named with any
+characters works as an argument on Windows as it does on Linux and macOS. Two functions, one definition per
+platform like those of `paths.hpp`:
+
+- `std::vector<std::string> arguments(int argc, const char* const* argv)`: the program's arguments, the program
+  name first. A `main` takes them in one line (`adl::platform::arguments(argc, argv)`), and
+  [the rule for command-line programs](architecture.md#command-line-programs) is that it reads nothing from
+  `argv` itself.
+- `std::filesystem::path path_from_utf8(std::string_view)`: the path an argument names. `to_utf8` and
+  `to_platform_path` in `paths.hpp` are the other direction. There was no function that made a path from UTF-8
+  text before this one.
+
+**Why Windows is different.** A program with a plain `int main(int argc, char** argv)` is given `argv` in the
+system's code page. A character the page has no letter for is replaced before the program starts (Japanese in a
+Western system arrives as question marks; an accented letter survives), so the name cannot be got back and
+the file it named is not found or, worse, another one is. The same code page decides what a
+`std::filesystem::path` made from a `std::string` means, and what `path::string()` gives back, which throws for a
+character outside it. So the program asks for the wide command line of the process, splits it, and
+converts to UTF-8; and the path is made from UTF-8 text and turned back with `to_utf8(path.u8string())`.
+
+| | Windows | Linux, macOS, QNX, FreeRTOS, Zephyr, INTEGRITY 5.0.8 and 178B |
+| --- | --- | --- |
+| `arguments` | `GetCommandLineW`, split as the C run-time splits it (the program name, then backslashes before a quote, `""` inside quotes), each argument converted from UTF-16. Half of a surrogate pair becomes U+FFFD, and nothing throws | `argv` as it is: the system passes the bytes the user typed, with no check that they are UTF-8 |
+| `path_from_utf8` | UTF-8 to UTF-16, and the `std::wstring` is the path; a byte that is not UTF-8 becomes U+FFFD | The bytes are the path (`std::filesystem::path` of the `std::string`). On INTEGRITY the standard library may have only the empty `path` of [the GHS review](platform-ghs.md), which is then what is returned |
+| Code | `windows/arguments_windows.cpp` | `detail/arguments_passthrough.cpp`, named in each of those platforms' `platform.cmake` |
+
+What the two share is `detail/command_line.hpp`: the split of a command line (`arguments_from_command_line`, a wide
+command line in and UTF-8 arguments out), `utf16_to_utf8`, `utf8_to_utf16` and the copy of `argv`. It reads no
+system state and throws for no text, so `tests/unit/arguments_test.cpp` runs every case on every host, including
+the ones only Windows meets. The split follows the C run-time that fills `argv`, not `CommandLineToArgvW`: the two
+differ for a program name with something after its closing quote, and the arguments of `main` are what a
+program that used `argv` would have had.
+
+What has run. Windows: the unit tests, and `tools.write_payloads.unicode_folder`, which starts
+`adl_write_payloads` as a process with an output folder named with an accented letter, Japanese and a character
+outside the Basic Multilingual Plane, and fails when the program reads `argv`. Linux: the same tests, on the
+passthrough. The other platforms compile the same passthrough file. macOS, FreeRTOS and Zephyr build it in CI, where it
+had not run when this was written; QNX and the two INTEGRITY platforms are unbuilt, so nothing has compiled it for them.
 
 ## The fake platform
 

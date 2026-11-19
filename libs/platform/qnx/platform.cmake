@@ -19,6 +19,7 @@ set(ADL_PLATFORM_QT_ARCH_DIRS "")
 
 set(ADL_PLATFORM_SOURCES
     qnx/paths_qnx.cpp
+    detail/arguments_passthrough.cpp
     qnx/os_qnx.cpp
     posix/posix_common.cpp
     posix/clock_posix.cpp
