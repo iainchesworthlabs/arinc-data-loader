@@ -20,3 +20,18 @@ path = ["libs/ui/fonts/NotoSansHebrew-*.ttf", "libs/ui/fonts/NotoSansHebrew-OFL.
 precedence = "override"
 SPDX-FileCopyrightText = "2022 The Noto Project Authors (https://github.com/notofonts/hebrew)"
 SPDX-License-Identifier = "OFL-1.1"
+
+# Test vectors of Project Wycheproof (github.com/C2SP/wycheproof), unchanged. Test data only.
+[[annotations]]
+path = "tests/licence/data/wycheproof/**"
+precedence = "override"
+SPDX-FileCopyrightText = "Google LLC and the Wycheproof contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Monocypher is vendored unchanged (third_party/monocypher/README.md). Its source files carry their own
+# SPDX lines; this covers the licence text that came with them.
+[[annotations]]
+path = "third_party/monocypher/LICENCE.md"
+precedence = "override"
+SPDX-FileCopyrightText = "Loup Vaillant, Michael Savage, Fabio Scotoni"
+SPDX-License-Identifier = "BSD-2-Clause OR CC0-1.0"

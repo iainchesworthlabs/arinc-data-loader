@@ -130,6 +130,15 @@ add_subdirectory(libs/arinc615a_runner)
 # std::filesystem, so it needs nothing from the platform section either.
 add_subdirectory(libs/media_tree)
 
+# The licence library: the signed licence file, its states and the checks a program asks. Platform-free.
+# Its Ed25519 is Monocypher, vendored in third_party/monocypher, which is C: the language is enabled here,
+# and only on a desktop, because a target build has no use for a licence and may have no C compiler.
+if(ADL_PLATFORM_DESKTOP)
+    enable_language(C)
+    add_subdirectory(third_party/monocypher)
+    add_subdirectory(libs/licence)
+endif()
+
 # Sample loads and media sets, for the tests and for the program below.
 add_subdirectory(libs/samples)
 

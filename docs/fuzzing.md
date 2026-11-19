@@ -3,7 +3,7 @@
 *For developers. What CI runs is [CI](ci.md); the tests that hold the decoders down by hand are in [Testing](testing.md).*
 
 Everything that reads bytes from outside has a [libFuzzer](https://llvm.org/docs/LibFuzzer.html)
-harness: the files of an ARINC 665 media set, and the packets and protocol files of ARINC 615A. A
+harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, and a licence file. A
 decoder returns an error for a bad input and never crashes; the fuzzers are there to find the input for
 which that is not true.
 
@@ -11,9 +11,10 @@ which that is not true.
 | --- | --- |
 | `libs/arinc665/fuzz` | `header_file` (a load's `.LUH`), `batch_file` (`.LUB`), `loads_list` (`LOADS.LUM`), `files_list` (`FILES.LUM`), `batches_list` (`BATCHES.LUM`). A decoded file is also checked against the standard and written back. |
 | `libs/arinc615a/fuzz` | `tftp_packet` (the datagrams of the TFTP dialogue, with the transfer options of a request or an option acknowledgement), `find` (a FIND packet), and one for each protocol file: `initialization_file`, `configuration_list`, `configuration_status`, `upload_request`, `upload_status`, `download_request`, `download_status`, `download_list`, `download_answer`. |
+| `libs/licence/fuzz` | `licence`: the signed envelope, the strict JSON reader, the licence payload, a revocation list and the dates, all from one input. What a reader accepts is written back and read again, and has to come out the same. The seeds are licence files and payloads signed with the published test key. |
 
 Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
-`python3 tools/fuzz/make_seeds.py` from the golden data of the tests, and a directory of
+`python3 tools/fuzz/make_seeds.py` from the golden data of the tests (`tests/golden`), and a directory of
 **regressions** (`regressions/<name>/`): inputs that once crashed it.
 
 ## Running them

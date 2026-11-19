@@ -78,6 +78,11 @@ adl_deploy_sanitizer_runtime(adl_unit_tests)
 
 catch_discover_tests(adl_unit_tests PROPERTIES LABELS "unit")
 
+# The licence library (a desktop build only; libs/licence): its own program of tests, in tests/licence.
+if(TARGET adl::licence_test_keys)
+    add_subdirectory(licence)
+endif()
+
 # The fake platform: a clock, network, file system, memory and threads that run in
 # memory and on a clock that only moves when told to (tests/fake). The engine is
 # tested against it; the conformance tests hold it to the real hosts' behaviour.
