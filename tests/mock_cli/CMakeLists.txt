@@ -45,9 +45,13 @@ target_link_libraries(adl_mock_command_test
         Catch2::Catch2WithMain)
 adl_deploy_sanitizer_runtime(adl_mock_command_test)
 
+# The engine writes from ports of its own, from 40000 up, on the address it listens on: two targets on one
+# address at once would take them from each other, so the tests that run a real target do not overlap
+# (ctest -j). The loopback test is one of them.
 add_test(NAME mock.command COMMAND adl_mock_command_test)
 set_tests_properties(mock.command PROPERTIES
     TIMEOUT 300
+    RESOURCE_LOCK mock_target_transfer_ports
     LABELS "system")
 
 # The built program, started as a process: what it says about itself, that wrong options are refused with
@@ -72,4 +76,5 @@ add_test(NAME tools.adl_mock.runs_for_a_second
 set_tests_properties(tools.adl_mock.runs_for_a_second PROPERTIES
     PASS_REGULAR_EXPRESSION "\"event\":\"started\".*\"event\":\"stopped\",\"t\":[0-9.]+,\"reason\":\"seconds\""
     TIMEOUT 60
+    RESOURCE_LOCK mock_target_transfer_ports
     LABELS "system")
