@@ -19,6 +19,7 @@
 #include "adl/platform/host.hpp"
 
 #include <cstdint>
+#include <expected>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -157,5 +158,13 @@ struct OperationResult
 // A media set that changed (the upload source refused a file) is media_set_changed whatever the outcome.
 [[nodiscard]] OperationResult run_operation(adl::platform::Host& host, const RunTarget& target,
                                             const adl::arinc615a::Operation& operation, const RunServices& services);
+
+// What run_operation does once the engine has run: removes a download folder that received nothing, and turns
+// the outcome (or the reason it could not run) into the result, with the table above. `is_download` says
+// whether the operation was a download. The operation pool (operation_pool.hpp) builds its results with it, so
+// that an operation ends the same way whichever of the two ran it.
+[[nodiscard]] OperationResult
+make_result(adl::platform::Host& host, const std::expected<adl::arinc615a::Outcome, adl::arinc615a::RunError>& outcome,
+            bool is_download, const RunServices& services);
 
 } // namespace adl::loader_core

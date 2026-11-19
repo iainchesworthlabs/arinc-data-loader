@@ -14,6 +14,7 @@ add_library(adl_loader_core STATIC
     src/media_set_check.cpp
     src/media_source.cpp
     src/operation_plan.cpp
+    src/operation_pool.cpp
     src/record_json.cpp
     src/recorder.cpp
     src/run.cpp)

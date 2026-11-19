@@ -49,7 +49,13 @@
   disk read and checked into a report (`check_media_set`), the index of its files and the `FileSource` an
   upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, the
   target's address, and one operation (an `OperationPlan` of what was chosen, `run_operation` over the host's
-  sockets with the operator's `OperationGate`) reduced to a result and a reason. It also holds the record of
+  sockets with the operator's `OperationGate`) reduced to a result and a reason. `run_operation` holds the
+  loader's control port for the one operation, so two of them cannot share port 59 on one address; the
+  `OperationPool` (`operation_pool.hpp`) holds it once and runs one operation for each target at once, each
+  with its own engine object and transfer sockets, giving every datagram on the control port to the operation
+  whose target sent it (one address has one operation at a time, and a datagram from an address with none is
+  dropped and counted). It runs on the thread that calls its `step()` and builds its results with the same
+  `make_result` as `run_operation`. It also holds the record of
   an operation (`OperationRecord`), the recorder that fills it from what the engine reports
   (`OperationRecorder`, an `OperationListener` that logs in English, in the window's sentences) and the writer
   of the file the record is kept in ([the operation record](file-reference.md#the-operation-record)). The

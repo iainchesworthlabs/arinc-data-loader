@@ -166,6 +166,7 @@ catch_discover_tests(adl_loader_core_tests TEST_SPEC "[integration]" PROPERTIES 
 # The same library run whole: run_operation against the simulated target on the fake platform, so the
 # runner, the engine and the second TFTP implementation are in it. An integration test.
 add_executable(adl_loader_core_run_tests
+    loader_core/operation_pool_test.cpp
     loader_core/run_test.cpp)
 
 target_include_directories(adl_loader_core_run_tests PRIVATE
