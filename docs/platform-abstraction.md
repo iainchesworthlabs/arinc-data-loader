@@ -680,7 +680,9 @@ Zephyr: an RTOS image is built around the product's kernel configuration, port a
 around `find_package(Zephyr)`) declares where, in `ADL_PLATFORM_PROJECT`, and this project refuses it with
 that pointer; [building](building.md) says how each is built. Two tests hold this:
 `platform.fragments` (every fragment meets the contract) and `platform.selector`
-(an explicit target is understood, and the refusals say why).
+(an explicit target is understood, and the refusals say why). A platform whose directory is not in
+this repository is selected with `ADL_PLATFORM_DIR` as well, and then any name is accepted
+([a platform kept outside the repository](#a-platform-kept-outside-the-repository)).
 
 ## Adding a port
 
@@ -696,6 +698,94 @@ that pointer; [building](building.md) says how each is built. Two tests hold thi
    scratch directory of the desktop tests.
 5. Change the status to `experimental` when CI builds it and runs the suite on a simulator, and to
    `supported` only when it runs on the target.
+
+## A platform kept outside the repository
+
+A port does not have to be a directory of this repository. One for a system that is kept private, or one
+that is only being tried, can be built from a directory of its own, with no fork and nothing added under
+`libs/platform/`:
+
+```sh
+cmake -DADL_TARGET_PLATFORM=myos -DADL_PLATFORM_DIR=/path/to/myos-port ...
+```
+
+`ADL_TARGET_PLATFORM` names the platform: lower-case letters, digits and underscores, starting with a
+letter, and not necessarily a name the selector knows. `ADL_PLATFORM_DIR` is the directory that holds its
+`platform.cmake` and its sources. The selector includes `<directory>/platform.cmake` where it would have
+included `libs/platform/<name>/platform.cmake`, and does the rest as it does for any platform
+([how CMake selects](platform-isolation.md#how-cmake-selects)). If the name is one the selector knows, the
+directory is still the one read, and the repository's directory of that name is not. Without
+`ADL_PLATFORM_DIR` the selection is what it always was. A configure that sets it without a name, or names
+a directory that does not exist or one with no `platform.cmake`, stops and says which.
+[Building](building.md#a-platform-from-another-directory) has an example that can be run.
+
+### Writing the fragment
+
+The fragment fills in the same contract as an in-tree one (the header comment of `cmake/Platform.cmake`),
+and is checked against it in the same way. Three variables are set before it is included:
+
+| Variable | Is |
+| --- | --- |
+| `ADL_PLATFORM_ROOT` | The directory `libs/platform` of this repository: the shared sources (`posix/`, `detail/`) and the interface headers (`interfaces/`) |
+| `ADL_PLATFORM_DIR` | The directory of the platform being built: the one the option gave, and `libs/platform/<name>` when it was not given |
+| `ADL_PLATFORM_EXTERNAL` | `ON` when the option was given, `OFF` otherwise |
+
+A path in `ADL_PLATFORM_SOURCES` that is relative is relative to `ADL_PLATFORM_ROOT`, as it is in the
+fragments of the repository, and one that is absolute is used as it is. So the sources the platforms share
+are named as the in-tree fragments name them, and are compiled from the repository, not copied; and a port's
+own files are named from the directory the option gave:
+
+```cmake
+set(ADL_PLATFORM_SOURCES
+    ${ADL_PLATFORM_DIR}/paths_myos.cpp
+    ${ADL_PLATFORM_DIR}/os_myos.cpp
+    posix/posix_common.cpp
+    posix/clock_posix.cpp
+    posix/memory_posix.cpp
+    posix/files_posix.cpp
+    posix/threads_posix.cpp
+    posix/network_posix.cpp
+    posix/host_posix.cpp
+    detail/ring_queue.cpp)
+```
+
+The fragments of the repository need no change for this: one way of writing a path serves both.
+
+What the port's sources can include: the interfaces (`<adl/platform/files.hpp>` and the others), and the
+private headers the repository's own platforms include (`"posix/posix_os.hpp"`, `"detail/path_rules.hpp"`),
+written as they are there. The port's own directory is on the include path after those, so a header of the
+port is found as `"name.hpp"` or `"subdirectory/name.hpp"`; one of the repository's is never hidden by a
+header of the same name in the port.
+
+### What is checked, and what is not
+
+The rules of [CONTRIBUTING.md](../CONTRIBUTING.md#platform-code-the-one-rule-that-is-not-about-style) are
+rules for the files of this repository: no preprocessor conditional or `#define`, no operating system
+header outside `libs/platform/` and `tests/platform/`, no test of the operating system in a CMake file
+outside the selector and the fragments. **A port kept outside the repository is not held to them.** It is
+its owner's code, and it may use a conditional, a definition or a system header wherever its system needs
+one. What the rules protect is the shared code, and a port cannot change that: it supplies what
+`adl_platform` supplies, behind the same interfaces, and the checks go on holding the shared code to the
+rules whatever is built. When a port is brought into the repository it becomes
+`libs/platform/<name>/`, with a branch in the selector, and the rules apply to it from then on: the
+conditionals come out of the source and into its fragment.
+
+| | For a platform outside the repository |
+| --- | --- |
+| The contract (`cmake/PlatformContract.cmake`): every variable and hook defined, every file the fragment lists present | **Checked**, when CMake configures |
+| `ADL_PLATFORM_STATUS`: a design-only platform is refused, an unbuilt one unless `ADL_ACCEPT_UNBUILT_PLATFORM` is on, one with an `ADL_PLATFORM_PROJECT` is refused and pointed there | **Applied**, as for any platform. The status is the port's owner's statement: nothing here has built or run the port, and the table at the top of this page does not list it |
+| The compiler's warnings as errors, the sanitizers and the hardening options | **Applied**: the port is compiled as part of `adl_platform`, with what the other platforms get |
+| The platform layer's tests (`adl_platform_tests`): the conformance suite against the port's real host | **Run** if the port is built with tests on, which is how a port is tried (the example in [Building](building.md#a-platform-from-another-directory)) |
+| `platform.isolation` (`tools/checks/check_platform_isolation.ps1`): conditionals, defines, system headers, operating system tests | **Not checked**: it scans the files git tracks in this repository |
+| The count of preprocessor conditionals and definitions, held at zero by `tools/preprocessor-baseline.json` | **Not checked**: the same files |
+| `platform.fragments` (every fragment holds to the contract on every host) and `platform.selector` | **Not checked**: they read `libs/platform/*/platform.cmake` |
+| The CI workflows | **Not run**: none of them builds a directory it does not have |
+
+`platform.external` (`tests/platform/check_external.cmake`) holds the option itself: it copies the
+fragment and the sources of the platform the build targets to a directory outside the source tree,
+configures and builds the project from the copy under another name, checks from the compile commands that
+every file of the copy was compiled from the copy, and checks that each of the mistakes above is refused
+by name.
 
 ## Gaps and risks
 
