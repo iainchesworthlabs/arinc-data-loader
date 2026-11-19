@@ -219,7 +219,7 @@ void DataLoader::on_server_finished(Instant now, Slot& slot) noexcept
 void DataLoader::on_init_file(Instant now, Slot& slot) noexcept
 {
     const std::span<const std::byte> bytes = std::span<const std::byte>{slot.file}.first(slot.io.length);
-    if (config_.control_port != tftp_control_port && !slot.transfer.result().port_acknowledged)
+    if (offers_port_option() && !slot.transfer.result().port_acknowledged)
     {
         notice(Notice::port_option_ignored, slot.name_view(), config_.control_port);
     }

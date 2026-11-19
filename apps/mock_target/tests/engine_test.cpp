@@ -119,6 +119,30 @@ TEST_CASE("an Information operation delivers the configuration", "[mock][informa
     CHECK(target.listener.contains("Information operation finished: completed"));
 }
 
+TEST_CASE("a mock target that is not on port 59 is reached by a loader on 59", "[mock][information][port]")
+{
+    // With no port option the mock writes what it starts to the port it listens on, where a loader on 59 is
+    // not; the loader has to say where it is.
+    constexpr std::uint16_t mock_port = 5059;
+    Config config;
+    config.tftp_port = mock_port;
+    config.information = {adl::mock::HardwareItem{"FMS LEFT", "SN-0001", {{"ACM47-1234-5678", "", "FMS 1 OPS"}}}};
+    MockTarget target(config);
+    target.rig.target_port = mock_port;
+    LoaderRecorder recorder;
+    LoaderServices services;
+    services.listener = &recorder;
+    const auto outcome = target.rig.run(InformationOperation{}, services);
+    REQUIRE(outcome);
+    CHECK(outcome->code == OutcomeCode::completed);
+    CHECK(recorder.configuration_lists == 1);
+    REQUIRE_FALSE(recorder.status_codes.empty());
+    CHECK(recorder.status_codes.back() == StatusCode::completed);
+    CHECK(std::ranges::none_of(recorder.notices,
+                               [](const auto& notice) { return notice.first == Notice::port_option_ignored; }));
+    CHECK(target.listener.contains("Information operation finished: completed"));
+}
+
 TEST_CASE("an Upload delivers every file byte for byte", "[mock][upload]")
 {
     MockTarget target;
