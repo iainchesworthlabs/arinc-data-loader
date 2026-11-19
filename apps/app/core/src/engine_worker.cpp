@@ -11,6 +11,7 @@
 #include "adl/arinc615a/find_client.hpp"
 #include "adl/arinc615a/limits.hpp"
 #include "adl/loader_core/download_directory.hpp"
+#include "adl/loader_core/run.hpp"
 #include "adl/platform/paths.hpp"
 
 #include <adl/profiling.hpp>
@@ -523,7 +524,7 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos, QLi
                                              {Message::verbatim(address), Message::verbatim(thw_id_pos)},
                                              static_cast<int>(loads.size()))});
     run_operation(*lease->host, Address{*octets}, thw_id_pos, plan->operation(), listener, &source, nullptr,
-                  control_port, {}, &source);
+                  control_port);
 }
 
 void EngineWorker::download_media(const QString& address, const QString& thw_id_pos, QStringList names,
@@ -609,47 +610,33 @@ void EngineWorker::run_download(const Address& target, const QString& thw_id_pos
 
 void EngineWorker::run_operation(adl::platform::Host& host, const Address& target, const QString& thw_id_pos,
                                  const adl::arinc615a::Operation& operation,
-                                 adl::arinc615a::OperationListener& listener, adl::arinc615a::FileSource* source,
-                                 adl::arinc615a::FileSink* sink, quint16 control_port, const std::string& download_path,
-                                 const adl::loader_core::MediaTreeSource* media)
+                                 adl::arinc615a::OperationListener& listener,
+                                 adl::loader_core::MediaTreeSource* upload_source, adl::arinc615a::FileSink* sink,
+                                 quint16 control_port, const std::string& download_path)
 {
     const std::string thw = thw_id_pos.toStdString();
-    adl::arinc615a::LoaderConfig config;
-    config.target = adl::arinc615a::Endpoint{target, adl::arinc615a::tftp_control_port};
-    config.thw_id_pos = thw;
+    adl::loader_core::RunTarget run_target;
+    run_target.address = target;
+    run_target.thw_id_pos = thw;
     // The operator's preference: anything but 59 is offered to the target in the port option of
     // the initialization request, which matters when the target runs on the same machine.
-    config.control_port = control_port;
-
-    // The engine allocates nothing: it works in a block of memory we give it, and the loader
-    // object itself is too big for a thread's stack to be a good place for it.
-    std::vector<std::byte> workspace(adl::arinc615a::DataLoader::workspace_bytes(config));
-    adl::arinc615a::LoaderServices services;
+    run_target.control_port = control_port;
+    adl::loader_core::RunServices services;
     services.listener = &listener;
-    services.source = source;
-    services.sink = sink;
-    auto loader = std::make_unique<adl::arinc615a::DataLoader>(config, workspace, services);
-
-    adl::arinc615a::RunOptions options;
-    options.controller = &controls_;
-    if (target.is_loopback())
-    {
-        // A target on this machine is reached over loopback alone, so the sockets need not listen
-        // on the network, and then no firewall asks whether to allow the program.
-        options.local_address = adl::platform::Ipv4Address::loopback();
-    }
-    adl::arinc615a::Runner runner(host);
-    const auto outcome = runner.run(*loader, operation, options);
+    services.controller = &controls_;
+    services.upload_source = upload_source;
+    services.download_sink = sink;
+    services.download_folder = download_path;
+    const adl::loader_core::OperationResult result =
+        adl::loader_core::run_operation(host, run_target, operation, services);
 
     // A download that received nothing (the target said no, never answered, was cancelled, or the
-    // loader could not run at all) leaves no directory behind: the one made for it is removed if
-    // it is empty, and left alone if anything is in it.
-    const bool directory_removed =
-        !download_path.empty() && adl::loader_core::remove_if_empty(host.files(), download_path);
+    // loader could not run at all) leaves no directory behind: the one made for it is removed if it
+    // is empty, and left alone if anything is in it.
     const QString download_directory =
-        download_path.empty() || directory_removed ? QString{} : QDir::toNativeSeparators(to_qstring(download_path));
+        result.download_folder.empty() ? QString{} : QDir::toNativeSeparators(to_qstring(result.download_folder));
     Message removed_note;
-    if (directory_removed)
+    if (result.download_folder_removed)
     {
         removed_note = Message::translated(
             &EngineWorker::tr, QT_TR_NOOP("Nothing was received, so the empty download folder %1 was removed."),
@@ -657,9 +644,9 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
         Q_EMIT log_line({Severity::info, removed_note});
     }
 
-    if (!outcome)
+    if (result.not_run)
     {
-        const auto& error = outcome.error();
+        const auto& error = *result.not_run;
         Message why;
         Message hint;
         const Message platform_code = Message::verbatim(QString::fromLatin1(adl::platform::to_string(error.platform)));
@@ -684,21 +671,18 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
         return;
     }
 
+    const adl::arinc615a::Outcome& outcome = result.outcome;
     const bool is_download = std::holds_alternative<adl::arinc615a::MediaDownloadOperation>(operation) ||
                              std::holds_alternative<adl::arinc615a::OperatorDownloadOperation>(operation);
-    // A download that completed without every asked-for file is as much a failure as one the
-    // target reported as failed: the operator asked for files and has not got them all.
-    const bool missing_files =
-        is_download && outcome->code == OutcomeCode::completed && outcome->files_received < outcome->files_requested;
 
     OperationSummary summary;
-    summary.success = outcome->code == OutcomeCode::completed && outcome->items_failed == 0 && !missing_files;
-    summary.outcome = Wording::outcome(outcome->code);
-    summary.statuses_received = outcome->statuses_received;
-    summary.statuses_lost = outcome->statuses_lost;
-    if (outcome->code == OutcomeCode::completed && outcome->items_failed != 0)
+    summary.success = result.success();
+    summary.outcome = Wording::outcome(outcome.code);
+    summary.statuses_received = outcome.statuses_received;
+    summary.statuses_lost = outcome.statuses_lost;
+    if (outcome.code == OutcomeCode::completed && outcome.items_failed != 0)
     {
-        const int failed = static_cast<int>(outcome->items_failed);
+        const int failed = static_cast<int>(outcome.items_failed);
         summary.outcome =
             is_download
                 ? Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("completed, %n file(s) failed"), {}, failed)
@@ -708,30 +692,29 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
             summary.hint = Hint::download();
         }
     }
-    if (missing_files)
+    if (result.missing_files)
     {
-        const int missing = static_cast<int>(outcome->files_requested - outcome->files_received);
+        const int missing = static_cast<int>(outcome.files_requested - outcome.files_received);
         summary.outcome =
             Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("completed, %n file(s) missing"), {}, missing);
         summary.hint = Hint::download();
     }
-    if (outcome->code == OutcomeCode::aborted_by_operator)
+    if (outcome.code == OutcomeCode::aborted_by_operator)
     {
         summary.detail =
-            outcome->abort_confirmed
+            outcome.abort_confirmed
                 ? Message::translated(&EngineWorker::tr, QT_TR_NOOP("The target confirmed that it stopped."))
                 : Message::translated(&EngineWorker::tr, QT_TR_NOOP("The target did not confirm that it stopped."));
-        if (!outcome->abort_confirmed)
+        if (!outcome.abort_confirmed)
         {
             summary.hint = Hint::abort_unconfirmed();
         }
     }
-    if (media != nullptr && media->changed_file())
+    if (result.changed_file)
     {
         // The target was refused a file that is not what was checked; that, and not what the
         // target made of the refusal, is why the upload did not complete.
-        const QString changed = to_qstring(*media->changed_file());
-        summary.success = false;
+        const QString changed = to_qstring(*result.changed_file);
         summary.media_set_changed = true;
         summary.detail = Message::translated(
             &EngineWorker::tr, QT_TR_NOOP("The media set changed after it was checked: %1. (The upload ended: %2.)"),
@@ -743,19 +726,19 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     else if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation))
     {
         const Message served = Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("The target read %n file(s)."), {},
-                                                   static_cast<int>(outcome->files_served));
+                                                   static_cast<int>(outcome.files_served));
         summary.detail = summary.detail.isEmpty()
                              ? served
                              : Message::sequence({served, Message::verbatim(QStringLiteral(" ")), summary.detail});
     }
     if (is_download)
     {
-        summary.files_requested = outcome->files_requested;
-        summary.files_received = outcome->files_received;
+        summary.files_requested = outcome.files_requested;
+        summary.files_received = outcome.files_received;
         summary.download_directory = download_directory;
         Message received = Message::translated(&EngineWorker::tr, QT_TR_NOOP("Files received: %1 of %2 requested."),
-                                               {Message::verbatim(QString::number(outcome->files_received)),
-                                                Message::verbatim(QString::number(outcome->files_requested))});
+                                               {Message::verbatim(QString::number(outcome.files_received)),
+                                                Message::verbatim(QString::number(outcome.files_requested))});
         if (!removed_note.isEmpty())
         {
             received = Message::sequence({received, Message::verbatim(QStringLiteral(" ")), removed_note});

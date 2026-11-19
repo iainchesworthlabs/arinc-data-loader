@@ -11,7 +11,8 @@ add_library(adl_loader_core STATIC
     src/gate.cpp
     src/media_set_check.cpp
     src/media_source.cpp
-    src/operation_plan.cpp)
+    src/operation_plan.cpp
+    src/run.cpp)
 add_library(adl::loader_core ALIAS adl_loader_core)
 
 target_include_directories(adl_loader_core

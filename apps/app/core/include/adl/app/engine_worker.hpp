@@ -119,15 +119,15 @@ private:
     void fail(const Message& text, const Message& hint = {}, const QString& download_directory = {});
     // What is said of a choice that makes no operation (adl::loader_core::OperationPlan).
     static Message plan_problem(const adl::loader_core::PlanError& error);
-    // Runs `operation` against the target and reports how it ended; the part the Information,
-    // Upload and Download operations share. `listener`, `source` and `sink` live for the call;
-    // `download_path` (when set) is the directory made for a download's files (platform path):
-    // it is reported in the summary, or removed when nothing was received.
-    // `media` (an upload's source) says if it refused a file that had changed since the check.
+    // Runs `operation` against the target (adl::loader_core::run_operation) and reports how it ended; the
+    // part the Information, Upload and Download operations share. `listener`, `upload_source` and `sink`
+    // live for the call; `download_path` (when set) is the directory made for a download's files (platform
+    // path): it is reported in the summary, or removed when nothing was received. `upload_source` says if it
+    // refused a file that had changed since the check.
     void run_operation(adl::platform::Host& host, const adl::arinc615a::Address& target, const QString& thw_id_pos,
                        const adl::arinc615a::Operation& operation, adl::arinc615a::OperationListener& listener,
-                       adl::arinc615a::FileSource* source, adl::arinc615a::FileSink* sink, quint16 control_port,
-                       const std::string& download_path = {}, const adl::loader_core::MediaTreeSource* media = nullptr);
+                       adl::loader_core::MediaTreeSource* upload_source, adl::arinc615a::FileSink* sink,
+                       quint16 control_port, const std::string& download_path = {});
     // The part the two Download modes share: the host, the DNLD_DATA directory and the runner.
     void run_download(const adl::arinc615a::Address& target, const QString& thw_id_pos,
                       const adl::arinc615a::Operation& operation, const QString& download_directory,
