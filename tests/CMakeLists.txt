@@ -17,6 +17,7 @@ add_executable(adl_unit_tests
     unit/check_value_type_test.cpp
     unit/compatibility_test.cpp
     unit/crc_test.cpp
+    unit/data_locations_test.cpp
     unit/digest_test.cpp
     unit/find_test.cpp
     unit/golden_test.cpp
@@ -39,9 +40,12 @@ add_executable(adl_unit_tests
     unit/tftp_test.cpp
     unit/translations_test.cpp)
 
+# libs/platform is here for the platform's own header-only rules (detail/data_locations.hpp), which
+# hold no operating system and are tested on every host.
 target_include_directories(adl_unit_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support"
-    "${CMAKE_CURRENT_SOURCE_DIR}/golden")
+    "${CMAKE_CURRENT_SOURCE_DIR}/golden"
+    "${PROJECT_SOURCE_DIR}/libs/platform")
 
 # The Qt Linguist catalogues the translation rules read as files (they need no Qt).
 target_compile_definitions(adl_unit_tests PRIVATE
@@ -236,6 +240,43 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME ci.perf_compare
         COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_perf_compare.py")
     set_tests_properties(ci.perf_compare PROPERTIES LABELS "system")
+
+    # The checks of the documentation site (tools/ci/check_site_kit.py, check_site_address.py and
+    # check_site_layout.py), the old-address pages and the layout hook are held to what they promise: each
+    # passes a good tree and fails, with a reason, on a bad one. No MkDocs and no network; the palette
+    # tests need Node and are skipped without it.
+    add_test(NAME ci.site_checks
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_site_checks.py")
+    set_tests_properties(ci.site_checks PROPERTIES LABELS "system")
+
+    # Every message of the programs' code that says something to the person using them, and every exit code, is
+    # described in the user's guide (tools/ci/check_messages.py, docs/ci.md), and the check itself is held to what it
+    # promises. No network, no MkDocs.
+    add_test(NAME docs.messages
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/check_messages.py"
+            --root "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(docs.messages PROPERTIES LABELS "system")
+    add_test(NAME ci.check_messages
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_check_messages.py")
+    set_tests_properties(ci.check_messages PROPERTIES LABELS "system")
+
+    # No page says the tool is certified, qualified, compliant, approved or guaranteed without an exception the owner
+    # approved (tools/ci/check_claims.py, tools/docs/claims_exceptions.json, docs/ci.md), and the links from the
+    # standards' coverage tables to the tests resolve (tools/ci/check_traceability.py). Each check has its own test.
+    add_test(NAME docs.claims
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/check_claims.py"
+            --root "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(docs.claims PROPERTIES LABELS "system")
+    add_test(NAME ci.check_claims
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_check_claims.py")
+    set_tests_properties(ci.check_claims PROPERTIES LABELS "system")
+    add_test(NAME docs.traceability
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/check_traceability.py"
+            --root "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(docs.traceability PROPERTIES LABELS "system")
+    add_test(NAME ci.check_traceability
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_check_traceability.py")
+    set_tests_properties(ci.check_traceability PROPERTIES LABELS "system")
 endif()
 
 # The program that writes the sample media sets: it runs on a directory of its

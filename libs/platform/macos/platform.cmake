@@ -23,6 +23,7 @@ set(ADL_PLATFORM_SOURCES
     macos/paths_macos.cpp
     macos/os_macos.cpp
     posix/posix_common.cpp
+    posix/locations_posix.cpp
     posix/clock_posix.cpp
     posix/memory_posix.cpp
     posix/files_posix.cpp

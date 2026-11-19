@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/platform/paths.hpp"
+#include "detail/data_locations.hpp"
+#include "posix/posix_os.hpp"
 
 #include <mach-o/dyld.h>
 
@@ -29,6 +31,18 @@ std::filesystem::path executable_path()
     std::error_code error;
     auto resolved = std::filesystem::weakly_canonical(buffer, error);
     return error ? std::filesystem::path{buffer} : resolved;
+}
+
+std::filesystem::path user_data_directory()
+{
+    const std::string directory = detail::macos_user_data_directory(posix_os::home_directory());
+    return directory.empty() ? std::filesystem::path{} : std::filesystem::path{directory};
+}
+
+std::filesystem::path machine_config_directory()
+{
+    // Where an administrator keeps files for every user of a Mac.
+    return std::filesystem::path{"/Library/Application Support"};
 }
 
 } // namespace adl::platform

@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/platform/paths.hpp"
+#include "detail/data_locations.hpp"
+#include "posix/posix_os.hpp"
 
 #include <unistd.h>
 
 #include <cstddef>
+#include <cstdlib>
 #include <filesystem>
 #include <string>
 
@@ -28,6 +31,21 @@ std::filesystem::path executable_path()
         }
         buffer.resize(buffer.size() * 2);
     }
+}
+
+std::filesystem::path user_data_directory()
+{
+    // NOLINTNEXTLINE(concurrency-mt-unsafe)
+    const char* const xdg_data_home = std::getenv("XDG_DATA_HOME");
+    const std::string directory =
+        detail::xdg_user_data_directory(xdg_data_home != nullptr ? xdg_data_home : "", posix_os::home_directory());
+    return directory.empty() ? std::filesystem::path{} : std::filesystem::path{directory};
+}
+
+std::filesystem::path machine_config_directory()
+{
+    // Where an administrator keeps files for every user of a Linux computer.
+    return std::filesystem::path{"/etc"};
 }
 
 } // namespace adl::platform
