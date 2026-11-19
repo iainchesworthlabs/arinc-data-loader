@@ -52,6 +52,7 @@ changing the repository.
 | Which paths need a build | `.github/ci/plan.json` |
 | A benchmark | `perf-budget.json` through `tools/ci/perf_compare.py --update` ([docs/performance.md](docs/performance.md)) |
 | A platform | `libs/platform/<name>/platform.cmake` and [docs/platform-abstraction.md](docs/platform-abstraction.md) |
+| A message the code shows (a `tr()` in C++) or an exit code | The guide: [docs/user-guide/messages.md](docs/user-guide/messages.md) or the page that describes it, and [docs/user-guide/command-line.md](docs/user-guide/command-line.md). `python3 tools/ci/check_messages.py` fails until it is there |
 | A page's address, or whether a page is published (`mkdocs.yml`, `exclude_docs`, a file name in `docs/`) | `tools/docs/site_layout.json`: the old address must keep leading somewhere ([docs/ci.md](docs/ci.md#the-site-layout)) |
 | A front page of the site (a page with `template: marketing.html`) | Nothing else: it is script-free, has no inline style, uses relative links and has no `mailto:` ([docs/ci.md](docs/ci.md#the-rules-for-the-pages)); say only what the code, a test or a golden file shows |
 | A colour of the site | `docs/theme.css` only, then `python3 tools/ci/check_site_kit.py` |

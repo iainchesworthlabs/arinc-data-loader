@@ -75,6 +75,6 @@ description: A data loader, a media set generator and a mock target for ARINC 61
 <li>FIND does not reach a target on the same computer, does not cross routers, and cannot be used on a network with no broadcast. You can type the target's address instead.</li>
 <li>The loader does one job at a time. The generator makes one load per media set.</li>
 </ul>
-<p>The <a href="guide/files-and-limits/">limits</a> and the <a href="guide/what-has-been-checked/">list of what has been checked</a> are in the guide.</p>
+<p>The <a href="guide/limits/">limits and known problems</a>, <a href="guide/safety-of-use/">safety of use</a> and the <a href="guide/what-has-been-checked/">list of what has been checked</a> are in the guide.</p>
 <p>ARINC Data Loader is free software under the GNU General Public License, version 3 or later, and comes with no warranty. It is made by Iain Chesworth Labs. <a href="licensing/">Licensing and editions</a> has the detail.</p>
 </div></section>

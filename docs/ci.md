@@ -160,6 +160,15 @@ check also holds the pages that the company's contract requires, and the pages t
 The front pages are Markdown with `template: marketing.html` in the front matter, and a page is either written as HTML in the file (links
 relative to the page's built address, such as `../guide/`) or as Markdown with `layout: prose` (links to the source files, `faq.md`).
 
+### The messages and exit codes
+
+`tools/ci/check_messages.py` holds the user's guide to what the code can say. Every text of the programs' C++ code that says something to the
+person using them (a catalogue entry whose source is a `.cpp` or `.hpp` file, as against the labels of a window) must appear in the guide,
+and so must every finding of the ARINC 665 checks (the literals of the `add(findings, ...)` calls in `libs/arinc665/src`, listed in `docs/user-guide/findings.md`), every exit code and every text that `adl_write_payloads` prints. The match ignores case, emphasis and spacing and lets a
+placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six characters or more between placeholders. It runs in
+`docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
+the description is there, and not that it is good.
+
 ### Links out of `docs/`
 
 A page may link to the README, the changelog or a source file with a relative link (`../README.md`), which works on GitHub. The site has no

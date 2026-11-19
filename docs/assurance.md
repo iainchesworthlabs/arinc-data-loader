@@ -31,7 +31,7 @@ The Community edition is free software with no warranty and no support. In parti
 
 ## Safety of use
 
-Do not rely on ARINC Data Loader to find an error in software or data that will be loaded into equipment in service, or to leave that software or data unchanged, unless your own programme has assessed the tool for that use. Check what you load by a method you trust, as well.
+[Safety of use](user-guide/safety-of-use.md) in the guide has the longer version. In short: do not rely on ARINC Data Loader to find an error in software or data that will be loaded into equipment in service, or to leave that software or data unchanged, unless your own programme has assessed the tool for that use. Check what you load by a method you trust, as well.
 
 ## What the Enterprise data packs are for
 

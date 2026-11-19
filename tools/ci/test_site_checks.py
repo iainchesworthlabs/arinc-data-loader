@@ -184,6 +184,11 @@ class Layout(unittest.TestCase):
         (self.site / "user-guide" / "upload" / "index.html").write_text(page("https://iainchesworthlabs.com/adl/user-guide/upload/"), encoding="utf-8")
         self.assertIn("at an old address", "\n".join(check_site_layout.check(self.site, self.root)))
 
+    def test_a_page_left_under_user_guide_is_found(self) -> None:
+        (self.site / "user-guide" / "limits").mkdir(parents=True)
+        (self.site / "user-guide" / "limits" / "index.html").write_text(page("https://iainchesworthlabs.com/adl/user-guide/limits/"), encoding="utf-8")
+        self.assertIn("still under user-guide/", "\n".join(check_site_layout.check(self.site, self.root)))
+
     def test_a_missing_source_file_is_found(self) -> None:
         (self.root / "docs" / "ci.md").unlink()
         self.assertIn("docs/ci.md", "\n".join(check_site_layout.check(self.site, self.root)))
@@ -239,6 +244,9 @@ class FakeFiles:
     def get_file_from_path(self, path: str):  # noqa: ANN201
         return self.by_src.get(path)
 
+    def __iter__(self):  # noqa: ANN204
+        return iter(self.by_src.values())
+
 
 class LayoutHook(unittest.TestCase):
     def setUp(self) -> None:
@@ -262,6 +270,15 @@ class LayoutHook(unittest.TestCase):
         with self.assertRaises(ValueError) as caught:
             site_layout_hook.on_files(files, {})
         self.assertIn("user-guide/upload.md is not in docs/", str(caught.exception))
+
+    def test_a_new_page_of_the_guide_goes_under_guide(self) -> None:
+        limits = Fake("user-guide/limits.md", "user-guide/limits/index.html")
+        index = Fake("user-guide/index.md", "user-guide/index/index.html")
+        files = FakeFiles(Fake("index.md", "index.html"), Fake("user-guide/upload.md", "user-guide/upload/index.html"), Fake("ci.md", "ci/index.html", excluded=True), limits, index)
+        site_layout_hook.on_files(files, {})
+        self.assertEqual(limits.dest_uri, "guide/limits/index.html")
+        self.assertEqual(index.dest_uri, "guide/index.html")
+        self.assertEqual(site_layout_hook.guide_destination("faq.md"), None)
 
     def test_excluding_a_page_that_has_an_address_and_publishing_one_that_has_none_stop_the_build(self) -> None:
         files = FakeFiles(Fake("index.md", "index.html"), Fake("user-guide/upload.md", "x", excluded=True), Fake("ci.md", "ci/index.html"))

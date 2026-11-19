@@ -66,6 +66,8 @@ def check(site: Path, root: Path) -> list[str]:
     for old in (e["old"] for e in entries if e["old"] is not None):
         if old and old not in addresses and (site / old / "index.html").is_file():
             problems.append(f"{old}: a page of the built site is at an old address that site_layout.json gives to another page")
+    if (site / "user-guide").exists():
+        problems.append("user-guide/: the guide is at guide/; a page of the built site is still under user-guide/")
     # The stubs.
     with tempfile.TemporaryDirectory(prefix="adl-stubs-") as tmp:
         out = Path(tmp)
