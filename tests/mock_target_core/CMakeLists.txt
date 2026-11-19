@@ -8,6 +8,7 @@
 add_executable(adl_mock_tests
     engine_test.cpp
     fake_link.hpp
+    link_test.cpp
     loader_rig.hpp)
 target_include_directories(adl_mock_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
