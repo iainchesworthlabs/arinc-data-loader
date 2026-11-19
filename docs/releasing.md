@@ -130,7 +130,8 @@ belong to this repository:
 | What | Where | Setting |
 | --- | --- | --- |
 | Pages | Settings, Pages | Source: *GitHub Actions* |
-| Variable `PUBLISH_DOCS` | Settings, Secrets and variables, Actions, Variables | `true`. Until it is set, `docs.yml` builds the site on `main` but does not publish it |
+| Variable `PUBLISH_DOCS` | Settings, Secrets and variables, Actions, Variables | `true`. Until it is set, `docs.yml` builds the site on `main` but does not publish the pages that forward the old addresses |
+| Secrets `DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET`, `DOCS_DISTRIBUTION_ID` | Settings, Secrets and variables, Actions, Secrets | The values the company site's deploy gives for this repository ([CI](ci.md#publishing)). Until they are set, `docs.yml` skips the deploy and the previews with a warning |
 
 The secrets are the organisation's `REPO_GPG_PRIVATE_KEY` and `REPO_GPG_PASSPHRASE` (the signing key) and
 `RELEASE_BOT_APP_ID` and `RELEASE_BOT_PRIVATE_KEY` (the bot that moves `main`). Only the shared publish

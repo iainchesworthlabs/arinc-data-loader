@@ -3,9 +3,11 @@ description: >-
   Builds the site from docs/ and mkdocs.yml with `mkdocs build --strict` into ./site, with MkDocs
   installed from the hash-locked .github/requirements/docs.txt, and then checks what the build
   produced. The strictness is more than MkDocs' default: mkdocs.yml turns a link that points nowhere,
-  a heading anchor that is not there and a page that is not in the navigation into errors. The job must
-  have checked the repository out. Used by docs.yml (pull requests and main) and by release.yml, so the
-  two cannot disagree about what a good build is.
+  a heading anchor that is not there and a page that is not in the navigation into errors. The checks
+  of the company kit and palette, of the site's address, of its layout and of its pages (docs/ci.md,
+  "Documentation site") run after it. The job must have checked the repository out. Used by docs.yml
+  (pull requests and main), by ci.yml and by release.yml, so they cannot disagree about what a good
+  build is.
 
 runs:
   using: composite
@@ -39,7 +41,7 @@ runs:
         set -euo pipefail
         status=0
         [ -f site/index.html ] || { echo "::error::site/index.html was not built"; status=1; }
-        [ -f site/user-guide/index.html ] || { echo "::error::the user's guide was not built"; status=1; }
+        [ -f site/guide/index.html ] || { echo "::error::the user's guide was not built"; status=1; }
         # The standards are third-party documents and not this project's to publish (docs/licensing.md).
         pdfs=$(find site -iname '*.pdf' | head -5)
         if [ -n "$pdfs" ]; then
@@ -49,9 +51,24 @@ runs:
         # A link to a missing picture is caught by MkDocs. A page count is held here as well, so that
         # an empty nav, or an exclude_docs pattern that removed the site, is noticed.
         pages=$(find site -name index.html | wc -l)
-        if [ "$pages" -lt 40 ]; then
+        if [ "$pages" -lt 30 ]; then
           echo "::error::only $pages pages were built; docs/ holds more than that"
           status=1
         fi
         echo "built $pages pages"
         exit "$status"
+
+    # The pinned company kit and the palette (Node is on every hosted image), the one place the address is
+    # written, the table that says where each page of the first site went, and the built pages (titles,
+    # headings, links, anchors, nothing loaded from another host).
+    - name: Check the kit, the address, the layout and the pages
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 tools/ci/check_site_kit.py
+        python3 tools/ci/check_site_address.py
+        python3 tools/ci/check_site_layout.py --site site
+        python3 tools/ci/check_site_pages.py --site site
+        python3 tools/ci/check_messages.py
+        python3 tools/ci/check_claims.py
+        python3 tools/ci/check_traceability.py

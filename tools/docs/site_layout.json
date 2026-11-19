@@ -1,0 +1,280 @@
+{
+ "comment": "Old address (the GitHub Pages site of release 0.1.1) -> source file -> where the page is on iainchesworthlabs.com/adl/. new: null means the file is published on GitHub only. Read by tools/docs/site_layout_hook.py, tools/docs/make_old_address_stubs.py and tools/ci/check_site_layout.py (docs/ci.md, \"The site layout\").",
+ "pages": [
+  {
+   "old": "",
+   "src": "index.md",
+   "new": ""
+  },
+  {
+   "old": "app/",
+   "src": "app.md",
+   "new": null
+  },
+  {
+   "old": "architecture/",
+   "src": "architecture.md",
+   "new": "developers/architecture/"
+  },
+  {
+   "old": "arinc615a-codec/",
+   "src": "arinc615a-codec.md",
+   "new": "developers/arinc615a-codec/"
+  },
+  {
+   "old": "arinc615a-coverage/",
+   "src": "arinc615a-coverage.md",
+   "new": "developers/arinc615a-coverage/"
+  },
+  {
+   "old": "arinc615a-engine/",
+   "src": "arinc615a-engine.md",
+   "new": "developers/arinc615a-engine/"
+  },
+  {
+   "old": "arinc665-coverage/",
+   "src": "arinc665-coverage.md",
+   "new": "developers/arinc665-coverage/"
+  },
+  {
+   "old": "building/",
+   "src": "building.md",
+   "new": "developers/building/"
+  },
+  {
+   "old": "ci/",
+   "src": "ci.md",
+   "new": null
+  },
+  {
+   "old": "design-overhaul/",
+   "src": "design-overhaul.md",
+   "new": null
+  },
+  {
+   "old": "design-system/",
+   "src": "design-system.md",
+   "new": null
+  },
+  {
+   "old": "faq/",
+   "src": "user-guide/faq.md",
+   "new": "guide/faq/"
+  },
+  {
+   "old": "file-reference/",
+   "src": "file-reference.md",
+   "new": "guide/file-reference/"
+  },
+  {
+   "old": "fuzzing/",
+   "src": "fuzzing.md",
+   "new": "developers/fuzzing/"
+  },
+  {
+   "old": "glossary/",
+   "src": "glossary.md",
+   "new": "guide/glossary/"
+  },
+  {
+   "old": "libraries/",
+   "src": "libraries.md",
+   "new": "developers/libraries/"
+  },
+  {
+   "old": "licensing/",
+   "src": "licensing.md",
+   "new": "developers/licensing/"
+  },
+  {
+   "old": "media-gen/",
+   "src": "media-gen.md",
+   "new": null
+  },
+  {
+   "old": "mock-target/",
+   "src": "mock-target.md",
+   "new": null
+  },
+  {
+   "old": "performance/",
+   "src": "performance.md",
+   "new": null
+  },
+  {
+   "old": "platform-abstraction/",
+   "src": "platform-abstraction.md",
+   "new": "developers/platform-abstraction/"
+  },
+  {
+   "old": "platform-ghs/",
+   "src": "platform-ghs.md",
+   "new": null
+  },
+  {
+   "old": "platform-isolation/",
+   "src": "platform-isolation.md",
+   "new": "developers/platform-isolation/"
+  },
+  {
+   "old": "profiling/",
+   "src": "profiling.md",
+   "new": null
+  },
+  {
+   "old": "releasing/",
+   "src": "releasing.md",
+   "new": null
+  },
+  {
+   "old": "repository-settings/",
+   "src": "repository-settings.md",
+   "new": null
+  },
+  {
+   "old": "roadmap/",
+   "src": "roadmap.md",
+   "new": "developers/roadmap/"
+  },
+  {
+   "old": "screenshots/",
+   "src": "screenshots.md",
+   "new": null
+  },
+  {
+   "old": "security/",
+   "src": "security.md",
+   "new": "developers/security/"
+  },
+  {
+   "old": "static-analysis/",
+   "src": "static-analysis.md",
+   "new": null
+  },
+  {
+   "old": "status/",
+   "src": "status.md",
+   "new": "guide/what-has-been-checked/"
+  },
+  {
+   "old": "testing/",
+   "src": "testing.md",
+   "new": "developers/testing/"
+  },
+  {
+   "old": "translation-glossaries/",
+   "src": "translation-glossaries.md",
+   "new": null
+  },
+  {
+   "old": "translations/",
+   "src": "translations.md",
+   "new": null
+  },
+  {
+   "old": "verifying-releases/",
+   "src": "verifying-releases.md",
+   "new": "guide/verifying-releases/"
+  },
+  {
+   "old": "specs/",
+   "src": "specs/README.md",
+   "new": "developers/standards/"
+  },
+  {
+   "old": "user-guide/",
+   "src": "user-guide/index.md",
+   "new": "guide/"
+  },
+  {
+   "old": "user-guide/choose-a-media-set/",
+   "src": "user-guide/choose-a-media-set.md",
+   "new": "guide/choose-a-media-set/"
+  },
+  {
+   "old": "user-guide/concepts/",
+   "src": "user-guide/concepts.md",
+   "new": "guide/concepts/"
+  },
+  {
+   "old": "user-guide/demonstration/",
+   "src": "user-guide/demonstration.md",
+   "new": "guide/demonstration/"
+  },
+  {
+   "old": "user-guide/download/",
+   "src": "user-guide/download.md",
+   "new": "guide/download/"
+  },
+  {
+   "old": "user-guide/files-and-limits/",
+   "src": "user-guide/files-and-limits.md",
+   "new": "guide/files-and-limits/"
+  },
+  {
+   "old": "user-guide/find-a-target/",
+   "src": "user-guide/find-a-target.md",
+   "new": "guide/find-a-target/"
+  },
+  {
+   "old": "user-guide/installing/",
+   "src": "user-guide/installing.md",
+   "new": "guide/installing/"
+  },
+  {
+   "old": "user-guide/keyboard/",
+   "src": "user-guide/keyboard.md",
+   "new": "guide/keyboard/"
+  },
+  {
+   "old": "user-guide/languages-and-colour/",
+   "src": "user-guide/languages-and-colour.md",
+   "new": "guide/languages-and-colour/"
+  },
+  {
+   "old": "user-guide/loader/",
+   "src": "user-guide/loader.md",
+   "new": "guide/loader/"
+  },
+  {
+   "old": "user-guide/log-and-receipt/",
+   "src": "user-guide/log-and-receipt.md",
+   "new": "guide/log-and-receipt/"
+  },
+  {
+   "old": "user-guide/make-a-media-set/",
+   "src": "user-guide/make-a-media-set.md",
+   "new": "guide/make-a-media-set/"
+  },
+  {
+   "old": "user-guide/mock-target/",
+   "src": "user-guide/mock-target.md",
+   "new": "guide/mock-target/"
+  },
+  {
+   "old": "user-guide/preferences/",
+   "src": "user-guide/preferences.md",
+   "new": "guide/preferences/"
+  },
+  {
+   "old": "user-guide/troubleshooting/",
+   "src": "user-guide/troubleshooting.md",
+   "new": "guide/troubleshooting/"
+  },
+  {
+   "old": "user-guide/upload/",
+   "src": "user-guide/upload.md",
+   "new": "guide/upload/"
+  },
+  {
+   "old": null,
+   "src": "faq.md",
+   "new": "faq/"
+  },
+  {
+   "old": null,
+   "src": "editions.md",
+   "new": "licensing/"
+  }
+ ]
+}
