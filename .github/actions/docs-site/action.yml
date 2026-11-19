@@ -70,3 +70,5 @@ runs:
         python3 tools/ci/check_site_layout.py --site site
         python3 tools/ci/check_site_pages.py --site site
         python3 tools/ci/check_messages.py
+        python3 tools/ci/check_claims.py
+        python3 tools/ci/check_traceability.py

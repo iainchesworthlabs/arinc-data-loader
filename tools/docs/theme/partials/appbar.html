@@ -1,12 +1,48 @@
 {#-
     SPDX-License-Identifier: GPL-3.0-or-later
+    The app bar of the front pages: the product's name, the menus (partials/links.html), and a Download button. A menu is a native
+    <details>, so it opens with no script (a preview blocks every script); the shared name lets only one be open at a time where the
+    browser supports it. Below 64rem the menus fold into one Menu. Nothing in a menu is a heading, so the page keeps one h1.
 -#}
 {%- import "partials/links.html" as links -%}
-<div class="icl-appbar"><div class="icl-wrap">
+<div class="icl-appbar adl-appbar"><div class="icl-wrap">
   <a class="icl-appbar__name" href="{{ base_url }}/"{% if page.is_homepage %} aria-current="page"{% endif %}><img class="icl-appbar__icon" src="{{ base_url }}/icon.svg" width="32" height="32" alt="">ARINC Data Loader</a>
-  <nav aria-label="ARINC Data Loader">{% for path, label in links.bar %}<a href="{{ base_url }}/{{ path }}"{% if page.url == path %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</nav>
+  <nav class="adl-nav" aria-label="ARINC Data Loader">
+    <ul class="adl-nav__list">
+    {%- for label, path, items in links.menus %}
+      {%- if items %}
+      {%- set ns = namespace(current=false) %}
+      {%- for ipath, ilabel, idesc in items %}{% if ipath == page.url %}{% set ns.current = true %}{% endif %}{% endfor %}
+      <li><details class="adl-drop{% if loop.index > 2 %} adl-drop--end{% endif %}{% if ns.current %} adl-drop--current{% endif %}" name="adl-nav">
+        <summary>{{ label }}</summary>
+        <ul class="adl-drop__panel">
+        {%- for ipath, ilabel, idesc in items %}
+          <li><a href="{{ base_url }}/{{ ipath }}"{% if ipath == page.url %} aria-current="page"{% endif %}><span class="adl-drop__label">{{ ilabel }}</span><span class="adl-drop__desc">{{ idesc }}</span></a></li>
+        {%- endfor %}
+        </ul>
+      </details></li>
+      {%- else %}
+      <li><a class="adl-nav__link" href="{{ base_url }}/{{ path }}"{% if page.url == path %} aria-current="page"{% endif %}>{{ label }}</a></li>
+      {%- endif %}
+    {%- endfor %}
+    </ul>
+  </nav>
+  <a class="icl-button icl-button--small adl-appbar__cta" href="{{ base_url }}/downloads/">Download</a>
   <details class="adl-menu">
     <summary>Menu</summary>
-    <ul>{% for path, label in links.bar %}<li><a href="{{ base_url }}/{{ path }}"{% if page.url == path %} aria-current="page"{% endif %}>{{ label }}</a></li>{% endfor %}</ul>
+    <div class="adl-menu__panel">
+    {%- for label, path, items in links.menus %}
+      {%- if items %}
+      <div class="adl-menu__group">
+        <p class="adl-menu__title">{{ label }}</p>
+        <ul>{% for ipath, ilabel, idesc in items %}<li><a href="{{ base_url }}/{{ ipath }}"{% if ipath == page.url %} aria-current="page"{% endif %}>{{ ilabel }}</a></li>{% endfor %}</ul>
+      </div>
+      {%- else %}
+      <div class="adl-menu__group">
+        <ul><li><a class="adl-menu__strong" href="{{ base_url }}/{{ path }}"{% if page.url == path %} aria-current="page"{% endif %}>{{ label }}</a></li></ul>
+      </div>
+      {%- endif %}
+    {%- endfor %}
+    </div>
   </details>
 </div></div>

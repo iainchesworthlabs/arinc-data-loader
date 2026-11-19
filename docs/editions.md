@@ -1,45 +1,41 @@
 ---
 template: marketing.html
-title: Licensing and editions
-title_tag: "Licensing and editions: ARINC Data Loader"
-description: ARINC Data Loader is free software under the GNU General Public License, version 3 or later. This page says what that gives you, and what is proposed for paid editions.
+title: Licensing
+title_tag: "Licensing: ARINC Data Loader"
+description: Every edition of ARINC Data Loader is free software under the GNU General Public License, version 3 or later. What that gives you, what the paid editions add, and the licences of the parts it carries.
 layout: prose
 ---
-<!-- OWNER DECISION: this page is a draft from docs/plan/editions.md. Do not publish it before the decisions marked below are made, or before you have agreed that the proposed editions may be shown. -->
+<!-- OWNER DECISION: the paid editions' terms (seats, support, supported versions, updates, warranty and liability) are not decided.
+     docs/plan/editions.md and docs/plan/licensing.md hold the open questions. -->
 
-# Licensing and editions
+# Licensing
 
-ARINC Data Loader is free software. This page says what the licence gives you and what it does not, and sets out the paid editions that are proposed.
+Every edition of ARINC Data Loader is free software under the GNU General Public License, version 3 or later. The paid editions add support and evidence. They do not change the licence of the code, and they take nothing away from it. [Pricing](pricing.md) compares the editions.
 
-## Community
+## What the licence gives you
 
-The Community edition is the program as it is in the repository and in every release.
+- You may use, study, change and share the programs and the libraries. The licence text is in the file `LICENSE`, in the repository and in every package.
+- If you distribute a program that includes the libraries, or a changed version of them, the licence's terms apply to what you distribute: among them, that you offer its source under the same licence. Take your own advice for your case.
+- The programs and the libraries come with no warranty under the licence. Each program's About dialog says so.
 
-- You may use, study, change and share the programs and the libraries under the GNU General Public License, version 3 or later. The licence text is in the file `LICENSE`, in the repository and in every package.
-- It comes with no warranty. Each program's About dialog says so.
-- It comes with no assurances. It has not been checked against real equipment, and nothing about it is promised for any purpose. [Assurance](assurance.md) says what exists and what does not.
-- It comes with no support. The project is maintained by one person, so there is no guaranteed response time and no promised schedule for a fix. Until version 1.0, only the latest release receives fixes. [Support](support.md) says how to report a problem.
+## The editions
 
-The programs carry Qt 6.12, linked dynamically under the GNU Lesser General Public License, version 3, and the Archivo and Noto Sans Hebrew typefaces under the SIL Open Font License, version 1.1. Each is listed with its terms in About, then Licences, in each program, and in `NOTICES.txt` in every package. The ARINC standards are not under this licence and are not in the repository.
-
-## Paid editions: proposed
-
-Paid editions are proposed. They are not offered yet. Nothing on this page is a price or a promise.
-
-| Edition | What it adds to Community |
+| Edition | What it adds |
 | --- | --- |
-| Pro and Site | Support, with a stated way to reach it. A list of supported versions. A policy for updates. |
-| Enterprise | Everything in Pro and Site, and data packs: documents and records for people who assess ARINC Data Loader for use as a test tool in aerospace certification work. [Assurance](assurance.md) says what a data pack is for and what it is not. |
+| Community | The programs, the libraries and the source, under the licence. Help from the community on GitHub. Fixes go into the latest release; there is no guaranteed response time. |
+| Pro | For the rig. Support with a private channel and response targets, supported versions with security fixes, an update policy, and the Pro tools (rig automation, load records, a target lab, a media set pipeline; in development). Licensed per seat, for a year. |
+| Enterprise | For the programme. Everything in Pro for a whole site, the [qualification kit](qualification-kit.md) for each supported version, a conformance kit, and platform and target-side work by agreement. A site licence, on agreed terms. |
 
-<!-- OWNER DECISION: the names of the editions; whether Pro and Site are one edition or two, and what a site is; prices and whether any are shown; the support channel, hours and response times; the supported versions and the update policy; the warranty and liability wording; who may redistribute a data pack; how long evidence is kept. -->
+The licence file of a paid edition is a record of what was bought. The Community programs do the same with or without one: nothing in them is locked or hidden. The Pro tools are programs of their own, in a Pro package, and each checks the licence itself.
 
-The open questions are written down in the project's planning notes, and the decisions are the owner's.
+## The parts it carries
 
-## What does not change
+The programs carry Qt 6.12, linked dynamically under the GNU Lesser General Public License, version 3, and the Archivo and Noto Sans Hebrew typefaces under the SIL Open Font License, version 1.1. Each is listed with its terms in About, then Licences, in each program, and in `NOTICES.txt` in every package.
 
-- Everything in the Community edition stays available under the GNU General Public License. A paid edition does not take that away, and does not stop anyone sharing the code under that licence.
-- <!-- OWNER DECISION: whether the code is also offered under another licence. That needs the owner to hold the copyright of all of it, and the Qt and typeface licences above still apply. -->
+## The standards
+
+ARINC 665 and ARINC 615A are the publisher's documents. They are not under this licence and are not in the repository, and no edition contains their text. ARINC is the name of the standards' publisher; this project is not affiliated with it. <!-- OWNER DECISION: confirm the wording about the name ARINC, and whether a trademark line should be added. --> [Where the standards go](specs/README.md) says how to get them.
 
 ## Questions
 
-Open an issue on [GitHub](https://github.com/iainchesworthlabs/arinc-data-loader/issues), or read [Support](support.md). There is no email address for this yet.
+[Talk to us](support.md#talk-to-us) about the paid editions. For the licence itself, the [FAQ](faq.md) has short answers.
