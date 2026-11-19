@@ -10,6 +10,7 @@
 #include "adl/arinc615a/directory_files.hpp"
 #include "adl/arinc615a/find_client.hpp"
 #include "adl/arinc615a/limits.hpp"
+#include "adl/loader_core/download_directory.hpp"
 #include "adl/platform/paths.hpp"
 
 #include <adl/profiling.hpp>
@@ -646,7 +647,7 @@ void EngineWorker::run_download(const Address& target, const QString& thw_id_pos
 {
     // The id names the directory the files go into, so it is checked before anything is made:
     // the loader would refuse a bad one only after the directory was there.
-    if (!can_download_from(thw_id_pos.toStdString()))
+    if (!adl::loader_core::can_download_from(thw_id_pos.toStdString()))
     {
         fail(Message::translated(&EngineWorker::tr,
                                  QT_TR_NOOP("\"%1\" is not a THW_ID_POS a download can be made for."),
@@ -711,7 +712,8 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     // A download that received nothing (the target said no, never answered, was cancelled, or the
     // loader could not run at all) leaves no directory behind: the one made for it is removed if
     // it is empty, and left alone if anything is in it.
-    const bool directory_removed = !download_path.empty() && remove_if_empty(host.files(), download_path);
+    const bool directory_removed =
+        !download_path.empty() && adl::loader_core::remove_if_empty(host.files(), download_path);
     const QString download_directory =
         download_path.empty() || directory_removed ? QString{} : QDir::toNativeSeparators(to_qstring(download_path));
     Message removed_note;

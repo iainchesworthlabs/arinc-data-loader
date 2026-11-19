@@ -72,7 +72,7 @@ else()
 endif()
 
 # GCC 16.2 at -O3 reports a false positive from -Wrestrict for a std::string concatenation
-# (std::string{directory} + "/" + name in apps/app/core/src/download_directory.cpp: "accessing
+# (std::string{directory} + "/" + name in libs/loader_core/src/download_directory.cpp: "accessing
 # 9223372036854775806 bytes ... overlaps"), where the compiler assumes the longest possible
 # length for a string_view. The warning stays visible; it is not an error.
 # clang-tidy reads GCC's command line with Clang's front end, which does not know the flag and reports it.
