@@ -34,9 +34,50 @@ Report it privately, not as a public issue: on the repository's Security tab cho
 
 For Pro and Enterprise, a quote, a trial, the qualification kit or a port to your platform, tell us what you load, onto what, how many seats and which versions you use.
 
-<!-- OWNER DECISION: the sales and support address. The company site uses role addresses, and the owner has not supplied one for this product. Until there is one, enquiries go through the GitHub issues page. -->
+The form goes to one person and to no one else. Nothing you write is published, and there is no automatic reply: we answer by email, from our own address. Please put nothing confidential in it, and do not paste a load, a media set or a capture from a real aircraft or a customer's equipment. <a href="/privacy/#contact-form">What the form keeps, and for how long</a>.
 
-Until a sales address is set up, open an issue on [GitHub](https://github.com/iainchesworthlabs/arinc-data-loader/issues) that says which edition you are asking about, with no confidential detail, and we will arrange a private channel.
+<form id="contact-form" class="adl-form" method="post" action="/api/contact">
+<input type="hidden" name="source" value="adl">
+<p class="adl-form__help">Every field is needed except the organisation.</p>
+<div>
+<label for="cf-name">Your name</label>
+<input id="cf-name" name="name" type="text" autocomplete="name" maxlength="100" required>
+</div>
+<div>
+<label for="cf-organisation">Organisation <span class="adl-form__opt">(optional)</span></label>
+<input id="cf-organisation" name="organisation" type="text" autocomplete="organization" maxlength="150">
+</div>
+<div>
+<label for="cf-email">Your email address</label>
+<input id="cf-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="cf-email-help">
+<p id="cf-email-help" class="adl-form__help">This is where we reply. Give one address.</p>
+</div>
+<div>
+<label for="cf-topic">What are you asking about?</label>
+<select id="cf-topic" name="topic" required>
+<option value="">Choose one</option>
+<option value="pro">The Pro edition</option>
+<option value="enterprise">The Enterprise edition</option>
+<option value="qualification-kit">The qualification kit</option>
+<option value="platform-work">A port to your platform</option>
+<option value="other">Something else</option>
+</select>
+</div>
+<div>
+<label for="cf-message">Your message</label>
+<textarea id="cf-message" name="message" rows="7" minlength="10" maxlength="4000" required aria-describedby="cf-message-help"></textarea>
+<p id="cf-message-help" class="adl-form__help">At least 10 characters and at most 4,000, with no more than two web addresses.</p>
+</div>
+<div class="adl-form__trap" aria-hidden="true">
+<label for="cf-ref">Leave this field empty</label>
+<input id="cf-ref" name="ref_code" type="text" tabindex="-1" autocomplete="off">
+</div>
+<div class="adl-form__consent">
+<input id="cf-consent" name="consent" type="checkbox" value="yes" required>
+<label for="cf-consent">I agree that Iain Chesworth Labs may use what I send here to answer me. <a href="/privacy/#contact-form">What is kept, and for how long</a>.</label>
+</div>
+<button class="icl-button" type="submit">Send message</button>
+</form>
 
 ## What support each edition includes
 

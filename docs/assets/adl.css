@@ -204,3 +204,17 @@
   .adl-compare th, .adl-compare td { padding: var(--icl-space-2); }
   .adl-compare .adl-chip { white-space: normal; }
 }
+
+/* The contact form of the Support page (docs/support.md). A plain form with no script. The honeypot is moved off screen and hidden from
+   assistive technology; the borders of the fields use the muted text colour so that they keep 3:1 against the page. */
+.adl-form { display: grid; gap: var(--icl-space-4); margin: var(--icl-space-5) 0; padding: var(--icl-space-5); background: var(--icl-surface-2); border: 1px solid var(--icl-border); border-radius: var(--icl-radius-m); }
+.adl-form label { display: block; margin-bottom: var(--icl-space-1); font-weight: 650; }
+.adl-form__opt { color: var(--icl-fg-muted); font-weight: 450; }
+.adl-form input[type="text"], .adl-form input[type="email"], .adl-form select, .adl-form textarea { display: block; width: 100%; min-height: 2.75rem; padding: var(--icl-space-2) var(--icl-space-3); background: var(--icl-surface); color: var(--icl-fg); border: 1px solid var(--icl-fg-muted); border-radius: var(--icl-radius-s); font: inherit; }
+.adl-form textarea { min-height: 9rem; resize: vertical; }
+.adl-form__help { margin: var(--icl-space-1) 0 0; color: var(--icl-fg-muted); font-size: var(--icl-step--1); }
+.adl-form__consent { display: grid; grid-template-columns: auto 1fr; gap: var(--icl-space-3); align-items: start; }
+.adl-form__consent input { width: 1.5rem; height: 1.5rem; margin: 0.125rem 0 0; }
+.adl-form__consent label { margin: 0; font-weight: 450; }
+.adl-form__trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.adl-form .icl-button { justify-self: start; cursor: pointer; }
