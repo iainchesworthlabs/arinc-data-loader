@@ -166,7 +166,7 @@ The storage folder is chosen in the mock target's window. With none, the target 
 - **A download** serves the ordinary files directly inside `<storage folder>/holds`. Folders inside `holds` are skipped. The list is read once, when Start is pressed, so a file added later is served after a stop and a start. The program does not make `holds`.
 - **With no storage folder, or nothing in `holds`,** the target holds one text file, `DEMO.TXT`.
 
-Source: [`model.cpp`](../apps/mock_target/core/src/model.cpp). The operator's view is [Run the mock target](user-guide/mock-target.md#03-storage).
+Source: [`storage.cpp`](../libs/mock_target_core/src/storage.cpp) (the folders) and [`model.cpp`](../apps/mock_target/core/src/model.cpp) (the log lines the window shows). The operator's view is [Run the mock target](user-guide/mock-target.md#03-storage).
 
 ### Settings and the log
 

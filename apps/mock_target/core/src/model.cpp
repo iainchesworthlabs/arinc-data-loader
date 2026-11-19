@@ -2,7 +2,7 @@
 #include "adl/mock/model.hpp"
 
 #include "adl/arinc615a/limits.hpp"
-#include "adl/arinc665/portable_name.hpp"
+#include "adl/mock/storage.hpp"
 #include "adl/platform/host.hpp"
 #include "adl/platform/paths.hpp"
 
@@ -11,8 +11,6 @@
 #include <QTime>
 #include <QUrl>
 #include <algorithm>
-#include <fstream>
-#include <iterator>
 #include <string>
 
 namespace adl::mock
@@ -26,62 +24,12 @@ namespace
     return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
 }
 
-[[nodiscard]] Bytes to_bytes(std::string_view text)
-{
-    Bytes bytes(text.size());
-    std::transform(text.begin(), text.end(), bytes.begin(),
-                   [](char c) { return std::byte{static_cast<std::uint8_t>(c)}; });
-    return bytes;
-}
-
 [[nodiscard]] QString time_now()
 {
     return QTime::currentTime().toString(QStringLiteral("hh:mm:ss"));
 }
 
-[[nodiscard]] bool is_plain_character(char c) noexcept
-{
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '_' ||
-           c == '-';
-}
-
-[[nodiscard]] std::filesystem::path fs_path(std::string_view utf8)
-{
-    return std::filesystem::path(to_qstring(utf8).toStdU16String());
-}
-
 } // namespace
-
-bool is_storable_name(std::string_view name) noexcept
-{
-    return name.size() <= 254 && adl::arinc665::is_portable_file_name(name) &&
-           std::ranges::all_of(name, is_plain_character);
-}
-
-std::string storage_directory_name(std::string_view part_number)
-{
-    std::string result;
-    result.reserve(part_number.size());
-    for (const char c : part_number.substr(0, 254))
-    {
-        result.push_back(is_plain_character(c) ? c : '_');
-    }
-    if (result.empty())
-    {
-        return "_";
-    }
-    // Windows drops a trailing dot (and with it a name made of dots only), and a device name is
-    // a device in any directory.
-    if (result.back() == '.')
-    {
-        result.back() = '_';
-    }
-    if (adl::arinc665::is_device_name(result))
-    {
-        result.insert(result.begin(), '_');
-    }
-    return result;
-}
 
 // ---- The list models -------------------------------------------------------------------------
 
@@ -311,89 +259,50 @@ void MockWorker::read_holds(Config& config)
 {
     if (!storage_path_.empty())
     {
-        const std::filesystem::path holds = storage_path_ / "holds";
-        std::error_code ec;
-        if (std::filesystem::is_directory(holds, ec))
+        // A folder that is not there (or cannot be listed) holds nothing: the demonstration file
+        // below is served instead.
+        if (auto held = read_held_files(storage_path_ / "holds"))
         {
-            std::vector<HeldFile> found;
-            // The non-throwing iteration: a folder the account cannot list (or one that changes
-            // while it is read) ends the list, it does not end the program.
-            std::filesystem::directory_iterator it(holds, ec);
-            for (const std::filesystem::directory_iterator end; !ec && it != end; it.increment(ec))
-            {
-                const std::filesystem::directory_entry& entry = *it;
-                if (!entry.is_regular_file(ec))
-                {
-                    ec.clear();
-                    continue;
-                }
-                std::ifstream in(entry.path(), std::ios::binary);
-                const std::vector<char> text{std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
-                Bytes bytes(text.size());
-                std::transform(text.begin(), text.end(), bytes.begin(),
-                               [](char c) { return std::byte{static_cast<std::uint8_t>(c)}; });
-                found.push_back(
-                    HeldFile{adl::platform::to_utf8(entry.path().filename().u8string()), std::move(bytes), ""});
-            }
-            std::ranges::sort(found, [](const HeldFile& a, const HeldFile& b) { return a.name < b.name; });
-            config.holds = std::move(found);
+            config.holds = std::move(*held);
         }
     }
     if (config.holds.empty())
     {
-        const std::string note = "The mock target serves the files it holds from <storage>/holds in a download.\n"
-                                 "Put files there and ask for them by name.\n";
-        config.holds.push_back(HeldFile{"DEMO.TXT", to_bytes(note), "a demonstration file"});
+        config.holds.push_back(demonstration_file());
     }
 }
 
 void MockWorker::store_upload(const UploadRecord& record)
 {
-    if (storage_path_.empty())
+    const StoreOutcome outcome = adl::mock::store_upload(storage_path_, record);
+    const auto say = [this](const StoreIssue& issue)
     {
-        Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The storage folder is not set, so the upload is not stored.")});
-        return;
-    }
-    std::error_code ec;
-    std::filesystem::create_directories(storage_path_, ec);
-    if (ec)
+        switch (issue.problem)
+        {
+        case StoreProblem::no_storage_folder:
+            return tr("The storage folder is not set, so the upload is not stored.");
+        case StoreProblem::storage_folder_failed:
+            return tr("The storage folder could not be made: %1.").arg(to_qstring(issue.detail));
+        case StoreProblem::load_folder_failed:
+            return tr("The load's folder could not be made: %1.").arg(to_qstring(issue.detail));
+        case StoreProblem::unsafe_file_name:
+            return tr("%1 was not stored: not a safe file name.").arg(to_qstring(issue.subject));
+        case StoreProblem::file_write_failed:
+            return tr("%1 could not be written to the storage folder.").arg(to_qstring(issue.subject));
+        }
+        return QString{};
+    };
+    for (const StoreIssue& issue : outcome.issues)
     {
-        Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The storage folder could not be made: %1.").arg(QString::fromStdString(ec.message()))});
-        return;
-    }
-    const std::filesystem::path part_dir = storage_path_ / fs_path(storage_directory_name(record.load_part_number));
-    std::filesystem::create_directories(part_dir, ec);
-    if (ec)
-    {
-        Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The load's folder could not be made: %1.").arg(QString::fromStdString(ec.message()))});
-        return;
+        Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(), say(issue)});
     }
     QList<StoredFileRow> rows;
-    for (const StoredFile& file : record.files)
+    for (const StoredOnDisk& file : outcome.stored)
     {
-        if (!is_storable_name(file.name))
-        {
-            Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                             tr("%1 was not stored: not a safe file name.").arg(to_qstring(file.name))});
-            continue;
-        }
-        const std::filesystem::path path = part_dir / fs_path(file.name);
-        std::ofstream out(path, std::ios::binary | std::ios::trunc);
-        out.write(reinterpret_cast<const char*>(file.bytes.data()), static_cast<std::streamsize>(file.bytes.size()));
-        out.close();
-        if (!out)
-        {
-            Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                             tr("%1 could not be written to the storage folder.").arg(to_qstring(file.name))});
-            continue;
-        }
         StoredFileRow row;
         row.name = to_qstring(file.name);
-        row.size = static_cast<qint64>(file.bytes.size());
-        row.path = QDir::toNativeSeparators(to_qstring(adl::platform::to_utf8(path.u8string())));
+        row.size = static_cast<qint64>(file.size);
+        row.path = QDir::toNativeSeparators(to_qstring(adl::platform::to_utf8(file.path.u8string())));
         rows.append(row);
     }
     if (!rows.isEmpty())
