@@ -29,6 +29,13 @@ namespace
 
 constexpr std::string_view program_name = "adl_mock";
 
+// A path as UTF-8 text for a message. (path::string() is the text in the system's code page on Windows,
+// and throws for a name that has a character outside it.)
+[[nodiscard]] std::string utf8(const std::filesystem::path& path)
+{
+    return adl::platform::to_utf8(path.u8string());
+}
+
 // What the engine reports, as events. It runs on the thread that runs the engine, inside its loop, and
 // writes each event as it happens. It also counts the operations and stops the run when it is asked to.
 class Reporter final : public EngineListener
@@ -74,8 +81,7 @@ public:
             }
             if (!outcome.stored.empty())
             {
-                stored_in =
-                    adl::platform::to_utf8((*storage_ / storage_directory_name(record.load_part_number)).u8string());
+                stored_in = utf8(*storage_ / storage_directory_name(record.load_part_number));
             }
         }
         std::vector<std::string> names;
@@ -197,7 +203,7 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
         auto held = read_held_files(*options.holds);
         if (!held)
         {
-            err << program_name << ": --holds " << options.holds->string() << ": " << held.error() << '\n';
+            err << program_name << ": --holds " << utf8(*options.holds) << ": " << held.error() << '\n';
             return exit_folder;
         }
         config.holds = std::move(*held);
@@ -216,7 +222,7 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
         }
         if (error)
         {
-            err << program_name << ": --storage " << options.storage->string() << ": " << error.message() << '\n';
+            err << program_name << ": --storage " << utf8(*options.storage) << ": " << error.message() << '\n';
             return exit_folder;
         }
     }

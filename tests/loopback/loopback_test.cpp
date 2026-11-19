@@ -23,6 +23,7 @@
 #include "adl/mock/engine.hpp"
 #include "adl/mock/link.hpp"
 #include "adl/platform/host.hpp"
+#include "adl/platform/paths.hpp"
 #include "adl/samples/scenarios.hpp"
 #include "temp_dir.hpp"
 
@@ -346,8 +347,10 @@ struct LoaderRig
         auto made = adl::platform::make_host();
         REQUIRE(made.has_value());
         host = std::move(*made);
-        source = std::make_unique<DirectoryFileSource>(host->files(), upload_directory.path().generic_string());
-        sink = std::make_unique<DirectoryFileSink>(host->files(), download_directory.path().generic_string());
+        source = std::make_unique<DirectoryFileSource>(host->files(),
+                                                       adl::platform::to_platform_path(upload_directory.path()));
+        sink = std::make_unique<DirectoryFileSink>(host->files(),
+                                                   adl::platform::to_platform_path(download_directory.path()));
         config.target = Endpoint{Address{{127, 0, 0, 1}}, target_tftp_port};
         config.thw_id_pos = target_thw;
         config.control_port = loader_control_port;
@@ -385,7 +388,7 @@ struct LoaderRig
 void put_load_files(LoaderRig& rig, const adl::arinc665::Load& load)
 {
     auto& files = rig.host->files();
-    const std::string directory = rig.upload_directory.path().generic_string();
+    const std::string directory = adl::platform::to_platform_path(rig.upload_directory.path());
     write_file(files, directory, load.header_file_name, load.header_bytes);
     for (const auto& file : load.data_files)
     {
@@ -462,7 +465,7 @@ TEST_CASE("a media defined Download over real sockets writes the held files", "[
 
     // The sink's directory holds each file, byte for byte.
     auto& filesystem = rig.host->files();
-    const std::string directory = rig.download_directory.path().generic_string();
+    const std::string directory = adl::platform::to_platform_path(rig.download_directory.path());
     CHECK(read_file(filesystem, directory, "F1.BIN") == held[0].content);
     CHECK(read_file(filesystem, directory, "F2.BIN") == held[1].content);
     CHECK(read_file(filesystem, directory, "F3.BIN") == held[2].content);
@@ -488,7 +491,7 @@ TEST_CASE("an operator defined Download over real sockets serves only the chosen
 
     // Only the chosen files are in the sink's directory, and byte for byte.
     auto& filesystem = rig.host->files();
-    const std::string directory = rig.download_directory.path().generic_string();
+    const std::string directory = adl::platform::to_platform_path(rig.download_directory.path());
     auto names = list_names(filesystem, directory);
     std::ranges::sort(names);
     CHECK(names == std::vector<std::string>{"B.BIN", "C.BIN"});

@@ -161,8 +161,8 @@ its neighbours.
 
 ## Command-line programs
 
-A program that is started from a command line (`adl_write_payloads`, and any other that does not open a window) is
-written this way:
+A program that is started from a command line (`adl_write_payloads` and `adl_mock`, and any other that does not open a
+window) is written this way:
 
 - **Its `main` takes its arguments from `adl::platform::arguments` and never reads `argv` itself.**
   `adl/platform/arguments.hpp` has it: `const std::vector<std::string> arguments = adl::platform::arguments(argc, argv);`

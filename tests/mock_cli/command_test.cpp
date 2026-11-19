@@ -13,6 +13,7 @@
 #include "adl/arinc665/load.hpp"
 #include "adl/mock/cli/command.hpp"
 #include "adl/platform/host.hpp"
+#include "adl/platform/paths.hpp"
 #include "adl/samples/scenarios.hpp"
 #include "json_read.hpp"
 #include "temp_dir.hpp"
@@ -27,6 +28,7 @@
 #include <expected>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <iterator>
 #include <memory>
 #include <mutex>
@@ -109,6 +111,13 @@ struct Output
     std::ostream out{&out_buffer};
     std::ostream err{&err_buffer};
 };
+
+// A folder as the program is given it on its command line: UTF-8, whatever the system's code page (path::string()
+// is the code page on Windows).
+[[nodiscard]] std::string utf8_of(const std::filesystem::path& path)
+{
+    return adl::platform::to_utf8(path.u8string());
+}
 
 [[nodiscard]] std::vector<std::string> lines_of(const std::string& text)
 {
@@ -313,8 +322,10 @@ struct LoaderRig
         auto made = adl::platform::make_host();
         REQUIRE(made.has_value());
         host = std::move(*made);
-        source = std::make_unique<DirectoryFileSource>(host->files(), upload_directory.path().generic_string());
-        sink = std::make_unique<DirectoryFileSink>(host->files(), download_directory.path().generic_string());
+        source = std::make_unique<DirectoryFileSource>(host->files(),
+                                                       adl::platform::to_platform_path(upload_directory.path()));
+        sink = std::make_unique<DirectoryFileSink>(host->files(),
+                                                   adl::platform::to_platform_path(download_directory.path()));
         config.target = Endpoint{Address{{127, 0, 0, 1}}, target_tftp_port};
         config.thw_id_pos = target_thw;
         config.control_port = loader_control_port;
@@ -428,7 +439,7 @@ TEST_CASE("an Upload is stored byte for byte and written as an event with the pa
           "[mock_cli][command]")
 {
     adl::test::TempDir storage;
-    Program program({"--storage", storage.path().string(), "--operations", "1", "--seconds", "60", "--json"});
+    Program program({"--storage", utf8_of(storage.path()), "--operations", "1", "--seconds", "60", "--json"});
     REQUIRE(program.listening());
     LoaderRig rig;
     const adl::arinc665::Load load = make_load(30000, 7);
@@ -457,7 +468,7 @@ TEST_CASE("an Upload is stored byte for byte and written as an event with the pa
     }
     CHECK(names.front() == load.header_file_name);
     CHECK(names.size() == 1 + load.data_files.size());
-    CHECK(received->at("stored_in").string() == stored.string());
+    CHECK(received->at("stored_in").string() == utf8_of(stored));
     // It came before the end of the operation.
     const auto order = names_of(events);
     CHECK(std::ranges::find(order, "upload_received") < std::ranges::find(order, "operation_ended"));
@@ -491,7 +502,7 @@ TEST_CASE("both Downloads serve the files of the folder it holds", "[mock_cli][c
     write_bytes(holds.path() / "F1.BIN", first);
     write_bytes(holds.path() / "F2.BIN", second);
     write_bytes(holds.path() / "F3.BIN", third);
-    Program program({"--holds", holds.path().string(), "--operations", "2", "--seconds", "90", "--json"});
+    Program program({"--holds", utf8_of(holds.path()), "--operations", "2", "--seconds", "90", "--json"});
     REQUIRE(program.listening());
 
     LoaderRig media;
@@ -672,4 +683,53 @@ TEST_CASE("a port that cannot be opened exits 4 and names the port", "[mock_cli]
     CHECK(program.join() == cli::exit_port);
     CHECK(program.output.out_buffer.text().empty());
     CHECK(program.output.err_buffer.text().contains(std::to_string(target_tftp_port)));
+}
+
+// ---- The client of the Unicode folders test -------------------------------------------------------------
+
+// Not a test of its own: the other half of tools.adl_mock.unicode_folders (mock_unicode.cmake), which starts
+// adl_mock as a process with --holds and --storage named in characters no Windows code page holds, and this
+// program as the next command of the same pipeline, so that the events of the first arrive on this one's
+// standard input. The tag begins with a dot, so it runs only when it is asked for by name. It waits for the
+// "started" event, uploads a load, downloads F1.BIN (the script wrote it, with the text below), and echoes
+// what the target writes, to the end, for the script to read.
+TEST_CASE("the loader against adl_mock started as a process, with folders of Unicode names", "[.][unicode_client]")
+{
+    const auto echo = [](std::string line)
+    {
+        if (line.ends_with('\r'))
+        {
+            line.pop_back();
+        }
+        std::cout << line << '\n';
+        std::cout.flush();
+        return line;
+    };
+
+    bool started = false;
+    for (std::string line; !started && std::getline(std::cin, line);)
+    {
+        started = echo(line).contains("\"event\":\"started\"");
+    }
+    REQUIRE(started);
+
+    LoaderRig upload;
+    const adl::arinc665::Load load = make_load(3000, 21);
+    upload.put_load(load);
+    const std::vector<LoadReference> references = {
+        LoadReference{load.header_file_name, adl::samples::sample_load_part_number}};
+    CHECK(upload.run(UploadOperation{UploadRequest{references}}).code == OutcomeCode::completed);
+
+    LoaderRig download;
+    const std::vector<FileRequest> files = {FileRequest{"F1.BIN", {}}};
+    CHECK(download.run(MediaDownloadOperation{DownloadRequest{files}}).code == OutcomeCode::completed);
+    CHECK(download.recorder.received_names == std::vector<std::string>{"F1.BIN"});
+    const std::vector<std::byte> got = read_bytes(download.download_directory.path() / "F1.BIN");
+    CHECK(std::string(reinterpret_cast<const char*>(got.data()), got.size()) ==
+          "Held in a folder whose name no code page can hold."); // as mock_unicode.cmake writes it
+
+    for (std::string line; std::getline(std::cin, line);)
+    {
+        static_cast<void>(echo(line));
+    }
 }

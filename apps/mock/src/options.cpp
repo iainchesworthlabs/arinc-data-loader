@@ -4,6 +4,7 @@
 #include "adl/arinc615a/limits.hpp"
 #include "adl/arinc615a/status_code.hpp"
 #include "adl/arinc665/portable_name.hpp"
+#include "adl/platform/arguments.hpp"
 
 #include <algorithm>
 #include <array>
@@ -314,7 +315,7 @@ std::expected<Options, UsageError> parse_options(std::span<const std::string_vie
             {
                 return fail(std::string{name} + " needs a folder");
             }
-            (name == "--holds" ? options.holds : options.storage) = std::filesystem::path{std::string{value}};
+            (name == "--holds" ? options.holds : options.storage) = adl::platform::path_from_utf8(value);
         }
         else if (name == "--address")
         {

@@ -62,6 +62,21 @@ set_tests_properties(mock.command PROPERTIES
     RESOURCE_LOCK mock_target_transfer_ports
     LABELS "system")
 
+# The program started as a process with folders named in characters no Windows code page holds, and the loader
+# (this test program, asked for its hidden client by tag) as the next command of one execute_process
+# (mock_unicode.cmake says how it is made sure the names reached the program whole). The same ports as
+# mock.command, and so the same lock.
+add_test(NAME tools.adl_mock.unicode_folders
+    COMMAND "${CMAKE_COMMAND}"
+        "-DPROGRAM=$<TARGET_FILE:adl_mock>"
+        "-DCLIENT=$<TARGET_FILE:adl_mock_command_test>"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/unicode"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/mock_unicode.cmake")
+set_tests_properties(tools.adl_mock.unicode_folders PROPERTIES
+    TIMEOUT 200
+    RESOURCE_LOCK mock_target_transfer_ports
+    LABELS "system")
+
 # The built program, started as a process: what it says about itself, that wrong options are refused with
 # exit code 2, and that it runs for the time it is told and writes its events.
 add_test(NAME tools.adl_mock.version COMMAND adl_mock --version)

@@ -44,7 +44,10 @@ no signal: killing it abandons what it was doing, and the loader that was in an 
 ### Options
 
 Options are written `--name value`. A value is never a list with commas: an option that takes several values
-(`--part`) is given several times.
+(`--part`) is given several times. The same options and exit codes, and each message, are in the user's guide:
+[Command line and exit codes](user-guide/command-line.md#adl_mock). A folder (`--holds`, `--storage`) is given as the system
+writes it, in any characters it allows: `main` takes its arguments from `adl::platform::arguments` as UTF-8, and makes each
+folder with `path_from_utf8` ([Command-line programs](architecture.md#command-line-programs)).
 
 | Option | Meaning | Default |
 | --- | --- | --- |

@@ -3,13 +3,23 @@
 // command.cpp; this is only the call to it.
 
 #include "adl/mock/cli/command.hpp"
+#include "adl/platform/arguments.hpp"
 
+#include <cstddef>
 #include <iostream>
+#include <string>
 #include <string_view>
 #include <vector>
 
 int main(int argc, char** argv)
 {
-    const std::vector<std::string_view> arguments(argv + 1, argv + argc);
+    // Not argv: on Windows that has lost any character outside the code page (docs/architecture.md,
+    // "Command-line programs"). The first element is the program's name, which run_command does not take.
+    const std::vector<std::string> command_line = adl::platform::arguments(argc, argv);
+    std::vector<std::string_view> arguments;
+    for (std::size_t i = 1; i < command_line.size(); ++i)
+    {
+        arguments.emplace_back(command_line[i]);
+    }
     return adl::mock::cli::run_command(arguments, std::cout, std::cerr);
 }
