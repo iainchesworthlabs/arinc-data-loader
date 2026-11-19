@@ -13,6 +13,7 @@ add_library(adl_load_cli STATIC
     src/json_line.cpp
     src/operation.cpp
     src/options.cpp
+    src/record_file.cpp
     src/run.cpp)
 
 target_include_directories(adl_load_cli

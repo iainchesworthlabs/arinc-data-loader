@@ -11,10 +11,12 @@
 #include "adl/loader_core/gate.hpp"
 #include "adl/loader_core/media_set_check.hpp"
 #include "adl/loader_core/operation_plan.hpp"
+#include "adl/loader_core/record_json.hpp"
 #include "adl/loader_core/run.hpp"
 #include "adl/platform/paths.hpp"
 #include "commands.hpp"
 #include "job.hpp"
+#include "record_file.hpp"
 
 #include <algorithm>
 #include <expected>
@@ -460,10 +462,39 @@ private:
         job_.say(reason == Reason::completed ? Severity::info : Severity::error, "Finished: " + phrase + ".");
         job_.finish();
 
+        // The record says how it ended, as the event does. Its status code is the recorder's, which includes
+        // the target's answer to the request that starts the operation: it is not replaced by the engine's last
+        // status, which does not.
+        adl::loader_core::OperationRecord& record = job_.record();
+        record.program_name = std::string{program_name};
+        record.program_version = std::string{program_version};
+        record.result = reason == Reason::completed ? "completed" : "failed";
+        record.reason = std::string{to_string(reason)};
+        record.detail = detail;
+
+        // The record is written whatever the outcome. One that cannot be written is a local error, and says
+        // so ahead of what the operation came to, which it keeps in the detail.
+        std::optional<std::string> written;
+        if (options_.record)
+        {
+            if (const auto problem =
+                    write_text_file(host_.files(), *options_.record, adl::loader_core::record_to_json(record)))
+            {
+                const std::string lost = "The operation record could not be written: " + *problem + ".";
+                job_.say(Severity::error, lost);
+                detail = lost + " The operation had ended with the reason " + std::string{to_string(reason)} + ".";
+                reason = Reason::local_error;
+            }
+            else
+            {
+                written = *options_.record;
+            }
+        }
+
         FinishedEvent event;
         event.completed = reason == Reason::completed;
         event.reason = to_string(reason);
-        if (const auto status = job_.record().status_code)
+        if (const auto status = record.status_code)
         {
             event.status_code = static_cast<std::uint16_t>(*status);
         }
@@ -471,6 +502,8 @@ private:
         event.exit_code = exit_code_of(reason);
         event.is_download = options_.command == Command::download;
         event.download_folder = download_folder;
+        event.has_record = options_.record.has_value();
+        event.record = std::move(written);
         events_.finished(event);
         return event.exit_code;
     }
