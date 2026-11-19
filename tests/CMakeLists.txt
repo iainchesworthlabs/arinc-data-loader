@@ -17,6 +17,7 @@ add_executable(adl_unit_tests
     unit/check_value_type_test.cpp
     unit/compatibility_test.cpp
     unit/crc_test.cpp
+    unit/data_locations_test.cpp
     unit/digest_test.cpp
     unit/find_test.cpp
     unit/golden_test.cpp
@@ -39,9 +40,12 @@ add_executable(adl_unit_tests
     unit/tftp_test.cpp
     unit/translations_test.cpp)
 
+# libs/platform is here for the platform's own header-only rules (detail/data_locations.hpp), which
+# hold no operating system and are tested on every host.
 target_include_directories(adl_unit_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support"
-    "${CMAKE_CURRENT_SOURCE_DIR}/golden")
+    "${CMAKE_CURRENT_SOURCE_DIR}/golden"
+    "${PROJECT_SOURCE_DIR}/libs/platform")
 
 # The Qt Linguist catalogues the translation rules read as files (they need no Qt).
 target_compile_definitions(adl_unit_tests PRIVATE
