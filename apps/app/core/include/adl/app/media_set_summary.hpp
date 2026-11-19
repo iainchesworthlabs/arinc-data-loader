@@ -3,7 +3,8 @@
 
 // Reading a media set from a directory into the summary the window shows
 // (MediaSetSummary, events.hpp), and making the index of its files that an
-// upload reads them through (adl/loader_core/media_source.hpp).
+// upload reads them through (adl/loader_core/media_source.hpp). The reading and the
+// checking are adl::loader_core's (media_set_check.hpp); this puts the result in Qt's types.
 
 #include "adl/app/events.hpp"
 #include "adl/loader_core/media_source.hpp"

@@ -2,82 +2,45 @@
 #include "adl/app/media_set_summary.hpp"
 
 #include "adl/app/text.hpp"
-#include "adl/arinc665/media_set.hpp"
-#include "adl/media_tree/media_tree.hpp"
+#include "adl/loader_core/media_set_check.hpp"
 
-#include <adl/profiling.hpp>
-
-#include <QObject>
 #include <filesystem>
 
 namespace adl::app
 {
 
-MediaSetSummary read_media_set_summary(const QString& path, std::shared_ptr<const adl::loader_core::MediaSetIndex>* index)
+MediaSetSummary read_media_set_summary(const QString& path,
+                                       std::shared_ptr<const adl::loader_core::MediaSetIndex>* index)
 {
-    const adl::profiling::Zone zone{"app: read and validate media set"};
-    if (index != nullptr)
-    {
-        index->reset();
-    }
+    const adl::loader_core::MediaSetReport report =
+        adl::loader_core::check_media_set(std::filesystem::path{path.toStdU16String()}, index);
+
     MediaSetSummary summary;
     summary.path = path;
-
-    const std::filesystem::path root{path.toStdU16String()};
-    auto members = adl::media_tree::read_media_set_tree(root);
-    if (!members)
+    summary.error = to_qstring(report.error);
+    summary.part_number = to_qstring(report.part_number);
+    summary.members = static_cast<int>(report.members);
+    summary.batches = static_cast<int>(report.batches);
+    for (const auto& file : report.files)
     {
-        summary.error = QStringLiteral("%1 (%2)").arg(to_qstring(adl::media_tree::to_string(members.error().error)),
-                                                      QString::fromStdU16String(members.error().path.u16string()));
-        return summary;
+        summary.files.append({to_qstring(file.name), to_qstring(file.pathname), file.member, to_qstring(file.crc16)});
     }
-
-    auto set = adl::arinc665::read_media_set(*members);
-    if (!set)
-    {
-        summary.error = to_qstring(adl::arinc665::to_string(set.error()));
-        return summary;
-    }
-
-    const auto& identity = set->loads_list.identity;
-    if (index != nullptr)
-    {
-        auto made = adl::loader_core::MediaSetIndex::make(root, set->files_list, *members);
-        if (!made)
-        {
-            summary.error = to_qstring(made.error());
-            return summary;
-        }
-        *index = std::make_shared<const adl::loader_core::MediaSetIndex>(std::move(*made));
-    }
-    summary.part_number = to_qstring(identity.media_set_part_number.view());
-    summary.members = identity.number_of_media_set_members;
-    summary.batches = static_cast<int>(set->batches.size());
-    for (const auto& file : set->files_list.files)
-    {
-        MediaFileSummary entry;
-        entry.name = to_qstring(file.file_name);
-        entry.pathname = to_qstring(file.pathname);
-        entry.member = file.member_sequence_number;
-        entry.crc16 = QStringLiteral("%1").arg(file.crc, 4, 16, QLatin1Char('0')).toUpper();
-        summary.files.append(entry);
-    }
-    for (const auto& load : set->loads)
+    for (const auto& load : report.loads)
     {
         LoadSummary entry;
-        entry.part_number = to_qstring(load.header.load_part_number.view());
-        entry.header_file = to_qstring(load.header_file_name);
-        entry.data_files = static_cast<int>(load.header.data_files.size());
-        entry.support_files = static_cast<int>(load.header.support_files.size());
-        for (const auto& id : load.header.target_hardware_ids)
+        entry.part_number = to_qstring(load.part_number);
+        entry.header_file = to_qstring(load.header_file);
+        entry.data_files = static_cast<int>(load.data_files);
+        entry.support_files = static_cast<int>(load.support_files);
+        for (const auto& id : load.target_hardware_ids)
         {
             entry.target_hardware_ids.append(to_qstring(id));
         }
         summary.loads.append(entry);
     }
-    for (const auto& finding : set->findings)
+    for (const auto& finding : report.findings)
     {
-        summary.findings.append(QStringLiteral("%1: %2").arg(to_qstring(finding.clause), to_qstring(finding.message)));
+        summary.findings.append(to_qstring(finding));
     }
     return summary;
 }

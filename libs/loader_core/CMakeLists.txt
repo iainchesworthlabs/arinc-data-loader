@@ -8,6 +8,7 @@
 add_library(adl_loader_core STATIC
     src/address.cpp
     src/download_directory.cpp
+    src/media_set_check.cpp
     src/media_source.cpp)
 add_library(adl::loader_core ALIAS adl_loader_core)
 

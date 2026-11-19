@@ -118,6 +118,7 @@ target_link_libraries(adl_sim_target
 add_executable(adl_loader_core_tests
     loader_core/address_test.cpp
     loader_core/download_directory_test.cpp
+    loader_core/media_set_check_test.cpp
     loader_core/media_source_test.cpp)
 
 target_include_directories(adl_loader_core_tests PRIVATE
@@ -127,6 +128,8 @@ target_link_libraries(adl_loader_core_tests
     PRIVATE
         adl_fake_platform
         adl::loader_core
+        adl::media_tree
+        adl::samples
         adl::warnings
         adl::sanitizers
         adl::coverage
