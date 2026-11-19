@@ -31,7 +31,7 @@
     {
       "part_number": "ACM47-2222-0002",
       "header_file": "FMS2.LUH",
-      "status": "failed",
+      "status": "item_failed",
       "percent": 40
     }
   ],

@@ -326,7 +326,7 @@ std::string record_to_json(const OperationRecord& record)
         json.begin_object();
         json.string("part_number", load.part_number);
         json.string("header_file", load.header_file);
-        json.string("status", adl::arinc615a::to_string(load.status));
+        json.string("status", status_name(load.status));
         json.number("percent", load.percent);
         json.end_object();
     }

@@ -383,6 +383,32 @@ TEST_CASE("a time is written in UTC to the second, or as null", "[loader_core][r
     CHECK(started(std::nullopt) == "  \"started_at\": null,");
 }
 
+TEST_CASE("the status of a load is written as the name of the status, not as a sentence", "[loader_core][record_json]")
+{
+    struct Case
+    {
+        StatusCode status;
+        std::string name;
+    };
+    const std::vector<Case> cases{{StatusCode::accepted, "accepted"},
+                                  {StatusCode::in_progress, "in_progress"},
+                                  {StatusCode::completed, "completed"},
+                                  {StatusCode::in_progress_with_text, "in_progress_with_text"},
+                                  {StatusCode::operation_denied, "operation_denied"},
+                                  {StatusCode::operation_not_supported, "operation_not_supported"},
+                                  {StatusCode::aborted_by_target, "aborted_by_target"},
+                                  {StatusCode::aborted_by_data_loader, "aborted_by_data_loader"},
+                                  {StatusCode::aborted_by_operator, "aborted_by_operator"},
+                                  {StatusCode::item_failed, "item_failed"}};
+    for (const Case& scenario : cases)
+    {
+        OperationRecord record;
+        record.loads = {RecordedLoad{"ACM47-1111-0001", "FMS1.LUH", scenario.status, 7}};
+        CAPTURE(scenario.name);
+        CHECK(record_to_json(record).contains("\n      \"status\": \"" + scenario.name + "\",\n"));
+    }
+}
+
 TEST_CASE("bytes that are not UTF-8 are each written as the replacement character", "[loader_core][record_json]")
 {
     struct Case

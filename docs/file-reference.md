@@ -217,7 +217,7 @@ A key inside a list or an object is written with the key that holds it, so `load
 | `loads` | For an upload, one entry for each load the target reported, in the order it first reported them, with what it said last. `[]` for any other operation |
 | `loads.part_number` | The load's part number |
 | `loads.header_file` | Its header file |
-| `loads.status` | The target's last status for the load, in words: `accepted`, `in progress`, `in progress, with details`, `completed`, `failed`, or one of the other statuses of ARINC 615A-3 Table 6.4.10-1 |
+| `loads.status` | The target's last status for the load, by the name of the status in lower case with underscores: `accepted`, `in_progress`, `in_progress_with_text`, `completed`, `item_failed` (the target failed the load), `operation_denied`, `operation_not_supported`, `aborted_by_target`, `aborted_by_data_loader` or `aborted_by_operator`, the statuses of ARINC 615A-3 Table 6.4.10-1. The name is the same in every language and every version of the program. It is not a sentence |
 | `loads.percent` | How far the load is, 0 to 100 |
 | `configuration` | For an Information operation, the hardware the target listed. `null` for any other operation, and for an Information operation in which the target never sent its list |
 | `configuration.literal_name` | The piece of hardware's literal name |
@@ -247,7 +247,9 @@ The program that ran the operation sets `result`, `reason` and `detail`. The lib
 | `target_refused` | `failed` | The target refused the operation |
 | `target_aborted` | `failed` | The target ended the operation |
 | `load_failed` | `failed` | The upload ended and the target failed at least one load |
-| `missing_files` | `failed` | The download ended with fewer files than were asked for |
+| `missing_files` | `failed` | The download ended with fewer files than were asked for, or a file failed |
+| `protocol_error` | `failed` | What the target sent could not be understood, or its protocol version is not supported |
+| `aborted` | `failed` | The operation was aborted from this side. A window can do that; a command with no window cannot |
 | `media_set_unreadable` | `failed` | The media set could not be read or checked |
 | `media_set_changed` | `failed` | A file of the media set changed after the set was checked |
 | `no_answer` | `failed` | The target did not answer |
