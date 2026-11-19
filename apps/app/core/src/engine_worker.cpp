@@ -567,7 +567,7 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos, QLi
         Q_EMIT finished(summary);
         return;
     }
-    MediaTreeSource source(lease->host->files(), *index_);
+    adl::loader_core::MediaTreeSource source(lease->host->files(), *index_);
     JobListener listener(*this);
     Q_EMIT log_line(
         {Severity::info, Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("Uploading %n load(s) to %1 (%2)..."),
@@ -678,7 +678,7 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
                                  const adl::arinc615a::Operation& operation,
                                  adl::arinc615a::OperationListener& listener, adl::arinc615a::FileSource* source,
                                  adl::arinc615a::FileSink* sink, quint16 control_port, const std::string& download_path,
-                                 const MediaTreeSource* media)
+                                 const adl::loader_core::MediaTreeSource* media)
 {
     const std::string thw = thw_id_pos.toStdString();
     adl::arinc615a::LoaderConfig config;

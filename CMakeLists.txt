@@ -130,6 +130,10 @@ add_subdirectory(libs/arinc615a_runner)
 # std::filesystem, so it needs nothing from the platform section either.
 add_subdirectory(libs/media_tree)
 
+# What the loader does without a window: the media set's files and their index, the media set check,
+# the download folder and the target's address. No Qt; apps/app/core calls it.
+add_subdirectory(libs/loader_core)
+
 # Sample loads and media sets, for the tests and for the program below.
 add_subdirectory(libs/samples)
 

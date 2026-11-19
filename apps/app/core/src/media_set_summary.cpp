@@ -13,7 +13,7 @@
 namespace adl::app
 {
 
-MediaSetSummary read_media_set_summary(const QString& path, std::shared_ptr<const MediaSetIndex>* index)
+MediaSetSummary read_media_set_summary(const QString& path, std::shared_ptr<const adl::loader_core::MediaSetIndex>* index)
 {
     const adl::profiling::Zone zone{"app: read and validate media set"};
     if (index != nullptr)
@@ -42,13 +42,13 @@ MediaSetSummary read_media_set_summary(const QString& path, std::shared_ptr<cons
     const auto& identity = set->loads_list.identity;
     if (index != nullptr)
     {
-        auto made = MediaSetIndex::make(root, set->files_list, *members);
+        auto made = adl::loader_core::MediaSetIndex::make(root, set->files_list, *members);
         if (!made)
         {
             summary.error = to_qstring(made.error());
             return summary;
         }
-        *index = std::make_shared<const MediaSetIndex>(std::move(*made));
+        *index = std::make_shared<const adl::loader_core::MediaSetIndex>(std::move(*made));
     }
     summary.part_number = to_qstring(identity.media_set_part_number.view());
     summary.members = identity.number_of_media_set_members;

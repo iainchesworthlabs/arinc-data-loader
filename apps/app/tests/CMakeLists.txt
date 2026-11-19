@@ -13,7 +13,6 @@ add_executable(adl_app_tests
     controls_test.cpp
     download_directory_test.cpp
     engine_worker_test.cpp
-    faulty_files.hpp
     faulty_host.hpp
     loader_model_test.cpp
     main.cpp
