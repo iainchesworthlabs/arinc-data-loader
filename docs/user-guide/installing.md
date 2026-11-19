@@ -26,7 +26,7 @@ on Windows, `linux-gcc-release` on Linux and `macos-clang-release` on a Mac. The
 developers and, on Windows, cannot open the system's file dialogs (see
 [Building](../building.md#presets)).
 
-A build produces these programs in `build/<preset>/bin`, and a package holds the same four:
+A build produces these programs in `build/<preset>/bin`, and a package holds the same five:
 
 | File | Program |
 | --- | --- |
@@ -34,6 +34,7 @@ A build produces these programs in `build/<preset>/bin`, and a package holds the
 | `adl_media_gen` | ARINC Media Set Generator |
 | `adl_mock_target` | ARINC Mock Target |
 | `adl_write_payloads` | A command-line tool that writes sample media sets to a folder, for trying other loaders |
+| `adl_load` | A command-line program that runs one operation on one target with no window, for scripts and other programs |
 
 On Windows the build copies the Qt libraries next to the programs, so each can be started from
 anywhere: double-click it, or run it from a shell. A Linux build finds Qt the way the build did (the
@@ -41,8 +42,9 @@ Linux package carries its own Qt). On a Mac the programs are application bundles
 
 Starting a program opens its window. The programs take one option, `--smoke-test`, which draws the
 first frame, prints `smoke-test: first frame drawn` and exits with code 0; you do not need it.
-(`adl_write_payloads` is a command-line program, see
-[Sample media sets](choose-a-media-set.md#sample-media-sets).) Each program keeps its settings in the
+(`adl_write_payloads` and `adl_load` are command-line programs, see
+[Sample media sets](choose-a-media-set.md#sample-media-sets) and
+[Command line and exit codes](command-line.md#adl_load).) Each program keeps its settings in the
 system's per-user settings store; to keep them in a folder instead (when the programs run from a USB
 drive, for example) set the environment variable `ADL_SETTINGS_DIR` to that folder
 ([Where files go](files-and-limits.md#where-files-go)). Closing the window ends the

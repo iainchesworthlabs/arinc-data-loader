@@ -275,6 +275,11 @@
    "old": null,
    "src": "editions.md",
    "new": "licensing/"
+  },
+  {
+   "old": null,
+   "src": "load-command.md",
+   "new": "developers/load-command/"
   }
  ]
 }

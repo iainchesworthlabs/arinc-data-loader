@@ -187,6 +187,7 @@ nav:
       - Developers contents: developers.md
       - Libraries and platforms:
           - Using the libraries: libraries.md
+          - The command adl_load: load-command.md
           - Architecture: architecture.md
           - Platform abstraction: platform-abstraction.md
           - Platform isolation: platform-isolation.md

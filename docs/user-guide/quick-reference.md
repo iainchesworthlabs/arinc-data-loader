@@ -10,6 +10,7 @@ The numbers and names the guide uses, on one page. Each section says where the d
 | ARINC Media Set Generator | `adl_media_gen` | Make a media set from files, and check it |
 | ARINC Mock Target | `adl_mock_target` | Stand in for a target, and misbehave on request |
 | (command line) | `adl_write_payloads` | Write sample media sets ([Command line](command-line.md)) |
+| (command line) | `adl_load` | Run one operation on one target with no window ([Command line](command-line.md#adl_load)) |
 
 ## Ports
 
@@ -98,6 +99,12 @@ Each file is named `<THW_ID_POS>` and an extension, for example `HNPFMS_L.LCI`. 
 | `adl_write_payloads` | 0 | Everything was written and verified |
 | | 1 | A scenario could not be built, written, read back or verified |
 | | 2 | The command line could not be used |
+| `adl_load` | 0 | The operation completed (`find`: it ran) |
+| | 1 | The operation ran and failed |
+| | 2 | The command line could not be used |
+| | 3 | The media set could not be read, or changed after it was checked |
+| | 4 | The target did not answer |
+| | 5 | A port, a folder or the record file could not be used |
 | The three programs with windows | 0 | The window was closed, or `--smoke-test` drew its frame |
 | | 1 | The window could not be created |
 

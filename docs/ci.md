@@ -178,7 +178,7 @@ live site only.
 
 `tools/ci/check_messages.py` holds the user's guide to what the code can say. Every text of the programs' C++ code that says something to the
 person using them (a catalogue entry whose source is a `.cpp` or `.hpp` file, as against the labels of a window) must appear in the guide,
-and so must every finding of the ARINC 665 checks (the literals of the `add(findings, ...)` calls in `libs/arinc665/src`, listed in `docs/user-guide/findings.md`), every exit code and every text that `adl_write_payloads` prints. The match ignores case, emphasis and spacing and lets a
+and so must every finding of the ARINC 665 checks (the literals of the `add(findings, ...)` calls in `libs/arinc665/src`, listed in `docs/user-guide/findings.md`), every exit code and every text that `adl_write_payloads` prints, and every sentence that `adl_load` builds (the string literals of more than one word in `apps/load/src` and the lines of its usage text, which have to be in `docs/user-guide/command-line.md`). The match ignores case, emphasis and spacing and lets a
 placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six characters or more between placeholders. It runs in
 `docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
 the description is there, and not that it is good.

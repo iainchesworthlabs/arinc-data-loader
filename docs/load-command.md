@@ -2,7 +2,7 @@
 
 `adl_load` runs one ARINC 615A operation on one target, or looks for targets, with no window. It is for scripts and for other programs: what it prints is the same kind of thing the loader's log and receipt show, as lines of JSON that a program can read, and its exit code says how it ended. The loader's window ([the application](app.md)) does the same work for a person.
 
-It has no Qt and no window, and it is English only: nothing it writes is translated, whatever language the window is in. The source is in `apps/load`; the library it is a thin `main` over (`adl_load_cli`) is not installed. The work of an operation is `adl::loader_core` ([Using the libraries](libraries.md)).
+It has no Qt and no window, and it is English only: nothing it writes is translated, whatever language the window is in. The user's guide has the options, the exit codes and every sentence it says ([Command line and exit codes](user-guide/command-line.md#adl_load)); this page is for the programs that start it and read what it writes. The source is in `apps/load`; the library it is a thin `main` over (`adl_load_cli`) is not installed. The work of an operation is `adl::loader_core` ([Using the libraries](libraries.md)).
 
 ## Usage
 
@@ -37,7 +37,7 @@ Options are written `--name value`, with a space. An option that takes several v
 | `--json` | Standard output carries JSON lines and nothing else. |
 | `--record <file>` | Write the operation record when the operation ends, whatever its outcome. `find` writes no record. |
 
-Wrong options are told on standard error, with the usage after them, and the exit code is 2; no event is written, not even `started`. That includes what only the media set shows: a part number it does not hold, or `--all-loads` for a set with no load.
+Wrong options are told on standard error, with the usage after them, and the exit code is 2; no event is written, not even `started`. That includes what only the media set shows: a part number it does not hold, a part number that names two of its loads, or `--all-loads` for a set with no load. So that this can be wrong usage with no event, an upload reads and checks the media set **before** it writes `started`: with a large set, `started` is written after the time the read takes, and its `t` is then not 0.
 
 The target is always reached at port 59, the standard's. A target that listens elsewhere cannot be reached with this program. On Linux and macOS a program may need privileges to bind a port below 1024; the loader's own port (`--control-port`) is for that, and the target's is not the program's to choose.
 

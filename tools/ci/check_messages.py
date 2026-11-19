@@ -17,8 +17,12 @@ What the programs say to the person using them has two sources, and this check h
    add(findings, clause, message) and are not in a catalogue. Every string literal of such a call must appear in the guide
    (docs/user-guide/findings.md lists them).
 3. Exit codes and the command line. Every exit code that the programs' code sets (the exit_* constants of
-   apps/write_payloads/main.cpp, and the exit(N) calls of the three windowed programs and of the smoke test) must be a row of
-   the table in docs/user-guide/command-line.md, and every text that adl_write_payloads prints must be in that page.
+   apps/write_payloads/main.cpp and of apps/load/include/adl/load/exit_codes.hpp, and the exit(N) calls of the three windowed programs
+   and of the smoke test) must be a row of the table in docs/user-guide/command-line.md, and every text that adl_write_payloads
+   prints must be in that page.
+4. The words of adl_load (apps/load/src). It builds its sentences from pieces, so each string literal of more than one word in those
+   files, and each line of its usage text, must be in docs/user-guide/command-line.md as it is written there, with the values it is
+   joined to written as a placeholder.
 
 The check does not decide that the description is good, only that it is there. A new message or exit code fails it until the guide says
 something about it. Run it after a change to a message. tests/CMakeLists.txt runs it as the test docs.messages.
@@ -36,6 +40,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CATALOGUES = ("apps/*/translations/*.ts", "libs/ui/translations/*.ts")
 GUIDE = ("docs/user-guide/*.md", "docs/file-reference.md")
 COMMAND_LINE_PAGE = "docs/user-guide/command-line.md"
+LOAD_SOURCES = "apps/load/src/*.cpp"
+EXIT_CODE_HEADERS = "apps/*/include/adl/*/exit_codes.hpp"
 MIN_SEGMENT = 6
 
 
@@ -80,6 +86,8 @@ def exit_codes(root: Path) -> set[int]:
     main = root / "apps" / "write_payloads" / "main.cpp"
     if main.is_file():
         codes.update(int(n) for n in re.findall(r"constexpr\s+int\s+exit_\w+\s*=\s*(\d+)\s*;", main.read_text(encoding="utf-8")))
+    for path in sorted(root.glob(EXIT_CODE_HEADERS)):
+        codes.update(int(n) for n in re.findall(r"constexpr\s+int\s+exit_\w+\s*=\s*(\d+)\s*;", path.read_text(encoding="utf-8")))
     for path in [*sorted((root / "apps").glob("*/main.cpp")), root / "libs" / "ui" / "smoke_test.cpp"]:
         if path.is_file():
             codes.update(int(n) for n in re.findall(r"\bexit\(\s*(\d+)\s*\)", path.read_text(encoding="utf-8")))
@@ -103,6 +111,29 @@ def printed_texts(root: Path) -> list[str]:
                 continue
             text = "".join(literal.findall(operand)).replace("\\n", "\n").replace('\\"', '"')
             if text.strip():
+                texts.append(text)
+    return texts
+
+
+def load_texts(root: Path) -> list[str]:
+    """The words of adl_load: the lines of its usage text, and every string literal of more than one word in apps/load/src.
+
+    The program joins its sentences to the names and numbers they are about (a literal, a name, another literal), so each literal is a
+    piece, and a piece has to be in the guide. A literal of one word is a key, a name or a reason. Comments and #include lines are not
+    read.
+    """
+    texts: list[str] = []
+    for path in sorted(root.glob(LOAD_SOURCES)):
+        source = path.read_text(encoding="utf-8")
+        for raw in re.findall(r'R"\((.*?)\)"', source, flags=re.S):
+            texts.extend(line for line in raw.splitlines() if line.strip())
+        source = re.sub(r'R"\(.*?\)"', "", source, flags=re.S)
+        source = re.sub(r"^\s*#.*$", "", source, flags=re.M)
+        source = re.sub(r"//.*$", "", source, flags=re.M)
+        source = source.replace("'\"'", "''")  # a character literal that is a quote
+        for literal in re.findall(r'"((?:[^"\\\n]|\\.)*)"', source):
+            text = re.sub(r"\\(.)", r"\1", literal)
+            if len(text.split()) > 1:
                 texts.append(text)
     return texts
 
@@ -170,6 +201,11 @@ def check(root: Path) -> list[str]:
                 if part not in page:
                     problems.append(f"the text {line.strip()!r} of adl_write_payloads is not in {COMMAND_LINE_PAGE}")
                     break
+    for text in load_texts(root):
+        for part in segments(text) or ([normalise(text)] if len(normalise(text)) >= MIN_SEGMENT else []):
+            if part not in page:
+                problems.append(f"the text {text.strip()!r} of adl_load is not in {COMMAND_LINE_PAGE}")
+                break
     return problems
 
 
@@ -187,8 +223,8 @@ def main(argv: list[str] | None = None) -> int:
     if problems:
         return 1
     messages = code_messages(args.root)
-    print(f"Messages: {len(messages)} texts of the code, {len(finding_literals(args.root))} findings and "
-          f"{len(exit_codes(args.root))} exit codes are in the guide")
+    print(f"Messages: {len(messages)} texts of the code, {len(finding_literals(args.root))} findings, "
+          f"{len(load_texts(args.root))} pieces of what adl_load says and {len(exit_codes(args.root))} exit codes are in the guide")
     return 0
 
 
