@@ -136,7 +136,7 @@ links to the documentation at another address.
 ### The company kit and the palette
 
 The pages use the company shell: its stylesheet, header and footer. `tools/docs/site-kit/v1/` is a pinned copy of the company's kit
-(version 1.1.1, from the company site's repository at commit `47ab839`). Nothing is fetched when the site is built or checked, and the
+(version 1.1.2, from the company site's repository at commit `cba3f49`). Nothing is fetched when the site is built or checked, and the
 files are not edited. `tools/ci/check_site_kit.py` fails when a file differs from the hash in the copy's own `SHA256SUMS.txt` (line
 endings are not compared), when a file is missing or added, and when the palette does not pass the company's checker. To move to a newer
 kit, copy its files over the copy (the whole of `/assets/v1/`, same layout), run the check and say the version in the pull request.
