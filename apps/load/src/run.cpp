@@ -38,8 +38,7 @@ int run(adl::platform::Host& host, std::span<const std::string_view> arguments, 
     EventWriter events(out, options.json, host.clock(), start);
     if (options.command == Command::find)
     {
-        err << "adl_load: the find command is not built yet.\n";
-        return exit_local_error;
+        return run_find_command(host, options, events);
     }
     return run_operation_command(host, options, events, err);
 }
