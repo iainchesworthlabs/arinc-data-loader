@@ -134,6 +134,43 @@ public:
 
 } // namespace
 
+// ---- The name of a status ------------------------------------------------------------------------
+
+TEST_CASE("a status is named by its enumerator, in lower case with underscores", "[loader_core][recorder]")
+{
+    using adl::loader_core::status_name;
+    CHECK(status_name(StatusCode::accepted) == "accepted");
+    CHECK(status_name(StatusCode::in_progress) == "in_progress");
+    CHECK(status_name(StatusCode::completed) == "completed");
+    CHECK(status_name(StatusCode::in_progress_with_text) == "in_progress_with_text");
+    CHECK(status_name(StatusCode::operation_denied) == "operation_denied");
+    CHECK(status_name(StatusCode::operation_not_supported) == "operation_not_supported");
+    CHECK(status_name(StatusCode::aborted_by_target) == "aborted_by_target");
+    CHECK(status_name(StatusCode::aborted_by_data_loader) == "aborted_by_data_loader");
+    CHECK(status_name(StatusCode::aborted_by_operator) == "aborted_by_operator");
+    CHECK(status_name(StatusCode::item_failed) == "item_failed");
+    CHECK(status_name(static_cast<StatusCode>(0x7FFF)) == "unknown");
+
+    // Every status the standard has is named, by a word of its own that is none of the engine's sentences
+    // for it: a program reads the name, and a sentence can be reworded.
+    std::vector<std::string> names;
+    for (unsigned value = 0; value <= 0x1007; ++value)
+    {
+        const auto status = static_cast<StatusCode>(value);
+        if (!adl::arinc615a::is_known(status))
+        {
+            continue;
+        }
+        const std::string name{status_name(status)};
+        CAPTURE(value, name);
+        CHECK(name != "unknown");
+        CHECK(std::ranges::all_of(name, [](char c) { return (c >= 'a' && c <= 'z') || c == '_'; }));
+        CHECK(std::ranges::find(names, name) == names.end());
+        names.push_back(name);
+    }
+    CHECK(names.size() == 10);
+}
+
 // ---- A record, begun and ended -----------------------------------------------------------------
 
 TEST_CASE("a record begins with the operation, the target and the time it started", "[loader_core][recorder]")

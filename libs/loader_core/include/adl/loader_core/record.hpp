@@ -52,6 +52,39 @@ enum class Severity : std::uint8_t
     return "info";
 }
 
+// The name of a status code for a program to read: the enumerator's name in lower case with underscores
+// ("in_progress", "item_failed"). It is the same word in every language and every version, which a
+// sentence is not: adl::arinc615a::to_string words the status for a person ("in progress", "failed"), and
+// the log is built from that. The file writes the status of a load by this name.
+[[nodiscard]] constexpr std::string_view status_name(adl::arinc615a::StatusCode status) noexcept
+{
+    using adl::arinc615a::StatusCode;
+    switch (status)
+    {
+    case StatusCode::accepted:
+        return "accepted";
+    case StatusCode::in_progress:
+        return "in_progress";
+    case StatusCode::completed:
+        return "completed";
+    case StatusCode::in_progress_with_text:
+        return "in_progress_with_text";
+    case StatusCode::operation_denied:
+        return "operation_denied";
+    case StatusCode::operation_not_supported:
+        return "operation_not_supported";
+    case StatusCode::aborted_by_target:
+        return "aborted_by_target";
+    case StatusCode::aborted_by_data_loader:
+        return "aborted_by_data_loader";
+    case StatusCode::aborted_by_operator:
+        return "aborted_by_operator";
+    case StatusCode::item_failed:
+        return "item_failed";
+    }
+    return "unknown";
+}
+
 // The media set an upload read its loads from.
 struct RecordedMediaSet
 {
@@ -118,9 +151,9 @@ struct OperationRecord
 
     // How it ended, for a program to read. `result` is "completed" or "failed" and `reason` one of the words of
     // the commands' contract ("completed", "target_refused", "target_aborted", "load_failed", "missing_files",
-    // "media_set_unreadable", "media_set_changed", "no_answer", "local_error"); `detail` is one English
-    // sentence for a person. They are set by whoever ran the operation. The recorder fills `status_code` with
-    // the last operation status the target reported, which that program may replace.
+    // "protocol_error", "aborted", "media_set_unreadable", "media_set_changed", "no_answer", "local_error");
+    // `detail` is one English sentence for a person. They are set by whoever ran the operation. The recorder
+    // fills `status_code` with the last operation status the target reported, which that program may replace.
     std::string result;
     std::string reason;
     std::optional<adl::arinc615a::StatusCode> status_code;
