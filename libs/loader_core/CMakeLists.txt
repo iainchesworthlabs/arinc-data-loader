@@ -6,6 +6,7 @@
 # the platform layer, and it is exported with them in the development package.
 
 add_library(adl_loader_core STATIC
+    src/address.cpp
     src/media_source.cpp)
 add_library(adl::loader_core ALIAS adl_loader_core)
 

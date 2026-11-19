@@ -116,6 +116,7 @@ target_link_libraries(adl_sim_target
 # The loader core (libs/loader_core): what the loader does without a window, run without one, on the
 # fake platform's files.
 add_executable(adl_loader_core_tests
+    loader_core/address_test.cpp
     loader_core/media_source_test.cpp)
 
 target_include_directories(adl_loader_core_tests PRIVATE
