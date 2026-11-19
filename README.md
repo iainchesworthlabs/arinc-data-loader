@@ -97,6 +97,10 @@ release key and listed with its checksums and bill of materials
     loader cope. Its TFTP is `adl::arinc615a_mini` (`libs/arinc615a_mini`), the second,
     independent TFTP implementation the tests were written around, shared now with the
     mock target so the two ends of a dialogue share no transfer code.
+  - **`adl_load`**, a command-line program that runs one operation on one target, or looks
+    for targets, with no window ([docs/load-command.md](docs/load-command.md)): JSON lines on
+    standard output, the operation record in a file, and an exit code that says how it ended,
+    for scripts and other programs.
   - **One design system** (`libs/ui`) for all three windows, in the ICL Forge Modernist
     language: the Signal palette, Archivo, zero radius, the 4/8/12/16/24/32 rhythm, and one
     set of controls. The human-factors analysis behind it, with before/after screenshots, is
@@ -155,6 +159,7 @@ apps/app/               adl_app: the data loader window (Qt Quick), preferences,
 apps/media_gen/         adl_media_gen: the media set generator window (Qt Quick)
 apps/mock_target/       adl_mock_target: a 615A target over real sockets, for demonstrations
 apps/write_payloads/    adl_write_payloads, which writes the samples to a directory
+apps/load/              adl_load, one operation on one target with no window and no Qt
 apps/*/tests/           each application's own tests
 tests/                  unit, integration and system tests that span libraries; the fake platform;
                         the Qt Quick Test UI suite
@@ -183,6 +188,7 @@ The full index is [docs/README.md](docs/README.md).
 | [Architecture](docs/architecture.md), [Platform abstraction](docs/platform-abstraction.md), [Platform isolation](docs/platform-isolation.md), [Green Hills INTEGRITY](docs/platform-ghs.md) | How the code is arranged and how it stays portable |
 | [ARINC 665 coverage](docs/arinc665-coverage.md), [615A codec](docs/arinc615a-codec.md), [615A engine](docs/arinc615a-engine.md), [615A coverage](docs/arinc615a-coverage.md) | The libraries, section by section |
 | [The application](docs/app.md), [the generator](docs/media-gen.md), [the mock target](docs/mock-target.md) | The three programs, for developers |
+| [The command adl_load](docs/load-command.md) | One operation on one target with no window: options, events, exit codes |
 | [Design overhaul](docs/design-overhaul.md), [design system](docs/design-system.md) | The human-factors analysis and the shared look |
 | [Translations](docs/translations.md), [translation glossaries](docs/translation-glossaries.md) | The eight languages, how a language is switched and the window mirrored, and the glossaries the drafts chose |
 | [Roadmap](docs/roadmap.md), [licensing](docs/licensing.md), [repository settings](docs/repository-settings.md), [specs](docs/specs/README.md) | What is planned, licences, repository rules, the standards |

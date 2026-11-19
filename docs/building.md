@@ -110,6 +110,7 @@ The build has a source side and a target side, and the libraries sit on both.
 | --- | --- | --- | --- |
 | Portable libraries | `adl::platform`, `adl::arinc665`, `adl::arinc615a`, `adl::arinc615a_mini`, `adl::arinc615a_runner`, `adl::media_tree`, `adl::samples` | always | source and target |
 | Payload writer | `adl_write_payloads` | always | source (desktop) |
+| Command-line loader | `adl_load` (no Qt; [the command](load-command.md)) | always | source (desktop) |
 | Source-side applications (Qt) | `adl_app` (the data loader), `adl_media_gen` (the media set generator), `adl_mock_target` (a 615A target, for demonstrations) | `ADL_BUILD_APP`, on by default on a desktop | source (desktop) |
 | Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_ui_tests`, `adl_window_state_tests`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_tests`, `adl_mock_model_test`, `adl_mock_qml_test`, `adl_loopback_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
 | Target side | the libraries above, for the target's platform | `ADL_TARGET_PLATFORM` (or a toolchain that sets it) | target (embedded) |
@@ -223,6 +224,19 @@ build/windows-msvc-debug/bin/adl_write_payloads --scenario arinc615 out/payloads
 
 It reads each set back from the disk and verifies it before reporting it, and it
 does not write over a directory that has files in it.
+
+## Running one operation without a window
+
+`adl_load` runs one operation on one target, or looks for targets, and writes what happens as JSON lines
+(`--json`) and, with `--record`, as a record file. It is built with the libraries, needs no Qt, and is in the
+packages beside the other programs ([the command](load-command.md) has the options, the events and the exit
+codes):
+
+```sh
+build/windows-msvc-debug/bin/adl_load --version
+build/windows-msvc-debug/bin/adl_load information --target 10.0.0.2 --position HNPFMS_L --json
+build/windows-msvc-debug/bin/adl_load upload --target 10.0.0.2 --position HNPFMS_L --media-set out/payloads/two-member --all-loads
+```
 
 ## Presets
 

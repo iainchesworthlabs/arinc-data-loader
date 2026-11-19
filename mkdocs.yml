@@ -147,6 +147,7 @@ nav:
           - The application: app.md
           - The media set generator: media-gen.md
           - The mock target: mock-target.md
+          - The command adl_load: load-command.md
       - Design and languages:
           - The design system: design-system.md
           - The design overhaul: design-overhaul.md
