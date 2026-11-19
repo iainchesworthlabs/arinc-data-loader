@@ -32,6 +32,32 @@
 # The names it accepts are the branches below; QNX is also recognised from
 # CMAKE_SYSTEM_NAME.
 #
+# A platform kept outside the repository
+# --------------------------------------
+# ADL_PLATFORM_DIR, a cache variable that is empty unless someone sets it, points at a directory
+# outside the source tree that holds a platform's platform.cmake and its sources:
+#
+#     cmake -DADL_TARGET_PLATFORM=<name> -DADL_PLATFORM_DIR=<directory> ...
+#
+# ADL_TARGET_PLATFORM then gives the platform's name, which need not be one of the branches
+# below, and the fragment is <directory>/platform.cmake in place of
+# libs/platform/<name>/platform.cmake. Nothing else about the selection changes: the fragment
+# is held to the contract below, and its ADL_PLATFORM_STATUS is acted on as for any platform.
+# Without ADL_PLATFORM_DIR nothing here differs from what it was.
+#
+# Inside the build these variables are set for the fragment and for every other CMake file:
+#   ADL_PLATFORM_ROOT   The directory libs/platform of this repository, the home of the shared
+#                       sources (posix/, detail/) and the interface headers (interfaces/).
+#   ADL_PLATFORM_DIR    The directory of the selected platform: the one in the cache when it is set,
+#                       and libs/platform/<name> when it is not.
+#   ADL_PLATFORM_EXTERNAL
+#                       ON when ADL_PLATFORM_DIR was given, OFF otherwise.
+#
+# A path in ADL_PLATFORM_SOURCES that is relative is relative to ADL_PLATFORM_ROOT, as ever, so
+# a fragment outside the repository names the shared sources the way the in-tree ones do
+# (posix/posix_common.cpp) and its own files by absolute path (${ADL_PLATFORM_DIR}/paths.cpp).
+# docs/platform-abstraction.md says what is and is not checked for such a platform.
+#
 # A platform whose fragment says ADL_PLATFORM_STATUS "unbuilt" has code nobody has
 # compiled; one that says "design-only" has none. Both are refused unless
 # ADL_ACCEPT_UNBUILT_PLATFORM is ON, and a design-only one is refused even then,
@@ -84,7 +110,9 @@
 #                                    the Qt files they need) and the development component (the
 #                                    libraries, their headers and the CMake package).
 #
-# Build inputs (paths are relative to libs/platform):
+# Build inputs (a relative path is relative to libs/platform, ADL_PLATFORM_ROOT; an
+# absolute path is used as it is, which is how a platform outside the repository names
+# its own files):
 #   ADL_PLATFORM_SOURCES          Compiled into adl_platform: one
 #                                 implementation of every interfaces/ header.
 #   ADL_PLATFORM_LINK_LIBRARIES   System libraries adl_platform needs.
@@ -130,8 +158,48 @@ set_property(CACHE ADL_TARGET_PLATFORM PROPERTY STRINGS
     "" windows linux macos qnx ghs508 ghs178b vxworks freertos zephyr)
 option(ADL_ACCEPT_UNBUILT_PLATFORM
     "Allow building for a platform whose code has never been compiled (status unbuilt)" OFF)
+set(ADL_PLATFORM_DIR "" CACHE PATH
+    "A directory outside the source tree that holds the platform ADL_TARGET_PLATFORM names (its platform.cmake and its sources). Empty: the platform is libs/platform/<name>")
 
-if(ADL_TARGET_PLATFORM STREQUAL "windows")
+# The directory libs/platform of this repository: the shared sources and the interface headers
+# an outside platform builds on.
+set(ADL_PLATFORM_ROOT "${PROJECT_SOURCE_DIR}/libs/platform")
+
+# Read before anything below sets the variable of the same name (the directory of the selected
+# platform, which is this one when it is given and libs/platform/<name> when it is not).
+set(_adl_platform_dir_given "${ADL_PLATFORM_DIR}")
+set(ADL_PLATFORM_EXTERNAL OFF)
+
+if(NOT _adl_platform_dir_given STREQUAL "")
+    set(ADL_PLATFORM_EXTERNAL ON)
+    if(ADL_TARGET_PLATFORM STREQUAL "")
+        message(FATAL_ERROR
+            "ADL_PLATFORM_DIR is '${_adl_platform_dir_given}', but ADL_TARGET_PLATFORM is not set. "
+            "Name the platform that directory holds: -DADL_TARGET_PLATFORM=<name>.")
+    endif()
+    if(NOT ADL_TARGET_PLATFORM MATCHES "^[a-z][a-z0-9_]*$")
+        message(FATAL_ERROR
+            "ADL_TARGET_PLATFORM is '${ADL_TARGET_PLATFORM}', which cannot name a platform in "
+            "ADL_PLATFORM_DIR. Use lower-case letters, digits and underscores, starting with a letter.")
+    endif()
+    # A relative path that CMake has not already made absolute (it does for -D on the command
+    # line) is taken from the source directory.
+    file(TO_CMAKE_PATH "${_adl_platform_dir_given}" _adl_platform_dir_given)
+    get_filename_component(_adl_platform_dir_given "${_adl_platform_dir_given}" ABSOLUTE
+        BASE_DIR "${PROJECT_SOURCE_DIR}")
+    if(NOT IS_DIRECTORY "${_adl_platform_dir_given}")
+        message(FATAL_ERROR
+            "ADL_PLATFORM_DIR is '${_adl_platform_dir_given}', which is not a directory.")
+    endif()
+    if(NOT EXISTS "${_adl_platform_dir_given}/platform.cmake")
+        message(FATAL_ERROR
+            "ADL_PLATFORM_DIR is '${_adl_platform_dir_given}', which has no platform.cmake. "
+            "The directory of a platform holds its fragment, the file that fills in the contract "
+            "described at the top of cmake/Platform.cmake, and the sources the fragment names.")
+    endif()
+    set(ADL_PLATFORM "${ADL_TARGET_PLATFORM}")
+    set(ADL_PLATFORM_DIR "${_adl_platform_dir_given}")
+elseif(ADL_TARGET_PLATFORM STREQUAL "windows")
     set(ADL_PLATFORM windows)
 elseif(ADL_TARGET_PLATFORM STREQUAL "macos")
     set(ADL_PLATFORM macos)
@@ -170,14 +238,19 @@ else()
         "the top of cmake/Platform.cmake) and a branch for it in this file.")
 endif()
 
-set(ADL_PLATFORM_DIR "${PROJECT_SOURCE_DIR}/libs/platform/${ADL_PLATFORM}")
+if(ADL_PLATFORM_EXTERNAL)
+    set(_adl_platform_where "${ADL_PLATFORM_DIR}/")
+else()
+    set(ADL_PLATFORM_DIR "${ADL_PLATFORM_ROOT}/${ADL_PLATFORM}")
+    set(_adl_platform_where "libs/platform/${ADL_PLATFORM}/")
+endif()
+unset(_adl_platform_dir_given)
 include("${ADL_PLATFORM_DIR}/platform.cmake")
 
 # A fragment that forgets part of the contract should fail here, by name, not
 # as an empty source list or a missing-command error three files away.
 include(PlatformContract)
-adl_platform_check_contract("${ADL_PLATFORM_DIR}/platform.cmake"
-    "${PROJECT_SOURCE_DIR}/libs/platform")
+adl_platform_check_contract("${ADL_PLATFORM_DIR}/platform.cmake" "${ADL_PLATFORM_ROOT}")
 
 # A platform whose program is built by a project of its own is not built by this one.
 if(ADL_PLATFORM_PROJECT)
@@ -189,7 +262,7 @@ endif()
 # A platform nobody has built is not silently built.
 if(ADL_PLATFORM_STATUS STREQUAL "design-only")
     message(FATAL_ERROR
-        "The ${ADL_PLATFORM_DISPLAY_NAME} platform is a design only: libs/platform/${ADL_PLATFORM}/ "
+        "The ${ADL_PLATFORM_DISPLAY_NAME} platform is a design only: ${_adl_platform_where} "
         "has no implementation to build. See docs/platform-abstraction.md and "
         "docs/platform-ghs.md for what a port needs.")
 elseif(ADL_PLATFORM_STATUS STREQUAL "unbuilt" AND NOT ADL_ACCEPT_UNBUILT_PLATFORM)
@@ -210,3 +283,5 @@ if(DEFINED ADL_PLATFORM_PACKAGE_FOUND AND NOT ADL_PLATFORM_PACKAGE_FOUND
         "The ${ADL_PLATFORM_DISPLAY_NAME} platform needs ${ADL_PLATFORM_PACKAGE_NAME}, "
         "which was not found. ${ADL_PLATFORM_PACKAGE_HINT}")
 endif()
+
+unset(_adl_platform_where)
