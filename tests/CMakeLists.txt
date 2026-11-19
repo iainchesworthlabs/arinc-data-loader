@@ -257,6 +257,14 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME ci.perf_compare
         COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_perf_compare.py")
     set_tests_properties(ci.perf_compare PROPERTIES LABELS "system")
+
+    # The bill of materials names the libraries by hand (tools/release/make_sbom.py), and the development
+    # package ships the ones that call adl_install_library. A library on one side only fails here, not on
+    # the day of a release.
+    add_test(NAME release.sbom_libraries
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/release/check_sbom_libraries.py"
+            "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(release.sbom_libraries PROPERTIES LABELS "system")
 endif()
 
 # The program that writes the sample media sets: it runs on a directory of its

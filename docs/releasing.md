@@ -169,7 +169,7 @@ workflow signs the four programs in place before CPack packs them:
 - **The SBOM** lists what the build reported, never a guess: the first-party programs and libraries,
   Qt (by reference to the kit's own SPDX documents), the typefaces, the runtime files Qt's deployment
   tool placed in a package, the vcpkg packages used for the tests (Catch2: in no package), and the
-  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with hash-locked validators, and the SPDX document is checked to list every typeface in `libs/ui/fonts` (`tools/release/check_sbom_fonts.py`).
+  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with hash-locked validators, and the SPDX document is checked to list every typeface in `libs/ui/fonts` (`tools/release/check_sbom_fonts.py`). The list of libraries in `tools/release/make_sbom.py` is checked against the libraries the development package installs by a test, `release.sbom_libraries` (`tools/release/check_sbom_libraries.py`).
 - **The attestations and the signature are independent.** A compromised runner could produce a package
   and an honest-looking attestation of it; a compromised key could sign anything. Together they say the
   maintainer's key signed what the maintainer's workflow built.
