@@ -1,0 +1,53 @@
+{
+  "format": 1,
+  "kind": "adl-operation-record",
+  "program": {
+    "name": "adl_load",
+    "version": "0.2.0"
+  },
+  "operation": "download_operator_defined",
+  "target": {
+    "address": "10.0.0.2",
+    "position": "HNPFMS_L"
+  },
+  "started_at": "2026-11-19T10:15:30Z",
+  "ended_at": "2026-11-19T10:15:41Z",
+  "result": "completed",
+  "reason": "completed",
+  "status_code": 3,
+  "detail": "Files received: 1 of 1 requested.",
+  "media_set": null,
+  "loads": [],
+  "configuration": null,
+  "files": [
+    {
+      "name": "LOG.TXT",
+      "size": 1234,
+      "path": "/home/operator/DNLD_DATA_HNPFMS_L_2/LOG.TXT"
+    }
+  ],
+  "download_folder": "/home/operator/DNLD_DATA_HNPFMS_L_2",
+  "licence": null,
+  "log": [
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "The target answered: accepted"
+    },
+    {
+      "at": "2026-11-19T10:15:34Z",
+      "severity": "info",
+      "text": "The target listed 2 file(s) it can download."
+    },
+    {
+      "at": "2026-11-19T10:15:38Z",
+      "severity": "info",
+      "text": "Received LOG.TXT (1234 bytes)"
+    },
+    {
+      "at": "2026-11-19T10:15:41Z",
+      "severity": "info",
+      "text": "Status 1: completed, 100% of the list"
+    }
+  ]
+}

@@ -119,14 +119,28 @@ add_executable(adl_loader_core_tests
     loader_core/address_test.cpp
     loader_core/download_directory_test.cpp
     loader_core/media_set_check_test.cpp
-    loader_core/media_source_test.cpp)
+    loader_core/media_source_test.cpp
+    loader_core/record_json_test.cpp
+    loader_core/recorder_test.cpp
+    loader_core/recorder_wording_test.cpp)
 
 target_include_directories(adl_loader_core_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support")
 
+# What the record's tests read as files: the window's translation catalogue (its English is what the recorder
+# is held to), the golden files of the operation record, and the page that documents the record's keys.
+target_compile_definitions(adl_loader_core_tests PRIVATE
+    ADL_APP_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/apps/app/translations"
+    ADL_LOADER_CORE_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/loader_core/golden"
+    ADL_FILE_REFERENCE_PAGE="${PROJECT_SOURCE_DIR}/docs/file-reference.md")
+
 target_link_libraries(adl_loader_core_tests
     PRIVATE
         adl_fake_platform
+        adl_sim_target
+        adl::arinc615a
+        adl::arinc615a_runner
+        adl::arinc665
         adl::loader_core
         adl::media_tree
         adl::samples
@@ -137,7 +151,10 @@ target_link_libraries(adl_loader_core_tests
 
 adl_deploy_sanitizer_runtime(adl_loader_core_tests)
 
-catch_discover_tests(adl_loader_core_tests PROPERTIES LABELS "unit")
+# The cases that run a whole operation against the simulated target are integration tests (tagged
+# [integration]); the rest are unit tests.
+catch_discover_tests(adl_loader_core_tests TEST_SPEC "~[integration]" PROPERTIES LABELS "unit")
+catch_discover_tests(adl_loader_core_tests TEST_SPEC "[integration]" PROPERTIES LABELS "integration")
 
 # The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
 # fake platform, and the simulated target the whole of an operation is run against.
