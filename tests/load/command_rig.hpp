@@ -143,7 +143,10 @@ inline void check_stream(const CommandRun& run)
             std::stoull(t.substr(0, t.size() - 4)) * 1000 + std::stoull(t.substr(t.size() - 3));
         CHECK(milliseconds >= last_milliseconds);
         last_milliseconds = milliseconds;
-        finished += event.at("event").text == "finished" ? 1 : 0;
+        if (event.at("event").text == "finished")
+        {
+            ++finished;
+        }
     }
     CHECK(finished == 1);
     CHECK(events.back().at("exit_code").as_number() == static_cast<std::uint64_t>(run.exit_code));

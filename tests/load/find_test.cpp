@@ -186,7 +186,7 @@ TEST_CASE("find hears every target on the network, once each, in the order they 
     CHECK(run.finished().at("detail").text == "2 targets answered.");
 }
 
-TEST_CASE("--seconds is how long find listens", "[load][integration][find]")
+TEST_CASE("find listens for as long as --seconds says", "[load][integration][find]")
 {
     SECTION("longer, and a target that answers after the three seconds is heard")
     {
@@ -217,7 +217,7 @@ TEST_CASE("--seconds is how long find listens", "[load][integration][find]")
     }
 }
 
-TEST_CASE("--local-address is the interface the FIND socket is bound to", "[load][integration][find]")
+TEST_CASE("find binds its socket to the interface --local-address names", "[load][integration][find]")
 {
     SECTION("an address of this computer")
     {

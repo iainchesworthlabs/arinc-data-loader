@@ -36,7 +36,7 @@ enum class Id : std::uint8_t
     file,
     pick,
     pick_all,
-    count_
+    option_count
 };
 
 constexpr unsigned bit_of(Command command) noexcept
@@ -57,7 +57,7 @@ struct OptionSpec
     unsigned commands; // the commands that have the option
 };
 
-constexpr std::array<OptionSpec, static_cast<std::size_t>(Id::count_)> option_specs{{
+constexpr std::array<OptionSpec, static_cast<std::size_t>(Id::option_count)> option_specs{{
     {"--seconds", Id::seconds, true, false, bit_of(Command::find)},
     {"--local-address", Id::local_address, true, false, every_command},
     {"--json", Id::json, false, false, every_command},
@@ -157,7 +157,7 @@ public:
             options_.choice = FileChoice::picked;
             options_.pick_all = true;
             return std::nullopt;
-        case Id::count_:
+        case Id::option_count:
             break;
         }
         return std::nullopt;

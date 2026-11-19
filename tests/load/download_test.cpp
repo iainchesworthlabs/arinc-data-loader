@@ -204,7 +204,7 @@ TEST_CASE("a download in which the target lists its files writes file_list, then
     CHECK_FALSE(rig.rig.loader_host.fake_files().get("/dl/DNLD_DATA_HNPFMS_L_1/B.BIN").has_value());
 }
 
-TEST_CASE("--pick-all takes every file the target lists", "[load][integration][download]")
+TEST_CASE("a download with --pick-all takes every file the target lists", "[load][integration][download]")
 {
     CommandRig rig(holding({"A.BIN", "B.BIN", "C.BIN"}));
     const CommandRun run = download(rig, {"--pick-all"});

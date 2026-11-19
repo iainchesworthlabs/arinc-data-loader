@@ -45,7 +45,7 @@ TEST_CASE("wrong usage is told on standard error, with exit code 2 and nothing o
     }
 }
 
-TEST_CASE("--help prints the usage and --version one line, exit code 0", "[load][integration][usage]")
+TEST_CASE("the usage is printed for --help and one line for --version, exit code 0", "[load][integration][usage]")
 {
     CommandRig rig;
     const CommandRun help = rig.run({"--help"});
