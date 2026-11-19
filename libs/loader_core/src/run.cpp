@@ -4,6 +4,7 @@
 #include "adl/loader_core/download_directory.hpp"
 
 #include <cstddef>
+#include <expected>
 #include <memory>
 #include <variant>
 #include <vector>
@@ -54,13 +55,19 @@ using adl::arinc615a::OutcomeCode;
     return Reason::local_error;
 }
 
-} // namespace
-
-OperationResult run_operation(adl::platform::Host& host, const RunTarget& target,
-                              const adl::arinc615a::Operation& operation, const RunServices& services)
+// Sets the engine up and runs the operation over the host's sockets: how it ended, or why it did not run.
+[[nodiscard]] std::expected<adl::arinc615a::Outcome, adl::arinc615a::RunError>
+run_engine(adl::platform::Host& host, const RunTarget& target, const adl::arinc615a::Operation& operation,
+           const RunServices& services)
 {
+    if (target.port == 0)
+    {
+        // The engine takes the target's port as it is. No datagram can go to port 0, so the request is
+        // refused here as the engine refuses a control port of 0: it did not run, at the start.
+        return std::unexpected(adl::arinc615a::RunError{});
+    }
     adl::arinc615a::LoaderConfig config;
-    config.target = adl::arinc615a::Endpoint{target.address, adl::arinc615a::tftp_control_port};
+    config.target = adl::arinc615a::Endpoint{target.address, target.port};
     config.thw_id_pos = target.thw_id_pos;
     config.control_port = target.control_port;
 
@@ -86,7 +93,15 @@ OperationResult run_operation(adl::platform::Host& host, const RunTarget& target
         options.local_address = adl::platform::Ipv4Address::loopback();
     }
     adl::arinc615a::Runner runner(host);
-    const auto outcome = runner.run(*loader, operation, options);
+    return runner.run(*loader, operation, options);
+}
+
+} // namespace
+
+OperationResult run_operation(adl::platform::Host& host, const RunTarget& target,
+                              const adl::arinc615a::Operation& operation, const RunServices& services)
+{
+    const auto outcome = run_engine(host, target, operation, services);
 
     OperationResult result;
     // A download that received nothing (the target said no, never answered, was cancelled, or the loader

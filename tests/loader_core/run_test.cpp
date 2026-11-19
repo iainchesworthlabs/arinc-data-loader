@@ -16,6 +16,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -107,6 +108,83 @@ TEST_CASE("an Information operation that completes", "[loader_core][run]")
     RunTarget target = target_of();
     target.local_address = Rig::loader_address;
     CHECK(run_operation(other.loader_host, target, plan.operation(), services).success());
+}
+
+TEST_CASE("a target that listens on another port is reached when the request names it, and not otherwise",
+          "[loader_core][run]")
+{
+    constexpr std::uint16_t other_port = 6969;
+    SimPlan sim;
+    sim.control_port = other_port;
+
+    SECTION("an Information operation")
+    {
+        Rig rig(sim);
+        const OperationPlan plan = OperationPlan::information();
+        RunServices services;
+        services.listener = &rig.recorder;
+        RunTarget target = target_of();
+        target.port = other_port;
+
+        const OperationResult result = run_operation(rig.loader_host, target, plan.operation(), services);
+        CHECK(result.success());
+        CHECK(result.reason == Reason::completed);
+        CHECK(result.outcome.statuses_received == 2);
+        CHECK(rig.recorder.configuration_lists == 1);
+        CHECK(rig.target.log().init_requests_at.size() == 1);
+    }
+
+    SECTION("an upload, with the loader's own port moved as well")
+    {
+        const adl::test::SampleLoad load = adl::test::make_sample_load(5'000, 3);
+        sim.loads = {load.item};
+        Rig rig(sim);
+        MediaSetIndex index = put_media_set(rig, load);
+        MediaTreeSource source(rig.loader_host.files(), index);
+        const std::vector<LoadChoice> choice{{load.item.header_name, load.item.load_part_number}};
+        const auto plan = OperationPlan::upload(choice);
+        REQUIRE(plan.has_value());
+        RunServices services;
+        services.listener = &rig.recorder;
+        services.upload_source = &source;
+        RunTarget target = target_of();
+        target.port = other_port;
+        target.control_port = 1615; // the two ports are independent
+
+        const OperationResult result = run_operation(rig.loader_host, target, plan->operation(), services);
+        CHECK(result.success());
+        CHECK(result.reason == Reason::completed);
+        CHECK(result.outcome.files_served == load.item.reads.size());
+        CHECK(rig.target.log().loader_port_used == 1615);
+    }
+
+    SECTION("without the port the request goes to 59, where this target is not")
+    {
+        Rig rig(sim);
+        const OperationPlan plan = OperationPlan::information();
+        RunServices services;
+        services.listener = &rig.recorder;
+
+        const OperationResult result = run_operation(rig.loader_host, target_of(), plan.operation(), services);
+        CHECK_FALSE(result.success());
+        CHECK(result.reason == Reason::no_answer);
+        CHECK(result.outcome.code == OutcomeCode::transfer_failed);
+        CHECK(rig.target.log().init_requests_at.empty()); // it never heard the request
+    }
+
+    SECTION("a target on 59 is not reached by naming another port")
+    {
+        Rig rig;
+        const OperationPlan plan = OperationPlan::information();
+        RunServices services;
+        services.listener = &rig.recorder;
+        RunTarget target = target_of();
+        target.port = other_port;
+
+        const OperationResult result = run_operation(rig.loader_host, target, plan.operation(), services);
+        CHECK(result.reason == Reason::no_answer);
+        CHECK(rig.target.log().init_requests_at.empty());
+    }
 }
 
 TEST_CASE("an upload that completes, and one whose set changed after it was checked", "[loader_core][run]")
@@ -370,6 +448,26 @@ TEST_CASE("an operation that cannot run says where it stopped, and a download th
         CHECK_FALSE(result.status_code().has_value());
         CHECK(result.download_folder.empty());
         CHECK(result.download_folder_removed);
+    }
+
+    SECTION("a target port of 0")
+    {
+        Rig rig;
+        const std::string folder = make_folder(rig);
+        adl::arinc615a::DirectoryFileSink sink(rig.loader_host.files(), folder);
+        RunTarget target = target_of();
+        target.port = 0; // no datagram goes to port 0
+        RunServices services;
+        services.listener = &rig.recorder;
+        services.download_sink = &sink;
+        services.download_folder = folder;
+
+        const OperationResult result = run_operation(rig.loader_host, target, plan.operation(), services);
+        CHECK(result.reason == Reason::local_error);
+        REQUIRE(result.not_run.has_value());
+        CHECK(result.not_run->stage == adl::arinc615a::RunError::Stage::start);
+        CHECK(result.download_folder_removed);
+        CHECK(rig.target.log().init_requests_at.empty());
     }
 
     SECTION("a port that cannot be opened")
