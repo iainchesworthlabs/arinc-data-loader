@@ -274,7 +274,7 @@ void MockWorker::read_holds(Config& config)
 void MockWorker::store_upload(const UploadRecord& record)
 {
     const StoreOutcome outcome = adl::mock::store_upload(storage_path_, record);
-    const auto say = [this](const StoreIssue& issue)
+    const auto say = [](const StoreIssue& issue)
     {
         switch (issue.problem)
         {
