@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/mock/model.hpp"
 
-#include "adl/arinc615a/limits.hpp"
+#include "adl/mock/settings.hpp"
 #include "adl/mock/storage.hpp"
 #include "adl/platform/host.hpp"
 #include "adl/platform/paths.hpp"
@@ -10,7 +10,6 @@
 #include <QMetaObject>
 #include <QTime>
 #include <QUrl>
-#include <algorithm>
 #include <string>
 
 namespace adl::mock
@@ -590,58 +589,41 @@ void MockTargetModel::setSilent(bool value)
 
 Config MockTargetModel::make_config() const
 {
-    Config config;
-    const QString hardware = hardware_id_.trimmed();
-    const QString at_position = position_.trimmed();
-    config.thw = hardware.toStdString() + (at_position.isEmpty() ? std::string{} : "_" + at_position.toStdString());
-    config.find_identity = FindIdentity{hardware.toStdString(), type_name_.trimmed().toStdString(),
-                                        at_position.toStdString(), literal_name_.trimmed().toStdString(),
-                                        manufacturer_code_.trimmed().toStdString()};
-    config.tftp_port = static_cast<std::uint16_t>(tftp_port_);
-    config.find_port = static_cast<std::uint16_t>(find_port_);
-    if (loopback_only_)
-    {
-        config.bind_address = adl::arinc615a::Address::loopback();
-    }
-    config.think_time = std::chrono::milliseconds(think_time_ms_);
-    config.status_period = std::chrono::seconds(status_period_sec_);
-    config.wait_first_seconds = static_cast<std::uint16_t>(
-        std::clamp(wait_first_seconds_, 0, static_cast<int>(adl::arinc615a::max_wait_seconds)));
-    config.wait_always = wait_every_request_;
-    config.drop_status_every = static_cast<unsigned>(std::max(drop_status_every_, 0));
-    config.corrupt_served = corrupt_served_file_;
-    config.wrong_checksum = wrong_checksum_;
-    if (abort_after_statuses_ > 0)
-    {
-        config.abort_after_statuses = static_cast<std::size_t>(abort_after_statuses_);
-    }
-    config.silent = silent_;
-
-    const auto make_refusal = [](OperationKind kind)
-    {
-        Refusal refusal;
-        refusal.kind = kind;
-        refusal.code = adl::arinc615a::StatusCode::operation_denied;
-        refusal.text = "refused by the mock target";
-        return refusal;
-    };
+    TargetSettings settings;
+    settings.hardware_id = hardware_id_.trimmed().toStdString();
+    settings.type_name = type_name_.trimmed().toStdString();
+    settings.position = position_.trimmed().toStdString();
+    settings.literal_name = literal_name_.trimmed().toStdString();
+    settings.manufacturer_code = manufacturer_code_.trimmed().toStdString();
+    settings.tftp_port = static_cast<std::uint16_t>(tftp_port_);
+    settings.find_port = static_cast<std::uint16_t>(find_port_);
+    settings.loopback_only = loopback_only_;
+    settings.think_time_ms = think_time_ms_;
+    settings.status_period_sec = status_period_sec_;
+    settings.wait_first_seconds = wait_first_seconds_;
+    settings.wait_every_request = wait_every_request_;
+    settings.drop_status_every = drop_status_every_;
+    settings.corrupt_served_file = corrupt_served_file_;
+    settings.wrong_checksum = wrong_checksum_;
+    settings.abort_after_statuses = abort_after_statuses_;
+    settings.silent = silent_;
     if (refuse_operation_ == QLatin1String("information"))
     {
-        config.refusal = make_refusal(OperationKind::information);
+        settings.refuse_operation = OperationKind::information;
     }
     else if (refuse_operation_ == QLatin1String("upload"))
     {
-        config.refusal = make_refusal(OperationKind::upload);
+        settings.refuse_operation = OperationKind::upload;
     }
     else if (refuse_operation_ == QLatin1String("downloadMedia"))
     {
-        config.refusal = make_refusal(OperationKind::download_media);
+        settings.refuse_operation = OperationKind::download_media;
     }
     else if (refuse_operation_ == QLatin1String("downloadOperator"))
     {
-        config.refusal = make_refusal(OperationKind::download_operator);
+        settings.refuse_operation = OperationKind::download_operator;
     }
-    return config;
+    return adl::mock::make_config(settings);
 }
 
 void MockTargetModel::start()

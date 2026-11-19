@@ -35,6 +35,7 @@ set_tests_properties(mock.engine PROPERTIES
 # The folders the target reads and writes, and what the operator's settings become: plain functions
 # over a temporary directory, no network.
 add_executable(adl_mock_core_tests
+    settings_test.cpp
     storage_test.cpp)
 target_include_directories(adl_mock_core_tests PRIVATE
     "${PROJECT_SOURCE_DIR}/tests/support")

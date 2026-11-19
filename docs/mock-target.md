@@ -35,6 +35,7 @@ libs/mock_target_core/  adl_mock_target_core: the target without a window and wi
   link                  the seam the engine speaks through: RealTargetLink over adl::platform's
                         sockets, and the tests' FakeTargetLink on the fake network
   storage               the files it holds for a download and what an upload leaves on disk
+  settings              the operator's settings turned into the engine's configuration
 apps/mock_target/
   main.cpp              creates the QGuiApplication, one MockTargetModel and the QML engine
   qml/                  TargetWindow.qml (the window)
