@@ -1,0 +1,79 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* The layout of the /adl/ front pages on top of the company shell (assets/icl.css). Colours come only from the shell's variables and
+   the palette in theme.css. No web font, no image from another site, no inline style anywhere. */
+
+/* Menu for narrow screens: the shell hides the app bar's links below 40rem, so a native <details> carries them. */
+.adl-menu { position: relative; }
+.adl-menu summary { cursor: pointer; list-style: none; min-height: 2.75rem; display: inline-flex; align-items: center; padding-inline: var(--icl-space-3); font-weight: 650; border: 1px solid var(--icl-border); border-radius: 999px; }
+.adl-menu summary::-webkit-details-marker { display: none; }
+.adl-menu ul { position: absolute; right: 0; top: 100%; z-index: 5; min-width: 12rem; margin: var(--icl-space-2) 0 0; padding: var(--icl-space-2); list-style: none; background: var(--icl-surface); border: 1px solid var(--icl-border); border-radius: var(--icl-radius-m); }
+.adl-menu li a { display: block; padding: var(--icl-space-3); color: var(--icl-fg); text-decoration: none; font-weight: 560; }
+.adl-menu li a:hover, .adl-menu li a[aria-current] { text-decoration: underline; }
+@media (min-width: 40rem) { .adl-menu { display: none; } }
+
+/* Hero */
+.icl-hero--app a { color: var(--app-on-gradient); }
+.icl-hero--app .icl-button { background: var(--app-on-gradient); color: var(--app-gradient-from); border-color: var(--app-on-gradient); }
+.icl-hero--app h1 { max-width: 20ch; font-size: var(--icl-step-4); }
+.icl-hero--app .icl-lead { max-width: 52ch; }
+
+/* Pages that are not the home page start with a plain heading */
+.adl-head { padding-block: clamp(var(--icl-space-6), 6vw, var(--icl-space-8)) var(--icl-space-5); }
+.adl-head h1 { font-size: var(--icl-step-4); max-width: 24ch; }
+.adl-head .icl-lead { max-width: 56ch; }
+
+/* Steps */
+.adl-steps { display: grid; gap: var(--icl-space-5); grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); margin: 0; padding: 0; list-style: none; counter-reset: step; }
+.adl-steps li { counter-increment: step; }
+.adl-steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem; margin-bottom: var(--icl-space-3); border-radius: 50%; background: var(--app-primary); color: var(--app-on-primary); font-weight: 750; }
+.adl-steps p { margin: 0; color: var(--icl-fg-muted); }
+
+/* A block of text beside a picture of a window of a program */
+.adl-row { display: grid; gap: var(--icl-space-6); align-items: center; padding-block: var(--icl-space-6); }
+.adl-row > div { min-width: 0; }
+.adl-row p { color: var(--icl-fg-muted); max-width: 52ch; }
+@media (min-width: 52rem) {
+  .adl-row { grid-template-columns: 1fr 1fr; gap: var(--icl-space-8); }
+  .adl-row--flip .adl-shot { order: -1; }
+}
+.adl-shot { margin: 0; }
+.adl-shot img { display: block; width: 100%; height: auto; border: 1px solid var(--icl-border); border-radius: var(--icl-radius-s); }
+.adl-shot figcaption { margin-top: var(--icl-space-2); color: var(--icl-fg-muted); font-size: var(--icl-step--1); }
+
+.adl-two { display: grid; gap: var(--icl-space-7); }
+@media (min-width: 52rem) { .adl-two { grid-template-columns: 1fr 1fr; } }
+.adl-two p { max-width: 52ch; }
+.adl-cards { display: grid; gap: var(--icl-space-4); grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); margin: 0; padding: 0; list-style: none; }
+.adl-cards li { padding: var(--icl-space-4) var(--icl-space-5); border: 1px solid var(--icl-border); border-radius: var(--icl-radius-m); }
+.adl-cards a { font-weight: 650; }
+.adl-cards p { margin: var(--icl-space-1) 0 0; color: var(--icl-fg-muted); font-size: var(--icl-step--1); }
+
+/* Text pages */
+.adl-text { width: min(100% - 2 * var(--icl-gutter), 46rem); margin-inline: auto; padding-bottom: var(--icl-space-8); }
+.adl-text h2 { font-size: var(--icl-step-2); margin-top: var(--icl-space-7); }
+.adl-text h3 { margin-top: var(--icl-space-5); }
+.adl-text ul, .adl-text ol { padding-left: 1.25rem; }
+.adl-text li { margin-bottom: var(--icl-space-2); }
+.adl-term { margin: var(--icl-space-4) 0; padding: var(--icl-space-4) var(--icl-space-5); background: var(--icl-surface-2); border: 1px solid var(--icl-border); border-radius: var(--icl-radius-s); overflow-x: auto; font-family: var(--icl-font-mono); font-size: var(--icl-step--1); }
+.adl-qa dt { font-weight: 680; margin-top: var(--icl-space-5); }
+.adl-qa dd { margin: var(--icl-space-1) 0 0; color: var(--icl-fg-muted); }
+.adl-icon { display: block; width: 8rem; height: 8rem; margin-block: var(--icl-space-4); }
+
+/* Markdown pages inside .icl-prose (Privacy, Support and the like) */
+.icl-prose table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.icl-prose th, .icl-prose td { border: 1px solid var(--icl-border); padding: var(--icl-space-2) var(--icl-space-3); text-align: left; vertical-align: top; }
+.icl-prose ul, .icl-prose ol { padding-left: 1.25rem; }
+.icl-prose li { margin-bottom: var(--icl-space-2); }
+.icl-prose code { overflow-wrap: anywhere; }
+/* The permalink mark MkDocs puts after a heading is for the guide; the front pages do not need it. */
+.icl-prose .headerlink { display: none; }
+
+/* The row of links above the company footer */
+.adl-more { padding-block: var(--icl-space-6); border-top: 1px solid var(--icl-border); font-size: var(--icl-step--1); }
+.adl-more p { margin: 0 0 var(--icl-space-3); color: var(--icl-fg-muted); }
+.adl-more ul { display: flex; flex-wrap: wrap; gap: var(--icl-space-1) var(--icl-space-5); margin: 0; padding: 0; list-style: none; }
+.adl-more a { display: inline-block; padding: var(--icl-space-2) 0; }
+
+/* Keep the FAQ and body text on the left edge of the page, with a readable line length */
+.icl-section .icl-faq { margin-inline: 0; }
+.icl-section > .icl-wrap > p { max-width: var(--icl-measure); }

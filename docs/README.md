@@ -53,9 +53,11 @@ materials: [the releases page](https://github.com/iainchesworthlabs/arinc-data-l
 
 ## All the pages
 
-Everything here is in the repository, next to the code it describes, and is published as a website at
-<https://iainchesworthlabs.github.io/arinc-data-loader/> from the first release on ([how](ci.md#documentation-site)).
-The project overview is the [README](../README.md); what changed is the [changelog](../CHANGELOG.md).
+Everything here is in the repository, next to the code it describes. The user's guide and the pages for programmers are also
+published as a website, which the [README](../README.md) names, from the first release on ([how](ci.md#documentation-site)); the
+pages for the people who work on the project are on GitHub only. This file is the index for reading `docs/` on GitHub: the
+website has its own home page. The project overview is the [README](../README.md); what changed is the
+[changelog](../CHANGELOG.md).
 
 ## For people who use the programs
 

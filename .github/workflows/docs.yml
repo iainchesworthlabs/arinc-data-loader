@@ -1,9 +1,12 @@
 name: Docs
 
-# Publishes the documentation site to GitHub Pages (docs/ci.md, "Documentation site"). The strict
-# build that gates a change is the `Docs build (strict)` job of ci.yml; this workflow builds the same
-# site again from main and deploys it. The release bot's fast-forward of main after a release starts it
-# (a push made with an App token starts workflows; one made with GITHUB_TOKEN does not).
+# Publishes the old documentation address on GitHub Pages (docs/ci.md, "Documentation site"). The documentation is
+# now at https://iainchesworthlabs.com/adl/; this workflow builds the site strictly (the same build and checks as the
+# `Docs build (strict)` job of ci.yml) and publishes a small page at each address of the first site, pointing to where
+# the page went (tools/docs/make_old_address_stubs.py), so a link made while Pages was the site still arrives. The
+# release bot's fast-forward of main after a release starts it (a push made with an App token starts workflows; one
+# made with GITHUB_TOKEN does not). Deploying the site itself to iainchesworthlabs.com is not in this workflow: it needs
+# the company site's role for this repository first (docs/ci.md, "Publishing").
 #
 # Publishing uses the Pages "GitHub Actions" source and not a gh-pages branch. It waits for the
 # repository variable PUBLISH_DOCS = true, which is set once Pages is switched on (docs/releasing.md,
@@ -23,7 +26,7 @@ permissions: {}
 
 jobs:
   build:
-    name: Build the site
+    name: Build the site and the old-address pages
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -35,10 +38,14 @@ jobs:
 
       - uses: ./.github/actions/docs-site
 
-      - name: Package the site for Pages
+      # What Pages serves is the pages that forward, not the site: the site's address is the company's.
+      - name: Write the pages that forward the old addresses
+        run: python3 tools/docs/make_old_address_stubs.py --out old-addresses
+
+      - name: Package the pages for Pages
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: site
+          path: old-addresses
 
   publish:
     name: Publish the site

@@ -231,6 +231,14 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME ci.perf_compare
         COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_perf_compare.py")
     set_tests_properties(ci.perf_compare PROPERTIES LABELS "system")
+
+    # The checks of the documentation site (tools/ci/check_site_kit.py, check_site_address.py and
+    # check_site_layout.py), the old-address pages and the layout hook are held to what they promise: each
+    # passes a good tree and fails, with a reason, on a bad one. No MkDocs and no network; the palette
+    # tests need Node and are skipped without it.
+    add_test(NAME ci.site_checks
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_site_checks.py")
+    set_tests_properties(ci.site_checks PROPERTIES LABELS "system")
 endif()
 
 # The program that writes the sample media sets: it runs on a directory of its

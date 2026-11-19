@@ -7,7 +7,7 @@ Windows, macOS and Linux.
 [![CodeQL](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/codeql.yml/badge.svg)](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/codeql.yml)
 [![Static analysis](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/iainchesworthlabs/arinc-data-loader/actions/workflows/static-analysis.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/iainchesworthlabs/arinc-data-loader/badge)](https://securityscorecards.dev/viewer/?uri=github.com/iainchesworthlabs/arinc-data-loader)
-[![Documentation](https://img.shields.io/badge/docs-site-blue)](https://iainchesworthlabs.github.io/arinc-data-loader/)
+[![Documentation](https://img.shields.io/badge/docs-site-blue)](https://iainchesworthlabs.com/adl/)
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue)](docs/building.md)
 [![Licence: GPL-3.0-or-later](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue)](LICENSE)
 [![Platforms: Windows, Linux, macOS](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](docs/building.md)
@@ -19,8 +19,8 @@ network. The two standards are not in the repository (see
 [docs/specs](docs/specs/README.md)); the code cites them by section.
 
 The documentation, with a [user's guide](docs/user-guide/index.md), is published at
-<https://iainchesworthlabs.github.io/arinc-data-loader/> from the first release on. The same pages are in
-[`docs/`](docs/README.md).
+<https://iainchesworthlabs.com/adl/> from the first release on. The same pages are in
+[`docs/`](docs/README.md). The addresses of the first site, on GitHub Pages, forward to the new one.
 
 ## Status
 
