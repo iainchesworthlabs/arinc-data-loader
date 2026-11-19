@@ -9,6 +9,14 @@ layout: prose
 
 What changed in each release, in short. The dates are those in the [changelog](../CHANGELOG.md), which has the full list. The packages, their checksums and their signatures are on the [releases page on GitHub](https://github.com/iainchesworthlabs/arinc-data-loader/releases). [Downloads](downloads.md) says which package to choose.
 
+## 0.1.2 (19 November 2026)
+
+A maintenance release. The programs and the libraries are unchanged, and so is how they load and read data.
+
+- The documentation is now part of the company site, at {{ site_url }}. The addresses of the first site forward to the new ones.
+- The guide's first pages are rewritten, with new reference pages for every message the programs show, the findings of the media set check and the files the programs read and write.
+- The site describes the library, the tools, the platforms they run on and the editions. Its Support page has a form that sends a question to the maintainer privately.
+
 ## 0.1.1 (24 October 2026)
 
 A maintenance release. How the programs load and read data is unchanged.
