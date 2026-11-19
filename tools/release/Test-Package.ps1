@@ -185,6 +185,25 @@ if (-not $tool) {
     }
 }
 
+$load = Find-Program 'adl_load'
+if (-not $load) {
+    Add-Problem 'adl_load is not in the package'
+} else {
+    # It needs no target to say what it is, and to refuse a command that is not one (exit code 2).
+    $version = (& $load --version 2>&1) -join "`n"
+    if ($LASTEXITCODE -eq 0 -and $version -match '^adl_load \S+ events 1$') {
+        Add-Ok "adl_load says: $version"
+    } else {
+        Add-Problem "adl_load --version exited with $LASTEXITCODE and said: $version"
+    }
+    & $load no-such-command 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 2) {
+        Add-Ok 'adl_load refuses a command it does not know with exit code 2'
+    } else {
+        Add-Problem "adl_load with a command it does not know exited with $LASTEXITCODE, not 2"
+    }
+}
+
 # --- macOS: the bundles are signed and carry the licences ---------------------------------
 if ($IsMacOS) {
     foreach ($bundle in Get-ChildItem -LiteralPath $root -Filter '*.app' -Directory) {

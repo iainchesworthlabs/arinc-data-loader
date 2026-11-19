@@ -43,6 +43,13 @@ target_link_libraries(adl_load
 
 adl_deploy_sanitizer_runtime(adl_load)
 
+# A command-line program for scripts and other programs that load equipment: it ships with the programs, as
+# adl_write_payloads does.
+if(ADL_PLATFORM_DESKTOP)
+    install(TARGETS adl_load
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT runtime)
+endif()
+
 # The libFuzzer harness for the options, when fuzzing is on (cmake/Fuzzing.cmake).
 if(ADL_ENABLE_FUZZING)
     add_subdirectory(fuzz)

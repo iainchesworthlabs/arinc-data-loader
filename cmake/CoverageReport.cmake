@@ -6,7 +6,7 @@
 # It is the one place those figures and the gcovr switches live; the `coverage` target and the
 # coverage CI job both call it.
 #
-#   1. The portable code in libs/ and apps/write_payloads: at least 90% of lines and 80% of branches.
+#   1. The portable code in libs/, apps/write_payloads and apps/load: at least 90% of lines and 80% of branches.
 #   2. The applications' window-free logic (apps/app/core, apps/mock_target/core and
 #      apps/media_gen/core: the models, the engine's worker, the settings, the generator's and the
 #      mock target's cores), at a lower floor set a little under what the suite measures. It needs
@@ -92,7 +92,7 @@ endif()
 # not a blended figure.
 execute_process(
     COMMAND "${GCOVR}" ${_common}
-        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|media_tree|loader_core|samples|platform/(interfaces|detail))|apps/write_payloads)/.*"
+        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|media_tree|loader_core|samples|platform/(interfaces|detail))|apps/(write_payloads|load))/.*"
         --fail-under-line "${LINE_THRESHOLD}"
         --fail-under-branch "${BRANCH_THRESHOLD}"
         --html-details "${_output}/index.html"
