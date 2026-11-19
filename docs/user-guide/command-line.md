@@ -489,7 +489,7 @@ usage:
   adl_load --help
   adl_load --version
 
-common: [--local-address <ipv4>] [--control-port <n>] [--json] [--record <file>]
+common: [--local-address <ipv4>] [--control-port <n>] [--target-port <n>] [--json] [--record <file>]
 
 Runs one ARINC 615A operation on one target, or looks for targets, with no window.
 Options are written "--name value"; an option that takes several values is given
@@ -507,10 +507,12 @@ several times (--load A --load B).
   --json        Write one JSON object per line on standard output, one for each event,
                 instead of a line for a person to read.
   --record      Write the operation record, a JSON file, when the operation ends.
-  --control-port, --local-address
-                The port the loader listens on (default 59) and the interface its
-                sockets use (default: the loopback address for a target on this
-                computer, every interface otherwise).
+  --control-port, --target-port, --local-address
+                The port the loader listens on (default 59), the port the target
+                listens on for the request that starts an operation (default 59;
+                another is for a simulated target that cannot have 59) and the
+                interface the sockets use (default: the loopback address for a
+                target on this computer, every interface otherwise).
 
 Exit codes: 0 completed, 1 the operation ran and failed, 2 wrong usage, 3 the media set
 could not be read or changed after it was checked, 4 the target did not answer, 5 a
@@ -535,10 +537,11 @@ Options are written `--name value`, with a space. An option that takes several v
 | `--seconds <n>` | `find`: how long to listen, 1 to 3600 seconds. The default is three, as in the window. |
 | `--local-address <ipv4>` | The interface the sockets use. By default the loopback address for a target on this computer, and every interface otherwise. |
 | `--control-port <n>` | The port the loader listens on for what the target sends, 1 to 65535. The default is 59. A target on this computer holds port 59 itself, so the loader needs another. |
+| `--target-port <n>` | The port the target listens on for the request that starts an operation, 1 to 65535. The default is 59, the standard's, which is where a real target is. Another is for a simulated target that cannot have 59: a system that keeps low ports for privileged programs, or several targets on one address. `find` does not have it. |
 | `--json` | Write one JSON object on a line for each event on the standard output, and nothing else there. Without it each event is one plain line for a person to read. |
 | `--record <file>` | Write the operation record, a JSON file, when the operation ends, whatever the outcome ([Files the programs read and write](../file-reference.md#the-operation-record)). The folder it goes into has to be there. `find` writes no record. |
 
-`--help` prints the usage and `--version` prints one line, `adl_load <version> events 1`, and both end with 0. The target is always reached at port 59, the standard's.
+`--help` prints the usage and `--version` prints one line, `adl_load <version> events 1`, and both end with 0.
 
 Every event has `event` first and `t` second, the seconds since the program started. The events are `started` (first), `target_found`, `media_set_checked`, `log`, `configuration`, `progress`, `file_list`, `file_received` and `finished` (last). `finished` carries the `result` (`completed` or `failed`), the `reason`, the `status_code` the target last reported (or `null`), a `detail` sentence and the `exit_code`. The reasons are `completed`, `target_refused`, `target_aborted`, `load_failed`, `missing_files`, `protocol_error`, `aborted`, `usage`, `media_set_unreadable`, `media_set_changed`, `no_answer` and `local_error`.
 
@@ -604,7 +607,7 @@ With `--json` the sentences of what happened are in the events. In a `finished` 
 | `The operation was aborted: <how it ended>.` | `aborted` | Ended from this side, which `adl_load` cannot do; the window can. |
 | `The target did not answer: a file transfer timed out.` | `no_answer` | A request got no reply. |
 | `The target did not answer: <how it ended>.` | `no_answer` | `data load protocol time-out`, or `the target was silent longer than its exception timer`. |
-| `The media set could not be read: <why>.` | `media_set_unreadable` | The folder is not there, or a file of the set is damaged or missing. |
+| `The media set could not be read: <why>.` | `media_set_unreadable` | The folder is not there, a file of the set is damaged or missing, or a file or folder in a member has a name that a media set cannot hold (anything but printable ASCII), which the sentence names. |
 | `The media set changed after it was checked: <file>.` | `media_set_changed` | A file was edited, replaced or removed after the check, before or while it was being sent. |
 | `The download folder could not be used: <why>.` | `local_error` | The folder named is a file, or cannot be made. |
 | `The operation could not run: the request was refused (<why>).` | `local_error` | The loader would not make the request. |

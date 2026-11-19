@@ -427,6 +427,7 @@ private:
         target.address = adl::arinc615a::Address{options_.target};
         target.thw_id_pos = options_.position;
         target.control_port = options_.control_port;
+        target.port = options_.target_port;
         if (options_.local_address)
         {
             target.local_address = adl::platform::Ipv4Address{*options_.local_address};

@@ -66,6 +66,7 @@ namespace adl::test
     add("--target", adl::loader_core::format_ipv4(options.target));
     add("--position", options.position);
     add("--control-port", std::to_string(options.control_port));
+    add("--target-port", std::to_string(options.target_port));
     if (options.record)
     {
         add("--record", *options.record);

@@ -293,6 +293,11 @@ public:
         }
     }
 
+    // The folder of the set, as a path.
+    [[nodiscard]] const std::filesystem::path& root() const noexcept
+    {
+        return root_;
+    }
     // The folder, as an operator would type it.
     [[nodiscard]] std::string path() const
     {

@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <system_error>
 #include <vector>
@@ -265,6 +266,53 @@ TEST_CASE("a media set that cannot be read is refused, exit code 3", "[load][int
         CHECK(run.finished().at("reason").text == "media_set_unreadable");
         CHECK(run.events_named("media_set_checked").empty());
     }
+}
+
+TEST_CASE("an upload to a target that is not on port 59 is sent with --target-port", "[load][integration][upload]")
+{
+    const adl::test::SampleLoad load = adl::test::make_sample_load(2'000, 4);
+    SimPlan plan;
+    plan.loads = {load.item};
+    plan.control_port = 30959;
+    CommandRig rig(plan);
+    const InstalledMediaSet set(rig.rig.loader_host, load.members);
+
+    const CommandRun run = upload(rig, set, {"--all-loads"}, {"--target-port", "30959"});
+    CHECK(run.exit_code == 0);
+    CHECK(run.finished().at("reason").text == "completed");
+    CHECK(rig.rig.target.log().files_read.size() == load.item.reads.size());
+}
+
+TEST_CASE("a file whose name is outside the code page makes the media set unreadable, and does not throw",
+          "[load][integration][upload]")
+{
+    const adl::test::SampleLoad load = adl::test::make_sample_load(2'000, 4);
+    SimPlan plan;
+    plan.loads = {load.item};
+    CommandRig rig(plan);
+    const InstalledMediaSet set(rig.rig.loader_host, load.members);
+
+    // An extra file in the first member, named with Japanese letters and a character outside the Basic Multilingual
+    // Plane: no Windows code page holds them, and a media set can hold names of printable ASCII only.
+    const std::filesystem::path name{std::u8string{u8"日本語-\U0001F600.txt"}};
+    {
+        std::ofstream extra(set.root() / "member_001" / name, std::ios::binary);
+        REQUIRE(extra.is_open());
+        extra << "not part of the media set";
+    }
+
+    const CommandRun run = upload(rig, set, {"--all-loads"});
+    CHECK(run.exit_code == 3);
+    adl::test::check_stream(run);
+    CHECK(run.events_named("media_set_checked").empty());
+    const Json finished = run.finished();
+    CHECK(finished.at("result").text == "failed");
+    CHECK(finished.at("reason").text == "media_set_unreadable");
+    // The sentence names the file, in UTF-8.
+    CHECK(finished.at("detail").text.starts_with("The media set could not be read: "));
+    CHECK(finished.at("detail").text.find(adl::test::utf8(name)) != std::string::npos);
+    // Nothing was sent.
+    CHECK(rig.rig.target.log().init_requests_at.empty());
 }
 
 TEST_CASE("a media set that changed after it was checked is not sent, exit code 3", "[load][integration][upload]")

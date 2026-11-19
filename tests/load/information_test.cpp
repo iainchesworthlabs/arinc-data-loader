@@ -244,3 +244,39 @@ TEST_CASE("the interface the sockets use can be chosen", "[load][integration][in
     CHECK(run.exit_code == 0);
     CHECK(run.finished().at("reason").text == "completed");
 }
+
+TEST_CASE("a target that is not on port 59 is reached with --target-port", "[load][integration][information]")
+{
+    SimPlan plan;
+    plan.control_port = 30959;
+
+    SECTION("the port is named")
+    {
+        CommandRig rig(plan);
+        const CommandRun run = information(rig, {"--target-port", "30959"});
+        CHECK(run.exit_code == 0);
+        adl::test::check_stream(run);
+        CHECK(run.finished().at("reason").text == "completed");
+        CHECK(run.events_named("configuration").size() == 1);
+    }
+    SECTION("it is not, and the target on 30959 does not answer a request sent to 59")
+    {
+        CommandRig rig(plan);
+        const CommandRun run = information(rig);
+        CHECK(run.exit_code == 4);
+        CHECK(run.finished().at("reason").text == "no_answer");
+    }
+    SECTION("another port is named, and nothing is there")
+    {
+        CommandRig rig(plan);
+        const CommandRun run = information(rig, {"--target-port", "30960"});
+        CHECK(run.exit_code == 4);
+        CHECK(run.finished().at("reason").text == "no_answer");
+    }
+    SECTION("the loader's own port is a different thing")
+    {
+        CommandRig rig(plan);
+        const CommandRun run = information(rig, {"--control-port", "30959"});
+        CHECK(run.exit_code == 4);
+    }
+}

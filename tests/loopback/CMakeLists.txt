@@ -45,9 +45,9 @@ set_tests_properties(loopback.integration PROPERTIES
     LABELS "integration;system")
 
 # adl_load's whole commands over the same sockets (tests/loopback/load_command_test.cpp): the program's run
-# function on the real host against the mock target's engine, which listens on port 59 of the loopback
-# address because that is where the loader sends. An account that may not bind port 59 skips them (exit code
-# 4). Only one test holds the sockets at a time: the loopback test has the same lock.
+# function on the real host against the mock target's engine, on high ports (--target-port, --control-port), so
+# that an unprivileged account runs them too. Only one test holds the sockets at a time: the loopback test has the
+# same lock.
 add_executable(adl_load_system_test
     load_command_test.cpp)
 
@@ -74,5 +74,4 @@ add_test(NAME load.system COMMAND adl_load_system_test)
 set_tests_properties(load.system PROPERTIES
     TIMEOUT 300
     RESOURCE_LOCK mock_target_transfer_ports
-    SKIP_RETURN_CODE 4
     LABELS "system")

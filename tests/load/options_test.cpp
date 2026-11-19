@@ -115,6 +115,49 @@ TEST_CASE("an Information operation takes a target, a position and the common op
                  "--record is given twice"));
 }
 
+TEST_CASE("the port the target takes the first request on is the standard's unless it is said", "[load][options]")
+{
+    CHECK(accepted({"information", "--target", target, "--position", position}).target_port == 59);
+    CHECK(accepted({"information", "--target", target, "--position", position, "--target-port", "30959"}).target_port ==
+          30959);
+    CHECK(accepted({"information", "--target", target, "--position", position, "--target-port", "1"}).target_port == 1);
+    CHECK(accepted({"information", "--target", target, "--position", position, "--target-port", "65535"}).target_port ==
+          65535);
+    // The target's port and the loader's are two options, and one does not set the other.
+    const Options both = accepted({"information", "--target", target, "--position", position, "--control-port", "30901",
+                                   "--target-port", "30959"});
+    CHECK(both.control_port == 30901);
+    CHECK(both.target_port == 30959);
+    CHECK(
+        accepted({"information", "--target", target, "--position", position, "--control-port", "30901"}).target_port ==
+        59);
+
+    // An upload and a download have it too.
+    CHECK(accepted({"upload", "--target", target, "--position", position, "--media-set", "set", "--all-loads",
+                    "--target-port", "30959"})
+              .target_port == 30959);
+    CHECK(accepted({"download", "--target", target, "--position", position, "--into", "out", "--pick-all",
+                    "--target-port", "30959"})
+              .target_port == 30959);
+
+    // 0 and what is over 65535 are wrong usage, and so is what is not a number.
+    for (const char* bad : {"0", "65536", "100000", "-1", "59a", "port", "", " 59"})
+    {
+        CAPTURE(bad);
+        const std::vector<std::string_view> list{"information", "--target",      target, "--position",
+                                                 position,      "--target-port", bad};
+        const auto parsed = parse_options(list);
+        REQUIRE_FALSE(parsed.has_value());
+        CHECK((mentions(parsed.error(), "--target-port takes a whole number from 1 to 65535") ||
+               mentions(parsed.error(), "--target-port needs a value")));
+    }
+    CHECK(mentions(refused({"information", "--target", target, "--position", position, "--target-port", "59",
+                            "--target-port", "60"}),
+                   "--target-port is given twice"));
+    // find has no target.
+    CHECK(mentions(refused({"find", "--target-port", "59"}), "--target-port is not an option of find"));
+}
+
 TEST_CASE("a position has to be one the loader can use", "[load][options]")
 {
     CHECK(mentions(refused({"information", "--target", target, "--position", "A/B"}), "--position \"A/B\""));

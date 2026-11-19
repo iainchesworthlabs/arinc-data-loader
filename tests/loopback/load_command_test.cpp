@@ -5,12 +5,11 @@
 // media set read from a real disk, the files written to a real disk, the events on a stream, the record in a
 // real file.
 //
-// The loader sends to port 59 of the target (the standard's; the program has no option to name another), so the
-// mock target listens on 59 of the loopback address, and the loader's own port is a high one (--control-port) so
-// that the two do not meet. An account that may not bind port 59 (an unprivileged one on Linux) cannot run
-// these: the test says so and skips, and the same commands are run on the fake platform by
-// tests/load/*_test.cpp in every build. FIND is not here: on one computer its answers do not reliably find
-// their way back (the loopback test says why), and the fake network is where it is tested.
+// Every port is a high one: the mock target listens on 30959 of the loopback address, which the program is told
+// with --target-port (the standard's 59 needs privileges on Linux), and the loader's own port is 30901
+// (--control-port), so that an unprivileged account can run these as well as any other. The same commands are run
+// on the fake platform by tests/load/*_test.cpp in every build. FIND is not here: on one computer its answers do
+// not reliably find their way back (the loopback test says why), and the fake network is where it is tested.
 //
 // This test links the mock target's engine, which still links Qt, so it sits where the loopback test does,
 // inside the part that builds with the applications. It can move out once the mock target's own command
@@ -53,11 +52,12 @@ namespace
 
 // High ports below the dynamic range, as the loopback test chooses them: above 1024, which an unprivileged
 // account may not bind, and below the 49152 and up that Windows hands out and where Hyper-V and WSL carve out
-// exclusions. Port 59, the target's, is the one the loader asks for and the one thing that cannot move.
-constexpr std::uint16_t target_tftp_port = 59;
+// exclusions. The target's is told to the program with --target-port, and the loader's own with --control-port.
+constexpr std::uint16_t target_tftp_port = 30959;
 constexpr std::uint16_t target_find_port = 30961;
 constexpr std::uint16_t loader_control_port = 30901;
 constexpr std::string_view loader_port_text = "30901";
+constexpr std::string_view target_port_text = "30959";
 
 [[nodiscard]] std::vector<std::byte> pattern(std::size_t size, std::uint64_t seed)
 {
@@ -201,12 +201,10 @@ struct Run
 TEST_CASE("an Information operation over real sockets, through the whole command", "[load][system]")
 {
     MockTarget target(mock_config());
-    if (target.not_started)
-    {
-        SKIP("the mock target cannot listen on port 59 of the loopback address here: " << *target.not_started);
-    }
+    INFO("the mock target could not start: " << target.not_started.value_or(""));
+    REQUIRE_FALSE(target.not_started.has_value());
     const Run run = run_command({"information", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--control-port",
-                                 loader_port_text, "--json"});
+                                 loader_port_text, "--target-port", target_port_text, "--json"});
     CHECK(run.exit_code == 0);
     CHECK(run.err.empty());
     const Json finished = run.finished();
@@ -222,10 +220,8 @@ TEST_CASE("an upload over real sockets delivers every file of the media set byte
           "[load][system]")
 {
     MockTarget target(mock_config());
-    if (target.not_started)
-    {
-        SKIP("the mock target cannot listen on port 59 of the loopback address here: " << *target.not_started);
-    }
+    INFO("the mock target could not start: " << target.not_started.value_or(""));
+    REQUIRE_FALSE(target.not_started.has_value());
     // The sample media set, with a data file big enough to take a few blocks, on a real disk.
     adl::arinc665::LoadSpec load_spec = adl::samples::sample_load_spec();
     load_spec.data_files[0].content = pattern(6000, 7);
@@ -243,7 +239,8 @@ TEST_CASE("an upload over real sockets delivers every file of the media set byte
     const std::string record = adl::test::utf8(directory.path() / "record.json");
 
     const Run run = run_command({"upload", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--media-set", set_text,
-                                 "--all-loads", "--control-port", loader_port_text, "--record", record, "--json"});
+                                 "--all-loads", "--control-port", loader_port_text, "--target-port", target_port_text,
+                                 "--record", record, "--json"});
     CHECK(run.exit_code == 0);
     CHECK(run.err.empty());
     const Json finished = run.finished();
@@ -279,18 +276,16 @@ TEST_CASE("both kinds of download over real sockets write the files into a folde
                     adl::mock::HeldFile{"F3.BIN", pattern(1500, 13), "file three"}};
     const std::vector<adl::mock::HeldFile> held = config.holds;
     MockTarget target(std::move(config));
-    if (target.not_started)
-    {
-        SKIP("the mock target cannot listen on port 59 of the loopback address here: " << *target.not_started);
-    }
+    INFO("the mock target could not start: " << target.not_started.value_or(""));
+    REQUIRE_FALSE(target.not_started.has_value());
     const adl::test::TempDir directory;
     const std::string into = adl::test::utf8(directory.path());
 
     SECTION("the loader names the files")
     {
-        const Run run =
-            run_command({"download", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--into", into, "--file",
-                         "F1.BIN", "--file", "F3.BIN", "--control-port", loader_port_text, "--json"});
+        const Run run = run_command({"download", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--into", into,
+                                     "--file", "F1.BIN", "--file", "F3.BIN", "--control-port", loader_port_text,
+                                     "--target-port", target_port_text, "--json"});
         CHECK(run.exit_code == 0);
         const Json finished = run.finished();
         CHECK(finished.at("reason").text == "completed");
@@ -303,8 +298,9 @@ TEST_CASE("both kinds of download over real sockets write the files into a folde
     }
     SECTION("the target lists its files and --pick takes one of them")
     {
-        const Run run = run_command({"download", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--into", into,
-                                     "--pick", "F2.BIN", "--control-port", loader_port_text, "--json"});
+        const Run run =
+            run_command({"download", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--into", into, "--pick",
+                         "F2.BIN", "--control-port", loader_port_text, "--target-port", target_port_text, "--json"});
         CHECK(run.exit_code == 0);
         const std::vector<Json> listed = run.events_named("file_list");
         REQUIRE(listed.size() == 1);
@@ -315,8 +311,9 @@ TEST_CASE("both kinds of download over real sockets write the files into a folde
     }
     SECTION("--pick-all takes all of them")
     {
-        const Run run = run_command({"download", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--into", into,
-                                     "--pick-all", "--control-port", loader_port_text, "--json"});
+        const Run run =
+            run_command({"download", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--into", into, "--pick-all",
+                         "--control-port", loader_port_text, "--target-port", target_port_text, "--json"});
         CHECK(run.exit_code == 0);
         CHECK(run.events_named("file_received").size() == 3);
         const std::filesystem::path folder = adl::platform::path_from_utf8(run.finished().at("download_folder").text);
@@ -334,12 +331,10 @@ TEST_CASE("a target that refuses, over real sockets, is a failure that carries t
     config.refusal = adl::mock::Refusal{adl::mock::OperationKind::information,
                                         adl::arinc615a::StatusCode::operation_denied, "maintenance mode"};
     MockTarget target(std::move(config));
-    if (target.not_started)
-    {
-        SKIP("the mock target cannot listen on port 59 of the loopback address here: " << *target.not_started);
-    }
+    INFO("the mock target could not start: " << target.not_started.value_or(""));
+    REQUIRE_FALSE(target.not_started.has_value());
     const Run run = run_command({"information", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--control-port",
-                                 loader_port_text, "--json"});
+                                 loader_port_text, "--target-port", target_port_text, "--json"});
     CHECK(run.exit_code == 1);
     const Json finished = run.finished();
     CHECK(finished.at("reason").text == "target_refused");
@@ -354,10 +349,8 @@ TEST_CASE("a media set, a download folder and a record in a folder named with ch
     config.holds = {adl::mock::HeldFile{"F1.BIN", pattern(2000, 21), "file one"}};
     const std::vector<adl::mock::HeldFile> held = config.holds;
     MockTarget target(std::move(config));
-    if (target.not_started)
-    {
-        SKIP("the mock target cannot listen on port 59 of the loopback address here: " << *target.not_started);
-    }
+    INFO("the mock target could not start: " << target.not_started.value_or(""));
+    REQUIRE_FALSE(target.not_started.has_value());
     // An accented letter, Japanese and a character outside the Basic Multilingual Plane, as UTF-8: no Windows code
     // page holds all of them. The names inside the media set are ASCII (libs/media_tree still throws on Windows for
     // a file name inside a set that is outside the code page).
@@ -375,9 +368,9 @@ TEST_CASE("a media set, a download folder and a record in a folder named with ch
     const std::string set_text = adl::test::utf8(set);
     const std::string record = adl::test::utf8(folder / "upload record.json");
 
-    const Run upload =
-        run_command({"upload", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--media-set", set_text,
-                     "--all-loads", "--control-port", loader_port_text, "--record", record, "--json"});
+    const Run upload = run_command({"upload", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--media-set",
+                                    set_text, "--all-loads", "--control-port", loader_port_text, "--target-port",
+                                    target_port_text, "--record", record, "--json"});
     CHECK(upload.exit_code == 0);
     const std::vector<Json> checked = upload.events_named("media_set_checked");
     REQUIRE(checked.size() == 1);
@@ -390,8 +383,9 @@ TEST_CASE("a media set, a download folder and a record in a folder named with ch
     CHECK(written->at("media_set").at("path").text == set_text);
 
     const std::string into = adl::test::utf8(folder / "downloads");
-    const Run download = run_command({"download", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--into", into,
-                                      "--pick-all", "--control-port", loader_port_text, "--json"});
+    const Run download =
+        run_command({"download", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--into", into, "--pick-all",
+                     "--control-port", loader_port_text, "--target-port", target_port_text, "--json"});
     CHECK(download.exit_code == 0);
     const std::string kept = download.finished().at("download_folder").text;
     CHECK(kept.starts_with(into));
