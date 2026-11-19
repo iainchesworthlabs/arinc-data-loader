@@ -248,7 +248,7 @@ TEST_CASE("an operator defined download brings back the files chosen, and none c
 
         const OperationResult result = run_operation(rig.loader_host, target_of(), plan.operation(), services);
         CHECK_FALSE(result.success());
-        CHECK(result.reason == Reason::target_aborted);
+        CHECK(result.reason == Reason::aborted);
         CHECK(result.outcome.code == OutcomeCode::aborted_by_operator);
         // Nothing came, so nothing is kept.
         CHECK(result.download_folder.empty());
@@ -269,7 +269,7 @@ TEST_CASE("an operator's abort ends the operation as an abort", "[loader_core][r
 
     const OperationResult result = run_operation(rig.loader_host, target_of(), plan.operation(), services);
     CHECK_FALSE(result.success());
-    CHECK(result.reason == Reason::target_aborted);
+    CHECK(result.reason == Reason::aborted);
     CHECK(result.outcome.code == OutcomeCode::aborted_by_operator);
 }
 
@@ -299,6 +299,51 @@ TEST_CASE("a target that refuses, or does not answer, is told apart", "[loader_c
     CHECK_FALSE(result.success());
     CHECK(result.reason == Reason::no_answer);
     CHECK(result.outcome.code == OutcomeCode::transfer_failed);
+}
+
+TEST_CASE("a target that aborts, and one whose answer cannot be understood, are told apart", "[loader_core][run]")
+{
+    const OperationPlan plan = OperationPlan::information();
+
+    SECTION("the target ends the operation")
+    {
+        SimPlan sim;
+        sim.abort_after_statuses = 1;
+        Rig rig(sim);
+        RunServices services;
+        services.listener = &rig.recorder;
+        const OperationResult result = run_operation(rig.loader_host, target_of(), plan.operation(), services);
+        CHECK_FALSE(result.success());
+        CHECK(result.reason == Reason::target_aborted);
+        CHECK(result.outcome.code == OutcomeCode::aborted_by_target);
+    }
+
+    SECTION("an initialization file that is not a valid structure")
+    {
+        SimPlan sim;
+        sim.init_garbage = true;
+        Rig rig(sim);
+        RunServices services;
+        services.listener = &rig.recorder;
+        const OperationResult result = run_operation(rig.loader_host, target_of(), plan.operation(), services);
+        CHECK_FALSE(result.success());
+        CHECK(result.reason == Reason::protocol_error);
+        CHECK(result.outcome.code == OutcomeCode::protocol_error);
+    }
+
+    SECTION("a protocol version the loader does not know")
+    {
+        SimPlan sim;
+        sim.init_version[0] = 'B';
+        sim.init_version[1] = '5';
+        Rig rig(sim);
+        RunServices services;
+        services.listener = &rig.recorder;
+        const OperationResult result = run_operation(rig.loader_host, target_of(), plan.operation(), services);
+        CHECK_FALSE(result.success());
+        CHECK(result.reason == Reason::protocol_error);
+        CHECK(result.outcome.code == OutcomeCode::unsupported_protocol_version);
+    }
 }
 
 TEST_CASE("an operation that cannot run says where it stopped, and a download that never began leaves no folder",
@@ -378,6 +423,8 @@ TEST_CASE("the reasons have the words a command prints", "[loader_core][run]")
     CHECK(to_string(Reason::target_aborted) == "target_aborted");
     CHECK(to_string(Reason::load_failed) == "load_failed");
     CHECK(to_string(Reason::missing_files) == "missing_files");
+    CHECK(to_string(Reason::protocol_error) == "protocol_error");
+    CHECK(to_string(Reason::aborted) == "aborted");
     CHECK(to_string(Reason::media_set_changed) == "media_set_changed");
     CHECK(to_string(Reason::no_answer) == "no_answer");
     CHECK(to_string(Reason::local_error) == "local_error");

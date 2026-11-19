@@ -30,18 +30,19 @@ namespace adl::loader_core
 enum class Reason : std::uint8_t
 {
     completed,         // it completed, and for an upload every load did
-    target_refused,    // the target refused the operation, or does not do it or does not speak its protocol
-    target_aborted,    // the target ended the operation, or ended it at the loader's request (an operator's
-                       // abort: the outcome's code says which), or sent what the protocol does not allow
+    target_refused,    // the target refused the operation, or does not do it
+    target_aborted,    // the target ended the operation
     load_failed,       // an upload ended and the target failed at least one load
     missing_files,     // a download ended with fewer files than were asked for, or a file the target failed
+    protocol_error,    // what the target sent could not be understood, or its protocol version is not supported
+    aborted,           // the operation was aborted from this side: the operator's abort, or the loader's own
     media_set_changed, // a file of the media set changed after the set was checked, and was not sent
     no_answer,         // the target did not answer in time
     local_error,       // the loader could not run it: a port, the files, the request itself
 };
 
-// "completed", "target_refused", "target_aborted", "load_failed", "missing_files", "media_set_changed",
-// "no_answer", "local_error".
+// "completed", "target_refused", "target_aborted", "load_failed", "missing_files", "protocol_error",
+// "aborted", "media_set_changed", "no_answer", "local_error".
 [[nodiscard]] constexpr std::string_view to_string(Reason reason) noexcept
 {
     switch (reason)
@@ -56,6 +57,10 @@ enum class Reason : std::uint8_t
         return "load_failed";
     case Reason::missing_files:
         return "missing_files";
+    case Reason::protocol_error:
+        return "protocol_error";
+    case Reason::aborted:
+        return "aborted";
     case Reason::media_set_changed:
         return "media_set_changed";
     case Reason::no_answer:
@@ -118,7 +123,11 @@ struct OperationResult
     {
         return reason == Reason::completed;
     }
-    // The last status code the target gave, if any came.
+    // The last status code that the engine's outcome holds: the last status file the target wrote. It does
+    // not cover the target's answer to the request that starts the operation (the initialization file; 0x1000
+    // for a refusal), which the listener sees (on_initialization) and the outcome does not keep. A caller that
+    // has heard it - a record's recorder does - must keep that status code and not replace it with an empty
+    // one from here.
     [[nodiscard]] std::optional<adl::arinc615a::StatusCode> status_code() const noexcept
     {
         return not_run ? std::nullopt : outcome.last_status;
@@ -130,9 +139,10 @@ struct OperationResult
 //   completed                                           completed, or for an upload with failed loads
 //                                                       load_failed, for a download that is short of files
 //                                                       or has a failed one missing_files
-//   denied, not_supported, unsupported_protocol_version target_refused
-//   aborted_by_target, aborted_by_data_loader,
-//   aborted_by_operator, protocol_error                 target_aborted
+//   denied, not_supported                               target_refused
+//   aborted_by_target                                   target_aborted
+//   aborted_by_operator, aborted_by_data_loader         aborted
+//   protocol_error, unsupported_protocol_version        protocol_error
 //   dlp_timed_out, exception_timer_expired              no_answer
 //   transfer_failed                                     no_answer if the last attempt timed out,
 //                                                       local_error if the files failed here,

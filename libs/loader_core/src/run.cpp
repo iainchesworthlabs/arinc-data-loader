@@ -28,13 +28,15 @@ using adl::arinc615a::OutcomeCode;
         return outcome.items_failed != 0 ? Reason::load_failed : Reason::completed;
     case OutcomeCode::denied:
     case OutcomeCode::not_supported:
-    case OutcomeCode::unsupported_protocol_version:
         return Reason::target_refused;
     case OutcomeCode::aborted_by_target:
-    case OutcomeCode::aborted_by_data_loader:
-    case OutcomeCode::aborted_by_operator:
-    case OutcomeCode::protocol_error:
         return Reason::target_aborted;
+    case OutcomeCode::aborted_by_operator:
+    case OutcomeCode::aborted_by_data_loader:
+        return Reason::aborted;
+    case OutcomeCode::protocol_error:
+    case OutcomeCode::unsupported_protocol_version:
+        return Reason::protocol_error;
     case OutcomeCode::dlp_timed_out:
     case OutcomeCode::exception_timer_expired:
         return Reason::no_answer;
