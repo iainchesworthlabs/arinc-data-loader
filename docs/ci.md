@@ -34,7 +34,7 @@ work only.
 | `ci.yml` | The gate: Policy, the planner, `clang-format`, `platform-isolation`, the documentation build, the build legs, coverage, workflow analysis, the dependency scan, and the aggregator `CI Status`; the RTOS simulators run beside it ([The jobs](#the-jobs-in-ciyml)) | yes |
 | `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
 | `clusterfuzzlite.yml` | Fuzzes the code a pull request changes for ten minutes with ClusterFuzzLite; not a required check ([Fuzzing](fuzzing.md#in-ci)) | yes |
-| `docs.yml` | Builds the site again when `main` moves and publishes the pages that forward the old GitHub Pages addresses to the new site ([Documentation site](#documentation-site)) | yes |
+| `docs.yml` | Builds the site and deploys it to the company site when `main` moves, previews a pull request that changes the documentation, and publishes the pages that forward the old GitHub Pages addresses ([Documentation site](#documentation-site)) | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, Python and workflows, nightly and on a ready pull request that changes them; not a required check | no - skipped |
 | `release.yml` | The Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on manual runs and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | The nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
@@ -212,8 +212,9 @@ a minimum number of pages, and then the four checks of this section (`check_site
   tests `docs.links` and `docs.paths`, over every Markdown file, so that a change to documentation alone,
   which runs no CTest ([above](#the-planner-and-documentation-only-changes)), is still checked for links,
   anchors and paths, and so is `README.md`, which the site does not contain.
-- `docs.yml`: when `main` moves (the release bot's fast-forward after a release), it builds the site again with the same checks and
-  publishes the pages that forward the old addresses to GitHub Pages (below).
+- `docs.yml`: it builds the site again with the same checks and keeps it as an artifact, and then (below) deploys it when `main` moves (the
+  release bot's fast-forward after a release), deploys a preview for a pull request that changes the documentation, and publishes the
+  pages that forward the old addresses to GitHub Pages.
 - `release.yml`, job `Docs (strict)`: the first job after *Prepare*, ahead of the three builds, so a release
   with a broken page stops in a minute and not after an hour.
 
@@ -229,11 +230,23 @@ reason, on a bad one.
   not forwarded; the key is also attached to every release. The job uses the Pages "GitHub Actions" source and not a `gh-pages` branch
   (the `branch-names` ruleset refuses a branch with a name outside its list), runs in the `github-pages` environment (deployment branches:
   `main` only) and waits for the repository variable `PUBLISH_DOCS` to be `true` ([Releasing](releasing.md#setup)).
-- **iainchesworthlabs.com/adl/: not deployed from this repository yet.** The company site gives each program a role that may write its own
-  path only, from `icl-common-infra`'s reusable workflow `docs-deploy-aws.yml` (version 0.1.26 or later; this repository is pinned to an
-  earlier one). It needs an entry for `adl` in the company site's registry, the role, and four repository secrets
-  (`DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET`, `DOCS_DISTRIBUTION_ID`). Those are the owner's to create. Until then the site is
-  read locally (`mkdocs serve`) and the strict build is the check.
+- **iainchesworthlabs.com/adl/: the deploy.** The company site gives each program a role that may write its own path only, and
+  `icl-common-infra`'s reusable workflow `docs-deploy-aws.yml` (version 0.1.26 or later; this repository is pinned to 0.1.28) assumes it by
+  OIDC, with no stored key, and syncs the built site to `adl/` of the company's bucket and invalidates its cache. `docs.yml` calls it three
+  ways: a push to `main` deploys the production site (`production-ref: refs/heads/main`, so no other ref can); a pull request from this
+  repository that changes the documentation deploys a preview to `/_preview/adl/pr-<number>/` and comments the address on the pull request
+  (the preview is public to anyone with the link, carries `noindex`, runs no script, and so has no search); a closed pull request removes
+  its preview. A pull request from a fork gets no secrets and no preview. A run that lacks a secret skips the deploy with a warning and does
+  not fail.
+- **What the owner does before it can run** (none of it is in this repository, and none is done by the agents that work on it):
+    1. In the company site's repository, add `adl` to `infra/lib/apps.ts` with this repository's name and numeric id, a role name, and
+       **`publishRef: 'main'`**: its default is `develop`, and this workflow deploys production from `main` only. Update the site's list of
+       protected prefixes and its tests as the company site's README says, and run `cdk deploy`. That makes the production role and the preview role.
+    2. Customise this repository's OIDC subject claim as the company site's README says.
+    3. Set four repository secrets, each from an output of that deploy: `DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET` and
+       `DOCS_DISTRIBUTION_ID`.
+    4. Run `docs.yml` from `main` once, and check `https://iainchesworthlabs.com/adl/` and a preview.
+  Until then the site is read locally (`mkdocs serve`) and the strict build is the check.
 
 Because `main` moves only with a release, the pages that forward are the ones of the latest release. There is one version of the site; old
 releases' pages are in the tag's tree on GitHub.
