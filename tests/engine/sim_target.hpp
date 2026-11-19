@@ -15,6 +15,7 @@
 
 #include "adl/arinc615a/endpoint.hpp"
 #include "adl/arinc615a/find.hpp"
+#include "adl/arinc615a/limits.hpp"
 #include "adl/arinc615a/protocol_files.hpp"
 #include "adl/arinc615a_mini/mini_tftp.hpp"
 #include "fake_host.hpp"
@@ -69,6 +70,8 @@ enum class ChecksumMode
 struct SimPlan
 {
     std::string thw = "HNPFMS_L";
+    // The port it takes the loader's first request on. The standard's 59, unless a test puts it elsewhere.
+    std::uint16_t control_port = adl::arinc615a::tftp_control_port;
 
     // ---- the initialization file ----
     std::uint16_t init_wait_seconds = 0; // answer the first request with WAIT:x

@@ -82,6 +82,11 @@ struct RunTarget
     // The interface the sockets are bound to. Empty: the window's rule, the loopback address for a target
     // on this machine (so no firewall asks about the program) and every interface for any other.
     std::optional<adl::platform::Ipv4Address> local_address;
+    // The port the target takes the loader's first request on: the standard's 59, which is where a target
+    // listens, unless it is set up to listen elsewhere (a simulated target on a host where 59 needs
+    // privileges, say). Not 0: that is a request the loader refuses (local_error, stage start). The
+    // target's replies come from ports of its own, whatever this is. The window leaves it at 59.
+    std::uint16_t port = adl::arinc615a::tftp_control_port;
 };
 
 // What the operation reads, writes and is told by. All of it is optional and must outlive the call.
