@@ -24,8 +24,9 @@
 
    adl::media_tree (libs/media_tree): members <-> a directory tree, over adl::arinc665
    adl::loader_core (libs/loader_core): what the loader does without a window and without Qt (the media
-   set on disk and its check, the folder a download is written into, the target's address, the record of
-   an operation and the file it is written as), over the libraries above; the application calls it
+   set on disk and its check, the folder a download is written into, the target's address, one operation
+   made and run against a target, the record of an operation and the file it is written as), over the
+   libraries above; the application calls it
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target application
@@ -44,14 +45,15 @@
   overwrites or follows a link.
 - **`libs/loader_core`** is what the loader does that is not showing a window, with no Qt: a media set on
   disk read and checked into a report (`check_media_set`), the index of its files and the `FileSource` an
-  upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, and
-  the target's address. It also holds the record of an operation (`OperationRecord`), the recorder that fills
-  it from what the engine reports (`OperationRecorder`, an `OperationListener` that logs in English, in the
-  window's sentences) and the writer of the file the record is kept in
-  ([the operation record](file-reference.md#the-operation-record)). The loader's application
-  (`apps/app/core`) calls the first part and puts what it returns in the operator's words and in Qt's types,
-  so a program with no window can do the same by the same rules; the window does not use the recorder. It is
-  in the [development package](libraries.md).
+  upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, the
+  target's address, and one operation (an `OperationPlan` of what was chosen, `run_operation` over the host's
+  sockets with the operator's `OperationGate`) reduced to a result and a reason. It also holds the record of
+  an operation (`OperationRecord`), the recorder that fills it from what the engine reports
+  (`OperationRecorder`, an `OperationListener` that logs in English, in the window's sentences) and the writer
+  of the file the record is kept in ([the operation record](file-reference.md#the-operation-record)). The
+  loader's application (`apps/app/core`) calls the first part and puts what it returns in the operator's words
+  and in Qt's types, so a program with no window can do the same by the same rules; the window does not use
+  the recorder. It is in the [development package](libraries.md).
 - **`libs/samples`** is the sample loads and media sets (the golden scenario of
   `tests/golden/make_golden.py` and the ARINC 615 and Boeing 777 layouts of
   Appendix F), as data. The tests build from it, and so does
