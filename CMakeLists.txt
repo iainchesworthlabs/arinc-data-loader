@@ -142,6 +142,10 @@ add_subdirectory(libs/samples)
 # other loaders on them.
 add_subdirectory(apps/write_payloads)
 
+# adl_mock: the mock ARINC 615A target as a command, with no window and no Qt, for test rigs and CI
+# jobs.
+add_subdirectory(apps/mock)
+
 # The Qt application: a thin layer over the libraries above, and the only place Qt is used.
 if(ADL_BUILD_APP)
     add_subdirectory(libs/ui)
