@@ -71,8 +71,8 @@ struct StoreOutcome
 // fail the call.
 [[nodiscard]] std::expected<std::vector<HeldFile>, std::string> read_held_files(const std::filesystem::path& folder);
 
-// The one file a target holds when it has been given none: DEMO.TXT, with a line saying where
-// the files a download serves come from.
-[[nodiscard]] HeldFile demonstration_file();
+// The one file a target holds when it has been given none: DEMO.TXT, with a line saying where the
+// files a download serves are kept (`where` completes "from ... in a download").
+[[nodiscard]] HeldFile demonstration_file(std::string_view where = "<storage>/holds");
 
 } // namespace adl::mock
