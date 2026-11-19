@@ -338,7 +338,7 @@ class Pages(unittest.TestCase):
 
     def test_a_mailto_link_is_found(self) -> None:
         self.put("faq/index.html", front("faq", body='<h1>t</h1><a href="mailto:someone@example.com">mail</a>'))
-        self.assertIn("there is no email address for support", self.problems())
+        self.assertIn("the owner's address is private", self.problems())
 
     def test_a_link_to_a_missing_file_or_anchor_is_found(self) -> None:
         self.put("faq/index.html", front("faq", body='<h1>t</h1><a href="../nothing/">x</a><a href="../support/#missing">y</a>'))
@@ -379,6 +379,86 @@ class Pages(unittest.TestCase):
     def test_a_stylesheet_that_loads_from_another_host_is_found(self) -> None:
         (self.site / "theme.css").write_text("@import url(https://example.com/x.css);\n", encoding="utf-8")
         self.assertIn("loads something with @import or an address", self.problems())
+
+
+SUPPORT_FORM = (lambda text: text[text.index("<form"):text.index("</form>") + len("</form>")])(
+    (REPO / "docs" / "support.md").read_text(encoding="utf-8"))
+
+
+class ContactForm(unittest.TestCase):
+    """The form of docs/support.md, and what the check says about changes to it."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.site = Path(self.tmp.name)
+        for name in check_site_pages.FIXED:
+            path = self.site / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if name.endswith(".html"):
+                path.write_text(front(name.replace("/index.html", "") or "home"), encoding="utf-8")
+            else:
+                path.write_text("a {}\n" if name.endswith(".css") else "<svg/>\n", encoding="utf-8")
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def problems(self, form: str = SUPPORT_FORM, name: str = "support/index.html") -> str:
+        (self.site / name).write_text(front("support", body=f"<h1>t</h1>{form}"), encoding="utf-8")
+        return "\n".join(check_site_pages.check_site(self.site, REPO))
+
+    def changed(self, old: str, new: str) -> str:
+        self.assertIn(old, SUPPORT_FORM, "the test expects this text in the form of docs/support.md")
+        return self.problems(SUPPORT_FORM.replace(old, new, 1))
+
+    def test_the_form_of_the_support_page_passes(self) -> None:
+        self.assertEqual(self.problems(), "")
+
+    def test_a_guide_page_may_have_a_form_of_its_own(self) -> None:
+        material = '<!doctype html><html lang="en"><head><title>g</title><link rel="canonical" href="https://iainchesworthlabs.com/adl/g/"></head>' \
+                   '<body><div class="md-container"><form class="md-search__form" action="x"><input name="q"></form><article class="md-typeset"><h1>g</h1></article></div></body></html>'
+        (self.site / "guide" / "index.html").write_text(material, encoding="utf-8")
+        self.assertEqual(check_site_pages.check_site(self.site, REPO), [])
+
+    def test_it_posts_to_the_one_endpoint_and_nowhere_else(self) -> None:
+        self.assertIn("it may post only to /api/contact", self.changed('action="/api/contact"', 'action="https://example.com/api/contact"'))
+        self.assertIn("it may post only to /api/contact", self.changed('action="/api/contact"', 'action="/api/other"'))
+        self.assertIn("it may post only to /api/contact", self.changed('action="/api/contact"', 'action="/adl/api/contact"'))
+        self.assertIn('method="post"', self.changed('method="post"', 'method="get"'))
+        self.assertIn("enctype must be the default", self.changed('method="post"', 'method="post" enctype="multipart/form-data"'))
+
+    def test_a_second_form_is_refused(self) -> None:
+        self.assertIn("has 2 forms", self.problems(SUPPORT_FORM + '<form action="/x"><input name="q"></form>'))
+
+    def test_the_fields_are_the_fields_of_the_endpoint(self) -> None:
+        self.assertIn("the form's fields are", self.changed('name="organisation"', 'name="company"'))
+        self.assertIn("the form's fields are", self.problems(SUPPORT_FORM.replace("</form>", '<input name="phone"></form>')))
+        self.assertIn('names a field twice', self.problems(SUPPORT_FORM.replace("</form>", '<input type="hidden" name="name" value="x"></form>')))
+        self.assertIn('"source" must be a hidden field with the value "adl"', self.changed('value="adl"', 'value="other"'))
+
+    def test_every_field_has_a_label_and_the_endpoints_limits(self) -> None:
+        self.assertIn('the field "name" has no <label for>', self.changed('<label for="cf-name">', '<label for="somewhere-else">'))
+        self.assertIn('the field "name" is required', self.changed('autocomplete="name" maxlength="100" required', 'autocomplete="name" maxlength="100"'))
+        self.assertIn('the field "message" needs maxlength="4000"', self.changed('maxlength="4000"', 'maxlength="9000"'))
+        self.assertIn('the field "email" needs type="email"', self.changed('id="cf-email" name="email" type="email"', 'id="cf-email" name="email" type="text"'))
+        self.assertIn('the field "message" must be a <textarea>', self.changed('<textarea id="cf-message" name="message"', '<input id="cf-message" name="message" type="text"').replace("</textarea>", ""))
+
+    def test_the_topics_are_the_topics_of_the_endpoint(self) -> None:
+        self.assertIn('the field "topic" must be a <select>', self.changed('<option value="enterprise">', '<option value="enterprise-plus">'))
+        self.assertIn('the field "topic" must be a <select>', self.changed('<option value="platform-work">A port to your platform</option>\n', ""))
+
+    def test_the_honeypot_must_be_hidden_and_out_of_the_tab_order(self) -> None:
+        self.assertIn("the honeypot", self.changed(' aria-hidden="true"', ""))
+        self.assertIn("the honeypot", self.changed('tabindex="-1"', ""))
+        self.assertIn("the honeypot", self.changed('type="text" tabindex="-1" autocomplete="off"', 'type="text" tabindex="-1"'))
+        self.assertIn("the honeypot", self.changed('tabindex="-1" autocomplete="off"', 'tabindex="-1" autocomplete="off" required'))
+
+    def test_consent_and_the_privacy_link_and_a_submit_button(self) -> None:
+        self.assertIn('the field "consent" must be a checkbox with the value "yes"', self.changed('type="checkbox" value="yes"', 'type="checkbox" value="on"'))
+        self.assertIn("must link to /privacy/#contact-form", self.problems(SUPPORT_FORM.replace("/privacy/#contact-form", "/privacy/")))
+        self.assertIn("has no submit button", self.problems(SUPPORT_FORM.replace('<button class="icl-button" type="submit">', '<button class="icl-button" type="button">')))
+
+    def test_a_script_on_the_form_page_is_still_refused(self) -> None:
+        self.assertIn("has a <script>", self.problems(SUPPORT_FORM + "<script>x()</script>"))
 
 
 class Version(unittest.TestCase):

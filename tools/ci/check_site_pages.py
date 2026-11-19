@@ -20,7 +20,11 @@ The front pages (tools/docs/theme/marketing.html), which run under a preview tha
 - no <script> except a JSON-LD data block, no <style> and no style= attribute;
 - a width and a height on every picture;
 - nothing loaded from another host: no src, srcset, stylesheet link or CSS url() or @import that starts with http(s):// or //;
-- no mailto: link (there is no email address for support).
+- no mailto: link (the owner's address is private; enquiries go through the contact form);
+- at most one <form>, which is the contact form: method post to the company site's endpoint /api/contact and nowhere else, with exactly
+  the fields the endpoint accepts (FORM_FIELDS), a label for each, the limits and the topics of the endpoint, a honeypot field that no
+  person sees or tabs to, and a consent box that links to the company's privacy text. The guide's own pages (Material's search) are not
+  front pages and are not looked at.
 
 And the pages that the company site's contract requires, or that other pages and the old addresses lead to, exist: see FIXED.
 """
@@ -44,6 +48,17 @@ FIXED = ["index.html", "privacy/index.html", "support/index.html", "guide/index.
          "assurance/index.html", "accessibility/index.html", "press/index.html", "theme.css", "icon.svg"]
 ALLOWED_HOSTS = {"github.com", "www.gnu.org"}
 
+# The contact form. The endpoint is the company site's (iainchesworthlabs/icl-site: infra/lambda/contact/config.ts and
+# docs/design/contact-form.md). Its field names, limits and topics are copied here, so that a change to either side is noticed.
+FORM_ACTION = "/api/contact"
+FORM_SOURCE = "adl"
+FORM_FIELDS = {"source", "name", "organisation", "email", "topic", "message", "ref_code", "consent"}
+FORM_REQUIRED = {"name", "email", "topic", "message", "consent"}
+FORM_MAXLENGTH = {"name": "100", "organisation": "150", "email": "254", "message": "4000"}
+FORM_TOPICS = {"", "pro", "enterprise", "qualification-kit", "platform-work", "other"}
+FORM_HONEYPOT = "ref_code"
+FORM_PRIVACY = "/privacy/#contact-form"
+
 
 def check_headings(where: str, levels: list[int]) -> list[str]:
     problems: list[str] = []
@@ -53,6 +68,65 @@ def check_headings(where: str, levels: list[int]) -> list[str]:
         if after > before + 1:
             problems.append(f"{where}: a heading goes from h{before} to h{after}; headings do not skip a level")
             break
+    return problems
+
+
+def check_forms(where: str, page: "site_tools.Page") -> list[str]:
+    """The contact form of a front page, held to the contract of the company's endpoint."""
+    problems: list[str] = []
+    if len(page.forms) > 1:
+        problems.append(f"{where}: has {len(page.forms)} forms; the only form is the contact form")
+    for form in page.forms[:1]:
+        attrs, controls = form["attrs"], form["controls"]
+        if attrs.get("method", "get").lower() != "post":
+            problems.append(f'{where}: the form must have method="post"')
+        if attrs.get("action", "") != FORM_ACTION:
+            problems.append(f'{where}: the form posts to {attrs.get("action", "")!r}; it may post only to {FORM_ACTION} (the endpoint of the company site)')
+        if attrs.get("enctype", "application/x-www-form-urlencoded").lower() != "application/x-www-form-urlencoded":
+            problems.append(f"{where}: the form's enctype must be the default; the endpoint reads application/x-www-form-urlencoded only")
+        named = [c for c in controls if c["attrs"].get("name")]
+        names = [c["attrs"]["name"] for c in named]
+        if len(set(names)) != len(names):
+            problems.append(f"{where}: the form names a field twice: {sorted({n for n in names if names.count(n) > 1})}")
+        if set(names) != FORM_FIELDS:
+            problems.append(f"{where}: the form's fields are {sorted(set(names))}; the endpoint takes {sorted(FORM_FIELDS)}")
+        by_name = {c["attrs"]["name"]: c for c in named}
+        source = by_name.get("source")
+        if source and (source["attrs"].get("type") != "hidden" or source["attrs"].get("value") != FORM_SOURCE):
+            problems.append(f'{where}: the field "source" must be a hidden field with the value "{FORM_SOURCE}"')
+        for control in controls:
+            kind = control["attrs"].get("type", "text")
+            if control["tag"] == "button" or kind in ("hidden", "submit"):
+                continue
+            if control["attrs"].get("id", "\0") not in page.label_for:
+                problems.append(f'{where}: the field "{control["attrs"].get("name", "?")}" has no <label for> that names its id')
+        for name in sorted(FORM_REQUIRED & by_name.keys()):
+            if "required" not in by_name[name]["attrs"]:
+                problems.append(f'{where}: the field "{name}" is required by the endpoint and needs the required attribute')
+        for name, limit in FORM_MAXLENGTH.items():
+            if name in by_name and by_name[name]["attrs"].get("maxlength") != limit:
+                problems.append(f'{where}: the field "{name}" needs maxlength="{limit}", the limit of the endpoint')
+        if "email" in by_name and by_name["email"]["attrs"].get("type") != "email":
+            problems.append(f'{where}: the field "email" needs type="email"')
+        if "message" in by_name and by_name["message"]["tag"] != "textarea":
+            problems.append(f'{where}: the field "message" must be a <textarea>')
+        if "topic" in by_name:
+            topic = by_name["topic"]
+            if topic["tag"] != "select" or set(topic["options"]) != FORM_TOPICS:
+                problems.append(f'{where}: the field "topic" must be a <select> whose options are {sorted(FORM_TOPICS - {""})} and an empty first one')
+        consent = by_name.get("consent")
+        if consent and (consent["attrs"].get("type") != "checkbox" or consent["attrs"].get("value") != "yes"):
+            problems.append(f'{where}: the field "consent" must be a checkbox with the value "yes"')
+        trap = by_name.get(FORM_HONEYPOT)
+        if trap:
+            a = trap["attrs"]
+            if not trap["hidden"] or a.get("type", "text") != "text" or a.get("tabindex") != "-1" or a.get("autocomplete") != "off" or "required" in a:
+                problems.append(f'{where}: the honeypot "{FORM_HONEYPOT}" must be a text field inside an aria-hidden element, with tabindex="-1" and '
+                                'autocomplete="off", and not required')
+        if not any(c["tag"] == "button" and c["attrs"].get("type", "submit") == "submit" for c in controls):
+            problems.append(f"{where}: the form has no submit button")
+        if FORM_PRIVACY not in form["links"]:
+            problems.append(f"{where}: the form must link to {FORM_PRIVACY} (the company's text about what the form keeps)")
     return problems
 
 
@@ -101,12 +175,13 @@ def check_site(site: Path, root: Path) -> list[str]:
             for image in page.images:
                 if not image.get("width") or not image.get("height"):
                     problems.append(f"{where}: a picture ({image.get('src', '?')}) has no width and height")
+            problems += check_forms(where, page)
         for tag, attribute, value in page.refs:
             value = value.strip()
             if not value or value.startswith(("data:", "javascript:")):
                 continue
             if value.startswith("mailto:"):
-                problems.append(f"{where}: {value}: there is no email address for support; use the GitHub issues")
+                problems.append(f"{where}: {value}: the owner's address is private; use the contact form on the Support page, not a mailto: link")
                 continue
             parts = urlparse(value)
             if parts.scheme in ("http", "https") or value.startswith("//"):

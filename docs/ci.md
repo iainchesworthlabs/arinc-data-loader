@@ -159,10 +159,19 @@ use relative links so that they work under a preview address.
 The front pages (`tools/docs/theme/marketing.html`) are held to more, because a preview blocks every script and the company's contract asks
 for plain pages: `lang="en-AU"`; a description, and a title and description that no other front page has; no `script` except a JSON-LD data
 block; no `style` element or attribute (the rules are in `docs/assets/adl.css`); a width and a height on every picture; nothing loaded from
-another host; and no `mailto:` link, because there is no email address for support. Stylesheets may not `@import` or load from an address. The
+another host; no `mailto:` link, because the owner's address is private; and, at most, the one contact form (below). Stylesheets may not `@import` or load from an address. The
 check also holds the pages that the company's contract requires, and the pages that other pages lead to, to exist (`FIXED` in the script).
 The front pages are Markdown with `template: marketing.html` in the front matter, and a page is either written as HTML in the file (links
 relative to the page's built address, such as `../guide/`) or as Markdown with `layout: prose` (links to the source files, `faq.md`).
+
+The contact form (`docs/support.md`, "Talk to us") is the one form a front page may hold. It posts to `/api/contact` on the company
+site, which is the same origin, so the page needs no script and no other host. The endpoint, its fields and limits, and the bot defences
+are in the design record `contact-form.md` of `iainchesworthlabs/icl-site`. The check holds the form to that contract: `method="post"` and
+that action only, the eight field names, `required` and `maxlength` as the endpoint expects, the list of topics, a `label for` every
+field, a honeypot field (`ref_code`) inside an `aria-hidden` element and out of the tab order, and the consent box with its link to the
+company's privacy text. When the endpoint's contract changes, the `FORM_*` constants of `tools/ci/check_site_pages.py` and the form change
+with it. A pull-request preview cannot submit the form (its Content-Security-Policy `sandbox` blocks it), so the form is tried on the
+live site only.
 
 ### The messages and exit codes
 

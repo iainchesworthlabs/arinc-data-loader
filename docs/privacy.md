@@ -49,7 +49,7 @@ A profiling build made from source with `ADL_ENABLE_TRACY` switched on opens a l
 
 ## This website
 
-These pages are served from the company's own website. The site sets no cookies, runs no analytics and loads nothing from other sites. The company's own statement is on its <a href="/privacy/">privacy page</a>.
+These pages are served from the company's own website. The site sets no cookies, runs no analytics and loads nothing from other sites. The company's own statement is on its <a href="/privacy/">privacy page</a>. The contact form on the [Support](support.md#talk-to-us) page is the one place where the website collects what you type; <a href="/privacy/#contact-form">the privacy page</a> says what it keeps and for how long.
 
 ## How to check this
 
@@ -59,4 +59,4 @@ These pages are served from the company's own website. The site sets no cookies,
 
 ## Questions
 
-Use [Support](support.md). It is through GitHub issues only.
+Use [Support](support.md): GitHub issues for a problem or a question, and the contact form for the paid editions.
