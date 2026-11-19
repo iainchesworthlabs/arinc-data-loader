@@ -126,11 +126,23 @@ struct Refusal
     std::string text;
 };
 
+// What FIND answers with. The strings are owned: adl::arinc615a::FindAnswer only views its strings,
+// and an answer built from text that has gone (the operator's settings, a temporary) would read
+// freed memory when it is sent.
+struct FindIdentity
+{
+    std::string hardware_id = "HNPFMS";
+    std::string type_name = "FMS";
+    std::string position = "L";
+    std::string literal_name = "FMS LEFT";
+    std::string manufacturer_code = "HNP";
+};
+
 struct Config
 {
     // ---- identity ----
     std::string thw = "HNPFMS_L"; // <THW_ID_POS>: the stem of the protocol file names
-    adl::arinc615a::FindAnswer find_answer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
+    FindIdentity find_identity;
     adl::arinc615a::Duration find_delay = std::chrono::milliseconds(50);
     unsigned find_copies = 1;
     std::uint16_t tftp_port = adl::arinc615a::tftp_control_port;

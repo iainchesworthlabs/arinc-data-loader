@@ -94,6 +94,32 @@ TEST_CASE("FIND is answered with the configured identity", "[mock][find]")
     CHECK(target.listener.contains("answered FIND"));
 }
 
+TEST_CASE("FIND is answered with an identity whose text is long and no longer held by the caller", "[mock][find]")
+{
+    Config config;
+    {
+        // Past the small-string buffer, so the text is on the heap and a view of it that outlived
+        // these strings would read freed memory (which AddressSanitizer reports).
+        const std::string hardware(15, 'H');
+        const std::string type_name(8, 'T');
+        const std::string position(8, 'P');
+        const std::string literal_name(20, 'L');
+        const std::string manufacturer(3, 'M');
+        config.find_identity = FindIdentity{hardware, type_name, position, literal_name, manufacturer};
+    }
+    MockTarget target(config);
+    std::array<FindTarget, 8> answers{};
+    Runner runner(target.rig.loader_host);
+    const auto count = runner.find(FindConfig{}, answers);
+    REQUIRE(count);
+    REQUIRE(*count == 1);
+    CHECK(answers[0].hardware_id.view() == std::string(15, 'H'));
+    CHECK(answers[0].type_name.view() == std::string(8, 'T'));
+    CHECK(answers[0].position.view() == std::string(8, 'P'));
+    CHECK(answers[0].literal_name.view() == std::string(20, 'L'));
+    CHECK(answers[0].manufacturer_code.view() == std::string(3, 'M'));
+}
+
 TEST_CASE("an Information operation delivers the configuration", "[mock][information]")
 {
     Config config;

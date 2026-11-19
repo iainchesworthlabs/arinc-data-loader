@@ -264,10 +264,11 @@ void MockEngine::handle_find(const Endpoint& from, std::span<const std::byte> pa
     {
         return;
     }
-    const FindAnswer answer = config_.find_answer;
     after(config_.find_delay,
-          [this, from, answer]
+          [this, from, identity = config_.find_identity]
           {
+              const FindAnswer answer{identity.hardware_id, identity.type_name, identity.position,
+                                      identity.literal_name, identity.manufacturer_code};
               std::array<std::byte, find_max_answer_size> buffer{};
               if (const auto size = encode_find_answer(answer, buffer))
               {

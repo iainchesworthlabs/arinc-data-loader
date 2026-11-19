@@ -685,9 +685,9 @@ Config MockTargetModel::make_config() const
     const QString hardware = hardware_id_.trimmed();
     const QString at_position = position_.trimmed();
     config.thw = hardware.toStdString() + (at_position.isEmpty() ? std::string{} : "_" + at_position.toStdString());
-    config.find_answer = adl::arinc615a::FindAnswer{hardware.toStdString(), type_name_.trimmed().toStdString(),
-                                                    at_position.toStdString(), literal_name_.trimmed().toStdString(),
-                                                    manufacturer_code_.trimmed().toStdString()};
+    config.find_identity = FindIdentity{hardware.toStdString(), type_name_.trimmed().toStdString(),
+                                        at_position.toStdString(), literal_name_.trimmed().toStdString(),
+                                        manufacturer_code_.trimmed().toStdString()};
     config.tftp_port = static_cast<std::uint16_t>(tftp_port_);
     config.find_port = static_cast<std::uint16_t>(find_port_);
     if (loopback_only_)
