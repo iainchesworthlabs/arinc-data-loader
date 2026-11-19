@@ -98,6 +98,10 @@ The site has three kinds of page.
 - **Front pages** (the home page, and the other pages for people who are deciding whether to use the programs). They are Markdown with
   `template: marketing.html` in the front matter. That template (`tools/docs/theme/marketing.html`) is plain HTML on the company
   shell. It does not extend Material and ships no script, apart from a JSON-LD data block on the home page. Their links are relative.
+  They are laid out as a product site: Products (the library and each tool, in `docs/products/`), Platforms, Solutions, Developers (the
+  developer pages), Assurance (with the qualification kit), Resources and Pricing. The menus of the app bar are one list in
+  `tools/docs/theme/partials/links.html`; each opens as a native `<details>`, so they work with no script, and below 64rem they fold into
+  one Menu. The editions, prices and the kit on these pages are the owner's to decide: each open point is an `OWNER DECISION` comment.
 - **The guide** (`/adl/guide/`, the files of `docs/user-guide/` and a few pages beside them) and **the pages for programmers**
   (`/adl/developers/`). They are Material pages, with Material's colours set from the palette (`docs/assets/guide.css`). The menu
   holds these two groups only.

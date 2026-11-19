@@ -1,15 +1,10 @@
 {
  "comment": "The owner-approved exceptions to tools/ci/check_claims.py (docs/ci.md, 'The claims'). A page may not say that the tool is certified, qualified, compliant, approved or guaranteed. An exception names one file and the words around the word, and says why the use is not a claim. An exception is approved when approved_by holds the name of the person who approved it; check_claims.py --strict fails while one in use is not. standards_named_in lists the files that may name DO-178C and DO-330.",
  "standards_named_in": [
-  "docs/assurance.md"
+  "docs/assurance.md",
+  "docs/qualification-kit.md"
  ],
  "exceptions": [
-  {
-   "file": "docs/assurance.md",
-   "phrase": "It does not make the tool certified or qualified",
-   "reason": "A denial: it says the data pack does not make the tool certified or qualified.",
-   "approved_by": ""
-  },
   {
    "file": "docs/editions.md",
    "phrase": "no guaranteed response time",

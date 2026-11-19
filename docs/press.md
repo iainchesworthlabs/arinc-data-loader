@@ -10,9 +10,9 @@ description: The ARINC Data Loader name, a short description and the icon, for w
 
 <section class="adl-text">
 <h2>About ARINC Data Loader</h2>
-<p>ARINC Data Loader is free software for Windows, Linux and macOS that implements two standards for loading software into aircraft equipment: ARINC 665, which packages loadable software into media sets, and ARINC 615A, which moves a load to a target over an Ethernet network. It has a data loader, a media set generator and a mock target that stands in for equipment, and the libraries they are built on. It is made by Iain Chesworth Labs under the GNU General Public License, version 3 or later.</p>
-<p>It is a preliminary release. Nothing has been checked against real equipment, another vendor's tools, or another tool's media sets. It is independent of the publisher of the standards.</p>
-<p>Facts: <a href="../features/">features</a>, <a href="../privacy/">privacy</a>, <a href="../assurance/">assurance</a>, <a href="../guide/what-has-been-checked/">what has been checked</a>.</p>
+<p>ARINC Data Loader is a C++23 library for ARINC 615A, the protocol that moves loadable software to aircraft equipment over Ethernet, and ARINC 665, which packages that software into media sets, with three tools built on it: a data loader, a media set generator and a mock target that stands in for equipment. The tools run on Windows, Linux and macOS, and the library also runs on FreeRTOS and Zephyr as experimental ports. It is made by Iain Chesworth Labs. Every edition is open source under the GNU General Public License, version 3 or later; the Pro and Enterprise editions add support and a qualification kit for certification projects.</p>
+<p>It is independent of the publisher of the standards.</p>
+<p>Facts: <a href="../products/">products</a>, <a href="../platforms/">platforms</a>, <a href="../pricing/">editions</a>, <a href="../assurance/">assurance</a>, <a href="../guide/what-has-been-checked/">what has been checked</a>.</p>
 <!-- OWNER DECISION: confirm the wording about the name ARINC and the publisher of the standards. -->
 
 <h2>Icon</h2>
@@ -23,5 +23,5 @@ description: The ARINC Data Loader name, a short description and the icon, for w
 <p>The pictures in the <a href="../guide/">guide</a> are of the real programs, and use sample names only.</p>
 
 <h2>Contact</h2>
-<p>Use <a href="../support/">Support</a>. It is through GitHub issues only.</p>
+<p>Use <a href="../support/#talk-to-us">Talk to us</a> on the Support page.</p>
 </section>

@@ -2,7 +2,7 @@
 template: marketing.html
 title: Support
 title_tag: "Support: ARINC Data Loader"
-description: How to get help with ARINC Data Loader, how to report a problem or a security issue, and what support each edition includes.
+description: How to get help with ARINC Data Loader, how to report a problem or a security issue, how to ask about the paid editions, and what support each edition includes.
 layout: prose
 ---
 # Support
@@ -30,18 +30,22 @@ The smallest load or header file that shows the problem helps most. There is a f
 
 Report it privately, not as a public issue: on the repository's Security tab choose "Report a vulnerability". If you cannot use that, open an issue that says only that you have a security matter, with no details, and the maintainer will arrange a private channel. [The security policy](https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/SECURITY.md) says what counts. The programs do not authenticate a target or encrypt anything, because ARINC 615A over TFTP has neither, and a report that depends on that is a limit of the protocol.
 
+## Talk to us
+
+For Pro and Enterprise, a quote, a trial, the qualification kit or a port to your platform, tell us what you load, onto what, how many seats and which versions you use.
+
+<!-- OWNER DECISION: the sales and support address. The company site uses role addresses, and the owner has not supplied one for this product. Until there is one, enquiries go through the GitHub issues page. -->
+
+Until a sales address is set up, open an issue on [GitHub](https://github.com/iainchesworthlabs/arinc-data-loader/issues) that says which edition you are asking about, with no confidential detail, and we will arrange a private channel.
+
 ## What support each edition includes
 
 | Edition | Support |
 | --- | --- |
-| Community | None promised. The project is maintained by one person, so there is no guaranteed response time and no promised schedule for a fix. Until version 1.0, only the latest release receives fixes. |
-| Pro and Site | Proposed: support, supported versions and an update policy. The terms are not decided. |
-| Enterprise | Proposed: as Pro and Site, with data packs. The terms are not decided. |
+| Community | Help from the community on the GitHub issues page. The project is maintained by one person, so there is no guaranteed response time and no promised schedule for a fix. Until version 1.0, only the latest release receives fixes. |
+| Pro | A private support channel with response targets, help with use and integration, supported versions with security fixes, and an update policy. |
+| Enterprise | A support agreement for the site, the [qualification kit](qualification-kit.md) for each supported version, and a version kept supported for as long as a kit relies on it. |
 
-<!-- OWNER DECISION: the support channel, hours, response times, supported versions and update policy for the paid editions. There is no support email address; the company site uses a role address, which the owner has not supplied. -->
+<!-- OWNER DECISION: the support channel, hours, response times, supported versions and update policy for the paid editions. -->
 
-[Licensing and editions](editions.md) says what the proposed editions are.
-
-## Contact
-
-The way to reach the project is the GitHub issues page. There is no email address.
+[Pricing](pricing.md) compares the editions.

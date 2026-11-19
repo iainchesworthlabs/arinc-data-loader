@@ -2,11 +2,11 @@
 template: marketing.html
 title: Features
 title_tag: "Features: ARINC Data Loader"
-description: What the data loader, the media set generator, the mock target and the libraries do, and what has and has not been checked.
+description: What the Data Loader, the Media Set Generator, the Mock Target and the ADL Library do, feature by feature, with a picture of each.
 ---
 <section class="adl-head"><div class="icl-wrap">
 <h1>Features</h1>
-<p class="icl-lead">What each program does. The guide has the detail, and says what has not been checked.</p>
+<p class="icl-lead">What each tool and the library do. Each product has a page of its own, and the guide has every detail.</p>
 </div></section>
 
 <section class="icl-section"><div class="icl-wrap">
@@ -59,7 +59,7 @@ description: What the data loader, the media set generator, the mock target and 
 <div>
 <h2>A target that misbehaves on request</h2>
 <p>The mock target answers FIND, Information, Upload and both Downloads over real UDP sockets, and keeps what you upload on disk. You can make it ask the loader to wait, refuse an operation, drop status files, send a wrong checksum, abort, or go silent, and watch what the loader does.</p>
-<p><a href="../guide/mock-target/">Run the mock target</a> in the guide. The mock target is not a real target.</p>
+<p><a href="../guide/mock-target/">Run the mock target</a> in the guide.</p>
 </div>
 <figure class="adl-shot"><img src="../images/mock-faults.png" width="1280" height="1320" loading="lazy" alt="The mock target with one fault switched on: Refuse Upload."><figcaption>The mock target with a fault switched on.</figcaption></figure>
 </div>
@@ -68,10 +68,10 @@ description: What the data loader, the media set generator, the mock target and 
 <section class="icl-section icl-section--tint"><div class="icl-wrap">
 <h2>Also</h2>
 <ul class="icl-points">
-<li><h3>Eight languages</h3><p>English, French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese. Hebrew and Yiddish mirror the whole window. Seven of the translations are machine drafts that no speaker has read.</p></li>
+<li><h3>Eight languages</h3><p>English, French, Spanish, German, Yiddish, Hebrew, Simplified Chinese and Japanese. Hebrew and Yiddish mirror the whole window. Seven of the translations are machine drafts; review by speakers is on the roadmap.</p></li>
 <li><h3>Light and dark</h3><p>The programs follow the system's colour scheme. A status is shown by a symbol and a word as well as by colour.</p></li>
 <li><h3>The libraries</h3><p>A development package holds the headers, the static libraries and a CMake package, <code>adl</code>. Its interfaces are not stable before version 1.0. <a href="../developers/libraries/">Using the libraries</a>.</p></li>
 <li><h3>Tested</h3><p>The tests run on Windows, Linux and macOS in continuous integration. Sixteen fuzz harnesses cover the code that reads bytes from outside. <a href="../developers/testing/">Testing</a> says what each tier holds down.</p></li>
 </ul>
-<p>What has not been checked is as much a part of the picture as what has: <a href="../guide/what-has-been-checked/">What has been checked</a>.</p>
+<p><a href="../products/">Products</a> has a page for each tool and the library, and <a href="../assurance/">Assurance</a> says how they are verified.</p>
 </div></section>
