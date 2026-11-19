@@ -324,7 +324,7 @@ needs), and FreeRTOS, lwIP, littlefs and Catch2 fetched by CMake at the versions
 `tests/platform/freertos/CMakeLists.txt`. They run on `ubuntu-26.04`; the Zephyr job installs
 `device-tree-compiler` and `gperf` with apt.
 
-What a build leg's ctest contains: the Catch2 suites (unit, engine, platform, and `mock.engine`), the
+What a build leg's ctest contains: the Catch2 suites (unit, engine, platform, and `mock.engine`, `mock.core`, `mock.cli` and `mock.command`), the
 application tests (`app.tests`, `mock.model`, `media_gen.tests`, QtTest), the QML loads of the three
 windows (`app.qml`, `mock.qml`, `media_gen.qml`: the window loaded offscreen, with the offscreen platform
 and the software renderer, so no GPU or display is needed), the Qt Quick Test suites `ui.tst_main_window`,
@@ -333,7 +333,7 @@ and the software renderer, so no GPU or display is needed), the Qt Quick Test su
 dialogs driven by mouse and key events on the real `Main.qml`), `ui.window_state` (the window geometry
 the three programs share, on a bare window), `loopback.integration` (the loader's runner over real
 sockets on 127.0.0.1 against the mock target's engine), the system smoke tests that start the three
-application programs and `system.notices`, the `tools.write_payloads` tests, the `translations.current.*`
+application programs and `system.notices`, the `tools.write_payloads` and `tools.adl_mock` tests, the `translations.current.*`
 tests (lupdate over a copy of each set of catalogues; they fail when the catalogues no longer match the
 sources), and the repository checks `platform.fragments` (every platform fragment satisfies the platform
 contract, on whichever host this is), `platform.selector`, `platform.isolation` (the same script as the

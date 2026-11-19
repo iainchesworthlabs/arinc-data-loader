@@ -56,10 +56,12 @@ build/windows-msvc-debug/bin/adl_engine_tests "[operation]"
 The main test programs are `adl_unit_tests` (the ARINC 665 library, the 615A codec, the media
 tree and the samples), `adl_platform_tests` (the platform layer: its portable types, the fake
 platform and the conformance suite) and `adl_engine_tests` (the 615A engine, runner and the whole
-operations against a simulated target on the fake platform). With `ADL_BUILD_APP=ON` they are
+operations against a simulated target on the fake platform), joined by the mock target's, which have no Qt in
+them: `adl_mock_tests` and `adl_mock_core_tests` (its engine, link and folders), `adl_mock_cli_tests` and
+`adl_mock_command_test` (the command `adl_mock`) and `adl_loopback_test`. With `ADL_BUILD_APP=ON` they are
 joined by `adl_app_tests` and `adl_ui_tests` (the application's logic and its window), `adl_window_state_tests`,
-`adl_mock_tests`, `adl_mock_model_test`, `adl_gen_tests`, the three offscreen QML programs, `adl_loopback_test`
-and the system smoke tests in `tests/system`.
+`adl_mock_model_test`, `adl_gen_tests`, the three offscreen QML programs and the system smoke tests in
+`tests/system`.
 
 Two things a confined shell (a container where only the source tree is writable, or Windows'
 sandbox) trips over, neither of them a test failure:
@@ -309,8 +311,8 @@ queue, UDP) that run on a Cortex-M3 in QEMU, built with the Zephyr SDK's toolcha
 toolchain (`tools/ci/zephyr_qemu_suite.sh`): the same 227 test cases.
 
 Not run on the RTOS programs: the codec and ARINC 665 unit tests (`adl_unit_tests`; they test code the
-desktops already run), the application's tests, and the loopback integration test, which needs the Qt mock
-target. [Platform abstraction](platform-abstraction.md#the-freertos-and-zephyr-ports) lists what the
+desktops already run), the application's tests, and the loopback integration test, which runs the mock target's
+engine over real sockets. [Platform abstraction](platform-abstraction.md#the-freertos-and-zephyr-ports) lists what the
 simulators leave open.
 
 ## Golden payloads
