@@ -29,6 +29,11 @@ target_link_libraries(adl_loader_core
         $<BUILD_LOCAL_INTERFACE:adl::sanitizers>
         $<BUILD_LOCAL_INTERFACE:adl::coverage>)
 
+# The libFuzzer harness for what this library parses, when fuzzing is on (cmake/Fuzzing.cmake).
+if(ADL_ENABLE_FUZZING)
+    add_subdirectory(fuzz)
+endif()
+
 # Only the top-level project installs (cmake/AdlInstall.cmake); a project of its own that builds this
 # library for a target has no install rules to add it to.
 if(COMMAND adl_install_library)

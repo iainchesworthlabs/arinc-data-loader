@@ -8,7 +8,8 @@ The golden headers (tests/golden/golden_payloads.hpp for ARINC 665, tests/golden
 ARINC 615A) hold the hexadecimal of valid files and packets that were written independently of the
 library. Each becomes one binary file under libs/<lib>/fuzz/corpus/<target>/, so the fuzzers start from
 inputs that get past the first checks. Run it again after the golden data changes; the files it writes
-are committed.
+are committed. The harness of libs/loader_core reads text and not a file, so its seeds are written
+out below.
 """
 
 from __future__ import annotations
@@ -40,6 +41,21 @@ SEEDS_615A = [
     (r"download_list_hex", "download_list"),
     (r"download_answer_hex", "download_answer"),
 ]
+# Text for the harness of libs/loader_core: addresses as an operator types them, good and not.
+SEEDS_IPV4 = {
+    "typical": "10.0.0.2",
+    "all-ones": "255.255.255.255",
+    "zeros": "0.0.0.0",
+    "leading-zeros": "010.001.000.002",
+    "too-few-parts": "10.0.0",
+    "too-many-parts": "10.0.0.2.3",
+    "empty-part": "10..0.2",
+    "trailing-dot": "10.0.0.",
+    "out-of-range": "256.0.0.1",
+    "four-digits": "1000.0.0.1",
+    "space-after": "10.0.0.2 ",
+    "not-a-number": "a.b.c.d",
+}
 
 
 def constants(path: Path) -> dict[str, bytes]:
@@ -66,9 +82,18 @@ def write(golden: Path, library: str, table) -> int:
     return count
 
 
+def write_text(library: str, target: str, seeds: dict[str, str]) -> int:
+    out = ROOT / "libs" / library / "fuzz" / "corpus" / target
+    out.mkdir(parents=True, exist_ok=True)
+    for name, text in seeds.items():
+        (out / f"{name}.bin").write_bytes(text.encode("ascii"))
+    return len(seeds)
+
+
 def main() -> int:
     total = write(ROOT / "tests/golden/golden_payloads.hpp", "arinc665", SEEDS_665)
     total += write(ROOT / "tests/golden/golden_615a.hpp", "arinc615a", SEEDS_615A)
+    total += write_text("loader_core", "ipv4_address", SEEDS_IPV4)
     print(f"{total} seed file(s) written")
     return 0
 
