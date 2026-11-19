@@ -206,6 +206,31 @@ adl_deploy_sanitizer_runtime(adl_load_tests)
 
 catch_discover_tests(adl_load_tests PROPERTIES LABELS "unit")
 
+# The same program run whole: adl_load's run function on the fake platform against the simulated target, so the
+# runner, the engine and the second TFTP implementation are in it. Integration tests, with no socket.
+add_executable(adl_load_command_tests
+    load/information_test.cpp)
+
+target_include_directories(adl_load_command_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/load"
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+target_link_libraries(adl_load_command_tests
+    PRIVATE
+        adl_fake_platform
+        adl_load_cli
+        adl_sim_target
+        adl::arinc665
+        adl::samples
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_load_command_tests)
+
+catch_discover_tests(adl_load_command_tests PROPERTIES LABELS "integration")
+
 # The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
 # fake platform, and the simulated target the whole of an operation is run against.
 add_executable(adl_engine_tests

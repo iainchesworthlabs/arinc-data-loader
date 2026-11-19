@@ -1,17 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/load/run.hpp"
 
+#include "adl/load/events.hpp"
 #include "adl/load/exit_codes.hpp"
 #include "adl/load/options.hpp"
+#include "commands.hpp"
 
 #include <ostream>
 
 namespace adl::load
 {
 
-int run(adl::platform::Host& /*host*/, std::span<const std::string_view> arguments, std::ostream& out,
-        std::ostream& err)
+int run(adl::platform::Host& host, std::span<const std::string_view> arguments, std::ostream& out, std::ostream& err)
 {
+    // `t` of every event counts from here.
+    const adl::platform::Instant start = host.clock().now();
+
     const auto parsed = parse_options(arguments);
     if (!parsed)
     {
@@ -29,8 +33,15 @@ int run(adl::platform::Host& /*host*/, std::span<const std::string_view> argumen
     case Action::run:
         break;
     }
-    err << "adl_load: the " << to_string(parsed->options.command) << " command is not built yet.\n";
-    return exit_local_error;
+
+    const Options& options = parsed->options;
+    EventWriter events(out, options.json, host.clock(), start);
+    if (options.command == Command::find)
+    {
+        err << "adl_load: the find command is not built yet.\n";
+        return exit_local_error;
+    }
+    return run_operation_command(host, options, events, err);
 }
 
 } // namespace adl::load
