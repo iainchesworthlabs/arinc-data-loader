@@ -16,7 +16,7 @@ adl_load download     --target <ipv4> --position <THW_ID_POS> --into <folder>
 adl_load --help
 adl_load --version
 
-common: [--local-address <ipv4>] [--control-port <n>] [--json] [--record <file>]
+common: [--local-address <ipv4>] [--control-port <n>] [--target-port <n>] [--json] [--record <file>]
 ```
 
 Options are written `--name value`, with a space. An option that takes several values is given several times (`--load A --load B`), never as a list with commas. A value that begins with `--` is taken to be the next option, so a folder or a name that begins that way is written `./--name`. `--help` prints the usage and exits 0. `--version` prints one line, `adl_load <version> events 1`, and exits 0; the name has no `.exe` on any system. Both are taken as soon as they are met, before the arguments after them are read.
@@ -34,12 +34,13 @@ Options are written `--name value`, with a space. An option that takes several v
 | `--seconds <n>` | `find`: how long to listen, 1 to 3600. The default is three, the window's. |
 | `--local-address <ipv4>` | The interface the sockets are bound to. By default what the window does: the loopback address when the target is on this computer (an address of `127.0.0.0/8`), every interface otherwise. For `find`, every interface. |
 | `--control-port <n>` | The port the loader listens on for what the target sends, 1 to 65535; the default is 59. Anything but 59 is offered to the target in the `port` option of the request, which matters when the target is on this computer and holds 59 itself. |
+| `--target-port <n>` | The port the target listens on for the request that starts an operation, 1 to 65535; the default is 59, the standard's. Another port is for a simulated target that cannot have 59: a system that keeps low ports for privileged programs, or several targets on one address. A real target is on 59. `find` does not have it. |
 | `--json` | Standard output carries JSON lines and nothing else. |
 | `--record <file>` | Write the operation record when the operation ends, whatever its outcome. `find` writes no record. |
 
 Wrong options are told on standard error, with the usage after them, and the exit code is 2; no event is written, not even `started`. That includes what only the media set shows: a part number it does not hold, a part number that names two of its loads, or `--all-loads` for a set with no load. So that this can be wrong usage with no event, an upload reads and checks the media set **before** it writes `started`: with a large set, `started` is written after the time the read takes, and its `t` is then not 0.
 
-The target is always reached at port 59, the standard's. A target that listens elsewhere cannot be reached with this program. On Linux and macOS a program may need privileges to bind a port below 1024; the loader's own port (`--control-port`) is for that, and the target's is not the program's to choose.
+The target is reached at port 59, the standard's, unless `--target-port` says another. On Linux and macOS a program may need privileges to bind a port below 1024: `--control-port` is the loader's own, and `--target-port` is for a simulated target that cannot have 59 either.
 
 ## What the output is
 
@@ -84,7 +85,7 @@ The `log` events are the lines of the record's log, one for each: what the windo
 | `no_answer` | The target did not answer | 4 |
 | `local_error` | A port could not be opened, a folder could not be made, or the record could not be written | 5 |
 
-An upload reads and checks the media set before it asks the target anything, as the window does. A set that cannot be read gives `started`, a `log` event with the reason and `finished`, with no `media_set_checked`. A set whose files are no longer what was checked is refused before the target is contacted, or, if a file changes while it is being sent, when the target asks for it: not a byte of the changed file is sent. A set that reads is structurally valid; the `findings` of `media_set_checked` are where it departs from the standard's recommendations, and they do not stop an upload.
+An upload reads and checks the media set before it asks the target anything, as the window does. A set that cannot be read gives `started`, a `log` event with the reason and `finished`, with no `media_set_checked`. A file or folder in a member whose name is not printable ASCII (a media set can hold nothing else) makes the set unreadable, and the sentence names it. A set whose files are no longer what was checked is refused before the target is contacted, or, if a file changes while it is being sent, when the target asks for it: not a byte of the changed file is sent. A set that reads is structurally valid; the `findings` of `media_set_checked` are where it departs from the standard's recommendations, and they do not stop an upload.
 
 ## The operation record
 
@@ -120,4 +121,4 @@ A run of the second, with `--json`, writes lines of this kind (shortened):
 
 ## Tests
 
-The options, the events and the reasons are unit tests (`tests/load`). Whole commands are run on the fake platform against the simulated target, with no socket: an Information operation, uploads of one load and of all loads, both kinds of download, a refusal, a target that ends the operation, a load the target fails, a target that does not answer, a media set that cannot be read and one that changes, `find`, and the records, compared byte for byte with files in `tests/load/golden`. The same commands run on the real host over sockets on 127.0.0.1 against the mock target's engine (`tests/loopback`; they need port 59 of the loopback address and are skipped where an account may not bind it), and the built program is started as a process for `--version`, `--help`, wrong usage and an unreadable media set. The options have a [fuzz harness](fuzzing.md). See [Testing](testing.md) for the labels.
+The options, the events and the reasons are unit tests (`tests/load`). Whole commands are run on the fake platform against the simulated target, with no socket: an Information operation, uploads of one load and of all loads, both kinds of download, a refusal, a target that ends the operation, a load the target fails, a target that does not answer, a media set that cannot be read and one that changes, `find`, and the records, compared byte for byte with files in `tests/load/golden`. The same commands run on the real host over sockets on 127.0.0.1 against the mock target's engine on high ports (`tests/loopback`, with `--target-port` and `--control-port`, so an account that may not bind port 59 runs them too), and the built program is started as a process for `--version`, `--help`, wrong usage and an unreadable media set. The options have a [fuzz harness](fuzzing.md). See [Testing](testing.md) for the labels.

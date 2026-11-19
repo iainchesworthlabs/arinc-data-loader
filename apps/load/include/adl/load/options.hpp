@@ -77,6 +77,9 @@ struct Options
     adl::loader_core::Ipv4Octets target{};
     std::string position;
     std::uint16_t control_port = 59;
+    // The port the target takes the request that starts the operation on: the standard's 59, unless it is a simulated
+    // target that cannot have it.
+    std::uint16_t target_port = 59;
     // The file the operation record is written to, as given.
     std::optional<std::string> record;
 

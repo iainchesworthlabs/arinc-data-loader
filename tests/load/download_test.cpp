@@ -299,3 +299,31 @@ TEST_CASE("a file name that is not a plain name is wrong usage, told on standard
     CHECK(rig.rig.target.log().init_requests_at.empty());
     CHECK_FALSE(rig.rig.loader_host.fake_files().stat("/dl").has_value());
 }
+
+TEST_CASE("a download from a target that is not on port 59 is made with --target-port", "[load][integration][download]")
+{
+    SimPlan plan = holding({"A.BIN", "B.BIN"});
+    plan.control_port = 30959;
+
+    SECTION("the loader names the files")
+    {
+        CommandRig rig(plan);
+        const CommandRun run = download(rig, {"--file", "A.BIN"}, {"--target-port", "30959"});
+        CHECK(run.exit_code == 0);
+        CHECK(run.events_named("file_received").size() == 1);
+    }
+    SECTION("the target lists its files")
+    {
+        CommandRig rig(plan);
+        const CommandRun run = download(rig, {"--pick-all"}, {"--target-port", "30959"});
+        CHECK(run.exit_code == 0);
+        CHECK(run.events_named("file_received").size() == 2);
+    }
+    SECTION("the port is not named")
+    {
+        CommandRig rig(plan);
+        const CommandRun run = download(rig, {"--file", "A.BIN"});
+        CHECK(run.exit_code == 4);
+        CHECK(run.finished().at("reason").text == "no_answer");
+    }
+}

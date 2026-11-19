@@ -28,6 +28,7 @@ enum class Id : std::uint8_t
     target,
     position,
     control_port,
+    target_port,
     record,
     media_set,
     load,
@@ -64,6 +65,7 @@ constexpr std::array<OptionSpec, static_cast<std::size_t>(Id::option_count)> opt
     {"--target", Id::target, true, false, operations},
     {"--position", Id::position, true, false, operations},
     {"--control-port", Id::control_port, true, false, operations},
+    {"--target-port", Id::target_port, true, false, operations},
     {"--record", Id::record, true, false, operations},
     {"--media-set", Id::media_set, true, false, bit_of(Command::upload)},
     {"--load", Id::load, true, true, bit_of(Command::upload)},
@@ -132,7 +134,9 @@ public:
             options_.position = std::string{value};
             return std::nullopt;
         case Id::control_port:
-            return port(spec, value);
+            return port(spec, value, options_.control_port);
+        case Id::target_port:
+            return port(spec, value, options_.target_port);
         case Id::record:
             options_.record = std::string{value};
             return std::nullopt;
@@ -176,14 +180,15 @@ private:
                std::to_string(high) + ", not " + in_quotes(value) + ".";
     }
 
-    [[nodiscard]] std::optional<std::string> port(const OptionSpec& spec, std::string_view value)
+    [[nodiscard]] static std::optional<std::string> port(const OptionSpec& spec, std::string_view value,
+                                                         std::uint16_t& into)
     {
         unsigned parsed = 0;
         if (auto problem = number(spec, value, 1, 65535, parsed))
         {
             return problem;
         }
-        options_.control_port = static_cast<std::uint16_t>(parsed);
+        into = static_cast<std::uint16_t>(parsed);
         return std::nullopt;
     }
 
@@ -284,7 +289,7 @@ constexpr std::string_view usage = R"(usage:
   adl_load --help
   adl_load --version
 
-common: [--local-address <ipv4>] [--control-port <n>] [--json] [--record <file>]
+common: [--local-address <ipv4>] [--control-port <n>] [--target-port <n>] [--json] [--record <file>]
 
 Runs one ARINC 615A operation on one target, or looks for targets, with no window.
 Options are written "--name value"; an option that takes several values is given
@@ -302,10 +307,12 @@ several times (--load A --load B).
   --json        Write one JSON object per line on standard output, one for each event,
                 instead of a line for a person to read.
   --record      Write the operation record, a JSON file, when the operation ends.
-  --control-port, --local-address
-                The port the loader listens on (default 59) and the interface its
-                sockets use (default: the loopback address for a target on this
-                computer, every interface otherwise).
+  --control-port, --target-port, --local-address
+                The port the loader listens on (default 59), the port the target
+                listens on for the request that starts an operation (default 59;
+                another is for a simulated target that cannot have 59) and the
+                interface the sockets use (default: the loopback address for a
+                target on this computer, every interface otherwise).
 
 Exit codes: 0 completed, 1 the operation ran and failed, 2 wrong usage, 3 the media set
 could not be read or changed after it was checked, 4 the target did not answer, 5 a
