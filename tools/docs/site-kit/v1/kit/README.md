@@ -1,4 +1,4 @@
-# icl-site kit v1.1.1
+# icl-site kit v1.1.2
 
 For app repos that publish a page under `https://iainchesworthlabs.com/<slug>/`. Design: `docs/design/` in the icl-site repo.
 
@@ -47,5 +47,6 @@ node kit/check-palette.mjs --shell icl.css <slug>/theme.css
 
 ## Changes
 
+- 1.1.2: ARINC Data Loader is linked to `/adl/` in the header's Products menu and in the footer's Test equipment group, where it said "Coming soon". Text only; pages built on 1.1.1 still work.
 - 1.1.1: the Privacy entry of the header menu says "What this site collects" instead of "This site collects no data", because a contact form collects what a visitor types. Text only; pages built on 1.1.0 still work.
 - 1.1.0: header with a Products menu, footer by family, family theme links in the skeleton. New classes only in `icl.css`; pages built on 1.0.0 still work.

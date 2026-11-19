@@ -136,7 +136,7 @@ links to the documentation at another address.
 ### The company kit and the palette
 
 The pages use the company shell: its stylesheet, header and footer. `tools/docs/site-kit/v1/` is a pinned copy of the company's kit
-(version 1.1.1, from the company site's repository at commit `47ab839`). Nothing is fetched when the site is built or checked, and the
+(version 1.1.2, from the company site's repository at commit `cba3f49`). Nothing is fetched when the site is built or checked, and the
 files are not edited. `tools/ci/check_site_kit.py` fails when a file differs from the hash in the copy's own `SHA256SUMS.txt` (line
 endings are not compared), when a file is missing or added, and when the palette does not pass the company's checker. To move to a newer
 kit, copy its files over the copy (the whole of `/assets/v1/`, same layout), run the check and say the version in the pull request.
@@ -153,8 +153,9 @@ from Material and are looked at in the browser.
 `tools/ci/check_site_pages.py` reads the built site. It builds the site itself when it is not given one (`--site <folder>` checks a site that
 is built already). Every page must have a title, one `h1` that is the first heading of its content, headings that do not skip a level, a
 canonical address, an alternative text on every picture, and links that lead to a file of the site and to an anchor that is in it. A link that
-starts with `/` is the company shell's (`/`, `/support/`, `/assets/v1/...`) and is not followed, but none may start with `/adl/`: the pages
-use relative links so that they work under a preview address.
+starts with `/` is the company shell's (`/`, `/support/`, `/assets/v1/...`) and is not followed, but none in a page's own content may start
+with `/adl/`: the pages use relative links so that they work under a preview address. The company header and footer are the kit's, and link to
+`/adl/` as every page of the company site does; the check leaves their links alone.
 
 The front pages (`tools/docs/theme/marketing.html`) are held to more, because a preview blocks every script and the company's contract asks
 for plain pages: `lang="en-AU"`; a description, and a title and description that no other front page has; no `script` except a JSON-LD data
