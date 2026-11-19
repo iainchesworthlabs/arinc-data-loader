@@ -87,9 +87,9 @@ void Job::on_configuration_list(const adl::arinc615a::ConfigurationList& list) n
 {
     OperationRecorder::on_configuration_list(list);
     flush_log();
-    if (record().configuration)
+    if (const auto& configuration = record().configuration)
     {
-        events_.configuration(*record().configuration);
+        events_.configuration(*configuration);
     }
 }
 

@@ -297,7 +297,7 @@ private:
         {
         case Command::find:
         case Command::information:
-            plan_.emplace(adl::loader_core::OperationPlan::information());
+            plan_ = std::make_unique<adl::loader_core::OperationPlan>(adl::loader_core::OperationPlan::information());
             return std::nullopt;
         case Command::upload:
         {
@@ -316,13 +316,14 @@ private:
             {
                 return usage_error(plan.error().describe());
             }
-            plan_.emplace(std::move(*plan));
+            plan_ = std::make_unique<adl::loader_core::OperationPlan>(std::move(*plan));
             return std::nullopt;
         }
         case Command::download:
             if (options_.choice == FileChoice::picked)
             {
-                plan_.emplace(adl::loader_core::OperationPlan::download_operator());
+                plan_ = std::make_unique<adl::loader_core::OperationPlan>(
+                    adl::loader_core::OperationPlan::download_operator());
                 return std::nullopt;
             }
             auto plan = adl::loader_core::OperationPlan::download_media(options_.names);
@@ -330,7 +331,7 @@ private:
             {
                 return usage_error(plan.error().describe());
             }
-            plan_.emplace(std::move(*plan));
+            plan_ = std::make_unique<adl::loader_core::OperationPlan>(std::move(*plan));
             return std::nullopt;
         }
         return std::nullopt;
@@ -468,7 +469,7 @@ private:
     }
 
     // Says how it ended: the last line of the log and the `finished` event, and the exit code.
-    [[nodiscard]] int finish(Reason reason, std::string detail, std::string phrase,
+    [[nodiscard]] int finish(Reason reason, std::string detail, const std::string& phrase,
                              const std::optional<std::string>& download_folder)
     {
         job_.say(reason == Reason::completed ? Severity::info : Severity::error, "Finished: " + phrase + ".");
@@ -526,7 +527,7 @@ private:
     std::ostream& err_;
     std::string address_;
     Job job_;
-    std::optional<adl::loader_core::OperationPlan> plan_;
+    std::unique_ptr<adl::loader_core::OperationPlan> plan_; // what prepare() made; none for a set that cannot be read
     MediaSetReport report_;
     std::shared_ptr<const MediaSetIndex> index_;
     std::string folder_; // a download: the folder that was made, as a platform path
