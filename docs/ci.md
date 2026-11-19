@@ -34,7 +34,7 @@ work only.
 | `ci.yml` | The gate: Policy, the planner, `clang-format`, `platform-isolation`, the documentation build, the build legs, coverage, workflow analysis, the dependency scan, and the aggregator `CI Status`; the RTOS simulators run beside it ([The jobs](#the-jobs-in-ciyml)) | yes |
 | `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
 | `clusterfuzzlite.yml` | Fuzzes the code a pull request changes for ten minutes with ClusterFuzzLite; not a required check ([Fuzzing](fuzzing.md#in-ci)) | yes |
-| `docs.yml` | Builds the site again when `main` moves and publishes the pages that forward the old GitHub Pages addresses to the new site ([Documentation site](#documentation-site)) | yes |
+| `docs.yml` | Builds the site and deploys it to the company site when `main` moves, previews a pull request that changes the documentation, and publishes the pages that forward the old GitHub Pages addresses ([Documentation site](#documentation-site)) | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, Python and workflows, nightly and on a ready pull request that changes them; not a required check | no - skipped |
 | `release.yml` | The Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on manual runs and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | The nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
@@ -98,6 +98,10 @@ The site has three kinds of page.
 - **Front pages** (the home page, and the other pages for people who are deciding whether to use the programs). They are Markdown with
   `template: marketing.html` in the front matter. That template (`tools/docs/theme/marketing.html`) is plain HTML on the company
   shell. It does not extend Material and ships no script, apart from a JSON-LD data block on the home page. Their links are relative.
+  They are laid out as a product site: Products (the library and each tool, in `docs/products/`), Platforms, Solutions, Developers (the
+  developer pages), Assurance (with the qualification kit), Resources and Pricing. The menus of the app bar are one list in
+  `tools/docs/theme/partials/links.html`; each opens as a native `<details>`, so they work with no script, and below 64rem they fold into
+  one Menu. The editions, prices and the kit on these pages are the owner's to decide: each open point is an `OWNER DECISION` comment.
 - **The guide** (`/adl/guide/`, the files of `docs/user-guide/` and a few pages beside them) and **the pages for programmers**
   (`/adl/developers/`). They are Material pages, with Material's colours set from the palette (`docs/assets/guide.css`). The menu
   holds these two groups only.
@@ -132,7 +136,7 @@ links to the documentation at another address.
 ### The company kit and the palette
 
 The pages use the company shell: its stylesheet, header and footer. `tools/docs/site-kit/v1/` is a pinned copy of the company's kit
-(version 1.0.0, from the company site's repository at commit `9001e7c`). Nothing is fetched when the site is built or checked, and the
+(version 1.1.1, from the company site's repository at commit `47ab839`). Nothing is fetched when the site is built or checked, and the
 files are not edited. `tools/ci/check_site_kit.py` fails when a file differs from the hash in the copy's own `SHA256SUMS.txt` (line
 endings are not compared), when a file is missing or added, and when the palette does not pass the company's checker. To move to a newer
 kit, copy its files over the copy (the whole of `/assets/v1/`, same layout), run the check and say the version in the pull request.
@@ -155,10 +159,19 @@ use relative links so that they work under a preview address.
 The front pages (`tools/docs/theme/marketing.html`) are held to more, because a preview blocks every script and the company's contract asks
 for plain pages: `lang="en-AU"`; a description, and a title and description that no other front page has; no `script` except a JSON-LD data
 block; no `style` element or attribute (the rules are in `docs/assets/adl.css`); a width and a height on every picture; nothing loaded from
-another host; and no `mailto:` link, because there is no email address for support. Stylesheets may not `@import` or load from an address. The
+another host; no `mailto:` link, because the owner's address is private; and, at most, the one contact form (below). Stylesheets may not `@import` or load from an address. The
 check also holds the pages that the company's contract requires, and the pages that other pages lead to, to exist (`FIXED` in the script).
 The front pages are Markdown with `template: marketing.html` in the front matter, and a page is either written as HTML in the file (links
 relative to the page's built address, such as `../guide/`) or as Markdown with `layout: prose` (links to the source files, `faq.md`).
+
+The contact form (`docs/support.md`, "Talk to us") is the one form a front page may hold. It posts to `/api/contact` on the company
+site, which is the same origin, so the page needs no script and no other host. The endpoint, its fields and limits, and the bot defences
+are in the design record `contact-form.md` of `iainchesworthlabs/icl-site`. The check holds the form to that contract: `method="post"` and
+that action only, the eight field names, `required` and `maxlength` as the endpoint expects, the list of topics, a `label for` every
+field, a honeypot field (`ref_code`) inside an `aria-hidden` element and out of the tab order, and the consent box with its link to the
+company's privacy text. When the endpoint's contract changes, the `FORM_*` constants of `tools/ci/check_site_pages.py` and the form change
+with it. A pull-request preview cannot submit the form (its Content-Security-Policy `sandbox` blocks it), so the form is tried on the
+live site only.
 
 ### The messages and exit codes
 
@@ -212,8 +225,9 @@ a minimum number of pages, and then the four checks of this section (`check_site
   tests `docs.links` and `docs.paths`, over every Markdown file, so that a change to documentation alone,
   which runs no CTest ([above](#the-planner-and-documentation-only-changes)), is still checked for links,
   anchors and paths, and so is `README.md`, which the site does not contain.
-- `docs.yml`: when `main` moves (the release bot's fast-forward after a release), it builds the site again with the same checks and
-  publishes the pages that forward the old addresses to GitHub Pages (below).
+- `docs.yml`: it builds the site again with the same checks and keeps it as an artifact, and then (below) deploys it when `main` moves (the
+  release bot's fast-forward after a release), deploys a preview for a pull request that changes the documentation, and publishes the
+  pages that forward the old addresses to GitHub Pages.
 - `release.yml`, job `Docs (strict)`: the first job after *Prepare*, ahead of the three builds, so a release
   with a broken page stops in a minute and not after an hour.
 
@@ -229,11 +243,23 @@ reason, on a bad one.
   not forwarded; the key is also attached to every release. The job uses the Pages "GitHub Actions" source and not a `gh-pages` branch
   (the `branch-names` ruleset refuses a branch with a name outside its list), runs in the `github-pages` environment (deployment branches:
   `main` only) and waits for the repository variable `PUBLISH_DOCS` to be `true` ([Releasing](releasing.md#setup)).
-- **iainchesworthlabs.com/adl/: not deployed from this repository yet.** The company site gives each program a role that may write its own
-  path only, from `icl-common-infra`'s reusable workflow `docs-deploy-aws.yml` (version 0.1.26 or later; this repository is pinned to an
-  earlier one). It needs an entry for `adl` in the company site's registry, the role, and four repository secrets
-  (`DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET`, `DOCS_DISTRIBUTION_ID`). Those are the owner's to create. Until then the site is
-  read locally (`mkdocs serve`) and the strict build is the check.
+- **iainchesworthlabs.com/adl/: the deploy.** The company site gives each program a role that may write its own path only, and
+  `icl-common-infra`'s reusable workflow `docs-deploy-aws.yml` (version 0.1.26 or later; this repository is pinned to 0.1.28) assumes it by
+  OIDC, with no stored key, and syncs the built site to `adl/` of the company's bucket and invalidates its cache. `docs.yml` calls it three
+  ways: a push to `main` deploys the production site (`production-ref: refs/heads/main`, so no other ref can); a pull request from this
+  repository that changes the documentation deploys a preview to `/_preview/adl/pr-<number>/` and comments the address on the pull request
+  (the preview is public to anyone with the link, carries `noindex`, runs no script, and so has no search); a closed pull request removes
+  its preview. A pull request from a fork gets no secrets and no preview. A run that lacks a secret skips the deploy with a warning and does
+  not fail.
+- **What the owner does before it can run** (none of it is in this repository, and none is done by the agents that work on it):
+    1. In the company site's repository, add `adl` to `infra/lib/apps.ts` with this repository's name and numeric id, a role name, and
+       **`publishRef: 'main'`**: its default is `develop`, and this workflow deploys production from `main` only. Update the site's list of
+       protected prefixes and its tests as the company site's README says, and run `cdk deploy`. That makes the production role and the preview role.
+    2. Customise this repository's OIDC subject claim as the company site's README says.
+    3. Set four repository secrets, each from an output of that deploy: `DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET` and
+       `DOCS_DISTRIBUTION_ID`.
+    4. Run `docs.yml` from `main` once, and check `https://iainchesworthlabs.com/adl/` and a preview.
+  Until then the site is read locally (`mkdocs serve`) and the strict build is the check.
 
 Because `main` moves only with a release, the pages that forward are the ones of the latest release. There is one version of the site; old
 releases' pages are in the tag's tree on GitHub.

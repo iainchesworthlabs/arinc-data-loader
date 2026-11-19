@@ -1,13 +1,13 @@
 ---
 template: marketing.html
-title: Releases
-title_tag: "Releases: ARINC Data Loader"
+title: Release notes
+title_tag: "Release notes: ARINC Data Loader"
 description: What changed in each release of ARINC Data Loader, from the changelog.
 layout: prose
 ---
-# Releases
+# Release notes
 
-What changed in each release, in short. The dates are those in the [changelog](../CHANGELOG.md), which has the full list. The packages, their checksums and their signatures are on the [releases page on GitHub](https://github.com/iainchesworthlabs/arinc-data-loader/releases). Both releases are preliminary: nothing has been checked against a real target.
+What changed in each release, in short. The dates are those in the [changelog](../CHANGELOG.md), which has the full list. The packages, their checksums and their signatures are on the [releases page on GitHub](https://github.com/iainchesworthlabs/arinc-data-loader/releases). [Downloads](downloads.md) says which package to choose.
 
 ## 0.1.1 (24 October 2026)
 
@@ -19,14 +19,14 @@ A maintenance release. How the programs load and read data is unchanged.
 
 ## 0.1.0 (22 October 2026)
 
-The first preliminary release. It rebuilds an earlier Visual Studio project as a C++23 CMake project.
+The first release. It rebuilds an earlier Visual Studio project as a C++23 CMake project.
 
 - The data loader, the media set generator and the mock target, for Windows, Linux and macOS, in eight languages.
 - The libraries for ARINC 665-3 media sets and the ARINC 615A-3 protocol, and the platform layer under them.
 - A portable package for each system, with checksums, signatures, build attestations and a bill of materials.
 - A user's guide, with a ten-minute demonstration on one machine.
 
-The 0.1.0 entry in the changelog lists the known limitations. The main one is that nothing has been checked against real equipment, another vendor's tools, or another tool's media sets.
+The 0.1.0 entry in the changelog lists the known limitations, and [What has been checked](status.md) says what each part has been tested against.
 
 ## What comes next
 

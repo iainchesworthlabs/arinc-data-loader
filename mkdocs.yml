@@ -49,6 +49,17 @@ not_in_nav: |
   /support.md
   /accessibility.md
   /press.md
+  /products/index.md
+  /products/library.md
+  /products/data-loader.md
+  /products/media-set-generator.md
+  /products/mock-target.md
+  /platforms.md
+  /solutions.md
+  /qualification-kit.md
+  /pricing.md
+  /downloads.md
+  /resources.md
 
 # Not published on the site. The files stay in the repository and the site links to them on GitHub
 # (tools/docs/mkdocs_hooks.py), and the old address of each of them forwards there (tools/docs/site_layout.json).
