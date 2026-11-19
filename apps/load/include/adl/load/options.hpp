@@ -90,6 +90,8 @@ struct Options
     FileChoice choice = FileChoice::named;
     std::vector<std::string> names; // --file or --pick, in the order given
     bool pick_all = false;
+
+    friend bool operator==(const Options&, const Options&) = default;
 };
 
 // What the command line asks for.

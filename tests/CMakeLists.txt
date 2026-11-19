@@ -183,7 +183,15 @@ catch_discover_tests(adl_loader_core_run_tests PROPERTIES LABELS "integration")
 
 # The command-line program adl_load (apps/load): its options and its events, which need no host.
 add_executable(adl_load_tests
+    load/options_seeds_test.cpp
     load/options_test.cpp)
+
+target_include_directories(adl_load_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+# The seeds of the options fuzzer, which the tests replay as files.
+target_compile_definitions(adl_load_tests PRIVATE
+    ADL_LOAD_FUZZ_DIR="${PROJECT_SOURCE_DIR}/apps/load/fuzz")
 
 target_link_libraries(adl_load_tests
     PRIVATE

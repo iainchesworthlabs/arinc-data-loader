@@ -4,18 +4,19 @@
 
 Everything that reads bytes from outside has a [libFuzzer](https://llvm.org/docs/LibFuzzer.html)
 harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, and the
-text of a target's address. A
+text of a target's address and the command line of `adl_load`. A
 decoder returns an error for a bad input and never crashes; the fuzzers are there to find the input for
 which that is not true.
 
-| Library | Targets (`adl_fuzz_<name>`) |
+| Directory | Targets (`adl_fuzz_<name>`) |
 | --- | --- |
 | `libs/arinc665/fuzz` | `header_file` (a load's `.LUH`), `batch_file` (`.LUB`), `loads_list` (`LOADS.LUM`), `files_list` (`FILES.LUM`), `batches_list` (`BATCHES.LUM`). A decoded file is also checked against the standard and written back. |
 | `libs/loader_core/fuzz` | `ipv4_address` (the text of a target's address, as an operator types it; a text that parses is written out and parsed again and has to give the same four numbers). |
+| `apps/load/fuzz` | `load_options` (the arguments of an `adl_load` command line, cut from the bytes at each NUL; a command line that is accepted is written out and read again and has to give the same options). Its seeds are also read by a test under the ordinary compilers (`tests/load/options_seeds_test.cpp`). |
 | `libs/arinc615a/fuzz` | `tftp_packet` (the datagrams of the TFTP dialogue, with the transfer options of a request or an option acknowledgement), `find` (a FIND packet), and one for each protocol file: `initialization_file`, `configuration_list`, `configuration_status`, `upload_request`, `upload_status`, `download_request`, `download_status`, `download_list`, `download_answer`. |
 
 Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
-`python3 tools/fuzz/make_seeds.py` from the golden data of the tests, and a directory of
+`python3 tools/fuzz/make_seeds.py` from the golden data of the tests (or, for the text of an address and the command line of `adl_load`, from the lists in the script), and a directory of
 **regressions** (`regressions/<name>/`): inputs that once crashed it.
 
 ## Running them
@@ -43,7 +44,7 @@ the report again. The sanitizers abort on the first undefined behaviour (`-fno-s
 
 ## When a fuzzer finds something
 
-Fix the decoder, and add the input that crashed it to `libs/<lib>/fuzz/regressions/<name>/` in the same
+Fix the decoder, and add the input that crashed it to `libs/<lib>/fuzz/regressions/<name>/` (`apps/<app>/fuzz/regressions/<name>/` for a program's) in the same
 pull request, so that the pull request gate replays it from then on. Give the file a name that says what
 it was (`truncated-option.bin`). Do not add the files libFuzzer found that did not crash; the seed
 corpus is meant to stay small and readable.
