@@ -36,6 +36,7 @@ own, and the platform interfaces they run on:
 | `adl::arinc615a` | The ARINC 615A codec and the data loader's state machines (no sockets, no threads) |
 | `adl::arinc615a_runner` | The runner that drives those state machines over `adl::platform`'s sockets, and a file source and sink over a directory |
 | `adl::media_tree` | A media set as a directory tree on disk |
+| `adl::loader_core` | What the loader does besides showing a window: a media set on disk read and checked into a report, the index of its files, the folder a download is written into, and a target's address |
 | `adl::platform` | The platform interfaces (files, memory, threads, clock, UDP sockets, queues) and this host's implementation of them |
 
 ```cmake

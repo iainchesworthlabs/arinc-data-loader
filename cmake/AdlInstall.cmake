@@ -16,6 +16,8 @@
 #   adl::arinc615a         the ARINC 615A codec and the data loader's state machines
 #   adl::arinc615a_runner  the runner that drives the engine over adl::platform's sockets
 #   adl::media_tree        a media set as a directory tree on disk
+#   adl::loader_core       what the loader does besides showing a window: the media set check, the index of a
+#                          set's files, the download folder, the target's address
 #   adl::platform          the platform interfaces and this host's implementation of them
 #
 # Not shipped: adl::samples and adl::arinc615a_mini are the fixtures the tests and the mock target
