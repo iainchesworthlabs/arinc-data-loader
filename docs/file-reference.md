@@ -26,7 +26,7 @@ ACM-SET-0001/                  the media set folder, named after the media set p
       CONFIG.LDR               support file
 ```
 
-- A member folder is called `member_` and three digits, `member_001` to `member_255`. Any other entry in the media set folder (a stray file, a folder with another name, `member_000`, `member_256`) makes the loader refuse the folder.
+- A member folder is called `member_` and three digits, `member_001` to `member_255`. Any other entry in the media set folder (a stray file, a folder with another name, `member_000`, `member_256`) makes the loader refuse the folder. So does a file or a folder inside a member whose name is not one every system accepts: the name may use printable ASCII only (no accented letter, no Japanese, no emoji), none of the characters `/ \ : * ? " < > |`, and must not end in a dot or a space or be a device name such as `CON`. The loader does not skip such an entry or load the rest: it refuses the folder and names the entry, whatever the entry's name is made of (a name that is not even valid text, which Windows and Linux let a file have, is refused the same way).
 - The root of every member holds `LOADS.LUM` and `FILES.LUM`. `BATCHES.LUM` is written only when the set has a batch, and then on every member. Reading needs the first two on each member and treats `BATCHES.LUM` as optional.
 - A load's files are in the load's folder, the part root directory. It is named after the load's part number without its hyphens (`ACM47-1234-5678` gives `ACM4712345678`), which is what the standard recommends (3.2.4.1.1).
 - The generator puts the header file, the data files and the support files of a one-member set in that folder.
