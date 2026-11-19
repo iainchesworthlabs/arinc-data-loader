@@ -19,6 +19,9 @@ What the programs say to the person using them has two sources, and this check h
 3. Exit codes and the command line. Every exit code that the programs' code sets (the exit_* constants of
    apps/write_payloads/main.cpp, and the exit(N) calls of the three windowed programs and of the smoke test) must be a row of
    the table in docs/user-guide/command-line.md, and every text that adl_write_payloads prints must be in that page.
+4. adl_mock, which has no Qt and so no catalogue. Its exit codes (the exit_* constants of its command.hpp) must be rows of the table
+   in the page's section of adl_mock, and every text in the literals of the sources that make what it says (MOCK_SOURCES: the
+   usage errors, the folder and port errors, the usage text) must be in the page, with the same match as the rest.
 
 The check does not decide that the description is good, only that it is there. A new message or exit code fails it until the guide says
 something about it. Run it after a change to a message. tests/CMakeLists.txt runs it as the test docs.messages.
@@ -37,6 +40,19 @@ CATALOGUES = ("apps/*/translations/*.ts", "libs/ui/translations/*.ts")
 GUIDE = ("docs/user-guide/*.md", "docs/file-reference.md")
 COMMAND_LINE_PAGE = "docs/user-guide/command-line.md"
 MIN_SEGMENT = 6
+
+# adl_mock (apps/mock) has no catalogue: what it says is in the literals of these sources. A file with no pattern is read
+# whole; with one, only the statements that begin with it are (the assignments of an error text, in the engine and the link,
+# which also have log lines that adl_mock does not show).
+MOCK_HEADING = "adl_mock"
+MOCK_EXIT_CODES = "apps/mock/include/adl/mock/cli/command.hpp"
+MOCK_SOURCES = (
+    ("apps/mock/src/options.cpp", None),
+    ("apps/mock/src/command.cpp", None),
+    ("libs/mock_target_core/src/storage.cpp", None),
+    ("libs/mock_target_core/src/engine.cpp", r"last_error_\s*="),
+    ("libs/mock_target_core/src/link.cpp", r"\berror\s*\+?="),
+)
 
 
 def normalise(text: str) -> str:
@@ -83,7 +99,7 @@ def exit_codes(root: Path) -> set[int]:
     for path in [*sorted((root / "apps").glob("*/main.cpp")), root / "libs" / "ui" / "smoke_test.cpp"]:
         if path.is_file():
             codes.update(int(n) for n in re.findall(r"\bexit\(\s*(\d+)\s*\)", path.read_text(encoding="utf-8")))
-    return codes
+    return codes | mock_exit_codes(root)
 
 
 def printed_texts(root: Path) -> list[str]:
@@ -105,6 +121,53 @@ def printed_texts(root: Path) -> list[str]:
             if text.strip():
                 texts.append(text)
     return texts
+
+
+STRING_LITERAL = r'"(?:[^"\\\n]|\\.)*"'
+SOURCE_TOKEN = re.compile(STRING_LITERAL + r"|'(?:[^'\\\n]|\\.)'|//[^\n]*|/\*.*?\*/", flags=re.S)
+
+
+def literals_of(source: str, statement: str | None = None) -> list[str]:
+    """The string literals of C++ source, unescaped, outside its comments and its #include lines.
+
+    With `statement`, only those of the statements that begin with that pattern (up to the semicolon that ends them).
+    """
+    source = SOURCE_TOKEN.sub(lambda m: m.group(0) if m.group(0)[0] in "\"'" else " ", source)
+    source = "\n".join(line for line in source.split("\n") if not line.lstrip().startswith("#"))
+    if statement is not None:
+        chunks = [m.group(0) for m in re.finditer(rf"(?:{statement})(?:{STRING_LITERAL}|[^;\"])*;", source)]
+    else:
+        chunks = [source]
+    unescape = {"n": "\n", "t": "\t"}
+    return [
+        re.sub(r"\\(.)", lambda m: unescape.get(m.group(1), m.group(1)), literal[1:-1])
+        for chunk in chunks
+        for literal in re.findall(STRING_LITERAL, chunk)
+    ]
+
+
+def mock_texts(root: Path) -> list[str]:
+    """The lines of the texts adl_mock says, from the literals of its sources."""
+    lines: list[str] = []
+    for name, statement in MOCK_SOURCES:
+        path = root / name
+        if path.is_file():
+            for literal in literals_of(path.read_text(encoding="utf-8"), statement):
+                lines.extend(line for line in literal.split("\n") if line.strip())
+    return lines
+
+
+def section_of(page: str, heading: str) -> str:
+    """The text of the section of `page` whose second-level heading is `heading` (backticks around it are allowed)."""
+    match = re.search(rf"^## `?{re.escape(heading)}`?[ \t]*$(.*?)(?=^## |\Z)", page, flags=re.S | re.M)
+    return match.group(1) if match else ""
+
+
+def mock_exit_codes(root: Path) -> set[int]:
+    path = root / MOCK_EXIT_CODES
+    if not path.is_file():
+        return set()
+    return {int(n) for n in re.findall(r"constexpr\s+int\s+exit_\w+\s*=\s*(\d+)\s*;", path.read_text(encoding="utf-8"))}
 
 
 FINDING_CALL = re.compile(r"(?<![\w:.])(?:add|findings\.push_back)\(")
@@ -170,6 +233,15 @@ def check(root: Path) -> list[str]:
                 if part not in page:
                     problems.append(f"the text {line.strip()!r} of adl_write_payloads is not in {COMMAND_LINE_PAGE}")
                     break
+    section = section_of(rows, MOCK_HEADING)
+    for code in sorted(mock_exit_codes(root)):
+        if not re.search(rf"^\|\s*{code}\s*\|", section, flags=re.M):
+            problems.append(f"the exit code {code} of adl_mock is not a row of its section of {COMMAND_LINE_PAGE}")
+    for line in mock_texts(root):
+        for part in segments(line) or ([normalise(line)] if len(normalise(line)) >= MIN_SEGMENT else []):
+            if part not in page:
+                problems.append(f"the text {line.strip()!r} of adl_mock is not in {COMMAND_LINE_PAGE}")
+                break
     return problems
 
 
