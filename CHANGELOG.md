@@ -13,6 +13,20 @@ Changes that are waiting for the next release are kept as small files in
 [`changelog.d`](changelog.d/README.md), one per change, and are assembled into this file
 when a release is cut ([docs/releasing.md](docs/releasing.md)).
 
+## [0.1.2] - 2026-11-19
+
+A maintenance release. The programs and the libraries are unchanged, and so is how they load and read data. The
+documentation moves to the company site. CI gained fuzzing of pull requests and more CodeQL and Scorecard runs, and
+its tools were updated; none of that changes what is in a package.
+
+### Changed
+
+- **The documentation is at <https://iainchesworthlabs.com/adl/>.** It is published from the main branch with each release, as part of the company site, with the user's guide and the pages for programmers each in a section of their own. The addresses of the first site, on GitHub Pages, forward to the new ones. See [docs/ci.md](docs/ci.md#documentation-site).
+
+- **The guide's entry points are rewritten,** with new reference pages: every message and exit code the programs have ([Messages and errors](docs/user-guide/messages.md)), the findings of the media set check ([Findings](docs/user-guide/findings.md)) and the files the programs read and write. A check in CI holds the messages page to the code.
+
+- **The site describes the product:** the library and the three tools, the platforms they run on, how they are verified, and the editions. Its Support page has a form that sends a question to the maintainer privately; nothing typed into it is published.
+
 ## [0.1.1] - 2026-10-24
 
 A maintenance release. How the programs load and read data is unchanged. The Simplified Chinese
@@ -225,6 +239,7 @@ These differ from the earlier Visual Studio project, whose code is not in this r
   checked against a SHA-256 pinned in the repository before it is unpacked, and the Python package that
   unpacks it is installed from a hash-locked requirements file.
 
-[Unreleased]: https://github.com/iainchesworthlabs/arinc-data-loader/compare/v0.1.1...develop
+[Unreleased]: https://github.com/iainchesworthlabs/arinc-data-loader/compare/v0.1.2...develop
+[0.1.2]: https://github.com/iainchesworthlabs/arinc-data-loader/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/iainchesworthlabs/arinc-data-loader/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/iainchesworthlabs/arinc-data-loader/releases/tag/v0.1.0
