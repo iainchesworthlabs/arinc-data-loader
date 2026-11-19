@@ -39,6 +39,16 @@ validation:
 # The pages of the section that are not in the guide's menu: the front pages use their own bar (tools/docs/theme/).
 not_in_nav: |
   /index.md
+  /features.md
+  /how-to-use.md
+  /faq.md
+  /whats-new.md
+  /editions.md
+  /assurance.md
+  /privacy.md
+  /support.md
+  /accessibility.md
+  /press.md
 
 # Not published on the site. The files stay in the repository and the site links to them on GitHub
 # (tools/docs/mkdocs_hooks.py), and the old address of each of them forwards there (tools/docs/site_layout.json).
@@ -80,6 +90,8 @@ hooks:
   # Where each page lives on the site (tools/docs/site_layout.json): user-guide/ is guide/, the pages for programmers are
   # under developers/. The files do not move in the repository.
   - tools/docs/site_layout_hook.py
+  # The version of the program the pages describe, from CMakeLists.txt, for the templates (extra.version).
+  - tools/docs/site_version_hook.py
 
 theme:
   name: material
@@ -149,7 +161,7 @@ nav:
           - Files the programs read and write: file-reference.md
           - What has been checked: status.md
           - Troubleshooting: user-guide/troubleshooting.md
-          - Questions and answers: faq.md
+          - Questions and answers: user-guide/faq.md
           - Glossary: glossary.md
   - Developers:
       - Developers contents: developers.md

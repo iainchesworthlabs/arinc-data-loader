@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Self-test of the documentation site's checks (CTest: ci.site_checks).
 
-Covers tools/ci/check_site_kit.py, check_site_address.py and check_site_layout.py, tools/docs/make_old_address_stubs.py and
+Covers tools/ci/check_site_kit.py, check_site_address.py, check_site_layout.py and check_site_pages.py, tools/docs/make_old_address_stubs.py and
 tools/docs/site_layout_hook.py: each is shown to pass on a good tree and to fail, with a reason, on a bad one. It needs neither MkDocs
 nor a built site (the layout check is given a small site made here), and the palette tests are skipped without Node.
 """
@@ -22,8 +22,10 @@ sys.path.insert(0, str(REPO / "tools" / "docs"))
 import check_site_address  # noqa: E402
 import check_site_kit  # noqa: E402
 import check_site_layout  # noqa: E402
+import check_site_pages  # noqa: E402
 import make_old_address_stubs  # noqa: E402
 import site_layout_hook  # noqa: E402
+import site_version_hook  # noqa: E402
 
 KIT = check_site_kit.KIT
 
@@ -186,13 +188,24 @@ class Layout(unittest.TestCase):
         (self.root / "docs" / "ci.md").unlink()
         self.assertIn("docs/ci.md", "\n".join(check_site_layout.check(self.site, self.root)))
 
+    def test_a_new_page_at_a_chosen_address_is_checked_and_gets_no_stub(self) -> None:
+        layout = dict(LAYOUT, pages=LAYOUT["pages"] + [{"old": None, "src": "editions.md", "new": "licensing/"}])
+        (self.root / "tools" / "docs" / "site_layout.json").write_text(json.dumps(layout), encoding="utf-8")
+        (self.root / "docs" / "editions.md").write_text("# t\n", encoding="utf-8")
+        self.assertIn("licensing/: is not in the built site", "\n".join(check_site_layout.check(self.site, self.root)))
+        (self.site / "licensing").mkdir()
+        (self.site / "licensing" / "index.html").write_text(page("https://iainchesworthlabs.com/adl/licensing/"), encoding="utf-8")
+        self.assertEqual(check_site_layout.check(self.site, self.root), [])
+        self.assertEqual(sorted(make_old_address_stubs.targets(self.root)), ["", "ci/", "user-guide/upload/"])
+
 
 class Stubs(unittest.TestCase):
     def test_every_old_address_of_the_repository_gets_a_stub_that_points_on(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp)
             count = make_old_address_stubs.write(out, REPO)
-            self.assertEqual(count, len(json.loads((REPO / "tools" / "docs" / "site_layout.json").read_text(encoding="utf-8"))["pages"]))
+            pages = json.loads((REPO / "tools" / "docs" / "site_layout.json").read_text(encoding="utf-8"))["pages"]
+            self.assertEqual(count, len([p for p in pages if p["old"] is not None]))
             home = (out / "index.html").read_text(encoding="utf-8")
             self.assertIn('http-equiv="refresh" content="0; url=https://iainchesworthlabs.com/adl/"', home)
             guide = (out / "user-guide" / "upload" / "index.html").read_text(encoding="utf-8")
@@ -256,6 +269,113 @@ class LayoutHook(unittest.TestCase):
             site_layout_hook.on_files(files, {})
         self.assertIn("excludes it", str(caught.exception))
         self.assertIn("does not exclude it", str(caught.exception))
+
+
+def front(title: str, body: str = "<h1>t</h1>", head: str = "", description: str | None = None, lang: str = "en-AU") -> str:
+    description = f"About {title}." if description is None else description
+    return (f'<!doctype html><html lang="{lang}" data-app="adl"><head><meta charset="utf-8"><title>{title}</title>'
+            f'<meta name="description" content="{description}"><link rel="canonical" href="https://iainchesworthlabs.com/adl/{title}/">{head}'
+            f'</head><body><main id="main">{body}</main></body></html>')
+
+
+class Pages(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.site = Path(self.tmp.name)
+        for name in check_site_pages.FIXED:
+            path = self.site / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if name.endswith(".html"):
+                path.write_text(front(name.replace("/index.html", "") or "home"), encoding="utf-8")
+            else:
+                path.write_text("a {}\n" if name.endswith(".css") else "<svg/>\n", encoding="utf-8")
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def problems(self) -> str:
+        return "\n".join(check_site_pages.check_site(self.site, REPO))
+
+    def put(self, name: str, html: str) -> None:
+        (self.site / name).write_text(html, encoding="utf-8")
+
+    def test_a_good_site_passes(self) -> None:
+        self.assertEqual(self.problems(), "")
+
+    def test_a_missing_required_page_is_found(self) -> None:
+        (self.site / "privacy" / "index.html").unlink()
+        self.assertIn("privacy/index.html: is not in the built site", self.problems())
+
+    def test_a_script_a_style_and_an_outside_load_on_a_front_page_are_found(self) -> None:
+        self.put("faq/index.html", front("faq", head='<script src="x.js"></script><style>a{}</style><link rel="stylesheet" href="https://example.com/x.css">'))
+        text = self.problems()
+        self.assertIn("has a <script>", text)
+        self.assertIn("has <style> or a style= attribute", text)
+        self.assertIn("not a link to a host this site may name", text)
+
+    def test_json_ld_is_allowed_and_inline_style_is_not(self) -> None:
+        self.put("faq/index.html", front("faq", head='<script type="application/ld+json">{}</script>'))
+        self.assertEqual(self.problems(), "")
+        self.put("faq/index.html", front("faq", body='<h1 style="color:red">t</h1>'))
+        self.assertIn("style=", self.problems())
+
+    def test_a_mailto_link_is_found(self) -> None:
+        self.put("faq/index.html", front("faq", body='<h1>t</h1><a href="mailto:someone@example.com">mail</a>'))
+        self.assertIn("there is no email address for support", self.problems())
+
+    def test_a_link_to_a_missing_file_or_anchor_is_found(self) -> None:
+        self.put("faq/index.html", front("faq", body='<h1>t</h1><a href="../nothing/">x</a><a href="../support/#missing">y</a>'))
+        text = self.problems()
+        self.assertIn("../nothing/: no such file in the built site", text)
+        self.assertIn("no anchor #missing", text)
+
+    def test_a_link_that_works_is_not_flagged_and_an_adl_path_is(self) -> None:
+        self.put("faq/index.html", front("faq", body='<h1>t</h1><a href="../support/">x</a><a href="/support/">company</a>'))
+        self.assertEqual(self.problems(), "")
+        self.put("faq/index.html", front("faq", body='<h1>t</h1><a href="/adl/support/">x</a>'))
+        self.assertIn("write a relative link", self.problems())
+
+    def test_a_picture_needs_alt_and_a_front_page_picture_needs_a_size(self) -> None:
+        self.put("faq/index.html", front("faq", body='<h1>t</h1><img src="../icon.svg" width="1" height="1">'))
+        self.assertIn("has no alt attribute", self.problems())
+        self.put("faq/index.html", front("faq", body='<h1>t</h1><img src="../icon.svg" alt="x">'))
+        self.assertIn("has no width and height", self.problems())
+
+    def test_headings_may_not_skip_a_level_and_start_with_h1(self) -> None:
+        self.put("faq/index.html", front("faq", body="<h1>t</h1><h2>a</h2><h4>b</h4>"))
+        self.assertIn("goes from h2 to h4", self.problems())
+        self.assertEqual(check_site_pages.check_headings("x", [2, 3]), ["x: the first heading is an h2, not the h1"])
+
+    def test_two_front_pages_may_not_share_a_title_or_a_description(self) -> None:
+        self.put("faq/index.html", front("same", description="One description."))
+        self.put("press/index.html", front("same", description="One description."))
+        text = self.problems()
+        self.assertIn("has the same title as", text)
+        self.assertIn("has the same description as", text)
+
+    def test_a_front_page_needs_its_language_and_one_h1(self) -> None:
+        self.put("faq/index.html", front("faq", body="<h1>a</h1><h1>b</h1>", lang="en"))
+        text = self.problems()
+        self.assertIn('needs lang="en-AU"', text)
+        self.assertIn("has 2 <h1>", text)
+
+    def test_a_stylesheet_that_loads_from_another_host_is_found(self) -> None:
+        (self.site / "theme.css").write_text("@import url(https://example.com/x.css);\n", encoding="utf-8")
+        self.assertIn("loads something with @import or an address", self.problems())
+
+
+class Version(unittest.TestCase):
+    def test_the_version_is_read_from_the_project_command(self) -> None:
+        text = "cmake_minimum_required(VERSION 3.28)\nproject(ArincDataLoader\n    VERSION 1.22.3\n    LANGUAGES CXX)\n"
+        self.assertEqual(site_version_hook.read_version(text), "1.22.3")
+
+    def test_the_repository_has_one(self) -> None:
+        text = (REPO / "CMakeLists.txt").read_text(encoding="utf-8")
+        self.assertRegex(site_version_hook.read_version(text), r"^\d+\.\d+\.\d+$")
+
+    def test_a_missing_version_stops_the_build(self) -> None:
+        with self.assertRaises(ValueError):
+            site_version_hook.read_version("project(Other VERSION 1.0.0)\n")
 
 
 if __name__ == "__main__":

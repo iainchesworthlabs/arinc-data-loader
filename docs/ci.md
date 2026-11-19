@@ -144,6 +144,22 @@ hero, and the programs' Signal orange-red (`libs/ui/qml/Theme.qml`) for rules an
 `python tools/ci/check_site_kit.py`. The check does not cover the guide's own pages (code blocks, admonitions, search); their colours come
 from Material and are looked at in the browser.
 
+### The rules for the pages
+
+`tools/ci/check_site_pages.py` reads the built site. It builds the site itself when it is not given one (`--site <folder>` checks a site that
+is built already). Every page must have a title, one `h1` that is the first heading of its content, headings that do not skip a level, a
+canonical address, an alternative text on every picture, and links that lead to a file of the site and to an anchor that is in it. A link that
+starts with `/` is the company shell's (`/`, `/support/`, `/assets/v1/...`) and is not followed, but none may start with `/adl/`: the pages
+use relative links so that they work under a preview address.
+
+The front pages (`tools/docs/theme/marketing.html`) are held to more, because a preview blocks every script and the company's contract asks
+for plain pages: `lang="en-AU"`; a description, and a title and description that no other front page has; no `script` except a JSON-LD data
+block; no `style` element or attribute (the rules are in `docs/assets/adl.css`); a width and a height on every picture; nothing loaded from
+another host; and no `mailto:` link, because there is no email address for support. Stylesheets may not `@import` or load from an address. The
+check also holds the pages that the company's contract requires, and the pages that other pages lead to, to exist (`FIXED` in the script).
+The front pages are Markdown with `template: marketing.html` in the front matter, and a page is either written as HTML in the file (links
+relative to the page's built address, such as `../guide/`) or as Markdown with `layout: prose` (links to the source files, `faq.md`).
+
 ### Links out of `docs/`
 
 A page may link to the README, the changelog or a source file with a relative link (`../README.md`), which works on GitHub. The site has no
@@ -158,8 +174,8 @@ gives an app's icon (`/adl/icon.svg`).
 
 `.github/actions/docs-site` installs MkDocs from the hash-locked `.github/requirements/docs.txt`
 (`uv pip install --require-hashes --no-build`), builds strictly, and checks the result: the home page and the user's guide exist, no PDF,
-a minimum number of pages, and then the three checks above (`check_site_kit.py`, `check_site_address.py`, `check_site_layout.py`). Three
-workflows use it, so they cannot disagree:
+a minimum number of pages, and then the four checks of this section (`check_site_kit.py`, `check_site_address.py`, `check_site_layout.py`,
+`check_site_pages.py`). Three workflows use it, so they cannot disagree:
 
 - `ci.yml`, job `Docs build (strict)`: on every pull request and queue entry. It has no path filter, because
   a required check that does not run blocks the pull request. After the build it runs

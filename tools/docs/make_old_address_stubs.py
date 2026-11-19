@@ -52,6 +52,8 @@ def targets(root: Path = ROOT) -> dict[str, str]:
     repo = site_address.repo_url(root)
     out: dict[str, str] = {}
     for entry in json.loads((root / LAYOUT).read_text(encoding="utf-8"))["pages"]:
+        if entry["old"] is None:
+            continue  # a page the first site did not have
         if entry["new"] is None:
             out[entry["old"]] = f"{repo}/blob/main/docs/{entry['src']}"
         else:

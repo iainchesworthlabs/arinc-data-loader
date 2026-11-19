@@ -41,9 +41,25 @@ class Page(HTMLParser):
         self.styles = 0
         self.style_attrs = 0
         self.material = False
+        self.description = ""
+        self.headings: list[int] = []  # the levels of the headings of the main content, in order
+        self.images: list[dict[str, str]] = []  # the attributes of each <img>
+        self._main = 0  # > 0 inside <main> (the front pages) or the article of a Material page
+        self._stack: list[bool] = []
 
     def handle_starttag(self, tag, attrs):  # noqa: ANN001, ANN201
         a = {k: (v or "") for k, v in attrs}
+        if tag in ("main", "article") and (tag == "main" or "md-typeset" in a.get("class", "").split()):
+            self._main += 1
+            self._stack.append(tag)
+        elif tag in ("main", "article"):
+            self._stack.append("")
+        if self._main and len(tag) == 2 and tag[0] == "h" and tag[1] in "123456":
+            self.headings.append(int(tag[1]))
+        if tag == "img":
+            self.images.append(a)
+        if tag == "meta" and a.get("name") == "description":
+            self.description = a.get("content", "")
         if tag == "html":
             self.lang = a.get("lang", "")
         if tag == "title":
@@ -76,6 +92,9 @@ class Page(HTMLParser):
     def handle_endtag(self, tag):  # noqa: ANN001, ANN201
         if tag == "title":
             self._in_title = False
+        if tag in ("main", "article") and self._stack:
+            if self._stack.pop():
+                self._main -= 1
 
     def handle_data(self, data):  # noqa: ANN001, ANN201
         if self._in_title:

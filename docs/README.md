@@ -45,7 +45,7 @@ materials: [the releases page](https://github.com/iainchesworthlabs/arinc-data-l
 | Make a media set from my files | [Make a media set](user-guide/make-a-media-set.md) |
 | Load or download from a target | [The loader, screen by screen](user-guide/loader.md), then [Find a target](user-guide/find-a-target.md), [Upload](user-guide/upload.md) and [Download](user-guide/download.md) |
 | Know what a word means | [Glossary](glossary.md) |
-| Find a quick answer | [Questions and answers](faq.md) |
+| Find a quick answer | [Questions and answers](user-guide/faq.md) |
 | See which files the programs read and write | [Files the programs read and write](file-reference.md) |
 | Use the libraries in my own program | [Using the libraries](libraries.md) |
 | Build, test or change the software | [Building](building.md), [Testing](testing.md) and [CONTRIBUTING](../CONTRIBUTING.md) |

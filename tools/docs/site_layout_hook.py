@@ -4,7 +4,7 @@
 The files of docs/ stay where they are, because the code, the tests, CONTRIBUTING.md and the other pages cite them by path. The site
 has its own layout: the user's guide is /adl/guide/ (the folder user-guide/ in the repository) and the pages for programmers are
 under /adl/developers/. tools/docs/site_layout.json says, for each page of the first site (release 0.1.1), the file that now
-serves it and the address it has now. This hook applies that table to the files MkDocs found, and refuses to build when the
+serves it and the address it has now (and, with "old": null, the address of a new page that is not where its file name puts it). This hook applies that table to the files MkDocs found, and refuses to build when the
 table and the rest of the configuration disagree, so a page cannot be lost quietly:
 
 - a file in the table that is not in docs/;

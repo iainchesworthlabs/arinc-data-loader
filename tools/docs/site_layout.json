@@ -58,8 +58,8 @@
   },
   {
    "old": "faq/",
-   "src": "faq.md",
-   "new": "faq/"
+   "src": "user-guide/faq.md",
+   "new": "guide/faq/"
   },
   {
    "old": "file-reference/",
@@ -265,6 +265,16 @@
    "old": "user-guide/upload/",
    "src": "user-guide/upload.md",
    "new": "guide/upload/"
+  },
+  {
+   "old": null,
+   "src": "faq.md",
+   "new": "faq/"
+  },
+  {
+   "old": null,
+   "src": "editions.md",
+   "new": "licensing/"
   }
  ]
 }

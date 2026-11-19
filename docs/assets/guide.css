@@ -15,6 +15,7 @@ body[data-md-color-scheme] {
 .adl-guidebar__in { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; max-width: 61rem; margin-inline: auto; padding: 0.25rem 0.8rem; }
 .adl-guidebar a { color: inherit; display: inline-block; padding: 0.4rem 0; }
 .adl-guidebar a:hover { text-decoration: underline; }
+.adl-guidebar__version { margin-left: auto; padding: 0.4rem 0; }
 
 /* ---- Reading: system fonts, a comfortable measure, clear headings ---- */
 body[data-md-color-scheme] {
