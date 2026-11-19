@@ -145,7 +145,7 @@ per-system functions `posix/posix_os.hpp` already abstracts:
 | `Clock` | `posix/clock_posix.cpp` (`clock_gettime(CLOCK_MONOTONIC)`, `nanosleep`) |
 | `Network` | `posix/network_posix.cpp` (`socket`, `bind`, `sendto`, `recvmsg`, `poll`, non-blocking sockets) |
 | `Ipc` | `detail::RingIpc` over the threading above |
-| `paths` | `ghs508/paths_ghs508.cpp`: INTEGRITY has no `/proc/self/exe`, so it returns empty (the interface allows that) |
+| `paths` | `ghs508/paths_ghs508.cpp`: INTEGRITY has no `/proc/self/exe`, so `executable_path` returns empty, and so do `computer_name`, `user_data_directory` and `machine_config_directory` (the interface allows that) |
 | per-system | `ghs508/os_ghs508.cpp`: `host_name`, `is_real_time`, `init_condition`, `wait_condition`, `apply_priority`, `name_current_thread`, `flush_to_storage` |
 
 Libraries, from the BSP package: `INTEGRITY`, `posix`, `socket`, `net`, `c`.

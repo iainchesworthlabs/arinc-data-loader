@@ -142,8 +142,9 @@ what to do instead of an `#ifdef`, and how to add a platform.
   `docs.links` test fails on a link or a picture that is not there, and the `docs.paths` test on a path in a
   code span (`src/...`, `tools/...`) that is not in the repository.
 - The pages in `docs/` are also built into a website, strictly: a link to a page or a heading that is not
-  there fails the `Docs build (strict)` check. A new page goes into `nav` in `mkdocs.yml`. Build it before
-  you push with `mkdocs build --strict` or `cmake --build <dir> --target docs`
+  there fails the `Docs build (strict)` check. A new page goes into `nav` in `mkdocs.yml`. A page that moves
+  or stops being published goes into `tools/docs/site_layout.json`, so that its old address still leads
+  somewhere. Build it before you push with `mkdocs build --strict` or `cmake --build <dir> --target docs`
   ([docs/ci.md](docs/ci.md#documentation-site)).
 - Do not commit a load, media set or capture taken from real equipment, or
   build output. The `.gitignore` already keeps build output out; do not work

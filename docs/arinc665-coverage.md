@@ -34,7 +34,7 @@ standard says "should"). Section numbers are those of the 665-3 edition in
 
 | Section | What the standard asks | Where | Tests |
 | --- | --- | --- | --- |
-| 1.3.2, 3.4 | Words of 16 bits, multi-byte values most significant byte first | `wire.hpp` `WordWriter`/`WordReader` | every golden and layout test |
+| 1.3.2, 3.4 | Words of 16 bits, multi-byte values most significant byte first | `wire.hpp` `WordWriter`/`WordReader` | `golden_test`, `header_file_test`, `batch_file_test`, `media_files_test` (and the other golden and layout tests) |
 | 1.3.3 | Text is ASCII | strings are `std::string`, bytes as given | `header_file_test` |
 | 1.4.1 | Format versions 0x8004 (load), 0x9004 (batch), 0xA004 (media) | `FileFormatVersion`; the decoders require the class and a version no earlier than these | `header_file_test`, `batch_file_test`, `media_files_test` (damage); `load_test` |
 | 1.4.2 | Creators do not add fields of their own at expansion points | the encoders write none; there is nowhere to add one | by construction |

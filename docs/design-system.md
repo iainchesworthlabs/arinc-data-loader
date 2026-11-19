@@ -123,7 +123,7 @@ CJK fonts; none is bundled ([translations](translations.md#typefaces)).
 
 `trackingWide` = 1.2 px; `trackingTitle` = −0.3. Uppercase micro labels carry 0.6–1.4 px of
 tracking, set as literals in the views. A literal `pixelSize` in a view is a bug (none remains in
-`src/*/qml`). There is no scale factor: Qt does not expose the platform's text-size setting, so the
+`apps/*/qml` or `libs/ui/qml`). There is no scale factor: Qt does not expose the platform's text-size setting, so the
 type follows the desktop's display scaling only, and the layouts wrap or scroll rather than clip.
 Text that carries a state is never smaller than `fontMono` (11): a chip's word is `fontSmall`
 (12, bold mono), and `fontMicro` is for labels and eyebrows that name a field, not a state. A
@@ -158,8 +158,9 @@ chip) that grows with its label; the chrome bands under Geometry are fixed.
   window shorter than 700 px. What is left is the plan (about 355 px at the minimum size with the
   dock collapsed, 240 px with it open); a page that is taller than that scrolls, and says so with a
   scroll bar (`AppScrollBar`) that is drawn whenever there is something to scroll to.
-- Targets: a pointer target is at least 24×24 px. A check box row is 24 px high, a spin box's
-  steppers are 30 px wide and as tall as the box.
+- Targets: a pointer target is meant to be at least 24×24 px. A check box row is 24 px high and a spin box's
+  steppers are 30 px wide and as tall as the box, and a test checks those two in Preferences. The mock target's
+  fault chip, which can be clicked, has a minimum height of 22 px and has not been measured.
 
 ## Components
 
@@ -267,8 +268,7 @@ language box. `tst_right_to_left.qml` checks the result ([translations](translat
   Cancel).
 - `Theme.reducedMotion` follows the platform's "reduce motion" preference
   (`Application.styleHints.accessibility.motionPreference`, Qt 6.12) and stops the busy mark and
-  task progress motion without removing the still mark (`BusyMark.qml` and `TaskProgress.qml` test
-  it). `Theme.forcedReducedMotion` pins it for a test or a screenshot. `Theme.motionDuration(ms)`
+  task progress motion without removing the still mark (`BusyMark.qml` and `TaskProgress.qml` read it; a test checks the property, and no test drives the two components). `Theme.forcedReducedMotion` pins it for a test or a screenshot. `Theme.motionDuration(ms)`
   returns 0 under reduced motion, but nothing calls it at present.
 - The modal dialog traps focus as Qt's `Dialog` does; Esc closes it (the only close policy;
   clicking outside does nothing). Each window dims its content with one scrim item while a dialog
