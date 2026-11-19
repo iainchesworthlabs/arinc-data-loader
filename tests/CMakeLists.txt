@@ -389,6 +389,15 @@ set_tests_properties(tools.write_payloads.no_output_directory PROPERTIES
 add_test(NAME tools.write_payloads.list COMMAND adl_write_payloads --list)
 set_tests_properties(tools.write_payloads.list PROPERTIES LABELS "system")
 
+# adl_load started as a process, for what needs no target (tests/load/check_program.cmake): --version, --help, wrong
+# usage, and a media set that is not there.
+add_test(NAME tools.adl_load
+    COMMAND "${CMAKE_COMMAND}"
+        "-DPROGRAM=$<TARGET_FILE:adl_load>"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/adl_load"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/load/check_program.cmake")
+set_tests_properties(tools.adl_load PROPERTIES LABELS "system")
+
 # The application's tests (apps/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)
     add_subdirectory("${PROJECT_SOURCE_DIR}/apps/app/tests" apps/app/tests)
