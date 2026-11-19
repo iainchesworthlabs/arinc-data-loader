@@ -122,7 +122,8 @@ not a blended figure.
 
 **A second pass measures the applications' window-free logic**: `apps/app/core`,
 `apps/mock_target/core` and `apps/media_gen/core` (the models, the engine's worker, the settings, the
-host access, and the generator's and the mock target's cores), with Qt's generated files (`moc_*`,
+host access, and the generator's and the mock target's cores) and `libs/mock_target_core` (the mock
+target's engine and its link, which has no Qt in it), with Qt's generated files (`moc_*`,
 `mocs_compilation`, `*_autogen`) left out. These are plain C++ with Qt types, driven by `app.tests`,
 the UI suite and the generator and mock target tests, and they were outside the gate for no better
 reason than that they need the Qt kit. The floor is lower than the libraries' (80% of lines, 66% of branches) and sits a little under what the suite

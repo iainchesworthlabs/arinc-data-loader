@@ -467,8 +467,8 @@ jobs:
   # cmake/CoverageReport.cmake holds the figures and the gcovr switches; this job only builds, tests
   # and calls it. The report is uploaded either way, so a red gate still has the numbers to look at.
   # A second pass measures the Qt applications' window-free logic (apps/app/core,
-  # apps/mock_target/core, apps/media_gen/core) at a lower floor; the windows' QML cannot be measured
-  # and is exercised by the UI suite.
+  # apps/mock_target/core, apps/media_gen/core) and the mock target's engine (libs/mock_target_core)
+  # at a lower floor; the windows' QML cannot be measured and is exercised by the UI suite.
   coverage:
     name: Coverage (Linux, GCC)
     needs: plan
