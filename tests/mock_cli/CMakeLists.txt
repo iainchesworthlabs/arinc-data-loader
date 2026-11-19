@@ -5,11 +5,19 @@
 
 find_package(Catch2 3 CONFIG REQUIRED)
 
+# The harness of the command line's fuzzer (libs/mock_target_core/fuzz) is compiled into this program as it
+# is, so that its seeds are replayed under every compiler the tests build with (fuzz_replay_test.cpp).
 add_executable(adl_mock_cli_tests
     events_test.cpp
+    fuzz_replay_test.cpp
     json_read.hpp
     json_test.cpp
-    options_test.cpp)
+    options_test.cpp
+    "${PROJECT_SOURCE_DIR}/libs/mock_target_core/fuzz/parse_options.cpp")
+target_include_directories(adl_mock_cli_tests PRIVATE
+    "${PROJECT_SOURCE_DIR}/tests/support")
+target_compile_definitions(adl_mock_cli_tests PRIVATE
+    ADL_MOCK_FUZZ_DIR="${PROJECT_SOURCE_DIR}/libs/mock_target_core/fuzz")
 target_link_libraries(adl_mock_cli_tests
     PRIVATE
         adl::mock_cli

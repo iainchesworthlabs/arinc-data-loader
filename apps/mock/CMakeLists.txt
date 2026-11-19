@@ -43,6 +43,13 @@ target_link_libraries(adl_mock
 
 adl_deploy_sanitizer_runtime(adl_mock)
 
+# The libFuzzer harness for the command line, when fuzzing is on (cmake/Fuzzing.cmake). It is kept in
+# libs/mock_target_core/fuzz, since the fuzzing workflows look for harnesses and seeds in libs/*/fuzz,
+# and added from here, where the parser it fuzzes is.
+if(ADL_ENABLE_FUZZING)
+    add_subdirectory("${PROJECT_SOURCE_DIR}/libs/mock_target_core/fuzz" fuzz)
+endif()
+
 # A command-line program for rigs and CI jobs: it ships with the programs, as adl_write_payloads does.
 if(ADL_PLATFORM_DESKTOP)
     install(TARGETS adl_mock

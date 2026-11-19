@@ -13,9 +13,10 @@ which that is not true.
 | `libs/arinc665/fuzz` | `header_file` (a load's `.LUH`), `batch_file` (`.LUB`), `loads_list` (`LOADS.LUM`), `files_list` (`FILES.LUM`), `batches_list` (`BATCHES.LUM`). A decoded file is also checked against the standard and written back. |
 | `libs/platform/fuzz` | `command_line` (the split of a Windows command line and the conversions between UTF-8 and UTF-16 in `libs/platform/detail/command_line.hpp`; the harness checks that what comes out is UTF-8, which converts to UTF-16 and back unchanged). Its seeds are command lines, as UTF-16 with the low byte first. |
 | `libs/arinc615a/fuzz` | `tftp_packet` (the datagrams of the TFTP dialogue, with the transfer options of a request or an option acknowledgement), `find` (a FIND packet), and one for each protocol file: `initialization_file`, `configuration_list`, `configuration_status`, `upload_request`, `upload_status`, `download_request`, `download_status`, `download_list`, `download_answer`. |
+| `libs/mock_target_core/fuzz` | `parse_options` (the command line of `adl_mock`, which is not bytes but comes from outside all the same: the input is the arguments with a line feed after each one, so its seeds are text; what is accepted is checked against the limits the usage text states, and an address that is read is written back as it was). The harness is kept here because the workflows look in `libs/*/fuzz`; the program it fuzzes is `apps/mock`. |
 
 Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
-`python3 tools/fuzz/make_seeds.py` from the golden data of the tests, and a directory of
+`python3 tools/fuzz/make_seeds.py` from the golden data of the tests (those of `parse_options` are written by hand: they are command lines, and the `mock.cli` test replays them under the ordinary compilers too), and a directory of
 **regressions** (`regressions/<name>/`): inputs that once crashed it.
 
 ## Running them
