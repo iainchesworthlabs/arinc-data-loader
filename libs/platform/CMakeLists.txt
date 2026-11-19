@@ -39,6 +39,11 @@ target_link_libraries(adl_platform
         $<BUILD_LOCAL_INTERFACE:adl::coverage>
         ${ADL_PLATFORM_LINK_LIBRARIES})
 
+# The libFuzzer harness for what this library parses, when fuzzing is on (cmake/Fuzzing.cmake).
+if(ADL_ENABLE_FUZZING)
+    add_subdirectory(fuzz)
+endif()
+
 # The platform's interfaces are the development package's way to the operating system; the library
 # is this host's implementation of them.
 # Only the top-level project installs (cmake/AdlInstall.cmake); a project of its own that builds this

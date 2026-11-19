@@ -17,7 +17,7 @@ and has files in it is never overwritten.
 
 | Argument | What it does |
 | --- | --- |
-| `<output-directory>` | The folder to write into. It is made if it does not exist. Each scenario goes into a folder of its own, named for the scenario, with one `member_NNN` folder for each member. Give it once. |
+| `<output-directory>` | The folder to write into. It is made if it does not exist. Each scenario goes into a folder of its own, named for the scenario, with one `member_NNN` folder for each member. Give it once. Its name can have any characters in it, on Windows as elsewhere (accented letters, Japanese, an emoji). The program prints the folder as UTF-8, which a Windows console shows correctly when it is set to UTF-8 (`chcp 65001`). |
 | `--scenario <name>` | Write only this scenario. It can be given more than once, and a scenario named twice is written once. |
 | `--list` | Print the name and a one-line description of every scenario, and nothing else. It takes no other argument. |
 

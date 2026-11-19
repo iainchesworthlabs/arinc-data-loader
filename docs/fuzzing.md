@@ -3,8 +3,8 @@
 *For developers. What CI runs is [CI](ci.md); the tests that hold the decoders down by hand are in [Testing](testing.md).*
 
 Everything that reads bytes from outside has a [libFuzzer](https://llvm.org/docs/LibFuzzer.html)
-harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, and the
-text of a target's address and the command line of `adl_load`. A
+harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, the text of a target's address, and the command line
+of a program (the platform layer's split of it and its text conversions, and the options of `adl_load`). A
 decoder returns an error for a bad input and never crashes; the fuzzers are there to find the input for
 which that is not true.
 
@@ -13,6 +13,7 @@ which that is not true.
 | `libs/arinc665/fuzz` | `header_file` (a load's `.LUH`), `batch_file` (`.LUB`), `loads_list` (`LOADS.LUM`), `files_list` (`FILES.LUM`), `batches_list` (`BATCHES.LUM`). A decoded file is also checked against the standard and written back. |
 | `libs/loader_core/fuzz` | `ipv4_address` (the text of a target's address, as an operator types it; a text that parses is written out and parsed again and has to give the same four numbers). |
 | `apps/load/fuzz` | `load_options` (the arguments of an `adl_load` command line, cut from the bytes at each NUL; a command line that is accepted is written out and read again and has to give the same options). Its seeds are also read by a test under the ordinary compilers (`tests/load/options_seeds_test.cpp`). |
+| `libs/platform/fuzz` | `command_line` (the split of a Windows command line and the conversions between UTF-8 and UTF-16 in `libs/platform/detail/command_line.hpp`; the harness checks that what comes out is UTF-8, which converts to UTF-16 and back unchanged). Its seeds are command lines, as UTF-16 with the low byte first. |
 | `libs/arinc615a/fuzz` | `tftp_packet` (the datagrams of the TFTP dialogue, with the transfer options of a request or an option acknowledgement), `find` (a FIND packet), and one for each protocol file: `initialization_file`, `configuration_list`, `configuration_status`, `upload_request`, `upload_status`, `download_request`, `download_status`, `download_list`, `download_answer`. |
 
 Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
