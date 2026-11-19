@@ -98,7 +98,7 @@ No command handles a signal. Killing `adl_load` abandons what it was doing, and 
 
 A firewall on the computer may ask about the program the first time it listens on the network; `tools/network-access/windows/adl_firewall.ps1` makes the rule beforehand. Nothing is asked when the target is on the same computer and the loader's sockets stay on the loopback address, which is what they do by default.
 
-On Windows an argument that holds a character outside the system's code page (a folder name, for one) cannot be given.
+The arguments are read as UTF-8 text on every system (`adl::platform::arguments`), so a folder can be named with any characters, on Windows too, and the paths in the events and the record are UTF-8.
 
 ## Examples
 

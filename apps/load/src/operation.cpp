@@ -13,6 +13,7 @@
 #include "adl/loader_core/operation_plan.hpp"
 #include "adl/loader_core/record_json.hpp"
 #include "adl/loader_core/run.hpp"
+#include "adl/platform/arguments.hpp"
 #include "adl/platform/paths.hpp"
 #include "commands.hpp"
 #include "job.hpp"
@@ -47,10 +48,11 @@ std::string count_s(std::uint64_t count, std::string_view noun)
     return std::to_string(count) + ' ' + std::string{noun} + "(s)";
 }
 
-// The platform path (UTF-8, '/' separated) of a path as the operator wrote it.
+// The platform path (UTF-8, '/' separated) of a path as the operator wrote it, which is UTF-8 text: the arguments
+// come from adl::platform::arguments, and a path is made from one by path_from_utf8, never by the code page.
 std::string platform_path_of(const std::string& path)
 {
-    return adl::platform::to_platform_path(std::filesystem::path{path});
+    return adl::platform::to_platform_path(adl::platform::path_from_utf8(path));
 }
 
 // A platform path as the operating system writes it: its own separator, UTF-8.
@@ -301,7 +303,7 @@ private:
             return std::nullopt;
         case Command::upload:
         {
-            report_ = adl::loader_core::check_media_set(std::filesystem::path{options_.media_set}, &index_);
+            report_ = adl::loader_core::check_media_set(adl::platform::path_from_utf8(options_.media_set), &index_);
             if (!report_.error.empty())
             {
                 return std::nullopt; // told as the media set that could not be read, after `started`

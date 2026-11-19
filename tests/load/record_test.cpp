@@ -7,6 +7,7 @@
 
 #include "bytes.hpp"
 #include "command_rig.hpp"
+#include "utf8_path.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -155,11 +156,11 @@ TEST_CASE("a record is written whatever the outcome", "[load][integration][recor
     {
         CommandRig rig;
         const adl::test::TempDir empty;
-        const std::string missing = (empty.path() / "no-such-set").string();
+        const std::string missing = adl::test::utf8(empty.path() / "no-such-set");
         const CommandRun run = with_record(
             rig, {"upload", "--target", "10.0.0.2", "--position", "HNPFMS_L", "--media-set", missing, "--all-loads"});
         CHECK(run.exit_code == 3);
-        adl::test::check_golden("record_media_set_unreadable.json", record_of(rig), empty.path().string());
+        adl::test::check_golden("record_media_set_unreadable.json", record_of(rig), adl::test::utf8(empty.path()));
     }
 }
 

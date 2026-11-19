@@ -15,6 +15,7 @@
 #include "mini_json.hpp"
 #include "rig.hpp"
 #include "temp_dir.hpp"
+#include "utf8_path.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -295,7 +296,7 @@ public:
     // The folder, as an operator would type it.
     [[nodiscard]] std::string path() const
     {
-        return root_.string();
+        return utf8(root_);
     }
     // The platform path of every file of the set in the fake file system.
     [[nodiscard]] const std::vector<std::string>& files() const noexcept

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "record_file.hpp"
 
+#include "adl/platform/arguments.hpp"
 #include "adl/platform/paths.hpp"
 
 #include <cstddef>
@@ -49,7 +50,7 @@ bool write_temporary(adl::platform::FileSystem& files, const std::string& tempor
 std::optional<std::string> write_text_file(adl::platform::FileSystem& files, const std::string& path,
                                            std::string_view text)
 {
-    const std::string target = adl::platform::to_platform_path(std::filesystem::path{path});
+    const std::string target = adl::platform::to_platform_path(adl::platform::path_from_utf8(path));
     const std::string temporary = target + ".part";
     std::string why;
     if (!write_temporary(files, temporary, path + ".part", text, why))
