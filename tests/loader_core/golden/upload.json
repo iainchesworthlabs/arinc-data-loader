@@ -1,0 +1,69 @@
+{
+  "format": 1,
+  "kind": "adl-operation-record",
+  "program": {
+    "name": "adl_load",
+    "version": "0.2.0"
+  },
+  "operation": "upload",
+  "target": {
+    "address": "10.0.0.2",
+    "position": "HNPFMS_L"
+  },
+  "started_at": "2026-11-19T10:15:30Z",
+  "ended_at": "2026-11-19T10:15:41Z",
+  "result": "failed",
+  "reason": "load_failed",
+  "status_code": 3,
+  "detail": "The upload ended and the target failed 1 load.",
+  "media_set": {
+    "path": "/srv/media/SAMPLE",
+    "part_number": "SAMPLE-MS-0001",
+    "members": 2
+  },
+  "loads": [
+    {
+      "part_number": "ACM47-1111-0001",
+      "header_file": "FMS1.LUH",
+      "status": "completed",
+      "percent": 100
+    },
+    {
+      "part_number": "ACM47-2222-0002",
+      "header_file": "FMS2.LUH",
+      "status": "failed",
+      "percent": 40
+    }
+  ],
+  "configuration": null,
+  "files": [],
+  "download_folder": null,
+  "licence": null,
+  "log": [
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "The target answered: accepted"
+    },
+    {
+      "at": "2026-11-19T10:15:34Z",
+      "severity": "info",
+      "text": "Status 0: accepted, 0% of the list"
+    },
+    {
+      "at": "2026-11-19T10:15:38Z",
+      "severity": "info",
+      "text": "Status 1: in progress, 55% of the list"
+    },
+    {
+      "at": "2026-11-19T10:15:38Z",
+      "severity": "error",
+      "text": "The target failed load ACM47-2222-0002 (FMS2.LUH): no room for the data files"
+    },
+    {
+      "at": "2026-11-19T10:15:41Z",
+      "severity": "info",
+      "text": "Status 2: completed, 100% of the list"
+    }
+  ]
+}

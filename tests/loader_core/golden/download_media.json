@@ -1,0 +1,63 @@
+{
+  "format": 1,
+  "kind": "adl-operation-record",
+  "program": {
+    "name": "adl_load",
+    "version": "0.2.0"
+  },
+  "operation": "download_media_defined",
+  "target": {
+    "address": "10.0.0.2",
+    "position": "HNPFMS_L"
+  },
+  "started_at": "2026-11-19T10:15:30Z",
+  "ended_at": "2026-11-19T10:15:41Z",
+  "result": "failed",
+  "reason": "missing_files",
+  "status_code": 3,
+  "detail": "Files received: 2 of 3 requested.",
+  "media_set": null,
+  "loads": [],
+  "configuration": null,
+  "files": [
+    {
+      "name": "A.BIN",
+      "size": 3000,
+      "path": "C:\\Users\\operator\\ArincDownloads\\DNLD_DATA_HNPFMS_L_1\\A.BIN"
+    },
+    {
+      "name": "B.BIN",
+      "size": 700,
+      "path": "C:\\Users\\operator\\ArincDownloads\\DNLD_DATA_HNPFMS_L_1\\B.BIN"
+    }
+  ],
+  "download_folder": "C:\\Users\\operator\\ArincDownloads\\DNLD_DATA_HNPFMS_L_1",
+  "licence": null,
+  "log": [
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "The target answered: accepted"
+    },
+    {
+      "at": "2026-11-19T10:15:36Z",
+      "severity": "info",
+      "text": "Received A.BIN (3000 bytes)"
+    },
+    {
+      "at": "2026-11-19T10:15:37Z",
+      "severity": "info",
+      "text": "Received B.BIN (700 bytes)"
+    },
+    {
+      "at": "2026-11-19T10:15:41Z",
+      "severity": "note",
+      "text": "requested files missing (1)"
+    },
+    {
+      "at": "2026-11-19T10:15:41Z",
+      "severity": "info",
+      "text": "Status 2: completed, 100% of the list"
+    }
+  ]
+}

@@ -21,3 +21,6 @@ CMakeLists.txt text
 
 # Git hooks are run by sh: LF only, whatever the checkout platform.
 tools/hooks/* text eol=lf
+
+# The golden files of the operation record are compared byte for byte: a checkout keeps their line feeds.
+tests/loader_core/golden/*.json text eol=lf

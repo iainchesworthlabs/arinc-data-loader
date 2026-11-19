@@ -1,6 +1,6 @@
 # Files the programs read and write
 
-This page is for engineers and technicians who prepare media sets or look at what the programs leave on disk, and for programmers who write or read the same files. It describes the media set folder tree, the twelve ARINC 615A protocol files, the folders the programs create, which check value or CRC is recorded where, and the sample writer `adl_write_payloads`.
+This page is for engineers and technicians who prepare media sets or look at what the programs leave on disk, and for programmers who write or read the same files. It describes the media set folder tree, the twelve ARINC 615A protocol files, the folders the programs create, the operation record, which check value or CRC is recorded where, and the sample writer `adl_write_payloads`.
 
 The standard describes media, not a folder of members, so the folder layout of a media set is this project's own ([ARINC 665-3 coverage](arinc665-coverage.md#not-yet-verified)). No other tool has read a tree these programs wrote ([what has been checked](status.md#what-is-not-done)).
 
@@ -173,6 +173,87 @@ Source: [`model.cpp`](../apps/mock_target/core/src/model.cpp). The operator's vi
 Each program keeps its settings, language and window size and position in the system's per-user settings store. On Windows that is the registry key `HKEY_CURRENT_USER\Software\iainchesworthlabs\<program name>`. On macOS it is a property list, and on Linux a configuration file. If the environment variable `ADL_SETTINGS_DIR` names a folder, all three programs use an ini file `<folder>/iainchesworthlabs/<name>.ini` instead and write nothing to the usual place. See [Where files go](user-guide/files-and-limits.md#where-files-go) and [the application](app.md#where-the-settings-are-kept).
 
 The loader's activity log is kept in memory only. It is not written to a file.
+
+## The operation record
+
+An operation record is one JSON file about one ARINC 615A operation (an Information, an Upload or a Download). It holds what the loader's receipt and log show, as data, for a program that keeps the records, signs them, or compares what a target reported with what it should hold. No program writes the file yet. The library `adl::loader_core` has the record ([`record.hpp`](../libs/loader_core/include/adl/loader_core/record.hpp)), the recorder that fills it from what the engine reports ([`recorder.hpp`](../libs/loader_core/include/adl/loader_core/recorder.hpp)) and the writer of the file ([`record_json.hpp`](../libs/loader_core/include/adl/loader_core/record_json.hpp)), and the commands that run an operation without a window are to use it. [Using the libraries](libraries.md) says how to link it. Nothing in this project reads the file back.
+
+The layout is fixed, so that a program can rely on it:
+
+- **UTF-8**, with no byte order mark. Lines end in a line feed, the text ends in one, and each level is indented two spaces. Every member and every list entry is on a line of its own, and an empty list is `[]`.
+- **The keys are in the order of the table below, and every key is in every record.** A key that does not apply to the operation is `null` or `[]`, so that all records have the same keys. The same record gives the same bytes on every system.
+- **Text is English**, whatever language the window is in. A text that came from the target is written as the target sent it, except that each byte that is not valid UTF-8 is written as U+FFFD.
+- **A time is UTC**, written `2026-11-19T10:15:30Z`, or `null` where the system has no wall clock or the year is outside 0000 to 9999.
+- **A number is written in decimal.**
+- **A reader refuses a `format` it does not know and ignores a key it does not know.** A key can be added without changing `format`. Removing one, renaming one or changing what one means changes it.
+
+The files in `tests/loader_core/golden/` are examples, one for each kind of operation and one for text that has to be escaped; the tests compare what the writer writes with them byte for byte.
+
+### The keys of the record
+
+A key inside a list or an object is written with the key that holds it, so `loads.header_file` is the `header_file` of an entry of `loads`.
+
+| Key | Value |
+| --- | --- |
+| `format` | The number of this layout: `1` |
+| `kind` | `adl-operation-record`, so that a program can tell the file from another JSON file |
+| `program` | The program that wrote the record |
+| `program.name` | Its name |
+| `program.version` | Its version |
+| `operation` | `information`, `upload`, `download_media_defined` (the loader names the files to fetch) or `download_operator_defined` (the target lists its files and the operator chooses) |
+| `target` | The target the operation was for |
+| `target.address` | Its IPv4 address in dotted decimal |
+| `target.position` | Its `THW_ID_POS`: the hardware identifier, an underscore and the position, as the target's protocol files are named (`HNPFMS_L`) |
+| `started_at` | When the operation began |
+| `ended_at` | When it ended |
+| `result` | `completed` or `failed` |
+| `reason` | One word that says how it ended, for a program to read: see [the words of `reason`](#the-words-of-reason) |
+| `status_code` | The last ARINC 615A status code the target reported, as a number (`3` is completed, `4096` is 0x1000, denied), or `null` if it reported none |
+| `detail` | One English sentence for a person that says how the operation ended |
+| `media_set` | For an upload, the media set the loads were read from. `null` for any other operation |
+| `media_set.path` | The folder of the set, as the operating system writes a path |
+| `media_set.part_number` | The media set part number |
+| `media_set.members` | How many members the set has |
+| `loads` | For an upload, one entry for each load the target reported, in the order it first reported them, with what it said last. `[]` for any other operation |
+| `loads.part_number` | The load's part number |
+| `loads.header_file` | Its header file |
+| `loads.status` | The target's last status for the load, in words: `accepted`, `in progress`, `in progress, with details`, `completed`, `failed`, or one of the other statuses of ARINC 615A-3 Table 6.4.10-1 |
+| `loads.percent` | How far the load is, 0 to 100 |
+| `configuration` | For an Information operation, the hardware the target listed. `null` for any other operation, and for an Information operation in which the target never sent its list |
+| `configuration.literal_name` | The piece of hardware's literal name |
+| `configuration.serial_number` | Its serial number |
+| `configuration.parts` | Its parts |
+| `configuration.parts.part_number` | The part's part number |
+| `configuration.parts.amendment` | Its amendment, or an empty text when it has none |
+| `configuration.parts.designation` | Its designation |
+| `files` | For a download, one entry for each file received, in the order they arrived. `[]` for any other operation |
+| `files.name` | The file's name |
+| `files.size` | Its size in bytes |
+| `files.path` | Where it was written, as the operating system writes a path, or an empty text when that is not known |
+| `download_folder` | For a download, the folder the files were written into, as the operating system writes a path. `null` for any other operation, and when no folder was kept (the loader removes the one it made if nothing arrived) |
+| `licence` | Reserved. Always `null` |
+| `log` | The lines of the log, in the order they were made |
+| `log.at` | When the line was made |
+| `log.severity` | `info`, `note`, `warning` or `error` |
+| `log.text` | The line, as the window's log says it in English |
+
+#### The words of `reason`
+
+The program that ran the operation sets `result`, `reason` and `detail`. The library does not check them, because the engine cannot tell all of them from what it is told: that the target never answered, that a port could not be opened, that the media set changed after it was checked.
+
+| `reason` | `result` | Meaning |
+| --- | --- | --- |
+| `completed` | `completed` | The operation completed, and for an upload every load did |
+| `target_refused` | `failed` | The target refused the operation |
+| `target_aborted` | `failed` | The target ended the operation |
+| `load_failed` | `failed` | The upload ended and the target failed at least one load |
+| `missing_files` | `failed` | The download ended with fewer files than were asked for |
+| `media_set_unreadable` | `failed` | The media set could not be read or checked |
+| `media_set_changed` | `failed` | A file of the media set changed after the set was checked |
+| `no_answer` | `failed` | The target did not answer |
+| `local_error` | `failed` | A port could not be opened, a folder could not be made, or the record could not be written |
+
+The text of the log lines is the window's: each sentence is a source string of the window's translation catalogue, with its numbers and names filled in, and a test holds them to it ([`recorder_wording_test.cpp`](../tests/loader_core/recorder_wording_test.cpp)). The recorder decides what is a line the way the window does: every status file the target sends is a line, a load or a file the target fails is a line the first time and not again, and the description that goes with a status is added only for the statuses whose description the standard says carries a reason.
 
 ## File names
 

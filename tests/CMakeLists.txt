@@ -120,16 +120,19 @@ add_executable(adl_loader_core_tests
     loader_core/download_directory_test.cpp
     loader_core/media_set_check_test.cpp
     loader_core/media_source_test.cpp
+    loader_core/record_json_test.cpp
     loader_core/recorder_test.cpp
     loader_core/recorder_wording_test.cpp)
 
 target_include_directories(adl_loader_core_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support")
 
-# What the recorder's tests read as a file: the window's translation catalogue (its English is what the recorder
-# is held to).
+# What the record's tests read as files: the window's translation catalogue (its English is what the recorder
+# is held to), the golden files of the operation record, and the page that documents the record's keys.
 target_compile_definitions(adl_loader_core_tests PRIVATE
-    ADL_APP_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/apps/app/translations")
+    ADL_APP_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/apps/app/translations"
+    ADL_LOADER_CORE_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/loader_core/golden"
+    ADL_FILE_REFERENCE_PAGE="${PROJECT_SOURCE_DIR}/docs/file-reference.md")
 
 target_link_libraries(adl_loader_core_tests
     PRIVATE
