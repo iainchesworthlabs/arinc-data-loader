@@ -440,6 +440,16 @@ add_test(NAME tools.adl_load
         -P "${CMAKE_CURRENT_SOURCE_DIR}/load/check_program.cmake")
 set_tests_properties(tools.adl_load PROPERTIES LABELS "system")
 
+# The same program with a media set, a download folder and records in a folder named with characters no Windows code
+# page holds all of (tests/load/unicode_folder.cmake says how it is made sure the name reached the program whole).
+add_test(NAME tools.adl_load.unicode_folder
+    COMMAND "${CMAKE_COMMAND}"
+        "-DPROGRAM=$<TARGET_FILE:adl_load>"
+        "-DPAYLOADS=$<TARGET_FILE:adl_write_payloads>"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/adl_load-unicode"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/load/unicode_folder.cmake")
+set_tests_properties(tools.adl_load.unicode_folder PROPERTIES LABELS "system")
+
 # The folder is named with an accented letter, Japanese and a character outside the Basic Multilingual Plane, which
 # no Windows code page holds all of, and the program starts as a process with that name as its argument
 # (tests/system/write_payloads_unicode.cmake says how it is made sure the name reached it whole).

@@ -6,6 +6,7 @@
 
 #include "command_rig.hpp"
 #include "editing_host.hpp"
+#include "utf8_path.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -224,7 +225,7 @@ TEST_CASE("a media set that cannot be read is refused, exit code 3", "[load][int
     {
         CommandRig rig(plan);
         const adl::test::TempDir empty;
-        const std::string missing = (empty.path() / "no-such-set").string();
+        const std::string missing = adl::test::utf8(empty.path() / "no-such-set");
         rig.rig.world.set_wall_origin(wall_origin);
         const CommandRun run = rig.run({"upload", "--target", "10.0.0.2", "--position", "HNPFMS_L", "--media-set",
                                         missing, "--all-loads", "--json"});

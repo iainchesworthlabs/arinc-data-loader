@@ -21,11 +21,13 @@
 #include "adl/media_tree/media_tree.hpp"
 #include "adl/mock/engine.hpp"
 #include "adl/mock/link.hpp"
+#include "adl/platform/arguments.hpp"
 #include "adl/platform/host.hpp"
 #include "adl/samples/scenarios.hpp"
 #include "bytes.hpp"
 #include "mini_json.hpp"
 #include "temp_dir.hpp"
+#include "utf8_path.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -237,8 +239,8 @@ TEST_CASE("an upload over real sockets delivers every file of the media set byte
     const adl::test::TempDir directory;
     const std::filesystem::path set = directory.path() / "set";
     REQUIRE(adl::media_tree::write_media_set_tree(set, *members).has_value());
-    const std::string set_text = set.string();
-    const std::string record = (directory.path() / "record.json").string();
+    const std::string set_text = adl::test::utf8(set);
+    const std::string record = adl::test::utf8(directory.path() / "record.json");
 
     const Run run = run_command({"upload", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--media-set", set_text,
                                  "--all-loads", "--control-port", loader_port_text, "--record", record, "--json"});
@@ -266,7 +268,7 @@ TEST_CASE("an upload over real sockets delivers every file of the media set byte
     CHECK(parsed->at("reason").text == "completed");
     CHECK(parsed->at("loads").elements.at(0).at("status").text == "completed");
     CHECK(parsed->at("media_set").at("part_number").text == adl::samples::sample_media_set_part_number);
-    CHECK_FALSE(std::filesystem::exists(record + ".part"));
+    CHECK_FALSE(std::filesystem::exists(adl::platform::path_from_utf8(record + ".part")));
 }
 
 TEST_CASE("both kinds of download over real sockets write the files into a folder of their own", "[load][system]")
@@ -282,7 +284,7 @@ TEST_CASE("both kinds of download over real sockets write the files into a folde
         SKIP("the mock target cannot listen on port 59 of the loopback address here: " << *target.not_started);
     }
     const adl::test::TempDir directory;
-    const std::string into = directory.path().string();
+    const std::string into = adl::test::utf8(directory.path());
 
     SECTION("the loader names the files")
     {
@@ -292,7 +294,7 @@ TEST_CASE("both kinds of download over real sockets write the files into a folde
         CHECK(run.exit_code == 0);
         const Json finished = run.finished();
         CHECK(finished.at("reason").text == "completed");
-        const std::filesystem::path folder{finished.at("download_folder").text};
+        const std::filesystem::path folder = adl::platform::path_from_utf8(finished.at("download_folder").text);
         CHECK(folder.filename() == "DNLD_DATA_HNPFMS_L_1");
         CHECK(read_bytes(folder / "F1.BIN") == held[0].content);
         CHECK(read_bytes(folder / "F3.BIN") == held[2].content);
@@ -307,7 +309,7 @@ TEST_CASE("both kinds of download over real sockets write the files into a folde
         const std::vector<Json> listed = run.events_named("file_list");
         REQUIRE(listed.size() == 1);
         CHECK(listed[0].at("files").elements.size() == 3);
-        const std::filesystem::path folder{run.finished().at("download_folder").text};
+        const std::filesystem::path folder = adl::platform::path_from_utf8(run.finished().at("download_folder").text);
         CHECK(read_bytes(folder / "F2.BIN") == held[1].content);
         CHECK_FALSE(std::filesystem::exists(folder / "F1.BIN"));
     }
@@ -317,7 +319,7 @@ TEST_CASE("both kinds of download over real sockets write the files into a folde
                                      "--pick-all", "--control-port", loader_port_text, "--json"});
         CHECK(run.exit_code == 0);
         CHECK(run.events_named("file_received").size() == 3);
-        const std::filesystem::path folder{run.finished().at("download_folder").text};
+        const std::filesystem::path folder = adl::platform::path_from_utf8(run.finished().at("download_folder").text);
         for (const adl::mock::HeldFile& file : held)
         {
             CHECK(read_bytes(folder / file.name) == file.content);
@@ -343,6 +345,60 @@ TEST_CASE("a target that refuses, over real sockets, is a failure that carries t
     CHECK(finished.at("reason").text == "target_refused");
     CHECK(finished.at("status_code").as_number() == 0x1000);
     CHECK(finished.at("detail").text.find("maintenance mode") != std::string::npos);
+}
+
+TEST_CASE("a media set, a download folder and a record in a folder named with characters outside the code page",
+          "[load][system]")
+{
+    adl::mock::Config config = mock_config();
+    config.holds = {adl::mock::HeldFile{"F1.BIN", pattern(2000, 21), "file one"}};
+    const std::vector<adl::mock::HeldFile> held = config.holds;
+    MockTarget target(std::move(config));
+    if (target.not_started)
+    {
+        SKIP("the mock target cannot listen on port 59 of the loopback address here: " << *target.not_started);
+    }
+    // An accented letter, Japanese and a character outside the Basic Multilingual Plane, as UTF-8: no Windows code
+    // page holds all of them. The names inside the media set are ASCII (libs/media_tree still throws on Windows for
+    // a file name inside a set that is outside the code page).
+    const std::u8string leaf = u8"adl-load-é-日本語-\U0001F600 and spaces";
+    const adl::test::TempDir directory;
+    const std::filesystem::path folder = directory.path() / leaf;
+    std::filesystem::create_directories(folder);
+
+    auto spec = adl::samples::sample_media_set_spec();
+    REQUIRE(spec.has_value());
+    const auto members = adl::arinc665::build_media_set(*spec);
+    REQUIRE(members.has_value());
+    const std::filesystem::path set = folder / "set";
+    REQUIRE(adl::media_tree::write_media_set_tree(set, *members).has_value());
+    const std::string set_text = adl::test::utf8(set);
+    const std::string record = adl::test::utf8(folder / "upload record.json");
+
+    const Run upload =
+        run_command({"upload", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--media-set", set_text,
+                     "--all-loads", "--control-port", loader_port_text, "--record", record, "--json"});
+    CHECK(upload.exit_code == 0);
+    const std::vector<Json> checked = upload.events_named("media_set_checked");
+    REQUIRE(checked.size() == 1);
+    CHECK(checked[0].at("path").text == set_text);
+    CHECK(upload.finished().at("record").text == record);
+    const std::vector<std::byte> record_bytes = read_bytes(adl::platform::path_from_utf8(record));
+    const auto written =
+        adl::test::parse_json(std::string(reinterpret_cast<const char*>(record_bytes.data()), record_bytes.size()));
+    REQUIRE(written.has_value());
+    CHECK(written->at("media_set").at("path").text == set_text);
+
+    const std::string into = adl::test::utf8(folder / "downloads");
+    const Run download = run_command({"download", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--into", into,
+                                      "--pick-all", "--control-port", loader_port_text, "--json"});
+    CHECK(download.exit_code == 0);
+    const std::string kept = download.finished().at("download_folder").text;
+    CHECK(kept.starts_with(into));
+    CHECK(read_bytes(adl::platform::path_from_utf8(kept) / "F1.BIN") == held[0].content);
+    const std::vector<Json> received = download.events_named("file_received");
+    REQUIRE(received.size() == 1);
+    CHECK(adl::platform::path_from_utf8(received[0].at("path").text) == adl::platform::path_from_utf8(kept) / "F1.BIN");
 }
 
 TEST_CASE("the real host's wrong usage and --version come back as they do on the fake one", "[load][system]")
