@@ -8,6 +8,8 @@
 configure_file(program.hpp.in "${CMAKE_CURRENT_BINARY_DIR}/generated/adl/load/program.hpp" @ONLY)
 
 add_library(adl_load_cli STATIC
+    src/events.cpp
+    src/json_line.cpp
     src/options.cpp
     src/run.cpp)
 

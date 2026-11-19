@@ -183,6 +183,7 @@ catch_discover_tests(adl_loader_core_run_tests PROPERTIES LABELS "integration")
 
 # The command-line program adl_load (apps/load): its options and its events, which need no host.
 add_executable(adl_load_tests
+    load/events_test.cpp
     load/options_seeds_test.cpp
     load/options_test.cpp)
 
