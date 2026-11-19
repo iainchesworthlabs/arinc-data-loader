@@ -119,7 +119,8 @@ add_executable(adl_loader_core_tests
     loader_core/address_test.cpp
     loader_core/download_directory_test.cpp
     loader_core/media_set_check_test.cpp
-    loader_core/media_source_test.cpp)
+    loader_core/media_source_test.cpp
+    loader_core/operation_plan_test.cpp)
 
 target_include_directories(adl_loader_core_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support")

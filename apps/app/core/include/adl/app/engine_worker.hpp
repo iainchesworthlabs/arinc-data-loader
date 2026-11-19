@@ -13,6 +13,7 @@
 #include "adl/app/host_access.hpp"
 #include "adl/arinc615a/runner.hpp"
 #include "adl/loader_core/media_source.hpp"
+#include "adl/loader_core/operation_plan.hpp"
 
 #include <QList>
 #include <QObject>
@@ -151,6 +152,8 @@ private:
     // do about it. `download_directory` (when set) is a directory that was made for the job and
     // is reported all the same, so the operator knows where it is.
     void fail(const Message& text, const Message& hint = {}, const QString& download_directory = {});
+    // What is said of a choice that makes no operation (adl::loader_core::OperationPlan).
+    static Message plan_problem(const adl::loader_core::PlanError& error);
     // Runs `operation` against the target and reports how it ended; the part the Information,
     // Upload and Download operations share. `listener`, `source` and `sink` live for the call;
     // `download_path` (when set) is the directory made for a download's files (platform path):
