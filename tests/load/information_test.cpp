@@ -79,8 +79,8 @@ TEST_CASE("an Information operation completes, and the events come in order", "[
     CHECK(finished.at("status_code").as_number() == 3);
     CHECK(finished.at("detail").text == "The operation completed.");
     CHECK(finished.at("exit_code").as_number() == 0);
-    CHECK(finished.keys() == std::vector<std::string>{"event", "t", "result", "reason", "status_code", "detail",
-                                                      "exit_code"});
+    CHECK(finished.keys() ==
+          std::vector<std::string>{"event", "t", "result", "reason", "status_code", "detail", "exit_code"});
 
     // The log events are what the window's log says.
     std::vector<std::string> texts;
@@ -224,7 +224,8 @@ TEST_CASE("a port that cannot be opened is a local error, exit code 5", "[load][
         CHECK(run.exit_code == 5);
         const Json finished = run.finished();
         CHECK(finished.at("reason").text == "local_error");
-        CHECK(finished.at("detail").text == "The operation could not run: waiting for the network failed (other error).");
+        CHECK(finished.at("detail").text ==
+              "The operation could not run: waiting for the network failed (other error).");
     }
 }
 

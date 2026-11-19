@@ -140,8 +140,8 @@ TEST_CASE("find reports each target that answers, and how many", "[load][integra
     CHECK(seconds_of(found[0]) < 1.0);
 
     const Json finished = run.finished();
-    CHECK(finished.keys() == std::vector<std::string>{"event", "t", "result", "reason", "status_code", "detail",
-                                                      "exit_code", "count"});
+    CHECK(finished.keys() ==
+          std::vector<std::string>{"event", "t", "result", "reason", "status_code", "detail", "exit_code", "count"});
     CHECK(finished.at("result").text == "completed");
     CHECK(finished.at("reason").text == "completed");
     CHECK(finished.at("status_code").is(Json::Kind::null));

@@ -1,0 +1,41 @@
+{
+  "format": 1,
+  "kind": "adl-operation-record",
+  "program": {
+    "name": "adl_load",
+    "version": "@VERSION@"
+  },
+  "operation": "upload",
+  "target": {
+    "address": "10.0.0.2",
+    "position": "HNPFMS_L"
+  },
+  "started_at": "2026-11-19T10:15:30Z",
+  "ended_at": "2026-11-19T10:15:30Z",
+  "result": "failed",
+  "reason": "media_set_unreadable",
+  "status_code": null,
+  "detail": "The media set could not be read: not a directory (@DIR@/no-such-set).",
+  "media_set": {
+    "path": "@DIR@/no-such-set",
+    "part_number": "",
+    "members": 0
+  },
+  "loads": [],
+  "configuration": null,
+  "files": [],
+  "download_folder": null,
+  "licence": null,
+  "log": [
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "error",
+      "text": "The media set could not be read: not a directory (@DIR@/no-such-set)."
+    },
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "error",
+      "text": "Finished: the media set could not be read."
+    }
+  ]
+}

@@ -11,8 +11,8 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <system_error>
 #include <string>
+#include <system_error>
 #include <vector>
 
 using adl::test::CommandRig;
@@ -30,8 +30,8 @@ CommandRun upload(CommandRig& rig, const InstalledMediaSet& set, std::initialize
                   std::initializer_list<std::string_view> more = {})
 {
     const std::string path = set.path();
-    std::vector<std::string_view> arguments{"upload", "--target", "10.0.0.2", "--position", "HNPFMS_L",
-                                            "--media-set", path, "--json"};
+    std::vector<std::string_view> arguments{"upload",   "--target",    "10.0.0.2", "--position",
+                                            "HNPFMS_L", "--media-set", path,       "--json"};
     arguments.insert(arguments.end(), loads.begin(), loads.end());
     arguments.insert(arguments.end(), more.begin(), more.end());
     rig.rig.world.set_wall_origin(wall_origin);
@@ -67,8 +67,8 @@ TEST_CASE("an upload of one load completes, and the events say what was checked 
     const std::vector<std::string> names = run.names();
     CHECK(names[1] == "media_set_checked");
     const Json& checked = events[1];
-    CHECK(checked.keys() == std::vector<std::string>{"event", "t", "path", "part_number", "members", "loads",
-                                                     "findings"});
+    CHECK(checked.keys() ==
+          std::vector<std::string>{"event", "t", "path", "part_number", "members", "loads", "findings"});
     CHECK(checked.at("path").text == set.path());
     CHECK(checked.at("part_number").text == adl::samples::sample_media_set_part_number);
     CHECK(checked.at("members").as_number() == 2);
@@ -90,8 +90,8 @@ TEST_CASE("an upload of one load completes, and the events say what was checked 
     const Json finished = run.finished();
     CHECK(finished.at("reason").text == "completed");
     CHECK(finished.at("status_code").as_number() == 3);
-    CHECK(finished.at("detail").text == "The operation completed. The target read " +
-                                            std::to_string(load.item.reads.size()) + " file(s).");
+    CHECK(finished.at("detail").text ==
+          "The operation completed. The target read " + std::to_string(load.item.reads.size()) + " file(s).");
 
     // What the target got is the load, every file of it.
     CHECK(rig.rig.target.log().files_read.size() == load.item.reads.size());
@@ -134,8 +134,8 @@ TEST_CASE("an upload of all loads takes every load of the set, and --load takes 
     {
         CommandRig rig(plan);
         const InstalledMediaSet set(rig.rig.loader_host, two.members);
-        const CommandRun run =
-            upload(rig, set, {"--load", adl::test::second_load_part_number, "--load", adl::samples::sample_load_part_number});
+        const CommandRun run = upload(
+            rig, set, {"--load", adl::test::second_load_part_number, "--load", adl::samples::sample_load_part_number});
         CHECK(run.exit_code == 0);
         // Asked for in the order given: the second load's header file is the first thing the target reads.
         REQUIRE_FALSE(rig.rig.target.log().files_read.empty());
@@ -159,8 +159,8 @@ TEST_CASE("an upload in which the target fails a load is load_failed", "[load][i
     const Json finished = run.finished();
     CHECK(finished.at("result").text == "failed");
     CHECK(finished.at("reason").text == "load_failed");
-    CHECK(finished.at("detail").text ==
-          std::string{"The upload ended and the target failed 1 load(s): "} + adl::samples::sample_load_part_number + ".");
+    CHECK(finished.at("detail").text == std::string{"The upload ended and the target failed 1 load(s): "} +
+                                            adl::samples::sample_load_part_number + ".");
     // The failure is in the log with the target's reason.
     bool told = false;
     for (const Json& log : run.events_named("log"))
@@ -307,8 +307,8 @@ TEST_CASE("a media set that changes while it is being sent stops the upload, exi
     host.edit_after_opens(static_cast<unsigned>(set.files().size()), *header, "edited as it was being sent");
 
     const std::string path = set.path();
-    const CommandRun run = rig.run_on(host, {"upload", "--target", "10.0.0.2", "--position", "HNPFMS_L",
-                                             "--media-set", path, "--all-loads", "--json"});
+    const CommandRun run = rig.run_on(host, {"upload", "--target", "10.0.0.2", "--position", "HNPFMS_L", "--media-set",
+                                             path, "--all-loads", "--json"});
     CHECK(run.exit_code == 3);
     adl::test::check_stream(run);
     const Json finished = run.finished();

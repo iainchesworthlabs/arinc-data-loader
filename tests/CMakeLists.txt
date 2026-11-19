@@ -185,7 +185,8 @@ catch_discover_tests(adl_loader_core_run_tests PROPERTIES LABELS "integration")
 add_executable(adl_load_tests
     load/events_test.cpp
     load/options_seeds_test.cpp
-    load/options_test.cpp)
+    load/options_test.cpp
+    load/reason_test.cpp)
 
 target_include_directories(adl_load_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support")
@@ -209,10 +210,12 @@ catch_discover_tests(adl_load_tests PROPERTIES LABELS "unit")
 # The same program run whole: adl_load's run function on the fake platform against the simulated target, so the
 # runner, the engine and the second TFTP implementation are in it. Integration tests, with no socket.
 add_executable(adl_load_command_tests
-    load/information_test.cpp
     load/download_test.cpp
     load/find_test.cpp
-    load/upload_test.cpp)
+    load/information_test.cpp
+    load/record_test.cpp
+    load/upload_test.cpp
+    load/usage_test.cpp)
 
 target_include_directories(adl_load_command_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/load"

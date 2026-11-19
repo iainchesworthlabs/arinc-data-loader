@@ -24,3 +24,5 @@ tools/hooks/* text eol=lf
 
 # The golden files of the operation record are compared byte for byte: a checkout keeps their line feeds.
 tests/loader_core/golden/*.json text eol=lf
+# The same for the records that the tests of adl_load compare.
+tests/load/golden/*.json text eol=lf

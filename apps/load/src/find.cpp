@@ -5,15 +5,15 @@
 // can be chosen (--local-address), which the runner's own does not take. The protocol is FindClient's, which
 // decides what an answer is.
 
-#include "commands.hpp"
-
 #include "adl/arinc615a/find.hpp"
+
 #include "adl/arinc615a/find_client.hpp"
 #include "adl/arinc615a/limits.hpp"
 #include "adl/arinc615a/runner.hpp"
 #include "adl/load/exit_codes.hpp"
 #include "adl/load/reason.hpp"
 #include "adl/loader_core/address.hpp"
+#include "commands.hpp"
 
 #include <array>
 #include <chrono>
@@ -75,8 +75,8 @@ int run_find_command(adl::platform::Host& host, const Options& options, EventWri
     // The standard has the answers come back to port 1001. A socket of another FIND on this computer may hold it
     // too, so the address is shared.
     adl::platform::UdpOptions udp;
-    udp.local.address = options.local_address ? adl::platform::Ipv4Address{*options.local_address}
-                                              : adl::platform::Ipv4Address::any();
+    udp.local.address =
+        options.local_address ? adl::platform::Ipv4Address{*options.local_address} : adl::platform::Ipv4Address::any();
     udp.local.port = adl::arinc615a::find_port;
     udp.allow_broadcast = true;
     udp.reuse_address = true;
@@ -95,8 +95,8 @@ int run_find_command(adl::platform::Host& host, const Options& options, EventWri
     for (const adl::arinc615a::Address& destination : client.destinations())
     {
         // A request that cannot be sent is a lost one, which is what UDP promises and the window is for.
-        static_cast<void>(socket.send_to(
-            to_platform(adl::arinc615a::Endpoint{destination, adl::arinc615a::find_port}), client.request()));
+        static_cast<void>(socket.send_to(to_platform(adl::arinc615a::Endpoint{destination, adl::arinc615a::find_port}),
+                                         client.request()));
     }
 
     std::vector<std::byte> buffer(adl::arinc615a::find_max_answer_size + 16);

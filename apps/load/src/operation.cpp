@@ -155,22 +155,24 @@ std::string detail_of(Reason reason, const OperationResult& result, const Job& j
     }
     case Reason::missing_files:
     {
-        text = "Received " + std::to_string(outcome.files_received) + " of " +
-               count_s(outcome.files_requested, "requested file") + '.';
+        // The target listed nothing to take, or none of what was picked.
+        if (job.chose_nothing() && job.unlisted().empty())
+        {
+            return "The target listed no file to download.";
+        }
         if (!job.unlisted().empty())
         {
-            text += " The target does not list";
+            text = "Received " + std::to_string(outcome.files_received) + " of " +
+                   count_s(options.names.size(), "picked file") + ". The target does not list";
             for (std::size_t i = 0; i < job.unlisted().size(); ++i)
             {
                 text += (i == 0 ? " " : ", ") + job.unlisted()[i];
             }
-            text += '.';
+            return text + '.';
         }
-        else if (job.chose_nothing())
-        {
-            text = "The target listed no file to download.";
-        }
-        else if (outcome.items_failed != 0)
+        text = "Received " + std::to_string(outcome.files_received) + " of " +
+               count_s(outcome.files_requested, "requested file") + '.';
+        if (outcome.items_failed != 0)
         {
             text += " The target failed " + count_s(outcome.items_failed, "file") + '.';
         }
@@ -212,7 +214,7 @@ std::string detail_of(Reason reason, const OperationResult& result, const Job& j
 }
 
 // What the last line of the log says: the window's "Finished: ...", with the same kind of words.
-std::string phrase_of(Reason reason, const OperationResult& result)
+std::string phrase_of(Reason reason, const OperationResult& result, const Job& job, const Options& options)
 {
     const adl::arinc615a::Outcome& outcome = result.outcome;
     switch (reason)
@@ -222,6 +224,14 @@ std::string phrase_of(Reason reason, const OperationResult& result)
     case Reason::load_failed:
         return "completed, " + count_s(outcome.items_failed, "load") + " failed";
     case Reason::missing_files:
+        if (job.chose_nothing() && job.unlisted().empty())
+        {
+            return "the target listed no file to download";
+        }
+        if (!job.unlisted().empty())
+        {
+            return "completed, " + count_s(options.names.size() - outcome.files_received, "file") + " missing";
+        }
         return outcome.code == OutcomeCode::completed
                    ? "completed, " + count_s(outcome.files_requested - outcome.files_received, "file") + " missing"
                    : std::string{to_string(outcome.code)};
@@ -229,11 +239,12 @@ std::string phrase_of(Reason reason, const OperationResult& result)
         return "the media set changed after it was checked";
     case Reason::local_error:
         return result.not_run ? "the operation could not run" : std::string{to_string(outcome.code)};
+    case Reason::no_answer:
+        return "the target did not answer";
     case Reason::target_refused:
     case Reason::target_aborted:
     case Reason::protocol_error:
     case Reason::aborted:
-    case Reason::no_answer:
     case Reason::usage:
     case Reason::media_set_unreadable:
         break;
@@ -452,7 +463,8 @@ private:
         {
             reason = Reason::missing_files;
         }
-        return finish(reason, detail_of(reason, result, job_, options_), phrase_of(reason, result), kept);
+        return finish(reason, detail_of(reason, result, job_, options_), phrase_of(reason, result, job_, options_),
+                      kept);
     }
 
     // Says how it ended: the last line of the log and the `finished` event, and the exit code.

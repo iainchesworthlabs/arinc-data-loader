@@ -40,8 +40,8 @@ SimPlan holding(std::initializer_list<const char*> names)
 CommandRun download(CommandRig& rig, std::initializer_list<std::string_view> choice,
                     std::initializer_list<std::string_view> more = {})
 {
-    std::vector<std::string_view> arguments{"download", "--target", "10.0.0.2", "--position", "HNPFMS_L",
-                                            "--into",   "/dl",      "--json"};
+    std::vector<std::string_view> arguments{"download", "--target", "10.0.0.2", "--position",
+                                            "HNPFMS_L", "--into",   "/dl",      "--json"};
     arguments.insert(arguments.end(), choice.begin(), choice.end());
     arguments.insert(arguments.end(), more.begin(), more.end());
     rig.rig.world.set_wall_origin(wall_origin);
@@ -231,7 +231,7 @@ TEST_CASE("a name that --pick gives and the target does not list is a failure, w
         const Json finished = run.finished();
         CHECK(finished.at("result").text == "failed");
         CHECK(finished.at("reason").text == "missing_files");
-        CHECK(finished.at("detail").text == "Received 1 of 1 requested file(s). The target does not list Z.BIN.");
+        CHECK(finished.at("detail").text == "Received 1 of 2 picked file(s). The target does not list Z.BIN.");
         CHECK(finished.at("download_folder").text == made_folder());
         CHECK(run.events_named("file_received").size() == 1);
     }

@@ -139,7 +139,8 @@ inline void check_stream(const CommandRun& run)
         const std::string& t = event.at("t").text;
         REQUIRE(t.size() >= 5);
         REQUIRE(t[t.size() - 4] == '.');
-        const std::uint64_t milliseconds = std::stoull(t.substr(0, t.size() - 4)) * 1000 + std::stoull(t.substr(t.size() - 3));
+        const std::uint64_t milliseconds =
+            std::stoull(t.substr(0, t.size() - 4)) * 1000 + std::stoull(t.substr(t.size() - 3));
         CHECK(milliseconds >= last_milliseconds);
         last_milliseconds = milliseconds;
         finished += event.at("event").text == "finished" ? 1 : 0;
@@ -163,7 +164,8 @@ inline void check_stream(const CommandRun& run)
 }
 
 // `actual` against the golden file `name` in tests/load/golden. The version of the program is written as
-// @VERSION@ in the file, and so are the directories of a test as @DIR@, since they are not what is tested.
+// @VERSION@ in the file, and so are the directories of a test as @DIR@, since they are not what is tested; a
+// separator that the system writes as a backslash is a slash in the file.
 // A golden file that is not there is written from the run, and the test fails until it is read and kept; to
 // make one again, delete it.
 inline void check_golden(const std::string& name, const std::string& actual, const std::string& directory = {})
@@ -171,7 +173,8 @@ inline void check_golden(const std::string& name, const std::string& actual, con
     const std::filesystem::path path = std::filesystem::path{ADL_LOAD_GOLDEN_DIR} / name;
     const auto replace_all = [](std::string text, const std::string& from, const std::string& to)
     {
-        for (std::size_t at = text.find(from); !from.empty() && at != std::string::npos; at = text.find(from, at + to.size()))
+        for (std::size_t at = text.find(from); !from.empty() && at != std::string::npos;
+             at = text.find(from, at + to.size()))
         {
             text.replace(at, from.size(), to);
         }
@@ -181,8 +184,12 @@ inline void check_golden(const std::string& name, const std::string& actual, con
     expected_form = replace_all(expected_form, std::string{adl::load::program_version}, "@VERSION@");
     if (!directory.empty())
     {
+        // In a JSON string a backslash is written twice.
+        expected_form = replace_all(expected_form, replace_all(directory, "\\", "\\\\"), "@DIR@");
         expected_form = replace_all(expected_form, directory, "@DIR@");
     }
+    // The paths a record holds are written with the separator of the system it ran on; the files hold '/'.
+    expected_form = replace_all(expected_form, "\\\\", "/");
     if (!std::filesystem::exists(path))
     {
         // The first run of a new test writes what it saw, for a person to read before it is committed.
