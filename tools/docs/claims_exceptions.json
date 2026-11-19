@@ -1,0 +1,56 @@
+{
+ "comment": "The owner-approved exceptions to tools/ci/check_claims.py (docs/ci.md, 'The claims'). A page may not say that the tool is certified, qualified, compliant, approved or guaranteed. An exception names one file and the words around the word, and says why the use is not a claim. An exception is approved when approved_by holds the name of the person who approved it; check_claims.py --strict fails while one in use is not. standards_named_in lists the files that may name DO-178C and DO-330.",
+ "standards_named_in": [
+  "docs/assurance.md"
+ ],
+ "exceptions": [
+  {
+   "file": "docs/assurance.md",
+   "phrase": "It does not make the tool certified or qualified",
+   "reason": "A denial: it says the data pack does not make the tool certified or qualified.",
+   "approved_by": ""
+  },
+  {
+   "file": "docs/editions.md",
+   "phrase": "no guaranteed response time",
+   "reason": "A denial: it says the Community edition has no response time promised.",
+   "approved_by": ""
+  },
+  {
+   "file": "docs/support.md",
+   "phrase": "no guaranteed response time",
+   "reason": "A denial, as on the editions page.",
+   "approved_by": ""
+  },
+  {
+   "file": "docs/user-guide/faq.md",
+   "phrase": "no guaranteed response time",
+   "reason": "A denial, as on the editions page.",
+   "approved_by": ""
+  },
+  {
+   "file": "SECURITY.md",
+   "phrase": "no guaranteed response time",
+   "reason": "A denial, in the security policy.",
+   "approved_by": ""
+  },
+  {
+   "file": "docs/verifying-releases.md",
+   "phrase": "This key is not certified with a trusted signature!",
+   "reason": "The warning GnuPG prints about a key that the user has not signed. It is about the key, not the tool.",
+   "approved_by": ""
+  },
+  {
+   "file": "docs/platform-abstraction.md",
+   "phrase": "never dynamic in a certified build",
+   "reason": "A design note about what a build for a certified target would do. It says nothing about this tool.",
+   "approved_by": ""
+  },
+  {
+   "file": "docs/platform-abstraction.md",
+   "phrase": "a different one may be wanted for a certified target",
+   "reason": "A design note about a target that someone else certifies. It says nothing about this tool.",
+   "approved_by": ""
+  }
+ ]
+}

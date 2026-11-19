@@ -169,6 +169,26 @@ placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six
 `docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
 the description is there, and not that it is good.
 
+### The claims
+
+`tools/ci/check_claims.py` fails a page that makes a claim the project cannot back: that the tool has been through a certification, a
+qualification or an approval, that it complies with a standard, or that something is promised without limit. It looks for five words (the list is
+`WORDS` in the script), whole words, ignoring case. It reads `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, the changelog
+fragments and every page of `docs/` except `docs/plan/` (the plans are not published, and have to discuss qualification). A use that
+`tools/docs/claims_exceptions.json` lists passes: a file, the words around the word, and why it is not a claim (a denial such as "no
+guarantee of a response time", or a warning that GnuPG prints). **The owner signs off an exception** by writing a name in its `approved_by`.
+The check passes while exceptions wait for that and says how many; with `--strict` they fail it, which is how a release can be held to a
+fully signed-off list. The names of the two standards a user's own programme may apply may appear only in the files the list names
+(`standards_named_in`: the Assurance page). It runs in `docs-site` and as the CTest test `docs.claims`.
+
+### The traceability
+
+`tools/ci/check_traceability.py` holds the "Tests" column of the "Section by section" tables of `docs/arinc665-coverage.md` and
+`docs/arinc615a-coverage.md` to the tests: each test file named is a test source file of the repository, each test case named after it is in that
+file, and each row has a test or says why not (`n/a`, `by construction`, or `as` another row). It prints the gaps, and `--report` lists each. There
+are no requirement identifiers yet; the section number is the identifier ([the plan](plan/traceability.md)). It runs in `docs-site` and as the CTest
+test `docs.traceability`.
+
 ### Links out of `docs/`
 
 A page may link to the README, the changelog or a source file with a relative link (`../README.md`), which works on GitHub. The site has no
