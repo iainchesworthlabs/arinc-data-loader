@@ -431,6 +431,12 @@ void MockEngine::on_init_served()
     if (effective != StatusCode::accepted || config_.garbage_init)
     {
         note(Severity::warning, operation_name(kind_) + " refused");
+        if (listener_ != nullptr)
+        {
+            listener_->operation_ended(operation_name(kind_),
+                                       config_.garbage_init ? std::nullopt : std::optional<StatusCode>{effective},
+                                       true);
+        }
         return;
     }
     operation_started_ = true;
@@ -649,7 +655,7 @@ void MockEngine::pump_status()
                            finished_ = true;
                            note(Severity::info,
                                 operation_name(kind_) + " operation finished: " + std::string{to_string(spec.code)});
-                           reset_operation_state();
+                           end_operation(spec.code);
                        }
                    }
                    else if (kind == MiniResult::Kind::aborted)
@@ -663,7 +669,7 @@ void MockEngine::pump_status()
                        if (final_status)
                        {
                            finished_ = true;
-                           reset_operation_state();
+                           end_operation(spec.code);
                        }
                    }
                    pump_status();
@@ -1190,6 +1196,15 @@ void MockEngine::on_abort_seen(StatusCode status)
     final_posted_ = true;
     // 5.4.5.2: the target answers an abort with a status file that echoes its code.
     post_status(StatusSpec{status, 0, "aborted"});
+}
+
+void MockEngine::end_operation(StatusCode code)
+{
+    if (listener_ != nullptr)
+    {
+        listener_->operation_ended(operation_name(kind_), code, false);
+    }
+    reset_operation_state();
 }
 
 void MockEngine::reset_operation_state()
