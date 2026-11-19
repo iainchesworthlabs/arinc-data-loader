@@ -49,6 +49,17 @@ not_in_nav: |
   /support.md
   /accessibility.md
   /press.md
+  /products/index.md
+  /products/library.md
+  /products/data-loader.md
+  /products/media-set-generator.md
+  /products/mock-target.md
+  /platforms.md
+  /solutions.md
+  /qualification-kit.md
+  /pricing.md
+  /downloads.md
+  /resources.md
 
 # Not published on the site. The files stay in the repository and the site links to them on GitHub
 # (tools/docs/mkdocs_hooks.py), and the old address of each of them forwards there (tools/docs/site_layout.json).
@@ -139,6 +150,7 @@ nav:
   - Guide:
       - Guide contents: user-guide/index.md
       - Get started:
+          - Getting started: user-guide/getting-started.md
           - What ARINC 615A and 665 are: user-guide/concepts.md
           - Installing and starting: user-guide/installing.md
           - The demonstration: user-guide/demonstration.md
@@ -156,13 +168,21 @@ nav:
       - The other programs:
           - Make a media set: user-guide/make-a-media-set.md
           - Run the mock target: user-guide/mock-target.md
-      - Reference and help:
-          - Where files go, and limits: user-guide/files-and-limits.md
+      - Reference:
+          - Quick reference: user-guide/quick-reference.md
+          - Configuration reference: user-guide/configuration.md
+          - Command line and exit codes: user-guide/command-line.md
+          - Messages and errors: user-guide/messages.md
+          - Findings of the media set check: user-guide/findings.md
           - Files the programs read and write: file-reference.md
+          - Where files go: user-guide/files-and-limits.md
+          - Glossary: glossary.md
+      - Limits and help:
+          - Limits and known issues: user-guide/limits.md
+          - Safety of use: user-guide/safety-of-use.md
           - What has been checked: status.md
           - Troubleshooting: user-guide/troubleshooting.md
           - Questions and answers: user-guide/faq.md
-          - Glossary: glossary.md
   - Developers:
       - Developers contents: developers.md
       - Libraries and platforms:

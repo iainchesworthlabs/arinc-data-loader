@@ -2,7 +2,7 @@
 
 This is a plan. It is not published (`plan/` is excluded from the site, `mkdocs.yml`). It writes down the commercial structure the owner described, says what each edition would include, and lists what is still open. Nothing here is a fact about a product that exists, and nothing in it is a price.
 
-The published pages [Licensing and editions](../editions.md) and [Assurance](../assurance.md) are drafted from this page. Each open decision below is an `OWNER DECISION` comment in those pages. The plan for the Enterprise data packs is a separate page, added in a later pull request.
+The published pages [Licensing and editions](../editions.md) and [Assurance](../assurance.md) are drafted from this page. Each open decision below is an `OWNER DECISION` comment in those pages. The plan for the Enterprise data packs is [assurance-data-pack.md](assurance-data-pack.md), and for the links between requirements, tests and pages [traceability.md](traceability.md).
 
 ## The owner's intent, as given
 
@@ -21,7 +21,7 @@ The published pages [Licensing and editions](../editions.md) and [Assurance](../
 | Support | none promised; the maintainer is one person | OWNER DECISION: channel, hours, response times | as Pro and Site |
 | Supported versions | the latest release only, until 1.0 (`SECURITY.md`) | OWNER DECISION | as Pro and Site, plus the versions a data pack covers |
 | Update policy | none | OWNER DECISION | as Pro and Site |
-| Data packs for certification use | no | no | yes (the data pack plan) |
+| Data packs for certification use | no | no | yes ([assurance-data-pack.md](assurance-data-pack.md)) |
 | Price | none | OWNER DECISION | OWNER DECISION |
 
 "Pro" and "Site" are listed together because that is how the intent was given. Whether they are one edition or two, and what a "site" is (one building, one organisation, one programme), is decision 2.
@@ -32,7 +32,7 @@ The published pages [Licensing and editions](../editions.md) and [Assurance](../
 - `REUSE.toml` names the copyright holder as "Iain Chesworth Labs contributors". `git shortlog` on `develop` shows 255 commits from two author identities and 6 from Dependabot. `CONTRIBUTING.md` takes contributions under GPL-3.0-or-later with a sign-off, and there is no contributor licence agreement. If both identities are the owner, the owner can offer the code under another licence as well. A contribution from anyone else could not be offered that way without their agreement.
 - The programs link Qt 6.12 dynamically under the LGPL, version 3, and one module that the deployment places is offered under the GPL, version 3. They bundle the Archivo and Noto Sans Hebrew typefaces under the SIL Open Font License 1.1. A build offered on other terms still has to meet those licences ([licensing.md](../licensing.md)).
 - The standards the code implements are the publisher's documents. They are not in the repository and a data pack cannot contain their text ([licensing.md](../licensing.md#the-standards)).
-- Today nothing has been checked against real equipment ([status.md](../status.md)). Today there are no requirements documents, no requirement identifiers, and no record of reviews beyond what GitHub keeps for pull requests. The data pack plan says what is missing.
+- Today nothing has been checked against real equipment ([status.md](../status.md)). Today there are no requirements documents, no requirement identifiers, and no record of reviews beyond what GitHub keeps for pull requests. [assurance-data-pack.md](assurance-data-pack.md) says what is missing.
 - The company site's rules for a product page: honest status, no testimonials, no price unless true, contact by a role address and not a personal one.
 
 ## Open decisions
@@ -58,4 +58,4 @@ The published pages [Licensing and editions](../editions.md) and [Assurance](../
 - They say what the Community edition is and what it does not give, and what a data pack is for, in plain words.
 - They never say that the tool is "certified", "qualified", "compliant with DO-178C" or "approved" by any authority, unless the owner supplies the evidence. "DO-178C" and "DO-330" appear only to name the standards a user's own programme applies.
 - They give no price, no date, no customer, no number of users and no quote.
-- A check for those words, added in a later pull request, fails a page that uses one of the words "certified", "qualified", "compliant", "approved" or "guaranteed" without an entry in the owner-approved exception list.
+- `tools/ci/check_claims.py` fails a page that uses one of the words "certified", "qualified", "compliant", "approved" or "guaranteed" without an entry in the owner-approved exception list (`tools/docs/claims_exceptions.json`).

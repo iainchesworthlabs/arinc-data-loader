@@ -26,7 +26,7 @@ description: Three steps take a media set from files on your disk to an upload a
 <div>
 <h2>Step 2: Start a target</h2>
 <p>Start <strong>ARINC Mock Target</strong>, choose a folder where it keeps what you upload, and press <strong>Start</strong>. The chip says SERVING.</p>
-<p>To keep the firewall from asking, tick <strong>This computer only (127.0.0.1)</strong> before you start it. With a real target on your network, you need its address instead, and nothing has been checked against one.</p>
+<p>To keep the firewall from asking, tick <strong>This computer only (127.0.0.1)</strong> before you start it. With a target on your network, you need its address instead.</p>
 <p><a href="../guide/mock-target/">Run the mock target</a> in the guide.</p>
 </div>
 <figure class="adl-shot"><img src="../images/mock-serving.png" width="1280" height="1320" loading="lazy" alt="The mock target serving: the chip says SERVING."><figcaption>The mock target, serving.</figcaption></figure>

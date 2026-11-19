@@ -1,7 +1,8 @@
 # What ARINC 615A and ARINC 665 are
 
 Two standards from the aviation world cover loading software into aircraft equipment. This
-software follows both. You do not need to read them to use these programs, but you will meet their
+software follows both: ARINC Report 665-3 (*Loadable Software Standards*, published 12 August 2005) and
+ARINC Report 615A-3 (*Software Data Loader Using Ethernet Interface*, published 30 June 2007). You do not need to read them to use these programs, but you will meet their
 words, so here they are in plain terms.
 
 ## ARINC 665: how a load is packaged
@@ -19,6 +20,25 @@ ID, the loads that belong to it. The generator can write one; the loader reads a
 files but does not act on them (see [the limits](files-and-limits.md#limits)). Parts are
 identified by **part numbers** with strict shapes, which is why the generator checks them as you
 type ([the rules](make-a-media-set.md#the-rules-the-generator-enforces)).
+
+## The data model
+
+How the things in the guide relate:
+
+```text
+media set        part number, 1 to 255 members
+  member         a folder, member_001 ... member_255; holds LOADS.LUM and FILES.LUM,
+                 and BATCHES.LUM when the set has a batch file
+    load         a part number; one header file, at least one data file, any number of
+                 support files; the target hardware IDs it is for
+batch file       optional; names, for each target hardware ID, the loads that belong to it
+```
+
+- Every file of a media set except `FILES.LUM` is listed in `FILES.LUM`, with its member, its folder, its name and its check values. The loader finds each file through that list and does not assume the generator's layout.
+- A **target** is addressed by its `THW_ID_POS`: its hardware ID, an underscore and its position. The loader names every file it asks for after it.
+- The three operations work on different things: *Information* asks for the target's configuration (its hardware and the parts in it), *Upload* sends loads from a media set, and *Download* fetches files that the target holds.
+
+[Files the programs read and write](../file-reference.md) has the exact layouts and [Limits and known issues](limits.md#limits) the limits.
 
 ## ARINC 615A: how a load gets into the equipment
 

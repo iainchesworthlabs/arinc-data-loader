@@ -2,14 +2,42 @@
 /* The layout of the /adl/ front pages on top of the company shell (assets/icl.css). Colours come only from the shell's variables and
    the palette in theme.css. No web font, no image from another site, no inline style anywhere. */
 
-/* Menu for narrow screens: the shell hides the app bar's links below 40rem, so a native <details> carries them. */
-.adl-menu { position: relative; }
-.adl-menu summary { cursor: pointer; list-style: none; min-height: 2.75rem; display: inline-flex; align-items: center; padding-inline: var(--icl-space-3); font-weight: 650; border: 1px solid var(--icl-border); border-radius: 999px; }
+/* The app bar (tools/docs/theme/partials/appbar.html). Its menus are native <details>: no script. From 64rem the menus sit in the bar
+   and each opens a panel under it; below 64rem they fold into one Menu that opens under the whole bar. */
+.adl-appbar { position: relative; z-index: 6; }
+.adl-appbar .icl-wrap { gap: var(--icl-space-3); }
+.icl-appbar .adl-nav { display: none; }
+.adl-nav__list { display: flex; align-items: center; gap: var(--icl-space-1); margin: 0; padding: 0; list-style: none; }
+.adl-nav__list > li { position: relative; }
+.icl-appbar .adl-nav a { margin-left: 0; }
+.adl-nav__link, .adl-drop > summary { display: inline-flex; align-items: center; min-height: 2.75rem; padding-inline: var(--icl-space-3); color: var(--icl-fg); font-weight: 560; text-decoration: none; border-radius: var(--icl-radius-s); }
+.adl-drop > summary { cursor: pointer; list-style: none; gap: var(--icl-space-2); }
+.adl-drop > summary::-webkit-details-marker { display: none; }
+.adl-drop > summary::after { content: ""; width: 0.45rem; height: 0.45rem; margin-top: -0.2rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+.adl-drop[open] > summary::after { margin-top: 0.2rem; transform: rotate(-135deg); }
+.adl-nav__link:hover, .adl-drop > summary:hover, .adl-drop[open] > summary { background: var(--app-tint); }
+.adl-nav__link[aria-current], .adl-drop--current > summary { text-decoration: underline; text-decoration-color: var(--app-accent); text-decoration-thickness: 0.15em; text-underline-offset: 0.35em; }
+.adl-drop__panel { position: absolute; left: 0; top: calc(100% + var(--icl-space-2)); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--icl-space-1); width: 36rem; margin: 0; padding: var(--icl-space-3); list-style: none; background: var(--icl-surface); border: 1px solid var(--icl-border); border-top: 3px solid var(--app-accent); border-radius: var(--icl-radius-m); box-shadow: 0 16px 40px color-mix(in srgb, var(--icl-fg) 16%, transparent); }
+.adl-drop--end .adl-drop__panel { left: auto; right: 0; }
+.adl-drop__panel a { display: block; height: 100%; padding: var(--icl-space-3); color: var(--icl-fg); text-decoration: none; border-radius: var(--icl-radius-s); }
+.adl-drop__panel a:hover, .adl-drop__panel a[aria-current] { background: var(--app-tint); }
+.adl-drop__label { display: block; font-weight: 680; }
+.adl-drop__desc { display: block; margin-top: 0.125rem; color: var(--icl-fg-muted); font-size: var(--icl-step--1); line-height: 1.4; }
+.adl-appbar__cta { flex: none; }
+
+.adl-menu summary { cursor: pointer; list-style: none; min-height: 2.75rem; display: inline-flex; align-items: center; padding-inline: var(--icl-space-4); font-weight: 650; border: 1px solid var(--icl-border); border-radius: 999px; }
 .adl-menu summary::-webkit-details-marker { display: none; }
-.adl-menu ul { position: absolute; right: 0; top: 100%; z-index: 5; min-width: 12rem; margin: var(--icl-space-2) 0 0; padding: var(--icl-space-2); list-style: none; background: var(--icl-surface); border: 1px solid var(--icl-border); border-radius: var(--icl-radius-m); }
-.adl-menu li a { display: block; padding: var(--icl-space-3); color: var(--icl-fg); text-decoration: none; font-weight: 560; }
-.adl-menu li a:hover, .adl-menu li a[aria-current] { text-decoration: underline; }
-@media (min-width: 40rem) { .adl-menu { display: none; } }
+.adl-menu__panel { position: absolute; left: 0; right: 0; top: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--icl-space-4) var(--icl-space-5); max-height: calc(100vh - 8rem); overflow-y: auto; padding: var(--icl-space-5) var(--icl-gutter); background: var(--icl-surface); border-bottom: 1px solid var(--icl-border); box-shadow: 0 16px 40px color-mix(in srgb, var(--icl-fg) 16%, transparent); }
+.adl-menu__title { margin: 0 0 var(--icl-space-1); color: var(--icl-fg-muted); font-size: var(--icl-step--1); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.adl-menu__panel ul { margin: 0; padding: 0; list-style: none; }
+.adl-menu__panel a { display: block; padding: var(--icl-space-2) 0; color: var(--icl-fg); text-decoration: none; font-weight: 560; }
+.adl-menu__panel a:hover, .adl-menu__panel a[aria-current] { text-decoration: underline; }
+.adl-menu__strong { font-weight: 700; }
+@media (max-width: 29.99rem) { .adl-appbar__cta { display: none; } }
+@media (min-width: 64rem) {
+  .icl-appbar .adl-nav { display: block; }
+  .adl-menu { display: none; }
+}
 
 /* Hero */
 .icl-hero--app a { color: var(--app-on-gradient); }
@@ -77,3 +105,116 @@
 /* Keep the FAQ and body text on the left edge of the page, with a readable line length */
 .icl-section .icl-faq { margin-inline: 0; }
 .icl-section > .icl-wrap > p { max-width: var(--icl-measure); }
+
+/* ---------- The product pages ---------- */
+
+/* The home page's hero has a picture of the loader beside the text */
+.icl-hero--app .icl-tags { margin-top: var(--icl-space-5); }
+.adl-hero-shot { margin: 0; }
+.adl-hero-shot img { display: block; width: 100%; height: auto; border-radius: var(--icl-radius-s); box-shadow: 0 18px 50px color-mix(in srgb, var(--app-gradient-from) 60%, transparent); }
+.icl-hero--app .icl-button--ghost { background: transparent; color: var(--app-on-gradient); border-color: var(--app-on-gradient); }
+.icl-hero--app .icl-button--ghost:hover { background: color-mix(in srgb, var(--app-on-gradient) 14%, transparent); }
+
+/* A section's introduction: a heading and one paragraph under it */
+.adl-intro { max-width: 46rem; margin-bottom: var(--icl-space-6); }
+.adl-intro h2 { margin-bottom: var(--icl-space-3); }
+.adl-intro p { color: var(--icl-fg-muted); font-size: var(--icl-step-1); margin: 0; }
+
+/* Cards: the kit's .icl-card, with a kicker above the heading */
+.adl-kicker { margin: 0; color: var(--app-link); font-size: var(--icl-step--1); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.icl-card ul { margin: 0; padding-left: 1.1rem; color: var(--icl-fg-muted); font-size: var(--icl-step--1); }
+
+/* The stack: the tools on top of the libraries on top of the platform layer and its ports */
+.adl-stack { display: grid; gap: var(--icl-space-2); margin: 0; padding: 0; list-style: none; }
+.adl-stack > li { padding: var(--icl-space-3) var(--icl-space-4); border: 1px solid var(--icl-border); border-radius: var(--icl-radius-s); background: var(--icl-surface); }
+.adl-stack__name { display: block; margin-bottom: var(--icl-space-2); color: var(--icl-fg-muted); font-size: var(--icl-step--1); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.adl-stack__row { display: flex; flex-wrap: wrap; gap: var(--icl-space-2); margin: 0; padding: 0; list-style: none; }
+.adl-stack__row li { flex: 1 1 8rem; padding: var(--icl-space-2) var(--icl-space-3); border-radius: var(--icl-radius-s); background: var(--app-tint); font-weight: 620; font-size: var(--icl-step--1); line-height: 1.35; }
+.adl-stack__row li small { display: block; color: var(--icl-fg-muted); font-weight: 450; }
+.adl-stack__row .adl-stack__yours { background: transparent; border: 1px dashed var(--icl-border); }
+.adl-stack > .adl-stack--libs { border-left: 4px solid var(--app-accent); }
+.adl-stack--libs .adl-stack__row li { background: var(--app-primary); color: var(--app-on-primary); }
+.adl-stack--libs .adl-stack__row li small { color: var(--app-on-primary); }
+
+/* Status chips: Supported, Experimental, Port written, Planned. Words carry the meaning; the look only repeats it. */
+.adl-chip { display: inline-block; padding: 0.0625rem var(--icl-space-2); border: 1px solid var(--icl-border); border-radius: 999px; font-size: var(--icl-step--1); font-weight: 650; white-space: nowrap; }
+.adl-chip--ok { background: var(--app-primary); border-color: var(--app-primary); color: var(--app-on-primary); }
+.adl-chip--exp { border-color: var(--app-link); color: var(--app-link); }
+.adl-chip--port { border-style: dashed; border-color: var(--icl-fg-muted); color: var(--icl-fg); }
+.adl-chip--plan { color: var(--icl-fg-muted); }
+
+/* Tables of the product pages: platforms, the comparison of editions, the kit's contents */
+.adl-table { width: 100%; overflow-x: auto; }
+.adl-table table { width: 100%; border-collapse: collapse; font-size: var(--icl-step--1); }
+.adl-table caption { text-align: left; font-weight: 700; padding-bottom: var(--icl-space-2); }
+.adl-table th, .adl-table td { padding: var(--icl-space-3); border-bottom: 1px solid var(--icl-border); text-align: left; vertical-align: top; }
+.adl-table thead th { border-bottom: 2px solid var(--icl-fg); }
+.adl-table td p { margin: 0; color: var(--icl-fg-muted); }
+.adl-table tbody th { font-weight: 650; }
+.adl-compare th:not(:first-child), .adl-compare td { text-align: center; }
+.adl-compare tbody th { text-align: left; }
+.adl-compare .adl-group th { padding-top: var(--icl-space-5); background: transparent; color: var(--app-link); font-size: var(--icl-step--1); letter-spacing: 0.06em; text-transform: uppercase; }
+.adl-yes::before { content: "\2713"; font-weight: 800; color: var(--app-link); }
+.adl-no::before { content: "\2014"; color: var(--icl-fg-muted); }
+
+/* The editions: three cards side by side */
+.adl-plans { display: grid; gap: var(--icl-space-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); margin: 0; padding: 0; list-style: none; }
+.adl-plan { display: flex; flex-direction: column; gap: var(--icl-space-3); padding: var(--icl-space-5); background: var(--icl-surface); border: 1px solid var(--icl-border); border-radius: var(--icl-radius-m); }
+.adl-plan--featured { border: 2px solid var(--app-primary); }
+.adl-plan h3 { margin: 0; font-size: var(--icl-step-2); }
+.adl-plan__for { margin: 0; color: var(--icl-fg-muted); }
+.adl-plan__price { margin: 0; font-size: var(--icl-step-2); font-weight: 750; letter-spacing: -0.02em; }
+.adl-plan__price small { display: block; color: var(--icl-fg-muted); font-size: var(--icl-step--1); font-weight: 500; letter-spacing: 0; }
+.adl-plan ul { margin: 0; padding-left: 1.1rem; }
+.adl-plan li { margin-bottom: var(--icl-space-2); }
+.adl-plan .icl-button { margin-top: auto; align-self: flex-start; }
+
+/* A row of figures */
+.adl-stats { display: grid; gap: var(--icl-space-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); margin: 0 0 var(--icl-space-6); padding: 0; list-style: none; }
+.adl-stats li { padding-top: var(--icl-space-3); border-top: 3px solid var(--app-accent); }
+.adl-stats strong { display: block; font-size: var(--icl-step-3); line-height: 1.1; letter-spacing: -0.02em; }
+.adl-stats span { color: var(--icl-fg-muted); font-size: var(--icl-step--1); }
+
+/* Code on a product page */
+.adl-code { margin: var(--icl-space-4) 0; padding: var(--icl-space-4) var(--icl-space-5); background: var(--icl-surface-2); border: 1px solid var(--icl-border); border-radius: var(--icl-radius-s); overflow-x: auto; font-family: var(--icl-font-mono); font-size: var(--icl-step--1); line-height: 1.6; }
+.adl-code code { font-size: inherit; white-space: pre; }
+
+/* A list of points with a mark */
+.adl-ticks { margin: 0; padding: 0; list-style: none; }
+.adl-ticks li { position: relative; margin-bottom: var(--icl-space-3); padding-left: 1.75rem; }
+.adl-ticks li::before { content: "\2713"; position: absolute; left: 0; top: 0; color: var(--app-link); font-weight: 800; }
+
+/* The solutions: one band each */
+.adl-solution { scroll-margin-top: var(--icl-space-5); }
+.adl-uses { display: flex; flex-wrap: wrap; gap: var(--icl-space-2); margin: var(--icl-space-4) 0 0; padding: 0; list-style: none; }
+.adl-uses li a { display: inline-block; padding: var(--icl-space-1) var(--icl-space-3); border: 1px solid var(--app-link); border-radius: 999px; font-size: var(--icl-step--1); font-weight: 650; text-decoration: none; }
+.adl-uses li a:hover { background: var(--app-tint); }
+
+/* Two links side by side at the foot of a section */
+.adl-links { display: flex; flex-wrap: wrap; gap: var(--icl-space-2) var(--icl-space-5); margin: var(--icl-space-5) 0 0; padding: 0; list-style: none; font-weight: 650; }
+
+/* Four cards: one column, then two, then four, so a row never leaves one card on its own */
+.icl-grid.adl-grid-4 { grid-template-columns: 1fr; }
+@media (min-width: 40rem) { .icl-grid.adl-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 72rem) { .icl-grid.adl-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* A column of a two-column section may hold code that does not wrap: let the code scroll, not the page */
+.adl-two > * { min-width: 0; }
+@media (max-width: 39.99rem) {
+  .adl-compare th, .adl-compare td { padding: var(--icl-space-2); }
+  .adl-compare .adl-chip { white-space: normal; }
+}
+
+/* The contact form of the Support page (docs/support.md). A plain form with no script. The honeypot is moved off screen and hidden from
+   assistive technology; the borders of the fields use the muted text colour so that they keep 3:1 against the page. */
+.adl-form { display: grid; gap: var(--icl-space-4); margin: var(--icl-space-5) 0; padding: var(--icl-space-5); background: var(--icl-surface-2); border: 1px solid var(--icl-border); border-radius: var(--icl-radius-m); }
+.adl-form label { display: block; margin-bottom: var(--icl-space-1); font-weight: 650; }
+.adl-form__opt { color: var(--icl-fg-muted); font-weight: 450; }
+.adl-form input[type="text"], .adl-form input[type="email"], .adl-form select, .adl-form textarea { display: block; width: 100%; min-height: 2.75rem; padding: var(--icl-space-2) var(--icl-space-3); background: var(--icl-surface); color: var(--icl-fg); border: 1px solid var(--icl-fg-muted); border-radius: var(--icl-radius-s); font: inherit; }
+.adl-form textarea { min-height: 9rem; resize: vertical; }
+.adl-form__help { margin: var(--icl-space-1) 0 0; color: var(--icl-fg-muted); font-size: var(--icl-step--1); }
+.adl-form__consent { display: grid; grid-template-columns: auto 1fr; gap: var(--icl-space-3); align-items: start; }
+.adl-form__consent input { width: 1.5rem; height: 1.5rem; margin: 0.125rem 0 0; }
+.adl-form__consent label { margin: 0; font-weight: 450; }
+.adl-form__trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.adl-form .icl-button { justify-self: start; cursor: pointer; }

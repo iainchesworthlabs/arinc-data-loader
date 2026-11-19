@@ -135,9 +135,10 @@ slices; [the application](app.md) says what each does.
    `DNLD_DATA_<THW_ID_POS>_<number>` directory ([the application](app.md)); an integration test that runs
    the loader's runner over real sockets against the mock target's engine on 127.0.0.1 — Information,
    Upload byte for byte, both Download modes and an abort, as `loopback.integration`
-   ([the mock target](mock-target.md)); and a dark-scheme, keyboard and accessibility pass over all three
-   windows (menus and shortcuts, initial focus, the keyboard highlight of the generator's file list, both
-   schemes rendered in the offscreen tests).
+   ([the mock target](mock-target.md)); and a dark-scheme and keyboard pass of the loader (shortcuts, initial
+   focus, the focus ring), with automated tests, and both schemes rendered in the offscreen tests for all three
+   windows. The generator and the mock target use the same controls and have not had the keyboard pass. The windows
+   have no menus, and no screen reader has been tried ([the keyboard page](user-guide/keyboard.md)).
 7. **The window's minimum set (done).** The design layer the sibling applications have, brought to the
    loader: one design-token file (`Theme.qml`) and a small component library over it
    (`AppButton`, `SegmentedControl`, `FocusRing` and others, in `libs/ui/qml`); a first-run screen that sets the essentials

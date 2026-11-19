@@ -1,5 +1,49 @@
 {#- SPDX-License-Identifier: GPL-3.0-or-later
-    The pages of the /adl/ section: path, label. The bar (first group) is the app bar of the front pages, and "more" is the row above the company
-    footer. Paths are relative to the site's root. Add a page here when it exists: tools/ci/check_site_pages.py follows every link. -#}
-{%- set bar = [("how-to-use/", "How to use"), ("features/", "Features"), ("guide/", "Guide"), ("developers/", "Developers"), ("privacy/", "Privacy"), ("support/", "Support")] -%}
-{%- set more = [("whats-new/", "Releases"), ("licensing/", "Licensing and editions"), ("assurance/", "Assurance"), ("faq/", "FAQ"), ("accessibility/", "Accessibility"), ("press/", "Press")] -%}
+    The pages of the /adl/ section. Paths are relative to the site's root. Add a page here when it exists: tools/ci/check_site_pages.py
+    follows every link.
+
+    menus: the app bar of the front pages, in order. Each entry is (label, path, items). An entry with items is a menu that opens (a native
+           <details>, no script); each item is (path, label, one line on what is there). An entry with no items is a plain link.
+    bar:   the slim bar above the guide's own header, back to the front pages.
+    more:  the row of links above the company footer. -#}
+{%- set menus = [
+  ("Products", "products/", [
+    ("products/library/", "ADL Library", "ARINC 615A and ARINC 665 in C++23, for your own tools and loaders"),
+    ("products/data-loader/", "Data Loader", "Find targets, read them, upload loads and download files"),
+    ("products/media-set-generator/", "Media Set Generator", "Build ARINC 665 load packages from your files"),
+    ("products/mock-target/", "Mock Target", "A software target for benches and tests, with faults on request"),
+    ("platforms/", "Platforms", "Windows, Linux, macOS, FreeRTOS, Zephyr and the ports"),
+    ("products/", "All products", "How the library and the tools fit together"),
+  ]),
+  ("Solutions", "solutions/", [
+    ("solutions/#build-a-data-loader", "Build a data loader", "For makers of ground support equipment and loader hardware"),
+    ("solutions/#package-loadable-software", "Package loadable software", "For suppliers who deliver loads as ARINC 665 media sets"),
+    ("solutions/#test-benches-and-ci", "Test benches and CI", "For labs and integrators who test loading without the aircraft"),
+    ("solutions/#certification-projects", "Certification projects", "For programmes that assess the tools they use"),
+  ]),
+  ("Developers", "developers/", [
+    ("developers/libraries/", "Using the libraries", "The CMake package, the targets and a first program"),
+    ("developers/architecture/", "Architecture", "How the libraries, the platform layer and the programs fit"),
+    ("developers/platform-abstraction/", "Porting to a platform", "The platform interfaces, the fake and the conformance suite"),
+    ("developers/arinc665-coverage/", "ARINC 665-3 coverage", "The standard section by section, with its tests"),
+    ("developers/arinc615a-coverage/", "ARINC 615A-3 coverage", "The standard section by section, with its tests"),
+    ("developers/building/", "Building", "Compilers, presets and options"),
+  ]),
+  ("Assurance", "assurance/", [
+    ("assurance/", "How it is verified", "Tests, independent checks, fuzzing, coverage and signed releases"),
+    ("qualification-kit/", "Qualification kit", "Evidence for assessing the tools in a certification project"),
+    ("guide/what-has-been-checked/", "What has been checked", "Each component against the levels of evidence"),
+    ("developers/security/", "Security", "The threat model and how to report a problem"),
+  ]),
+  ("Resources", "resources/", [
+    ("guide/", "User guide", "Every screen and setting of the programs, by task"),
+    ("whats-new/", "Release notes", "What changed in each release"),
+    ("downloads/", "Downloads", "The programs, the development package and the source"),
+    ("faq/", "FAQ", "Short answers about the products and the editions"),
+    ("support/", "Support", "Help, problem reports and how to reach us"),
+    ("resources/", "All resources", "Guides, references, the standards and the project"),
+  ]),
+  ("Pricing", "pricing/", []),
+] -%}
+{%- set bar = [("products/", "Products"), ("platforms/", "Platforms"), ("solutions/", "Solutions"), ("assurance/", "Assurance"), ("pricing/", "Pricing"), ("downloads/", "Downloads")] -%}
+{%- set more = [("whats-new/", "Release notes"), ("pricing/", "Pricing"), ("licensing/", "Licensing"), ("qualification-kit/", "Qualification kit"), ("faq/", "FAQ"), ("support/", "Support"), ("privacy/", "Privacy"), ("accessibility/", "Accessibility"), ("press/", "Press")] -%}

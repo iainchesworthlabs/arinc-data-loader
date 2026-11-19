@@ -255,3 +255,108 @@ code { font-family: var(--icl-font-mono); font-size: 0.92em; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 @media (forced-colors: active) { .icl-button, .icl-card { border: 2px solid ButtonText; } }
 @media print { .icl-header, .icl-appbar, .icl-footer, .icl-actions { display: none; } body { color: #000; background: #fff; } }
+
+/*
+  next.css: additions for the next-generation shell. New classes only, so they can be appended to
+  site/assets/v1/icl.css without breaking existing pages (v1 stays backwards compatible).
+  No script: the Products menu is a native <details>. Open and close by click or Enter/Space;
+  Tab moves through the links. Without script it does not close on outside click (known limit).
+*/
+
+/* ---------- Header: sticky, with a Products menu ---------- */
+.icl-header--next { position: sticky; top: 0; z-index: 20; }
+.icl-header--next .icl-nav { align-items: center; }
+.icl-menu > summary {
+  display: inline-flex; align-items: center; gap: var(--icl-space-2); cursor: pointer; list-style: none;
+  padding: var(--icl-space-2) var(--icl-space-1); font-weight: 560; color: var(--icl-fg);
+}
+.icl-menu > summary::-webkit-details-marker { display: none; }
+.icl-menu > summary::after {
+  content: ""; width: 0.5em; height: 0.5em; border: solid currentColor; border-width: 0 2px 2px 0;
+  transform: translateY(-0.15em) rotate(45deg); transition: transform var(--icl-ease);
+}
+.icl-menu[open] > summary { text-decoration: underline; text-decoration-color: var(--app-accent); text-decoration-thickness: 0.15em; text-underline-offset: 0.3em; }
+.icl-menu[open] > summary::after { transform: translateY(0.1em) rotate(-135deg); }
+.icl-menu > summary:hover { text-decoration: underline; text-decoration-color: var(--app-accent); text-decoration-thickness: 0.15em; text-underline-offset: 0.3em; }
+.icl-menu__panel {
+  position: absolute; left: 0; right: 0; top: 100%;
+  background: var(--icl-surface); border-bottom: 1px solid var(--icl-border);
+  box-shadow: 0 24px 40px rgb(0 0 0 / 0.14);
+  max-height: calc(100vh - 4rem); overflow-y: auto;
+}
+.icl-menu__inner { width: min(100% - 2 * var(--icl-gutter), var(--icl-wide)); margin-inline: auto; display: grid; gap: var(--icl-space-5) var(--icl-space-6); padding-block: var(--icl-space-6); }
+@media (min-width: 52rem) { .icl-menu__inner { grid-template-columns: repeat(4, 1fr) 0.8fr; } }
+.icl-menu__fam { border-top: 4px solid var(--app-accent); padding-top: var(--icl-space-3); }
+.icl-menu__fam h2, .icl-menu__side h2 { font-size: var(--icl-step--1); letter-spacing: 0.06em; text-transform: uppercase; color: var(--app-link); margin: 0 0 var(--icl-space-3); }
+.icl-menu__side { border-top: 4px solid var(--icl-border); padding-top: var(--icl-space-3); }
+.icl-menu__side h2 { color: var(--icl-fg-muted); }
+.icl-menu ul { margin: 0; padding: 0; list-style: none; }
+.icl-menu li { padding-block: var(--icl-space-1); }
+.icl-menu li > a, .icl-menu li > span { display: block; padding: var(--icl-space-1) 0; color: var(--icl-fg); text-decoration: none; }
+.icl-menu li > a strong { display: block; font-weight: 680; }
+.icl-menu li > a:hover strong { text-decoration: underline; text-decoration-color: var(--app-accent); text-decoration-thickness: 0.12em; text-underline-offset: 0.2em; }
+.icl-menu li small { display: block; color: var(--icl-fg-muted); font-size: var(--icl-step--1); line-height: 1.4; }
+.icl-menu li > span { color: var(--icl-fg-muted); }
+.icl-menu li > span strong { font-weight: 560; }
+.icl-menu .icl-menu__all { display: inline-block; margin-top: var(--icl-space-2); padding-inline: 0; color: var(--app-link); font-weight: 650; }
+
+/* ---------- Brand hero and quick pills ---------- */
+.icl-hero--brand { background: var(--app-gradient); color: var(--app-on-gradient); padding-block: clamp(var(--icl-space-8), 10vw, var(--icl-space-10)); }
+.icl-hero--brand h1, .icl-hero--brand .icl-lead { color: var(--app-on-gradient); }
+.icl-hero--brand h1 { max-width: 14ch; }
+.icl-hero--brand .icl-lead { max-width: 36ch; }
+.icl-pills { display: flex; flex-wrap: wrap; gap: var(--icl-space-3); margin: var(--icl-space-6) 0 0; padding: 0; list-style: none; }
+.icl-pills a {
+  display: inline-flex; align-items: center; gap: var(--icl-space-2); min-height: 2.75rem; padding: var(--icl-space-2) var(--icl-space-4);
+  border: 2px solid currentColor; border-radius: 999px; color: inherit; font-weight: 650; text-decoration: none;
+  transition: background-color var(--icl-ease);
+}
+.icl-pills a:hover { background: rgb(255 255 255 / 0.16); }
+.icl-pills a::before { content: ""; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--app-accent-pill, currentColor); border: 2px solid currentColor; }
+
+/* ---------- Family tiles (each family in its own colour) ---------- */
+.icl-tiles { display: grid; gap: var(--icl-space-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); margin: 0; padding: 0; list-style: none; }
+.icl-tile {
+  position: relative; display: flex; flex-direction: column; gap: var(--icl-space-3); height: 100%; min-height: 18rem;
+  padding: var(--icl-space-6); border-radius: var(--icl-radius-l);
+  background: var(--app-gradient); color: var(--app-on-gradient);
+  transition: transform var(--icl-ease);
+}
+.icl-tile:hover { transform: translateY(-3px); }
+.icl-tile h3 { font-size: var(--icl-step-3); margin: 0; color: inherit; }
+.icl-tile p { margin: 0; max-width: 34ch; }
+.icl-tile__list { display: flex; flex-wrap: wrap; gap: var(--icl-space-2); margin: 0; padding: 0; list-style: none; }
+.icl-tile__list li { padding: 0.125rem var(--icl-space-3); border: 1px solid currentColor; border-radius: 999px; font-size: var(--icl-step--1); }
+.icl-tile__go { margin-top: auto; font-weight: 700; }
+.icl-tile__go::after { content: " \2192"; }
+.icl-tile a { color: inherit; text-decoration: none; }
+.icl-tile a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.icl-tile a:focus-visible { outline: none; }
+.icl-tile:focus-within { outline: 3px solid var(--icl-fg); outline-offset: 4px; }
+
+/* ---------- Spotlight (one product that exists now) ---------- */
+.icl-spot { display: grid; gap: var(--icl-space-6); align-items: center; padding: var(--icl-space-6); background: var(--app-tint); border: 1px solid var(--icl-border); border-left: 6px solid var(--app-accent); border-radius: var(--icl-radius-l); }
+@media (min-width: 52rem) { .icl-spot { grid-template-columns: 1fr auto; padding: var(--icl-space-7); } }
+.icl-spot h2 { margin-bottom: var(--icl-space-3); }
+.icl-spot p { color: var(--icl-fg-muted); max-width: 52ch; }
+.icl-spot .icl-eyebrow { margin-bottom: var(--icl-space-2); }
+
+/* ---------- Family page header ---------- */
+.icl-prose-wide { max-width: 44rem; }
+.icl-hero--family { padding-block: clamp(var(--icl-space-7), 8vw, var(--icl-space-9)); }
+.icl-hero--family h1 { font-size: var(--icl-step-5); max-width: 14ch; }
+.icl-crumb { margin: 0 0 var(--icl-space-4); font-size: var(--icl-step--1); }
+.icl-crumb a { color: inherit; }
+
+@media (prefers-reduced-motion: reduce) { .icl-tile:hover { transform: none; } }
+@media (forced-colors: active) { .icl-tile, .icl-spot { border: 2px solid ButtonText; } .icl-pills a { border-color: ButtonText; } }
+@media print { .icl-menu { display: none; } }
+
+/* ---------- Line art (inline SVG, decorative, takes the text colour of its block) ---------- */
+.icl-art { position: absolute; right: var(--icl-space-5); top: var(--icl-space-5); width: min(34%, 8rem); height: auto; opacity: 0.32; pointer-events: none; }
+.icl-tile > :not(.icl-art), .icl-hero--family > .icl-wrap { position: relative; }
+.icl-hero--family { position: relative; }
+.icl-hero--family .icl-art { top: 50%; bottom: auto; right: var(--icl-gutter); width: min(40%, 22rem); transform: translateY(-50%); opacity: 0.28; }
+@media (max-width: 39.99rem) { .icl-hero--family .icl-art { top: auto; bottom: var(--icl-space-4); transform: none; width: 9rem; opacity: 0.22; } }
+@media (forced-colors: active) { .icl-art { display: none; } }
+@media print { .icl-art { display: none; } }
