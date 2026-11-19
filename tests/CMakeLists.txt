@@ -181,6 +181,22 @@ adl_deploy_sanitizer_runtime(adl_loader_core_run_tests)
 
 catch_discover_tests(adl_loader_core_run_tests PROPERTIES LABELS "integration")
 
+# The command-line program adl_load (apps/load): its options and its events, which need no host.
+add_executable(adl_load_tests
+    load/options_test.cpp)
+
+target_link_libraries(adl_load_tests
+    PRIVATE
+        adl_load_cli
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_load_tests)
+
+catch_discover_tests(adl_load_tests PROPERTIES LABELS "unit")
+
 # The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
 # fake platform, and the simulated target the whole of an operation is run against.
 add_executable(adl_engine_tests
