@@ -360,10 +360,13 @@ The first line of `show` is `Edition: pro`. `cannot read %1: %2`.
 
 
 class LicenceCommand(Check):
-    """adl_licence is a program of the guide, but its sentences and exit codes are held to its own section of the page."""
+    """adl_licence is a program of the guide, but its sentences and exit codes are held to its own section of the page.
 
-    def setUp(self) -> None:
-        super().setUp()
+    The tests of Check that rewrite the command-line page run here too, so the program's files are put in by each test
+    that is about it (`install`), and not by `setUp`.
+    """
+
+    def install(self) -> None:
         (self.root / "libs" / "licence_cli" / "src").mkdir(parents=True)
         (self.root / "libs" / "licence_cli" / "include" / "adl" / "licence_cli").mkdir(parents=True)
         (self.root / "libs" / "licence_cli" / "src" / "messages.hpp").write_text(LICENCE_COMMAND_MESSAGES, encoding="utf-8")
@@ -373,26 +376,27 @@ class LicenceCommand(Check):
         self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION, encoding="utf-8")
 
     def test_a_page_that_has_everything_passes(self) -> None:
+        self.install()
         self.assertEqual(self.problems(), "")
 
     def test_a_sentence_that_is_not_on_the_page_is_found(self) -> None:
+        self.install()
         self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION.replace("`cannot read %1: %2`", ""), encoding="utf-8")
         self.assertIn("'cannot read %1: %2' of adl_licence is not on docs/user-guide/command-line.md", self.problems())
 
     def test_the_usage_text_is_asked_for_whole(self) -> None:
-        self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION.replace("       adl_licence import <file>\n", ""),
+        self.install()
+        self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION.replace("       adl_licence import <file>" + chr(10), ""),
                              encoding="utf-8")
         self.assertIn("usage: adl_licence show", self.problems())
 
     def test_a_new_exit_code_is_found(self) -> None:
-        self.codes.write_text(LICENCE_COMMAND_EXIT_CODES + "inline constexpr int exit_other = 3;\n", encoding="utf-8")
+        self.install()
+        self.codes.write_text(LICENCE_COMMAND_EXIT_CODES + "inline constexpr int exit_other = 3;" + chr(10), encoding="utf-8")
         self.assertIn("the exit code 3 of adl_licence is not a row of the table in docs/user-guide/command-line.md",
                       self.problems())
 
     def test_without_the_program_nothing_is_asked(self) -> None:
-        (self.root / "libs" / "licence_cli" / "src" / "messages.hpp").unlink()
-        self.codes.unlink()
-        self.page.write_text(GOOD_PAGE, encoding="utf-8")
         self.assertEqual(self.problems(), "")
 
 
