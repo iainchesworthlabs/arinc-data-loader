@@ -148,13 +148,11 @@ std::vector<Action> ScenarioPlayer::fire(std::size_t index, OperationKind kind, 
     }
     if (observer_)
     {
-        StepFired fired{step.number, step.trigger, at, kind, step.action.effect, applied, value};
-        if (on_datagram)
-        {
-            fired.count = step.count.value_or(1);
-            fired.on = step.on;
-        }
-        observer_(fired);
+        // Built whole: assigning the selector into an existing optional makes GCC's analysis of the sanitizer builds
+        // think that the text in it may be used before it is set.
+        observer_(StepFired{step.number, step.trigger, at, kind, step.action.effect, applied, value,
+                            on_datagram ? std::optional<std::int64_t>{step.count.value_or(1)} : std::nullopt,
+                            on_datagram ? step.on : std::nullopt});
     }
     if (on_datagram)
     {

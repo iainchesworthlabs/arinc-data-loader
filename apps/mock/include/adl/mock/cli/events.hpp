@@ -41,7 +41,7 @@ struct Started
     std::uint16_t tftp_port = 0;
     std::vector<std::string> faults;                     // the fault options that are on, as written (--silent)
     std::optional<ScenarioInfo> scenario = std::nullopt; // with --scenario
-    std::vector<std::string> features; // every action word of a scenario this build knows; no key when empty
+    std::vector<std::string> features = {}; // every action word of a scenario this build knows; no key when empty
 };
 
 // An operation has started: the target accepted a request and is working on it.
