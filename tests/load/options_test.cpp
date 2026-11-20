@@ -256,7 +256,8 @@ TEST_CASE("options that do not belong to a command are refused", "[load][options
                    "--pick-all is not an option of information"));
 }
 
-TEST_CASE("--scenario names a file, for the three commands that run one operation and for none else", "[load][options]")
+TEST_CASE("the --scenario option names a file, for the three commands that run one operation and for none else",
+          "[load][options]")
 {
     CHECK_FALSE(accepted({"information", "--target", target, "--position", position}).scenario.has_value());
     CHECK(accepted({"information", "--target", target, "--position", position, "--scenario", "faults.json"}).scenario ==

@@ -77,6 +77,10 @@ namespace adl::test
     {
         add("--record", *options.record);
     }
+    if (options.scenario)
+    {
+        add("--scenario", *options.scenario);
+    }
     if (options.command == Command::upload)
     {
         add("--media-set", options.media_set);

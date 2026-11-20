@@ -111,6 +111,13 @@ SEEDS_LOAD = {
     "bad-max-operations-too-big": ["serve", "--max-operations", "65"],
     "max-operations-for-find": ["find", "--max-operations", "8"],
     "serve-with-target": ["serve", "--target", "10.0.0.2"],
+    "information-scenario": ["information", *TARGET, "--scenario", "faults.json", "--json"],
+    "upload-scenario-unicode": ["upload", *TARGET, "--media-set", "set", "--all-loads", "--scenario", "my dir/scénario-日本語.json"],
+    "download-scenario": ["download", *TARGET, "--into", "out", "--pick-all", "--scenario", "./--faults", "--record", "r.json"],
+    "scenario-for-find": ["find", "--scenario", "faults.json"],
+    "scenario-for-serve": ["serve", "--scenario", "faults.json"],
+    "scenario-needs-a-value": ["information", *TARGET, "--scenario"],
+    "scenario-given-twice": ["information", *TARGET, "--scenario", "a.json", "--scenario", "b.json"],
 }
 
 # The standard input of `adl_load serve` for the harness of apps/load (serve_request): lines of requests, with
@@ -118,6 +125,7 @@ SEEDS_LOAD = {
 HERE = "run\tfms-left.1\tupload\t--target\t192.168.10.21\t--position\tHNPFMS_L\t--media-set\t"
 SEEDS_SERVE = {
     "run-information": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\tHNPFMS_L\n",
+    "run-with-a-scenario": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\tHNPFMS_L\t--scenario\tfaults.json\n",
     "run-upload": HERE + "E:\\sets\\FMS STD14\t--all-loads\t--record\tE:\\runs\\fms-left.1.json\n",
     "run-upload-loads": HERE + "sets/fms\t--load\tPN-1\t--load\tPN-2\t--target-port\t5059\n",
     "run-download-files": "run\td.2\tdownload\t--target\t10.0.0.3\t--position\tHNPFMS_R\t--into\tout\t--file\tA.BIN\t--file\tB.BIN\n",
