@@ -508,6 +508,19 @@ Item {
                             font.family: Theme.monoFamily
                             wrapMode: Text.WordWrap
                         }
+
+                        // Which edition the program ran as when the operation started (the licence model's words).
+                        Text {
+                            objectName: "downloadReceiptStamp"
+
+                            Layout.fillWidth: true
+                            visible: root.app.resultStamp.length > 0
+                            text: root.app.resultStamp
+                            color: Theme.textMuted
+                            font.pixelSize: Theme.fontSmall
+                            font.family: Theme.monoFamily
+                            wrapMode: Text.WordWrap
+                        }
                     }
                 }
             }

@@ -80,6 +80,13 @@ class LoaderModel : public QObject
     // started (the ticks may change afterwards) and when it ended, as local "yyyy-MM-dd HH:mm:ss".
     Q_PROPERTY(int resultLoadCount READ resultLoadCount NOTIFY resultChanged)
     Q_PROPERTY(QString resultTime READ resultTime NOTIFY resultChanged)
+    // The words that say which edition the program ran as ("Edition: Pro, licence ADL-2026-000123"), made by the
+    // licence model, already in the person's language, and set by the window. The loader puts them in the activity
+    // log when a transfer starts and in the receipt of the transfer: the stamp of the licence at the moment the
+    // transfer started, whatever the licence becomes while it runs. Empty puts nothing anywhere. The loader reads no
+    // licence and nothing depends on it.
+    Q_PROPERTY(QString licenceStamp READ licenceStamp WRITE setLicenceStamp NOTIFY licenceStampChanged)
+    Q_PROPERTY(QString resultStamp READ resultStamp NOTIFY resultChanged)
     // A failed job, for the window's error dialog: what happened, what it means, and what the
     // operator can do (when the application knows). Set on every failure, one dialog per
     // failure; `dismissError` acknowledges it.
@@ -233,6 +240,15 @@ public:
     [[nodiscard]] QString resultTime() const
     {
         return result_time_;
+    }
+    [[nodiscard]] QString licenceStamp() const
+    {
+        return licence_stamp_;
+    }
+    void setLicenceStamp(const QString& stamp);
+    [[nodiscard]] QString resultStamp() const
+    {
+        return result_stamp_;
     }
     [[nodiscard]] QString lastErrorText() const
     {
@@ -427,6 +443,7 @@ Q_SIGNALS:
     void downloadDirectoryChanged();
     void progressChanged();
     void resultChanged();
+    void licenceStampChanged();
     // A failure has been recorded (the window opens its dialog) ...
     void errorChanged();
     // ... or the text of the failure on show changed, which also happens when it is dismissed
@@ -512,6 +529,9 @@ private:
     int job_load_count_ = 0; // the ticked loads when the running job started
     int result_load_count_ = 0;
     QString result_time_;
+    QString licence_stamp_; // what the window last said
+    QString job_stamp_;     // the stamp when the running transfer started
+    QString result_stamp_;  // the last transfer's
     Message last_error_text_;
     Message last_error_detail_;
     Message last_error_hint_;

@@ -242,6 +242,17 @@ QString LicenceModel::editionText() const
     return edition_words(impl_->best.value->edition, impl_->best.value->kind == lic::LicenceKind::trial);
 }
 
+QString LicenceModel::stamp() const
+{
+    // The edition in force and, when a licence is in force, its number. The number of a licence that has ended is not
+    // given: the stamp says what the program runs as.
+    if (impl_->best.active() && impl_->best.value)
+    {
+        return tr("Edition: %1, licence %2").arg(editionText(), text_of(impl_->best.value->licence_id));
+    }
+    return tr("Edition: %1").arg(editionText());
+}
+
 QString LicenceModel::state() const
 {
     return text_of(lic::state_name(impl_->best.state));

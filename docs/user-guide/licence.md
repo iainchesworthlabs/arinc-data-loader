@@ -24,6 +24,7 @@ nothing. It reads the name of the computer only to compare it with the computers
 | The **edition chip**, at the right of the status bar | The edition, and when the licence is ending or has ended, how much is left. Press it to open the Licence window |
 | The **Licence** window | Which edition this is, whose licence it is, for how long, what it includes, every licence file found, and the buttons that import and remove one |
 | The **notice** under the header | One line, when a licence ends soon, is in its grace period, has ended, or when the date of the computer looks wrong. It never blocks anything |
+| The loader's **log** and **receipt** | One line, `Edition: ...`, at the start of every transfer and under the last line of its receipt: the edition the program ran as and, when a licence is in force, its number ([The log and the receipt](log-and-receipt.md#the-receipt)). `adl_load` writes the same facts in its operation record ([The licence in a record](../file-reference.md#the-licence-in-a-record)) |
 | **About** | The line **Edition**, and a **Licence...** button. The **Licences** button of About is the third-party notices, which is another thing |
 | The **Support** window | What the licence says about support, what to send when you ask for help, and the details of this copy |
 

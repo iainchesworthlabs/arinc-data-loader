@@ -815,6 +815,78 @@ void LoaderModelTest::the_target_of_the_last_operation_comes_back()
     QCOMPARE(again.thwIdPos(), QStringLiteral("HNPFMS_L"));
 }
 
+void LoaderModelTest::a_transfer_says_the_edition_before_anything_else_and_the_receipt_keeps_it()
+{
+    QTemporaryDir settings_dir;
+    adl::test::Rig rig;
+    LoaderModel model(rig_host(rig), settings_in(settings_dir));
+    point_at_the_target(model);
+    QVERIFY(model.licenceStamp().isEmpty());
+    QVERIFY(model.resultStamp().isEmpty());
+
+    const QString pro = QStringLiteral("Edition: Pro, licence ADL-2026-000123");
+    QSignalSpy stamp_changed(&model, &LoaderModel::licenceStampChanged);
+    model.setLicenceStamp(pro);
+    model.setLicenceStamp(pro); // the same words are no change
+    QCOMPARE(stamp_changed.count(), 1);
+
+    const auto row_of = [&](const QString& text)
+    {
+        const auto* events = qobject_cast<EventModel*>(model.events());
+        for (int row = 0; row < events->rowCount(); ++row)
+        {
+            if (events->data(events->index(row), EventModel::TextRole).toString().contains(text))
+            {
+                return row;
+            }
+        }
+        return -1;
+    };
+
+    model.readInformation();
+    // The window says other words while the transfer runs (the licence ended, say): the transfer keeps its own.
+    model.setLicenceStamp(QStringLiteral("Edition: Community"));
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QCOMPARE(model.resultStamp(), pro);
+
+    // The log has the stamp once, and before what the transfer says of itself.
+    QCOMPARE(log_count(model, QStringLiteral("Edition: ")), 1);
+    QVERIFY(row_of(pro) >= 0);
+    QVERIFY(row_of(pro) < row_of(QStringLiteral("Asking 10.0.0.2 (HNPFMS_L)")));
+    const auto* events = qobject_cast<EventModel*>(model.events());
+    QCOMPARE(events->data(events->index(row_of(pro)), EventModel::SeverityRole).toInt(),
+             static_cast<int>(Severity::info));
+
+    // The next transfer is stamped with the words the window has now, and its receipt replaces the last one.
+    model.readInformation();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultStamp(), QStringLiteral("Edition: Community"));
+    QCOMPARE(log_count(model, QStringLiteral("Edition: ")), 2);
+}
+
+void LoaderModelTest::no_stamp_means_no_line_and_a_media_set_read_is_not_stamped()
+{
+    QTemporaryDir settings_dir;
+    adl::test::Rig rig;
+    LoaderModel model(rig_host(rig), settings_in(settings_dir));
+    point_at_the_target(model);
+
+    // The window has said nothing: no line and no stamp on the receipt, and the transfer works as it did.
+    model.readInformation();
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QCOMPARE(model.resultState(), 1);
+    QVERIFY(model.resultStamp().isEmpty());
+    QCOMPARE(log_count(model, QStringLiteral("Edition")), 0);
+
+    // A media set read is no transfer: it has no receipt, so it is not stamped even when the window has words.
+    model.setLicenceStamp(QStringLiteral("Edition: Pro, licence ADL-2026-000123"));
+    model.chooseMediaSet(QUrl::fromLocalFile(QDir::tempPath() + QStringLiteral("/no-such-set")));
+    QTRY_VERIFY_WITH_TIMEOUT(!model.busy(), 20000);
+    QVERIFY(model.resultStamp().isEmpty());
+    QCOMPARE(log_count(model, QStringLiteral("Edition")), 0);
+}
+
 void LoaderModelTest::a_failure_surfaces_for_the_dialog()
 {
     QTemporaryDir settings_dir;
