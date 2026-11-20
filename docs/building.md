@@ -110,7 +110,6 @@ The build has a source side and a target side, and the libraries sit on both.
 | --- | --- | --- | --- |
 | Portable libraries | `adl::platform`, `adl::arinc665`, `adl::arinc615a`, `adl::arinc615a_mini`, `adl::arinc615a_runner`, `adl::media_tree`, `adl::samples` | always | source and target |
 | Payload writer | `adl_write_payloads` | always | source (desktop) |
-| Mock target as a command | `adl_mock` (the mock target with no window and no Qt, [described here](mock-target.md#the-command)) | always | source (desktop) |
 | Licence library and the owner's licence tool | `adl::licence` (with `adl::licence_sign` and `adl::licence_test_keys`) and the program `adl_licence_owner` ([the tool](licence-owner-tool.md)); built, never installed or packed | always, on a desktop | source (desktop) |
 | Mock target as a command | `adl_mock` (the mock target with no window and no Qt, [described here](mock-target.md#the-command)) | always | source (desktop) |
 | Source-side applications (Qt) | `adl_app` (the data loader), `adl_media_gen` (the media set generator), `adl_mock_target` (a 615A target, for demonstrations) | `ADL_BUILD_APP`, on by default on a desktop | source (desktop) |

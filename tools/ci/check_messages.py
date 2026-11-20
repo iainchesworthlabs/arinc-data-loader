@@ -25,9 +25,6 @@ What the programs say to the person using them has two sources, and this check h
 5. The owner's licence tool (tools/licence), which is not shipped and so is not a program of the guide. Every sentence in
    tools/licence/src/messages.hpp and every exit_* constant of tools/licence/src/owner.hpp must be on its own page,
    docs/licence-owner-tool.md, by the same rules (a placeholder stands for anything; a row of a table for a code).
-5. adl_mock, which has no Qt and so no catalogue. Its exit codes (the exit_* constants of its command.hpp) must be rows of the table
-   in the page's section of adl_mock, and every text in the literals of the sources that make what it says (MOCK_SOURCES: the
-   usage errors, the folder and port errors, the usage text) must be in the page, with the same match as the rest.
 
 The check does not decide that the description is good, only that it is there. A new message or exit code fails it until the guide says
 something about it. Run it after a change to a message. tests/CMakeLists.txt runs it as the test docs.messages.
