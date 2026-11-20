@@ -2,24 +2,26 @@ name: Docs
 
 # Builds the documentation site and puts it where readers find it (docs/ci.md, "Publishing").
 #
-#  - The site is the /adl/ section of the company site. A push to main (the release bot's fast-forward after a
-#    release; a push made with an App token starts workflows, one made with GITHUB_TOKEN does not) deploys it, and a pull
-#    request that changes the documentation gets a preview at /_preview/adl/pr-<number>/, commented on the pull request
-#    and removed when it closes. The deploy is the shared reusable workflow of icl-common-infra: it assumes a role by
-#    OIDC that may write this section only, from four repository secrets that the owner sets. A run that does not have
-#    them skips the deploy with a warning and does not fail, so this workflow is safe before the company site has the
-#    role for this repository.
+#  - The site is the /adl/ section of the company site. A push to the branch `site` deploys it. Nothing else moves
+#    that branch but publish-site.yml, which the owner runs by hand and which fast-forwards it to the tip of develop with
+#    the release bot's App token (a push made with an App token starts workflows, one made with GITHUB_TOKEN does not).
+#    `site` holds the source commit that is built here, not built pages. A pull request that changes the documentation
+#    gets a preview at /_preview/adl/pr-<number>/, commented on the pull request and removed when it closes. The deploy
+#    is the shared reusable workflow of icl-common-infra: it assumes a role by OIDC that may write this section only,
+#    from four repository secrets that the owner sets. A run that does not have them skips the deploy with a warning and
+#    does not fail, so this workflow is safe before the company site has the role for this repository.
 #  - GitHub Pages still serves a small page at each address of the first site, pointing to the page's new address
-#    (tools/docs/make_old_address_stubs.py). That waits for the repository variable PUBLISH_DOCS = true, which is set
-#    once Pages is switched on (docs/releasing.md, "Setup"), so that a repository without Pages does not get a red run on
-#    every release. It uses the Pages "GitHub Actions" source and not a gh-pages branch.
+#    (tools/docs/make_old_address_stubs.py). That is built from main, so it follows a release, and it waits for the
+#    repository variable PUBLISH_DOCS = true, which is set once Pages is switched on (docs/releasing.md, "Setup"), so
+#    that a repository without Pages does not get a red run on every release. It uses the Pages "GitHub Actions" source
+#    and not a gh-pages branch.
 #
 # The strict build that gates a change is the `Docs build (strict)` job of ci.yml; this workflow builds the same site
 # again with the same checks, because the deploy needs the built site as an artifact.
 
 on:
   push:
-    branches: [main]
+    branches: [main, site]
   pull_request:
     branches: [develop]
     types: [opened, synchronize, reopened, closed]
@@ -34,7 +36,7 @@ on:
       - ".github/requirements/docs.*"
   workflow_dispatch:
 
-# Two builds of main must not publish at once. A newer push to a pull request replaces the older preview run.
+# Two builds of main, or of site, must not publish at once. A newer push to a pull request replaces the older preview run.
 concurrency:
   group: docs-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -66,23 +68,25 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      # What GitHub Pages serves is the pages that forward, not the site: the site's address is the company's.
+      # What GitHub Pages serves is the pages that forward, not the site: the site's address is the company's. Only main
+      # publishes them (the `publish` job below), so only main writes them.
       - name: Write the pages that forward the old addresses
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
         run: python3 tools/docs/make_old_address_stubs.py --out old-addresses
 
       - name: Package the pages for Pages
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: old-addresses
 
-  # Production: only from main. The reusable workflow refuses any other ref, and this condition keeps a manual run of
-  # another branch from showing a red job for it.
+  # Production: only on a push to site. The reusable workflow refuses any other ref, and the company site's role trusts a
+  # push to this branch and nothing else (not a run by hand, not main), so this condition keeps those runs from showing a
+  # red job. To publish the same commit again, re-run the run of that push.
   deploy:
     name: Deploy the site
     needs: build
-    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/site' }}
     permissions:
       contents: read
       id-token: write
@@ -90,7 +94,7 @@ jobs:
     uses: iainchesworthlabs/icl-common-infra/.github/workflows/docs-deploy-aws.yml@54f3b7ecd95fa07034f6f50a057c537ee98cd30d # v0.1.28
     with:
       prefix: adl
-      production-ref: refs/heads/main
+      production-ref: refs/heads/site
     secrets:
       DOCS_ROLE_ARN: ${{ secrets.DOCS_ROLE_ARN }}
       DOCS_PREVIEW_ROLE_ARN: ${{ secrets.DOCS_PREVIEW_ROLE_ARN }}
@@ -110,9 +114,9 @@ jobs:
           {
             echo "## The site was not deployed"
             echo
-            echo "The usual cause is the role: its trust policy has to allow a push to main of this repository, which"
-            echo "needs the entry for this repository in the company site's apps.ts (slug adl, publishRef main) and a"
-            echo "cdk deploy by the owner. Then run this workflow again from main. docs/ci.md, \"Publishing\", lists the steps."
+            echo "The usual cause is the role: its trust policy has to allow a push to site of this repository, which"
+            echo "needs the entry for this repository in the company site's apps.ts (slug adl, publishRef site) and a"
+            echo "cdk deploy by the owner. Then re-run this run. docs/ci.md, \"Publishing\", lists the steps."
           } >> "$GITHUB_STEP_SUMMARY"
           echo "::error::The site was not deployed. See the run summary; the role or its trust policy is the usual cause."
 
