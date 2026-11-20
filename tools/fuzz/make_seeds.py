@@ -6,7 +6,8 @@
 
 The golden headers (tests/golden/golden_payloads.hpp for ARINC 665, tests/golden/golden_615a.hpp for
 ARINC 615A, tests/golden/golden_licence.hpp for licence files) hold the hexadecimal of valid files and
-packets that were written independently of the library. Each becomes one binary file under libs/<lib>/fuzz/corpus/<target>/, so the fuzzers start from
+packets that were written independently of the library. Each becomes one binary file under
+libs/<lib>/fuzz/corpus/<target>/ (tools/<tool>/fuzz/corpus/<target>/ for a tool), so the fuzzers start from
 inputs that get past the first checks. Run it again after the golden data changes; the files it writes
 are committed. The command lines that seed libs/platform/fuzz are in this script.
 """

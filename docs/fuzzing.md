@@ -8,7 +8,7 @@ command line of a program (the platform layer's split of it and its text convers
 decoder returns an error for a bad input and never crashes; the fuzzers are there to find the input for
 which that is not true.
 
-| Library | Targets (`adl_fuzz_<name>`) |
+| Directory | Targets (`adl_fuzz_<name>`) |
 | --- | --- |
 | `libs/arinc665/fuzz` | `header_file` (a load's `.LUH`), `batch_file` (`.LUB`), `loads_list` (`LOADS.LUM`), `files_list` (`FILES.LUM`), `batches_list` (`BATCHES.LUM`). A decoded file is also checked against the standard and written back. |
 | `libs/platform/fuzz` | `command_line` (the split of a Windows command line and the conversions between UTF-8 and UTF-16 in `libs/platform/detail/command_line.hpp`; the harness checks that what comes out is UTF-8, which converts to UTF-16 and back unchanged). Its seeds are command lines, as UTF-16 with the low byte first. |
@@ -16,7 +16,7 @@ which that is not true.
 | `tools/licence/fuzz` | `owner`: what the owner's tool reads that is not a licence file ([the tool](licence-owner-tool.md)): a public key file (what is accepted is what the writer writes, and reads back as the same key), the words of a command line, a UTF-16 command line, a licence number and a key id. The seeds are written by `tools/fuzz/make_seeds.py`, as they have no golden data. |
 | `libs/licence/fuzz` | `licence`: the signed envelope, the strict JSON reader, the licence payload, a revocation list and the dates, all from one input. What a reader accepts is written back and read again, and has to come out the same. The seeds are licence files and payloads signed with the published test key. |
 
-Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
+A harness is in `libs/<lib>/fuzz` or, for a program of the repository's tools, in `tools/<tool>/fuzz`. Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
 `python3 tools/fuzz/make_seeds.py` from the golden data of the tests (`tests/golden`), and a directory of
 **regressions** (`regressions/<name>/`): inputs that once crashed it.
 
@@ -45,7 +45,7 @@ the report again. The sanitizers abort on the first undefined behaviour (`-fno-s
 
 ## When a fuzzer finds something
 
-Fix the decoder, and add the input that crashed it to `libs/<lib>/fuzz/regressions/<name>/` in the same
+Fix the decoder, and add the input that crashed it to `regressions/<name>/` beside its harness (`libs/<lib>/fuzz` or `tools/<tool>/fuzz`) in the same
 pull request, so that the pull request gate replays it from then on. Give the file a name that says what
 it was (`truncated-option.bin`). Do not add the files libFuzzer found that did not crash; the seed
 corpus is meant to stay small and readable.
@@ -62,10 +62,12 @@ corpus is meant to stay small and readable.
   hits it is reported in the same issue.
 
 - `clusterfuzzlite.yml` runs [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) on a ready pull
-  request that changes `libs/`, `cmake/` or the files in `.clusterfuzzlite/`: it builds the harnesses with
+  request that changes `libs/`, `tools/licence/`, `cmake/` or the files in `.clusterfuzzlite/`: it builds the harnesses with
   AddressSanitizer and fuzzes them for ten minutes between them. It is not a required check. The build is
   `.clusterfuzzlite/build.sh` in the image of `.clusterfuzzlite/Dockerfile` (the OSS-Fuzz base builder,
-  pinned by digest and moved by Dependabot; its Clang is older than the one the `linux-fuzz` preset uses).
+  pinned by digest and moved by Dependabot; its Clang is older than the one the `linux-fuzz` preset uses). The script
+  zips the seeds and regressions of each harness from `libs/*/fuzz` and `tools/*/fuzz`, and `fuzz.yml` starts from the
+  same directories, so a harness in either place is built, seeded and fuzzed.
   ClusterFuzzLite chooses the sanitizer and passes it in `CFLAGS`, so the build sets
   `ADL_FUZZING_SANITIZERS` empty. To try it before a push, build the image from a clean copy of the
   tracked files and run `compile` in it (`build/` would otherwise be sent to Docker too):
