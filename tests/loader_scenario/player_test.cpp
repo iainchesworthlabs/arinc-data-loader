@@ -10,9 +10,11 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstring>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -39,7 +41,7 @@ const Endpoint other_port{Address{{10, 0, 0, 2}}, 50002};
 // What a fault was reported as, copied.
 struct Reported
 {
-    std::size_t step = 0;
+    std::size_t step = 0; // from 1
     Action action = Action::drop;
     std::optional<DatagramKind> datagram;
     std::string file;
@@ -55,7 +57,8 @@ public:
     void on_fault(const FaultEvent& event) noexcept override
     {
         list.push_back(Reported{event.step, event.action, event.datagram, std::string{event.file}, event.block,
-                                event.amount, std::chrono::duration_cast<milliseconds>(event.at.since_origin).count()});
+                                event.amount,
+                                std::chrono::duration_cast<milliseconds>(event.time.since_origin).count()});
     }
 };
 
@@ -115,7 +118,7 @@ public:
     return command;
 }
 
-[[nodiscard]] Step step_of(Action action, Selector on = {}, Trigger when = {})
+[[nodiscard]] Step step_of(Action action, Selector on = {}, When when = {})
 {
     Step step;
     step.when = when;
@@ -128,8 +131,8 @@ public:
 class Driver
 {
 public:
-    explicit Driver(std::vector<Step> steps, std::uint64_t seed = 1)
-        : player(Scenario{"test", seed, std::move(steps)}, &events)
+    explicit Driver(std::vector<Step> steps, std::uint64_t seed = 1, OperationName operation = OperationName::any)
+        : player(Scenario{"test", "", seed, std::move(steps)}, operation, &events)
     {
     }
 
@@ -449,7 +452,7 @@ TEST_CASE("an abort message may carry a code that is not one of the loader's", "
 TEST_CASE("silence sends nothing until it ends, and the commands that close sockets still go",
           "[loader_scenario][player]")
 {
-    Step step = step_of(Action::silence, {}, Trigger{TriggerKind::time, 1000});
+    Step step = step_of(Action::silent, {}, When{TriggerKind::after_ms, 1000});
     step.fault.milliseconds = 4000;
     Driver driver({step});
     CHECK(driver.command(0, send(data_packet(1, 10))).size() == 1);
@@ -463,14 +466,14 @@ TEST_CASE("silence sends nothing until it ends, and the commands that close sock
     CHECK(driver.command(4999, send(data_packet(4, 10))).empty());
     CHECK(driver.command(5000, send(data_packet(5, 10))).size() == 1);
     REQUIRE(driver.events.list.size() == 1);
-    CHECK(driver.events.list[0].action == Action::silence);
+    CHECK(driver.events.list[0].action == Action::silent);
     CHECK(!driver.events.list[0].datagram);
     CHECK(driver.events.list[0].amount == 4000);
 }
 
 TEST_CASE("silence without a length lasts for the rest of the operation", "[loader_scenario][player]")
 {
-    Driver driver({step_of(Action::silence)});
+    Driver driver({step_of(Action::silent)});
     for (std::int64_t t = 0; t < 100'000; t += 10'000)
     {
         CHECK(driver.command(t, send(data_packet(1, 10))).empty());
@@ -479,7 +482,7 @@ TEST_CASE("silence without a length lasts for the rest of the operation", "[load
 
 TEST_CASE("abort is asked for once, when its trigger is reached", "[loader_scenario][player]")
 {
-    Step step = step_of(Action::abort, {}, Trigger{TriggerKind::status_file, 2});
+    Step step = step_of(Action::abort, {}, When{TriggerKind::status_file, 2});
     step.fault.status = 0x1004;
     Driver driver({step});
     driver.arrive_request(0, TftpRequest::Kind::write, "HNPFMS_L.LUS");
@@ -497,7 +500,7 @@ TEST_CASE("abort is asked for once, when its trigger is reached", "[loader_scena
 
 TEST_CASE("the nth request of the target puts a step in effect", "[loader_scenario][player][trigger]")
 {
-    Driver driver({step_of(Action::drop, {}, Trigger{TriggerKind::request, 3})});
+    Driver driver({step_of(Action::drop, {}, When{TriggerKind::request, 3})});
     driver.arrive_request(0, TftpRequest::Kind::write, "HNPFMS_L.LCS");
     driver.arrive_request(1, TftpRequest::Kind::read, "A.BIN");
     CHECK(driver.command(2, send(ack_packet(0))).size() == 1);
@@ -507,7 +510,7 @@ TEST_CASE("the nth request of the target puts a step in effect", "[loader_scenar
 
 TEST_CASE("only a write request for a status file counts as a status file", "[loader_scenario][player][trigger]")
 {
-    Driver driver({step_of(Action::drop, {}, Trigger{TriggerKind::status_file, 2})});
+    Driver driver({step_of(Action::drop, {}, When{TriggerKind::status_file, 2})});
     driver.arrive_request(0, TftpRequest::Kind::write, "HNPFMS_L.LCS");
     driver.arrive_request(1, TftpRequest::Kind::write, "HNPFMS_L.LCL"); // a list, not a status file
     driver.arrive_request(2, TftpRequest::Kind::read, "HNPFMS_L.LCS");  // a read
@@ -518,7 +521,7 @@ TEST_CASE("only a write request for a status file counts as a status file", "[lo
 
 TEST_CASE("a time trigger counts from the first command", "[loader_scenario][player][trigger]")
 {
-    Driver driver({step_of(Action::drop, {}, Trigger{TriggerKind::time, 2000})});
+    Driver driver({step_of(Action::drop, {}, When{TriggerKind::after_ms, 2000})});
     CHECK(driver.command(50'000, send(ack_packet(0))).size() == 1); // the operation began here
     CHECK(driver.command(51'999, send(ack_packet(0))).size() == 1);
     CHECK(driver.command(52'000, send(ack_packet(0))).empty());
@@ -581,8 +584,8 @@ TEST_CASE("the first step that is in effect and matches takes the datagram", "[l
     REQUIRE(sent.size() == 1);
     CHECK(sent[0] != again);
     REQUIRE(driver.events.list.size() == 2);
-    CHECK(driver.events.list[0].step == 0);
-    CHECK(driver.events.list[1].step == 1);
+    CHECK(driver.events.list[0].step == 1);
+    CHECK(driver.events.list[1].step == 2);
 }
 
 TEST_CASE("a step that was never applied is told afterwards", "[loader_scenario][player]")
@@ -591,7 +594,7 @@ TEST_CASE("a step that was never applied is told afterwards", "[loader_scenario]
     never_there.file = "NOTHING.BIN";
     Driver driver({step_of(Action::drop, never_there), step_of(Action::drop)});
     CHECK(driver.command(0, send(ack_packet(0))).empty());
-    CHECK(driver.player.unapplied_steps() == std::vector<std::size_t>{0});
+    CHECK(driver.player.unapplied_steps() == std::vector<std::size_t>{1});
 }
 
 TEST_CASE("the chance of a step is drawn from the seed, in the order the datagrams go",
@@ -631,6 +634,150 @@ TEST_CASE("a datagram too large to hold goes as it was", "[loader_scenario][play
     CHECK(driver.player.applied() == 0);
 }
 
+TEST_CASE("every puts a step in effect again, and times says how many times in all",
+          "[loader_scenario][player][trigger]")
+{
+    When when{TriggerKind::request, 2};
+    when.every = 3;
+    when.times = 2;
+    Driver driver({step_of(Action::drop, {}, when)});
+    driver.arrive_request(0, TftpRequest::Kind::read, "A.BIN");
+    CHECK(driver.command(1, send(ack_packet(0))).size() == 1);  // the 1st request: not yet
+    driver.arrive_request(2, TftpRequest::Kind::read, "A.BIN"); // the 2nd: the first occurrence
+    CHECK(driver.command(3, send(ack_packet(0))).empty());
+    CHECK(driver.command(4, send(ack_packet(0))).size() == 1); // one datagram for each occurrence
+    driver.arrive_request(5, TftpRequest::Kind::read, "A.BIN");
+    driver.arrive_request(6, TftpRequest::Kind::read, "A.BIN");
+    CHECK(driver.command(7, send(ack_packet(0))).size() == 1);
+    driver.arrive_request(8, TftpRequest::Kind::read, "A.BIN"); // the 5th: the second occurrence
+    CHECK(driver.command(9, send(ack_packet(0))).empty());
+    for (int i = 0; i < 6; ++i)
+    {
+        driver.arrive_request(10 + i, TftpRequest::Kind::read, "A.BIN");
+    }
+    CHECK(driver.command(20, send(ack_packet(0))).size() == 1); // times: that was the last
+    CHECK(driver.player.applied(1) == 2);
+}
+
+TEST_CASE("every with after_ms puts a step in effect each so many milliseconds", "[loader_scenario][player][trigger]")
+{
+    When when{TriggerKind::after_ms, 100};
+    when.every = 100;
+    Driver driver({step_of(Action::drop, {}, when)});
+    CHECK(driver.command(0, send(ack_packet(0))).size() == 1);
+    CHECK(driver.command(100, send(ack_packet(0))).empty());
+    CHECK(driver.command(150, send(ack_packet(0))).size() == 1);
+    CHECK(driver.command(250, send(ack_packet(0))).empty());
+    CHECK(driver.command(260, send(ack_packet(0))).size() == 1);
+}
+
+TEST_CASE("a step for another operation is not in effect and is not reported as unused", "[loader_scenario][player]")
+{
+    When for_download;
+    for_download.operation = OperationName::download_media_defined;
+    When for_upload;
+    for_upload.operation = OperationName::upload;
+    Driver driver({step_of(Action::drop, {}, for_download), step_of(Action::drop, {}, for_upload),
+                   step_of(Action::drop, Selector{DatagramKind::request, "", std::nullopt})},
+                  1, OperationName::upload);
+    CHECK(driver.command(0, send(ack_packet(0))).empty()); // the upload's step
+    CHECK(driver.events.list.at(0).step == 2);
+    CHECK(driver.player.unapplied_steps() == std::vector<std::size_t>{3});
+}
+
+TEST_CASE("each step draws from a stream of its own, SplitMix64 from the seed's nth output",
+          "[loader_scenario][player][random]")
+{
+    // An independent SplitMix64, written out here, for the documented rule: the seed starts a first generator, its
+    // nth output seeds step n's stream, and a chance is a draw in [1, 1000] by rejection that must be at most the
+    // step's per_mille.
+    const auto mix = [](std::uint64_t& state)
+    {
+        state += 0x9E3779B97F4A7C15ULL;
+        std::uint64_t z = state;
+        z = (z ^ (z >> 30U)) * 0xBF58476D1CE4E5B9ULL;
+        z = (z ^ (z >> 27U)) * 0x94D049BB133111EBULL;
+        return z ^ (z >> 31U);
+    };
+    std::uint64_t zero = 0;
+    CHECK(mix(zero) == 0xE220A8397B1DCDAFULL);
+    CHECK(mix(zero) == 0x6E789E6AA1B965F4ULL);
+    CHECK(mix(zero) == 0x06C45D188009454FULL);
+
+    std::uint64_t first = 12345;
+    const std::uint64_t seed_of_step_1 = mix(first);
+    const std::uint64_t seed_of_step_2 = mix(first);
+    const auto expected = [&](std::uint64_t stream_seed, unsigned per_mille, int count)
+    {
+        std::uint64_t state = stream_seed;
+        std::vector<bool> applied;
+        for (int i = 0; i < count; ++i)
+        {
+            for (;;)
+            {
+                const std::uint64_t output = mix(state);
+                const std::uint64_t range = 1000;
+                const std::uint64_t remainder = (0 - range) % range;
+                if (output < 0 - remainder)
+                {
+                    applied.push_back(1 + output % range <= per_mille);
+                    break;
+                }
+            }
+        }
+        return applied;
+    };
+
+    Selector data;
+    data.datagram = DatagramKind::data;
+    Selector acks;
+    acks.datagram = DatagramKind::ack;
+    Step first_step = step_of(Action::drop, data);
+    first_step.per_mille = 300;
+    first_step.all = true;
+    Step second_step = step_of(Action::drop, acks);
+    second_step.per_mille = 600;
+    second_step.all = true;
+    Driver driver({first_step, second_step}, 12345);
+    std::vector<bool> data_dropped;
+    std::vector<bool> ack_dropped;
+    for (int i = 0; i < 60; ++i)
+    {
+        data_dropped.push_back(driver.command(i, send(data_packet(1, 10))).empty());
+        ack_dropped.push_back(driver.command(i, send(ack_packet(1))).empty());
+    }
+    CHECK(data_dropped == expected(seed_of_step_1, 300, 60));
+    CHECK(ack_dropped == expected(seed_of_step_2, 600, 60));
+}
+
+TEST_CASE("a delay that is a range is drawn from the step's stream between its ends",
+          "[loader_scenario][player][random]")
+{
+    Step step = step_of(Action::delay);
+    step.fault.min_milliseconds = 200;
+    step.fault.max_milliseconds = 900;
+    step.all = true;
+    Driver driver({step}, 5);
+    std::vector<std::int64_t> waits;
+    for (int i = 0; i < 40; ++i)
+    {
+        CHECK(driver.command(i, send(ack_packet(1))).empty());
+        waits.push_back(driver.events.list.back().amount);
+    }
+    for (const std::int64_t wait : waits)
+    {
+        CHECK(wait >= 200);
+        CHECK(wait <= 900);
+    }
+    CHECK(std::ranges::adjacent_find(waits, std::not_equal_to<>{}) != waits.end()); // they are not all alike
+    Driver again({step}, 5);
+    for (int i = 0; i < 40; ++i)
+    {
+        CHECK(again.command(i, send(ack_packet(1))).empty());
+        CHECK(again.events.list.back().amount == waits[static_cast<std::size_t>(i)]);
+    }
+}
+
 // ---- The engine with a hook
 // ------------------------------------------------------------------------------------------
 
@@ -668,7 +815,8 @@ Run upload(std::vector<Step> steps, std::uint64_t seed = 1, std::size_t data_byt
     run.events = std::make_unique<Events>();
     if (!steps.empty())
     {
-        run.player = std::make_unique<Player>(Scenario{"upload", seed, std::move(steps)}, run.events.get());
+        run.player = std::make_unique<Player>(Scenario{"upload", "", seed, std::move(steps)}, OperationName::upload,
+                                              run.events.get());
         run.rig->faults = run.player.get();
     }
     std::vector<LoadReference> storage;
@@ -701,7 +849,7 @@ TEST_CASE("a player with no steps leaves what the loader sends exactly as it is"
     with.load = make_sample_load();
     with.rig = std::make_unique<Rig>(upload_plan(with.load));
     with.rig->source = std::make_unique<adl::test::MediaSource>(with.load.files);
-    Player idle{Scenario{}};
+    Player idle{Scenario{}, OperationName::upload};
     with.rig->faults = &idle;
     std::vector<LoadReference> storage;
     with.outcome = with.rig->run(upload_of(with.load, storage));
@@ -797,7 +945,7 @@ TEST_CASE("a status file answered with WAIT is asked for again after the wait", 
     Selector on;
     on.datagram = DatagramKind::reply;
     on.file = ".LUS";
-    Step step = step_of(Action::wait, on, Trigger{TriggerKind::status_file, 2});
+    Step step = step_of(Action::wait, on, When{TriggerKind::status_file, 2});
     step.fault.seconds = 2;
     const Run run = upload({step});
     REQUIRE(run.outcome);
@@ -810,7 +958,7 @@ TEST_CASE("a status file answered with WAIT is asked for again after the wait", 
 
 TEST_CASE("the loader's abort at a chosen moment is confirmed by the target", "[loader_scenario][engine]")
 {
-    Step step = step_of(Action::abort, {}, Trigger{TriggerKind::status_file, 2});
+    Step step = step_of(Action::abort, {}, When{TriggerKind::status_file, 2});
     step.fault.status = 0x1005;
     const Run run = upload({step});
     REQUIRE(run.outcome);
@@ -828,7 +976,7 @@ TEST_CASE("an answer to a status file with an abort the loader did not decide on
     Selector on;
     on.datagram = DatagramKind::reply;
     on.file = ".LUS";
-    Step step = step_of(Action::abort_message, on, Trigger{TriggerKind::status_file, 2});
+    Step step = step_of(Action::abort_message, on, When{TriggerKind::status_file, 2});
     step.fault.status = 0x1004;
     const Run run = upload({step});
     REQUIRE(run.outcome);
@@ -840,14 +988,14 @@ TEST_CASE("an answer to a status file with an abort the loader did not decide on
 
 TEST_CASE("a loader that goes silent ends by itself and does not hang", "[loader_scenario][engine]")
 {
-    const Run run = upload({step_of(Action::silence, {}, Trigger{TriggerKind::request, 2})});
+    const Run run = upload({step_of(Action::silent, {}, When{TriggerKind::request, 2})});
     REQUIRE(run.outcome);
     CHECK(run.outcome->code != OutcomeCode::completed);
     CHECK(run.outcome->code != OutcomeCode::running);
     CHECK(run.rig->loader->idle());
     CHECK(run.rig->elapsed < std::chrono::minutes(5));
     REQUIRE(run.events->list.size() == 1);
-    CHECK(run.events->list[0].action == Action::silence);
+    CHECK(run.events->list[0].action == Action::silent);
 }
 
 TEST_CASE("the same scenario gives the same reports and the same datagrams every time", "[loader_scenario][engine]")

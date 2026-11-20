@@ -20,7 +20,7 @@ using adl::arinc615a::Endpoint;
 using adl::arinc615a::Instant;
 using adl::arinc615a::never;
 
-constexpr std::size_t default_reorder_hold_ms = 1000;
+constexpr std::int64_t default_reorder_hold_ms = 1000;
 
 [[nodiscard]] adl::arinc615a::Duration milliseconds_of(std::int64_t value) noexcept
 {
@@ -62,6 +62,16 @@ constexpr std::size_t default_reorder_hold_ms = 1000;
     return c == '0' ? '1' : '0';
 }
 
+// SplitMix64 (Steele, Lea and Flood, 2014): integer arithmetic only, so every system gives the same numbers.
+[[nodiscard]] std::uint64_t splitmix64(std::uint64_t& state) noexcept
+{
+    state += 0x9E3779B97F4A7C15ULL;
+    std::uint64_t z = state;
+    z = (z ^ (z >> 30U)) * 0xBF58476D1CE4E5B9ULL;
+    z = (z ^ (z >> 27U)) * 0x94D049BB133111EBULL;
+    return z ^ (z >> 31U);
+}
+
 } // namespace
 
 struct Player::Seen
@@ -74,32 +84,59 @@ struct Player::Seen
     std::size_t check_offset = 0; // the first digit of the value, from the first byte of the datagram
 };
 
-Player::Player(Scenario scenario, FaultListener* listener)
-    : scenario_(std::move(scenario)), listener_(listener), applied_(scenario_.steps.size(), 0),
-      spent_(scenario_.steps.size(), false), scratch_(scratch_capacity * datagram_capacity),
-      held_storage_(held_capacity * datagram_capacity), random_state_(scenario_.seed)
+Player::Player(Scenario scenario, OperationName operation, FaultListener* listener)
+    : scenario_(std::move(scenario)), operation_(operation), listener_(listener), applied_(scenario_.steps.size(), 0),
+      spent_(scenario_.steps.size(), false), stream_(scenario_.steps.size(), 0),
+      scratch_(scratch_capacity * datagram_capacity), held_storage_(held_capacity * datagram_capacity)
 {
+    // One stream for each step, so that what one step draws never depends on what another did: the seed starts a
+    // first generator, and its nth output seeds the generator of the nth step.
+    std::uint64_t first = scenario_.seed.value_or(0);
+    for (std::uint64_t& stream : stream_)
+    {
+        stream = splitmix64(first);
+    }
 }
 
 Player::~Player() = default;
 
-// ---- The generator ---------------------------------------------------------------------------------------------
+// ---- The generators --------------------------------------------------------------------------------------------
 
-// SplitMix64.
-std::uint64_t Player::next_random() noexcept
+std::uint64_t Player::next_random(std::size_t index) noexcept
 {
-    random_state_ += 0x9E3779B97F4A7C15ULL;
-    std::uint64_t z = random_state_;
-    z = (z ^ (z >> 30U)) * 0xBF58476D1CE4E5B9ULL;
-    z = (z ^ (z >> 27U)) * 0x94D049BB133111EBULL;
-    return z ^ (z >> 31U);
+    return splitmix64(stream_[index]);
+}
+
+// A number in [low, high] by rejection, so that every number is as likely as any other.
+std::uint64_t Player::draw(std::size_t index, std::uint64_t low, std::uint64_t high) noexcept
+{
+    const std::uint64_t range = high - low + 1;
+    if (range == 0)
+    {
+        return next_random(index);
+    }
+    const std::uint64_t remainder = (0 - range) % range; // 2^64 mod range
+    for (;;)
+    {
+        const std::uint64_t output = next_random(index);
+        if (remainder == 0 || output < 0 - remainder)
+        {
+            return low + output % range;
+        }
+    }
+}
+
+bool Player::chance(std::size_t index) noexcept
+{
+    const auto& per_mille = scenario_.steps[index].per_mille;
+    return !per_mille || draw(index, 1, 1000) <= *per_mille;
 }
 
 // ---- Bookkeeping -----------------------------------------------------------------------------------------------
 
 std::size_t Player::applied(std::size_t step) const noexcept
 {
-    return step < applied_.size() ? applied_[step] : 0;
+    return step >= 1 && step <= applied_.size() ? applied_[step - 1] : 0;
 }
 
 std::size_t Player::applied() const noexcept
@@ -117,9 +154,9 @@ std::vector<std::size_t> Player::unapplied_steps() const
     std::vector<std::size_t> steps;
     for (std::size_t i = 0; i < applied_.size(); ++i)
     {
-        if (applied_[i] == 0)
+        if (applied_[i] == 0 && active(scenario_.steps[i]))
         {
-            steps.push_back(i);
+            steps.push_back(i + 1);
         }
     }
     return steps;
@@ -146,18 +183,30 @@ std::span<std::byte> Player::held_bytes(std::size_t index) noexcept
     return std::span<std::byte>{held_storage_.data() + index * datagram_capacity, datagram_capacity};
 }
 
-void Player::report(std::size_t step, Instant now, const Seen* seen, const Command* command,
+void Player::report(std::size_t index, Instant now, const Seen* seen, const Command* command,
                     std::int64_t amount) noexcept
 {
-    spend(step);
+    const Step& step = scenario_.steps[index];
+    ++applied_[index];
+    if (!acts_on_datagrams(step.fault.action))
+    {
+        spent_[index] = true;
+    }
     if (listener_ == nullptr)
     {
         return;
     }
     FaultEvent event;
-    event.step = step;
-    event.action = scenario_.steps[step].fault.action;
-    event.at = now;
+    event.step = index + 1;
+    event.action = step.fault.action;
+    event.trigger = step.when.kind;
+    event.at = step.when.value;
+    if (const std::uint64_t reached = occurrences(step, now); reached > 1 && step.when.every != 0)
+    {
+        event.at += (reached - 1) * step.when.every;
+    }
+    event.operation = operation_;
+    event.time = now;
     event.amount = amount;
     if (seen != nullptr)
     {
@@ -170,16 +219,6 @@ void Player::report(std::size_t step, Instant now, const Seen* seen, const Comma
         event.to = command->to;
     }
     listener_->on_fault(event);
-}
-
-void Player::spend(std::size_t step) noexcept
-{
-    const Step& definition = scenario_.steps[step];
-    ++applied_[step];
-    if (!acts_on_datagrams(definition.fault.action) || (!definition.all && applied_[step] >= definition.count))
-    {
-        spent_[step] = true;
-    }
 }
 
 // ---- What the target sends -------------------------------------------------------------------------------------
@@ -239,20 +278,61 @@ void Player::on_arrival(Instant now, std::optional<std::size_t> slot, const Endp
 
 // ---- When a step is in effect ----------------------------------------------------------------------------------
 
-bool Player::armed(const Step& step, Instant now) const noexcept
+bool Player::active(const Step& step) const noexcept
 {
-    switch (step.when.kind)
+    return step.when.operation == OperationName::any || operation_ == OperationName::any ||
+           step.when.operation == operation_;
+}
+
+// How many times the step's trigger has occurred: the first time it is reached, and again each `every`, up to
+// `times` in all.
+std::uint64_t Player::occurrences(const Step& step, Instant now) const noexcept
+{
+    const When& when = step.when;
+    std::uint64_t reached = 0;
+    switch (when.kind)
     {
-    case TriggerKind::start:
-        return true;
     case TriggerKind::request:
-        return requests_ >= step.when.value;
+        reached = requests_;
+        break;
     case TriggerKind::status_file:
-        return status_files_ >= step.when.value;
-    case TriggerKind::time:
-        return began_ && now >= *began_ + milliseconds_of(static_cast<std::int64_t>(step.when.value));
+        reached = status_files_;
+        break;
+    case TriggerKind::after_ms:
+        if (!began_ || now < *began_)
+        {
+            return 0;
+        }
+        reached =
+            static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now - *began_).count());
+        break;
     }
-    return false;
+    if (reached < when.value || (when.kind != TriggerKind::after_ms && when.value == 0))
+    {
+        return 0;
+    }
+    std::uint64_t count = 1;
+    if (when.every != 0)
+    {
+        count += (reached - when.value) / when.every;
+    }
+    if (when.times != 0)
+    {
+        count = std::min(count, when.times);
+    }
+    return count;
+}
+
+// Whether a step that acts on datagrams can act on the next one that matches.
+bool Player::eligible(std::size_t index, Instant now) const noexcept
+{
+    const Step& step = scenario_.steps[index];
+    if (!acts_on_datagrams(step.fault.action) || !active(step))
+    {
+        return false;
+    }
+    const std::uint64_t count = occurrences(step, now);
+    return count != 0 && (step.all || applied_[index] < count * step.count);
 }
 
 // The steps that are done to the operation and not to a datagram take effect the moment they are in effect.
@@ -261,11 +341,16 @@ void Player::arm_operation_steps(Instant now) noexcept
     for (std::size_t i = 0; i < scenario_.steps.size(); ++i)
     {
         const Step& step = scenario_.steps[i];
-        if (acts_on_datagrams(step.fault.action) || spent_[i] || !armed(step, now))
+        if (acts_on_datagrams(step.fault.action) || spent_[i] || !active(step) || occurrences(step, now) == 0)
         {
             continue;
         }
-        if (step.fault.action == Action::silence)
+        if (!chance(i))
+        {
+            spent_[i] = true; // the draw said no, for the one occurrence there is
+            continue;
+        }
+        if (step.fault.action == Action::silent)
         {
             silent_ = true;
             silent_until_ = step.fault.milliseconds > 0 ? now + milliseconds_of(step.fault.milliseconds) : never;
@@ -303,7 +388,8 @@ Instant Player::next_wake() const noexcept
         for (std::size_t i = 0; i < scenario_.steps.size(); ++i)
         {
             const Step& step = scenario_.steps[i];
-            if (!spent_[i] && !acts_on_datagrams(step.fault.action) && step.when.kind == TriggerKind::time)
+            if (!spent_[i] && !acts_on_datagrams(step.fault.action) && active(step) &&
+                step.when.kind == TriggerKind::after_ms)
             {
                 wake = adl::arinc615a::earlier_of(
                     wake, *began_ + milliseconds_of(static_cast<std::int64_t>(step.when.value)));
@@ -480,9 +566,9 @@ std::size_t Player::release(Instant now, bool reorders, std::uint64_t before, st
         for (std::size_t i = 0; i < held_.size(); ++i)
         {
             const Held& entry = held_[i];
-            const bool eligible =
+            const bool eligible_now =
                 entry.used && (entry.due <= now || (reorders && entry.reorder && entry.order <= before));
-            if (eligible && (chosen == held_.size() || entry.order < held_[chosen].order))
+            if (eligible_now && (chosen == held_.size() || entry.order < held_[chosen].order))
             {
                 chosen = i;
             }
@@ -564,12 +650,7 @@ std::size_t Player::on_command(Instant now, const Command& command, std::span<Co
     const std::uint64_t held_before = held_order_;
     for (std::size_t i = 0; i < scenario_.steps.size() && !handled; ++i)
     {
-        const Step& step = scenario_.steps[i];
-        if (!acts_on_datagrams(step.fault.action) || spent_[i] || !armed(step, now) || !matches(step, seen))
-        {
-            continue;
-        }
-        if (step.per_mille < 1000 && next_random() % 1000 >= step.per_mille)
+        if (!eligible(i, now) || !matches(scenario_.steps[i], seen) || !chance(i))
         {
             continue;
         }
@@ -608,9 +689,16 @@ std::size_t Player::apply(std::size_t index, const Seen& seen, const Command& co
     case Action::reorder:
     {
         const bool reorder = fault.action == Action::reorder;
-        const std::int64_t wait = fault.milliseconds > 0
-                                      ? fault.milliseconds
-                                      : (reorder ? static_cast<std::int64_t>(default_reorder_hold_ms) : 0);
+        std::int64_t wait = fault.milliseconds;
+        if (!reorder && fault.min_milliseconds < fault.max_milliseconds)
+        {
+            wait = static_cast<std::int64_t>(draw(index, static_cast<std::uint64_t>(fault.min_milliseconds),
+                                                  static_cast<std::uint64_t>(fault.max_milliseconds)));
+        }
+        else if (reorder && wait <= 0)
+        {
+            wait = default_reorder_hold_ms;
+        }
         if (!hold(command, now + milliseconds_of(wait), reorder))
         {
             break;
@@ -683,21 +771,20 @@ std::size_t Player::apply(std::size_t index, const Seen& seen, const Command& co
         }
         else if (fault.action == Action::wait)
         {
-            length = 0;
             constexpr std::string_view prefix = "WAIT:";
             std::memcpy(text.data(), prefix.data(), prefix.size());
             length = prefix.size();
             std::array<char, 8> digits{};
-            std::size_t count = 0;
+            std::size_t digit_count = 0;
             unsigned value = fault.seconds;
             do
             {
-                digits[count++] = static_cast<char>('0' + value % 10);
+                digits[digit_count++] = static_cast<char>('0' + value % 10);
                 value /= 10;
-            } while (value != 0 && count < digits.size());
-            while (count != 0)
+            } while (value != 0 && digit_count < digits.size());
+            while (digit_count != 0)
             {
-                text[length++] = digits[--count];
+                text[length++] = digits[--digit_count];
             }
             amount = fault.seconds;
         }
@@ -730,7 +817,7 @@ std::size_t Player::apply(std::size_t index, const Seen& seen, const Command& co
         return 1;
     }
     case Action::abort:
-    case Action::silence:
+    case Action::silent:
         break;
     }
     // The step could not be applied (a datagram too large to hold, no room): it goes as it was.

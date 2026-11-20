@@ -30,8 +30,8 @@ std::string_view to_string(Action action) noexcept
         return "abort_message";
     case Action::abort:
         return "abort";
-    case Action::silence:
-        return "silence";
+    case Action::silent:
+        return "silent";
     }
     return "drop";
 }
@@ -79,6 +79,52 @@ std::optional<DatagramKind> datagram_kind_from_string(std::string_view text) noe
         if (text == to_string(kind))
         {
             return kind;
+        }
+    }
+    return std::nullopt;
+}
+
+std::string_view to_string(TriggerKind kind) noexcept
+{
+    switch (kind)
+    {
+    case TriggerKind::request:
+        return "request";
+    case TriggerKind::status_file:
+        return "status_file";
+    case TriggerKind::after_ms:
+        return "after_ms";
+    }
+    return "request";
+}
+
+std::string_view to_string(OperationName operation) noexcept
+{
+    switch (operation)
+    {
+    case OperationName::any:
+        return "any";
+    case OperationName::information:
+        return "information";
+    case OperationName::upload:
+        return "upload";
+    case OperationName::download_media_defined:
+        return "download_media_defined";
+    case OperationName::download_operator_defined:
+        return "download_operator_defined";
+    }
+    return "any";
+}
+
+std::optional<OperationName> operation_from_string(std::string_view text) noexcept
+{
+    for (const OperationName operation :
+         {OperationName::any, OperationName::information, OperationName::upload, OperationName::download_media_defined,
+          OperationName::download_operator_defined})
+    {
+        if (text == to_string(operation))
+        {
+            return operation;
         }
     }
     return std::nullopt;
