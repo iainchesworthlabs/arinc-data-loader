@@ -292,12 +292,14 @@ inline constexpr std::size_t max_thw_id_pos_length = 240;
 // sizes, the time-outs and retries of Attachment 4, and the sizes of its buffers.
 struct LoaderConfig
 {
-    // The target's TFTP control endpoint: its address and port 59.
+    // The target's TFTP control endpoint: its address and port 59. A port other than 59 is not in the
+    // standard; the target is then told where the loader is (see control_port).
     Endpoint target{{}, tftp_control_port};
     // The <THW_ID_POS> of the target, as its protocol files are named (is_valid_thw_id_pos).
     std::string_view thw_id_pos;
-    // The port the loader listens on for what the target starts. Anything but 59 is sent to the
-    // target in the "port" option of the initialization request (5.3.2.3.8.6).
+    // The port the loader listens on for what the target starts. It is sent to the target in the "port"
+    // option of the initialization request (5.3.2.3.8.6) when it is not 59, and when the target's port is
+    // not 59 (the target could not otherwise know it). Two ports of 59 send no option.
     std::uint16_t control_port = tftp_control_port;
 
     // The block size our own requests ask for, and the most we agree to when the target asks.
@@ -542,6 +544,7 @@ private:
     void notice(Notice notice, std::string_view subject, std::uint32_t value) noexcept;
     [[nodiscard]] TransferSettings transfer_settings() const noexcept;
     [[nodiscard]] bool name_matches(std::string_view stem) const noexcept;
+    [[nodiscard]] bool offers_port_option() const noexcept;
 
     // data_loader_operations.cpp
     void on_slot_finished(Instant now, std::size_t index) noexcept;
