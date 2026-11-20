@@ -22,12 +22,14 @@ What the programs say to the person using them has two sources, and this check h
 4. adl_mock, which has no Qt and so no catalogue. Its exit codes (the exit_* constants of its command.hpp) must be rows of the table
    in the page's section of adl_mock, and every text in the literals of the sources that make what it says (MOCK_SOURCES: the
    usage errors, the folder and port errors, the usage text) must be in the page, with the same match as the rest.
-5. adl_make_set, which has no catalogue (no Qt). Its exit codes (the exit_* constants of command.hpp) must be rows of the table
+5. The mock target's scenario file, which adl_mock and the mock target's window read. Every sentence the readers say when a file is
+   wrong (the literals of SCENARIO_SOURCES) must be on its page, docs/user-guide/mock-scenarios.md, by the same rules.
+6. adl_make_set, which has no catalogue (no Qt). Its exit codes (the exit_* constants of command.hpp) must be rows of the table
    in the page's section "adl_make_set" (the others are matched anywhere in the page, which would let a code pass by the table of
    another program), and every string literal of its sources (the command, the options, the description reader, and the rules of
    libs/set_maker that its sentences come from) must be in that section, with the match the rest of this script has. Comments and
    #include lines are not texts.
-6. The owner's licence tool (tools/licence), which is not shipped and so is not a program of the guide. Every sentence in
+7. The owner's licence tool (tools/licence), which is not shipped and so is not a program of the guide. Every sentence in
    tools/licence/src/messages.hpp and every exit_* constant of tools/licence/src/owner.hpp must be on its own page,
    docs/licence-owner-tool.md, by the same rules (a placeholder stands for anything; a row of a table for a code).
 
@@ -53,6 +55,7 @@ MIN_SEGMENT = 6
 # whole; with one, only the statements that begin with it are (the assignments of an error text, in the engine and the link,
 # which also have log lines that adl_mock does not show).
 MOCK_HEADING = "adl_mock"
+MOCK_SCENARIO_PAGE = "docs/user-guide/mock-scenarios.md"
 MOCK_EXIT_CODES = "apps/mock/include/adl/mock/cli/command.hpp"
 MOCK_SOURCES = (
     ("apps/mock/src/options.cpp", None),
@@ -60,6 +63,12 @@ MOCK_SOURCES = (
     ("libs/mock_target_core/src/storage.cpp", None),
     ("libs/mock_target_core/src/engine.cpp", r"last_error_\s*="),
     ("libs/mock_target_core/src/link.cpp", r"\berror\s*\+?="),
+)
+# The sentences about a scenario file are said by the readers below, for adl_mock and for the window: they are on the
+# scenario file's page.
+SCENARIO_SOURCES = (
+    ("libs/scenario_base/src/envelope.cpp", None),
+    ("libs/mock_scenario/src/scenario_file.cpp", None),
 )
 
 
@@ -154,10 +163,10 @@ def literals_of(source: str, statement: str | None = None) -> list[str]:
     ]
 
 
-def mock_texts(root: Path) -> list[str]:
-    """The lines of the texts adl_mock says, from the literals of its sources."""
+def mock_texts(root: Path, sources=None) -> list[str]:
+    """The lines of the texts adl_mock says, from the literals of its sources (or of `sources`, a table like MOCK_SOURCES)."""
     lines: list[str] = []
-    for name, statement in MOCK_SOURCES:
+    for name, statement in (MOCK_SOURCES if sources is None else sources):
         path = root / name
         if path.is_file():
             for literal in literals_of(path.read_text(encoding="utf-8"), statement):
@@ -362,6 +371,13 @@ def check(root: Path) -> list[str]:
         for part in segments(line) or ([normalise(line)] if len(normalise(line)) >= MIN_SEGMENT else []):
             if part not in page:
                 problems.append(f"the text {line.strip()!r} of adl_mock is not in {COMMAND_LINE_PAGE}")
+                break
+    scenario_page_path = root / MOCK_SCENARIO_PAGE
+    scenario_page = normalise(scenario_page_path.read_text(encoding="utf-8")) if scenario_page_path.is_file() else ""
+    for line in mock_texts(root, SCENARIO_SOURCES):
+        for part in segments(line) or ([normalise(line)] if len(normalise(line)) >= MIN_SEGMENT else []):
+            if part not in scenario_page:
+                problems.append(f"the text {line.strip()!r} of the scenario file readers is not in {MOCK_SCENARIO_PAGE}")
                 break
     problems.extend(owner_tool_problems(root))
     problems.extend(make_set_problems(root))

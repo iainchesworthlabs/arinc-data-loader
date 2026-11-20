@@ -1,0 +1,1 @@
+{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":2},"do":{"action":"wait","seconds":1}}]}

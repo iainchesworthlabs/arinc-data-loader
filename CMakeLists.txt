@@ -151,6 +151,9 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(libs/licence_platform)
     # The owner's licence tool: built with the other tools, never installed (tools/licence/CMakeLists.txt).
     add_subdirectory(tools/licence)
+    # What the scenario files of the mock target and of the loader have in common: the random numbers and the
+    # shared reading of the file. It reads JSON with the licence library, so it is a desktop library too.
+    add_subdirectory(libs/scenario_base)
 endif()
 
 # adl_make_set: the media set generator as a command with no window. It reads its description file with the
@@ -164,6 +167,12 @@ endif()
 # tests. Not installed and not part of the adl package.
 add_subdirectory(libs/mock_target_core)
 
+# The mock target's scenarios: the file that says which fault happens when, and the player that gives it to the
+# engine. A desktop library, as it reads the file with the licence library.
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(libs/mock_scenario)
+endif()
+
 # Sample loads and media sets, for the tests and for the program below.
 add_subdirectory(libs/samples)
 
@@ -173,7 +182,11 @@ add_subdirectory(apps/write_payloads)
 
 # adl_mock: the mock ARINC 615A target as a command, with no window and no Qt, for test rigs and CI
 # jobs.
-add_subdirectory(apps/mock)
+# It takes a scenario file, which needs the licence library's reader, so it is built on a desktop only (as it is
+# installed only there).
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(apps/mock)
+endif()
 
 # The Qt application: a thin layer over the libraries above, and the only place Qt is used.
 if(ADL_BUILD_APP)

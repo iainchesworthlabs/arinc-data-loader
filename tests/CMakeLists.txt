@@ -88,6 +88,11 @@ if(TARGET adl::licence_test_keys)
     add_subdirectory(licence)
 endif()
 
+# What the scenario files have in common (libs/scenario_base): its own program of tests, in tests/scenario_base.
+if(TARGET adl::scenario_base)
+    add_subdirectory(scenario_base)
+endif()
+
 # The fake platform: a clock, network, file system, memory and threads that run in
 # memory and on a clock that only moves when told to (tests/fake). The engine is
 # tested against it; the conformance tests hold it to the real hosts' behaviour.
@@ -383,9 +388,17 @@ set_tests_properties(tools.write_payloads.unicode_folder PROPERTIES LABELS "syst
 # platform, and the folders it reads and writes. No Qt.
 add_subdirectory(mock_target_core)
 
+# The mock target's scenarios (libs/mock_scenario): the file, the player, and three scenarios run against the
+# loader's real engine on the fake network. A desktop library; no Qt.
+if(TARGET adl::mock_scenario)
+    add_subdirectory(mock_scenario)
+endif()
+
 # adl_mock, the mock target as a command: its writer, events and options, and the program run against
-# the loader over loopback sockets. No Qt.
-add_subdirectory(mock_cli)
+# the loader over loopback sockets. No Qt. A desktop program (it reads a scenario file).
+if(TARGET adl::mock_cli)
+    add_subdirectory(mock_cli)
+endif()
 
 # The media set generator's logic (libs/set_maker), and the command adl_make_set built on it (the command is
 # a desktop program: it reads its description with the licence library's JSON reader). No Qt.

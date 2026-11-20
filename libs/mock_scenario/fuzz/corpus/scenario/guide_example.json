@@ -1,0 +1,27 @@
+{
+  "kind": "adl-mock-scenario",
+  "format": 1,
+  "name": "Slow start, lost status files, then an abort",
+  "description": "The first request waits 2 s. Uploads answer a little late. Half the status files from the 2nd on are lost, 3 times at most. 20 s into an operation the target gives up.",
+  "seed": 20261120,
+  "steps": [
+    {
+      "when": { "request": 1 },
+      "do": { "action": "wait", "seconds": 2 }
+    },
+    {
+      "comment": "only the second upload request, held back between 200 and 900 ms",
+      "when": { "request": 2, "operation": "upload" },
+      "do": { "action": "delay", "min_ms": 200, "max_ms": 900 }
+    },
+    {
+      "when": { "status_file": 2, "every": 1, "times": 3 },
+      "per_mille": 500,
+      "do": { "action": "drop_status_file" }
+    },
+    {
+      "when": { "after_ms": 20000 },
+      "do": { "action": "abort" }
+    }
+  ]
+}

@@ -12,6 +12,7 @@
 
 add_library(adl_mock_target_core STATIC
     include/adl/mock/engine.hpp
+    include/adl/mock/fault_plan.hpp
     include/adl/mock/link.hpp
     include/adl/mock/settings.hpp
     include/adl/mock/storage.hpp

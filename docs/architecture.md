@@ -102,6 +102,13 @@
   `TargetLink` seam) and the link that runs it over the platform's UDP sockets. It is not installed and
   not in the `adl` package. The mock target application runs it on a worker thread, and the tests run it
   against the loader's engine on the fake platform and over loopback sockets.
+- **`libs/mock_scenario`** is the mock target's scenario: a file that says which fault happens when (the nth request, the
+  nth status file, a time since the operation began; any fault the mock target has, or a delay), read over the shared
+  reader of `libs/scenario_base`, written back in one form, and a `ScenarioPlayer` that is the `FaultPlan` the engine asks.
+  The engine knows nothing of files or seeds: `adl/mock/fault_plan.hpp`, in `libs/mock_target_core`, is the interface, in
+  the engine's own terms (wait, refuse, drop a status file, abort, go silent, corrupt, wrong check value, delay). A
+  desktop library, like the licence library it reads JSON with; not installed. `adl_mock` and the mock target's window
+  both take a scenario through it.
 - **`libs/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
   opens the sockets the engine asks for, waits on all of them from one thread with
   `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.
@@ -139,6 +146,12 @@
   library, and nothing else of this repository. It is built with the other tools and never installed; a package check
   fails a release that holds it. Its entry point is the one part that differs between systems, and CMake picks it by
   the platform's name ([the tool](licence-owner-tool.md)).
+- **`libs/scenario_base`** is what the scenario files of the mock target and of the loader have in common: the
+  random numbers (SplitMix64, with integer arithmetic only, so that a seed gives the same numbers on every system
+  and a run with faults can be repeated) and the reading of the top level of a file and of the shape of its steps,
+  with the strict JSON reader of the licence library (`adl/licence/json.hpp`). It is a desktop library, like the
+  licence library it reads with, and is not installed. The two kinds of scenario are built on it and add their own
+  actions.
 - **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock
@@ -179,9 +192,11 @@ route to remove it.
 | `libs/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
 | `libs/licence_platform` | `adl_licence_platform` | `adl::licence_platform` | `adl::licence_platform` | `adl/licence_platform/*.hpp` |
 | `libs/licence` | `adl_licence` (with `adl_licence_sign` and `adl_licence_test_keys`) | `adl::licence` (and `adl::licence_sign`, `adl::licence_test_keys`) | `adl::licence` | `adl/licence/*.hpp` |
+| `libs/scenario_base` | `adl_scenario_base` | `adl::scenario_base` | `adl::scenario` | `adl/scenario/*.hpp` |
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
 | `libs/mock_target_core` | `adl_mock_target_core` | `adl::mock_target_core` | `adl::mock` | `adl/mock/*.hpp` |
+| `libs/mock_scenario` | `adl_mock_scenario` | `adl::mock_scenario` | `adl::mock` | `adl/mock/scenario*.hpp` |
 | `apps/mock` | `adl_mock_cli` | `adl::mock_cli` | `adl::mock::cli` | `adl/mock/cli/*.hpp` |
 | `apps/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/model.hpp` |
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |

@@ -95,7 +95,7 @@ endif()
 # not a blended figure.
 execute_process(
     COMMAND "${GCOVR}" ${_common}
-        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|licence|licence_platform|media_tree|loader_core|set_maker|samples|platform/(interfaces|detail))|apps/(write_payloads|make_set))/.*"
+        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|licence|licence_platform|media_tree|loader_core|set_maker|scenario_base|mock_scenario|samples|platform/(interfaces|detail))|apps/(write_payloads|make_set))/.*"
         --fail-under-line "${LINE_THRESHOLD}"
         --fail-under-branch "${BRANCH_THRESHOLD}"
         --html-details "${_output}/index.html"
