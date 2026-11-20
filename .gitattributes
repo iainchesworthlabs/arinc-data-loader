@@ -31,3 +31,7 @@ libs/*/fuzz/regressions/** -text
 # for byte with what the owner's tool writes (tests/licence/make_test_licences.py), so no checkout may change one.
 *.adllic -text
 *.adlrev -text
+# The fuzzers' seed inputs and past crashes are bytes: git does not change their line endings, so
+# that a seed that is a command line (libs/mock_target_core/fuzz) is the same on every checkout.
+libs/*/fuzz/corpus/** -text
+libs/*/fuzz/regressions/** -text

@@ -19,7 +19,10 @@ What the programs say to the person using them has two sources, and this check h
 3. Exit codes and the command line. Every exit code that the programs' code sets (the exit_* constants of
    apps/write_payloads/main.cpp, and the exit(N) calls of the three windowed programs and of the smoke test) must be a row of
    the table in docs/user-guide/command-line.md, and every text that adl_write_payloads prints must be in that page.
-4. The owner's licence tool (tools/licence), which is not shipped and so is not a program of the guide. Every sentence in
+4. adl_mock, which has no Qt and so no catalogue. Its exit codes (the exit_* constants of its command.hpp) must be rows of the table
+   in the page's section of adl_mock, and every text in the literals of the sources that make what it says (MOCK_SOURCES: the
+   usage errors, the folder and port errors, the usage text) must be in the page, with the same match as the rest.
+5. The owner's licence tool (tools/licence), which is not shipped and so is not a program of the guide. Every sentence in
    tools/licence/src/messages.hpp and every exit_* constant of tools/licence/src/owner.hpp must be on its own page,
    docs/licence-owner-tool.md, by the same rules (a placeholder stands for anything; a row of a table for a code).
 5. adl_mock, which has no Qt and so no catalogue. Its exit codes (the exit_* constants of its command.hpp) must be rows of the table
@@ -126,8 +129,8 @@ def printed_texts(root: Path) -> list[str]:
     return texts
 
 
-MOCK_STRING_LITERAL = r'"(?:[^"\\\n]|\\.)*"'
-SOURCE_TOKEN = re.compile(MOCK_STRING_LITERAL + r"|'(?:[^'\\\n]|\\.)'|//[^\n]*|/\*.*?\*/", flags=re.S)
+STRING_LITERAL = r'"(?:[^"\\\n]|\\.)*"'
+SOURCE_TOKEN = re.compile(STRING_LITERAL + r"|'(?:[^'\\\n]|\\.)'|//[^\n]*|/\*.*?\*/", flags=re.S)
 
 
 def literals_of(source: str, statement: str | None = None) -> list[str]:
@@ -138,14 +141,14 @@ def literals_of(source: str, statement: str | None = None) -> list[str]:
     source = SOURCE_TOKEN.sub(lambda m: m.group(0) if m.group(0)[0] in "\"'" else " ", source)
     source = "\n".join(line for line in source.split("\n") if not line.lstrip().startswith("#"))
     if statement is not None:
-        chunks = [m.group(0) for m in re.finditer(rf"(?:{statement})(?:{MOCK_STRING_LITERAL}|[^;\"])*;", source)]
+        chunks = [m.group(0) for m in re.finditer(rf"(?:{statement})(?:{STRING_LITERAL}|[^;\"])*;", source)]
     else:
         chunks = [source]
     unescape = {"n": "\n", "t": "\t"}
     return [
         re.sub(r"\\(.)", lambda m: unescape.get(m.group(1), m.group(1)), literal[1:-1])
         for chunk in chunks
-        for literal in re.findall(MOCK_STRING_LITERAL, chunk)
+        for literal in re.findall(STRING_LITERAL, chunk)
     ]
 
 
@@ -216,7 +219,7 @@ OWNER_TOOL_MESSAGES = "tools/licence/src/messages.hpp"
 OWNER_TOOL_EXIT_CODES = "tools/licence/src/owner.hpp"
 OWNER_TOOL_PAGE = "docs/licence-owner-tool.md"
 # A string literal of the sentences' header: an ordinary one, or a raw one (the usage text).
-STRING_LITERAL = re.compile(r'R"\((.*?)\)"|"((?:[^"\\]|\\.)*)"', flags=re.S)
+OWNER_STRING_LITERAL = re.compile(r'R"\((.*?)\)"|"((?:[^"\\]|\\.)*)"', flags=re.S)
 STRING_VIEW_DECLARATION = re.compile(r"inline constexpr std::string_view \w+\s*=")
 WHITESPACE = re.compile(r"\s*")
 
@@ -235,7 +238,7 @@ def owner_tool_messages(root: Path) -> list[str]:
         pieces = []
         position = declaration.end()
         while True:
-            literal = STRING_LITERAL.match(source, WHITESPACE.match(source, position).end())
+            literal = OWNER_STRING_LITERAL.match(source, WHITESPACE.match(source, position).end())
             if literal is None:
                 break
             raw, ordinary = literal.groups()
