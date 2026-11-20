@@ -331,6 +331,51 @@ TEST_CASE("scenario envelope: the sentences are about the right step", "[scenari
         "step 3: \"after_ms\" must be a whole number from 0 to 86400000");
 }
 
+TEST_CASE("scenario envelope: a key that is not known is quoted on one line, as JSON writes it", "[scenario][envelope]")
+{
+    // What the fuzzer found (fuzz/regressions/envelope/step_key_with_new_line.json): a key with a new line in it was
+    // copied into the sentence as it was, and the sentence was two lines.
+    const auto one_line = [](std::string_view text, std::string_view sentence, const Family& family = plain)
+    {
+        refused(text, sentence, family);
+        const auto envelope = read_envelope(text, family);
+        REQUIRE(!envelope);
+        CHECK(envelope.error().message.find('\n') == std::string::npos);
+    };
+    one_line(with_step(R"({"when":{"request":1},"do":{"action":"wait"},"wh\n":5})"),
+             R"(step 1 has the key "wh\n", which this version does not know)");
+    one_line(file(R"("steps":[],"a\nb":5)"), R"(the file has the key "a\nb", which this version does not know)");
+    one_line(with_step(R"({"when":{"request":1,"x\ny":5},"do":{"action":"wait"}})"),
+             R"(step 1: "when" has the key "x\ny", which this version does not know)");
+
+    // The other control characters, a quote and a backslash are written the way JSON writes them.
+    one_line(with_step(R"({"when":{"request":1},"do":{"action":"wait"},"a\tb\rc\u0001d\u007fe":5})"),
+             R"(step 1 has the key "a\tb\rc\u0001d\u007fe", which this version does not know)");
+    one_line(with_step(R"({"when":{"request":1},"do":{"action":"wait"},"a\"b\\c":5})"),
+             R"(step 1 has the key "a\"b\\c", which this version does not know)");
+    // A key that is not ASCII is shown as it is.
+    one_line(with_step(R"({"when":{"request":1},"do":{"action":"wait"},"café":5})"),
+             "step 1 has the key \"caf\xC3\xA9\", which this version does not know");
+
+    // A long key is cut after 64 characters, not in the middle of one.
+    const std::string sixty_four(64, 'k');
+    one_line(with_step(R"({"when":{"request":1},"do":{"action":"wait"},")" + sixty_four + R"(":5})"),
+             "step 1 has the key \"" + sixty_four + "\", which this version does not know");
+    one_line(with_step(R"({"when":{"request":1},"do":{"action":"wait"},")" + sixty_four + R"(k":5})"),
+             "step 1 has the key \"" + sixty_four + "...\", which this version does not know");
+    std::string accents_in_json;
+    std::string accents_cut;
+    for (std::size_t i = 0; i < 65; ++i)
+    {
+        accents_in_json += R"(é)";
+        accents_cut += i < 64 ? "\xC3\xA9" : "";
+    }
+    one_line(with_step(R"({"when":{"request":1},"do":{"action":"wait"},")" + accents_in_json + R"(":5})"),
+             "step 1 has the key \"" + accents_cut + "...\", which this version does not know");
+    one_line(with_step(R"({"when":{"request":1},"do":{"action":"wait"},")" + std::string(100000, 'k') + R"(":5})"),
+             "step 1 has the key \"" + sixty_four + "...\", which this version does not know");
+}
+
 TEST_CASE("scenario envelope: what a kind needs to read its own keys", "[scenario][envelope]")
 {
     const auto parsed =
@@ -370,6 +415,14 @@ TEST_CASE("scenario envelope: what a kind needs to read its own keys", "[scenari
     CHECK(only_keys(object, allowed, 0)->message == "the file has the key \"empty\", which this version does not know");
     constexpr std::array<std::string_view, 6> all{"seconds", "ms", "text", "empty", "big", "nothing"};
     CHECK(!only_keys(object, all, 2).has_value());
+
+    // The keys of a file are quoted as JSON writes them, whichever part the sentence is about.
+    const auto odd = adl::scenario::json::parse_strict(R"({"a\nb":1})");
+    REQUIRE(odd);
+    CHECK(only_keys(*odd->as_object(), allowed, 2, "do")->message ==
+          R"(step 2: "do" has the key "a\nb", which this version does not know)");
+    CHECK(only_keys(*odd->as_object(), allowed, 0)->message ==
+          R"(the file has the key "a\nb", which this version does not know)");
 
     CHECK(missing_seed(4, "min_ms").message == "step 4 uses \"min_ms\" but the scenario has no \"seed\"");
     CHECK(not_taken(5, "code", "\"0x1000\" or \"0x1002\"").message ==

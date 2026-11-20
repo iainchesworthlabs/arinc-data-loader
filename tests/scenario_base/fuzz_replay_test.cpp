@@ -92,6 +92,7 @@ TEST_CASE("each seed is what its name says: read, or refused for the reason in i
         {"repeated_key", "it is not valid JSON"},
         {"too_deep", "it is not valid JSON"},
         {"comment_in_file", "it is not valid JSON"},
+        {"step_key_with_new_line", R"(step 2 has the key "wh\n", which this version does not know)"},
     };
     static constexpr std::array<std::string_view, 1> mock_when{"operation"};
     const Family family{mock_kind, mock_when, {}};

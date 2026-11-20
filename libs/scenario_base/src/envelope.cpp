@@ -28,6 +28,65 @@ constexpr std::array<std::string_view, 3> trigger_keys{"request", "status_file",
     return text;
 }
 
+// A key of the file, as a sentence may quote it. A key is any text the file's author wrote: it may have a control
+// character, a quote or a backslash, and it may be as long as the file, so it is shown as JSON writes it (a new line
+// is `\n`) and cut to the first `max_key_characters` characters, with "..." after them.
+constexpr std::size_t max_key_characters = 64;
+
+[[nodiscard]] std::string key_as_written(std::string_view key)
+{
+    static constexpr std::string_view hex = "0123456789abcdef";
+    std::string text;
+    text += '"';
+    std::size_t characters = 0;
+    bool cut = false;
+    for (const char c : key)
+    {
+        const auto byte = static_cast<unsigned char>(c);
+        if ((byte & 0xC0U) != 0x80U && ++characters > max_key_characters)
+        {
+            cut = true;
+            break;
+        }
+        switch (c)
+        {
+        case '"':
+            text += "\\\"";
+            break;
+        case '\\':
+            text += "\\\\";
+            break;
+        case '\n':
+            text += "\\n";
+            break;
+        case '\r':
+            text += "\\r";
+            break;
+        case '\t':
+            text += "\\t";
+            break;
+        default:
+            if (byte < 0x20 || byte == 0x7F)
+            {
+                text += "\\u00";
+                text += hex[byte >> 4U];
+                text += hex[byte & 0x0FU];
+            }
+            else
+            {
+                text += c;
+            }
+            break;
+        }
+    }
+    if (cut)
+    {
+        text += "...";
+    }
+    text += '"';
+    return text;
+}
+
 // "step 3: " for a sentence about a step, nothing for one about the top level of the file.
 [[nodiscard]] std::string prefix(std::size_t step)
 {
@@ -284,7 +343,7 @@ std::optional<ReadError> only_keys(const json::Object& object, std::span<const s
         {
             continue;
         }
-        const std::string unknown = "the key " + in_quotes(member.key) + ", which this version does not know";
+        const std::string unknown = "the key " + key_as_written(member.key) + ", which this version does not know";
         if (step == 0)
         {
             return ReadError{"the file has " + unknown};
