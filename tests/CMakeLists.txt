@@ -112,6 +112,12 @@ if(TARGET adl::licence_platform)
     add_subdirectory(licence_platform)
 endif()
 
+# The commands of adl_licence (a desktop build only; libs/licence_cli, apps/licence): their tests in process,
+# over this computer's file system, and the built programs as processes, in tests/licence_cli.
+if(TARGET adl::licence_cli)
+    add_subdirectory(licence_cli)
+endif()
+
 # The simulated target (a target of 615A on the fake network, with the second TFTP
 # implementation of libs/arinc615a_mini, which shares no code with the engine). The engine tests
 # run whole operations against it, and so do the application's.

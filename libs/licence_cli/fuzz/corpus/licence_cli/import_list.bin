@@ -1,0 +1,2 @@
+import	f
+{"format":1,"purpose":"revocations","key_id":"test-rfc8032-1","payload":"eyJzZXF1ZW5jZSI6NywiaXNzdWVkX2F0IjoiMjAyNy0wMi0wMVQwMDowMDowMFoiLCJsaWNlbmNlcyI6WyJBREwtMjAyNi0wMDAxMjMiXSwia2V5cyI6W3sia2V5X2lkIjoibGljLTIwMjYtYSIsImZyb20iOiIyMDI3LTAxLTE1VDAwOjAwOjAwWiJ9LHsia2V5X2lkIjoibGljLTIwMjUtYSJ9XSwiY3JpdGljYWwiOltdfQ","signature":"AUyacSIaYmCfYDeP18ZSTogKkUlf20ziy4bEDwXGDYfXZ64MEtnRWBMPcGWPn4tpwq0JU--Q0915C-rDff3gBw"}
