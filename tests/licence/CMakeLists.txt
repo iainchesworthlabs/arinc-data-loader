@@ -33,3 +33,16 @@ target_link_libraries(adl_licence_tests
 adl_deploy_sanitizer_runtime(adl_licence_tests)
 
 catch_discover_tests(adl_licence_tests PROPERTIES LABELS "unit")
+
+# The strict JSON reader as a program outside the library reaches it: through adl/licence/json.hpp, and with no
+# include directory of the library's src/.
+add_executable(adl_licence_json_public_tests json_public_test.cpp)
+target_link_libraries(adl_licence_json_public_tests
+    PRIVATE
+        adl::licence
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+adl_deploy_sanitizer_runtime(adl_licence_json_public_tests)
+catch_discover_tests(adl_licence_json_public_tests PROPERTIES LABELS "unit")

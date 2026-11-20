@@ -100,7 +100,9 @@
   separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the published test key
   (`adl_licence_test_keys`); no program links either. The library takes no product name except in
   `product.hpp`, `trusted_keys.cpp` and `revocations_release.cpp`, so that it can move into a repository
-  that more than one product shares.
+  that more than one product shares. Its strict JSON reader (no repeated key, no comment, no trailing comma,
+  UTF-8 only, eight levels deep) is also public as `adl/licence/json.hpp` (`adl::licence::json`), for the
+  other files of this repository that have to mean one thing to every reader, such as a scenario file.
 - **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock
