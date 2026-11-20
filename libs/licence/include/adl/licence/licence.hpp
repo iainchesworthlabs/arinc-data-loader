@@ -60,6 +60,8 @@ struct Licence
 {
     // Which product the licence is for ("adl"). A licence for another product is refused.
     std::string product;
+    // Any token of upper-case letters, digits and hyphens, 64 characters at most. The reader does not check
+    // that it has the shape product.hpp describes: the `product` field says whose licence it is.
     std::string licence_id;
     LicenceKind kind = LicenceKind::annual;
     Edition edition = Edition::pro;

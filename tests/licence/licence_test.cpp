@@ -57,6 +57,31 @@ TEST_CASE("licence: payload round trip", "[licence][payload]")
     REQUIRE(*parse_payload(span_of(*plain_text)) == plain);
 }
 
+TEST_CASE("licence: a licence number is any upper-case token, and its shape is not checked", "[licence][payload]")
+{
+    // The owner's tool writes ADL-<year>-<six digits>. The reader takes what the signature covers: any upper-case
+    // letters, digits and hyphens, so that the library can be shared by products with other prefixes.
+    for (const std::string_view id : {"ADL-2026-000123", "VSS-2026-000123", "ADL-26-1", "X", "A-B-C-9"})
+    {
+        CAPTURE(id);
+        auto value = annual();
+        value.licence_id = std::string{id};
+        const auto written = write_payload(value);
+        REQUIRE(written);
+        const auto read = parse_payload(span_of(*written));
+        REQUIRE(read);
+        REQUIRE(read->licence_id == id);
+    }
+    for (const std::string& id : {std::string{}, std::string{"adl-2026-000123"}, std::string{"ADL 2026"},
+                                  std::string{"ADL_2026"}, std::string(65, 'A')})
+    {
+        CAPTURE(id);
+        auto value = annual();
+        value.licence_id = id;
+        REQUIRE_FALSE(write_payload(value));
+    }
+}
+
 TEST_CASE("licence: the documented payload is read", "[licence][payload]")
 {
     const std::string_view payload = R"({

@@ -15,7 +15,10 @@ namespace adl::licence
 // The `product` a licence file for this product carries. A licence for another product is refused.
 inline constexpr std::string_view product_id = "adl";
 
-// A licence number is this, the year and six digits: ADL-2026-000001.
+// A licence number is this, the year and six digits: ADL-2026-000001. It is the owner's tool that writes
+// it. The reader does not look at its shape: it takes any licence number of upper-case letters, digits and
+// hyphens, 64 characters at most, so that the library can be shared between products. What ties a licence to
+// this product is the signed `product` field above, not the number.
 inline constexpr std::string_view licence_id_prefix = "ADL-";
 
 // What a licence can carry. The edition alone grants nothing: a licence names the features it turns on.
