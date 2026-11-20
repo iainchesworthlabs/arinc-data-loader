@@ -1,0 +1,6 @@
+--think-time-ms
+250
+--status-period
+1
+--wait-first
+7

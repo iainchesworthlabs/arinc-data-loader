@@ -203,6 +203,19 @@ if (-not $tool) {
     }
 }
 
+# --- the command-line mock target --------------------------------------------------------------
+$mock = Find-Program 'adl_mock'
+if (-not $mock) {
+    Add-Problem 'adl_mock is not in the package'
+} else {
+    $said = (& $mock --version 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -eq 0 -and $said -match '^adl_mock \S+ events 1$') {
+        Add-Ok "adl_mock says: $said"
+    } else {
+        Add-Problem "adl_mock --version exited with $LASTEXITCODE and said: $said"
+    }
+}
+
 # --- the licence command -----------------------------------------------------------------
 # On an empty computer (its settings folder is a new one, so no real licence is read) it shows no licence, and says
 # so with the words a script reads.

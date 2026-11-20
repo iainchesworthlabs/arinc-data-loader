@@ -99,6 +99,10 @@ release key and listed with its checksums and bill of materials
     loader cope. Its TFTP is `adl::arinc615a_mini` (`libs/arinc615a_mini`), the second,
     independent TFTP implementation the tests were written around, shared now with the
     mock target so the two ends of a dialogue share no transfer code.
+  - **`adl_mock`**, the same mock target as a command with no window and no Qt
+    ([docs/mock-target.md](docs/mock-target.md#the-command)), for test rigs and CI jobs: it
+    takes the target's identity, folders, ports and faults as options and writes one line, or
+    one JSON object, for each event.
   - **One design system** (`libs/ui`) for all three windows, in the ICL Forge Modernist
     language: the Signal palette, Archivo, zero radius, the 4/8/12/16/24/32 rhythm, and one
     set of controls. The human-factors analysis behind it, with before/after screenshots, is
@@ -156,6 +160,8 @@ apps/app/               adl_app: the data loader window (Qt Quick), preferences,
                         Information, Upload and Download
 apps/media_gen/         adl_media_gen: the media set generator window (Qt Quick)
 apps/mock_target/       adl_mock_target: a 615A target over real sockets, for demonstrations
+apps/mock/              adl_mock: the same target as a command with no window
+libs/mock_target_core/  the mock target's engine, without Qt (shared by the two programs)
 apps/write_payloads/    adl_write_payloads, which writes the samples to a directory
 apps/licence/           adl_licence, which shows, imports and removes the licence on a computer
 apps/*/tests/           each application's own tests

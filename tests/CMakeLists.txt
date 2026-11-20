@@ -88,6 +88,11 @@ if(TARGET adl::licence_test_keys)
     add_subdirectory(licence)
 endif()
 
+# What the scenario files have in common (libs/scenario_base): its own program of tests, in tests/scenario_base.
+if(TARGET adl::scenario_base)
+    add_subdirectory(scenario_base)
+endif()
+
 # The fake platform: a clock, network, file system, memory and threads that run in
 # memory and on a clock that only moves when told to (tests/fake). The engine is
 # tested against it; the conformance tests hold it to the real hosts' behaviour.
@@ -388,6 +393,10 @@ set_tests_properties(tools.write_payloads.unicode_folder PROPERTIES LABELS "syst
 # The mock target's engine (libs/mock_target_core): the loader's real engine against it on the fake
 # platform, and the folders it reads and writes. No Qt.
 add_subdirectory(mock_target_core)
+
+# adl_mock, the mock target as a command: its writer, events and options, and the program run against
+# the loader over loopback sockets. No Qt.
+add_subdirectory(mock_cli)
 
 # The loopback integration test: the loader's runner over real sockets against the mock target's
 # engine on 127.0.0.1. No Qt.

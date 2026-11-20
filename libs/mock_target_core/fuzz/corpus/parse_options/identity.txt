@@ -1,0 +1,10 @@
+--hardware-id
+ACMEFMC
+--position
+R
+--type-name
+FMC
+--literal-name
+FMC RIGHT
+--manufacturer
+ACM

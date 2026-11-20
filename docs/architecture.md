@@ -53,6 +53,10 @@
   Appendix F), as data. The tests build from it, and so does
   **`apps/write_payloads`**, the `adl_write_payloads` program that writes them to a
   directory so that other loaders can be tried on them.
+- **`apps/mock`** is `adl_mock`, the mock target as a command: no window and no Qt, a function
+  (`adl::mock::cli::run_command`) over `libs/mock_target_core` with a command line, one line or one JSON
+  object for each event, and exit codes. `main()` only calls the function, so the tests run it in a thread
+  and put the loader's real engine against it.
 - **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `libs/platform/interfaces/adl/platform/`, with one implementation per platform
@@ -107,7 +111,9 @@
   Signing is a separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the
   published test key (`adl_licence_test_keys`); no program links either. The library takes no product name except in
   `product.hpp`, `trusted_keys.cpp` and `revocations_release.cpp`, so that it can move into a repository
-  that more than one product shares.
+  that more than one product shares. Its strict JSON reader (no repeated key, no comment, no trailing comma,
+  UTF-8 only, eight levels deep) is also public as `adl/licence/json.hpp` (`adl::licence::json`), for the
+  other files of this repository that have to mean one thing to every reader, such as a scenario file.
 - **`libs/licence_platform`** is the part of the licence work that is this product's: the store's `Files`
   interface filled in with `adl::platform::FileSystem`, and the folders ARINC Data Loader keeps its licences
   and its clock file in (below the platform's user and machine folders, or below `ADL_SETTINGS_DIR`, which a
@@ -133,6 +139,12 @@
   library, and nothing else of this repository. It is built with the other tools and never installed; a package check
   fails a release that holds it. Its entry point is the one part that differs between systems, and CMake picks it by
   the platform's name ([the tool](licence-owner-tool.md)).
+- **`libs/scenario_base`** is what the scenario files of the mock target and of the loader have in common: the
+  random numbers (SplitMix64, with integer arithmetic only, so that a seed gives the same numbers on every system
+  and a run with faults can be repeated) and the reading of the top level of a file and of the shape of its steps,
+  with the strict JSON reader of the licence library (`adl/licence/json.hpp`). It is a desktop library, like the
+  licence library it reads with, and is not installed. The two kinds of scenario are built on it and add their own
+  actions.
 - **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock
@@ -174,14 +186,16 @@ route to remove it.
 | `libs/licence_platform` | `adl_licence_platform` | `adl::licence_platform` | `adl::licence_platform` | `adl/licence_platform/*.hpp` |
 | `libs/licence_cli` | `adl_licence_cli` | `adl::licence_cli` | `adl::licence_cli` | `adl/licence_cli/*.hpp` |
 | `libs/licence` | `adl_licence` (with `adl_licence_sign` and `adl_licence_test_keys`) | `adl::licence` (and `adl::licence_sign`, `adl::licence_test_keys`) | `adl::licence` | `adl/licence/*.hpp` |
+| `libs/scenario_base` | `adl_scenario_base` | `adl::scenario_base` | `adl::scenario` | `adl/scenario/*.hpp` |
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
 | `libs/mock_target_core` | `adl_mock_target_core` | `adl::mock_target_core` | `adl::mock` | `adl/mock/*.hpp` |
+| `apps/mock` | `adl_mock_cli` | `adl::mock_cli` | `adl::mock::cli` | `adl/mock/cli/*.hpp` |
 | `apps/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/model.hpp` |
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 | `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
-The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_write_payloads` and `adl_licence`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock`, `adl_write_payloads` and `adl_licence`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
 applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
@@ -211,8 +225,8 @@ its neighbours.
 
 ## Command-line programs
 
-A program that is started from a command line (`adl_write_payloads`, `adl_licence`, and any other that does not open a window) is
-written this way:
+A program that is started from a command line (`adl_write_payloads`, `adl_mock`, `adl_licence`, and any other that does not open a
+window) is written this way:
 
 - **Its `main` takes its arguments from `adl::platform::arguments` and never reads `argv` itself.**
   `adl/platform/arguments.hpp` has it: `const std::vector<std::string> arguments = adl::platform::arguments(argc, argv);`

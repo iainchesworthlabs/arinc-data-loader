@@ -1,0 +1,6 @@
+--part
+FMS LEFT:ACM47-1:A:FMS 1 OPS
+--part
+FMS LEFT:ACM47-2
+--part
+NAV:ACM47-3::NAV DATA

@@ -186,6 +186,10 @@ struct Config
     std::vector<HeldFile> holds;           // the files a download serves
 };
 
+// The configuration list file (.LCL) for `items`, as the engine writes it in an Information operation,
+// or nothing when the list cannot be encoded (a field out of its limits, or more than the file holds).
+[[nodiscard]] std::optional<Bytes> encode_configuration(const std::vector<HardwareItem>& items);
+
 class MockEngine final : public adl::arinc615a_mini::MiniHost
 {
 public:

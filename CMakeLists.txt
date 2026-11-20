@@ -147,6 +147,9 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(libs/licence_cli)
     # The owner's licence tool: built with the other tools, never installed (tools/licence/CMakeLists.txt).
     add_subdirectory(tools/licence)
+    # What the scenario files of the mock target and of the loader have in common: the random numbers and the
+    # shared reading of the file. It reads JSON with the licence library, so it is a desktop library too.
+    add_subdirectory(libs/scenario_base)
 endif()
 
 # The mock target's logic without a window and without Qt: its 615A engine and the link that runs
@@ -160,6 +163,10 @@ add_subdirectory(libs/samples)
 # adl_write_payloads: writes the sample media sets to a directory, for trying
 # other loaders on them.
 add_subdirectory(apps/write_payloads)
+
+# adl_mock: the mock ARINC 615A target as a command, with no window and no Qt, for test rigs and CI
+# jobs.
+add_subdirectory(apps/mock)
 
 # adl_licence: shows, imports, removes and checks the licence on this computer, from a command line.
 if(ADL_PLATFORM_DESKTOP)

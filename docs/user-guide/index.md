@@ -1,6 +1,6 @@
 # User's guide
 
-This guide is for the person who prepares loads and puts them into equipment: an engineer or a technician at a bench, not a programmer. It explains three programs that come with ARINC Data Loader and work together, and two command-line tools.
+This guide is for the person who prepares loads and puts them into equipment: an engineer or a technician at a bench, not a programmer. It explains three programs that come with ARINC Data Loader and work together, and command-line tools.
 
 | Program | What it is for | Guide |
 | --- | --- | --- |

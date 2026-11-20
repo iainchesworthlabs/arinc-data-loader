@@ -93,6 +93,36 @@ void check()
 }
 """
 
+MOCK_OPTIONS = """#include "adl/mock/cli/options.hpp"
+// a comment with "a quoted text that nobody asks for" in it
+constexpr auto limit = 1'000'000; // and a digit separator, which is not a character literal
+std::expected<Options, UsageError> parse()
+{
+    return fail(std::string{name} + " needs a value");
+    return fail("--silent needs --seconds, because the operation never ends");
+}
+"""
+
+MOCK_HEADER = "inline constexpr int exit_ok = 0;   // stopped as asked\ninline constexpr int exit_folder = 3; // a folder\n"
+
+MOCK_ENGINE = """void log() { note(Severity::info, "listening: a log line that adl_mock does not show"); }
+bool start() { last_error_ = "the FIND port could not be bound: " + error; return false; }
+"""
+
+MOCK_SECTION = """
+## `adl_mock`
+
+| Code | Meaning |
+| --- | --- |
+| 0 | stopped |
+| 3 | folder |
+
+`<option> needs a value` and `--silent needs --seconds, because the operation never ends`
+and `the FIND port could not be bound: <reason>`.
+
+## The windows programs
+"""
+
 
 class Check(unittest.TestCase):
     def setUp(self) -> None:
@@ -177,6 +207,48 @@ class Check(unittest.TestCase):
         self.assertIn("usage: tool [--scenario <name>] <directory>\nWrites the samples.\n", texts)
         self.assertIn("no scenario called ", texts)
         self.assertNotIn("member", "".join(texts))
+
+
+    def add_mock(self, page: str = GOOD_PAGE + MOCK_SECTION) -> None:
+        (self.root / "apps" / "mock" / "src").mkdir(parents=True)
+        (self.root / "apps" / "mock" / "include" / "adl" / "mock" / "cli").mkdir(parents=True)
+        (self.root / "libs" / "mock_target_core" / "src").mkdir(parents=True)
+        (self.root / "apps" / "mock" / "src" / "options.cpp").write_text(MOCK_OPTIONS, encoding="utf-8")
+        (self.root / "apps" / "mock" / "include" / "adl" / "mock" / "cli" / "command.hpp").write_text(MOCK_HEADER, encoding="utf-8")
+        (self.root / "libs" / "mock_target_core" / "src" / "engine.cpp").write_text(MOCK_ENGINE, encoding="utf-8")
+        (self.root / "docs" / "user-guide" / "command-line.md").write_text(page, encoding="utf-8")
+
+    def test_adl_mock_with_everything_in_its_section_passes(self) -> None:
+        self.add_mock()
+        self.assertEqual(self.problems(), "")
+        self.assertEqual(check_messages.mock_exit_codes(self.root), {0, 3})
+
+    def test_a_text_of_adl_mock_that_is_not_in_the_page_is_found(self) -> None:
+        self.add_mock(GOOD_PAGE + MOCK_SECTION.replace("--silent needs --seconds, because the operation never ends", ""))
+        self.assertIn("because the operation never ends", self.problems())
+        self.assertIn("of adl_mock", self.problems())
+
+    def test_an_exit_code_of_adl_mock_has_to_be_in_its_own_section(self) -> None:
+        # 3 is a row of the page, but of the table of another program, which does not count for adl_mock.
+        page = GOOD_PAGE.replace("| 2 | usage |", "| 2 | usage |\n| 3 | another |") + MOCK_SECTION.replace("| 3 | folder |\n", "")
+        self.add_mock(page)
+        self.assertIn("the exit code 3 of adl_mock is not a row of its section", self.problems())
+
+    def test_the_error_texts_of_the_engine_are_asked_for_and_its_log_lines_are_not(self) -> None:
+        self.add_mock()
+        texts = check_messages.mock_texts(self.root)
+        self.assertIn("the FIND port could not be bound: ", texts)
+        self.assertNotIn("listening: a log line that adl_mock does not show", texts)
+
+    def test_comments_includes_and_digit_separators_are_not_texts(self) -> None:
+        literals = check_messages.literals_of(MOCK_OPTIONS)
+        self.assertEqual(literals, [" needs a value", "--silent needs --seconds, because the operation never ends"])
+
+    def test_a_literal_is_unescaped(self) -> None:
+        self.assertEqual(
+            check_messages.literals_of(r'x = "a \"quoted\" word\n" "and a \\ backslash";'),
+            ['a "quoted" word\n', "and a \\ backslash"],
+        )
 
 
 OWNER_MESSAGES = """namespace adl::licence_owner::message {

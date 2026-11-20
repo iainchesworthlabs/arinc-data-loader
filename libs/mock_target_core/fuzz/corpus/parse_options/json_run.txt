@@ -1,0 +1,5 @@
+--json
+--operations
+3
+--seconds
+60

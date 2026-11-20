@@ -66,7 +66,7 @@ include(CPack)
 
 cpack_add_component(runtime
     DISPLAY_NAME "Applications"
-    DESCRIPTION "The data loader, the media set generator and the mock target, with the Qt files they need, and the command-line tools adl_write_payloads and adl_licence."
+    DESCRIPTION "The data loader, the media set generator and the mock target, with the Qt files they need, and the command-line tools adl_mock, adl_write_payloads and adl_licence."
     REQUIRED)
 cpack_add_component(development
     DISPLAY_NAME "Development files"
