@@ -98,11 +98,10 @@ run_engine(adl::platform::Host& host, const RunTarget& target, const adl::arinc6
 
 } // namespace
 
-OperationResult run_operation(adl::platform::Host& host, const RunTarget& target,
-                              const adl::arinc615a::Operation& operation, const RunServices& services)
+OperationResult make_result(adl::platform::Host& host,
+                            const std::expected<adl::arinc615a::Outcome, adl::arinc615a::RunError>& outcome,
+                            bool is_download, const RunServices& services)
 {
-    const auto outcome = run_engine(host, target, operation, services);
-
     OperationResult result;
     // A download that received nothing (the target said no, never answered, was cancelled, or the loader
     // could not run at all) leaves no folder behind: the one made for it is removed if it is empty, and
@@ -122,8 +121,6 @@ OperationResult run_operation(adl::platform::Host& host, const RunTarget& target
     }
 
     result.outcome = *outcome;
-    const bool is_download = std::holds_alternative<adl::arinc615a::MediaDownloadOperation>(operation) ||
-                             std::holds_alternative<adl::arinc615a::OperatorDownloadOperation>(operation);
     // A download that completed without every asked-for file is as much a failure as one the target
     // reported as failed: the operator asked for files and has not got them all.
     result.missing_files =
@@ -137,6 +134,15 @@ OperationResult run_operation(adl::platform::Host& host, const RunTarget& target
         result.reason = Reason::media_set_changed;
     }
     return result;
+}
+
+OperationResult run_operation(adl::platform::Host& host, const RunTarget& target,
+                              const adl::arinc615a::Operation& operation, const RunServices& services)
+{
+    const auto outcome = run_engine(host, target, operation, services);
+    const bool is_download = std::holds_alternative<adl::arinc615a::MediaDownloadOperation>(operation) ||
+                             std::holds_alternative<adl::arinc615a::OperatorDownloadOperation>(operation);
+    return make_result(host, outcome, is_download, services);
 }
 
 } // namespace adl::loader_core
