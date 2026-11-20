@@ -29,4 +29,5 @@ private Q_SLOTS:
     void any_other_allocation_failure_ends_the_job_cleanly();
     void the_set_appears_under_its_name_in_one_step();
     void a_set_that_exists_is_never_overwritten();
+    void the_form_and_the_plan_rules_agree();
 };

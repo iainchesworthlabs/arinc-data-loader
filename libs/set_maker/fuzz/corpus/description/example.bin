@@ -1,0 +1,26 @@
+{
+  "format": 1,
+  "kind": "adl-media-set-description",
+  "media_set": { "part_number": "ACM-SET-0001", "members": 2, "files_check": "sha1", "files_list_check": "crc32" },
+  "loads": [
+    {
+      "part_number": "ACM47-1234-5678",
+      "header_file": "ACM47.LUH",
+      "type": "OPS",
+      "target_hardware_ids": ["ACME", "ACMEFMS"],
+      "check": "sha1",
+      "files": [
+        { "source": "payloads/app.bin", "name": "APPCODE.LUP", "kind": "data", "check": "crc32" },
+        { "source": "payloads/nav.bin", "name": "NAVDATA.LUP", "kind": "data", "check": "crc32" },
+        { "source": "payloads/CONFIG.LDR", "kind": "support" }
+      ]
+    },
+    {
+      "part_number": "ACM4C-0100-0200",
+      "type": { "description": "Test software", "id": 4 },
+      "target_hardware_ids": ["ACME"],
+      "files": [ { "source": "payloads/selftest.bin", "name": "SELFTEST.LUP" } ]
+    }
+  ],
+  "batch": { "part_number": "ACM4D-0100-0300", "comment": "Both loads for the unit" }
+}

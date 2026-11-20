@@ -6,7 +6,7 @@ Other pages hold the rest:
 
 - The lines of the loader's activity log, the notices, the outcomes and the failure dialogs: [The log, the receipt and failures](log-and-receipt.md).
 - The messages of the media set check, the *findings*: [Findings of the media set check](findings.md), with [Choose and check a media set](choose-a-media-set.md) and the coverage page for [ARINC 665-3](../arinc665-coverage.md).
-- The command line and exit codes: [Command line and exit codes](command-line.md).
+- The command line and exit codes: [Command line and exit codes](command-line.md). The messages of `adl_make_set`, the command that makes a media set from a description file and says what one holds, are in [its section of that page](command-line.md#messages-of-adl_make_set): the sentences about a description, with the place in the file, and the ones about a source file, an output folder and a set that does not verify.
 - Causes and cures by symptom: [Troubleshooting](troubleshooting.md).
 
 A test (`docs.messages`) checks that every message of the programs' code that reports a problem or a condition appears in this guide, so a new message cannot be added without being described.
@@ -140,3 +140,5 @@ A notice may end with a number. `target asked to wait` and `file not available` 
 | `The load's folder could not be made: %1.` | The folder for the load, inside the storage folder, cannot be created. | Check that the storage folder is writable. |
 | `%1 was not stored: not a safe file name.` | The uploaded file's name is not a plain name, so it was not kept. | None: the mock target keeps only letters, digits, `.`, `_` and `-` in a name. |
 | `%1 could not be written to the storage folder.` | A file could not be written. | Check that the folder is writable and the disk is not full. |
+| `Scenario %1: %n step(s)` | A scenario file was loaded ([the window](mock-target.md#a-scenario-file)): its name, or the file's name when it has none, and the number of its steps. | Nothing: the faults above it are not used while it is loaded. |
+| `The scenario file was refused: %1` | The file chosen could not be used. `%1` is the sentence that says why. | Read the sentence in [A file that is refused](mock-scenarios.md#a-file-that-is-refused), correct the file and choose it again. |

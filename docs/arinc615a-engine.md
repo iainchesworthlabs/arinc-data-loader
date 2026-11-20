@@ -293,10 +293,15 @@ loader cannot be changed through it.
 1. **The loader's block size**: it asks for 1024 and agrees to up to 4096, and takes what the target answers
    (down to 8). 5.3.2.3.8.1 says only that the loader "should implement the block size option" and the
    fragmentation it implies. Both are in `LoaderConfig`.
-2. **Port 59** is the loader's control port unless configured; the `port` option is sent only for another.
-   A target that leaves the option out of its OACK has refused it, and "the load operation may fail"
-   (5.3.2.3.8.6): the operation goes on, `Notice::port_option_ignored` is given, and the target, writing to
-   port 59, is not heard, so the 13 second time-out ends it.
+2. **Port 59** is the loader's control port unless configured, and the target's port unless configured. The
+   `port` option is sent when the target could not otherwise know where the loader is: when the loader's port
+   is not 59, and when the target's port is not 59 (then it carries the loader's port, 59 included). The
+   standard puts every target on 59, so for a target elsewhere (a test target, one that shares a machine)
+   there is no standard to say where it writes, and the option is all the loader has to tell it. Between a
+   loader on 59 and a target on 59 nothing is sent. A target that leaves the option out of its OACK has
+   refused it, and "the load operation may fail" (5.3.2.3.8.6): the operation goes on,
+   `Notice::port_option_ignored` is given, and if the target then writes anywhere but where the loader is, it
+   is not heard, so the 13 second time-out ends it.
 3. **Strays**: a datagram from another port of the right host is ignored. RFC 1350 says to answer it with
    error 5; that is not done, so the engine never speaks to a host it was not talking to.
 4. **The list is written after status 0001, not before** (6.2.7.3 says so for `.LUR`); the same is done for

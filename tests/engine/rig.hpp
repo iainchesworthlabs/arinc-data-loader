@@ -358,7 +358,7 @@ public:
         LoaderServices services;
         services.source = source_override != nullptr ? source_override : source.get();
         services.sink = sink_override != nullptr ? sink_override : &sink;
-        services.listener = &recorder;
+        services.listener = listener_override != nullptr ? listener_override : &recorder;
         services.faults = faults;
         loader = std::make_unique<DataLoader>(config, workspace, services);
         Runner runner(loader_host);
@@ -381,6 +381,7 @@ public:
     std::unique_ptr<MediaSource> source;
     FileSource* source_override = nullptr;
     FileSink* sink_override = nullptr;
+    OperationListener* listener_override = nullptr;
     FaultHook* faults = nullptr; // sees every datagram and command of the loader, when a test sets one
     MemoryFileSink sink;
     Recorder recorder;

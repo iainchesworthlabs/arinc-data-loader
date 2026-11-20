@@ -78,6 +78,43 @@ GOOD_MESSAGES = (
     "The media set could not be written below `%1`. And %n load(s) were ticked in the list. " + FINDING_TEXTS
 )
 
+LOAD_SOURCE = """namespace
+{
+constexpr std::string_view usage = R"(usage:
+  adl_load find [--seconds <n>]
+Runs one operation on one target.
+)";
+}
+void say()
+{
+    problem = "The media set holds no load to send.";
+    problem = "The part number \\"" + name + "\\" names more than one load.";
+    key = "event";
+    // "A comment that says something in words" is not read.
+    quote = '"' + text + '"';
+}
+"""
+
+LOAD_EXIT_CODES = """inline constexpr int exit_completed = 0;
+inline constexpr int exit_failed = 1;
+inline constexpr int exit_usage = 2;
+inline constexpr int exit_no_answer = 4;
+"""
+
+LOAD_PAGE = """
+| 4 | no answer |
+
+usage:
+  adl_load find [--seconds <n>]
+Runs one operation on one target.
+
+The media set holds no load to send.
+The part number "<part number>" names more than one load.
+"""
+
+# Every page of a test has adl_load in it, whatever else the test adds: its words and its exit code are checked too.
+GOOD_PAGE = GOOD_PAGE + LOAD_PAGE
+
 FINDINGS_SOURCE = """namespace
 {
 void add(Findings& findings, std::string clause, std::string message)
@@ -138,6 +175,10 @@ class Check(unittest.TestCase):
         (self.root / "docs" / "user-guide").mkdir(parents=True)
         (self.root / "apps" / "app" / "translations" / "app_de.ts").write_text(CATALOGUE, encoding="utf-8")
         (self.root / "apps" / "write_payloads" / "main.cpp").write_text(MAIN, encoding="utf-8")
+        (self.root / "apps" / "load" / "src").mkdir(parents=True)
+        (self.root / "apps" / "load" / "include" / "adl" / "load").mkdir(parents=True)
+        (self.root / "apps" / "load" / "src" / "options.cpp").write_text(LOAD_SOURCE, encoding="utf-8")
+        (self.root / "apps" / "load" / "include" / "adl" / "load" / "exit_codes.hpp").write_text(LOAD_EXIT_CODES, encoding="utf-8")
         (self.root / "docs" / "user-guide" / "command-line.md").write_text(GOOD_PAGE, encoding="utf-8")
         (self.root / "docs" / "user-guide" / "messages.md").write_text(GOOD_MESSAGES, encoding="utf-8")
         (self.root / "docs" / "file-reference.md").write_text("", encoding="utf-8")
@@ -197,6 +238,34 @@ class Check(unittest.TestCase):
         main = self.root / "apps" / "write_payloads" / "main.cpp"
         main.write_text(MAIN.replace("exit_usage = 2;", "exit_usage = 2;\nconstexpr int exit_other = 3;"), encoding="utf-8")
         self.assertIn("the exit code 3", self.problems())
+
+    def test_the_exit_codes_of_adl_load_are_read_from_its_header(self) -> None:
+        self.assertEqual(check_messages.exit_codes(self.root), {0, 1, 2, 4})
+        page = self.root / "docs" / "user-guide" / "command-line.md"
+        page.write_text(GOOD_PAGE.replace("| 4 | no answer |", "| four | no answer |"), encoding="utf-8")
+        self.assertIn("the exit code 4 is not a row", self.problems())
+
+    def test_the_words_of_adl_load_are_its_usage_and_the_literals_of_more_than_one_word(self) -> None:
+        texts = check_messages.load_texts(self.root)
+        self.assertIn("usage:", texts)
+        self.assertIn("  adl_load find [--seconds <n>]", texts)
+        self.assertIn("The media set holds no load to send.", texts)
+        self.assertIn('The part number "', texts)
+        self.assertIn('" names more than one load.', texts)
+        # A key of one word, a comment, and the quote that is a character are not words.
+        self.assertNotIn("event", texts)
+        self.assertFalse([t for t in texts if "comment" in t])
+        self.assertFalse([t for t in texts if "std::string" in t])
+
+    def test_a_sentence_of_adl_load_that_is_not_in_the_page_is_found(self) -> None:
+        page = self.root / "docs" / "user-guide" / "command-line.md"
+        page.write_text(GOOD_PAGE.replace("The media set holds no load to send.", ""), encoding="utf-8")
+        self.assertIn("'The media set holds no load to send.' of adl_load", self.problems())
+
+    def test_a_line_of_the_usage_of_adl_load_that_is_not_in_the_page_is_found(self) -> None:
+        page = self.root / "docs" / "user-guide" / "command-line.md"
+        page.write_text(GOOD_PAGE.replace("Runs one operation on one target.", ""), encoding="utf-8")
+        self.assertIn("'Runs one operation on one target.' of adl_load", self.problems())
 
     def test_a_windowed_program_exit_code_is_read(self) -> None:
         (self.root / "apps" / "app" / "main.cpp").write_text("[] { QCoreApplication::exit(7); }", encoding="utf-8")
@@ -352,5 +421,163 @@ class OwnerTool(Check):
         self.assertEqual(self.problems(), "")
 
 
+LICENCE_COMMAND_MESSAGES = """namespace adl::licence_cli::message {
+inline constexpr std::string_view usage = R"(usage: adl_licence show
+       adl_licence import <file>
+)";
+inline constexpr std::string_view cannot_read = "cannot read %1: %2";
+inline constexpr std::string_view label_edition = "Edition:";
+}
+"""
+LICENCE_COMMAND_EXIT_CODES = """inline constexpr int exit_ok = 0;
+inline constexpr int exit_failed = 1;
+inline constexpr int exit_usage = 2;
+"""
+LICENCE_COMMAND_SECTION = """
+## `adl_licence`
+
+usage: adl_licence show
+       adl_licence import <file>
+
+The first line of `show` is `Edition: pro`. `cannot read %1: %2`.
+
+| Code | Meaning |
+| --- | --- |
+| 0 | done |
+| 1 | not done |
+| 2 | usage |
+"""
+
+
+class LicenceCommand(Check):
+    """adl_licence is a program of the guide, but its sentences and exit codes are held to its own section of the page.
+
+    The tests of Check that rewrite the command-line page run here too, so the program's files are put in by each test
+    that is about it (`install`), and not by `setUp`.
+    """
+
+    def install(self) -> None:
+        (self.root / "libs" / "licence_cli" / "src").mkdir(parents=True)
+        (self.root / "libs" / "licence_cli" / "include" / "adl" / "licence_cli").mkdir(parents=True)
+        (self.root / "libs" / "licence_cli" / "src" / "messages.hpp").write_text(LICENCE_COMMAND_MESSAGES, encoding="utf-8")
+        self.codes = self.root / "libs" / "licence_cli" / "include" / "adl" / "licence_cli" / "licence_cli.hpp"
+        self.codes.write_text(LICENCE_COMMAND_EXIT_CODES, encoding="utf-8")
+        self.page = self.root / "docs" / "user-guide" / "command-line.md"
+        self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION, encoding="utf-8")
+
+    def test_a_page_that_has_everything_passes(self) -> None:
+        self.install()
+        self.assertEqual(self.problems(), "")
+
+    def test_a_sentence_that_is_not_on_the_page_is_found(self) -> None:
+        self.install()
+        self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION.replace("`cannot read %1: %2`", ""), encoding="utf-8")
+        self.assertIn("'cannot read %1: %2' of adl_licence is not on docs/user-guide/command-line.md", self.problems())
+
+    def test_the_usage_text_is_asked_for_whole(self) -> None:
+        self.install()
+        self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION.replace("       adl_licence import <file>" + chr(10), ""),
+                             encoding="utf-8")
+        self.assertIn("usage: adl_licence show", self.problems())
+
+    def test_a_new_exit_code_is_found(self) -> None:
+        self.install()
+        self.codes.write_text(LICENCE_COMMAND_EXIT_CODES + "inline constexpr int exit_other = 3;" + chr(10), encoding="utf-8")
+        self.assertIn("the exit code 3 of adl_licence is not a row of the table in docs/user-guide/command-line.md",
+                      self.problems())
+
+    def test_without_the_program_nothing_is_asked(self) -> None:
+        self.assertEqual(self.problems(), "")
+
+
 if __name__ == "__main__":
     unittest.main()
+
+
+MAKE_SET_COMMAND = """#include "adl/make_set/something that is not a text.hpp"
+namespace adl::make_set {
+// A comment that says "words the guide need not have" is not a text.
+inline constexpr int exit_ok = 0;
+inline constexpr int exit_input = 3;
+}
+"""
+MAKE_SET_SOURCE = """#include <string>
+/* "a block comment with a literal in it" */
+std::string say(const std::string& path)
+{
+    return "Cannot read " + path + " at all.";   // "and a trailing comment"
+}
+const char* usage = R"(usage: tool make <description>
+  --output <folder>)";
+"""
+MAKE_SET_PAGE = """# Command line
+| Code | Meaning |
+| --- | --- |
+| 0 | ok |
+| 1 | failed |
+| 2 | usage |
+| 3 | another program's three |
+
+## `adl_make_set`
+
+usage: tool make <description>
+  --output <folder>
+
+| Code | Meaning |
+| --- | --- |
+| 0 | done |
+| 3 | an input cannot be used |
+
+`Cannot read <path> at all.`
+
+## Other programs
+"""
+
+
+class MakeSet(Check):
+    """adl_make_set has no catalogue: its sentences and exit codes are held to the section of its page."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        (self.root / "apps" / "make_set" / "src").mkdir(parents=True)
+        (self.root / "apps" / "make_set" / "include" / "adl" / "make_set").mkdir(parents=True)
+        (self.root / "apps" / "make_set" / "src" / "command.cpp").write_text(MAKE_SET_SOURCE, encoding="utf-8")
+        (self.root / "apps" / "make_set" / "include" / "adl" / "make_set" / "command.hpp").write_text(
+            MAKE_SET_COMMAND, encoding="utf-8")
+        self.page = self.root / "docs" / "user-guide" / "command-line.md"
+        self.page.write_text(GOOD_PAGE + "\n" + MAKE_SET_PAGE, encoding="utf-8")
+
+    def test_a_page_that_has_everything_passes(self) -> None:
+        self.assertEqual(self.problems(), "")
+
+    def test_the_literals_are_read_without_the_comments_and_includes(self) -> None:
+        literals = check_messages.source_literals(self.root / "apps" / "make_set" / "src" / "command.cpp")
+        self.assertEqual(literals, ["Cannot read ", " at all.", "usage: tool make <description>\n  --output <folder>"])
+
+    def test_a_sentence_that_is_not_in_the_section_is_found(self) -> None:
+        self.page.write_text((GOOD_PAGE + "\n" + MAKE_SET_PAGE).replace("`Cannot read <path> at all.`", ""), encoding="utf-8")
+        self.assertIn("the text 'Cannot read' of command.cpp is not in the section adl_make_set", self.problems())
+
+    def test_a_sentence_on_another_part_of_the_page_does_not_count(self) -> None:
+        self.page.write_text(
+            (GOOD_PAGE + "\n" + MAKE_SET_PAGE).replace("`Cannot read <path> at all.`", "").replace(
+                "## Other programs", "## Other programs\n\nCannot read <path> at all."), encoding="utf-8")
+        self.assertIn("the text 'Cannot read'", self.problems())
+
+    def test_an_exit_code_that_is_a_row_of_another_table_only_is_found(self) -> None:
+        self.page.write_text((GOOD_PAGE + "\n" + MAKE_SET_PAGE).replace("| 3 | an input cannot be used |\n", ""), encoding="utf-8")
+        self.assertIn("the exit code 3 of adl_make_set is not a row of the table in the section adl_make_set", self.problems())
+
+    def test_a_page_with_no_section_is_found(self) -> None:
+        self.page.write_text(GOOD_PAGE, encoding="utf-8")
+        self.assertIn("command-line.md has no section for it", self.problems())
+
+    def test_the_usage_text_is_asked_for_whole(self) -> None:
+        self.page.write_text((GOOD_PAGE + "\n" + MAKE_SET_PAGE).replace("  --output <folder>\n\n| Code", "\n\n| Code"), encoding="utf-8")
+        self.assertIn("usage: tool make", self.problems())
+
+    def test_without_the_program_nothing_is_asked(self) -> None:
+        (self.root / "apps" / "make_set" / "src" / "command.cpp").unlink()
+        (self.root / "apps" / "make_set" / "include" / "adl" / "make_set" / "command.hpp").unlink()
+        self.page.write_text(GOOD_PAGE, encoding="utf-8")
+        self.assertEqual(self.problems(), "")

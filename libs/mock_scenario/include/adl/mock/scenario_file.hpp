@@ -10,6 +10,7 @@
 
 #include <expected>
 #include <filesystem>
+#include <span>
 #include <string>
 #include <string_view>
 
@@ -17,6 +18,10 @@ namespace adl::mock
 {
 
 using ScenarioError = adl::scenario::ReadError;
+
+// Every action word this version knows, in the order of the guide's table: what `started` lists as
+// `scenario_features`, and what `adl_mock --scenario-actions` prints.
+[[nodiscard]] std::span<const std::string_view> action_words() noexcept;
 
 // The scenario the text says, or why it cannot be used.
 [[nodiscard]] std::expected<Scenario, ScenarioError> read_scenario(std::string_view text);

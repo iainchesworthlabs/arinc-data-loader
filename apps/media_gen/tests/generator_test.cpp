@@ -7,6 +7,7 @@
 #include "adl/gen/generator_worker.hpp"
 #include "adl/gen/source_file_model.hpp"
 #include "adl/media_tree/media_tree.hpp"
+#include "adl/set_maker/validate.hpp"
 #include "temp_dir.hpp"
 #include "test_classes.hpp"
 
@@ -726,4 +727,107 @@ void GeneratorTest::a_set_that_exists_is_never_overwritten()
     const auto on_disk = media_tree::read_media_set_tree(second);
     QVERIFY(on_disk.has_value());
     QVERIFY(arinc665::read_media_set(*on_disk).has_value());
+}
+
+// The window's form and adl::set_maker::validate hold a set to the same rules, so that the window and the command
+// adl_make_set refuse the same sets: each row is a form, filled in, and the plan of the same values.
+void GeneratorTest::the_form_and_the_plan_rules_agree()
+{
+    struct Case
+    {
+        const char* what;
+        const char* load_part_number = "ACM47-1234-5678";
+        const char* media_set_part_number = "ACM-SET-0001";
+        const char* header_file_name = ""; // empty: the one the form gives itself
+        std::vector<std::string> hardware_ids = {"ACME"};
+        // name, support (true) or data (false)
+        std::vector<std::pair<std::string, bool>> files = {{"APP.LUP", false}, {"CONFIG.LDR", true}};
+        const char* batch_part_number = ""; // empty: no batch
+        bool good = true;
+    };
+    const std::vector<Case> cases = {
+        {.what = "a good form"},
+        {.what = "a load part number that is not one", .load_part_number = "not a part number", .good = false},
+        {.what = "check characters that are wrong", .load_part_number = "ACM47-1234-5679", .good = false},
+        {.what = "a media set part number with blanks", .media_set_part_number = "ACM SET", .good = false},
+        {.what = "a header file that is a device name", .header_file_name = "CON.LUH", .good = false},
+        {.what = "a header file with another extension", .header_file_name = "ACM.TXT", .good = false},
+        {.what = "a header file of its own that is good", .header_file_name = "ACM47.LUH"},
+        {.what = "a hardware id that is too short", .hardware_ids = {"AC"}, .good = false},
+        {.what = "no hardware id", .hardware_ids = {}},
+        {.what = "a file name with a blank", .files = {{"bad name.LUP", false}}, .good = false},
+        {.what = "a file name the folder tree refuses", .files = {{"DATA*.LUP", false}}, .good = false},
+        {.what = "a file name that is a device name", .files = {{"NUL", false}}, .good = false},
+        {.what = "two names that differ in capitals only",
+         .files = {{"DATA.LUP", false}, {"data.lup", false}},
+         .good = false},
+        {.what = "a name with a reserved extension for a data file", .files = {{"CONFIG.LDR", false}}, .good = false},
+        {.what = "only a support file", .files = {{"CONFIG.LDR", true}}, .good = false},
+        {.what = "two data files", .files = {{"A.LUP", false}, {"B.LUP", false}}},
+        {.what = "a good batch", .batch_part_number = "ACM4C-0100-0200"},
+        {.what = "a batch part number that is not one", .batch_part_number = "nope", .good = false},
+    };
+
+    adl::test::TempDir sources;
+    adl::test::TempDir output;
+    const auto source = write_file(sources.path(), "source.bin", "SOURCE SOURCE!!!!");
+
+    for (const Case& test : cases)
+    {
+        // The window's form.
+        adl::gen::GeneratorModel model;
+        model.setLoadPartNumber(QString::fromUtf8(test.load_part_number));
+        model.setMediaSetPartNumber(QString::fromUtf8(test.media_set_part_number));
+        if (*test.header_file_name != '\0')
+        {
+            model.setHeaderFileName(QString::fromUtf8(test.header_file_name));
+        }
+        QStringList ids;
+        for (const std::string& id : test.hardware_ids)
+        {
+            ids.append(QString::fromStdString(id));
+        }
+        model.setTargetHardwareIds(ids);
+        model.chooseOutputDirectory(url_of(output.path()));
+        model.setIncludeBatch(*test.batch_part_number != '\0');
+        model.setBatchPartNumber(QString::fromUtf8(test.batch_part_number));
+        auto* files = static_cast<adl::gen::SourceFileModel*>(model.files());
+        for (std::size_t i = 0; i < test.files.size(); ++i)
+        {
+            model.addFiles({url_of(source)});
+            const QModelIndex row = files->index(static_cast<int>(i));
+            files->setData(row, QString::fromStdString(test.files[i].first), adl::gen::SourceFileModel::FileNameRole);
+            files->setData(row,
+                           test.files[i].second ? adl::gen::SourceFileModel::support_kind
+                                                : adl::gen::SourceFileModel::data_kind,
+                           adl::gen::SourceFileModel::KindRole);
+        }
+
+        // The plan of the same values.
+        adl::set_maker::SetPlan plan;
+        plan.part_number = test.media_set_part_number;
+        adl::set_maker::PlannedLoad load;
+        load.part_number = test.load_part_number;
+        load.header_file_name = *test.header_file_name != '\0'
+                                    ? std::string{test.header_file_name}
+                                    : adl::set_maker::default_header_file_name(test.load_part_number);
+        load.target_hardware_ids = test.hardware_ids;
+        for (const auto& [name, support] : test.files)
+        {
+            load.files.push_back(
+                {source, name, support ? adl::set_maker::FileKind::support : adl::set_maker::FileKind::data, {}});
+        }
+        plan.loads.push_back(std::move(load));
+        if (*test.batch_part_number != '\0')
+        {
+            plan.batch = adl::set_maker::PlannedBatch{test.batch_part_number,
+                                                      adl::set_maker::default_batch_file_name(test.batch_part_number),
+                                                      {},
+                                                      adl::set_maker::derive_batch_targets(plan.loads)};
+        }
+        const bool plan_good = adl::set_maker::validate(plan).empty();
+
+        QVERIFY2(model.canGenerate() == test.good, test.what);
+        QVERIFY2(plan_good == test.good, test.what);
+    }
 }

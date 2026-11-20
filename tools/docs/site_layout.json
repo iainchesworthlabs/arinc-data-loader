@@ -290,6 +290,11 @@
    "old": null,
    "src": "licence-owner-tool.md",
    "new": "developers/licence-owner-tool/"
+  },
+  {
+   "old": null,
+   "src": "load-command.md",
+   "new": "developers/load-command/"
   }
  ]
 }

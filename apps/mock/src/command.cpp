@@ -63,10 +63,53 @@ constexpr std::string_view program_name = "adl_mock";
         case Effect::delay:
             event.ms = value;
             break;
+        case Effect::duplicate_datagram:
+            event.copies = value;
+            break;
+        case Effect::reorder_datagram:
+            event.within_ms = value;
+            break;
         default:
             break;
         }
     }
+    event.count = fired.count;
+    if (fired.on)
+    {
+        if (fired.on->datagram)
+        {
+            event.datagram = std::string{datagram_word(*fired.on->datagram)};
+        }
+        if (!fired.on->file.empty())
+        {
+            event.file = fired.on->file;
+        }
+        if (fired.on->block)
+        {
+            event.block = static_cast<std::int64_t>(*fired.on->block);
+        }
+    }
+    return event;
+}
+
+// A fault on a datagram that met one, as an event.
+[[nodiscard]] ScenarioDatagram datagram_event(const DatagramFaulted& hit)
+{
+    ScenarioDatagram event;
+    event.step = hit.step;
+    event.action = std::string{effect_word(hit.effect)};
+    event.applied = hit.applied;
+    event.datagram = std::string{datagram_word(hit.kind)};
+    if (!hit.file.empty())
+    {
+        event.file = hit.file;
+    }
+    if (hit.block)
+    {
+        event.block = static_cast<std::int64_t>(*hit.block);
+    }
+    event.to = hit.to;
+    event.size = hit.size;
     return event;
 }
 
@@ -213,6 +256,14 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
         out << usage_text();
         return exit_ok;
     }
+    if (options.action == Action::scenario_actions)
+    {
+        for (const std::string_view word : action_words())
+        {
+            out << word << '\n';
+        }
+        return exit_ok;
+    }
     if (options.action == Action::version)
     {
         out << program_name << ' ' << version << " events " << events_format << '\n';
@@ -296,8 +347,9 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
     std::shared_ptr<ScenarioPlayer> player;
     if (scenario)
     {
-        player = std::make_shared<ScenarioPlayer>(*scenario, [&reporter](const StepFired& fired)
-                                                  { reporter.emit(step_event(fired)); });
+        player = std::make_shared<ScenarioPlayer>(
+            *scenario, [&reporter](const StepFired& fired) { reporter.emit(step_event(fired)); },
+            [&reporter](const DatagramFaulted& hit) { reporter.emit(datagram_event(hit)); });
         config.fault_plan = player;
     }
     MockEngine engine(&reporter);
@@ -313,6 +365,10 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
     if (scenario)
     {
         started.scenario = ScenarioInfo{utf8(*options.scenario), scenario->steps.size(), scenario->seed};
+    }
+    for (const std::string_view word : action_words())
+    {
+        started.features.emplace_back(word);
     }
     reporter.emit(std::move(started));
     if (options.seconds)
@@ -335,6 +391,7 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
     if (player)
     {
         stopped.scenario_unused = player->unused_steps();
+        stopped.scenario_idle = player->idle_steps();
     }
     reporter.emit(std::move(stopped));
     return code;

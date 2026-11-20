@@ -335,3 +335,114 @@ void MockModelTest::the_activity_roles_are_the_ones_the_log_view_reads()
     QCOMPARE(log.data(log.index(0), 258).toString(), QStringLiteral("a warning"));
     QCOMPARE(log.data(log.index(0), 259).toString(), QStringLiteral("12:34:56"));
 }
+
+void MockModelTest::a_scenario_file_is_loaded_refused_and_removed()
+{
+    ModelFixture fixture;
+    TempDir dir;
+    const auto write = [&](const char* name, const char* text)
+    {
+        const auto path = dir.path() / name;
+        std::ofstream out(path, std::ios::binary);
+        out << text;
+        return QString::fromStdU16String(path.u16string());
+    };
+    QSignalSpy changed(&fixture.model, &MockTargetModel::scenarioChanged);
+    QVERIFY(!fixture.model.hasScenario());
+    QVERIFY(fixture.model.scenarioSummary().isEmpty());
+    QVERIFY(fixture.model.scenarioError().isEmpty());
+
+    // A file that is refused loads nothing, and says why (in the words of the file's own sentences).
+    fixture.model.loadScenario(write("bad.json", R"({"kind":"adl-mock-scenario","format":1})"));
+    QVERIFY(!fixture.model.hasScenario());
+    QCOMPARE(fixture.model.scenarioError(),
+             QStringLiteral("The scenario file was refused: \"steps\" is missing; it is a list of steps"));
+    QCOMPARE(changed.count(), 1);
+
+    // A file that is there is loaded, by a path or by the file URL a dialog hands over, and its name and the number of
+    // its steps are shown. The refusal is gone.
+    const QString good = write("good.json",
+                               R"({"kind":"adl-mock-scenario","format":1,"name":"Slow start","steps":[
+                                   {"when":{"request":1},"do":{"action":"wait","seconds":1}},
+                                   {"when":{"status_file":2},"do":{"action":"abort"}}]})");
+    fixture.model.loadScenario(QUrl::fromLocalFile(good).toString());
+    QVERIFY(fixture.model.hasScenario());
+    QVERIFY(fixture.model.scenarioError().isEmpty());
+    // (with no translator installed the count is said as in the source, "2 step(s)")
+    QVERIFY(fixture.model.scenarioSummary().startsWith(QStringLiteral("Scenario Slow start: 2 step")));
+    QCOMPARE(changed.count(), 2);
+
+    // Without a name in the file, the file's name stands for it.
+    fixture.model.loadScenario(write("unnamed.json", R"({"kind":"adl-mock-scenario","format":1,"steps":[
+                                   {"when":{"request":1},"do":{"action":"invalid_init_file"}}]})"));
+    QVERIFY(fixture.model.scenarioSummary().startsWith(QStringLiteral("Scenario unnamed.json: 1 step")));
+
+    // A file that is refused leaves none loaded, even where one was.
+    fixture.model.loadScenario(write("worse.json", "nothing"));
+    QVERIFY(!fixture.model.hasScenario());
+    QVERIFY(fixture.model.scenarioSummary().isEmpty());
+    QVERIFY(fixture.model.scenarioError().startsWith(
+        QStringLiteral("The scenario file was refused: it is not valid JSON")));
+
+    // A file that is not there.
+    fixture.model.loadScenario(QString::fromStdU16String((dir.path() / "absent.json").u16string()));
+    QVERIFY(fixture.model.scenarioError().contains(QStringLiteral("the file cannot be read")));
+
+    // Removing clears both the scenario and the refusal.
+    fixture.model.loadScenario(good);
+    QVERIFY(fixture.model.hasScenario());
+    fixture.model.removeScenario();
+    QVERIFY(!fixture.model.hasScenario());
+    QVERIFY(fixture.model.scenarioSummary().isEmpty());
+    QVERIFY(fixture.model.scenarioError().isEmpty());
+
+    // None is loaded or removed while the target runs.
+    fixture.model.start();
+    QVERIFY(fixture.model.running());
+    fixture.model.loadScenario(good);
+    QVERIFY(!fixture.model.hasScenario());
+    fixture.model.stop();
+    fixture.model.loadScenario(good);
+    QVERIFY(fixture.model.hasScenario());
+    fixture.model.start();
+    fixture.model.removeScenario();
+    QVERIFY(fixture.model.hasScenario());
+    fixture.model.stop();
+}
+
+void MockModelTest::a_scenario_takes_the_place_of_the_injections_and_its_steps_are_in_the_log()
+{
+    ModelFixture fixture;
+    TempDir dir;
+    const auto path = dir.path() / "refuse.json";
+    {
+        std::ofstream out(path, std::ios::binary);
+        out << R"({"kind":"adl-mock-scenario","format":1,"steps":[
+                   {"when":{"request":1},"do":{"action":"refuse","code":"0x1002"}}]})";
+    }
+    // An injection that is set is not used while a scenario is loaded: it would have refused every Information.
+    fixture.model.setRefuseOperation(QStringLiteral("information"));
+    fixture.model.setWaitFirstSeconds(30);
+    fixture.model.loadScenario(QString::fromStdU16String(path.u16string()));
+    QVERIFY(fixture.model.hasScenario());
+
+    LoaderRecorder recorder;
+    LoaderServices services;
+    services.listener = &recorder;
+    const auto pending = fixture.schedule_run(InformationOperation{}, services);
+    fixture.model.start();
+    QTRY_VERIFY_WITH_TIMEOUT(pending->finished.load(std::memory_order_acquire), 20000);
+    QVERIFY(pending->outcome);
+    // The scenario's refusal with 0x1002 (not 0x1000, and no WAIT of thirty seconds).
+    QCOMPARE(static_cast<int>(pending->outcome->code), static_cast<int>(OutcomeCode::not_supported));
+
+    auto* log = qobject_cast<ActivityModel*>(fixture.model.activity());
+    QTRY_VERIFY_WITH_TIMEOUT(
+        log_contains(*log, QStringLiteral("scenario step 1 (request 1, information): refuse 4098")), 5000);
+    fixture.model.stop();
+
+    // With the scenario removed, the injections come back into use.
+    fixture.model.removeScenario();
+    QCOMPARE(fixture.model.refuseOperation(), QStringLiteral("information"));
+    QCOMPARE(fixture.model.waitFirstSeconds(), 30);
+}

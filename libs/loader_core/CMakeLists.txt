@@ -3,13 +3,21 @@
 # upload reads them through, the check that turns a media set into a report, the folder a download is
 # written into, and the target's address. No Qt: the loader's application (apps/app/core) calls it, and
 # so can a program with no window. It builds on the ARINC 665 and 615A libraries, the media tree and
-# the platform layer, and it is exported with them in the development package.
+# the platform layer, and it is exported with them in the development package. It also holds the record of
+# an operation, the recorder that fills it from the engine's callbacks, and the writer of the file it is
+# kept in.
 
 add_library(adl_loader_core STATIC
     src/address.cpp
     src/download_directory.cpp
+    src/gate.cpp
     src/media_set_check.cpp
-    src/media_source.cpp)
+    src/media_source.cpp
+    src/operation_plan.cpp
+    src/operation_pool.cpp
+    src/record_json.cpp
+    src/recorder.cpp
+    src/run.cpp)
 add_library(adl::loader_core ALIAS adl_loader_core)
 
 target_include_directories(adl_loader_core
@@ -21,6 +29,7 @@ target_link_libraries(adl_loader_core
     PUBLIC
         adl::arinc665
         adl::arinc615a
+        adl::arinc615a_runner
         adl::media_tree
         adl::platform
     PRIVATE

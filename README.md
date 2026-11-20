@@ -47,6 +47,8 @@ release key and listed with its checksums and bill of materials
   **`adl_write_payloads`**, a command-line program that writes sample media sets
   (including the ARINC 615 and Boeing 777 layouts of Appendix F) to a directory,
   for trying other loaders.
+- **`adl_licence`**, a command-line program that shows the licence on a computer and
+  imports or removes a licence file (`apps/licence`, over `libs/licence_cli`).
 - **`adl::platform`**, the one place that knows which operating system this is:
   files, memory, threads and priorities, a clock, UDP sockets and message queues,
   as interfaces with an implementation each for Windows, Linux and macOS, and a
@@ -101,6 +103,11 @@ release key and listed with its checksums and bill of materials
     ([docs/mock-target.md](docs/mock-target.md#the-command)), for test rigs and CI jobs: it
     takes the target's identity, folders, ports and faults as options and writes one line, or
     one JSON object, for each event.
+  - **`adl_load`**, a command-line program that runs one operation on one target, or looks
+    for targets, with no window ([docs/load-command.md](docs/load-command.md)): JSON lines on
+    standard output, the operation record in a file, and an exit code that says how it ended,
+    for scripts and other programs. `adl_load serve` runs operations on several targets at once
+    from one loader port, for a program that drives it.
   - **One design system** (`libs/ui`) for all three windows, in the ICL Forge Modernist
     language: the Signal palette, Archivo, zero radius, the 4/8/12/16/24/32 rhythm, and one
     set of controls. The human-factors analysis behind it, with before/after screenshots, is
@@ -161,6 +168,8 @@ apps/mock_target/       adl_mock_target: a 615A target over real sockets, for de
 apps/mock/              adl_mock: the same target as a command with no window
 libs/mock_target_core/  the mock target's engine, without Qt (shared by the two programs)
 apps/write_payloads/    adl_write_payloads, which writes the samples to a directory
+apps/licence/           adl_licence, which shows, imports and removes the licence on a computer
+apps/load/              adl_load, one operation on one target with no window and no Qt
 apps/*/tests/           each application's own tests
 tests/                  unit, integration and system tests that span libraries; the fake platform;
                         the Qt Quick Test UI suite
@@ -189,6 +198,7 @@ The full index is [docs/README.md](docs/README.md).
 | [Architecture](docs/architecture.md), [Platform abstraction](docs/platform-abstraction.md), [Platform isolation](docs/platform-isolation.md), [Green Hills INTEGRITY](docs/platform-ghs.md) | How the code is arranged and how it stays portable |
 | [ARINC 665 coverage](docs/arinc665-coverage.md), [615A codec](docs/arinc615a-codec.md), [615A engine](docs/arinc615a-engine.md), [615A coverage](docs/arinc615a-coverage.md) | The libraries, section by section |
 | [The application](docs/app.md), [the generator](docs/media-gen.md), [the mock target](docs/mock-target.md) | The three programs, for developers |
+| [The command adl_load](docs/load-command.md) | One operation on one target with no window: options, events, exit codes |
 | [Design overhaul](docs/design-overhaul.md), [design system](docs/design-system.md) | The human-factors analysis and the shared look |
 | [Translations](docs/translations.md), [translation glossaries](docs/translation-glossaries.md) | The eight languages, how a language is switched and the window mirrored, and the glossaries the drafts chose |
 | [Roadmap](docs/roadmap.md), [licensing](docs/licensing.md), [repository settings](docs/repository-settings.md), [specs](docs/specs/README.md) | What is planned, licences, repository rules, the standards |

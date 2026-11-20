@@ -11,7 +11,8 @@ the programs.
 
 One licence file on a computer serves all of the windowed programs: the loader, the media set generator
 and the mock target. Each of them shows the edition in the same places. `adl_write_payloads` has no window
-and shows nothing.
+and shows nothing. `adl_licence` has no window either: it is the command line for the same licence files, for a
+computer with no display and for scripts ([With the command line](#with-the-command-line)).
 
 ARINC Data Loader checks a licence on this computer and never contacts a server. It sends nothing and counts
 nothing. It reads the name of the computer only to compare it with the computers a licence names.
@@ -149,6 +150,27 @@ the machine folder is never removed by the program.
 
 If a file cannot be removed the window says: Could not remove the licence. The file *name* could not be removed from *folder*.
 
+## With the command line
+
+`adl_licence` does what the Licence window does, with no window ([Command line and exit codes](command-line.md#adl_licence)).
+It reads and writes the same files in the same folders, so a licence imported with one is there for the other.
+
+| To | Run |
+| --- | --- |
+| See the edition, the licence in force and every licence file | `adl_licence show` |
+| Import a licence file, or a list of withdrawn licences | `adl_licence import <file>` |
+| Check a file as a program would, and keep nothing | `adl_licence verify <file>` |
+| Remove a file from your licence folder | `adl_licence remove <name>` |
+
+The sentences it prints for an import are the ones of [the table above](#import-a-licence), in English only. Two
+things differ from the window. `show` and `verify` never write anything, not even the clock file; the windows keep
+the latest time they have seen, and the command line does not. And `import` and `verify` judge a file with the
+signed lists of withdrawn licences already in your folders, so a licence that one of them withdraws is refused
+and not imported.
+
+`adl_licence show` prints the state as one word that is the same in every language, so that a script can read
+it: `none`, `valid`, `expiring`, `grace`, `expired`, `not_yet_valid`, `clock_suspect` or `invalid`.
+
 ## Where licence files go
 
 | What | Windows | Linux | macOS |
@@ -226,5 +248,5 @@ registration, and nothing to unlock: the programs say none of those words, becau
   put away. See [privacy](../privacy.md).
 - **Sent**: nothing. The program reads files on this computer and never opens a connection to check a licence.
 
-See also: [the command line](command-line.md) (the programs' options do not change), [privacy](../privacy.md),
+See also: [the command line](command-line.md) (`adl_licence`, and the programs' options, which do not change), [privacy](../privacy.md),
 [where files go](files-and-limits.md) and [the configuration reference](configuration.md).

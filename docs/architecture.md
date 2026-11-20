@@ -24,11 +24,16 @@
 
    adl::media_tree (libs/media_tree): members <-> a directory tree, over adl::arinc665
    adl::loader_core (libs/loader_core): what the loader does without a window and without Qt (the media
-   set on disk and its check, the folder a download is written into, the target's address), over the
-   libraries above; the application calls it
+   set on disk and its check, the folder a download is written into, the target's address, one operation
+   made and run against a target, the record of an operation and the file it is written as), over the libraries above; the application calls it
+   adl::set_maker (libs/set_maker): the media set generator without a window and without Qt (a plan, the
+   making of a set, the reading of one into facts), over adl::loader_core; the generator's window and the
+   command adl_make_set build on it
    adl::loader_scenario (libs/loader_scenario): faults on purpose in the loader's engine, from a scenario file
    (the scenario, its reader and the player of the engine's FaultHook); not installed
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
+   adl_load (apps/load): one operation on one target, or several at once with `serve`, with no window and no Qt,
+   over adl::loader_core and the runner; a library of its own (adl_load_cli) is the program, under a short main
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target's engine (libs/mock_target_core)
 ```
@@ -46,10 +51,31 @@
   overwrites or follows a link.
 - **`libs/loader_core`** is what the loader does that is not showing a window, with no Qt: a media set on
   disk read and checked into a report (`check_media_set`), the index of its files and the `FileSource` an
-  upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, and
-  the target's address. The loader's application (`apps/app/core`) calls it and puts what it returns in the
-  operator's words and in Qt's types, so a program with no window can do the same by the same rules. It is in
-  the [development package](libraries.md).
+  upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, the
+  target's address, and one operation (an `OperationPlan` of what was chosen, `run_operation` over the host's
+  sockets with the operator's `OperationGate`) reduced to a result and a reason. `run_operation` holds the
+  loader's control port for the one operation, so two of them cannot share port 59 on one address; the
+  `OperationPool` (`operation_pool.hpp`) holds it once and runs one operation for each target at once, each
+  with its own engine object and transfer sockets, giving every datagram on the control port to the operation
+  whose target sent it (one address has one operation at a time, and a datagram from an address with none is
+  dropped and counted). It runs on the thread that calls its `step()` and builds its results with the same
+  `make_result` as `run_operation`. It also holds the record of
+  an operation (`OperationRecord`), the recorder that fills it from what the engine reports
+  (`OperationRecorder`, an `OperationListener` that logs in English, in the window's sentences) and the writer
+  of the file the record is kept in ([the operation record](file-reference.md#the-operation-record)). The
+  loader's application (`apps/app/core`) calls the first part and puts what it returns in the operator's words
+  and in Qt's types, so a program with no window can do the same by the same rules; the window does not use
+  the recorder. It is in the [development package](libraries.md).
+- **`libs/set_maker`** is the media set generator without a window and without Qt, and is not in the
+  development package. A `SetPlan` is what a person decides about a media set (the files, the part numbers,
+  the members, the check value types, a batch, and more than one load). `validate` holds a plan to the rules
+  of the generator's window. `make_set` reads the files, builds the loads and the set, writes the members to a
+  folder beside the set's place, reads that back with `adl::loader_core::check_media_set` (the loader's own
+  check) and only then moves it into place, removing what it wrote whatever fails; its failures are values
+  that the window turns into its words in eight languages and the command into English. `inspect_set` reads
+  any media set into the facts that a manifest or a comparison needs. The generator's window
+  (`apps/media_gen/core`) and the command `adl_make_set` (`apps/make_set`) both call it, so that they cannot
+  differ.
 - **`libs/samples`** is the sample loads and media sets (the golden scenario of
   `tests/golden/make_golden.py` and the ARINC 615 and Boeing 777 layouts of
   Appendix F), as data. The tests build from it, and so does
@@ -59,6 +85,18 @@
   (`adl::mock::cli::run_command`) over `libs/mock_target_core` with a command line, one line or one JSON
   object for each event, and exit codes. `main()` only calls the function, so the tests run it in a thread
   and put the loader's real engine against it.
+- **`apps/load`** is the `adl_load` program: one ARINC 615A operation on one target, or FIND,
+  with no window and no Qt, for scripts and other programs ([the command](load-command.md)). It is
+  a static library of its own, `adl_load_cli` (the options, the events as JSON lines or plain lines,
+  and the run function that takes a platform host and the streams it writes to), and a `main` that
+  makes the real host. The library is not exported and not installed, so that a test can run a
+  whole command on the fake platform; the work of an operation is `adl::loader_core`. `adl_load serve`
+  is the one command that runs several operations at once: its loop (`serve.cpp`) takes request lines
+  from a `LineSource`, the program's standard input read on a thread of its own (`stream_source.cpp`) or a
+  test's script, and runs them on the loader core's `OperationPool`, so that one process holds the
+  loader's control port for all of them. What an upload reads before it can start, its media set, is done
+  by a `Preparer` (`preparer.cpp`) on a thread of its own, so that a large set does not hold up the
+  operations that are running.
 - **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `libs/platform/interfaces/adl/platform/`, with one implementation per platform
@@ -101,10 +139,10 @@
   are the `on`, `count` and `do` of a step and the player. No Qt, no platform code; it is on a desktop only (the
   reader uses the licence library's strict JSON reader) and is not part of the installed `adl` package.
 - **`libs/mock_scenario`** is the mock target's scenario: a file that says which fault happens when (the nth request, the
-  nth status file, a time since the operation began; any fault the mock target has, or a delay), read over the shared
+  nth status file, a time since the operation began; any fault the mock target has, a delay, or a fault on a datagram the target sends: lost, repeated, late or reordered), read over the shared
   reader of `libs/scenario_base`, written back in one form, and a `ScenarioPlayer` that is the `FaultPlan` the engine asks.
   The engine knows nothing of files or seeds: `adl/mock/fault_plan.hpp`, in `libs/mock_target_core`, is the interface, in
-  the engine's own terms (wait, refuse, drop a status file, abort, go silent, corrupt, wrong check value, delay). A
+  the engine's own terms (wait, refuse, drop a status file, abort, go silent, corrupt, wrong check value, and for each datagram the engine is about to send: send, drop, repeat, delay or hold). A
   desktop library, like the licence library it reads JSON with; not installed. `adl_mock` and the mock target's window
   both take a scenario through it.
 - **`libs/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
@@ -139,6 +177,19 @@
   is also offered under the BSD 2-Clause licence ([licensing](licensing.md)), because it uses `adl::platform`.
   It is on a desktop only, is not part of the installed `adl` package, and the three Qt applications link it
   (through the licence model of `libs/ui`).
+- **`libs/licence_cli`** is the commands of `adl_licence`: `show`, `import`, `remove` and `verify`, over the store and
+  `libs/licence_platform`. `adl::licence_cli::run` takes the command line and an `Environment` (the files, the folders, the
+  time, the computer's name and the keys) and writes to two streams, so that a test gives it files in memory, a clock of
+  its own and the published test key, and `SystemEnvironment` fills the `Environment` in from this computer. It links
+  `adl::licence` and no signing code, so no program that ships holds a key or the test key. It is under the GPL alone, on a
+  desktop only, and not part of the installed `adl` package.
+- **`apps/licence`** is the `adl_licence` program around those commands: its arguments through `adl::platform::arguments`,
+  and the one thing `adl::platform` does not give, an environment variable (`ADL_SETTINGS_DIR`), which is the one part
+  that differs between systems: CMake compiles `os/<platform>/environment.cpp` chosen by the platform's name, as it does
+  for the entry point of the owner's tool. It can move into `adl::platform` if a second program needs it. The target is
+  `adl_licence_program`, because `adl_licence` is the library of the licence; the file is `adl_licence`. A program of the
+  tests, `adl_licence_test_program`, runs the same commands with the test key and a clock the test sets, and is never
+  installed.
 - **`tools/licence`** is the owner's licence tool (`adl_licence_owner`): it makes a signing key, issues a licence file,
   checks one and writes a revocation list, on `adl::licence`, `adl::licence_sign` and the test key and the standard
   library, and nothing else of this repository. It is built with the other tools and never installed; a package check
@@ -189,6 +240,7 @@ route to remove it.
 | `libs/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
 | `libs/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
 | `libs/licence_platform` | `adl_licence_platform` | `adl::licence_platform` | `adl::licence_platform` | `adl/licence_platform/*.hpp` |
+| `libs/licence_cli` | `adl_licence_cli` | `adl::licence_cli` | `adl::licence_cli` | `adl/licence_cli/*.hpp` |
 | `libs/licence` | `adl_licence` (with `adl_licence_sign` and `adl_licence_test_keys`) | `adl::licence` (and `adl::licence_sign`, `adl::licence_test_keys`) | `adl::licence` | `adl/licence/*.hpp` |
 | `libs/scenario_base` | `adl_scenario_base` | `adl::scenario_base` | `adl::scenario` | `adl/scenario/*.hpp` |
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
@@ -200,7 +252,7 @@ route to remove it.
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 | `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
-The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock` and `adl_write_payloads`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock`, `adl_write_payloads`, `adl_make_set`, `adl_load` and `adl_licence`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
 applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
@@ -230,7 +282,7 @@ its neighbours.
 
 ## Command-line programs
 
-A program that is started from a command line (`adl_write_payloads` and `adl_mock`, and any other that does not open a
+A program that is started from a command line (`adl_write_payloads`, `adl_mock`, `adl_make_set`, `adl_licence`, and any other that does not open a
 window) is written this way:
 
 - **Its `main` takes its arguments from `adl::platform::arguments` and never reads `argv` itself.**
@@ -243,6 +295,11 @@ window) is written this way:
   on Windows that reads the bytes in the code page, and makes another name without an error.
 - **Text for the person comes from a path with `to_utf8(path.u8string())`** (`paths.hpp`), never `path.string()` or
   `path.generic_string()`: on Windows those are the code page again, and throw for a character outside it.
+- **`apps/make_set`** is `adl_make_set`: the program is `run_command` in a library of its own (`adl_make_set_cli`,
+  not installed) so that the tests run it on temporary folders, and `main.cpp` is only the call. It has no Qt, and
+  it is a desktop program, because the description file is read with the licence library's strict JSON reader
+  (`adl/licence/json.hpp`), which only a desktop build has. What it writes is JSON written by hand
+  (`json.hpp`): events, one line each, and the inspection document, one line.
 - The three Qt programs take their arguments through Qt, which reads the command line itself, and are not
   concerned.
 

@@ -207,9 +207,11 @@ TEST_CASE("mock player: a range of delays is drawn after the chance, and the dra
     std::vector<std::uint32_t> delays;
     for (int i = 0; i < 4; ++i)
     {
-        const std::vector<Action> actions = ranged.on_request(OperationKind::upload);
-        REQUIRE(actions.size() == 1);
-        delays.push_back(actions[0].value);
+        // A delay is armed by its trigger and held to the next datagram, whose fate is the delay that was drawn.
+        CHECK(ranged.on_request(OperationKind::upload).empty());
+        const DatagramFate fate = ranged.on_datagram(DatagramInfo{});
+        REQUIRE(fate.kind == DatagramFate::Kind::delay);
+        delays.push_back(fate.amount);
     }
     CHECK(delays == std::vector<std::uint32_t>{495, 790, 895, 517});
     REQUIRE(seen.fired.size() == 4);
@@ -270,4 +272,231 @@ TEST_CASE("mock player: the steps that never fired are told at the end", "[mock_
         scenario_of(R"({"when":{"request":1},"per_mille":1,"do":{"action":"invalid_init_file"}})", "3"));
     static_cast<void>(chance.on_request(OperationKind::upload));
     CHECK(chance.unused_steps().empty());
+}
+
+// ---- The faults on a datagram ------------------------------------------------------------------------------------
+
+namespace
+{
+
+DatagramInfo datagram(DatagramKind kind, std::uint32_t block = 0, std::string_view file = {})
+{
+    DatagramInfo info;
+    info.kind = kind;
+    info.block = block;
+    info.file = file;
+    info.from_port = 40001;
+    info.to = adl::arinc615a::Endpoint{adl::arinc615a::Address{{10, 0, 0, 1}}, 59};
+    info.size = 20;
+    return info;
+}
+
+constexpr DatagramFate sent{DatagramFate::Kind::send, 0};
+
+struct ObservedDatagrams
+{
+    std::vector<DatagramFaulted> hits;
+    DatagramObserver observer()
+    {
+        return [this](const DatagramFaulted& hit) { hits.push_back(hit); };
+    }
+};
+
+} // namespace
+
+TEST_CASE("mock player: a fault on a datagram is armed by its trigger and acts on a datagram that matches, once",
+          "[mock_scenario][player][datagram]")
+{
+    Observed seen;
+    ObservedDatagrams hits;
+    ScenarioPlayer player(
+        scenario_of(R"({"when":{"request":1},"on":{"datagram":"data","block":1},"do":{"action":"drop_datagram"}})"),
+        seen.observer(), hits.observer());
+    // Before the trigger it does nothing.
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == sent);
+    CHECK(player.on_request(OperationKind::upload).empty()); // armed, and asks nothing of the engine
+    REQUIRE(seen.fired.size() == 1);
+    CHECK(seen.fired[0].effect == Effect::drop_datagram);
+    CHECK(seen.fired[0].count == 1);
+    REQUIRE(seen.fired[0].on.has_value());
+    CHECK(seen.fired[0].on->datagram == DatagramKind::data);
+    CHECK(seen.fired[0].on->block == 1U);
+    // An acknowledgement of block 1, and a data datagram of block 2, are not it.
+    CHECK(player.on_datagram(datagram(DatagramKind::ack, 1)) == sent);
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 2)) == sent);
+    CHECK(hits.hits.empty());
+    // Block 1 of data is, once.
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1, "HNPFMS_L.LUS")) ==
+          DatagramFate{DatagramFate::Kind::drop, 0});
+    REQUIRE(hits.hits.size() == 1);
+    CHECK(hits.hits[0].step == 1);
+    CHECK(hits.hits[0].effect == Effect::drop_datagram);
+    CHECK(hits.hits[0].applied);
+    CHECK(hits.hits[0].kind == DatagramKind::data);
+    CHECK(hits.hits[0].file == "HNPFMS_L.LUS");
+    CHECK(hits.hits[0].block == 1U);
+    CHECK(hits.hits[0].to == "10.0.0.1:59");
+    CHECK(hits.hits[0].size == 20);
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == sent); // the count was 1
+    CHECK(player.idle_steps().empty());
+}
+
+TEST_CASE("mock player: count is how many datagrams, and an armed step is armed again by its next occurrence",
+          "[mock_scenario][player][datagram]")
+{
+    ScenarioPlayer player(
+        scenario_of(R"({"when":{"status_file":1,"every":1},"count":2,"do":{"action":"drop_datagram"}})"));
+    static_cast<void>(player.on_status_file(OperationKind::upload, 1));
+    const DatagramFate drop{DatagramFate::Kind::drop, 0};
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == drop);
+    CHECK(player.on_datagram(datagram(DatagramKind::ack, 7)) == drop);
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == sent);
+    // The step occurs again, and starts its count again.
+    static_cast<void>(player.on_status_file(OperationKind::upload, 2));
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == drop);
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == drop);
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == sent);
+}
+
+TEST_CASE("mock player: the fates of the four faults on a datagram", "[mock_scenario][player][datagram]")
+{
+    ScenarioPlayer player(scenario_of(R"({"when":{"request":1},"do":{"action":"duplicate_datagram","copies":3}},
+                                          {"when":{"request":2},"do":{"action":"reorder_datagram","within_ms":250}},
+                                          {"when":{"request":3},"do":{"action":"delay","ms":400}},
+                                          {"when":{"request":4},"do":{"action":"duplicate_datagram"}},
+                                          {"when":{"request":5},"do":{"action":"reorder_datagram"}})"));
+    const auto next = [&]
+    {
+        static_cast<void>(player.on_request(OperationKind::upload));
+        return player.on_datagram(datagram(DatagramKind::request));
+    };
+    CHECK(next() == DatagramFate{DatagramFate::Kind::duplicate, 3});
+    CHECK(next() == DatagramFate{DatagramFate::Kind::hold, 250});
+    CHECK(next() == DatagramFate{DatagramFate::Kind::delay, 400});
+    CHECK(next() == DatagramFate{DatagramFate::Kind::duplicate, 2}); // the default of copies
+    CHECK(next() == DatagramFate{DatagramFate::Kind::hold, 1000});   // the default of within_ms
+}
+
+TEST_CASE("mock player: a selector names a kind, a block, a file or an extension, and all that are given have to match",
+          "[mock_scenario][player][datagram]")
+{
+    const auto fate = [](std::string_view on, const DatagramInfo& info)
+    {
+        ScenarioPlayer player(
+            scenario_of(R"({"when":{"request":1},"on":)" + std::string{on} + R"(,"do":{"action":"drop_datagram"}})"));
+        static_cast<void>(player.on_request(OperationKind::upload));
+        return player.on_datagram(info).kind == DatagramFate::Kind::drop;
+    };
+    // A file by name, in any case, and by extension.
+    CHECK(fate(R"({"file":"LOAD1.BIN"})", datagram(DatagramKind::data, 1, "load1.bin")));
+    CHECK(!fate(R"({"file":"LOAD1.BIN"})", datagram(DatagramKind::data, 1, "LOAD2.BIN")));
+    CHECK(!fate(R"({"file":"LOAD1.BIN"})", datagram(DatagramKind::data, 1)));
+    CHECK(fate(R"({"file":".LUS"})", datagram(DatagramKind::request, 0, "HNPFMS_L.LUS")));
+    CHECK(fate(R"({"file":".lus"})", datagram(DatagramKind::request, 0, "HNPFMS_L.LUS")));
+    CHECK(!fate(R"({"file":".LUS"})", datagram(DatagramKind::request, 0, "HNPFMS_L.LUR")));
+    CHECK(!fate(R"({"file":".LUS"})",
+                datagram(DatagramKind::request, 0, ".LUS"))); // an extension of a name, not the name
+    // A kind, and `any`.
+    CHECK(fate(R"({"datagram":"option_ack"})", datagram(DatagramKind::option_ack)));
+    CHECK(!fate(R"({"datagram":"option_ack"})", datagram(DatagramKind::ack)));
+    CHECK(fate(R"({"datagram":"error"})", datagram(DatagramKind::error)));
+    CHECK(fate(R"({"datagram":"any"})", datagram(DatagramKind::other)));
+    CHECK(fate(R"({})", datagram(DatagramKind::other)));
+    CHECK(!fate(R"({"datagram":"request"})", datagram(DatagramKind::other)));
+    // A block is a data or an ack datagram with that number, with a kind or without one.
+    CHECK(fate(R"({"block":3})", datagram(DatagramKind::data, 3)));
+    CHECK(fate(R"({"block":3})", datagram(DatagramKind::ack, 3)));
+    CHECK(!fate(R"({"block":3})", datagram(DatagramKind::ack, 4)));
+    CHECK(!fate(R"({"block":0})", datagram(DatagramKind::option_ack)));
+    CHECK(fate(R"({"block":0})", datagram(DatagramKind::ack, 0)));
+    // All given have to match.
+    CHECK(fate(R"({"datagram":"ack","block":1,"file":".LUR"})", datagram(DatagramKind::ack, 1, "X.LUR")));
+    CHECK(!fate(R"({"datagram":"ack","block":1,"file":".LUR"})", datagram(DatagramKind::data, 1, "X.LUR")));
+    CHECK(!fate(R"({"datagram":"ack","block":1,"file":".LUR"})", datagram(DatagramKind::ack, 1, "X.LUS")));
+}
+
+TEST_CASE("mock player: of several steps armed together, the first that matches acts, and one acts on a datagram",
+          "[mock_scenario][player][datagram]")
+{
+    ScenarioPlayer player(
+        scenario_of(R"({"when":{"request":1},"on":{"datagram":"ack"},"do":{"action":"duplicate_datagram","copies":4}},
+                                          {"when":{"request":1},"do":{"action":"drop_datagram"}},
+                                          {"when":{"request":1},"do":{"action":"delay","ms":9}})"));
+    static_cast<void>(player.on_request(OperationKind::upload));
+    // An ack: step 1 acts. Then a data datagram: step 1 does not match, step 2 acts. Then anything: step 3.
+    CHECK(player.on_datagram(datagram(DatagramKind::ack, 1)) == DatagramFate{DatagramFate::Kind::duplicate, 4});
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == DatagramFate{DatagramFate::Kind::drop, 0});
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 2)) == DatagramFate{DatagramFate::Kind::delay, 9});
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 3)) == sent);
+}
+
+TEST_CASE(
+    "mock player: the chance of a fault on a datagram is drawn for each datagram that matches, from its own stream",
+    "[mock_scenario][player][datagram]")
+{
+    // Step 3 with a chance of 500 per mille in a file whose seed is 20261120: the same pattern as the shared generator
+    // gives the step (tests/scenario_base), now one draw for each datagram, and none when the trigger occurs.
+    ObservedDatagrams hits;
+    ScenarioPlayer player(scenario_of(R"({"when":{"request":98},"do":{"action":"wait","seconds":1}},
+                       {"when":{"request":99},"do":{"action":"wait","seconds":1}},
+                       {"when":{"request":1},"per_mille":500,"count":65535,"do":{"action":"drop_datagram"}})"),
+                          {}, hits.observer());
+    Observed arming;
+    static_cast<void>(player.on_request(OperationKind::upload));
+    std::string pattern;
+    for (int i = 0; i < 20; ++i)
+    {
+        pattern += player.on_datagram(datagram(DatagramKind::data, 1)).kind == DatagramFate::Kind::drop ? '1' : '0';
+    }
+    CHECK(pattern == "01011111001111001111");
+    // Every datagram it met is told, with whether the chance applied; only the ones that applied counted.
+    REQUIRE(hits.hits.size() == 20);
+    std::string told;
+    for (const DatagramFaulted& hit : hits.hits)
+    {
+        told += hit.applied ? '1' : '0';
+    }
+    CHECK(told == pattern);
+}
+
+TEST_CASE("mock player: a delay keeps its draw at the trigger, and a datagram fault is dropped when the operation ends",
+          "[mock_scenario][player][datagram]")
+{
+    Observed seen;
+    ScenarioPlayer player(scenario_of(R"({"when":{"request":9},"do":{"action":"wait","seconds":1}},
+                                          {"when":{"request":1,"every":1},"do":{"action":"delay","min_ms":200,"max_ms":900},"count":2},
+                                          {"when":{"request":1},"do":{"action":"drop_datagram"}})"),
+                          seen.observer());
+    static_cast<void>(player.on_request(OperationKind::upload));
+    REQUIRE(seen.fired.size() == 2);
+    CHECK(seen.fired[0].value == 495U); // drawn when the trigger occurred, as the stream of step 2 gives
+    CHECK(seen.fired[0].count == 2);
+    CHECK(!seen.fired[1].value.has_value());
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == DatagramFate{DatagramFate::Kind::delay, 495});
+    // The end of an operation drops what is armed.
+    player.on_operation_ended();
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) == sent);
+    // Armed again, the delay is what the trigger drew the second time.
+    static_cast<void>(player.on_request(OperationKind::upload));
+    REQUIRE(seen.fired.size() == 3);
+    REQUIRE(seen.fired[2].value.has_value());
+    CHECK(*seen.fired[2].value != *seen.fired[0].value);
+    CHECK(*seen.fired[2].value >= 200U);
+    CHECK(*seen.fired[2].value <= 900U);
+    CHECK(player.on_datagram(datagram(DatagramKind::data, 1)) ==
+          DatagramFate{DatagramFate::Kind::delay, *seen.fired[2].value});
+}
+
+TEST_CASE("mock player: a step on a datagram that was armed and met none is idle", "[mock_scenario][player][datagram]")
+{
+    ScenarioPlayer player(
+        scenario_of(R"({"when":{"request":1},"on":{"file":"NOPE.BIN"},"do":{"action":"drop_datagram"}},
+                                          {"when":{"request":1},"do":{"action":"drop_datagram"}},
+                                          {"when":{"request":77},"do":{"action":"drop_datagram"}},
+                                          {"when":{"request":1},"do":{"action":"wait","seconds":1}})"));
+    static_cast<void>(player.on_request(OperationKind::upload));
+    CHECK(player.idle_steps() == std::vector<std::size_t>{1, 2}); // step 3 never occurred: it is unused, not idle
+    static_cast<void>(player.on_datagram(datagram(DatagramKind::data, 1)));
+    CHECK(player.idle_steps() == std::vector<std::size_t>{1});
+    CHECK(player.unused_steps() == std::vector<std::size_t>{3});
 }

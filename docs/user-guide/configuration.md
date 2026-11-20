@@ -65,7 +65,7 @@ The licence folders, the clock file and the limits on them (64 files from each f
 
 | Variable | Used by | What it does |
 | --- | --- | --- |
-| `ADL_SETTINGS_DIR` | All three programs | Keeps the settings in an ini file below this folder, as above, and keeps the [licence folders and the clock file](licence.md#where-licence-files-go) there too: `licences`, `machine-licences` and `licence-clock.json` |
+| `ADL_SETTINGS_DIR` | All three programs with windows, and `adl_licence` (which has no settings of its own, and reads its licence folders and clock file from this variable) | Keeps the settings in an ini file below this folder, as above, and keeps the [licence folders and the clock file](licence.md#where-licence-files-go) there too: `licences`, `machine-licences` and `licence-clock.json` |
 | `QT_QUICK_CONTROLS_STYLE` | All three programs | If it is not set, the programs use Qt's Fusion style. If it is set, Qt's own value is used |
 
 The programs read no other environment variable. Qt reads its own.

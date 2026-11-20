@@ -134,6 +134,12 @@ add_subdirectory(libs/media_tree)
 # the download folder and the target's address. No Qt; apps/app/core calls it.
 add_subdirectory(libs/loader_core)
 
+# What the media set generator does without a window: the plan, the making of a set (read, build, write,
+# read back with the loader's own check, move into place) and the reading of a set into its facts. The
+# generator's window (apps/media_gen) and the command adl_make_set (apps/make_set) build on it. No Qt. Not
+# installed and not part of the adl package.
+add_subdirectory(libs/set_maker)
+
 # The licence library: the signed licence file, its states and the checks a program asks. Platform-free.
 # Its Ed25519 is Monocypher, vendored in third_party/monocypher, which is C: the language is enabled here,
 # and only on a desktop, because a target build has no use for a licence and may have no C compiler.
@@ -145,11 +151,19 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(libs/loader_scenario)
     # The same library over the platform layer: the store's file interface and the folders. GPL only.
     add_subdirectory(libs/licence_platform)
+    # The commands of adl_licence (show, import, remove, verify), over the store and the platform layer. GPL only.
+    add_subdirectory(libs/licence_cli)
     # The owner's licence tool: built with the other tools, never installed (tools/licence/CMakeLists.txt).
     add_subdirectory(tools/licence)
     # What the scenario files of the mock target and of the loader have in common: the random numbers and the
     # shared reading of the file. It reads JSON with the licence library, so it is a desktop library too.
     add_subdirectory(libs/scenario_base)
+endif()
+
+# adl_make_set: the media set generator as a command with no window. It reads its description file with the
+# licence library's strict JSON reader, so it is a desktop program.
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(apps/make_set)
 endif()
 
 # The mock target's logic without a window and without Qt: its 615A engine and the link that runs
@@ -176,6 +190,15 @@ add_subdirectory(apps/write_payloads)
 # installed only there).
 if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(apps/mock)
+endif()
+
+# adl_load: one ARINC 615A operation on one target, with no window and no Qt, for programs and scripts
+# (docs/load-command.md). A thin main over the static library adl_load_cli.
+add_subdirectory(apps/load)
+
+# adl_licence: shows, imports, removes and checks the licence on this computer, from a command line.
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(apps/licence)
 endif()
 
 # The Qt application: a thin layer over the libraries above, and the only place Qt is used.

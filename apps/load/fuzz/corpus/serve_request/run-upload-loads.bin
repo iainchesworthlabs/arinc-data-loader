@@ -1,0 +1,1 @@
+run	fms-left.1	upload	--target	192.168.10.21	--position	HNPFMS_L	--media-set	sets/fms	--load	PN-1	--load	PN-2	--target-port	5059

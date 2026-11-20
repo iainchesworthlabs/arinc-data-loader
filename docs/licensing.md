@@ -68,6 +68,8 @@ licence.
      the rest of the tests stay GPL-3.0-or-later. That includes `libs/licence_platform`, which fills in
      the store's file interface with `adl::platform::FileSystem` and chooses the product's folders: it
      uses the platform layer, so it is GPL-3.0-or-later only, with its tests in `tests/licence_platform`.
+     So are `libs/licence_cli` and `apps/licence`, the commands and the program of `adl_licence`, with their tests in
+     `tests/licence_cli`: they use the platform layer and the folders of this product.
 
    The library includes nothing from this repository: it takes the C++ standard library and Monocypher
    (`tests/licence` also takes Catch2, which is BSL-1.0). Its CMake files use this repository's

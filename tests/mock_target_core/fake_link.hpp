@@ -20,7 +20,7 @@
 namespace adl::test
 {
 
-class FakeTargetLink final : public adl::mock::TargetLink, public adl::fake::Agent
+class FakeTargetLink : public adl::mock::TargetLink, public adl::fake::Agent
 {
 public:
     FakeTargetLink(adl::fake::FakeWorld& world, adl::fake::FakeNetwork& network, adl::platform::Ipv4Address address)

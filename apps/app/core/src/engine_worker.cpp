@@ -11,6 +11,7 @@
 #include "adl/arinc615a/find_client.hpp"
 #include "adl/arinc615a/limits.hpp"
 #include "adl/loader_core/download_directory.hpp"
+#include "adl/loader_core/run.hpp"
 #include "adl/platform/paths.hpp"
 
 #include <adl/profiling.hpp>
@@ -332,79 +333,36 @@ private:
 
 } // namespace
 
-void OperationGate::post_selection(QStringList names) noexcept
+void OperationGate::post_selection(const QStringList& names) noexcept
 {
-    std::lock_guard lock(selection_mutex_);
-    selection_ = std::move(names);
-    selection_ready_.store(true, std::memory_order_release);
-}
-
-void OperationGate::clear() noexcept
-{
-    abort_requested_.store(false, std::memory_order_release);
-    selection_ready_.store(false, std::memory_order_release);
-    std::lock_guard lock(selection_mutex_);
-    selection_.clear();
-    // The runner's thread is idle when clear() runs: the flags of the last job are reset here,
-    // never while one is running.
-    abort_issued_ = false;
-    selection_issued_ = false;
-}
-
-QStringList OperationGate::take_selection() noexcept
-{
-    std::lock_guard lock(selection_mutex_);
-    QStringList choice = std::move(selection_);
-    selection_.clear();
-    return choice;
-}
-
-void OperationGate::on_poll(adl::arinc615a::DataLoader& loader, adl::arinc615a::Instant now) noexcept
-{
-    if (abort_requested() && !abort_issued_ && !loader.done())
+    std::vector<std::string> choice;
+    choice.reserve(static_cast<std::size_t>(names.size()));
+    for (const QString& name : names)
     {
-        abort_issued_ = true;
-        loader.abort(now, adl::arinc615a::StatusCode::aborted_by_operator);
-        return;
+        choice.push_back(name.toStdString());
     }
-    if (selection_posted() && !selection_issued_ && !loader.done())
-    {
-        selection_issued_ = true;
-        const QStringList choice = take_selection();
-        if (choice.isEmpty())
-        {
-            // "None": what a listener answering the target's list with
-            // SelectionDecision::cancelled would do. The target's next status file confirms
-            // the abort, as for the operator's own Abort.
-            loader.abort(now, adl::arinc615a::StatusCode::aborted_by_operator);
-            return;
-        }
-        std::vector<std::string> names;
-        names.reserve(static_cast<std::size_t>(choice.size()));
-        for (const QString& name : choice)
-        {
-            names.push_back(name.toStdString());
-        }
-        std::vector<std::string_view> views;
-        views.reserve(names.size());
-        for (const std::string& name : names)
-        {
-            views.push_back(name);
-        }
-        if (!loader.provide_selection(now, views) && !loader.done())
-        {
-            // The loader is not waiting for a choice (the target's list has not arrived): the
-            // choice is not lost, it is offered again at the next poll.
-            post_selection(choice);
-            selection_issued_ = false;
-        }
-    }
+    adl::loader_core::OperationGate::post_selection(std::move(choice));
 }
 
 EngineWorker::EngineWorker(HostFactory host_factory, QObject* parent)
     : QObject(parent), host_factory_(std::move(host_factory))
 {
     register_metatypes();
+}
+
+Message EngineWorker::plan_problem(const adl::loader_core::PlanError& error)
+{
+    switch (error.kind)
+    {
+    case adl::loader_core::PlanError::Kind::no_loads:
+        return Message::translated(&EngineWorker::tr, QT_TR_NOOP("No load was chosen."));
+    case adl::loader_core::PlanError::Kind::no_files:
+        return Message::translated(&EngineWorker::tr, QT_TR_NOOP("No file was named."));
+    case adl::loader_core::PlanError::Kind::unsafe_file_name:
+        return Message::translated(&EngineWorker::tr, QT_TR_NOOP("\"%1\" is not a safe file name."),
+                                   {Message::verbatim(QString::fromStdString(error.name))});
+    }
+    return {};
 }
 
 void EngineWorker::fail(const Message& text, const Message& hint, const QString& download_directory)
@@ -500,8 +458,9 @@ void EngineWorker::read_information(const QString& address, const QString& thw_i
         {Severity::info, Message::translated(&EngineWorker::tr, QT_TR_NOOP("Asking %1 (%2) for its configuration..."),
                                              {Message::verbatim(address), Message::verbatim(thw_id_pos)})});
     JobListener listener(*this);
-    run_operation(*lease->host, Address{*octets}, thw_id_pos, adl::arinc615a::InformationOperation{}, listener, nullptr,
-                  nullptr, control_port);
+    const auto plan = adl::loader_core::OperationPlan::information();
+    run_operation(*lease->host, Address{*octets}, thw_id_pos, plan.operation(), listener, nullptr, nullptr,
+                  control_port);
 }
 
 void EngineWorker::upload(const QString& address, const QString& thw_id_pos, QList<LoadSummary> loads,
@@ -520,29 +479,19 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos, QLi
                                  QT_TR_NOOP("No media set has been read, so there is nothing to upload.")));
         return;
     }
-    if (loads.isEmpty())
-    {
-        fail(Message::translated(&EngineWorker::tr, QT_TR_NOOP("No load was chosen.")));
-        return;
-    }
-    // The request names each load by its header file and part number; the strings it views are
-    // kept here for the length of the call.
-    struct LoadNames
-    {
-        std::string header_file;
-        std::string part_number;
-    };
-    std::vector<LoadNames> names;
-    names.reserve(static_cast<std::size_t>(loads.size()));
+    // The request names each load by its header file and part number; the plan keeps the strings it
+    // views for the length of the call.
+    std::vector<adl::loader_core::LoadChoice> choices;
+    choices.reserve(static_cast<std::size_t>(loads.size()));
     for (const LoadSummary& load : loads)
     {
-        names.push_back({load.header_file.toStdString(), load.part_number.toStdString()});
+        choices.push_back({load.header_file.toStdString(), load.part_number.toStdString()});
     }
-    std::vector<adl::arinc615a::LoadReference> references;
-    references.reserve(names.size());
-    for (const LoadNames& load : names)
+    const auto plan = adl::loader_core::OperationPlan::upload(choices);
+    if (!plan)
     {
-        references.push_back(adl::arinc615a::LoadReference{load.header_file, load.part_number});
+        fail(plan_problem(plan.error()));
+        return;
     }
 
     auto lease = host_factory_();
@@ -574,9 +523,8 @@ void EngineWorker::upload(const QString& address, const QString& thw_id_pos, QLi
         {Severity::info, Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("Uploading %n load(s) to %1 (%2)..."),
                                              {Message::verbatim(address), Message::verbatim(thw_id_pos)},
                                              static_cast<int>(loads.size()))});
-    run_operation(*lease->host, Address{*octets}, thw_id_pos,
-                  adl::arinc615a::UploadOperation{adl::arinc615a::UploadRequest{references}}, listener, &source,
-                  nullptr, control_port, {}, &source);
+    run_operation(*lease->host, Address{*octets}, thw_id_pos, plan->operation(), listener, &source, nullptr,
+                  control_port);
 }
 
 void EngineWorker::download_media(const QString& address, const QString& thw_id_pos, QStringList names,
@@ -589,39 +537,24 @@ void EngineWorker::download_media(const QString& address, const QString& thw_id_
         fail(AddressProblem::not_an_address(address), Hint::address());
         return;
     }
-    if (names.isEmpty())
-    {
-        fail(Message::translated(&EngineWorker::tr, QT_TR_NOOP("No file was named.")));
-        return;
-    }
-    // The names are checked before the operation starts: the request (and later the sink) would
-    // refuse a name that is not a plain file name all the same.
     std::vector<std::string> stored;
     stored.reserve(static_cast<std::size_t>(names.size()));
     for (const QString& name : names)
     {
         stored.push_back(name.toStdString());
-        if (!adl::arinc615a::is_safe_file_name(stored.back()))
-        {
-            fail(Message::translated(&EngineWorker::tr, QT_TR_NOOP("\"%1\" is not a safe file name."),
-                                     {Message::verbatim(name)}),
-                 Hint::file_name());
-            return;
-        }
     }
-    std::vector<adl::arinc615a::FileRequest> requests;
-    requests.reserve(stored.size());
-    for (const std::string& name : stored)
+    const auto plan = adl::loader_core::OperationPlan::download_media(stored);
+    if (!plan)
     {
-        requests.push_back(adl::arinc615a::FileRequest{name, {}});
+        fail(plan_problem(plan.error()),
+             plan.error().kind == adl::loader_core::PlanError::Kind::unsafe_file_name ? Hint::file_name() : Message{});
+        return;
     }
     Q_EMIT log_line(
         {Severity::info, Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("Downloading %n file(s) from %1 (%2)..."),
                                              {Message::verbatim(address), Message::verbatim(thw_id_pos)},
                                              static_cast<int>(names.size()))});
-    run_download(Address{*octets}, thw_id_pos,
-                 adl::arinc615a::MediaDownloadOperation{adl::arinc615a::DownloadRequest{requests}}, download_directory,
-                 control_port);
+    run_download(Address{*octets}, thw_id_pos, plan->operation(), download_directory, control_port);
 }
 
 void EngineWorker::download_operator(const QString& address, const QString& thw_id_pos,
@@ -637,8 +570,8 @@ void EngineWorker::download_operator(const QString& address, const QString& thw_
     Q_EMIT log_line({Severity::info, Message::translated(&EngineWorker::tr,
                                                          QT_TR_NOOP("Asking %1 (%2) for the files it can download..."),
                                                          {Message::verbatim(address), Message::verbatim(thw_id_pos)})});
-    run_download(Address{*octets}, thw_id_pos, adl::arinc615a::OperatorDownloadOperation{}, download_directory,
-                 control_port);
+    const auto plan = adl::loader_core::OperationPlan::download_operator();
+    run_download(Address{*octets}, thw_id_pos, plan.operation(), download_directory, control_port);
 }
 
 void EngineWorker::run_download(const Address& target, const QString& thw_id_pos,
@@ -677,47 +610,33 @@ void EngineWorker::run_download(const Address& target, const QString& thw_id_pos
 
 void EngineWorker::run_operation(adl::platform::Host& host, const Address& target, const QString& thw_id_pos,
                                  const adl::arinc615a::Operation& operation,
-                                 adl::arinc615a::OperationListener& listener, adl::arinc615a::FileSource* source,
-                                 adl::arinc615a::FileSink* sink, quint16 control_port, const std::string& download_path,
-                                 const adl::loader_core::MediaTreeSource* media)
+                                 adl::arinc615a::OperationListener& listener,
+                                 adl::loader_core::MediaTreeSource* upload_source, adl::arinc615a::FileSink* sink,
+                                 quint16 control_port, const std::string& download_path)
 {
     const std::string thw = thw_id_pos.toStdString();
-    adl::arinc615a::LoaderConfig config;
-    config.target = adl::arinc615a::Endpoint{target, adl::arinc615a::tftp_control_port};
-    config.thw_id_pos = thw;
+    adl::loader_core::RunTarget run_target;
+    run_target.address = target;
+    run_target.thw_id_pos = thw;
     // The operator's preference: anything but 59 is offered to the target in the port option of
     // the initialization request, which matters when the target runs on the same machine.
-    config.control_port = control_port;
-
-    // The engine allocates nothing: it works in a block of memory we give it, and the loader
-    // object itself is too big for a thread's stack to be a good place for it.
-    std::vector<std::byte> workspace(adl::arinc615a::DataLoader::workspace_bytes(config));
-    adl::arinc615a::LoaderServices services;
+    run_target.control_port = control_port;
+    adl::loader_core::RunServices services;
     services.listener = &listener;
-    services.source = source;
-    services.sink = sink;
-    auto loader = std::make_unique<adl::arinc615a::DataLoader>(config, workspace, services);
-
-    adl::arinc615a::RunOptions options;
-    options.controller = &controls_;
-    if (target.is_loopback())
-    {
-        // A target on this machine is reached over loopback alone, so the sockets need not listen
-        // on the network, and then no firewall asks whether to allow the program.
-        options.local_address = adl::platform::Ipv4Address::loopback();
-    }
-    adl::arinc615a::Runner runner(host);
-    const auto outcome = runner.run(*loader, operation, options);
+    services.controller = &controls_;
+    services.upload_source = upload_source;
+    services.download_sink = sink;
+    services.download_folder = download_path;
+    const adl::loader_core::OperationResult result =
+        adl::loader_core::run_operation(host, run_target, operation, services);
 
     // A download that received nothing (the target said no, never answered, was cancelled, or the
-    // loader could not run at all) leaves no directory behind: the one made for it is removed if
-    // it is empty, and left alone if anything is in it.
-    const bool directory_removed =
-        !download_path.empty() && adl::loader_core::remove_if_empty(host.files(), download_path);
+    // loader could not run at all) leaves no directory behind: the one made for it is removed if it
+    // is empty, and left alone if anything is in it.
     const QString download_directory =
-        download_path.empty() || directory_removed ? QString{} : QDir::toNativeSeparators(to_qstring(download_path));
+        result.download_folder.empty() ? QString{} : QDir::toNativeSeparators(to_qstring(result.download_folder));
     Message removed_note;
-    if (directory_removed)
+    if (result.download_folder_removed)
     {
         removed_note = Message::translated(
             &EngineWorker::tr, QT_TR_NOOP("Nothing was received, so the empty download folder %1 was removed."),
@@ -725,9 +644,9 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
         Q_EMIT log_line({Severity::info, removed_note});
     }
 
-    if (!outcome)
+    if (result.not_run)
     {
-        const auto& error = outcome.error();
+        const auto& error = *result.not_run;
         Message why;
         Message hint;
         const Message platform_code = Message::verbatim(QString::fromLatin1(adl::platform::to_string(error.platform)));
@@ -752,21 +671,18 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
         return;
     }
 
+    const adl::arinc615a::Outcome& outcome = result.outcome;
     const bool is_download = std::holds_alternative<adl::arinc615a::MediaDownloadOperation>(operation) ||
                              std::holds_alternative<adl::arinc615a::OperatorDownloadOperation>(operation);
-    // A download that completed without every asked-for file is as much a failure as one the
-    // target reported as failed: the operator asked for files and has not got them all.
-    const bool missing_files =
-        is_download && outcome->code == OutcomeCode::completed && outcome->files_received < outcome->files_requested;
 
     OperationSummary summary;
-    summary.success = outcome->code == OutcomeCode::completed && outcome->items_failed == 0 && !missing_files;
-    summary.outcome = Wording::outcome(outcome->code);
-    summary.statuses_received = outcome->statuses_received;
-    summary.statuses_lost = outcome->statuses_lost;
-    if (outcome->code == OutcomeCode::completed && outcome->items_failed != 0)
+    summary.success = result.success();
+    summary.outcome = Wording::outcome(outcome.code);
+    summary.statuses_received = outcome.statuses_received;
+    summary.statuses_lost = outcome.statuses_lost;
+    if (outcome.code == OutcomeCode::completed && outcome.items_failed != 0)
     {
-        const int failed = static_cast<int>(outcome->items_failed);
+        const int failed = static_cast<int>(outcome.items_failed);
         summary.outcome =
             is_download
                 ? Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("completed, %n file(s) failed"), {}, failed)
@@ -776,30 +692,29 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
             summary.hint = Hint::download();
         }
     }
-    if (missing_files)
+    if (result.missing_files)
     {
-        const int missing = static_cast<int>(outcome->files_requested - outcome->files_received);
+        const int missing = static_cast<int>(outcome.files_requested - outcome.files_received);
         summary.outcome =
             Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("completed, %n file(s) missing"), {}, missing);
         summary.hint = Hint::download();
     }
-    if (outcome->code == OutcomeCode::aborted_by_operator)
+    if (outcome.code == OutcomeCode::aborted_by_operator)
     {
         summary.detail =
-            outcome->abort_confirmed
+            outcome.abort_confirmed
                 ? Message::translated(&EngineWorker::tr, QT_TR_NOOP("The target confirmed that it stopped."))
                 : Message::translated(&EngineWorker::tr, QT_TR_NOOP("The target did not confirm that it stopped."));
-        if (!outcome->abort_confirmed)
+        if (!outcome.abort_confirmed)
         {
             summary.hint = Hint::abort_unconfirmed();
         }
     }
-    if (media != nullptr && media->changed_file())
+    if (result.changed_file)
     {
         // The target was refused a file that is not what was checked; that, and not what the
         // target made of the refusal, is why the upload did not complete.
-        const QString changed = to_qstring(*media->changed_file());
-        summary.success = false;
+        const QString changed = to_qstring(*result.changed_file);
         summary.media_set_changed = true;
         summary.detail = Message::translated(
             &EngineWorker::tr, QT_TR_NOOP("The media set changed after it was checked: %1. (The upload ended: %2.)"),
@@ -811,19 +726,19 @@ void EngineWorker::run_operation(adl::platform::Host& host, const Address& targe
     else if (std::holds_alternative<adl::arinc615a::UploadOperation>(operation))
     {
         const Message served = Message::translated(&EngineWorker::tr, QT_TR_N_NOOP("The target read %n file(s)."), {},
-                                                   static_cast<int>(outcome->files_served));
+                                                   static_cast<int>(outcome.files_served));
         summary.detail = summary.detail.isEmpty()
                              ? served
                              : Message::sequence({served, Message::verbatim(QStringLiteral(" ")), summary.detail});
     }
     if (is_download)
     {
-        summary.files_requested = outcome->files_requested;
-        summary.files_received = outcome->files_received;
+        summary.files_requested = outcome.files_requested;
+        summary.files_received = outcome.files_received;
         summary.download_directory = download_directory;
         Message received = Message::translated(&EngineWorker::tr, QT_TR_NOOP("Files received: %1 of %2 requested."),
-                                               {Message::verbatim(QString::number(outcome->files_received)),
-                                                Message::verbatim(QString::number(outcome->files_requested))});
+                                               {Message::verbatim(QString::number(outcome.files_received)),
+                                                Message::verbatim(QString::number(outcome.files_requested))});
         if (!removed_note.isEmpty())
         {
             received = Message::sequence({received, Message::verbatim(QStringLiteral(" ")), removed_note});

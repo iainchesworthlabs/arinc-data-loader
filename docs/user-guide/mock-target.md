@@ -92,6 +92,12 @@ The faults are for seeing what the loader does when the target is not well behav
 
 ![The mock target with a fault set](../images/mock-faults.png)
 
+### A scenario file
+
+At the top of the block, **Scenario file...** opens a file chosen from the computer: a scenario file, which says which of these faults the target shows, and when, so that a run can be repeated ([Scenarios for the mock target](mock-scenarios.md) describes the file, and `adl_mock --scenario` takes the same one). While a scenario is loaded the line beside the button says its name and the number of its steps, the faults above are not used and cannot be changed (they keep what they were set to, and come back when the scenario is removed), and the chip counts the scenario as one. The button then reads **Remove the scenario**. Each step that fires is a line in the activity log, in the words of the file: `scenario step 2 (request 2, upload): delay 495`.
+
+A file that cannot be used loads nothing, and the line beside the button says why, in the sentences listed in [A file that is refused](mock-scenarios.md#a-file-that-is-refused). A scenario cannot be chosen or removed while the target is running.
+
 ## What Read information shows
 
 When the loader runs **Read information**, the mock target always reports the same fixed sample: the

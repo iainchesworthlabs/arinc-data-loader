@@ -20,6 +20,11 @@
 #include <functional>
 #include <string_view>
 
+namespace adl::set_maker
+{
+struct MakeFailure;
+} // namespace adl::set_maker
+
 namespace adl::gen
 {
 
@@ -135,7 +140,12 @@ private:
         }
         return cancelled();
     }
+    // What the library asks of the worker while it makes the set (the cancel flag and the progress).
+    class Bridge;
+
     void run(const GenerateJob& job, GenerateOutcome& outcome);
+    // Says in words, in the window's language, why the library could not make the set.
+    void report_failure(const GenerateJob& job, const adl::set_maker::MakeFailure& failure, GenerateOutcome& outcome);
     void fail(GenerateOutcome& outcome, const adl::ui::Message& text, const adl::ui::Message& detail = {});
     // Ends the job as cancelled: the operator asked for it, so it is not a failure. `detail` is
     // what to say besides; empty, it says that nothing was written.

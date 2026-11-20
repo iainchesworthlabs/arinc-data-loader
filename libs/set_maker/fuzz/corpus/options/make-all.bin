@@ -1,0 +1,7 @@
+make
+set.json
+--output
+out
+--source-root
+src
+--json

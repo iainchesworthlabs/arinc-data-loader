@@ -34,7 +34,7 @@ struct ActionInfo
     unsigned triggers; // the triggers it goes with
 };
 
-constexpr std::array<ActionInfo, 9> actions{{
+constexpr std::array<ActionInfo, 12> actions{{
     {"wait", Effect::wait, with_request},
     {"refuse", Effect::refuse, with_request},
     {"invalid_init_file", Effect::invalid_init_file, with_request},
@@ -44,7 +44,22 @@ constexpr std::array<ActionInfo, 9> actions{{
     {"corrupt_served", Effect::corrupt_served, with_any},
     {"wrong_checksum", Effect::wrong_checksum, with_later},
     {"delay", Effect::delay, with_any},
+    {"drop_datagram", Effect::drop_datagram, with_any},
+    {"duplicate_datagram", Effect::duplicate_datagram, with_any},
+    {"reorder_datagram", Effect::reorder_datagram, with_any},
 }};
+
+constexpr std::array<std::string_view, actions.size()> action_word_table = []
+{
+    std::array<std::string_view, actions.size()> words{};
+    for (std::size_t i = 0; i < actions.size(); ++i)
+    {
+        words[i] = actions[i].word;
+    }
+    return words;
+}();
+
+constexpr std::array<std::string_view, 5> datagram_words{"request", "option_ack", "ack", "data", "error"};
 
 constexpr std::array<std::string_view, 4> operation_words{"information", "upload", "download_media_defined",
                                                           "download_operator_defined"};
@@ -94,6 +109,8 @@ constexpr std::int64_t max_delay_ms = 60000;
     static constexpr std::array<std::string_view, 2> wait_keys{"action", "seconds"};
     static constexpr std::array<std::string_view, 2> refuse_keys{"action", "code"};
     static constexpr std::array<std::string_view, 4> delay_keys{"action", "ms", "min_ms", "max_ms"};
+    static constexpr std::array<std::string_view, 2> duplicate_keys{"action", "copies"};
+    static constexpr std::array<std::string_view, 2> reorder_keys{"action", "within_ms"};
 
     const json::Object& members = step.action_members;
     const std::size_t number = step.number;
@@ -108,6 +125,12 @@ constexpr std::int64_t max_delay_ms = 60000;
         break;
     case Effect::delay:
         keys = delay_keys;
+        break;
+    case Effect::duplicate_datagram:
+        keys = duplicate_keys;
+        break;
+    case Effect::reorder_datagram:
+        keys = reorder_keys;
         break;
     default:
         break;
@@ -191,10 +214,103 @@ constexpr std::int64_t max_delay_ms = 60000;
         }
         break;
     }
+    case Effect::duplicate_datagram:
+    {
+        const auto copies = adl::scenario::optional_whole_number(members, "copies", 2, 16, number);
+        if (!copies)
+        {
+            return std::unexpected(copies.error());
+        }
+        action.copies = static_cast<std::uint32_t>(copies->value_or(2));
+        break;
+    }
+    case Effect::reorder_datagram:
+    {
+        const auto within = adl::scenario::optional_whole_number(members, "within_ms", 1, max_delay_ms, number);
+        if (!within)
+        {
+            return std::unexpected(within.error());
+        }
+        action.within_ms = static_cast<std::uint32_t>(within->value_or(1000));
+        break;
+    }
     default:
         break;
     }
     return action;
+}
+
+// "on" and "count" of a step that acts on datagrams.
+[[nodiscard]] std::expected<void, ReadError> read_datagram_keys(const adl::scenario::Step& step, ScenarioStep& out)
+{
+    static constexpr std::array<std::string_view, 3> on_keys{"datagram", "file", "block"};
+    const std::size_t number = step.number;
+    const json::Value* on_value = json::find(step.rest, "on");
+    const json::Value* count_value = json::find(step.rest, "count");
+    if (!is_datagram_effect(out.action.effect))
+    {
+        if (on_value != nullptr || count_value != nullptr)
+        {
+            return fail("step " + std::to_string(number) +
+                        ": \"on\" and \"count\" go with the datagram actions and \"delay\"");
+        }
+        return {};
+    }
+    const auto count = adl::scenario::optional_whole_number(step.rest, "count", 1, 65535, number);
+    if (!count)
+    {
+        return std::unexpected(count.error());
+    }
+    out.count = *count;
+    if (on_value == nullptr)
+    {
+        return {};
+    }
+    const json::Object* on = on_value->as_object();
+    if (on == nullptr)
+    {
+        return fail("step " + std::to_string(number) + ": \"on\" must be an object");
+    }
+    if (const auto error = adl::scenario::only_keys(*on, on_keys, number, "on"))
+    {
+        return std::unexpected(*error);
+    }
+    DatagramSelector selector;
+    if (const json::Value* datagram = json::find(*on, "datagram"))
+    {
+        const std::string* word = datagram->as_string();
+        if (word == nullptr || (*word != "any" && std::ranges::find(datagram_words, *word) == datagram_words.end()))
+        {
+            return std::unexpected(adl::scenario::not_taken(
+                number, "datagram", "one of \"request\", \"option_ack\", \"ack\", \"data\", \"error\" or \"any\""));
+        }
+        if (*word != "any")
+        {
+            selector.datagram =
+                static_cast<DatagramKind>(std::ranges::find(datagram_words, *word) - datagram_words.begin());
+        }
+    }
+    const auto file = adl::scenario::optional_text(*on, "file", 64, number);
+    if (!file)
+    {
+        return std::unexpected(file.error());
+    }
+    selector.file = file->value_or(std::string{});
+    const auto block = adl::scenario::optional_whole_number(*on, "block", 0, 65535, number);
+    if (!block)
+    {
+        return std::unexpected(block.error());
+    }
+    if (*block)
+    {
+        if (selector.datagram && *selector.datagram != DatagramKind::data && *selector.datagram != DatagramKind::ack)
+        {
+            return fail("step " + std::to_string(number) + ": \"block\" goes with \"data\" or \"ack\"");
+        }
+        selector.block = static_cast<std::uint32_t>(**block);
+    }
+    out.on = std::move(selector);
+    return {};
 }
 
 [[nodiscard]] std::expected<ScenarioStep, ReadError> read_step(const adl::scenario::Step& step, bool has_seed)
@@ -239,6 +355,10 @@ constexpr std::int64_t max_delay_ms = 60000;
         return std::unexpected(action.error());
     }
     out.action = *action;
+    if (const auto keys = read_datagram_keys(step, out); !keys)
+    {
+        return std::unexpected(keys.error());
+    }
     return out;
 }
 
@@ -269,6 +389,33 @@ void append_text(std::string& out, std::string_view key, std::string_view text, 
     return text + " }";
 }
 
+[[nodiscard]] std::string on_text(const DatagramSelector& on)
+{
+    std::vector<std::string> members;
+    if (on.datagram)
+    {
+        members.push_back("\"datagram\": " + in_quotes(datagram_word(*on.datagram)));
+    }
+    if (!on.file.empty())
+    {
+        members.push_back("\"file\": " + json::quote(on.file));
+    }
+    if (on.block)
+    {
+        members.push_back("\"block\": " + std::to_string(*on.block));
+    }
+    if (members.empty())
+    {
+        return "{}";
+    }
+    std::string text = "{ ";
+    for (std::size_t i = 0; i < members.size(); ++i)
+    {
+        text += (i == 0 ? "" : ", ") + members[i];
+    }
+    return text + " }";
+}
+
 [[nodiscard]] std::string do_text(const ScenarioAction& action)
 {
     std::string text = "{ \"action\": " + in_quotes(effect_word(action.effect));
@@ -290,6 +437,12 @@ void append_text(std::string& out, std::string_view key, std::string_view text, 
             text += ", \"ms\": " + std::to_string(action.min_ms);
         }
         break;
+    case Effect::duplicate_datagram:
+        text += ", \"copies\": " + std::to_string(action.copies);
+        break;
+    case Effect::reorder_datagram:
+        text += ", \"within_ms\": " + std::to_string(action.within_ms);
+        break;
     default:
         break;
     }
@@ -309,10 +462,28 @@ std::string_view operation_word(OperationKind kind) noexcept
     return operation_words[static_cast<std::size_t>(kind)];
 }
 
+std::string_view datagram_word(DatagramKind kind) noexcept
+{
+    const auto index = static_cast<std::size_t>(kind);
+    return index < datagram_words.size() ? datagram_words[index] : std::string_view{"other"};
+}
+
+bool is_datagram_effect(Effect effect) noexcept
+{
+    return effect == Effect::delay || effect == Effect::drop_datagram || effect == Effect::duplicate_datagram ||
+           effect == Effect::reorder_datagram;
+}
+
+std::span<const std::string_view> action_words() noexcept
+{
+    return action_word_table;
+}
+
 std::expected<Scenario, ScenarioError> read_scenario(std::string_view text)
 {
     static constexpr std::array<std::string_view, 1> when_keys{"operation"};
-    const adl::scenario::Family family{adl::scenario::mock_kind, when_keys, {}};
+    static constexpr std::array<std::string_view, 2> step_keys{"on", "count"};
+    const adl::scenario::Family family{adl::scenario::mock_kind, when_keys, step_keys};
     const auto envelope = adl::scenario::read_envelope(text, family);
     if (!envelope)
     {
@@ -364,9 +535,17 @@ std::string write_scenario(const Scenario& scenario)
             append_text(out, "comment", step.comment, "      ");
         }
         out += "      \"when\": " + when_text(step) + ",\n";
+        if (step.on)
+        {
+            out += "      \"on\": " + on_text(*step.on) + ",\n";
+        }
         if (step.per_mille)
         {
             out += "      \"per_mille\": " + std::to_string(*step.per_mille) + ",\n";
+        }
+        if (step.count)
+        {
+            out += "      \"count\": " + std::to_string(*step.count) + ",\n";
         }
         out += "      \"do\": " + do_text(step.action) + "\n";
         out += i + 1 == scenario.steps.size() ? "    }\n" : "    },\n";

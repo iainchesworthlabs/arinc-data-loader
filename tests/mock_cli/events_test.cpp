@@ -205,6 +205,88 @@ TEST_CASE("with a scenario, the started event says which, and the step and the e
           R"({"event":"stopped","t":2.000,"reason":"seconds","operations":1,"scenario_unused":[]})");
 }
 
+TEST_CASE("the started event lists the actions of a scenario this build knows, and the faults on a datagram are events",
+          "[mock_cli][events][scenario]")
+{
+    Event started = started_event();
+    // With no scenario: the list is there all the same, and there is no key for a file.
+    std::get<Started>(started.data).faults = {};
+    std::get<Started>(started.data).features = {"wait", "drop_datagram"};
+    CHECK(to_json_line(started) ==
+          R"({"event":"started","t":0.002,"program":"adl_mock","version":"0.1.1","events":1,"thw_id_pos":"HNPFMS_L",)"
+          R"("address":"127.0.0.1","find_port":1001,"tftp_port":59,"faults":[],)"
+          R"("scenario_features":["wait","drop_datagram"]})");
+    std::get<Started>(started.data).faults = {"--scenario"};
+    std::get<Started>(started.data).scenario = ScenarioInfo{"s.json", 2, 7};
+    CHECK(to_json_line(started).ends_with(R"("faults":["--scenario"],"scenario_features":["wait","drop_datagram"],)"
+                                          R"("scenario":"s.json","scenario_steps":2,"scenario_seed":7})"));
+    CHECK(to_plain_line(started).ends_with(
+        "faults=--scenario scenario_features=wait,drop_datagram scenario=s.json scenario_steps=2 scenario_seed=7"));
+
+    // A step on a datagram says how many datagrams it is for, and which.
+    ScenarioStepFired drop{1, "request", 1, "upload", "drop_datagram", true};
+    drop.count = 3;
+    drop.datagram = "ack";
+    drop.file = ".LUS";
+    drop.block = 2;
+    CHECK(to_json_line(Event{1250ms, drop}) ==
+          R"({"event":"scenario_step","t":1.250,"step":1,"trigger":"request","at":1,"operation":"upload",)"
+          R"("action":"drop_datagram","applied":true,"count":3,"datagram":"ack","file":".LUS","block":2})");
+    CHECK(to_plain_line(Event{1250ms, drop}) ==
+          "1.250 scenario_step step=1 trigger=request at=1 operation=upload action=drop_datagram applied=true count=3 "
+          "datagram=ack file=.LUS block=2");
+    ScenarioStepFired duplicate{4, "status_file", 2, "upload", "duplicate_datagram", true};
+    duplicate.copies = 3;
+    duplicate.count = 1;
+    CHECK(to_json_line(Event{1250ms, duplicate}) ==
+          R"({"event":"scenario_step","t":1.250,"step":4,"trigger":"status_file","at":2,"operation":"upload",)"
+          R"("action":"duplicate_datagram","applied":true,"copies":3,"count":1})");
+    ScenarioStepFired reorder{5, "after_ms", 500, "information", "reorder_datagram", false};
+    reorder.within_ms = 400;
+    reorder.count = 2;
+    CHECK(to_plain_line(Event{1250ms, reorder}) ==
+          "1.250 scenario_step step=5 trigger=after_ms at=500 operation=information action=reorder_datagram "
+          "applied=false within_ms=400 count=2");
+
+    // A datagram that met a fault.
+    ScenarioDatagram hit;
+    hit.step = 2;
+    hit.action = "drop_datagram";
+    hit.applied = true;
+    hit.datagram = "ack";
+    hit.file = "APP.LUP";
+    hit.block = 2;
+    hit.to = "10.0.0.2:40001";
+    hit.size = 4;
+    CHECK(event_name(EventData{hit}) == "scenario_datagram");
+    CHECK(to_json_line(Event{1250ms, hit}) ==
+          R"({"event":"scenario_datagram","t":1.250,"step":2,"action":"drop_datagram","applied":true,)"
+          R"("datagram":"ack","file":"APP.LUP","block":2,"to":"10.0.0.2:40001","size":4})");
+    CHECK(to_plain_line(Event{1250ms, hit}) ==
+          "1.250 scenario_datagram step=2 action=drop_datagram applied=true datagram=ack file=APP.LUP block=2 "
+          "to=10.0.0.2:40001 size=4");
+    hit.applied = false;
+    hit.datagram = "option_ack";
+    hit.file.reset();
+    hit.block.reset();
+    CHECK(to_json_line(Event{1250ms, hit}) ==
+          R"({"event":"scenario_datagram","t":1.250,"step":2,"action":"drop_datagram","applied":false,)"
+          R"("datagram":"option_ack","file":null,"block":null,"to":"10.0.0.2:40001","size":4})");
+    CHECK(to_plain_line(Event{1250ms, hit}) ==
+          "1.250 scenario_datagram step=2 action=drop_datagram applied=false datagram=option_ack file=none block=none "
+          "to=10.0.0.2:40001 size=4");
+
+    // At the end: the steps that never occurred, and the steps that were armed and met no datagram.
+    Stopped stopped{"seconds", 1, std::vector<std::size_t>{2, 5}, std::vector<std::size_t>{1}};
+    CHECK(to_json_line(Event{2000ms, stopped}) ==
+          R"({"event":"stopped","t":2.000,"reason":"seconds","operations":1,"scenario_unused":[2,5],)"
+          R"("scenario_idle":[1]})");
+    CHECK(to_plain_line(Event{2000ms, stopped}) ==
+          "2.000 stopped reason=seconds operations=1 scenario_unused=2,5 scenario_idle=1");
+    stopped.scenario_idle = std::vector<std::size_t>{};
+    CHECK(to_plain_line(Event{2000ms, stopped}).ends_with("scenario_unused=2,5 scenario_idle=none"));
+}
+
 TEST_CASE("the plain lines of a scenario's events have the same keys", "[mock_cli][events][scenario]")
 {
     CHECK(to_plain_line(Event{

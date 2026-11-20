@@ -110,10 +110,12 @@ The build has a source side and a target side, and the libraries sit on both.
 | --- | --- | --- | --- |
 | Portable libraries | `adl::platform`, `adl::arinc665`, `adl::arinc615a`, `adl::arinc615a_mini`, `adl::arinc615a_runner`, `adl::media_tree`, `adl::samples` | always | source and target |
 | Payload writer | `adl_write_payloads` | always | source (desktop) |
+| Licence command | `adl_licence` (`apps/licence`, over `libs/licence_cli`) and, for its tests, `adl_licence_test_program`, which is never installed ([the command](user-guide/command-line.md#adl_licence)) | always, on a desktop | source (desktop) |
 | Licence library and the owner's licence tool | `adl::licence` (with `adl::licence_sign` and `adl::licence_test_keys`) and the program `adl_licence_owner` ([the tool](licence-owner-tool.md)); built, never installed or packed | always, on a desktop | source (desktop) |
 | Mock target as a command | `adl_mock` (the mock target with no window and no Qt, [described here](mock-target.md#the-command)) | always, on a desktop | source (desktop) |
 | Scenario files, the part they share | `adl::scenario_base` (the random numbers and the shared reader of the scenario files of [the mock target](mock-target.md) and the loader); built, never installed or packed | always, on a desktop | source (desktop) |
 | The mock target's scenarios | `adl::mock_scenario` (the file, and the player that gives it to the engine; [described here](mock-target.md#scenarios)); built, never installed or packed | always, on a desktop | source (desktop) |
+| Command-line loader | `adl_load` (no Qt; [the command](load-command.md)) | always | source (desktop) |
 | Source-side applications (Qt) | `adl_app` (the data loader), `adl_media_gen` (the media set generator), `adl_mock_target` (a 615A target, for demonstrations) | `ADL_BUILD_APP`, on by default on a desktop | source (desktop) |
 | Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`, `adl_mock_tests`, `adl_mock_core_tests`, `adl_mock_cli_tests`, `adl_mock_command_test`, `adl_loopback_test`, `adl_licence_tests`, `adl_licence_owner_tests`, `adl_scenario_base_tests`, `adl_mock_scenario_tests`, `adl_mock_scenario_engine_tests`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_ui_tests`, `adl_window_state_tests`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_model_test`, `adl_mock_qml_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
 | Target side | the libraries above, for the target's platform | `ADL_TARGET_PLATFORM` (or a toolchain that sets it) | target (embedded) |
@@ -228,6 +230,19 @@ build/windows-msvc-debug/bin/adl_write_payloads --scenario arinc615 out/payloads
 
 It reads each set back from the disk and verifies it before reporting it, and it
 does not write over a directory that has files in it.
+
+## Running one operation without a window
+
+`adl_load` runs one operation on one target, or looks for targets, and writes what happens as JSON lines
+(`--json`) and, with `--record`, as a record file. It is built with the libraries, needs no Qt, and is in the
+packages beside the other programs ([the command](load-command.md) has the options, the events and the exit
+codes):
+
+```sh
+build/windows-msvc-debug/bin/adl_load --version
+build/windows-msvc-debug/bin/adl_load information --target 10.0.0.2 --position HNPFMS_L --json
+build/windows-msvc-debug/bin/adl_load upload --target 10.0.0.2 --position HNPFMS_L --media-set out/payloads/two-member --all-loads
+```
 
 ## Presets
 
@@ -349,7 +364,7 @@ cd build/linux-gcc-release && cpack -B packages
 pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.2-linux-x86_64.tar.gz
 ```
 
-`cpack` writes the runtime package (the three applications, `adl_mock`, `adl_write_payloads`, Qt's runtime files,
+`cpack` writes the runtime package (the three applications, `adl_mock`, `adl_write_payloads`, `adl_licence`, Qt's runtime files,
 `README.txt`, `LICENSE.txt`, `NOTICES.txt`) and the development package (the libraries, headers and the `adl`
 CMake package) for this system; `-DADL_RELEASE_VERSION=0.2.0-rc.1` names them for a pre-release. To use the
 development package, `find_package(adl 0.1 REQUIRED)` with its directory on `CMAKE_PREFIX_PATH`. The macOS

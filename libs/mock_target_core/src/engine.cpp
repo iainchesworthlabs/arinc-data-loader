@@ -144,13 +144,29 @@ void MockEngine::send(std::uint16_t from_port, const Endpoint& to, std::span<con
     {
         return;
     }
-    if (armed_delay_ms_ != 0)
+    DatagramFate fate;
+    if (config_.fault_plan)
     {
-        // A scenario holds this datagram back (and only this one). It is sent from the copy, later, unless the
-        // target has gone silent or has been destroyed by then.
-        const auto delay = std::chrono::milliseconds(armed_delay_ms_);
-        armed_delay_ms_ = 0;
-        after(delay,
+        fate = config_.fault_plan->on_datagram(describe(from_port, to, payload));
+    }
+    switch (fate.kind)
+    {
+    case DatagramFate::Kind::send:
+        link_->send(from_port, to, payload);
+        release_held();
+        return;
+    case DatagramFate::Kind::drop:
+        return;
+    case DatagramFate::Kind::duplicate:
+        for (std::uint32_t copy = 0; copy < std::max<std::uint32_t>(fate.amount, 1); ++copy)
+        {
+            link_->send(from_port, to, payload);
+        }
+        release_held();
+        return;
+    case DatagramFate::Kind::delay:
+        // Sent from a copy, later, unless the target has gone silent or has been destroyed by then.
+        after(std::chrono::milliseconds(fate.amount),
               [this, from_port, to, copy = std::vector<std::byte>(payload.begin(), payload.end())]
               {
                   if (link_ != nullptr)
@@ -159,8 +175,84 @@ void MockEngine::send(std::uint16_t from_port, const Endpoint& to, std::span<con
                   }
               });
         return;
+    case DatagramFate::Kind::hold:
+    {
+        const std::uint64_t id = next_held_id_++;
+        held_.push_back(Held{id, from_port, to, std::vector<std::byte>(payload.begin(), payload.end())});
+        after(std::chrono::milliseconds(fate.amount), [this, id] { release_held(id); });
+        return;
     }
-    link_->send(from_port, to, payload);
+    }
+}
+
+void MockEngine::release_held(std::optional<std::uint64_t> only)
+{
+    // What was held goes out, in the order it was held: all of it after a datagram that went, or the one that has
+    // waited its time (if it is still held).
+    std::vector<Held> due;
+    for (auto held = held_.begin(); held != held_.end();)
+    {
+        if (!only || held->id == *only)
+        {
+            due.push_back(std::move(*held));
+            held = held_.erase(held);
+        }
+        else
+        {
+            ++held;
+        }
+    }
+    for (const Held& datagram : due)
+    {
+        if (link_ != nullptr)
+        {
+            link_->send(datagram.from_port, datagram.to, datagram.bytes);
+        }
+    }
+}
+
+DatagramInfo MockEngine::describe(std::uint16_t from_port, const Endpoint& to, std::span<const std::byte> payload) const
+{
+    DatagramInfo info;
+    info.from_port = from_port;
+    info.to = to;
+    info.size = payload.size();
+    if (const auto found = transfer_files_.find(from_port); found != transfer_files_.end())
+    {
+        info.file = found->second;
+    }
+    if (from_port == config_.find_port || payload.size() < 2)
+    {
+        return info; // a FIND answer, or nothing a TFTP packet could be
+    }
+    const unsigned opcode = (std::to_integer<unsigned>(payload[0]) << 8U) | std::to_integer<unsigned>(payload[1]);
+    const unsigned block = payload.size() >= 4
+                               ? (std::to_integer<unsigned>(payload[2]) << 8U) | std::to_integer<unsigned>(payload[3])
+                               : 0U;
+    switch (opcode)
+    {
+    case 1:
+    case 2:
+        info.kind = DatagramKind::request;
+        break;
+    case 3:
+        info.kind = DatagramKind::data;
+        info.block = block;
+        break;
+    case 4:
+        info.kind = DatagramKind::ack;
+        info.block = block;
+        break;
+    case 5:
+        info.kind = DatagramKind::error;
+        break;
+    case 6:
+        info.kind = DatagramKind::option_ack;
+        break;
+    default:
+        break;
+    }
+    return info;
 }
 
 void MockEngine::after(adl::arinc615a::Duration delay, std::function<void()> action)
@@ -306,9 +398,10 @@ void MockEngine::send_error(const Endpoint& to, TftpErrorCode code, std::string_
     }
 }
 
-adl::arinc615a_mini::MiniTransfer& MockEngine::add_transfer(MiniTransfer::Role role)
+adl::arinc615a_mini::MiniTransfer& MockEngine::add_transfer(MiniTransfer::Role role, std::string_view file)
 {
     const std::uint16_t port = next_port_++;
+    transfer_files_[port] = std::string{file};
     auto transfer = std::make_unique<MiniTransfer>(static_cast<MiniHost&>(*this), port, role);
     MiniTransfer& reference = *transfer;
     transfers_[port] = std::move(transfer);
@@ -317,7 +410,12 @@ adl::arinc615a_mini::MiniTransfer& MockEngine::add_transfer(MiniTransfer::Role r
 
 void MockEngine::remove_later(std::uint16_t port)
 {
-    after(std::chrono::seconds(5), [this, port] { transfers_.erase(port); });
+    after(std::chrono::seconds(5),
+          [this, port]
+          {
+              transfers_.erase(port);
+              transfer_files_.erase(port);
+          });
 }
 
 void MockEngine::handle_request(const Endpoint& from, const TftpRequest& request)
@@ -360,7 +458,7 @@ void MockEngine::handle_request(const Endpoint& from, const TftpRequest& request
             note(Severity::warning, "refuses a list that came before the first status file");
             return;
         }
-        MiniTransfer& transfer = add_transfer(MiniTransfer::Role::server_write);
+        MiniTransfer& transfer = add_transfer(MiniTransfer::Role::server_write, name);
         transfer.on_done = [this, name](MiniTransfer& done)
         {
             if (done.result().kind == MiniResult::Kind::ok)
@@ -418,8 +516,10 @@ void MockEngine::serve_init(const Endpoint& from, const TftpRequest& request, Ki
                 corrupt = true;
                 break;
             case Effect::delay:
-                armed_delay_ms_ = action.value;
-                break;
+            case Effect::drop_datagram:
+            case Effect::duplicate_datagram:
+            case Effect::reorder_datagram:
+                break; // a fault on a datagram: the plan keeps it armed and answers on_datagram
             case Effect::drop_status_file:
             case Effect::abort:
             case Effect::silent:
@@ -469,7 +569,7 @@ void MockEngine::serve_init(const Endpoint& from, const TftpRequest& request, Ki
     {
         file[file.size() / 2] ^= std::byte{0x01};
     }
-    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::server_read);
+    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::server_read, request.file_name);
     // What was decided for this request goes with its transfer: a request that is repeated meanwhile decides again,
     // for its own.
     transfer.on_done = [this, kind, refusal = std::move(refusal), garbage](MiniTransfer& done)
@@ -567,7 +667,7 @@ MockEngine::checksum_for_file(const adl::arinc665::UserSuppliedFile& file) const
 void MockEngine::write_file(const std::string& name, Bytes content, std::optional<ChecksumOption> checksum,
                             std::function<void(MiniResult::Kind)> then, unsigned attempt)
 {
-    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::client_write);
+    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::client_write, name);
     transfer.on_done = [this, name, content, checksum, then, attempt](MiniTransfer& done) mutable
     {
         const MiniResult result = done.result();
@@ -610,7 +710,7 @@ void MockEngine::write_file(const std::string& name, Bytes content, std::optiona
 void MockEngine::read_file(const std::string& name, std::optional<ChecksumOption> checksum,
                            std::function<void(MiniResult::Kind, const Bytes&)> then, unsigned attempt)
 {
-    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::client_read);
+    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::client_read, name);
     transfer.on_done = [this, name, checksum, then, attempt](MiniTransfer& done)
     {
         const MiniResult result = done.result();
@@ -715,8 +815,10 @@ void MockEngine::pump_status()
                 armed_wrong_checksum_ = true;
                 break;
             case Effect::delay:
-                armed_delay_ms_ = action.value;
-                break;
+            case Effect::drop_datagram:
+            case Effect::duplicate_datagram:
+            case Effect::reorder_datagram:
+                break; // a fault on a datagram: the plan keeps it armed and answers on_datagram
             case Effect::wait:
             case Effect::refuse:
             case Effect::invalid_init_file:
@@ -1362,8 +1464,11 @@ void MockEngine::reset_operation_state()
     armed_drop_ = false;
     armed_corrupt_ = false;
     armed_wrong_checksum_ = false;
-    armed_delay_ms_ = 0;
     ++operation_serial_; // the timers of the operation that ended find that out
+    if (config_.fault_plan)
+    {
+        config_.fault_plan->on_operation_ended();
+    }
     report_progress();
     if (listener_ != nullptr)
     {
@@ -1436,8 +1541,10 @@ void MockEngine::apply_later_effects(const std::vector<Action>& actions)
             armed_wrong_checksum_ = true;
             break;
         case Effect::delay:
-            armed_delay_ms_ = action.value;
-            break;
+        case Effect::drop_datagram:
+        case Effect::duplicate_datagram:
+        case Effect::reorder_datagram:
+            break; // a fault on a datagram: the plan keeps it armed and answers on_datagram
         case Effect::wait:
         case Effect::refuse:
         case Effect::invalid_init_file:

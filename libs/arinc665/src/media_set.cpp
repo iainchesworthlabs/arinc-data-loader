@@ -346,6 +346,9 @@ bool same_set(const MediaSetIdentity& a, const MediaSetIdentity& b)
 }
 
 // Section 3.2.4.2: pick the file FILES.LUM means for a name in a header file.
+// A copy of this rule is locate_listed_file() in libs/set_maker/src/inspect.cpp, which tells where each file of
+// a load is. The two have to find the same file, so change both together; the test set_maker.inspect holds them
+// to it.
 // Among files of that name, those in the part root directory if there are
 // several; then those with the CRC the header records if there are still
 // several; then the first.

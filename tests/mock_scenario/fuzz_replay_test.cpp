@@ -54,7 +54,7 @@ TEST_CASE("the seeds of the scenario file's fuzzer, and every prefix of them, ho
           "[mock_scenario][fuzz]")
 {
     const std::vector<std::filesystem::path> files = seed_files();
-    REQUIRE(files.size() >= 15); // the directory was found, and the seeds are there
+    REQUIRE(files.size() >= 20); // the directory was found, and the seeds are there
     for (const std::filesystem::path& file : files)
     {
         INFO(file.filename().string());
@@ -74,6 +74,8 @@ TEST_CASE("each seed is what its name says: read, or refused for the reason in i
     const std::map<std::string, std::string> reasons{
         {"every_action", ""},
         {"guide_example", ""},
+        {"datagram_example", ""},
+        {"datagram_limits", ""},
         {"minimum", ""},
         {"limits", ""},
         {"wrong_trigger_for_wait", "\"wait\" does not go with a \"status_file\" trigger"},
@@ -88,6 +90,13 @@ TEST_CASE("each seed is what its name says: read, or refused for the reason in i
         {"loader_kind", "this is a scenario for a loader, not for a mock target"},
         {"newer_format", "made for a newer version"},
         {"not_json", "it is not valid JSON"},
+        {"copies_one", "\"copies\" must be a whole number from 2 to 16"},
+        {"within_zero", "\"within_ms\" must be a whole number from 1 to 60000"},
+        {"count_with_wait", "\"on\" and \"count\" go with the datagram actions and \"delay\""},
+        {"datagram_word", "\"datagram\" must be one of"},
+        {"block_with_request", "\"block\" goes with \"data\" or \"ack\""},
+        {"on_not_object", "\"on\" must be an object"},
+        {"count_zero", "\"count\" must be a whole number from 1 to 65535"},
     };
     std::size_t seen = 0;
     for (const std::filesystem::path& file : seed_files())

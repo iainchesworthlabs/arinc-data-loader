@@ -117,6 +117,12 @@ if(TARGET adl::licence_platform)
     add_subdirectory(licence_platform)
 endif()
 
+# The commands of adl_licence (a desktop build only; libs/licence_cli, apps/licence): their tests in process,
+# over this computer's file system, and the built programs as processes, in tests/licence_cli.
+if(TARGET adl::licence_cli)
+    add_subdirectory(licence_cli)
+endif()
+
 # The simulated target (a target of 615A on the fake network, with the second TFTP
 # implementation of libs/arinc615a_mini, which shares no code with the engine). The engine tests
 # run whole operations against it, and so do the application's.
@@ -139,15 +145,31 @@ target_link_libraries(adl_sim_target
 add_executable(adl_loader_core_tests
     loader_core/address_test.cpp
     loader_core/download_directory_test.cpp
+    loader_core/gate_test.cpp
     loader_core/media_set_check_test.cpp
-    loader_core/media_source_test.cpp)
+    loader_core/media_source_test.cpp
+    loader_core/operation_plan_test.cpp
+    loader_core/record_json_test.cpp
+    loader_core/recorder_test.cpp
+    loader_core/recorder_wording_test.cpp)
 
 target_include_directories(adl_loader_core_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support")
 
+# What the record's tests read as files: the window's translation catalogue (its English is what the recorder
+# is held to), the golden files of the operation record, and the page that documents the record's keys.
+target_compile_definitions(adl_loader_core_tests PRIVATE
+    ADL_APP_TRANSLATIONS_DIR="${PROJECT_SOURCE_DIR}/apps/app/translations"
+    ADL_LOADER_CORE_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/loader_core/golden"
+    ADL_FILE_REFERENCE_PAGE="${PROJECT_SOURCE_DIR}/docs/file-reference.md")
+
 target_link_libraries(adl_loader_core_tests
     PRIVATE
         adl_fake_platform
+        adl_sim_target
+        adl::arinc615a
+        adl::arinc615a_runner
+        adl::arinc665
         adl::loader_core
         adl::media_tree
         adl::samples
@@ -158,7 +180,97 @@ target_link_libraries(adl_loader_core_tests
 
 adl_deploy_sanitizer_runtime(adl_loader_core_tests)
 
-catch_discover_tests(adl_loader_core_tests PROPERTIES LABELS "unit")
+# The cases that run a whole operation against the simulated target are integration tests (tagged
+# [integration]); the rest are unit tests.
+catch_discover_tests(adl_loader_core_tests TEST_SPEC "~[integration]" PROPERTIES LABELS "unit")
+catch_discover_tests(adl_loader_core_tests TEST_SPEC "[integration]" PROPERTIES LABELS "integration")
+
+# The same library run whole: run_operation against the simulated target on the fake platform, so the
+# runner, the engine and the second TFTP implementation are in it. An integration test.
+add_executable(adl_loader_core_run_tests
+    loader_core/operation_pool_test.cpp
+    loader_core/run_test.cpp)
+
+target_include_directories(adl_loader_core_run_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+target_link_libraries(adl_loader_core_run_tests
+    PRIVATE
+        adl_fake_platform
+        adl_sim_target
+        adl::loader_core
+        adl::samples
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_loader_core_run_tests)
+
+catch_discover_tests(adl_loader_core_run_tests PROPERTIES LABELS "integration")
+
+# The command-line program adl_load (apps/load): its options and its events, which need no host.
+add_executable(adl_load_tests
+    load/events_test.cpp
+    load/options_seeds_test.cpp
+    load/options_test.cpp
+    load/reason_test.cpp
+    load/request_test.cpp)
+
+target_include_directories(adl_load_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+# The seeds of the options fuzzer, which the tests replay as files.
+target_compile_definitions(adl_load_tests PRIVATE
+    ADL_LOAD_FUZZ_DIR="${PROJECT_SOURCE_DIR}/apps/load/fuzz")
+
+target_link_libraries(adl_load_tests
+    PRIVATE
+        adl_load_cli
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_load_tests)
+
+catch_discover_tests(adl_load_tests PROPERTIES LABELS "unit")
+
+# The same program run whole: adl_load's run function on the fake platform against the simulated target, so the
+# runner, the engine and the second TFTP implementation are in it. Integration tests, with no socket.
+add_executable(adl_load_command_tests
+    load/download_test.cpp
+    load/find_test.cpp
+    load/information_test.cpp
+    load/preparer_test.cpp
+    load/record_test.cpp
+    load/serve_test.cpp
+    load/upload_test.cpp
+    load/usage_test.cpp)
+
+target_include_directories(adl_load_command_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/load"
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+# The records and the other output that the tests compare with files that have been read and kept.
+target_compile_definitions(adl_load_command_tests PRIVATE
+    ADL_LOAD_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/load/golden")
+
+target_link_libraries(adl_load_command_tests
+    PRIVATE
+        adl_fake_platform
+        adl_load_cli
+        adl_sim_target
+        adl::arinc665
+        adl::samples
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_load_command_tests)
+
+catch_discover_tests(adl_load_command_tests PROPERTIES LABELS "integration")
 
 # The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
 # fake platform, and the simulated target the whole of an operation is run against.
@@ -439,9 +551,46 @@ if(TARGET adl::mock_cli)
     add_subdirectory(mock_cli)
 endif()
 
+# The media set generator's logic (libs/set_maker), and the command adl_make_set built on it (the command is
+# a desktop program: it reads its description with the licence library's JSON reader). No Qt.
+add_subdirectory(set_maker)
+if(TARGET adl::make_set_cli)
+    add_subdirectory(make_set)
+endif()
+
 # The loopback integration test: the loader's runner over real sockets against the mock target's
 # engine on 127.0.0.1. No Qt.
 add_subdirectory(loopback)
+
+# adl_load started as a process, for what needs no target (tests/load/check_program.cmake): --version, --help, wrong
+# usage, and a media set that is not there.
+add_test(NAME tools.adl_load
+    COMMAND "${CMAKE_COMMAND}"
+        "-DPROGRAM=$<TARGET_FILE:adl_load>"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/adl_load"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/load/check_program.cmake")
+set_tests_properties(tools.adl_load PROPERTIES LABELS "system")
+
+# The same program with a media set, a download folder and records in a folder named with characters no Windows code
+# page holds all of (tests/load/unicode_folder.cmake says how it is made sure the name reached the program whole).
+add_test(NAME tools.adl_load.unicode_folder
+    COMMAND "${CMAKE_COMMAND}"
+        "-DPROGRAM=$<TARGET_FILE:adl_load>"
+        "-DPAYLOADS=$<TARGET_FILE:adl_write_payloads>"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/adl_load-unicode"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/load/unicode_folder.cmake")
+set_tests_properties(tools.adl_load.unicode_folder PROPERTIES LABELS "system")
+
+# adl_load serve started as a process with pipes for its standard input and output (tests/load/serve_process_test.py): a
+# stop that arrives while standard input stays open, the end of the input, a port that is held, wrong usage, a
+# request in UTF-8 whose path has characters no Windows code page holds, and an upload whose media set is read by the
+# program's own thread for it (the set comes from adl_write_payloads) and is cancelled. No target is needed.
+if(Python3_Interpreter_FOUND)
+    add_test(NAME tools.adl_load.serve
+        COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_CURRENT_SOURCE_DIR}/load/serve_process_test.py"
+            "$<TARGET_FILE:adl_load>" "${CMAKE_CURRENT_BINARY_DIR}/adl_load-serve" "$<TARGET_FILE:adl_write_payloads>")
+    set_tests_properties(tools.adl_load.serve PROPERTIES LABELS "system" TIMEOUT 180)
+endif()
 
 # The application's tests (apps/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)
