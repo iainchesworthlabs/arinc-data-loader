@@ -313,16 +313,21 @@ add_test(NAME tools.write_payloads.unicode_folder
         -P "${CMAKE_CURRENT_SOURCE_DIR}/system/write_payloads_unicode.cmake")
 set_tests_properties(tools.write_payloads.unicode_folder PROPERTIES LABELS "system")
 
+# The mock target's engine (libs/mock_target_core): the loader's real engine against it on the fake
+# platform, and the folders it reads and writes. No Qt.
+add_subdirectory(mock_target_core)
+
+# The loopback integration test: the loader's runner over real sockets against the mock target's
+# engine on 127.0.0.1. No Qt.
+add_subdirectory(loopback)
+
 # The application's tests (apps/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)
     add_subdirectory("${PROJECT_SOURCE_DIR}/apps/app/tests" apps/app/tests)
-    # The mock target's tests (apps/mock_target).
+    # The mock target's tests (apps/mock_target): its model and its window.
     add_subdirectory("${PROJECT_SOURCE_DIR}/apps/mock_target/tests" apps/mock_target/tests)
     # The media set generator's tests (apps/media_gen).
     add_subdirectory("${PROJECT_SOURCE_DIR}/apps/media_gen/tests" apps/media_gen/tests)
-    # The loopback integration test: the loader's runner over real sockets against the mock
-    # target's engine on 127.0.0.1 (needs adl::mock_core, so it is behind ADL_BUILD_APP too).
-    add_subdirectory(loopback)
     # The window's UI suite, with Qt Quick Test (tests/ui).
     add_subdirectory(ui)
     # The system smoke tests: the built application programs started as processes (tests/system).

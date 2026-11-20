@@ -4,6 +4,22 @@ Thanks for taking a look at ARINC Data Loader. This guide is short: it is meant
 to save you a round trip on the handful of things that are not obvious from the
 code.
 
+## Outside contributions are not accepted for now
+
+Pull requests from outside the project are not accepted for now. The project has
+no contributor agreement yet. Until it has one, it takes no code from outside,
+so that who holds the copyright of the code stays simple. This page will say
+when that changes.
+
+Reports are welcome: a defect, a place where the code reads a standard
+differently from your equipment or your tool, a gap in the guide. Open an issue
+for any of them. A security problem is the exception: report it privately, as
+the [security policy](SECURITY.md) says.
+
+The rest of this page is how a change to the project is made. The maintainer and
+the automated contributors follow it now, and a contribution will follow it when
+contributions are accepted.
+
 ## Before you start
 
 For anything more than a typo fix, it is worth opening an issue first to say
@@ -171,8 +187,10 @@ in [docs/verifying-releases.md](docs/verifying-releases.md).
 
 ## Licence of contributions
 
-Contributions are accepted under the project's licence, GPL-3.0-or-later (see
-[LICENSE](LICENSE) and [docs/licensing.md](docs/licensing.md)).
+The project is under GPL-3.0-or-later (see [LICENSE](LICENSE) and
+[docs/licensing.md](docs/licensing.md)). No outside contribution is accepted for
+now, as the top of this page says. When that changes, this section will give the
+terms a contribution is accepted under.
 
 That is all. If anything here is unclear or out of date, saying so in an issue
 is itself a welcome contribution.

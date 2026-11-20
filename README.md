@@ -189,8 +189,10 @@ The full index is [docs/README.md](docs/README.md).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Commit messages and pull requests carry
-no attribution of any kind; [docs/ci.md](docs/ci.md) says how that is checked.
+Pull requests from outside the project are not accepted for now; reports in an
+issue are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Commit messages and
+pull requests carry no attribution of any kind; [docs/ci.md](docs/ci.md) says
+how that is checked.
 
 ## Licence
 

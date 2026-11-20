@@ -1,18 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# The mock target's logic, without the window: a 615A target engine (the protocol files served
-# and written through adl::arinc615a's codecs, the TFTP of adl::arinc615a_mini), a TargetLink
-# seam that runs it over adl::platform's real sockets, and MockTargetModel, which runs the engine
-# on a worker thread for the window. Qt Core only (no GUI, no QML), so the engine is tested
-# headless against the loader's own engine over the fake platform.
+# The mock target's Qt side without the window: MockTargetModel, which runs the engine of
+# libs/mock_target_core on a worker thread for the window, and the list models the window shows.
+# Qt Core only (no GUI, no QML), so the model is tested headless.
 
 set(CMAKE_AUTOMOC ON)
 
 add_library(adl_mock_core STATIC
-    include/adl/mock/engine.hpp
-    include/adl/mock/link.hpp
     include/adl/mock/model.hpp
-    src/engine.cpp
-    src/link.cpp
     src/model.cpp)
 add_library(adl::mock_core ALIAS adl_mock_core)
 
@@ -25,6 +19,7 @@ target_link_libraries(adl_mock_core
     PUBLIC
         Qt6::Core
         adl::ui_message
+        adl::mock_target_core
         adl::arinc615a
         adl::arinc615a_mini
         adl::arinc665
