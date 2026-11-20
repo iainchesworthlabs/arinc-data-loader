@@ -19,6 +19,7 @@
 #include "job.hpp"
 #include "operation_command.hpp"
 #include "record_file.hpp"
+#include "scenario_run.hpp"
 
 #include <algorithm>
 #include <expected>
@@ -79,6 +80,23 @@ OperationKind kind_of(const Options& options)
         break;
     }
     return OperationKind::information;
+}
+
+// What the engine's fault hook calls the operation.
+adl::loader_scenario::OperationName scenario_operation_of(const Options& options)
+{
+    switch (kind_of(options))
+    {
+    case OperationKind::upload:
+        return adl::loader_scenario::OperationName::upload;
+    case OperationKind::download_media:
+        return adl::loader_scenario::OperationName::download_media_defined;
+    case OperationKind::download_operator:
+        return adl::loader_scenario::OperationName::download_operator_defined;
+    case OperationKind::information:
+        break;
+    }
+    return adl::loader_scenario::OperationName::information;
 }
 
 // The loads of the media set that --load names, or all of them. Wrong usage tells why.
@@ -264,6 +282,22 @@ OperationCommand::OperationCommand(adl::platform::Host& host, const Options& opt
 {
 }
 
+std::optional<std::string> OperationCommand::load_scenario()
+{
+    if (!options_.scenario)
+    {
+        return std::nullopt;
+    }
+    auto scenario = read_scenario_file(host_.files(), *options_.scenario);
+    if (!scenario)
+    {
+        return std::move(scenario.error());
+    }
+    scenario_ = std::make_unique<ScenarioRun>(std::move(*scenario), *options_.scenario, scenario_operation_of(options_),
+                                              events_);
+    return std::nullopt;
+}
+
 std::optional<std::string> OperationCommand::prepare()
 {
     switch (options_.command)
@@ -313,7 +347,8 @@ std::optional<std::string> OperationCommand::prepare()
 
 std::optional<int> OperationCommand::begin()
 {
-    events_.started(to_string(options_.command), address_, options_.position);
+    events_.started(to_string(options_.command), address_, options_.position,
+                    scenario_ ? std::optional<ScenarioInfo>{scenario_->info()} : std::nullopt);
     if (options_.command == Command::upload)
     {
         if (const std::optional<int> ended = check_media_set_events())
@@ -435,6 +470,7 @@ adl::loader_core::RunServices OperationCommand::services()
     services.upload_source = source_ ? &*source_ : nullptr;
     services.download_sink = sink_ ? &*sink_ : nullptr;
     services.download_folder = folder_;
+    services.faults = scenario_ ? &scenario_->hook() : nullptr;
     return services;
 }
 
@@ -518,6 +554,10 @@ int OperationCommand::finish(Reason reason, std::string detail, const std::strin
     event.download_folder = download_folder;
     event.has_record = options_.record.has_value();
     event.record = std::move(written);
+    if (scenario_)
+    {
+        event.scenario_unused = scenario_->unused();
+    }
     events_.finished(event);
     return event.exit_code;
 }
@@ -525,6 +565,13 @@ int OperationCommand::finish(Reason reason, std::string detail, const std::strin
 int run_operation_command(adl::platform::Host& host, const Options& options, EventWriter& events, std::ostream& err)
 {
     OperationCommand command(host, options, events);
+    // The scenario file comes first, since it is the cheapest to find wrong and nothing has been opened or written: a
+    // file that cannot be used is a local error, as an operation that cannot run is.
+    if (const std::optional<std::string> problem = command.load_scenario())
+    {
+        err << "adl_load: --scenario " << *options.scenario << ": " << *problem << '\n';
+        return exit_local_error;
+    }
     // What can be wrong with the choice is found before anything is written: that is wrong usage, and no event is
     // written for it.
     if (const std::optional<std::string> problem = command.prepare())

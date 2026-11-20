@@ -18,6 +18,7 @@ add_library(adl_load_cli STATIC
     src/record_file.cpp
     src/request.cpp
     src/run.cpp
+    src/scenario_run.cpp
     src/serve.cpp
     src/stream_source.cpp)
 
@@ -33,6 +34,7 @@ target_link_libraries(adl_load_cli
         adl::loader_core
         adl::platform
     PRIVATE
+        adl::loader_scenario
         adl::warnings
         adl::sanitizers
         adl::coverage)

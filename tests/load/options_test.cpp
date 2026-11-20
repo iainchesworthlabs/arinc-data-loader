@@ -256,6 +256,30 @@ TEST_CASE("options that do not belong to a command are refused", "[load][options
                    "--pick-all is not an option of information"));
 }
 
+TEST_CASE("--scenario names a file, for the three commands that run one operation and for none else", "[load][options]")
+{
+    CHECK_FALSE(accepted({"information", "--target", target, "--position", position}).scenario.has_value());
+    CHECK(accepted({"information", "--target", target, "--position", position, "--scenario", "faults.json"}).scenario ==
+          "faults.json");
+    // As it is written: a folder, a space, a character outside ASCII.
+    CHECK(accepted({"upload", "--target", target, "--position", position, "--media-set", "m", "--all-loads",
+                    "--scenario", "my dir/sc\u00E9nario.json"})
+              .scenario == "my dir/sc\u00E9nario.json");
+    CHECK(accepted({"download", "--target", target, "--position", position, "--into", "out", "--pick-all", "--scenario",
+                    "./--faults"})
+              .scenario == "./--faults");
+
+    CHECK(mentions(refused({"find", "--scenario", "f.json"}), "--scenario is not an option of find"));
+    CHECK(mentions(refused({"serve", "--scenario", "f.json"}), "--scenario is not an option of serve"));
+    CHECK(mentions(refused({"information", "--target", target, "--position", position, "--scenario"}),
+                   "--scenario needs a value"));
+    CHECK(mentions(refused({"information", "--target", target, "--position", position, "--scenario", "--json"}),
+                   "--scenario needs a value"));
+    CHECK(mentions(refused({"information", "--target", target, "--position", position, "--scenario", "a.json",
+                            "--scenario", "b.json"}),
+                   "--scenario is given twice"));
+}
+
 TEST_CASE("the first argument is a command, --help or --version", "[load][options]")
 {
     CHECK(mentions(refused({}), "No command given"));
@@ -294,18 +318,18 @@ TEST_CASE("a stray word, an unknown option and a missing value are told apart", 
 TEST_CASE("the usage text names every command and option, and the version line the events format", "[load][options]")
 {
     const std::string_view usage = usage_text();
-    for (const std::string_view word : {"adl_load find",   "adl_load information",
-                                        "adl_load upload", "adl_load download",
-                                        "--seconds",       "--local-address",
-                                        "--target",        "--position",
-                                        "--media-set",     "--load",
-                                        "--all-loads",     "--into",
-                                        "--file",          "--pick",
-                                        "--pick-all",      "--control-port",
-                                        "--json",          "--record",
-                                        "--help",          "--version",
-                                        "adl_load serve",  "--max-operations",
-                                        "Exit codes"})
+    for (const std::string_view word : {"adl_load find",    "adl_load information",
+                                        "adl_load upload",  "adl_load download",
+                                        "--seconds",        "--local-address",
+                                        "--target",         "--position",
+                                        "--media-set",      "--load",
+                                        "--all-loads",      "--into",
+                                        "--file",           "--pick",
+                                        "--pick-all",       "--control-port",
+                                        "--json",           "--record",
+                                        "--scenario",       "--help",
+                                        "--version",        "adl_load serve",
+                                        "--max-operations", "Exit codes"})
     {
         CAPTURE(word);
         CHECK(usage.find(word) != std::string_view::npos);
@@ -405,4 +429,8 @@ TEST_CASE("the arguments of a run request are those of the command, less the pro
                        "is not taken in a request"));
     }
     CHECK(mentions(refused_arguments({"information", "--target", "10.0.0.2"}), "--position is missing"));
+    // A scenario is for one command line: a request, which is the program's own `serve`, does not take it.
+    CHECK(
+        mentions(refused_arguments({"information", "--target", "10.0.0.2", "--position", "P", "--scenario", "f.json"}),
+                 "--scenario is not taken in a request"));
 }

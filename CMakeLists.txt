@@ -166,6 +166,13 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(apps/make_set)
 endif()
 
+# adl_load: one ARINC 615A operation on one target, with no window and no Qt, for programs and scripts
+# (docs/load-command.md). A thin main over the static library adl_load_cli. It takes a scenario file (--scenario),
+# which needs the licence library's reader, so it is a desktop program as it is an installed one.
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(apps/load)
+endif()
+
 # The mock target's logic without a window and without Qt: its 615A engine and the link that runs
 # it over adl::platform's sockets. The mock target application builds on it below, and so do the
 # tests. Not installed and not part of the adl package.
@@ -192,9 +199,6 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(apps/mock)
 endif()
 
-# adl_load: one ARINC 615A operation on one target, with no window and no Qt, for programs and scripts
-# (docs/load-command.md). A thin main over the static library adl_load_cli.
-add_subdirectory(apps/load)
 
 # adl_licence: shows, imports, removes and checks the licence on this computer, from a command line.
 if(ADL_PLATFORM_DESKTOP)

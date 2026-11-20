@@ -54,6 +54,34 @@ struct ListedFile
     std::string description;
 };
 
+// The scenario file of the operation (`--scenario`), as `started` says it.
+struct ScenarioInfo
+{
+    std::string path; // as the operator wrote it
+    std::size_t steps = 0;
+    std::optional<std::uint64_t> seed;
+};
+
+// A step of the scenario that acted: what the loader did, in the words of the file. The parameter is the one
+// number the action used, under the key the file has for it: `ms` (delay), `within_ms` (reorder), `for_ms` (silent,
+// which is null when it lasts the rest of the operation), `copies`, `delta`, `code`, `seconds` or `status`; drop,
+// corrupt and check_value have none.
+struct ScenarioStepEvent
+{
+    std::size_t step = 0;     // the step's number in the file, from 1
+    std::string_view trigger; // request, status_file or after_ms
+    std::uint64_t at = 0;     // the request, the status file or the milliseconds that put it in effect
+    std::string_view operation;
+    std::string_view action;
+    // The datagram that was acted on, for an action that acts on one (not abort and silent).
+    std::optional<std::string_view> datagram;
+    std::string_view file; // empty: none
+    std::optional<std::uint16_t> block;
+    std::optional<std::string> to; // "address:port"
+    std::string_view parameter;    // the key, or empty
+    std::optional<std::int64_t> value;
+};
+
 // How the program ended.
 struct FinishedEvent
 {
@@ -70,6 +98,9 @@ struct FinishedEvent
     // the option was given, and is null when the record could not be written.
     bool has_record = false;
     std::optional<std::string> record;
+    // With `--scenario`: the numbers of the steps that were in effect and never acted, which is empty when every one
+    // did. Without it the key is not there.
+    std::optional<std::vector<std::size_t>> scenario_unused;
 };
 
 class EventWriter
@@ -101,9 +132,13 @@ public:
     // `reason` is `stop`, `end_of_input` or `error`; `operations` how many were started.
     void stopped(std::string_view reason, std::uint64_t operations);
 
-    // `target` and `position` are for an operation; find has neither.
+    // `target` and `position` are for an operation; find has neither. `scenario` is there when `--scenario` was
+    // given.
     void started(std::string_view command, const std::optional<std::string>& target,
-                 const std::optional<std::string>& position);
+                 const std::optional<std::string>& position,
+                 const std::optional<ScenarioInfo>& scenario = std::nullopt);
+    // A step of the scenario acted. Written as the loader does it, so before the events of what follows.
+    void scenario_step(const ScenarioStepEvent& step);
     void target_found(const FoundTarget& target);
     void media_set_checked(const CheckedMediaSet& media_set);
     void log(adl::loader_core::Severity severity, std::string_view text);

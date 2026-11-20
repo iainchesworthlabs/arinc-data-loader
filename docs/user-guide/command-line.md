@@ -493,6 +493,7 @@ usage:
   adl_load --version
 
 common: [--local-address <ipv4>] [--control-port <n>] [--target-port <n>] [--json] [--record <file>]
+        [--scenario <file>]
 
 Runs one ARINC 615A operation on one target, or looks for targets, with no window.
 Options are written "--name value"; an option that takes several values is given
@@ -516,6 +517,10 @@ several times (--load A --load B).
   --json        Write one JSON object per line on standard output, one for each event,
                 instead of a line for a person to read.
   --record      Write the operation record, a JSON file, when the operation ends.
+  --scenario    Do something wrong on purpose, as a scenario file says (a file of JSON), so
+                that the way a target reacts can be seen. The file is read and checked first,
+                and a file that is refused is an exit code 5. The events say what the loader
+                did and when. Without the option the loader does nothing of the kind.
   --control-port, --target-port, --local-address
                 The port the loader listens on (default 59), the port the target
                 listens on for the request that starts an operation (default 59;
@@ -525,9 +530,9 @@ several times (--load A --load B).
 
 Exit codes: 0 completed, 1 the operation ran and failed, 2 wrong usage, 3 the media set
 could not be read or changed after it was checked, 4 the target did not answer, 5 a
-local error (a port, a folder or the record file). serve: 0 it stopped as asked,
-whatever happened to its operations, 2 wrong usage, 5 the port could not be opened or
-standard output could not be written.
+local error (a port, a folder, the record file or the scenario file). serve: 0 it
+stopped as asked, whatever happened to its operations, 2 wrong usage, 5 the port could not
+be opened or standard output could not be written.
 The text is English. Killing the program abandons the operation and the target times
 out by itself.
 ```
@@ -552,12 +557,29 @@ Options are written `--name value`, with a space. An option that takes several v
 | `--max-operations <n>` | `serve`: how many operations run at once, 1 to 64. The default is 8. |
 | `--json` | Write one JSON object on a line for each event on the standard output, and nothing else there. Without it each event is one plain line for a person to read. |
 | `--record <file>` | Write the operation record, a JSON file, when the operation ends, whatever the outcome ([Files the programs read and write](../file-reference.md#the-operation-record)). The folder it goes into has to be there. `find` writes no record. |
+| `--scenario <file>` | `information`, `upload` and `download`: the loader does something wrong on purpose, as a scenario file says, so that the way a target reacts can be seen ([the loader's scenario file](../file-reference.md#loader-scenario-file)). The file is read and checked before a port or a folder is opened or an event is written, and a file that cannot be used is exit code 5. `find` and `serve` do not have the option, and a `serve` request does not take it. Without the option the loader does nothing of the kind. |
 
 `--help` prints the usage and `--version` prints one line, `adl_load <version> events 1`, and both end with 0.
 
-Every event has `event` first and `t` second, the seconds since the program started. The events are `started` (first), `target_found`, `media_set_checked`, `log`, `configuration`, `progress`, `file_list`, `file_received` and `finished` (last). `finished` carries the `result` (`completed` or `failed`), the `reason`, the `status_code` the target last reported (or `null`), a `detail` sentence and the `exit_code`. The reasons are `completed`, `target_refused`, `target_aborted`, `load_failed`, `missing_files`, `protocol_error`, `aborted`, `usage`, `media_set_unreadable`, `media_set_changed`, `no_answer` and `local_error`.
+Every event has `event` first and `t` second, the seconds since the program started. The events are `started` (first), `target_found`, `media_set_checked`, `log`, `configuration`, `progress`, `file_list`, `file_received` and `finished` (last), and with `--scenario` `scenario_step`. `finished` carries the `result` (`completed` or `failed`), the `reason`, the `status_code` the target last reported (or `null`), a `detail` sentence and the `exit_code`. The reasons are `completed`, `target_refused`, `target_aborted`, `load_failed`, `missing_files`, `protocol_error`, `aborted`, `usage`, `media_set_unreadable`, `media_set_changed`, `no_answer` and `local_error`.
 
 Killing `adl_load` abandons the operation, and a target that was in an operation times out by itself. One `adl_load` is one operation on one target, with no retries; [`adl_load serve`](#adl_load-serve-one-loader-several-targets) runs several operations from one process.
+
+### `adl_load --scenario`: faults on purpose
+
+A supplier of a target can make the loader misbehave, at the moments the file says and the same way every run, to see how the target reacts. The loader's side of a session is the datagrams it sends, and a scenario file says which of them to lose, repeat, delay, hold back, damage or replace, and when the loader is to stop sending or to abort. [The loader's scenario file](../file-reference.md#loader-scenario-file) describes the file and what each action does. It is the sibling of the file `adl_mock --scenario` reads ([Scenarios for the mock target](mock-scenarios.md)): the same top level, the same moments and the same random numbers.
+
+The commands never say that a target is right or wrong. They say what the loader did and when, and how the operation ended; what a target should have done is for the person who reads them.
+
+With `--scenario` the program reads and checks the file first, and writes these as well:
+
+| Event | What it says |
+| --- | --- |
+| `started` | The keys `scenario` (the file as it was given), `scenario_steps` (how many steps it has) and `scenario_seed` (a number, or `null` when the file has none), after the others. |
+| `scenario_step` | A step of the file acted. `step` is its number in the file, from 1; `trigger` (`request`, `status_file` or `after_ms`) and `at` (the number of the request or status file, or the milliseconds) say what put it in effect; `operation` is `information`, `upload`, `download_media_defined` or `download_operator_defined`; `action` is the step's action; `applied` is `true`. `datagram` (`request`, `option_ack`, `ack`, `data` or `error`), `file`, `block` and `to` (the address and port the datagram was for) say which datagram was acted on, each `null` where it does not apply and all four `null` for `abort` and `silent`. Then the one number the action used, under the key the file has for it: `copies` (duplicate), `ms` (delay), `within_ms` (reorder), `for_ms` (silent, which is `null` for a silence to the end of the operation), `delta` (length), `code` (error), `seconds` (wait) or `status` (abort_message and abort); drop, corrupt and check_value have none. It is written when the step acts, before the events of what follows from it. |
+| `finished` | The key `scenario_unused`: the numbers of the steps that were in effect for this operation and never acted, a list that is empty when every one did. A step for another operation is not in it. A run that did not do what the file says is seen here. |
+
+The same scenario file against the same target gives the same `scenario_step` events from one run to the next (`t` and the port in `to` are the target's and the clock's), for a trigger that counts requests and status files. A trigger in milliseconds is as exact as the clock and the target are.
 
 ### Exit codes of `adl_load`
 
@@ -568,7 +590,7 @@ Killing `adl_load` abandons the operation, and a target that was in an operation
 | 2 | `usage` | The command line could not be used. Nothing was sent and no event was written. The reason is on the error output, with the usage after it. |
 | 3 | `media_set_unreadable`, `media_set_changed` | The media set could not be read or checked, or a file of it changed after it was checked. Not a byte of a changed file is sent. |
 | 4 | `no_answer` | The target did not answer. |
-| 5 | `local_error` | A port could not be opened, a folder could not be made, or the record could not be written. |
+| 5 | `local_error` | A port could not be opened, a folder could not be made, the record could not be written, or the scenario file could not be read or was refused (the last of these writes no event). |
 
 ### Messages of `adl_load`
 
@@ -599,6 +621,15 @@ What the command line is refused with goes to the error output and ends with cod
 | `The part number "<part number>" names more than one load of the media set.` | A part number has to name one load. |
 | `The media set holds no load to send.` | The set has nothing to upload. |
 | `"<name>" is not a safe file name.` | Name the file as the target knows it: a plain name of at most 254 characters, without a path. |
+
+A scenario file that cannot be used is told on the error output with code 5, before anything is opened or written:
+
+| Message | What to do |
+| --- | --- |
+| `adl_load: --scenario <file>: <why>` | The file was refused. Nothing was written to standard output, and no port or folder was opened. `<why>` is one of the sentences below. |
+| `the file cannot be read (<code>)` | The file is not there (`not found`) or cannot be opened. |
+| `the file is larger than <n> bytes` | A scenario file is at most 262144 bytes. |
+| `step <n>: <sentence about a key>` | The sentence names the step and the key, as `step 3: "seconds" must be a whole number from 1 to 65535`. [When the file is refused](../file-reference.md#when-the-file-is-refused) has the others. |
 
 With `--json` the sentences of what happened are in the events. In a `finished` event the `detail` is one of these, and the same words are the last lines of the log in the record:
 
@@ -645,7 +676,7 @@ The log lines that `adl_load` adds to what the target says (the target's own are
 Without `--json` each event is one line, and the words are for a person, not a format to read:
 
 ```text
-adl_load <version>: upload, target <address> (<THW_ID_POS>)
+adl_load <version>: upload, target <address> (<THW_ID_POS>), scenario <file> (<n> steps, seed <n>)
 Checked media set <part number> in <folder>: <n> members, <n> loads, <n> findings: <finding>; <finding>
 info: Uploading 1 load(s) to <address> (<THW_ID_POS>)...
 Progress: <n>%; <part number> <status> <n>%
@@ -653,7 +684,8 @@ Configuration: <n> hardware items; <name> (serial number <serial number>): <part
 The target lists <n> files: <name>, <name>
 Received <name>, <n> bytes, in <path>
 Found <address>: <THW_ID_POS> (type <type name>, "<literal name>", manufacturer <code>)
-Finished: failed, <reason> (exit code <n>): <detail> [<n> targets] [files in <folder>] [record in <file>]
+Finished: failed, <reason> (exit code <n>): <detail> [<n> targets] [files in <folder>] [record in <file>] [scenario steps that never acted: <n>, <n>]
+Scenario step <n>: <action> <key> <value>, <kind> datagram of <file> block <n> to <address>:<port> (<trigger> <n>, <operation>)
 ```
 
 A line that starts with a word and a colon (`info:`, `note:`, `warning:`, `error:`) is a log line. A control character in what a target sent is shown as `?`. A count of one is written `1 member`, `1 load`, `1 finding`, `1 file`, `1 byte` and `1 target`. A configuration item with no parts says `no parts`.
@@ -718,6 +750,7 @@ A datagram on the control port from an address that has no operation is dropped,
 | `Unknown command "<word>": a run request takes information, upload or download.` | `detail` | |
 | `"<word>" is not an operation on one target, and is not a request.` | `detail` | `find` and `serve` are not requests. |
 | `<option> is not taken in a request: it belongs to the program.` | `detail` | `--json`, `--local-address`, `--control-port`, `--help` and `--version` are not written in a request. |
+| `--scenario is not taken in a request: serve does not do anything wrong on purpose.` | `detail` | A scenario file is for one command line. |
 | `An operation with this id has not finished.` | `detail` | Use another id, or wait for the operation's `finished`. |
 | `The target <address> has an operation that has not finished (id <id>).` | `detail` | One address has one operation at a time. |
 | `The program runs <n> operations at once, and that many have not finished.` | `detail` | Wait for one to finish, or start the program with a larger `--max-operations`. |

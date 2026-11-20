@@ -130,7 +130,7 @@ void EventWriter::stopped(std::string_view reason, std::uint64_t operations)
 }
 
 void EventWriter::started(std::string_view command, const std::optional<std::string>& target,
-                          const std::optional<std::string>& position)
+                          const std::optional<std::string>& position, const std::optional<ScenarioInfo>& scenario)
 {
     const std::uint64_t at = elapsed_milliseconds();
     if (json_)
@@ -148,6 +148,19 @@ void EventWriter::started(std::string_view command, const std::optional<std::str
         {
             line.string("position", *position);
         }
+        if (scenario)
+        {
+            line.string("scenario", scenario->path);
+            line.number("scenario_steps", scenario->steps);
+            if (scenario->seed)
+            {
+                line.number("scenario_seed", *scenario->seed);
+            }
+            else
+            {
+                line.null("scenario_seed");
+            }
+        }
         write(line.finish());
         return;
     }
@@ -160,6 +173,103 @@ void EventWriter::started(std::string_view command, const std::optional<std::str
     {
         text += " (" + printable(*position) + ')';
     }
+    if (scenario)
+    {
+        text += ", scenario " + printable(scenario->path) + " (" + count_of(scenario->steps, "step", "steps");
+        if (scenario->seed)
+        {
+            text += ", seed " + std::to_string(*scenario->seed);
+        }
+        text += ')';
+    }
+    write(text + '\n');
+}
+
+void EventWriter::scenario_step(const ScenarioStepEvent& step)
+{
+    const std::uint64_t at = elapsed_milliseconds();
+    if (json_)
+    {
+        JsonLine line = json_event("scenario_step", at);
+        line.number("step", step.step);
+        line.string("trigger", step.trigger);
+        line.number("at", step.at);
+        line.string("operation", step.operation);
+        line.string("action", step.action);
+        // Written when the step acts, so it is always true: the mock target's event has the key too, and a reader
+        // of both takes the same keys from each.
+        line.boolean("applied", true);
+        if (step.datagram)
+        {
+            line.string("datagram", *step.datagram);
+            if (step.file.empty())
+            {
+                line.null("file");
+            }
+            else
+            {
+                line.string("file", step.file);
+            }
+            if (step.block)
+            {
+                line.number("block", *step.block);
+            }
+            else
+            {
+                line.null("block");
+            }
+            if (step.to)
+            {
+                line.string("to", *step.to);
+            }
+            else
+            {
+                line.null("to");
+            }
+        }
+        else
+        {
+            line.null("datagram");
+            line.null("file");
+            line.null("block");
+            line.null("to");
+        }
+        if (!step.parameter.empty())
+        {
+            if (step.value)
+            {
+                line.integer(step.parameter, *step.value);
+            }
+            else
+            {
+                line.null(step.parameter);
+            }
+        }
+        write(line.finish());
+        return;
+    }
+    std::string text = "Scenario step " + std::to_string(step.step) + ": " + std::string{step.action};
+    if (!step.parameter.empty())
+    {
+        text += ' ' + std::string{step.parameter} + ' ' + (step.value ? std::to_string(*step.value) : "none");
+    }
+    if (step.datagram)
+    {
+        text += ", " + std::string{*step.datagram} + " datagram";
+        if (!step.file.empty())
+        {
+            text += " of " + printable(step.file);
+        }
+        if (step.block)
+        {
+            text += " block " + std::to_string(*step.block);
+        }
+        if (step.to)
+        {
+            text += " to " + *step.to;
+        }
+    }
+    text += " (" + std::string{step.trigger} + ' ' + std::to_string(step.at) + ", " + std::string{step.operation} + ")";
     write(text + '\n');
 }
 
@@ -389,6 +499,15 @@ void EventWriter::finished(const FinishedEvent& event)
                 line.null("record");
             }
         }
+        if (event.scenario_unused)
+        {
+            line.begin_array("scenario_unused");
+            for (const std::size_t step : *event.scenario_unused)
+            {
+                line.number_element(step);
+            }
+            line.end_array();
+        }
         write(line.finish());
         return;
     }
@@ -410,6 +529,15 @@ void EventWriter::finished(const FinishedEvent& event)
     if (event.record)
     {
         text += " [record in " + printable(*event.record) + ']';
+    }
+    if (event.scenario_unused && !event.scenario_unused->empty())
+    {
+        text += " [scenario steps that never acted:";
+        for (std::size_t i = 0; i < event.scenario_unused->size(); ++i)
+        {
+            text += (i == 0 ? " " : ", ") + std::to_string((*event.scenario_unused)[i]);
+        }
+        text += ']';
     }
     write(text + '\n');
 }

@@ -21,6 +21,7 @@
 #include "adl/loader_core/run.hpp"
 #include "adl/platform/host.hpp"
 #include "job.hpp"
+#include "scenario_run.hpp"
 
 #include <memory>
 #include <optional>
@@ -34,6 +35,11 @@ class OperationCommand
 public:
     // `options` and `events` have to outlive the object.
     OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events);
+
+    // With `--scenario`: reads and checks the file and makes what carries it out. Returns the sentence that says why
+    // the file cannot be used, which is a local error (exit code 5) and not wrong usage; nothing is written. Call it
+    // first, before prepare(): it opens no port and no folder, and writes no event. Does nothing without the option.
+    [[nodiscard]] std::optional<std::string> load_scenario();
 
     // The plan of the operation and, for an upload, the media set read and the loads chosen from it. Returns the
     // sentence of wrong usage when the choice and what it refers to do not fit (a part number the set does not
@@ -70,6 +76,7 @@ private:
     EventWriter& events_;
     std::string address_;
     Job job_;
+    std::unique_ptr<ScenarioRun> scenario_;                 // what load_scenario() made; none without `--scenario`
     std::unique_ptr<adl::loader_core::OperationPlan> plan_; // what prepare() made; none for a set that cannot be read
     adl::loader_core::MediaSetReport report_;
     std::shared_ptr<const adl::loader_core::MediaSetIndex> index_;

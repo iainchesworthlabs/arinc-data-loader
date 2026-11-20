@@ -33,7 +33,8 @@
    (the scenario, its reader and the player of the engine's FaultHook); not installed
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
    adl_load (apps/load): one operation on one target, or several at once with `serve`, with no window and no Qt,
-   over adl::loader_core and the runner; a library of its own (adl_load_cli) is the program, under a short main
+   over adl::loader_core and the runner (and adl::loader_scenario, for `--scenario`); a library of its own
+   (adl_load_cli) is the program, under a short main
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target's engine (libs/mock_target_core)
 ```
@@ -96,7 +97,11 @@
   test's script, and runs them on the loader core's `OperationPool`, so that one process holds the
   loader's control port for all of them. What an upload reads before it can start, its media set, is done
   by a `Preparer` (`preparer.cpp`) on a thread of its own, so that a large set does not hold up the
-  operations that are running.
+  operations that are running. With `--scenario` (`scenario_run.cpp`) the file is read first, through the
+  platform's file system, and a `ScenarioRun` gives the engine the player of `adl::loader_scenario` as its
+  fault hook and writes each fault it does as a `scenario_step` event; without the option the engine has no
+  hook. `adl_load` is built on a desktop only, since the scenario file is read with the licence library's
+  reader.
 - **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `libs/platform/interfaces/adl/platform/`, with one implementation per platform
