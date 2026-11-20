@@ -100,7 +100,8 @@ release key and listed with its checksums and bill of materials
   - **`adl_load`**, a command-line program that runs one operation on one target, or looks
     for targets, with no window ([docs/load-command.md](docs/load-command.md)): JSON lines on
     standard output, the operation record in a file, and an exit code that says how it ended,
-    for scripts and other programs.
+    for scripts and other programs. `adl_load serve` runs operations on several targets at once
+    from one loader port, for a program that drives it.
   - **One design system** (`libs/ui`) for all three windows, in the ICL Forge Modernist
     language: the Signal palette, Archivo, zero radius, the 4/8/12/16/24/32 rhythm, and one
     set of controls. The human-factors analysis behind it, with before/after screenshots, is

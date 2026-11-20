@@ -34,7 +34,7 @@ A build produces these programs in `build/<preset>/bin`, and a package holds the
 | `adl_media_gen` | ARINC Media Set Generator |
 | `adl_mock_target` | ARINC Mock Target |
 | `adl_write_payloads` | A command-line tool that writes sample media sets to a folder, for trying other loaders |
-| `adl_load` | A command-line program that runs one operation on one target with no window, for scripts and other programs |
+| `adl_load` | A command-line program that runs one operation on one target with no window, or several at once with `serve`, for scripts and other programs |
 
 On Windows the build copies the Qt libraries next to the programs, so each can be started from
 anywhere: double-click it, or run it from a shell. A Linux build finds Qt the way the build did (the

@@ -440,6 +440,35 @@ TEST_CASE("eight uploads at once from one port load eight targets, each with its
     CHECK(together < alone * 3);
 }
 
+TEST_CASE("sixty-four operations at once, the most there can be, and a sixty-fifth is refused",
+          "[load][integration][serve]")
+{
+    // More sockets are in use at once than one wait on the network takes (64): the loop still sees every datagram.
+    ServeBench bench(65);
+    ScriptedSource source(bench.world);
+    for (std::size_t k = 0; k < 65; ++k)
+    {
+        source.at(0ms, information_request("t" + std::to_string(k), k));
+    }
+    const CommandRun run = bench.serve(source, {"--max-operations", "64"});
+    CHECK(run.exit_code == 0);
+    check_serve_stream(run, "end_of_input");
+
+    const std::vector<Json> refused = refusals_of(run);
+    REQUIRE(refused.size() == 1);
+    CHECK(refused[0].at("id").text == "t64");
+    CHECK(refused[0].at("line").as_number() == 65);
+    CHECK(refused[0].at("detail").text == "The program runs 64 operations at once, and that many have not finished.");
+    for (std::size_t k = 0; k < 64; ++k)
+    {
+        INFO("operation t" << k);
+        const std::vector<Json> own = events_of(run, "t" + std::to_string(k));
+        REQUIRE_FALSE(own.empty());
+        CHECK(own.back().at("reason").text == "completed");
+    }
+    CHECK(run.events().back().at("operations").as_number() == 64);
+}
+
 TEST_CASE("a cancel aborts that operation, and the others go on", "[load][integration][serve]")
 {
     ServeBench bench(2,
