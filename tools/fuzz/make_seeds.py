@@ -400,12 +400,50 @@ SEEDS_MOCK_SCENARIO = {
   {"when":{"request":3},"do":{"action":"invalid_init_file"}},
   {"when":{"request":4},"do":{"action":"corrupt_served"}},
   {"when":{"request":5},"do":{"action":"delay","ms":250}},
+  {"when":{"request":6},"do":{"action":"drop_datagram"}},
+  {"when":{"request":7},"do":{"action":"duplicate_datagram"}},
+  {"when":{"request":8},"do":{"action":"reorder_datagram"}},
   {"when":{"status_file":3},"do":{"action":"drop_status_file"}},
   {"when":{"status_file":4},"do":{"action":"abort"}},
   {"when":{"status_file":5},"do":{"action":"silent"}},
   {"when":{"status_file":6},"do":{"action":"wrong_checksum"}},
   {"when":{"after_ms":1500,"every":500,"times":2,"operation":"download_media_defined"},"per_mille":300,
    "do":{"action":"delay","min_ms":10,"max_ms":90}}]}""",
+    "datagram_example": """{
+  "kind": "adl-mock-scenario",
+  "format": 1,
+  "name": "A line that loses data",
+  "description": "One in ten blocks of a status file is lost. The acknowledgement of block 3 of an upload is sent three times. After the first status file, the next two datagrams are held back until another has gone. From half a second into an operation, 20 datagrams of LOAD1.BIN are late by 100 to 300 ms.",
+  "seed": 20261121,
+  "steps": [
+    {
+      "when": { "request": 1, "every": 1 },
+      "on": { "datagram": "data", "file": ".LUS" },
+      "per_mille": 100,
+      "count": 65535,
+      "do": { "action": "drop_datagram" }
+    },
+    {
+      "when": { "request": 1, "operation": "upload" },
+      "on": { "datagram": "ack", "block": 3 },
+      "do": { "action": "duplicate_datagram", "copies": 3 }
+    },
+    {
+      "when": { "status_file": 1 },
+      "on": {},
+      "count": 2,
+      "do": { "action": "reorder_datagram", "within_ms": 400 }
+    },
+    {
+      "when": { "after_ms": 500 },
+      "on": { "file": "LOAD1.BIN" },
+      "count": 20,
+      "do": { "action": "delay", "min_ms": 100, "max_ms": 300 }
+    }
+  ]
+}
+""",
+    "datagram_limits": '{"kind":"adl-mock-scenario","format":1,"seed":9007199254740991,"steps":[{"when":{"request":1},"on":{"datagram":"data","file":"A","block":65535},"per_mille":1000,"count":65535,"do":{"action":"duplicate_datagram","copies":16}},{"when":{"request":1},"on":{"datagram":"any","block":0},"do":{"action":"reorder_datagram","within_ms":60000}},{"when":{"request":1},"on":{"datagram":"error"},"do":{"action":"drop_datagram"}}]}',
     "minimum": '{"kind":"adl-mock-scenario","format":1,"steps":[]}',
     "limits": '{"kind":"adl-mock-scenario","format":1,"seed":9007199254740991,"steps":[{"when":{"after_ms":86400000,"every":86400000,"times":1000000},"per_mille":1000,"do":{"action":"delay","min_ms":0,"max_ms":60000}}]}',
     "wrong_trigger_for_wait": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":2},"do":{"action":"wait","seconds":1}}]}',
@@ -420,6 +458,13 @@ SEEDS_MOCK_SCENARIO = {
     "loader_kind": '{"kind":"adl-loader-scenario","format":1,"steps":[]}',
     "newer_format": '{"kind":"adl-mock-scenario","format":2,"steps":[],"new_key":true}',
     "not_json": '{"kind":"adl-mock-scenario","format":1,"steps":[],}',
+    "copies_one": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"duplicate_datagram","copies":1}}]}',
+    "within_zero": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"reorder_datagram","within_ms":0}}]}',
+    "count_with_wait": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"count":2,"do":{"action":"wait","seconds":1}}]}',
+    "datagram_word": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"on":{"datagram":"other"},"do":{"action":"drop_datagram"}}]}',
+    "block_with_request": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"on":{"datagram":"request","block":1},"do":{"action":"drop_datagram"}}]}',
+    "on_not_object": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"on":"data","do":{"action":"drop_datagram"}}]}',
+    "count_zero": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"count":0,"do":{"action":"drop_datagram"}}]}',
 }
 
 

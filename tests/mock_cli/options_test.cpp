@@ -157,6 +157,19 @@ TEST_CASE("--help and --version are actions of their own", "[mock_cli][options]"
     CHECK_FALSE(refused({"--nonsense", "--help"}).empty());
 }
 
+TEST_CASE("--scenario-actions is an action of its own, like --help", "[mock_cli][options][scenario]")
+{
+    const auto actions = parse({"--scenario-actions"});
+    REQUIRE(actions);
+    CHECK(actions->action == Action::scenario_actions);
+    // The first of the actions decides, as for --help and --version; an error before it is still an error.
+    CHECK(parse({"--help", "--scenario-actions"})->action == Action::help);
+    CHECK(parse({"--scenario-actions", "--help"})->action == Action::scenario_actions);
+    CHECK_FALSE(refused({"--nonsense", "--scenario-actions"}).empty());
+    // It says what it is in the usage text.
+    CHECK(usage_text().contains("--scenario-actions"));
+}
+
 TEST_CASE("the parts are grouped by hardware and given serial numbers", "[mock_cli][options]")
 {
     const auto parsed = parse(

@@ -290,8 +290,12 @@ private:
     [[nodiscard]] Instant now() const;
     void note(Severity severity, std::string text);
     void report_progress();
-    MiniTransfer& add_transfer(MiniTransfer::Role role);
+    MiniTransfer& add_transfer(MiniTransfer::Role role, std::string_view file = {});
     void remove_later(std::uint16_t port);
+    // What a datagram is, for the plan, and the datagrams a plan has held back.
+    [[nodiscard]] DatagramInfo describe(std::uint16_t from_port, const Endpoint& to,
+                                        std::span<const std::byte> payload) const;
+    void release_held(std::optional<std::uint64_t> only = std::nullopt);
     void send_error(const Endpoint& to, TftpErrorCode code, std::string_view text);
 
     // Datagrams.
@@ -347,6 +351,16 @@ private:
     std::vector<std::string> log_;
     std::string last_error_;
     std::map<std::uint16_t, std::unique_ptr<MiniTransfer>> transfers_;
+    std::map<std::uint16_t, std::string> transfer_files_; // the file of each transfer, by its port
+    struct Held
+    {
+        std::uint64_t id = 0;
+        std::uint16_t from_port = 0;
+        Endpoint to{};
+        std::vector<std::byte> bytes;
+    };
+    std::vector<Held> held_; // datagrams a plan holds back until the next one goes (or its time is up)
+    std::uint64_t next_held_id_ = 1;
     std::uint16_t next_port_ = 40000;
     std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
     int reported_progress_ = -1;
@@ -392,7 +406,6 @@ private:
     bool armed_drop_ = false;
     bool armed_corrupt_ = false;
     bool armed_wrong_checksum_ = false;
-    std::uint32_t armed_delay_ms_ = 0;
     std::uint64_t operation_serial_ = 0; // a new number for each operation, so that its timers can tell it ended
 };
 

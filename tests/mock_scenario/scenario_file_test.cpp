@@ -154,6 +154,9 @@ TEST_CASE("mock scenario: every action, with each trigger it goes with, is read 
         {R"("after_ms":1500)", R"("action":"corrupt_served")", Effect::corrupt_served},
         {R"("after_ms":1500)", R"("action":"wrong_checksum")", Effect::wrong_checksum},
         {R"("after_ms":1500)", R"("action":"delay","ms":60000)", Effect::delay},
+        {R"("request":1)", R"("action":"drop_datagram")", Effect::drop_datagram},
+        {R"("status_file":3)", R"("action":"duplicate_datagram","copies":4)", Effect::duplicate_datagram},
+        {R"("after_ms":1500)", R"("action":"reorder_datagram","within_ms":300)", Effect::reorder_datagram},
     };
     for (const Case& item : good)
     {
@@ -378,4 +381,160 @@ TEST_CASE("mock scenario: the file on a disk", "[mock_scenario][file]")
         out << guide_example;
     }
     CHECK(load_scenario_file(wide));
+}
+
+// ---- The faults on a datagram ------------------------------------------------------------------------------------
+
+TEST_CASE("mock scenario: the actions on a datagram go with every trigger, and are read and written back",
+          "[mock_scenario][file][datagram]")
+{
+    for (const char* when : {R"("request":1)", R"("status_file":3)", R"("after_ms":0)"})
+    {
+        for (const char* action : {R"("action":"drop_datagram")", R"("action":"duplicate_datagram")",
+                                   R"("action":"duplicate_datagram","copies":16)", R"("action":"reorder_datagram")",
+                                   R"("action":"reorder_datagram","within_ms":60000)"})
+        {
+            INFO(when << " " << action);
+            const Scenario scenario = accepted(with_step(step_of(when, action)));
+            REQUIRE(scenario.steps.size() == 1);
+            const std::string written = write_scenario(scenario);
+            const auto again = read_scenario(written);
+            REQUIRE(again);
+            CHECK(*again == scenario);
+            CHECK(write_scenario(*again) == written);
+        }
+    }
+    const ScenarioAction duplicate =
+        accepted(with_step(step_of(R"("request":1)", R"("action":"duplicate_datagram")"))).steps[0].action;
+    CHECK(duplicate.effect == Effect::duplicate_datagram);
+    CHECK(duplicate.copies == 2); // the default
+    CHECK(accepted(with_step(step_of(R"("request":1)", R"("action":"duplicate_datagram","copies":5)")))
+              .steps[0]
+              .action.copies == 5);
+    CHECK(accepted(with_step(step_of(R"("request":1)", R"("action":"reorder_datagram")"))).steps[0].action.within_ms ==
+          1000);
+    CHECK(accepted(with_step(step_of(R"("request":1)", R"("action":"reorder_datagram","within_ms":7)")))
+              .steps[0]
+              .action.within_ms == 7);
+}
+
+TEST_CASE("mock scenario: on and count are read for the actions on a datagram, and written back in their place",
+          "[mock_scenario][file][datagram]")
+{
+    const Scenario scenario = accepted(
+        R"({"kind":"adl-mock-scenario","format":1,"seed":7,"steps":[
+            {"when":{"request":1},"on":{"datagram":"ack","file":".LUS","block":2},"count":3,"do":{"action":"drop_datagram"}},
+            {"when":{"request":1},"on":{"datagram":"any"},"do":{"action":"delay","ms":10}},
+            {"when":{"request":1},"on":{},"do":{"action":"reorder_datagram"}},
+            {"when":{"request":1},"on":{"file":"LOAD1.BIN"},"per_mille":10,"count":65535,"do":{"action":"duplicate_datagram"}}]})");
+    REQUIRE(scenario.steps.size() == 4);
+    const ScenarioStep& first = scenario.steps[0];
+    REQUIRE(first.on.has_value());
+    CHECK(first.on->datagram == DatagramKind::ack);
+    CHECK(first.on->file == ".LUS");
+    CHECK(first.on->block == 2U);
+    CHECK(first.count == 3);
+    CHECK(!scenario.steps[1].on->datagram.has_value()); // "any" is no selector
+    CHECK(!scenario.steps[1].count.has_value());
+    REQUIRE(scenario.steps[2].on.has_value());
+    CHECK(scenario.steps[2].on->file.empty());
+    CHECK(scenario.steps[3].count == 65535);
+
+    const std::string written = write_scenario(scenario);
+    CHECK(written.find(R"("on": { "datagram": "ack", "file": ".LUS", "block": 2 },)") != std::string::npos);
+    CHECK(written.find(R"("count": 3,)") != std::string::npos);
+    CHECK(written.find(R"("on": {},)") != std::string::npos);
+    CHECK(written.find(R"("on": { "file": "LOAD1.BIN" },)") != std::string::npos);
+    // The order in a step: comment, when, on, per_mille, count, do.
+    CHECK(written.find(R"("on": { "file": "LOAD1.BIN" },
+      "per_mille": 10,
+      "count": 65535,
+      "do":)") != std::string::npos);
+    const auto again = read_scenario(written);
+    REQUIRE(again);
+    // "any" is written as no datagram, which reads as the same.
+    CHECK(*again == scenario);
+    CHECK(write_scenario(*again) == written);
+}
+
+TEST_CASE("mock scenario: what the actions on a datagram take, and the sentence for each way it is wrong",
+          "[mock_scenario][file][datagram]")
+{
+    const auto step = [](std::string_view more, std::string_view action = R"("action":"drop_datagram")")
+    { return with_step(R"({"when":{"request":1},)" + std::string{more} + R"("do":{)" + std::string{action} + "}}"); };
+
+    refused(step("", R"("action":"duplicate_datagram","copies":1)"),
+            "step 1: \"copies\" must be a whole number from 2 to 16");
+    refused(step("", R"("action":"duplicate_datagram","copies":17)"),
+            "step 1: \"copies\" must be a whole number from 2 to 16");
+    refused(step("", R"("action":"duplicate_datagram","copies":2.5)"),
+            "step 1: \"copies\" must be a whole number from 2 to 16");
+    refused(step("", R"("action":"reorder_datagram","within_ms":0)"),
+            "step 1: \"within_ms\" must be a whole number from 1 to 60000");
+    refused(step("", R"("action":"reorder_datagram","within_ms":60001)"),
+            "step 1: \"within_ms\" must be a whole number from 1 to 60000");
+    refused(step("", R"("action":"drop_datagram","copies":2)"),
+            "step 1: \"do\" has the key \"copies\", which this version does not know");
+    refused(step("", R"("action":"duplicate_datagram","within_ms":2)"),
+            "step 1: \"do\" has the key \"within_ms\", which this version does not know");
+
+    refused(step(R"("count":0,)"), "step 1: \"count\" must be a whole number from 1 to 65535");
+    refused(step(R"("count":65536,)"), "step 1: \"count\" must be a whole number from 1 to 65535");
+    refused(step(R"("count":"2",)"), "step 1: \"count\" must be a whole number from 1 to 65535");
+    CHECK(accepted(step(R"("count":65535,)")).steps[0].count == 65535);
+
+    refused(step(R"("on":5,)"), "step 1: \"on\" must be an object");
+    refused(step(R"("on":{"kind":"data"},)"), "step 1: \"on\" has the key \"kind\", which this version does not know");
+    const std::string datagram_sentence =
+        "step 1: \"datagram\" must be one of \"request\", \"option_ack\", \"ack\", \"data\", \"error\" or \"any\"";
+    refused(step(R"("on":{"datagram":"other"},)"), datagram_sentence);
+    refused(step(R"("on":{"datagram":5},)"), datagram_sentence);
+    refused(step(R"("on":{"file":""},)"),
+            "step 1: \"file\" must be text of 1 to 64 characters, with no control character");
+    refused(step(R"("on":{"file":")" + std::string(65, 'a') + R"("},)"),
+            "step 1: \"file\" must be text of 1 to 64 characters, with no control character");
+    refused(step(R"("on":{"block":65536},)"), "step 1: \"block\" must be a whole number from 0 to 65535");
+    refused(step(R"("on":{"block":-1},)"), "step 1: \"block\" must be a whole number from 0 to 65535");
+    refused(step(R"("on":{"datagram":"request","block":1},)"), "step 1: \"block\" goes with \"data\" or \"ack\"");
+    refused(step(R"("on":{"datagram":"option_ack","block":1},)"), "step 1: \"block\" goes with \"data\" or \"ack\"");
+    refused(step(R"("on":{"datagram":"error","block":1},)"), "step 1: \"block\" goes with \"data\" or \"ack\"");
+    CHECK(accepted(step(R"("on":{"datagram":"data","block":0},)")).steps[0].on->block == 0U);
+    CHECK(accepted(step(R"("on":{"datagram":"any","block":9},)")).steps[0].on->block == 9U);
+
+    // The others do not take them, and say so, naming both keys.
+    const std::string others = "step 1: \"on\" and \"count\" go with the datagram actions and \"delay\"";
+    refused(with_step(R"({"when":{"request":1},"on":{},"do":{"action":"wait","seconds":1}})"), others);
+    refused(with_step(R"({"when":{"status_file":1},"count":2,"do":{"action":"abort"}})"), others);
+    refused(with_step(R"({"when":{"status_file":1},"on":{"datagram":"ack"},"do":{"action":"silent"}})"), others);
+    // A delay does.
+    const Scenario delay = accepted(
+        with_step(R"({"when":{"request":1},"on":{"datagram":"data"},"count":2,"do":{"action":"delay","ms":5}})"));
+    CHECK(delay.steps[0].count == 2);
+    CHECK(delay.steps[0].on->datagram == DatagramKind::data);
+}
+
+TEST_CASE("mock scenario: the words a scenario file may use are listed, in the order of the guide",
+          "[mock_scenario][file]")
+{
+    const auto words = action_words();
+    REQUIRE(words.size() == 12);
+    CHECK(words.front() == "wait");
+    CHECK(words[8] == "delay");
+    CHECK(words[9] == "drop_datagram");
+    CHECK(words[10] == "duplicate_datagram");
+    CHECK(words.back() == "reorder_datagram");
+    for (const std::string_view word : words)
+    {
+        // Every one of them is a word that the reader takes: a file that uses it is not refused for the word.
+        const auto scenario = read_scenario(
+            R"({"kind":"adl-mock-scenario","format":1,"seed":1,"steps":[{"when":{"request":1},"do":{"action":")" +
+            std::string{word} + R"("}}]})");
+        INFO(word);
+        CHECK((scenario || scenario.error().message.find("is not one this version knows") == std::string::npos));
+    }
+    CHECK(datagram_word(DatagramKind::option_ack) == "option_ack");
+    CHECK(datagram_word(DatagramKind::other) == "other");
+    CHECK(is_datagram_effect(Effect::delay));
+    CHECK(is_datagram_effect(Effect::reorder_datagram));
+    CHECK(!is_datagram_effect(Effect::abort));
 }

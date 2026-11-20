@@ -39,6 +39,12 @@ namespace adl::test
                 (action.effect != Effect::wait || (action.seconds >= 1 && action.seconds <= 65535)) &&
                 (action.effect != Effect::refuse || action.code == 0x1000U || action.code == 0x1002U) &&
                 (action.effect != Effect::delay || action.max_ms >= 1 || action.ranged) &&
+                (action.effect != Effect::duplicate_datagram || (action.copies >= 2 && action.copies <= 16)) &&
+                (action.effect != Effect::reorder_datagram || (action.within_ms >= 1 && action.within_ms <= 60000)) &&
+                (!step.count || (is_datagram_effect(action.effect) && *step.count >= 1 && *step.count <= 65535)) &&
+                (!step.on || (is_datagram_effect(action.effect) && (!step.on->block || *step.on->block <= 65535) &&
+                              (!step.on->block || !step.on->datagram || *step.on->datagram == DatagramKind::data ||
+                               *step.on->datagram == DatagramKind::ack))) &&
                 !effect_word(action.effect).empty();
     }
     return holds;
@@ -74,6 +80,15 @@ namespace adl::test
         {
             static_cast<void>(player.on_status_file(kind, number));
         }
+        for (const DatagramKind datagram : {DatagramKind::request, DatagramKind::option_ack, DatagramKind::data,
+                                            DatagramKind::ack, DatagramKind::error, DatagramKind::other})
+        {
+            DatagramInfo info;
+            info.kind = datagram;
+            info.block = 1;
+            info.file = "HNPFMS_L.LUS";
+            static_cast<void>(player.on_datagram(info));
+        }
         for (const TimedStep& step : player.on_operation_began(kind))
         {
             for (int i = 0; i < 3; ++i)
@@ -82,7 +97,9 @@ namespace adl::test
             }
         }
     }
-    holds = holds && player.unused_steps().size() <= scenario->steps.size();
+    player.on_operation_ended();
+    holds = holds && player.unused_steps().size() <= scenario->steps.size() &&
+            player.idle_steps().size() <= scenario->steps.size();
     return holds;
 }
 

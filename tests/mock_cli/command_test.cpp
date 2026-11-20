@@ -416,6 +416,17 @@ TEST_CASE("an Information operation is served and written as events", "[mock_cli
     CHECK(started.at("find_port").number() == target_find_port);
     CHECK(started.at("tftp_port").number() == target_tftp_port);
     CHECK(started.at("faults").items().empty());
+    // Every build says which actions a scenario may use, with or without one; a program from before the faults on a
+    // datagram has no such key.
+    std::vector<std::string> features;
+    for (const Json& word : started.at("scenario_features").items())
+    {
+        features.push_back(word.string());
+    }
+    CHECK(features == std::vector<std::string>{"wait", "refuse", "invalid_init_file", "drop_status_file", "abort",
+                                               "silent", "corrupt_served", "wrong_checksum", "delay", "drop_datagram",
+                                               "duplicate_datagram", "reorder_datagram"});
+    CHECK(started.find("scenario") == nullptr);
 
     const Json* began = find_event(events, "operation_began");
     REQUIRE(began != nullptr);
@@ -606,7 +617,9 @@ TEST_CASE("the plain output is one line for each event and carries no JSON", "[m
     const std::vector<std::string> lines = lines_of(program.output.out_buffer.text());
     REQUIRE(lines.size() == 2);
     CHECK(lines[0].find(" started program=adl_mock version=") != std::string::npos);
-    CHECK(lines[0].ends_with(" faults=none"));
+    CHECK(
+        lines[0].contains(" faults=none scenario_features=wait,refuse,invalid_init_file,drop_status_file,abort,silent,"
+                          "corrupt_served,wrong_checksum,delay,drop_datagram,duplicate_datagram,reorder_datagram"));
     CHECK(lines[1].find(" stopped reason=seconds operations=0") != std::string::npos);
     for (const std::string& line : lines)
     {
@@ -630,6 +643,17 @@ TEST_CASE("--version and --help say what they are and exit 0", "[mock_cli][comma
     CHECK(help.join() == cli::exit_ok);
     CHECK(help.output.out_buffer.text().starts_with("usage: adl_mock"));
     CHECK(help.output.err_buffer.text().empty());
+}
+
+TEST_CASE("--scenario-actions lists the actions of a scenario file, one for each line, and exits 0",
+          "[mock_cli][command][scenario]")
+{
+    Program program({"--scenario-actions"}, false);
+    CHECK(program.join() == cli::exit_ok);
+    CHECK(program.output.out_buffer.text() ==
+          "wait\nrefuse\ninvalid_init_file\ndrop_status_file\nabort\nsilent\ncorrupt_served\nwrong_checksum\ndelay\n"
+          "drop_datagram\nduplicate_datagram\nreorder_datagram\n");
+    CHECK(program.output.err_buffer.text().empty());
 }
 
 TEST_CASE("wrong options exit 2, write no event and say why on the error stream", "[mock_cli][command]")
@@ -1025,7 +1049,7 @@ namespace
     return utf8_of(path);
 }
 
-// The events without their times, as the lines the program wrote, for comparing two runs.
+// The events without their times and the loader's port, as the lines the program wrote, for comparing two runs.
 [[nodiscard]] std::vector<std::string> events_without_time(const std::string& text)
 {
     std::vector<std::string> lines;
@@ -1035,6 +1059,14 @@ namespace
         const std::size_t end = line.find_first_of(",}", start + 5);
         REQUIRE(start != std::string::npos);
         line.erase(start, end - start);
+        // The port a datagram is sent to is the loader's own, and is not the same in two runs.
+        const std::size_t to = line.find("\"to\":\"");
+        if (to != std::string::npos)
+        {
+            const std::size_t colon = line.find(':', to + 6);
+            const std::size_t quote = line.find('"', colon);
+            line.erase(colon, quote - colon);
+        }
         lines.push_back(std::move(line));
     }
     return lines;
@@ -1068,8 +1100,8 @@ TEST_CASE("a scenario's steps are written as events, and the steps that never fi
     CHECK(program.output.err_buffer.text().empty());
 
     const std::vector<Json> events = events_of(program.output.out_buffer.text());
-    CHECK(names_of(events) == std::vector<std::string>{"started", "scenario_step", "scenario_step", "operation_began",
-                                                       "progress", "operation_ended", "stopped"});
+    CHECK(names_of(events) == std::vector<std::string>{"started", "scenario_step", "scenario_step", "scenario_datagram",
+                                                       "operation_began", "progress", "operation_ended", "stopped"});
     const Json& started = events.front();
     CHECK(strings_of(started.at("faults")) == std::vector<std::string>{"--scenario"});
     CHECK(started.at("scenario").string() == file);
@@ -1095,6 +1127,15 @@ TEST_CASE("a scenario's steps are written as events, and the steps that never fi
     CHECK(delay.at("ms").number() >= 100);
     CHECK(delay.at("ms").number() <= 300);
     CHECK(delay.find("seconds") == nullptr);
+    CHECK(delay.at("count").number() == 1);
+    CHECK(delay.find("datagram") == nullptr); // the step names no datagram: it is for the next one
+    // ... and the datagram it was for: the first one the target sent after the request.
+    const Json& hit = events[3];
+    CHECK(hit.at("step").number() == 2);
+    CHECK(hit.at("action").string() == "delay");
+    CHECK(hit.at("applied").boolean());
+    CHECK(hit.at("to").string().starts_with("127.0.0.1:"));
+    CHECK(hit.at("size").number() > 0);
 
     const Json& stopped = events.back();
     CHECK(stopped.at("operations").number() == 1);
@@ -1139,7 +1180,7 @@ TEST_CASE("a scenario with a seed gives the same events on every run", "[mock_cl
         CHECK(program.join() == cli::exit_ok);
         runs.push_back(events_without_time(program.output.out_buffer.text()));
     }
-    REQUIRE(runs[0].size() == 7);
+    REQUIRE(runs[0].size() == 8);
     CHECK(runs[0] == runs[1]);
 }
 
@@ -1160,6 +1201,46 @@ TEST_CASE("the plain output of a scenario has a line for each step", "[mock_cli]
     CHECK(text.contains("faults=--scenario"));
     CHECK(text.contains("scenario_steps=1 scenario_seed=none"));
     CHECK(text.contains("scenario_unused=none"));
+}
+
+TEST_CASE("a fault on a datagram is written for each datagram it met, and a step that was armed for none is told",
+          "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    // Step 1 sends the first datagram of the operation twice. Step 2 is for a file that is never sent: it is armed
+    // and meets nothing (idle). Step 3 never occurs (unused).
+    const std::string file =
+        write_scenario_file(directory, "datagrams.json", R"({"kind":"adl-mock-scenario","format":1,"steps":[
+            {"when":{"request":1},"count":1,"do":{"action":"duplicate_datagram","copies":2}},
+            {"when":{"request":1},"on":{"file":"NOPE.BIN"},"do":{"action":"drop_datagram"}},
+            {"when":{"request":99},"do":{"action":"drop_datagram"}}]})");
+    Program program({"--scenario", file, "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::completed);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    const std::vector<std::string> names = names_of(events);
+    CHECK(std::ranges::count(names, "scenario_step") == 2);
+    REQUIRE(std::ranges::count(names, "scenario_datagram") == 1);
+    const Json* hit = find_event(events, "scenario_datagram");
+    CHECK(hit->at("step").number() == 1);
+    CHECK(hit->at("action").string() == "duplicate_datagram");
+    CHECK(hit->at("applied").boolean());
+    CHECK_FALSE(hit->at("datagram").string().empty());
+    CHECK(hit->at("size").number() > 0);
+
+    const Json* first = find_event(events, "scenario_step");
+    CHECK(first->at("action").string() == "duplicate_datagram");
+    CHECK(first->at("copies").number() == 2);
+    CHECK(first->at("count").number() == 1);
+
+    const Json& stopped = events.back();
+    REQUIRE(stopped.at("scenario_unused").items().size() == 1);
+    CHECK(stopped.at("scenario_unused").items()[0].number() == 3);
+    REQUIRE(stopped.at("scenario_idle").items().size() == 1);
+    CHECK(stopped.at("scenario_idle").items()[0].number() == 2);
 }
 
 TEST_CASE("a scenario file that cannot be used exits 5 before anything is opened, with one sentence",
