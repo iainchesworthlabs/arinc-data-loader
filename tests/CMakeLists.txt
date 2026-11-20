@@ -358,6 +358,17 @@ if(ADL_PWSH)
     set_tests_properties(docs.paths PROPERTIES LABELS "system")
 endif()
 
+# The bill of materials names the libraries by hand (tools/release/make_sbom.py), and the development
+# package ships the ones that call adl_install_library. A library on one side only fails here, not on the
+# day of a release.
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME release.sbom_libraries
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/release/check_sbom_libraries.py"
+            "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(release.sbom_libraries PROPERTIES LABELS "system")
+endif()
+
 # The script that compares the benchmarks with the budget (tools/ci/perf_compare.py) is held to what it
 # promises: a result over the limit, a missing or surplus entry and a few nanoseconds of noise.
 find_package(Python3 COMPONENTS Interpreter QUIET)

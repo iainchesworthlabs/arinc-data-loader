@@ -204,7 +204,7 @@ struct MockRig
     [[nodiscard]] LoaderConfig loader_config() const
     {
         LoaderConfig config;
-        config.target = Endpoint{Address{target_address.octets}, tftp_control_port};
+        config.target = Endpoint{Address{target_address.octets}, target_port};
         config.thw_id_pos = thw;
         return config;
     }
@@ -251,6 +251,8 @@ struct MockRig
     adl::fake::FakeNetwork network;
     adl::fake::FakeHost loader_host;
     std::string thw = "HNPFMS_L";
+    // The port the loader sends its first request to: the mock target's, which is 59 unless a test moves it.
+    std::uint16_t target_port = tftp_control_port;
 };
 
 // ---- The sample load -------------------------------------------------------------------------
