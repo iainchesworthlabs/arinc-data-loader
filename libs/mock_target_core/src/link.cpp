@@ -34,8 +34,8 @@ using adl::arinc615a::Instant;
 
 void RealTargetLink::send(std::uint16_t from_port, const Endpoint& to, std::span<const std::byte> payload)
 {
-    auto& socket = sockets_[from_port];
-    if (!socket)
+    auto found = sockets_.find(from_port);
+    if (found == sockets_.end())
     {
         // The configured interface, the port the transfer speaks from. A send is also what opens
         // the socket, so a port that has never sent has nothing listening on it (a datagram for it
@@ -45,11 +45,14 @@ void RealTargetLink::send(std::uint16_t from_port, const Endpoint& to, std::span
         auto opened = host_->network().open_udp(options);
         if (!opened)
         {
-            return; // a lost datagram, as UDP promises
+            // A lost datagram, as UDP promises (the port is in use, perhaps by another target on
+            // this address). Nothing is kept for the port: an entry with no socket in it would be
+            // waited on and read.
+            return;
         }
-        socket = std::move(*opened);
+        found = sockets_.emplace(from_port, std::move(*opened)).first;
     }
-    static_cast<void>(socket->send_to(to_platform(to), payload));
+    static_cast<void>(found->second->send_to(to_platform(to), payload));
 }
 
 void RealTargetLink::after(Duration delay, std::function<void()> action)

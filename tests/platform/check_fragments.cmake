@@ -34,6 +34,9 @@ include(PlatformContract)
 
 # ---- child mode: check one fragment, in this (fresh) process ----------------
 if(FRAGMENT)
+    # What cmake/Platform.cmake sets before it includes a fragment.
+    set(ADL_PLATFORM_ROOT "${_app_dir}")
+    set(ADL_PLATFORM_EXTERNAL OFF)
     get_filename_component(ADL_PLATFORM_DIR "${FRAGMENT}" DIRECTORY)
     get_filename_component(ADL_PLATFORM "${ADL_PLATFORM_DIR}" NAME)
 
