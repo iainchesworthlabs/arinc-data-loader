@@ -17,7 +17,8 @@
 namespace cli = adl::licence_cli;
 namespace lic = adl::licence;
 
-TEST_CASE("plain keeps letters and replaces what could move the cursor or reorder the text", "[unit][licence_cli][text]")
+TEST_CASE("plain keeps letters and replaces what could move the cursor or reorder the text",
+          "[unit][licence_cli][text]")
 {
     CHECK(cli::plain("") == "");
     CHECK(cli::plain("Example Lab Pty Ltd") == "Example Lab Pty Ltd");
@@ -29,9 +30,13 @@ TEST_CASE("plain keeps letters and replaces what could move the cursor or reorde
     // Control characters, DEL and the C1 controls (a CSI by its eight-bit form is U+009B).
     CHECK(cli::plain("a\x1b[31mb") == "a?[31mb");
     CHECK(cli::plain("a\tb\nc\rd") == "a?b?c?d");
-    CHECK(cli::plain("a\x7f" "b") == "a?b");
-    CHECK(cli::plain("a\xC2\x9B" "b") == "a?b");
-    CHECK(cli::plain("a\xC2\xA0" "b") == "a\xC2\xA0" "b");
+    CHECK(cli::plain("a\x7f"
+                     "b") == "a?b");
+    CHECK(cli::plain("a\xC2\x9B"
+                     "b") == "a?b");
+    CHECK(cli::plain("a\xC2\xA0"
+                     "b") == "a\xC2\xA0"
+                             "b");
     // Line and paragraph separators, the marks that set the direction of text, and its overrides and isolates.
     CHECK(cli::plain("\xE2\x80\xA8") == "?");
     CHECK(cli::plain("\xE2\x80\xA9") == "?");
@@ -45,15 +50,16 @@ TEST_CASE("plain keeps letters and replaces what could move the cursor or reorde
 
 TEST_CASE("plain replaces each byte that is not part of a UTF-8 character", "[unit][licence_cli][text]")
 {
-    CHECK(cli::plain("\x80") == "?");                 // a continuation byte alone
-    CHECK(cli::plain("\xC3") == "?");                 // a character cut short
-    CHECK(cli::plain("\xE6\x97") == "??");            // another, two bytes of three
-    CHECK(cli::plain("\xC0\xAF") == "??");            // an overlong form of '/'
-    CHECK(cli::plain("\xE0\x80\xAF") == "???");       // another overlong form
-    CHECK(cli::plain("\xED\xA0\x80") == "???");       // a surrogate
-    CHECK(cli::plain("\xF4\x90\x80\x80") == "????");  // above U+10FFFF
+    CHECK(cli::plain("\x80") == "?");                // a continuation byte alone
+    CHECK(cli::plain("\xC3") == "?");                // a character cut short
+    CHECK(cli::plain("\xE6\x97") == "??");           // another, two bytes of three
+    CHECK(cli::plain("\xC0\xAF") == "??");           // an overlong form of '/'
+    CHECK(cli::plain("\xE0\x80\xAF") == "???");      // another overlong form
+    CHECK(cli::plain("\xED\xA0\x80") == "???");      // a surrogate
+    CHECK(cli::plain("\xF4\x90\x80\x80") == "????"); // above U+10FFFF
     CHECK(cli::plain("\xFF\xFE") == "??");
-    CHECK(cli::plain("a\xC3" "b") == "a?b");
+    CHECK(cli::plain("a\xC3"
+                     "b") == "a?b");
     // The same bytes in a character that is whole are kept.
     CHECK(cli::plain("\xF4\x8F\xBF\xBF") == "\xF4\x8F\xBF\xBF");
 }
@@ -67,16 +73,16 @@ TEST_CASE("a date is the UTC date of a time, and a list is plain and joined", "[
     CHECK(cli::joined({}, "none") == "none");
     CHECK(cli::joined({"support"}, "none") == "support");
     CHECK(cli::joined({"support", "pro.*", "data_packs"}, "none") == "support, pro.*, data_packs");
-    CHECK(cli::joined({"a\x1b" "b"}, "none") == "a?b");
+    CHECK(cli::joined({"a\x1b"
+                       "b"},
+                      "none") == "a?b");
 }
 
 TEST_CASE("the time of a commit is read from the text git writes, with its offset", "[unit][licence_cli][text]")
 {
     using namespace std::chrono;
     const auto at = [](int y, unsigned m, unsigned d, int h, int min, int s)
-    {
-        return lic::TimePoint{sys_days{year{y} / month{m} / day{d}}} + hours{h} + minutes{min} + seconds{s};
-    };
+    { return lic::TimePoint{sys_days{year{y} / month{m} / day{d}}} + hours{h} + minutes{min} + seconds{s}; };
     CHECK(cli::parse_commit_time("2026-11-20T10:15:30Z") == at(2026, 11, 20, 10, 15, 30));
     // An offset is taken off: 10:15 at +01:00 is 09:15 in UTC, and 10:15 at -05:30 is 15:45.
     CHECK(cli::parse_commit_time("2026-11-20T10:15:30+01:00") == at(2026, 11, 20, 9, 15, 30));

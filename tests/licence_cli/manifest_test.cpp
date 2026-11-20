@@ -138,7 +138,8 @@ TEST_CASE("every row of the manifest of test licences is shown and checked in th
         CAPTURE(row.file, row.now, row.latest_seen, row.computer, row.revocations);
         const lic::TimePoint now = time_of(row.now);
         const std::string licence = row.file == "-" ? std::string{} : read_bytes(data / "licences" / row.file);
-        const std::string list = row.revocations == "-" ? std::string{} : read_bytes(data / "licences" / row.revocations);
+        const std::string list =
+            row.revocations == "-" ? std::string{} : read_bytes(data / "licences" / row.revocations);
 
         const auto make = [&](const std::string& folder_file)
         {

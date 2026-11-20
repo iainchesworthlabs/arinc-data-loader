@@ -125,17 +125,16 @@ public:
 }
 
 // What `show` prints for the annual licence of the tests at the rig's time.
-const std::string annual_lines =
-    "Edition: pro\n"
-    "State: valid\n"
-    "Licence: ADL-2026-000123\n"
-    "Kind: annual\n"
-    "Licensed to: Example Lab Pty Ltd\n"
-    "Term: 2026-11-13 to 2027-11-13\n"
-    "Days left: 347\n"
-    "Seats: 3\n"
-    "Features: support\n"
-    "Computers: any\n";
+const std::string annual_lines = "Edition: pro\n"
+                                 "State: valid\n"
+                                 "Licence: ADL-2026-000123\n"
+                                 "Kind: annual\n"
+                                 "Licensed to: Example Lab Pty Ltd\n"
+                                 "Term: 2026-11-13 to 2027-11-13\n"
+                                 "Days left: 347\n"
+                                 "Seats: 3\n"
+                                 "Features: support\n"
+                                 "Computers: any\n";
 
 } // namespace
 
@@ -205,11 +204,10 @@ TEST_CASE("show: no licence file is the Community edition", "[unit][licence_cli]
     Rig rig;
     const Ran ran = rig.run({"show"});
     CHECK(ran.code == cli::exit_ok);
-    CHECK(ran.out ==
-          "Edition: community\n"
-          "State: none\n"
-          "Reason: there is no licence\n"
-          "Files: none\n");
+    CHECK(ran.out == "Edition: community\n"
+                     "State: none\n"
+                     "Reason: there is no licence\n"
+                     "Files: none\n");
     CHECK(ran.err.empty());
     // It reads and writes nothing: not a folder, not the clock file.
     CHECK(rig.files.files.empty());
@@ -266,20 +264,19 @@ TEST_CASE("show: every field of a licence that has them", "[unit][licence_cli][s
     rig.env.computer_name = "LAB-RIG-07";
     const Ran ran = rig.run({"show"});
     CHECK(ran.code == cli::exit_ok);
-    CHECK(ran.out ==
-          "Edition: enterprise\n"
-          "State: valid\n"
-          "Licence: ADL-2026-000124\n"
-          "Kind: enterprise\n"
-          "Licensed to: Example Avionics Ltd\n"
-          "Term: 2026-11-13 to 2028-11-13\n"
-          "Days left: 713\n"
-          "Seats: site licence\n"
-          "Features: support, pro.*, enterprise.*, data_packs\n"
-          "Computers: LAB-RIG-*, bench-3\n"
-          "Updates until: 2028-11-13\n"
-          "Files:\n"
-          "  ADL-2026-000124.adllic (user, valid, in use)\n");
+    CHECK(ran.out == "Edition: enterprise\n"
+                     "State: valid\n"
+                     "Licence: ADL-2026-000124\n"
+                     "Kind: enterprise\n"
+                     "Licensed to: Example Avionics Ltd\n"
+                     "Term: 2026-11-13 to 2028-11-13\n"
+                     "Days left: 713\n"
+                     "Seats: site licence\n"
+                     "Features: support, pro.*, enterprise.*, data_packs\n"
+                     "Computers: LAB-RIG-*, bench-3\n"
+                     "Updates until: 2028-11-13\n"
+                     "Files:\n"
+                     "  ADL-2026-000124.adllic (user, valid, in use)\n");
     CHECK_FALSE(contains(ran.out, "tests@example-lab.invalid"));
 }
 
@@ -294,11 +291,10 @@ TEST_CASE("show: several files, the one in use marked, and the folder of this co
 
     const Ran ran = rig.run({"show"});
     CHECK(ran.code == cli::exit_ok);
-    CHECK(ran.out == annual_lines +
-                         "Files:\n"
-                         "  ADL-2026-000123.adllic (user, valid, in use)\n"
-                         "  ADL-2025-000007.adllic (machine, expired)\n"
-                         "  damaged.adllic (machine, invalid, the file is damaged or is not a licence)\n");
+    CHECK(ran.out == annual_lines + "Files:\n"
+                                    "  ADL-2026-000123.adllic (user, valid, in use)\n"
+                                    "  ADL-2025-000007.adllic (machine, expired)\n"
+                                    "  damaged.adllic (machine, invalid, the file is damaged or is not a licence)\n");
 }
 
 TEST_CASE("show: a list of withdrawn licences in a folder withdraws a licence", "[unit][licence_cli][show]")
@@ -326,7 +322,8 @@ TEST_CASE("show: a release that trusts no key says it accepts no licence", "[uni
     CHECK(ran.code == cli::exit_ok);
     CHECK(contains(ran.out, "Edition: community\n"));
     CHECK(contains(ran.out, "  ADL-2026-000123.adllic (user, invalid, the licence needs a newer version"));
-    CHECK(contains(ran.out, "Note: This version of ARINC Data Loader cannot check licence files yet, so it accepts none."));
+    CHECK(contains(ran.out,
+                   "Note: This version of ARINC Data Loader cannot check licence files yet, so it accepts none."));
 
     // With no file there is nothing to explain.
     Rig empty;
@@ -334,7 +331,8 @@ TEST_CASE("show: a release that trusts no key says it accepts no licence", "[uni
     CHECK_FALSE(contains(empty.run({"show"}).out, "Note:"));
 }
 
-TEST_CASE("show: a folder that holds too much or cannot be read is reported, and nothing is hidden", "[unit][licence_cli][show]")
+TEST_CASE("show: a folder that holds too much or cannot be read is reported, and nothing is hidden",
+          "[unit][licence_cli][show]")
 {
     SECTION("more than 64 files")
     {
@@ -387,7 +385,8 @@ TEST_CASE("show, import, remove and verify say when the computer cannot do what 
             const Ran ran = rig.run(arguments);
             CHECK(ran.code == cli::exit_failed);
             CHECK(ran.out.empty());
-            CHECK(ran.err == arguments.front() + ": the clock of this computer cannot be read, so a licence cannot be judged\n");
+            CHECK(ran.err ==
+                  arguments.front() + ": the clock of this computer cannot be read, so a licence cannot be judged\n");
         }
         CHECK(rig.files.creates == 0);
     }
@@ -419,9 +418,8 @@ TEST_CASE("import: a licence is copied into the user's folder under its number, 
 
     const Ran first = rig.run({"import", "inbox/from the customer.adllic"});
     CHECK(first.code == cli::exit_ok);
-    CHECK(first.out ==
-          "Imported licence ADL-2026-000123 as ADL-2026-000123.adllic.\n"
-          "This is now the Pro edition.\n");
+    CHECK(first.out == "Imported licence ADL-2026-000123 as ADL-2026-000123.adllic.\n"
+                       "This is now the Pro edition.\n");
     CHECK(first.err.empty());
     REQUIRE(rig.files.has(rig.user("ADL-2026-000123.adllic")));
     CHECK(rig.files.files.at(rig.user("ADL-2026-000123.adllic")) == text);
@@ -460,22 +458,19 @@ TEST_CASE("import: a licence that has ended, has not started or is judged by a w
     };
 
     const std::string ended = imported(numbered("ADL-2025-000007", at(2025, 1, 1), at(2026, 1, 1), 0));
-    CHECK(ended ==
-          "Imported licence ADL-2025-000007 as ADL-2025-000007.adllic.\n"
-          "This licence ended on 2026-01-01. It was imported, but it includes nothing now.\n");
+    CHECK(ended == "Imported licence ADL-2025-000007 as ADL-2025-000007.adllic.\n"
+                   "This licence ended on 2026-01-01. It was imported, but it includes nothing now.\n");
 
     const std::string grace = imported(numbered("ADL-2026-000008", at(2025, 12, 1), at(2026, 11, 20)));
-    CHECK(grace ==
-          "Imported licence ADL-2026-000008 as ADL-2026-000008.adllic.\n"
-          "This licence ended on 2026-11-20. It was imported, and its grace period lasts until 2026-12-18.\n");
+    CHECK(grace == "Imported licence ADL-2026-000008 as ADL-2026-000008.adllic.\n"
+                   "This licence ended on 2026-11-20. It was imported, and its grace period lasts until 2026-12-18.\n");
 
     // Issued before this computer's time, and starting after it.
     lic::Licence not_started = numbered("ADL-2026-000009", at(2027, 1, 1), at(2028, 1, 1));
     not_started.issued_at = at(2026, 11, 1);
     const std::string later = imported(not_started);
-    CHECK(later ==
-          "Imported licence ADL-2026-000009 as ADL-2026-000009.adllic.\n"
-          "This licence starts on 2027-01-01.\n");
+    CHECK(later == "Imported licence ADL-2026-000009 as ADL-2026-000009.adllic.\n"
+                   "This licence starts on 2027-01-01.\n");
 
     rig.files.put(rig.env.folders.clock_file, st::write_clock({.latest_seen = at(2027, 6, 1), .applied_resets = {}}));
     const std::string wrong_clock = imported(annual());
@@ -484,7 +479,8 @@ TEST_CASE("import: a licence that has ended, has not started or is judged by a w
           "The date on this computer looks wrong, so the licence cannot be judged yet. It was imported.\n");
 }
 
-TEST_CASE("import: a list of withdrawn licences is copied, and then the licence on it is withdrawn", "[unit][licence_cli][import]")
+TEST_CASE("import: a list of withdrawn licences is copied, and then the licence on it is withdrawn",
+          "[unit][licence_cli][import]")
 {
     Rig rig;
     rig.files.put(rig.user("ADL-2026-000123.adllic"), signed_text(annual()));
@@ -492,7 +488,8 @@ TEST_CASE("import: a list of withdrawn licences is copied, and then the licence 
 
     const Ran ran = rig.run({"import", "inbox/list.adlrev"});
     CHECK(ran.code == cli::exit_ok);
-    CHECK(ran.out == "Imported the list of withdrawn licences as revocations-4.adlrev. A licence on it is shown as withdrawn.\n");
+    CHECK(ran.out ==
+          "Imported the list of withdrawn licences as revocations-4.adlrev. A licence on it is shown as withdrawn.\n");
     CHECK(rig.files.has(rig.user("revocations-4.adlrev")));
     CHECK(contains(rig.run({"show"}).out, "State: invalid\n"));
     CHECK(rig.run({"import", "inbox/list.adlrev"}).out ==
@@ -522,9 +519,8 @@ TEST_CASE("import: a clock reset puts the stored time right, once", "[unit][lice
 
     const Ran ran = rig.run({"import", "inbox/reset.adllic"});
     CHECK(ran.code == cli::exit_ok);
-    CHECK(ran.out ==
-          "Imported licence ADL-2026-000123 as ADL-2026-000123.adllic.\n"
-          "This is now the Pro edition.\n");
+    CHECK(ran.out == "Imported licence ADL-2026-000123 as ADL-2026-000123.adllic.\n"
+                     "This is now the Pro edition.\n");
     const auto stored = st::parse_clock(rig.files.files.at(rig.env.folders.clock_file));
     REQUIRE(stored);
     CHECK(stored->latest_seen == at(2026, 11, 30));
@@ -557,8 +553,7 @@ TEST_CASE("import: what is refused, and why, and nothing is written", "[unit][li
 
     lic::Licence other_product = annual();
     other_product.product = "vss";
-    refused(signed_text(other_product),
-            "This licence is for another product. Ask for an ARINC Data Loader licence.");
+    refused(signed_text(other_product), "This licence is for another product. Ask for an ARINC Data Loader licence.");
 
     lic::Licence other_computer = annual();
     other_computer.machines = {"OTHER-*"};
@@ -578,7 +573,8 @@ TEST_CASE("import: what is refused, and why, and nothing is written", "[unit][li
             "edition works as it always did.");
 }
 
-TEST_CASE("import: a file that cannot be read, a folder that is full and a write that fails", "[unit][licence_cli][import]")
+TEST_CASE("import: a file that cannot be read, a folder that is full and a write that fails",
+          "[unit][licence_cli][import]")
 {
     Rig rig;
     SECTION("no such file")
@@ -592,7 +588,8 @@ TEST_CASE("import: a file that cannot be read, a folder that is full and a write
         rig.files.put("inbox/big.adllic", std::string(64 * 1024 + 1, 'x'));
         const Ran ran = rig.run({"import", "inbox/big.adllic"});
         CHECK(ran.code == cli::exit_failed);
-        CHECK(ran.err == "import: cannot read inbox/big.adllic: it is larger than 65536 bytes, which no licence file is\n");
+        CHECK(ran.err ==
+              "import: cannot read inbox/big.adllic: it is larger than 65536 bytes, which no licence file is\n");
     }
     SECTION("a file that cannot be read")
     {
@@ -625,21 +622,25 @@ TEST_CASE("import: a file that cannot be read, a folder that is full and a write
         rig.files.create_fails = st::FilesError::failed;
         const Ran ran = rig.run({"import", "inbox/a.adllic"});
         CHECK(ran.code == cli::exit_failed);
-        CHECK(ran.err == "import: The licence could not be saved in home/licences. Check that the folder can be written.\n");
+        CHECK(ran.err ==
+              "import: The licence could not be saved in home/licences. Check that the folder can be written.\n");
     }
 }
 
 TEST_CASE("import: a name outside ASCII is passed on as the bytes it is", "[unit][licence_cli][import]")
 {
     Rig rig;
-    const std::string name = "inbox/\xC3\xA9\xE6\x97\xA5" ".adllic";
+    const std::string name = "inbox/\xC3\xA9\xE6\x97\xA5"
+                             ".adllic";
     rig.files.put(name, signed_text(annual()));
     const Ran ran = rig.run({"import", name});
     CHECK(ran.code == cli::exit_ok);
     CHECK(rig.files.has(rig.user("ADL-2026-000123.adllic")));
 
-    const Ran missing = rig.run({"import", "inbox/\xC3\xA9" ".nope"});
-    CHECK(missing.err == "import: cannot read inbox/\xC3\xA9" ".nope: it does not exist\n");
+    const Ran missing = rig.run({"import", "inbox/\xC3\xA9"
+                                           ".nope"});
+    CHECK(missing.err == "import: cannot read inbox/\xC3\xA9"
+                         ".nope: it does not exist\n");
 }
 
 TEST_CASE("remove: one file of the user's folder, by the name show prints", "[unit][licence_cli][remove]")
@@ -647,11 +648,13 @@ TEST_CASE("remove: one file of the user's folder, by the name show prints", "[un
     Rig rig;
     rig.files.put(rig.user("ADL-2026-000123.adllic"), signed_text(annual()));
     rig.files.put(rig.user("revocations-1.adlrev"), list_text(1, {}));
-    rig.files.put(rig.machine("ADL-2025-000007.adllic"), signed_text(numbered("ADL-2025-000007", at(2025, 1, 1), at(2026, 1, 1))));
+    rig.files.put(rig.machine("ADL-2025-000007.adllic"),
+                  signed_text(numbered("ADL-2025-000007", at(2025, 1, 1), at(2026, 1, 1))));
 
     const Ran ran = rig.run({"remove", "ADL-2026-000123.adllic"});
     CHECK(ran.code == cli::exit_ok);
-    CHECK(ran.out == "Removed ADL-2026-000123.adllic from your licence folder. The file it was imported from was not touched.\n");
+    CHECK(ran.out ==
+          "Removed ADL-2026-000123.adllic from your licence folder. The file it was imported from was not touched.\n");
     CHECK(ran.err.empty());
     CHECK_FALSE(rig.files.has(rig.user("ADL-2026-000123.adllic")));
     CHECK(rig.files.has(rig.user("revocations-1.adlrev")));
@@ -667,7 +670,8 @@ TEST_CASE("remove: what is refused, and why", "[unit][licence_cli][remove]")
     Rig rig;
     rig.files.put(rig.user("ADL-2026-000123.adllic"), signed_text(annual()));
     rig.files.put(rig.user("notes.txt"), "mine");
-    rig.files.put(rig.machine("ADL-2025-000007.adllic"), signed_text(numbered("ADL-2025-000007", at(2025, 1, 1), at(2026, 1, 1))));
+    rig.files.put(rig.machine("ADL-2025-000007.adllic"),
+                  signed_text(numbered("ADL-2025-000007", at(2025, 1, 1), at(2026, 1, 1))));
     const auto before = rig.files.files;
 
     const auto refused = [&](const std::string& name, std::string_view sentence)
@@ -679,8 +683,9 @@ TEST_CASE("remove: what is refused, and why", "[unit][licence_cli][remove]")
         CHECK(ran.err == "remove: " + std::string(sentence) + "\n");
         CHECK(rig.files.files == before);
     };
-    refused("ADL-2025-000007.adllic",
-            "ADL-2025-000007.adllic is in the licence folder of this computer, which only an administrator can change.");
+    refused(
+        "ADL-2025-000007.adllic",
+        "ADL-2025-000007.adllic is in the licence folder of this computer, which only an administrator can change.");
     refused("ADL-2024-000001.adllic",
             "there is no file called ADL-2024-000001.adllic in your licence folder; show prints the names");
     refused("notes.txt", "notes.txt is not the name of a licence file: give a name as show prints it, with no folder");
@@ -721,8 +726,8 @@ TEST_CASE("verify: a file a program would take, judged and not kept", "[unit][li
         rig.files.put(rig.user("ADL-2026-000123.adllic"), signed_text(annual()));
         const Ran there = rig.run({"verify", "inbox/a.adllic"});
         CHECK(there.code == cli::exit_ok);
-        CHECK(there.out ==
-              annual_lines + "A program would accept this licence file.\nIt is in the licence folder already as ADL-2026-000123.adllic.\n");
+        CHECK(there.out == annual_lines + "A program would accept this licence file.\nIt is in the licence folder "
+                                          "already as ADL-2026-000123.adllic.\n");
     }
     SECTION("a licence that has ended is taken, and its state is shown")
     {
@@ -740,11 +745,10 @@ TEST_CASE("verify: a list of withdrawn licences", "[unit][licence_cli][verify]")
     rig.files.put("inbox/list.adlrev", list_text(7, {"ADL-2026-000123", "ADL-2026-000124"}));
     const Ran ran = rig.run({"verify", "inbox/list.adlrev"});
     CHECK(ran.code == cli::exit_ok);
-    CHECK(ran.out ==
-          "Sequence: 7\n"
-          "Licences withdrawn: 2\n"
-          "Keys withdrawn: 0\n"
-          "A program would accept this list of withdrawn licences.\n");
+    CHECK(ran.out == "Sequence: 7\n"
+                     "Licences withdrawn: 2\n"
+                     "Keys withdrawn: 0\n"
+                     "A program would accept this list of withdrawn licences.\n");
     CHECK(rig.files.files.size() == 1);
 
     // A list that is not signed by a trusted key is refused.
@@ -787,7 +791,8 @@ TEST_CASE("verify: a file a program would refuse shows what it is and exits 1", 
     CHECK(rig.files.files == before);
 }
 
-TEST_CASE("verify: a full folder is a reason an import would fail, so it is a reason here", "[unit][licence_cli][verify]")
+TEST_CASE("verify: a full folder is a reason an import would fail, so it is a reason here",
+          "[unit][licence_cli][verify]")
 {
     Rig rig;
     for (int i = 0; i < 64; ++i)
@@ -809,5 +814,6 @@ TEST_CASE("nothing a command prints carries a control character from a file", "[
     const Ran ran = rig.run({"show"});
     CHECK(ran.out.find('\x1b') == std::string::npos);
     CHECK(contains(ran.out, "a?[2Jb.adllic"));
-    CHECK(contains(ran.out, "\xC3\xA9" ".adllic"));
+    CHECK(contains(ran.out, "\xC3\xA9"
+                            ".adllic"));
 }

@@ -90,9 +90,9 @@ TEST_CASE("adl_licence over the real file system: import, show, verify and remov
     write_bytes(licence_file, text);
 
     const auto test_key = lic::test_keys::trusted();
-    auto system = cli::SystemEnvironment::open(argument_of(settings),
-                                               std::vector<lic::signed_file::TrustedKey>(test_key.begin(), test_key.end()),
-                                               lic::TimePoint::min(), "test");
+    auto system = cli::SystemEnvironment::open(
+        argument_of(settings), std::vector<lic::signed_file::TrustedKey>(test_key.begin(), test_key.end()),
+        lic::TimePoint::min(), "test");
     REQUIRE(system);
     cli::Environment& environment = (*system)->environment();
     environment.computer_name = "LAB-RIG-07";
@@ -159,9 +159,9 @@ TEST_CASE("adl_licence over the real file system: a name that is not a file, and
     adl::test::TempDir temp;
     const fs::path settings = temp.path() / "settings";
     const auto test_key = lic::test_keys::trusted();
-    auto system = cli::SystemEnvironment::open(argument_of(settings),
-                                               std::vector<lic::signed_file::TrustedKey>(test_key.begin(), test_key.end()),
-                                               lic::TimePoint::min(), "test");
+    auto system = cli::SystemEnvironment::open(
+        argument_of(settings), std::vector<lic::signed_file::TrustedKey>(test_key.begin(), test_key.end()),
+        lic::TimePoint::min(), "test");
     REQUIRE(system);
     cli::Environment& environment = (*system)->environment();
     environment.now = []() -> std::optional<lic::TimePoint> { return at(2026, 12, 1); };
@@ -191,7 +191,8 @@ TEST_CASE("adl_licence over the real file system: a name that is not a file, and
     CHECK_FALSE(fs::exists(settings));
 }
 
-TEST_CASE("the licence folders of this computer are those of ADL_SETTINGS_DIR when it is given", "[integration][licence_cli][real]")
+TEST_CASE("the licence folders of this computer are those of ADL_SETTINGS_DIR when it is given",
+          "[integration][licence_cli][real]")
 {
     adl::test::TempDir temp;
     auto system = cli::SystemEnvironment::open(argument_of(temp.path()), {}, lic::TimePoint::min(), "v");
