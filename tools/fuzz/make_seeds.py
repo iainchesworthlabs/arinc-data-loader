@@ -8,7 +8,7 @@ The golden headers (tests/golden/golden_payloads.hpp for ARINC 665, tests/golden
 ARINC 615A) hold the hexadecimal of valid files and packets that were written independently of the
 library. Each becomes one binary file under libs/<lib>/fuzz/corpus/<target>/, so the fuzzers start from
 inputs that get past the first checks. Run it again after the golden data changes; the files it writes
-are committed.
+are committed. The command lines that seed libs/platform/fuzz are in this script.
 """
 
 from __future__ import annotations
@@ -42,6 +42,30 @@ SEEDS_615A = [
 ]
 
 
+# Command lines for libs/platform/fuzz (target command_line), which reads its input as UTF-16, low byte first:
+# the quoting examples of Microsoft's documentation, a quoted program name, empty arguments, text outside the
+# Western code pages, and half of a surrogate pair.
+COMMAND_LINES = {
+    "documented_1": 'prog "abc" d e',
+    "documented_2": r'prog a\\b d"e f"g h',
+    "documented_3": r'prog a\\\"b c d',
+    "documented_4": r'prog a\\\\"b c" d e',
+    "documented_5": 'prog a"b"" c d',
+    "quoted_name": r'"C:\Program Files\adl\prog.exe" "C:\folder with spaces\\" x',
+    "empty_arguments": 'prog "" "" x',
+    "unicode": "prog caf\u00e9 \u65e5\u672c\u8a9e \U0001F600",
+    "half_a_pair": "prog a\ud83d x \ude00",
+}
+
+
+def write_command_lines() -> int:
+    out = ROOT / "libs" / "platform" / "fuzz" / "corpus" / "command_line"
+    out.mkdir(parents=True, exist_ok=True)
+    for name, line in COMMAND_LINES.items():
+        (out / f"{name}.bin").write_bytes(line.encode("utf-16-le", "surrogatepass"))
+    return len(COMMAND_LINES)
+
+
 def constants(path: Path) -> dict[str, bytes]:
     text = path.read_text(encoding="utf-8")
     found = {}
@@ -69,6 +93,7 @@ def write(golden: Path, library: str, table) -> int:
 def main() -> int:
     total = write(ROOT / "tests/golden/golden_payloads.hpp", "arinc665", SEEDS_665)
     total += write(ROOT / "tests/golden/golden_615a.hpp", "arinc615a", SEEDS_615A)
+    total += write_command_lines()
     print(f"{total} seed file(s) written")
     return 0
 
