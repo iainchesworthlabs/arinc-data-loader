@@ -179,7 +179,7 @@ live site only.
 
 `tools/ci/check_messages.py` holds the user's guide to what the code can say. Every text of the programs' C++ code that says something to the
 person using them (a catalogue entry whose source is a `.cpp` or `.hpp` file, as against the labels of a window) must appear in the guide,
-and so must every finding of the ARINC 665 checks (the literals of the `add(findings, ...)` calls in `libs/arinc665/src`, listed in `docs/user-guide/findings.md`), every exit code and every text that `adl_write_payloads` prints. The match ignores case, emphasis and spacing and lets a
+and so must every finding of the ARINC 665 checks (the literals of the `add(findings, ...)` calls in `libs/arinc665/src`, listed in `docs/user-guide/findings.md`), every exit code and every text that `adl_write_payloads` prints. `adl_mock` has no Qt and so no catalogue: its exit codes (`exit_*` in its `command.hpp`) must be rows of its own section of `docs/user-guide/command-line.md`, and the string literals of the sources that make what it says (`MOCK_SOURCES` in the script) must be in that page. The match ignores case, emphasis and spacing and lets a
 placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six characters or more between placeholders. It runs in
 `docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
 the description is there, and not that it is good. The owner's licence tool is not shipped and is not a program of the guide, so it has a page of its
@@ -339,7 +339,7 @@ needs), and FreeRTOS, lwIP, littlefs and Catch2 fetched by CMake at the versions
 `tests/platform/freertos/CMakeLists.txt`. They run on `ubuntu-26.04`; the Zephyr job installs
 `device-tree-compiler` and `gperf` with apt.
 
-What a build leg's ctest contains: the Catch2 suites (unit, engine, platform, and `mock.engine`), the
+What a build leg's ctest contains: the Catch2 suites (unit, engine, platform, and `mock.engine`, `mock.core`, `mock.cli` and `mock.command`), the
 application tests (`app.tests`, `mock.model`, `media_gen.tests`, QtTest), the QML loads of the three
 windows (`app.qml`, `mock.qml`, `media_gen.qml`: the window loaded offscreen, with the offscreen platform
 and the software renderer, so no GPU or display is needed), the Qt Quick Test suites `ui.tst_main_window`,
@@ -348,7 +348,7 @@ and the software renderer, so no GPU or display is needed), the Qt Quick Test su
 dialogs driven by mouse and key events on the real `Main.qml`), `ui.window_state` (the window geometry
 the three programs share, on a bare window), `loopback.integration` (the loader's runner over real
 sockets on 127.0.0.1 against the mock target's engine), the system smoke tests that start the three
-application programs and `system.notices`, the `tools.write_payloads` tests, the `translations.current.*`
+application programs and `system.notices`, the `tools.write_payloads` and `tools.adl_mock` tests, the `translations.current.*`
 tests (lupdate over a copy of each set of catalogues; they fail when the catalogues no longer match the
 sources), and the repository checks `platform.fragments` (every platform fragment satisfies the platform
 contract, on whichever host this is), `platform.selector`, `platform.isolation` (the same script as the

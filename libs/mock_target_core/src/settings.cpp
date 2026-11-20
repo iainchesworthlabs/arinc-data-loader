@@ -34,11 +34,12 @@ Config make_config(const TargetSettings& settings)
         config.abort_after_statuses = static_cast<std::size_t>(settings.abort_after_statuses);
     }
     config.silent = settings.silent;
+    config.garbage_init = settings.invalid_init_file;
     if (settings.refuse_operation)
     {
         Refusal refusal;
         refusal.kind = *settings.refuse_operation;
-        refusal.code = adl::arinc615a::StatusCode::operation_denied;
+        refusal.code = settings.refuse_code;
         refusal.text = "refused by the mock target";
         config.refusal = std::move(refusal);
     }

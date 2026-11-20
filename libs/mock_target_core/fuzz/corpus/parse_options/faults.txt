@@ -1,0 +1,11 @@
+--refuse
+upload
+--refuse-code
+0x1002
+--invalid-init-file
+--drop-status-every
+3
+--corrupt-served
+--wrong-checksum
+--abort-after
+2

@@ -197,3 +197,11 @@ TEST_CASE("the demonstration file says where the held files are kept", "[mock][s
     const std::string text(reinterpret_cast<const char*>(file.content.data()), file.content.size());
     CHECK(text.contains("<storage>/holds"));
 }
+
+TEST_CASE("the demonstration file can name another place for the held files", "[mock][storage]")
+{
+    const HeldFile file = demonstration_file("the folder given with --holds");
+    const std::string text(reinterpret_cast<const char*>(file.content.data()), file.content.size());
+    CHECK(text.contains("from the folder given with --holds in a download"));
+    CHECK_FALSE(text.contains("<storage>"));
+}

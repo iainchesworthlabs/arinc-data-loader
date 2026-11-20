@@ -53,6 +53,10 @@
   Appendix F), as data. The tests build from it, and so does
   **`apps/write_payloads`**, the `adl_write_payloads` program that writes them to a
   directory so that other loaders can be tried on them.
+- **`apps/mock`** is `adl_mock`, the mock target as a command: no window and no Qt, a function
+  (`adl::mock::cli::run_command`) over `libs/mock_target_core` with a command line, one line or one JSON
+  object for each event, and exit codes. `main()` only calls the function, so the tests run it in a thread
+  and put the loader's real engine against it.
 - **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `libs/platform/interfaces/adl/platform/`, with one implementation per platform
@@ -165,11 +169,12 @@ route to remove it.
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
 | `libs/mock_target_core` | `adl_mock_target_core` | `adl::mock_target_core` | `adl::mock` | `adl/mock/*.hpp` |
+| `apps/mock` | `adl_mock_cli` | `adl::mock_cli` | `adl::mock::cli` | `adl/mock/cli/*.hpp` |
 | `apps/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/model.hpp` |
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 | `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
-The programs are `adl_app`, `adl_media_gen`, `adl_mock_target` and `adl_write_payloads`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock` and `adl_write_payloads`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
 applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
@@ -199,8 +204,8 @@ its neighbours.
 
 ## Command-line programs
 
-A program that is started from a command line (`adl_write_payloads`, and any other that does not open a window) is
-written this way:
+A program that is started from a command line (`adl_write_payloads` and `adl_mock`, and any other that does not open a
+window) is written this way:
 
 - **Its `main` takes its arguments from `adl::platform::arguments` and never reads `argv` itself.**
   `adl/platform/arguments.hpp` has it: `const std::vector<std::string> arguments = adl::platform::arguments(argc, argv);`

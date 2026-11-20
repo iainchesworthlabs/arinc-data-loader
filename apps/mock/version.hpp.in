@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+#pragma once
+
+// Made by CMake from the project's version (apps/mock/CMakeLists.txt).
+
+namespace adl::mock::cli
+{
+
+inline constexpr char version[] = "@PROJECT_VERSION@";
+
+} // namespace adl::mock::cli
