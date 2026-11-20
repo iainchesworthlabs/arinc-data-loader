@@ -1,0 +1,5 @@
+--scenario
+rig/scenario.json
+--silent
+--seconds
+5
