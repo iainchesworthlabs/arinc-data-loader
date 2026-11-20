@@ -216,6 +216,52 @@ TEST_CASE("an Information operation over real sockets, through the whole command
     CHECK(configuration[0].at("hardware").elements[0].at("parts").elements.size() == 2);
 }
 
+namespace
+{
+
+// Whether this account can bind the standard's port 59 on the loopback address: Windows lets it, and so does Linux
+// to root; an unprivileged account on Linux or macOS may not, and the test that needs the port is then skipped with
+// the reason. Nothing else holds it here unless another test is running, which the lock on these tests prevents.
+[[nodiscard]] bool may_bind_port_59()
+{
+    auto host = adl::platform::make_host();
+    if (!host)
+    {
+        return false;
+    }
+    adl::platform::UdpOptions options;
+    options.local = adl::platform::Endpoint{adl::platform::Ipv4Address::loopback(), 59};
+    return (*host)->network().open_udp(options).has_value();
+}
+
+} // namespace
+
+TEST_CASE(
+    "a target that is not on port 59 is reached with --target-port alone, the loader being on 59 as it is by default",
+    "[load][system]")
+{
+    if (!may_bind_port_59())
+    {
+        SKIP("this account cannot bind port 59 (an account without privileges on Linux or macOS), or something holds "
+             "it");
+    }
+    MockTarget target(mock_config());
+    INFO("the mock target could not start: " << target.not_started.value_or(""));
+    REQUIRE_FALSE(target.not_started.has_value());
+    // No --control-port: the loader listens on 59, and it has to tell the target so in its request, because the target
+    // writes to the loader's port 59 only when it is told; without the option it writes to its own port, 30959.
+    const Run run = run_command({"information", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--target-port",
+                                 target_port_text, "--json"});
+    CHECK(run.exit_code == 0);
+    CHECK(run.err.empty());
+    const Json finished = run.finished();
+    CHECK(finished.at("reason").text == "completed");
+    CHECK(finished.at("status_code").as_number() == 3);
+    const std::vector<Json> configuration = run.events_named("configuration");
+    REQUIRE(configuration.size() == 1);
+    CHECK(configuration[0].at("hardware").elements[0].at("literal_name").text == "FMS LEFT");
+}
+
 TEST_CASE("an upload over real sockets delivers every file of the media set byte for byte, and a record is written",
           "[load][system]")
 {
