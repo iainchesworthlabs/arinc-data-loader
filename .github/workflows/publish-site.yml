@@ -1,6 +1,7 @@
 name: Publish site
 
-# Publishes the documentation to https://iainchesworthlabs.com/adl/ without a release (docs/ci.md, "Publishing").
+# Publishes the documentation to https://iainchesworthlabs.com/adl/ between releases (docs/ci.md, "Publishing"). A final
+# release publishes it too: the job `site` of release.yml moves the same branch to the tag.
 #
 # Run it by hand on develop: gh workflow run publish-site.yml --ref develop
 #

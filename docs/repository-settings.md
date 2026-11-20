@@ -20,8 +20,8 @@ merge queue. `main` holds published releases: the release workflow moves it to t
 the release bot, so `main` is always an ancestor of `develop`. Nobody opens a pull request into `main`.
 
 `site` is the third long-lived branch. It holds the commit of `develop` that the documentation site was last
-built from, and the release bot moves it when the maintainer runs `publish-site.yml`
-([Publishing](ci.md#publishing)). It is always an ancestor of `develop` too, and nobody opens a pull request into it.
+built from, and the release bot moves it, when a final release is made and when the maintainer runs
+`publish-site.yml` ([Publishing](ci.md#publishing)). It is always an ancestor of `develop` too, and nobody opens a pull request into it.
 
 ## The rulesets
 
