@@ -9,6 +9,7 @@ add_executable(adl_licence_tests
     json_test.cpp
     licence_test.cpp
     signature_test.cpp
+    store_test.cpp
     words_test.cpp)
 
 target_include_directories(adl_licence_tests PRIVATE

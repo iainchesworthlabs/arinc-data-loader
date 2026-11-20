@@ -28,7 +28,6 @@ constexpr std::size_t max_features = 64;
 constexpr std::size_t max_machine_length = 64;
 constexpr std::size_t max_machines = 1024;
 constexpr std::size_t max_revoked = 100'000;
-constexpr std::size_t max_applied_resets = 32;
 constexpr std::size_t max_critical = 64;
 constexpr std::size_t time_text_length = 20;
 constexpr int first_year = 2000;
@@ -157,25 +156,6 @@ constexpr std::array<std::string_view, 5> known_revocation_fields{"sequence", "i
 [[nodiscard]] std::span<const std::uint8_t> as_bytes(std::string_view text) noexcept
 {
     return {reinterpret_cast<const std::uint8_t*>(text.data()), text.size()};
-}
-
-[[nodiscard]] Reason reason_for(Error error) noexcept
-{
-    switch (error)
-    {
-    case Error::newer_version:
-    case Error::unknown_key:
-        return Reason::newer_version;
-    case Error::key_not_valid:
-        return Reason::revoked;
-    case Error::bad_signature:
-        return Reason::bad_signature;
-    case Error::too_large:
-    case Error::malformed:
-    case Error::wrong_purpose:
-        break;
-    }
-    return Reason::malformed;
 }
 
 [[nodiscard]] Status invalid(Reason why)
@@ -645,6 +625,25 @@ Result<RevocationList> read_revocations(std::string_view file_text, std::span<co
         return std::unexpected(window.error());
     }
     return list;
+}
+
+Reason reason_for(Error error) noexcept
+{
+    switch (error)
+    {
+    case Error::newer_version:
+    case Error::unknown_key:
+        return Reason::newer_version;
+    case Error::key_not_valid:
+        return Reason::revoked;
+    case Error::bad_signature:
+        return Reason::bad_signature;
+    case Error::too_large:
+    case Error::malformed:
+    case Error::wrong_purpose:
+        break;
+    }
+    return Reason::malformed;
 }
 
 RevocationList newer(const RevocationList& current, const RevocationList& candidate)

@@ -141,6 +141,8 @@ if(ADL_PLATFORM_DESKTOP)
     enable_language(C)
     add_subdirectory(third_party/monocypher)
     add_subdirectory(libs/licence)
+    # The same library over the platform layer: the store's file interface and the folders. GPL only.
+    add_subdirectory(libs/licence_platform)
 endif()
 
 # The mock target's logic without a window and without Qt: its 615A engine and the link that runs

@@ -106,6 +106,12 @@ target_link_libraries(adl_fake_platform
         adl::sanitizers
         adl::coverage)
 
+# The licence library over the platform layer (a desktop build only; libs/licence_platform), tried on the fake
+# file system and on the real one: its own programs of tests, in tests/licence_platform.
+if(TARGET adl::licence_platform)
+    add_subdirectory(licence_platform)
+endif()
+
 # The simulated target (a target of 615A on the fake network, with the second TFTP
 # implementation of libs/arinc615a_mini, which shares no code with the engine). The engine tests
 # run whole operations against it, and so do the application's.

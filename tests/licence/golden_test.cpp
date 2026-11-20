@@ -5,6 +5,7 @@
 
 #include "adl/licence/licence.hpp"
 #include "adl/licence/signed_file.hpp"
+#include "adl/licence/store.hpp"
 #include "adl/licence/test_keys.hpp"
 #include "golden_licence.hpp"
 #include "support.hpp"
@@ -70,6 +71,23 @@ TEST_CASE("licence golden: a revocation list", "[licence][golden]")
     REQUIRE(read);
     REQUIRE(*read == list());
     REQUIRE(hex_text(golden::revocations_list_payload_hex) == *write_revocations(list()));
+}
+
+TEST_CASE("licence golden: the clock file", "[licence][golden]")
+{
+    ClockState seen;
+    seen.latest_seen = at(2026, 11, 13, 2) + std::chrono::minutes{10} + std::chrono::seconds{5};
+    seen.applied_resets = {"reset-2026-11-13-a", "reset-2027-01-05-b"};
+
+    const std::string text = hex_text(golden::clock_seen_hex);
+    REQUIRE(store::write_clock(seen) == text);
+    const auto read = store::parse_clock(text);
+    REQUIRE(read);
+    REQUIRE(*read == seen);
+
+    const std::string empty = hex_text(golden::clock_empty_hex);
+    REQUIRE(store::write_clock(ClockState{}) == empty);
+    REQUIRE(*store::parse_clock(empty) == ClockState{});
 }
 
 TEST_CASE("licence golden: files that must be refused, and why", "[licence][golden]")

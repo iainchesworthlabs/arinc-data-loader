@@ -16,6 +16,7 @@ add_library(adl_licence STATIC
     src/licence.cpp
     src/revocations_release.cpp
     src/signed_file.cpp
+    src/store.cpp
     src/trusted_keys.cpp
     src/words.cpp)
 add_library(adl::licence ALIAS adl_licence)

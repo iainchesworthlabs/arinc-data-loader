@@ -57,9 +57,9 @@ SEEDS_IPV4 = {
     "not-a-number": "a.b.c.d",
 }
 
-# Licence files, a revocation list and the payloads behind the signature all go to the one harness.
+# Licence files, a revocation list, a clock file and the payloads behind the signature all go to the one harness.
 SEEDS_LICENCE = [
-    (r"(licence|revocations)_\w+_hex", "licence"),
+    (r"(licence|revocations|clock)_\w+_hex", "licence"),
 ]
 
 

@@ -94,13 +94,24 @@
 - **`libs/licence`** reads and judges a licence file: the signed envelope (Ed25519, by Monocypher in
   `third_party/monocypher`), the payload, the state a licence is in (none, valid, expiring, grace, expired,
   not yet valid, clock suspect or invalid), what it grants, the clock check and the revocation list. It is
-  GUI-free and platform-free: it reads no file and no clock and does not ask the computer's name, so the
-  caller passes them in and every state is tested. It is on a desktop only and is not part of the installed
-  `adl` package. No program links it yet, and nothing a program does depends on a licence. Signing is a
+  GUI-free and platform-free: it reads no clock and does not ask the computer's name, so the caller passes
+  them in, and it reaches files only through a small interface of its own (`Files`, in `store.hpp`) that
+  the caller fills in. So every state is tested, a full disk included. On top of that interface is the
+  store: the licence files of a user's folder and of a folder an administrator keeps (up to 64 of each, in
+  name order, the best one wins), importing a file (never replacing one), removing one from the user's
+  folder, the signed revocation lists found beside the licences, and the clock file. It is on a desktop only
+  and is not part of the installed `adl` package. No program links it yet, and nothing a program does
+  depends on a licence. Signing is a
   separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the published test key
   (`adl_licence_test_keys`); no program links either. The library takes no product name except in
   `product.hpp`, `trusted_keys.cpp` and `revocations_release.cpp`, so that it can move into a repository
   that more than one product shares.
+- **`libs/licence_platform`** is the part of the licence work that is this product's: the store's `Files`
+  interface filled in with `adl::platform::FileSystem`, and the folders ARINC Data Loader keeps its licences
+  and its clock file in (below the platform's user and machine folders, or below `ADL_SETTINGS_DIR`, which a
+  program passes in, so that a test never reads a real licence). It is under the GPL alone, where `libs/licence`
+  is also offered under the BSD 2-Clause licence ([licensing](licensing.md)), because it uses `adl::platform`.
+  It is on a desktop only, is not part of the installed `adl` package, and no program links it yet.
 - **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock
@@ -139,6 +150,7 @@ route to remove it.
 | `libs/arinc615a` | `adl_arinc615a` | `adl::arinc615a` | `adl::arinc615a` | `adl/arinc615a/*.hpp` |
 | `libs/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
 | `libs/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
+| `libs/licence_platform` | `adl_licence_platform` | `adl::licence_platform` | `adl::licence_platform` | `adl/licence_platform/*.hpp` |
 | `libs/licence` | `adl_licence` (with `adl_licence_sign` and `adl_licence_test_keys`) | `adl::licence` (and `adl::licence_sign`, `adl::licence_test_keys`) | `adl::licence` | `adl/licence/*.hpp` |
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
