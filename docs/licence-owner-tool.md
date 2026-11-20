@@ -227,7 +227,9 @@ cmake --preset windows-msvc-release -DADL_BUILD_APP=OFF -DADL_BUILD_TESTS=OFF
 cmake --build --preset windows-msvc-release --target adl_licence_owner
 ```
 
-The two options leave out Qt and the tests, so neither Qt nor vcpkg is needed ([Building](building.md)). The program is
+The two options leave out Qt and the tests (Catch2), the only parts of the repository that need a package: the tool
+needs none, and vcpkg installs nothing for it. The configure still finds a vcpkg checkout, as every configure of the
+repository does ([Building](building.md#clone) says how). The program is
 `build\windows-msvc-release\bin\adl_licence_owner.exe`. On Linux and macOS use the preset `linux-release` or
 `macos-release`, and the program is `build/<preset>/bin/adl_licence_owner`.
 
