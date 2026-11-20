@@ -10,7 +10,7 @@ No. The programs work together and are tested against simulated and mock targets
 
 ### Is there a program that runs on the equipment being loaded?
 
-No. The loader, the generator and `adl_write_payloads` are for the operator's computer, the source side. `adl_mock_target` stands in for a target in demonstrations and tests, and it is not one. The libraries build for a target's platform, but no program answers a loader and writes status files on real equipment. See [What these programs are, and are not](concepts.md#what-these-programs-are-and-are-not) and [Building](../building.md#what-cmake-builds).
+No. The loader, the generator, `adl_write_payloads` and `adl_licence` are for the operator's computer, the source side. `adl_mock_target` stands in for a target in demonstrations and tests, and it is not one. The libraries build for a target's platform, but no program answers a loader and writes status files on real equipment. See [What these programs are, and are not](concepts.md#what-these-programs-are-and-are-not) and [Building](../building.md#what-cmake-builds).
 
 ### Which standards does it follow, and are they needed to use it?
 
@@ -52,7 +52,7 @@ A media set goes in `<output folder>/<media set part number>/member_NNN`, and no
 
 ### Is there a command-line version of the loader?
 
-The documents describe none. The loader, the generator and the mock target each open a window. `adl_write_payloads` is a command-line program that writes sample media sets. A program that needs the protocol without a window can use the libraries. See [Installing](installing.md#getting-the-programs), [`adl_write_payloads`](../file-reference.md#adl_write_payloads) and [Using the libraries](../libraries.md).
+The documents describe none. The loader, the generator and the mock target each open a window. `adl_write_payloads` is a command-line program that writes sample media sets, and `adl_licence` is one that shows and manages the licence. A program that needs the protocol without a window can use the libraries. See [Installing](installing.md#getting-the-programs), [`adl_write_payloads`](../file-reference.md#adl_write_payloads) and [Using the libraries](../libraries.md).
 
 ## The libraries and the ports
 
