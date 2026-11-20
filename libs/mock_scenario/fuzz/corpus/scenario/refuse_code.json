@@ -1,0 +1,1 @@
+{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"refuse","code":"0x1001"}}]}

@@ -1,0 +1,1 @@
+{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":2},"do":{"action":"abort"}}]}

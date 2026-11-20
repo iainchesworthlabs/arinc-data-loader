@@ -100,6 +100,13 @@
   random numbers are `libs/scenario_base`'s, which it shares with the mock target's scenario file; the loader's own
   are the `on`, `count` and `do` of a step and the player. No Qt, no platform code; it is on a desktop only (the
   reader uses the licence library's strict JSON reader) and is not part of the installed `adl` package.
+- **`libs/mock_scenario`** is the mock target's scenario: a file that says which fault happens when (the nth request, the
+  nth status file, a time since the operation began; any fault the mock target has, or a delay), read over the shared
+  reader of `libs/scenario_base`, written back in one form, and a `ScenarioPlayer` that is the `FaultPlan` the engine asks.
+  The engine knows nothing of files or seeds: `adl/mock/fault_plan.hpp`, in `libs/mock_target_core`, is the interface, in
+  the engine's own terms (wait, refuse, drop a status file, abort, go silent, corrupt, wrong check value, delay). A
+  desktop library, like the licence library it reads JSON with; not installed. `adl_mock` and the mock target's window
+  both take a scenario through it.
 - **`libs/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
   opens the sockets the engine asks for, waits on all of them from one thread with
   `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.
@@ -187,6 +194,7 @@ route to remove it.
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
 | `libs/mock_target_core` | `adl_mock_target_core` | `adl::mock_target_core` | `adl::mock` | `adl/mock/*.hpp` |
+| `libs/mock_scenario` | `adl_mock_scenario` | `adl::mock_scenario` | `adl::mock` | `adl/mock/scenario*.hpp` |
 | `apps/mock` | `adl_mock_cli` | `adl::mock_cli` | `adl::mock::cli` | `adl/mock/cli/*.hpp` |
 | `apps/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/model.hpp` |
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |

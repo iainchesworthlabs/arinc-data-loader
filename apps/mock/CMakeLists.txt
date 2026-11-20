@@ -25,6 +25,7 @@ target_compile_features(adl_mock_cli PUBLIC cxx_std_23)
 target_link_libraries(adl_mock_cli
     PUBLIC
         adl::mock_target_core
+        adl::mock_scenario
         adl::arinc615a
         adl::arinc665
         adl::platform

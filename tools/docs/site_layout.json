@@ -257,6 +257,11 @@
    "new": "guide/mock-target/"
   },
   {
+   "old": "user-guide/mock-scenarios/",
+   "src": "user-guide/mock-scenarios.md",
+   "new": "guide/mock-scenarios/"
+  },
+  {
    "old": "user-guide/preferences/",
    "src": "user-guide/preferences.md",
    "new": "guide/preferences/"

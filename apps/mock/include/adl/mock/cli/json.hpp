@@ -32,6 +32,7 @@ public:
     // Seconds as a number with milliseconds: 1.250, never 1.25 or 1.2500 and never an exponent.
     JsonObject& seconds(std::string_view key, std::chrono::milliseconds value);
     JsonObject& strings(std::string_view key, std::span<const std::string> values);
+    JsonObject& numbers(std::string_view key, std::span<const std::int64_t> values);
 
     // The object, without a line feed.
     [[nodiscard]] std::string text() const;

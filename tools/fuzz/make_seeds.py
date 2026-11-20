@@ -243,6 +243,74 @@ def write_scenarios() -> int:
     return len(SEEDS_SCENARIO)
 
 
+# The mock target's scenario files for libs/mock_scenario/fuzz (target scenario): the example of the guide, every action
+# with a trigger it goes with, the limits, and the ways a file is refused (the reader's own sentences).
+SEEDS_MOCK_SCENARIO = {
+    "guide_example": """{
+  "kind": "adl-mock-scenario",
+  "format": 1,
+  "name": "Slow start, lost status files, then an abort",
+  "description": "The first request waits 2 s. Uploads answer a little late. Half the status files from the 2nd on are lost, 3 times at most. 20 s into an operation the target gives up.",
+  "seed": 20261120,
+  "steps": [
+    {
+      "when": { "request": 1 },
+      "do": { "action": "wait", "seconds": 2 }
+    },
+    {
+      "comment": "only the second upload request, held back between 200 and 900 ms",
+      "when": { "request": 2, "operation": "upload" },
+      "do": { "action": "delay", "min_ms": 200, "max_ms": 900 }
+    },
+    {
+      "when": { "status_file": 2, "every": 1, "times": 3 },
+      "per_mille": 500,
+      "do": { "action": "drop_status_file" }
+    },
+    {
+      "when": { "after_ms": 20000 },
+      "do": { "action": "abort" }
+    }
+  ]
+}
+""",
+    "every_action": """{"kind":"adl-mock-scenario","format":1,"seed":3,"steps":[
+  {"when":{"request":1},"do":{"action":"wait","seconds":5}},
+  {"when":{"request":2},"do":{"action":"refuse","code":"0x1002"}},
+  {"when":{"request":3},"do":{"action":"invalid_init_file"}},
+  {"when":{"request":4},"do":{"action":"corrupt_served"}},
+  {"when":{"request":5},"do":{"action":"delay","ms":250}},
+  {"when":{"status_file":3},"do":{"action":"drop_status_file"}},
+  {"when":{"status_file":4},"do":{"action":"abort"}},
+  {"when":{"status_file":5},"do":{"action":"silent"}},
+  {"when":{"status_file":6},"do":{"action":"wrong_checksum"}},
+  {"when":{"after_ms":1500,"every":500,"times":2,"operation":"download_media_defined"},"per_mille":300,
+   "do":{"action":"delay","min_ms":10,"max_ms":90}}]}""",
+    "minimum": '{"kind":"adl-mock-scenario","format":1,"steps":[]}',
+    "limits": '{"kind":"adl-mock-scenario","format":1,"seed":9007199254740991,"steps":[{"when":{"after_ms":86400000,"every":86400000,"times":1000000},"per_mille":1000,"do":{"action":"delay","min_ms":0,"max_ms":60000}}]}',
+    "wrong_trigger_for_wait": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":2},"do":{"action":"wait","seconds":1}}]}',
+    "wrong_trigger_for_abort": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":2},"do":{"action":"abort"}}]}',
+    "unknown_action": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"explode"}}]}',
+    "unknown_key_in_do": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":1},"do":{"action":"silent","for_ms":5}}]}',
+    "delay_without_seed": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"delay","min_ms":1,"max_ms":9}}]}',
+    "delay_both_forms": '{"kind":"adl-mock-scenario","format":1,"seed":1,"steps":[{"when":{"request":1},"do":{"action":"delay","ms":5,"max_ms":9}}]}',
+    "refuse_code": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"refuse","code":"0x1001"}}]}',
+    "operation_word": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1,"operation":"download"},"do":{"action":"invalid_init_file"}}]}',
+    "wait_zero": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"wait","seconds":0}}]}',
+    "loader_kind": '{"kind":"adl-loader-scenario","format":1,"steps":[]}',
+    "newer_format": '{"kind":"adl-mock-scenario","format":2,"steps":[],"new_key":true}',
+    "not_json": '{"kind":"adl-mock-scenario","format":1,"steps":[],}',
+}
+
+
+def write_mock_scenarios() -> int:
+    out = ROOT / "libs" / "mock_scenario" / "fuzz" / "corpus" / "scenario"
+    out.mkdir(parents=True, exist_ok=True)
+    for name, text in SEEDS_MOCK_SCENARIO.items():
+        (out / (name + ".json")).write_bytes(text.encode("utf-8"))
+    return len(SEEDS_MOCK_SCENARIO)
+
+
 def main() -> int:
     total = write(ROOT / "tests/golden/golden_payloads.hpp", "arinc665", SEEDS_665)
     total += write(ROOT / "tests/golden/golden_615a.hpp", "arinc615a", SEEDS_615A)
@@ -252,6 +320,7 @@ def main() -> int:
     total += write_command_lines()
     total += write_owner()
     total += write_scenarios()
+    total += write_mock_scenarios()
     print(f"{total} seed file(s) written")
     return 0
 

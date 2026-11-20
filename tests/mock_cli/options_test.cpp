@@ -5,8 +5,10 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <filesystem>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 using namespace adl::mock::cli;
@@ -351,4 +353,60 @@ TEST_CASE("the usage text names every option the program takes", "[mock_cli][opt
         CHECK(usage.contains(option));
     }
     CHECK(usage.starts_with("usage: adl_mock"));
+}
+
+TEST_CASE("--scenario names the file that says which fault happens when", "[mock_cli][options][scenario]")
+{
+    const auto parsed = parse({"--scenario", "rig/scenario.json", "--seconds", "60", "--json"});
+    REQUIRE(parsed);
+    REQUIRE(parsed->scenario.has_value());
+    CHECK(*parsed->scenario == std::filesystem::path("rig/scenario.json"));
+    CHECK(fault_options(*parsed) == std::vector<std::string>{"--scenario"});
+    CHECK_FALSE(parse({})->scenario.has_value());
+
+    CHECK(refused({"--scenario"}) == "--scenario needs a value");
+    CHECK(refused({"--scenario", "a.json", "--scenario", "b.json"}) == "--scenario is given twice");
+    CHECK(refused({"--scenario", ""}) == "--scenario needs a file"); // an empty path is not a file
+}
+
+TEST_CASE("--scenario cannot be used with an option that sets a fault, which is named", "[mock_cli][options][scenario]")
+{
+    const std::pair<std::vector<std::string_view>, std::string_view> faults[] = {
+        {{"--wait-first", "2"}, "--wait-first"},
+        {{"--wait-every", "2"}, "--wait-every"},
+        {{"--refuse", "upload"}, "--refuse"},
+        {{"--refuse", "upload", "--refuse-code", "0x1002"}, "--refuse"},
+        {{"--invalid-init-file"}, "--invalid-init-file"},
+        {{"--drop-status-every", "3"}, "--drop-status-every"},
+        {{"--corrupt-served"}, "--corrupt-served"},
+        {{"--wrong-checksum"}, "--wrong-checksum"},
+        {{"--abort-after", "2"}, "--abort-after"},
+        {{"--silent", "--seconds", "5"}, "--silent"},
+    };
+    for (const auto& [options, named] : faults)
+    {
+        std::vector<std::string_view> arguments{"--scenario", "s.json"};
+        arguments.insert(arguments.end(), options.begin(), options.end());
+        INFO(named);
+        CHECK(refused(arguments) ==
+              "--scenario cannot be used with " + std::string{named} + ": the scenario sets the faults");
+        // In the other order too.
+        std::vector<std::string_view> before = options;
+        before.insert(before.end(), {"--scenario", "s.json"});
+        CHECK(refused(before) ==
+              "--scenario cannot be used with " + std::string{named} + ": the scenario sets the faults");
+    }
+    // What is not a fault is free: the identity, the files, the network, the pace, the stop and the output.
+    const auto parsed =
+        parse({"--scenario", "s.json", "--hardware-id", "X1", "--holds", "h", "--storage", "s", "--address", "0.0.0.0",
+               "--think-time-ms", "5", "--status-period", "2", "--operations", "3", "--seconds", "9", "--json"});
+    REQUIRE(parsed);
+    CHECK(parsed->scenario.has_value());
+}
+
+TEST_CASE("the usage text says what --scenario is, and the exit code 5", "[mock_cli][options][scenario]")
+{
+    const std::string text = usage_text();
+    CHECK(text.contains("--scenario <file>"));
+    CHECK(text.contains("5 a scenario file cannot be used"));
 }

@@ -12,13 +12,14 @@
 namespace adl::mock::cli
 {
 
-// The exit codes. The first four are the ones the page "The mock target" lists; 1 is the run loop
-// failing (waiting on the network failed, or the platform would not start).
-inline constexpr int exit_ok = 0;     // stopped as asked: --operations reached, --seconds passed, or --help
-inline constexpr int exit_failed = 1; // the run failed
-inline constexpr int exit_usage = 2;  // wrong options
-inline constexpr int exit_folder = 3; // a folder cannot be used (--holds, --storage)
-inline constexpr int exit_port = 4;   // a port cannot be opened
+// The exit codes. They are the ones the page "The mock target" lists; 1 is the run loop failing (waiting on the
+// network failed, or the platform would not start).
+inline constexpr int exit_ok = 0;       // stopped as asked: --operations reached, --seconds passed, or --help
+inline constexpr int exit_failed = 1;   // the run failed
+inline constexpr int exit_usage = 2;    // wrong options
+inline constexpr int exit_folder = 3;   // a folder cannot be used (--holds, --storage)
+inline constexpr int exit_port = 4;     // a port cannot be opened
+inline constexpr int exit_scenario = 5; // the scenario file (--scenario) cannot be read or is refused
 
 // Runs the program with `arguments` (the command line without the program's name). Events and the
 // result of --help and --version go to `out`; what is not a result (a usage error, a problem storing

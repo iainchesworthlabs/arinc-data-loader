@@ -173,6 +173,7 @@ nav:
           - Quick reference: user-guide/quick-reference.md
           - Configuration reference: user-guide/configuration.md
           - Command line and exit codes: user-guide/command-line.md
+          - Scenarios for the mock target: user-guide/mock-scenarios.md
           - Messages and errors: user-guide/messages.md
           - Findings of the media set check: user-guide/findings.md
           - Files the programs read and write: file-reference.md

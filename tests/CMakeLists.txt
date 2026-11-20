@@ -427,9 +427,17 @@ set_tests_properties(tools.write_payloads.unicode_folder PROPERTIES LABELS "syst
 # platform, and the folders it reads and writes. No Qt.
 add_subdirectory(mock_target_core)
 
+# The mock target's scenarios (libs/mock_scenario): the file, the player, and three scenarios run against the
+# loader's real engine on the fake network. A desktop library; no Qt.
+if(TARGET adl::mock_scenario)
+    add_subdirectory(mock_scenario)
+endif()
+
 # adl_mock, the mock target as a command: its writer, events and options, and the program run against
-# the loader over loopback sockets. No Qt.
-add_subdirectory(mock_cli)
+# the loader over loopback sockets. No Qt. A desktop program (it reads a scenario file).
+if(TARGET adl::mock_cli)
+    add_subdirectory(mock_cli)
+endif()
 
 # The loopback integration test: the loader's runner over real sockets against the mock target's
 # engine on 127.0.0.1. No Qt.

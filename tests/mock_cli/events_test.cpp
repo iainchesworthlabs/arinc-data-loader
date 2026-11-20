@@ -166,3 +166,58 @@ TEST_CASE("every status code has a name that is the name of its enumerator", "[m
     CHECK(status_name(StatusCode::item_failed) == "item_failed");
     CHECK(status_name(static_cast<StatusCode>(0x7777)) == "unknown");
 }
+
+TEST_CASE("with a scenario, the started event says which, and the step and the end say what it did",
+          "[mock_cli][events][scenario]")
+{
+    Event started = started_event();
+    std::get<Started>(started.data).faults = {"--scenario"};
+    std::get<Started>(started.data).scenario = ScenarioInfo{"rig/slow start.json", 4, 20261120};
+    CHECK(to_json_line(started) ==
+          R"({"event":"started","t":0.002,"program":"adl_mock","version":"0.1.1","events":1,"thw_id_pos":"HNPFMS_L",)"
+          R"("address":"127.0.0.1","find_port":1001,"tftp_port":59,"faults":["--scenario"],)"
+          R"("scenario":"rig/slow start.json","scenario_steps":4,"scenario_seed":20261120})");
+    std::get<Started>(started.data).scenario = ScenarioInfo{"s.json", 0, std::nullopt};
+    CHECK(to_json_line(started).ends_with(R"("scenario":"s.json","scenario_steps":0,"scenario_seed":null})"));
+
+    // A step names its trigger and its action, and the number the action used (only that one).
+    ScenarioStepFired wait{1, "request", 1, "upload", "wait", true, 2, std::nullopt, std::nullopt};
+    CHECK(event_name(EventData{wait}) == "scenario_step");
+    CHECK(to_json_line(Event{1250ms, wait}) ==
+          R"({"event":"scenario_step","t":1.250,"step":1,"trigger":"request","at":1,"operation":"upload",)"
+          R"("action":"wait","applied":true,"seconds":2})");
+    CHECK(to_json_line(Event{1250ms, ScenarioStepFired{3, "after_ms", 20000, "information", "refuse", true,
+                                                       std::nullopt, 4098, std::nullopt}}) ==
+          R"({"event":"scenario_step","t":1.250,"step":3,"trigger":"after_ms","at":20000,"operation":"information",)"
+          R"("action":"refuse","applied":true,"status":4098})");
+    CHECK(to_json_line(Event{1250ms, ScenarioStepFired{2, "status_file", 4, "upload", "delay", false, std::nullopt,
+                                                       std::nullopt, 611}}) ==
+          R"({"event":"scenario_step","t":1.250,"step":2,"trigger":"status_file","at":4,"operation":"upload",)"
+          R"("action":"delay","applied":false,"ms":611})");
+    CHECK(to_json_line(Event{1250ms, ScenarioStepFired{2, "status_file", 4, "upload", "abort", true, std::nullopt,
+                                                       std::nullopt, std::nullopt}}) ==
+          R"({"event":"scenario_step","t":1.250,"step":2,"trigger":"status_file","at":4,"operation":"upload",)"
+          R"("action":"abort","applied":true})");
+
+    CHECK(to_json_line(Event{2000ms, Stopped{"seconds", 1, std::vector<std::size_t>{2, 5}}}) ==
+          R"({"event":"stopped","t":2.000,"reason":"seconds","operations":1,"scenario_unused":[2,5]})");
+    CHECK(to_json_line(Event{2000ms, Stopped{"seconds", 1, std::vector<std::size_t>{}}}) ==
+          R"({"event":"stopped","t":2.000,"reason":"seconds","operations":1,"scenario_unused":[]})");
+}
+
+TEST_CASE("the plain lines of a scenario's events have the same keys", "[mock_cli][events][scenario]")
+{
+    CHECK(to_plain_line(Event{
+              1250ms, ScenarioStepFired{1, "request", 1, "upload", "wait", true, 2, std::nullopt, std::nullopt}}) ==
+          "1.250 scenario_step step=1 trigger=request at=1 operation=upload action=wait applied=true seconds=2");
+    CHECK(to_plain_line(Event{1250ms, ScenarioStepFired{2, "status_file", 4, "upload", "delay", false, std::nullopt,
+                                                        std::nullopt, 611}}) ==
+          "1.250 scenario_step step=2 trigger=status_file at=4 operation=upload action=delay applied=false ms=611");
+    CHECK(to_plain_line(Event{2000ms, Stopped{"seconds", 1, std::vector<std::size_t>{2, 5}}}) ==
+          "2.000 stopped reason=seconds operations=1 scenario_unused=2,5");
+    CHECK(to_plain_line(Event{2000ms, Stopped{"seconds", 1, std::vector<std::size_t>{}}}) ==
+          "2.000 stopped reason=seconds operations=1 scenario_unused=none");
+    Event started = started_event();
+    std::get<Started>(started.data).scenario = ScenarioInfo{"s.json", 3, std::nullopt};
+    CHECK(to_plain_line(started).ends_with("scenario=s.json scenario_steps=3 scenario_seed=none"));
+}
