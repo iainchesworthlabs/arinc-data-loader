@@ -105,3 +105,18 @@ TEST_CASE("licence folders: the roots of this computer name the settings folder 
     const auto with = current_roots("fake", std::filesystem::path{"scratch"} / "settings");
     REQUIRE(with.settings_directory == "scratch/settings");
 }
+
+TEST_CASE("licence folders: a settings folder with letters outside the code page is UTF-8 text",
+          "[licence_platform][locations]")
+{
+    // Written as UTF-8 bytes: e acute, a space, three Japanese characters and an emoji.
+    const std::string bytes = "settings \xC3\xA9 \xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E \xF0\x9F\x98\x80";
+    const std::u8string text{reinterpret_cast<const char8_t*>(bytes.data()), bytes.size()};
+
+    const auto roots = current_roots("fake", std::filesystem::path{text});
+    REQUIRE(roots.settings_directory == bytes);
+    const auto folders = folders_for(roots);
+    REQUIRE(folders.user == bytes + "/licences");
+    REQUIRE(folders.machine == bytes + "/machine-licences");
+    REQUIRE(folders.clock_file == bytes + "/licence-clock.json");
+}

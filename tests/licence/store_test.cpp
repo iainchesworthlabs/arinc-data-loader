@@ -524,6 +524,46 @@ TEST_CASE("store: remove refuses a name that is not a licence file", "[licence][
     REQUIRE(st::remove_file(files, st::Folders{}, "a.adllic").error() == st::RemoveError::not_found);
 }
 
+TEST_CASE("store: names with letters outside ASCII pass through as the bytes they are", "[licence][store][utf8]")
+{
+    // "e acute, space, Japanese" and "u umlaut" and an emoji, as UTF-8 bytes written out, so that the test does
+    // not depend on how the compiler reads this file. The store sorts, matches and passes names as bytes.
+    const std::string outside = "\xC3\xA9 \xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E";
+    const st::Folders wide{"/home/pat/" + outside + "/licences", "/etc/" + outside,
+                           "/home/pat/" + outside + "/clock.json"};
+    const std::string name = "M\xC3\xBC"
+                             "ller \xF0\x9F\x98\x80.adllic";
+    const auto in_user = [&](const std::string& file) { return wide.user + "/" + file; };
+
+    MemoryFiles files;
+    files.put(in_user(name), signed_text(annual()));
+    files.put(wide.machine + "/" + name,
+              signed_text(annual_with("ADL-2026-000009", at(2026, 11, 13), at(2027, 11, 13))));
+    for (const bool reversed : {false, true})
+    {
+        files.list_in_reverse = reversed;
+        const auto overview = st::scan(files, wide, on(now()));
+        REQUIRE(overview.licences.size() == 2);
+        REQUIRE(overview.licences[0].name == name);
+        REQUIRE(overview.licences[0].origin == st::Origin::user);
+        REQUIRE(overview.licences[1].origin == st::Origin::machine);
+        REQUIRE(overview.best.state == State::valid);
+    }
+
+    // An import goes in under its number, a clock file is kept in the folder with the long name, and a file with such a
+    // name is removed by that name and no other.
+    const auto imported = st::import_file(
+        files, wide, signed_text(annual_with("ADL-2026-000010", at(2026, 11, 13), at(2027, 11, 13))), on(now()));
+    REQUIRE(imported);
+    REQUIRE(files.has(in_user("ADL-2026-000010.adllic")));
+    REQUIRE(st::save_clock(files, wide, ClockState{}));
+    REQUIRE(files.has(wide.clock_file));
+    REQUIRE(st::remove_file(files, wide, name));
+    REQUIRE_FALSE(files.has(in_user(name)));
+    REQUIRE(files.has(wide.machine + "/" + name));
+    REQUIRE(st::remove_file(files, wide, name).error() == st::RemoveError::not_found);
+}
+
 TEST_CASE("store: the clock file is read and written in one form", "[licence][store][clock]")
 {
     ClockState state;

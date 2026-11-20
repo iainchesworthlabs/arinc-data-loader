@@ -4,11 +4,17 @@
 // The licence store: the licence files in a user's folder and in a folder an administrator keeps, the best
 // one of them, importing a file, removing one, and the clock file the clock check keeps between runs.
 //
-// The store reaches files through the small interface below and no other way. The caller fills it in (the
-// programs of this project do it over adl::platform::FileSystem, in the library adl_licence_platform; a tool
-// outside this repository can do it over whatever it has), so this library includes no file-system header and
-// every case, a full disk included, can be tested. The folders are given as text, and so is each file name: a
-// path is a folder, '/' and a name.
+// The store reaches files through the small interface below and no other way. The caller fills it in, over
+// whatever file system it has, so this library includes no file-system header and every case, a full disk
+// included, can be tested. The folders are given as text, and so is each file name: a path is a folder, '/'
+// and a name.
+//
+// All of that text is UTF-8, and this library passes it on as it is: it never converts a name, through a code
+// page or any other way, so a folder or a file with letters outside ASCII is what the caller's `Files` makes of
+// those bytes. A caller on Windows has to take the bytes as UTF-8 and not as the code page's.
+//
+// Two file types are the store's: a licence file and a signed revocation list, by their extensions
+// (product.hpp). A file with any other extension in a licence folder is not read.
 //
 // Nothing here deletes a licence file on its own. An import never replaces a file, and a removal works on
 // one file in the user's folder, by name.
@@ -42,8 +48,8 @@ enum class FilesError
 template <typename T>
 using FilesResult = std::expected<T, FilesError>;
 
-// What the store needs of a file system. A path is a folder name, '/' and a file name, and the caller's
-// platform understands it as it is given. The calls need not be safe to make from two threads at once.
+// What the store needs of a file system. A path is a folder name, '/' and a file name, in UTF-8, and the
+// caller's platform understands it as it is given. The calls need not be safe to make from two threads at once.
 class Files
 {
 public:
