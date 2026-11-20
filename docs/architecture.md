@@ -26,6 +26,8 @@
    adl::loader_core (libs/loader_core): what the loader does without a window and without Qt (the media
    set on disk and its check, the folder a download is written into, the target's address), over the
    libraries above; the application calls it
+   adl::loader_scenario (libs/loader_scenario): faults on purpose in the loader's engine, from a scenario file
+   (the scenario, its reader and the player of the engine's FaultHook); not installed
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target's engine (libs/mock_target_core)
@@ -85,6 +87,13 @@
   `TargetLink` seam) and the link that runs it over the platform's UDP sockets. It is not installed and
   not in the `adl` package. The mock target application runs it on a worker thread, and the tests run it
   against the loader's engine on the fake platform and over loopback sockets.
+- **`libs/loader_scenario`** makes the loader misbehave on purpose, repeatably, so that a supplier can see how a
+  target reacts: a scenario is an ordered list of steps, each of which says when it is in effect, which of the
+  datagrams the loader sends it acts on, and what it does to them (drop one, send it twice or late, change a byte, a
+  check value or the length, answer with an ERROR, WAIT or ABORT, abort at a chosen moment, go silent). The `Player`
+  carries a scenario out through the engine's `FaultHook` (`libs/arinc615a/include/adl/arinc615a/fault_hook.hpp`),
+  which is the only place the engine knows of faults. No Qt, no platform code; it is on a desktop only (its reader
+  uses the licence library's strict JSON reader) and is not part of the installed `adl` package.
 - **`libs/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
   opens the sockets the engine asks for, waits on all of them from one thread with
   `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.

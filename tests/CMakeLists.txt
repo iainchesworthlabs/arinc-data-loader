@@ -186,6 +186,36 @@ adl_deploy_sanitizer_runtime(adl_engine_tests)
 
 catch_discover_tests(adl_engine_tests PROPERTIES LABELS "integration")
 
+# Faults on purpose in the loader's engine (libs/loader_scenario): the scenario player, the reader of its file,
+# and the engine run against the simulated target with the fault hook in place.
+if(TARGET adl::loader_scenario)
+    add_executable(adl_loader_scenario_tests
+        loader_scenario/player_test.cpp)
+
+    target_include_directories(adl_loader_scenario_tests PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine"
+        "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+    target_link_libraries(adl_loader_scenario_tests
+        PRIVATE
+            adl_fake_platform
+            adl_sim_target
+            adl::loader_scenario
+            adl::arinc615a
+            adl::arinc615a_runner
+            adl::arinc665
+            adl::platform
+            adl::samples
+            adl::warnings
+            adl::sanitizers
+            adl::coverage
+            Catch2::Catch2WithMain)
+
+    adl_deploy_sanitizer_runtime(adl_loader_scenario_tests)
+
+    catch_discover_tests(adl_loader_scenario_tests PROPERTIES LABELS "unit;integration")
+endif()
+
 # The platform layer: the portable types, the fake, and the conformance suite that runs
 # the same checks against the fake and against the real host this build selected.
 add_executable(adl_platform_tests
