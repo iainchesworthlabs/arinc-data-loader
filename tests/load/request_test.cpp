@@ -184,6 +184,12 @@ TEST_CASE("a line that is not a request is refused with the reason, and the id w
         REQUIRE_FALSE(request.has_value());
         CHECK(request.error().id == test.id);
         CHECK(request.error().detail.find(test.says) != std::string::npos);
+        // Which request it was meant to be is told where the line can be taken apart and starts with its word.
+        const std::string word = test.line.substr(0, test.line.find('	'));
+        const bool unreadable = test.says == "not valid UTF-8" || test.says == "NUL";
+        const bool a_request = word == "run" || word == "cancel" || word == "stop";
+        CHECK(request.error().request ==
+              (a_request && !unreadable ? std::optional<std::string>{word} : std::optional<std::string>{}));
     }
 }
 

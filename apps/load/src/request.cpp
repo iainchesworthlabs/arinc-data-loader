@@ -133,43 +133,46 @@ std::expected<Request, RequestError> parse_request(std::string_view line)
 {
     if (!is_valid_utf8(line))
     {
-        return std::unexpected(RequestError{std::nullopt, "The line is not valid UTF-8."});
+        return std::unexpected(RequestError{std::nullopt, std::nullopt, "The line is not valid UTF-8."});
     }
     if (line.find('\0') != std::string_view::npos)
     {
-        return std::unexpected(RequestError{std::nullopt, "The line has a NUL character in it."});
+        return std::unexpected(RequestError{std::nullopt, std::nullopt, "The line has a NUL character in it."});
     }
     const std::vector<std::string_view> fields = split_fields(line);
     const std::string_view word = fields.front();
 
     if (word.empty())
     {
-        return std::unexpected(RequestError{std::nullopt, line.empty() ? "The line is empty."
-                                                                       : "The line does not begin with a request: run, "
-                                                                         "cancel or stop."});
+        return std::unexpected(RequestError{std::nullopt, std::nullopt,
+                                            line.empty() ? "The line is empty."
+                                                         : "The line does not begin with a request: run, "
+                                                           "cancel or stop."});
     }
     if (word == "stop")
     {
         if (fields.size() != 1)
         {
-            return std::unexpected(RequestError{std::nullopt, "stop takes no fields."});
+            return std::unexpected(RequestError{std::nullopt, "stop", "stop takes no fields."});
         }
         return Request{RequestKind::stop, {}, {}};
     }
     if (word != "run" && word != "cancel")
     {
-        return std::unexpected(RequestError{std::nullopt, "Unknown request " + shown(word) + ": run, cancel or stop."});
+        return std::unexpected(
+            RequestError{std::nullopt, std::nullopt, "Unknown request " + shown(word) + ": run, cancel or stop."});
     }
 
     // run and cancel both name an operation.
     if (fields.size() < 2 || !is_valid_id(fields[1]))
     {
-        return std::unexpected(RequestError{
-            std::nullopt, std::string{word} +
-                              (fields.size() < 2 ? " needs an id."
-                                                 : " needs an id of 1 to 64 of the characters A to Z, a to z, 0 to 9, "
-                                                   "dot, underscore and hyphen, not " +
-                                                       shown(fields[1]) + ".")});
+        return std::unexpected(
+            RequestError{std::nullopt, std::string{word},
+                         std::string{word} + (fields.size() < 2
+                                                  ? " needs an id."
+                                                  : " needs an id of 1 to 64 of the characters A to Z, a to z, 0 to 9, "
+                                                    "dot, underscore and hyphen, not " +
+                                                        shown(fields[1]) + ".")});
     }
     const std::string id{fields[1]};
 
@@ -177,20 +180,21 @@ std::expected<Request, RequestError> parse_request(std::string_view line)
     {
         if (fields.size() != 2)
         {
-            return std::unexpected(RequestError{id, "cancel takes an id and nothing else."});
+            return std::unexpected(RequestError{id, "cancel", "cancel takes an id and nothing else."});
         }
         return Request{RequestKind::cancel, id, {}};
     }
 
     if (fields.size() < 3)
     {
-        return std::unexpected(RequestError{id, "run needs a command after the id: information, upload or download."});
+        return std::unexpected(
+            RequestError{id, "run", "run needs a command after the id: information, upload or download."});
     }
     const std::vector<std::string_view> arguments(fields.begin() + 2, fields.end());
     auto options = parse_run_arguments(arguments);
     if (!options)
     {
-        return std::unexpected(RequestError{id, std::move(options.error())});
+        return std::unexpected(RequestError{id, "run", std::move(options.error())});
     }
     return Request{RequestKind::run, id, std::move(*options)};
 }

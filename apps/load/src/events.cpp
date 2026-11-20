@@ -96,8 +96,8 @@ void EventWriter::serve_started(std::string_view address, std::uint16_t control_
     write(line.finish());
 }
 
-void EventWriter::request_refused(const std::optional<std::string>& id, std::uint64_t line_number,
-                                  std::string_view detail)
+void EventWriter::request_refused(const std::optional<std::string>& id, const std::optional<std::string>& request,
+                                  std::uint64_t line_number, std::string_view detail)
 {
     JsonLine line = json_event("request_refused", elapsed_milliseconds());
     if (id)
@@ -107,6 +107,14 @@ void EventWriter::request_refused(const std::optional<std::string>& id, std::uin
     else
     {
         line.null("id");
+    }
+    if (request)
+    {
+        line.string("request", *request);
+    }
+    else
+    {
+        line.null("request");
     }
     line.number("line", line_number);
     line.string("detail", detail);

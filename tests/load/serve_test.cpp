@@ -94,12 +94,65 @@ private:
     std::chrono::milliseconds end_{0};
 };
 
+// What an upload reads before it starts, as the fake clock says: one request at a time, each taking as long as the
+// test says, and the work run on the test's thread when its time comes, so that every run is the same.
+class ScriptedPreparer final : public adl::load::Preparer
+{
+public:
+    explicit ScriptedPreparer(adl::fake::FakeWorld& world) : world_(world) {}
+
+    // How long the preparation with this ticket takes.
+    std::function<std::chrono::milliseconds(std::uint64_t)> takes = [](std::uint64_t)
+    { return std::chrono::milliseconds{0}; };
+    // The tickets in the order they were submitted, and when each one was (milliseconds of the fake clock).
+    std::vector<std::uint64_t> submitted;
+    std::vector<std::chrono::milliseconds> submitted_at;
+    int starts = 0;
+
+    adl::platform::Result<void> start() override
+    {
+        ++starts;
+        return {};
+    }
+    void submit(std::uint64_t ticket, adl::load::PreparationWork work) override
+    {
+        const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(world_.now().since_origin);
+        const auto begins = std::max(now, free_at_);
+        free_at_ = begins + takes(ticket);
+        submitted.push_back(ticket);
+        submitted_at.push_back(now);
+        jobs_.push_back(Job{ticket, std::move(work), free_at_});
+    }
+    void poll(adl::platform::Instant now, std::vector<adl::load::Preparation>& done) override
+    {
+        const auto at = std::chrono::duration_cast<std::chrono::milliseconds>(now.since_origin);
+        while (!jobs_.empty() && jobs_.front().ends_at <= at)
+        {
+            Job job = std::move(jobs_.front());
+            jobs_.erase(jobs_.begin());
+            done.push_back(adl::load::Preparation{job.ticket, job.work()});
+        }
+    }
+
+private:
+    struct Job
+    {
+        std::uint64_t ticket;
+        adl::load::PreparationWork work;
+        std::chrono::milliseconds ends_at;
+    };
+    adl::fake::FakeWorld& world_;
+    std::vector<Job> jobs_;
+    std::chrono::milliseconds free_at_{0};
+};
+
 // The loader at 10.0.0.1 and `count` simulated targets at 10.0.1.1, 10.0.1.2 and so on, on one fake network.
 class ServeBench
 {
 public:
     explicit ServeBench(std::size_t count, const std::function<SimPlan(std::size_t)>& plan_of = {})
-        : world(1), network(world), loader_host(world, network, adl::platform::Ipv4Address{{10, 0, 0, 1}})
+        : world(1), network(world), loader_host(world, network, adl::platform::Ipv4Address{{10, 0, 0, 1}}),
+          preparer(world)
     {
         for (std::size_t k = 0; k < count; ++k)
         {
@@ -129,7 +182,7 @@ public:
         std::ostringstream out;
         std::ostringstream err;
         CommandRun result;
-        result.exit_code = adl::load::run_serve(host, parsed->options, source, out, err, host.clock().now());
+        result.exit_code = adl::load::run_serve(host, parsed->options, source, preparer, out, err, host.clock().now());
         result.out = out.str();
         result.err = err.str();
         world.advance_by(std::chrono::seconds(1)); // the targets see the loader's last datagram
@@ -139,6 +192,7 @@ public:
     adl::fake::FakeWorld world;
     adl::fake::FakeNetwork network;
     adl::fake::FakeHost loader_host;
+    ScriptedPreparer preparer;
     std::vector<std::unique_ptr<SimTarget>> targets;
 };
 
@@ -246,7 +300,7 @@ void check_serve_stream(const CommandRun& run, std::string_view stopped_because)
         CHECK(keys[2] == "id");
         if (event.at("event").text == "request_refused")
         {
-            CHECK(event.keys() == std::vector<std::string>{"event", "t", "id", "line", "detail"});
+            CHECK(event.keys() == std::vector<std::string>{"event", "t", "id", "request", "line", "detail"});
             continue;
         }
         const std::string& id = event.at("id").text;
@@ -386,6 +440,43 @@ TEST_CASE("two operations at once give each the events one adl_load would have w
     CHECK(run.events().back().at("operations").as_number() == 2);
 }
 
+TEST_CASE("targets that are not on port 59 are reached with --target-port alone, the loader being on 59, and with both",
+          "[load][integration][serve]")
+{
+    ServeBench bench(2,
+                     [](std::size_t)
+                     {
+                         SimPlan plan;
+                         plan.control_port = 30959; // each target listens on 30959 of its own address
+                         return plan;
+                     });
+    ScriptedSource source(bench.world);
+    source.at(0ms, tabs({"run", "alone", "information", "--target", ServeBench::address(0), "--position", "HNPFMS_L",
+                         "--target-port", "30959"}));
+    const CommandRun run = bench.serve(source);
+    check_serve_stream(run, "end_of_input");
+    CHECK(events_of(run, "alone").back().at("reason").text == "completed");
+    // The loader's own port is 59, and the target was told so, because it is not on 59 itself.
+    CHECK(bench.targets[0]->log().loader_port_used == 59);
+    CHECK(bench.targets[0]->log().init_options_seen == 1);
+
+    // With the loader's port moved as well, the target is told that one.
+    ServeBench moved(1,
+                     [](std::size_t)
+                     {
+                         SimPlan plan;
+                         plan.control_port = 30959;
+                         return plan;
+                     });
+    ScriptedSource moved_source(moved.world);
+    moved_source.at(0ms, tabs({"run", "both", "information", "--target", ServeBench::address(0), "--position",
+                               "HNPFMS_L", "--target-port", "30959"}));
+    const CommandRun both = moved.serve(moved_source, {"--control-port", "30901"});
+    check_serve_stream(both, "end_of_input");
+    CHECK(events_of(both, "both").back().at("reason").text == "completed");
+    CHECK(moved.targets[0]->log().loader_port_used == 30901);
+}
+
 TEST_CASE("eight uploads at once from one port load eight targets, each with its own record",
           "[load][integration][serve]")
 {
@@ -511,7 +602,8 @@ TEST_CASE("a cancel that names no operation is refused, and so is one for an ope
     check_serve_stream(run, "end_of_input");
     const std::vector<Json> refused = refusals_of(run);
     REQUIRE(refused.size() == 2);
-    CHECK(refused[0].keys() == std::vector<std::string>{"event", "t", "id", "line", "detail"});
+    CHECK(refused[0].keys() == std::vector<std::string>{"event", "t", "id", "request", "line", "detail"});
+    CHECK(refused[0].at("request").text == "cancel");
     CHECK(refused[0].at("id").text == "nobody");
     CHECK(refused[0].at("line").as_number() == 1);
     CHECK(refused[0].at("detail").text == "No operation with this id is running.");
@@ -535,6 +627,7 @@ TEST_CASE("a request that cannot be started is refused with its line number, and
         REQUIRE(refused.size() == 1);
         CHECK(refused[0].at("id").text == "b");
         CHECK(refused[0].at("line").as_number() == 2);
+        CHECK(refused[0].at("request").text == "run");
         CHECK(refused[0].at("detail").text == "The target 10.0.1.1 has an operation that has not finished (id a).");
         CHECK(events_of(run, "b").empty());
         CHECK(events_of(run, "a").back().at("reason").text == "completed");
@@ -550,6 +643,7 @@ TEST_CASE("a request that cannot be started is refused with its line number, and
         REQUIRE(refused.size() == 1);
         CHECK(refused[0].at("id").text == "a");
         CHECK(refused[0].at("line").as_number() == 2);
+        CHECK(refused[0].at("request").text == "run");
         CHECK(refused[0].at("detail").text == "An operation with this id has not finished.");
         // The operation of that id is the first one, and nothing was sent to the other target.
         CHECK(events_of(run, "a").front().at("target").text == "10.0.1.1");
@@ -604,6 +698,7 @@ TEST_CASE("a request that cannot be started is refused with its line number, and
         CHECK(refused[3].at("detail").text == "Name the loads to send with --load, or give --all-loads.");
         for (std::size_t i = 0; i < 4; ++i)
         {
+            CHECK(refused[i].at("request").text == "run");
             CHECK(refused[i].at("id").text == std::string(1, static_cast<char>('a' + i)));
             CHECK(refused[i].at("line").as_number() == i + 1);
         }
@@ -620,6 +715,7 @@ TEST_CASE("a request that cannot be started is refused with its line number, and
         const std::vector<Json> refused = refusals_of(run);
         REQUIRE(refused.size() == 1);
         CHECK(refused[0].at("id").text == "a");
+        CHECK(refused[0].at("request").text == "run");
         CHECK(refused[0].at("detail").text == "The media set has no load with the part number \"NO-SUCH-PART\".");
         CHECK(events_of(run, "a").empty());
         CHECK(run.events().back().at("operations").as_number() == 0);
@@ -644,27 +740,41 @@ TEST_CASE("a line that cannot be read is refused with no id, and the lines after
 
     const std::vector<Json> refused = refusals_of(run);
     REQUIRE(refused.size() == 6);
-    const std::vector<std::pair<std::uint64_t, std::string>> expected{
-        {1, "Unknown request \"this is not a request\": run, cancel or stop."},
-        {2, "The line is empty."},
-        {3, "The line is longer than 1048576 bytes."},
-        {4, "The line is not valid UTF-8."},
-        {5, "stop takes no fields."},
-        {7, "The input ended in the middle of a line, which is not a request."},
+    struct Expected
+    {
+        std::uint64_t line;
+        std::optional<std::string> request; // which request the line was meant to be, where that could be read
+        std::string detail;
+    };
+    const std::vector<Expected> expected{
+        {1, std::nullopt, "Unknown request \"this is not a request\": run, cancel or stop."},
+        {2, std::nullopt, "The line is empty."},
+        {3, std::nullopt, "The line is longer than 1048576 bytes."},
+        {4, std::nullopt, "The line is not valid UTF-8."},
+        {5, "stop", "stop takes no fields."},
+        {7, std::nullopt, "The input ended in the middle of a line, which is not a request."},
     };
     for (std::size_t i = 0; i < expected.size(); ++i)
     {
         INFO("refusal " << i);
         CHECK(refused[i].at("id").is(Json::Kind::null));
-        CHECK(refused[i].at("line").as_number() == expected[i].first);
-        CHECK(refused[i].at("detail").text == expected[i].second);
+        if (expected[i].request)
+        {
+            CHECK(refused[i].at("request").text == *expected[i].request);
+        }
+        else
+        {
+            CHECK(refused[i].at("request").is(Json::Kind::null));
+        }
+        CHECK(refused[i].at("line").as_number() == expected[i].line);
+        CHECK(refused[i].at("detail").text == expected[i].detail);
     }
     // The cut-off cancel was not taken for one, and the request on line 6 ran.
     CHECK(events_of(run, "a").back().at("reason").text == "completed");
     CHECK(run.events().back().at("operations").as_number() == 1);
 }
 
-TEST_CASE("after a stop, every request is refused, a cancel too, and what is running finishes",
+TEST_CASE("after a stop a run is refused, a cancel is still taken and a second stop changes nothing",
           "[load][integration][serve]")
 {
     ServeBench bench(2);
@@ -672,21 +782,25 @@ TEST_CASE("after a stop, every request is refused, a cancel too, and what is run
     source.at(0ms, information_request("a", 0))
         .at(0ms, "stop")
         .at(0ms, information_request("b", 1))
-        .at(0ms, "cancel\ta")
-        .at(0ms, "stop");
+        .at(0ms, "cancel	a")
+        .at(0ms, "stop")
+        .at(0ms, "cancel	nobody");
     const CommandRun run = bench.serve(source);
     CHECK(run.exit_code == 0);
     check_serve_stream(run, "stop");
     const std::vector<Json> refused = refusals_of(run);
-    REQUIRE(refused.size() == 3);
-    for (const Json& refusal : refused)
-    {
-        CHECK(refusal.at("detail").text == "The program has been told to stop and takes no more requests.");
-    }
+    REQUIRE(refused.size() == 2);
+    // The run after the stop is refused, and says it was a run; the cancel of an id that is not running is refused as
+    // it is at any time. The cancel of the one that is, and the second stop, are not.
     CHECK(refused[0].at("id").text == "b");
-    CHECK(refused[1].at("id").text == "a");
-    CHECK(refused[2].at("id").is(Json::Kind::null));
-    CHECK(events_of(run, "a").back().at("reason").text == "completed"); // the cancel after stop did nothing
+    CHECK(refused[0].at("request").text == "run");
+    CHECK(refused[0].at("line").as_number() == 3);
+    CHECK(refused[0].at("detail").text == "The program has been told to stop and starts no more operations.");
+    CHECK(refused[1].at("id").text == "nobody");
+    CHECK(refused[1].at("request").text == "cancel");
+    CHECK(refused[1].at("line").as_number() == 6);
+    // What was running was ended by the cancel, which is what a caller that is told to end needs to be able to do.
+    CHECK(events_of(run, "a").back().at("reason").text == "aborted");
     CHECK(events_of(run, "b").empty());
     CHECK(run.events().back().at("operations").as_number() == 1);
 }
@@ -810,7 +924,9 @@ TEST_CASE("serve that cannot open its port says so and writes no event", "[load]
         const CommandRun run = bench.serve(source);
         CHECK(run.exit_code == 5);
         CHECK(run.out.empty());
-        CHECK(run.err == "adl_load: the loader's port could not be opened (address in use).\n");
+        CHECK(run.err ==
+              "adl_load: the loader's port could not be opened (address in use). Give --local-address <ipv4> to listen "
+              "on one interface only.\n");
         CHECK(source.starts == 0); // nothing was read
     }
 
@@ -847,8 +963,8 @@ TEST_CASE("serve whose input cannot be read ends with exit code 5", "[load][inte
     REQUIRE(parsed.has_value());
     std::ostringstream out;
     std::ostringstream err;
-    const int code =
-        adl::load::run_serve(bench.loader_host, parsed->options, source, out, err, bench.loader_host.clock().now());
+    const int code = adl::load::run_serve(bench.loader_host, parsed->options, source, bench.preparer, out, err,
+                                          bench.loader_host.clock().now());
     CHECK(code == 5);
     CHECK(out.str().empty());
     CHECK(err.str() == "adl_load: the requests could not be read (resource exhausted).\n");
@@ -865,9 +981,216 @@ TEST_CASE("standard output that cannot be written to ends serve with exit code 5
     std::ostringstream out;
     out.setstate(std::ios::badbit);
     std::ostringstream err;
-    const int code =
-        adl::load::run_serve(bench.loader_host, parsed->options, source, out, err, bench.loader_host.clock().now());
+    const int code = adl::load::run_serve(bench.loader_host, parsed->options, source, bench.preparer, out, err,
+                                          bench.loader_host.clock().now());
     CHECK(code == 5);
+}
+
+TEST_CASE("an upload's media set is read away from the loop: the operations beside it are not held up, and nothing is "
+          "written for its id until it is read",
+          "[load][integration][serve][prepare]")
+{
+    ServeBench bench(4, uploads_the_sample);
+    const InstalledMediaSet set(bench.loader_host, sample_load().members);
+    // The first request to be prepared takes twenty seconds, longer than a target waits for an answer.
+    bench.preparer.takes = [](std::uint64_t ticket) { return ticket == 1 ? 20'000ms : 0ms; };
+    ScriptedSource source(bench.world);
+    source.at(0ms, upload_request("big", 0, set))
+        .at(0ms, information_request("beside", 1))
+        // While the set is read, its id and its address are in use, and it counts among the operations.
+        .at(1000ms, information_request("big", 2))
+        .at(1000ms, information_request("other", 0))
+        .at(1000ms, "cancel\tnobody");
+    const CommandRun run = bench.serve(source, {"--max-operations", "3"});
+    CHECK(run.exit_code == 0);
+    check_serve_stream(run, "end_of_input");
+
+    const std::vector<Json> beside = events_of(run, "beside");
+    const std::vector<Json> big = events_of(run, "big");
+    REQUIRE_FALSE(beside.empty());
+    REQUIRE_FALSE(big.empty());
+    CHECK(beside.back().at("reason").text == "completed");
+    // The operation beside it ended while the set was still being read, and nothing at all was written for the set's id
+    // before the read ended.
+    CHECK(milliseconds_of(beside.back()) < 20'000);
+    CHECK(big.front().at("event").text == "started");
+    CHECK(milliseconds_of(big.front()) >= 20'000);
+    CHECK(big.back().at("reason").text == "completed");
+    CHECK(names_of(big)[1] == "media_set_checked");
+    CHECK(bench.targets[0]->log().files_read.size() == sample_load().item.reads.size());
+
+    const std::vector<Json> refused = refusals_of(run);
+    REQUIRE(refused.size() == 3);
+    CHECK(refused[0].at("id").text == "big");
+    CHECK(refused[0].at("detail").text == "An operation with this id has not finished.");
+    CHECK(refused[1].at("id").text == "other");
+    CHECK(refused[1].at("detail").text == "The target 10.0.1.1 has an operation that has not finished (id big).");
+    CHECK(refused[2].at("request").text == "cancel");
+    CHECK(run.events().back().at("operations").as_number() == 2);
+    // `started` of the big one comes after the end of the one beside it.
+    const std::vector<std::string> names = run.names();
+    std::size_t beside_ended = 0;
+    std::size_t big_started = 0;
+    for (std::size_t i = 0; i < run.events().size(); ++i)
+    {
+        const Json event = run.events()[i];
+        if (event.find("id") == nullptr || event.at("event").text == "request_refused")
+        {
+            continue;
+        }
+        if (event.at("id").text == "beside" && event.at("event").text == "finished")
+        {
+            beside_ended = i;
+        }
+        if (event.at("id").text == "big" && event.at("event").text == "started")
+        {
+            big_started = i;
+        }
+    }
+    CHECK(beside_ended < big_started);
+}
+
+TEST_CASE("a preparation counts among the operations that run at once", "[load][integration][serve][prepare]")
+{
+    ServeBench bench(3, uploads_the_sample);
+    const InstalledMediaSet set(bench.loader_host, sample_load().members);
+    bench.preparer.takes = [](std::uint64_t) { return 10'000ms; };
+    ScriptedSource source(bench.world);
+    source.at(0ms, upload_request("a", 0, set))
+        .at(0ms, upload_request("b", 1, set))
+        .at(0ms, upload_request("c", 2, set));
+    const CommandRun run = bench.serve(source, {"--max-operations", "2"});
+    check_serve_stream(run, "end_of_input");
+    const std::vector<Json> refused = refusals_of(run);
+    REQUIRE(refused.size() == 1);
+    CHECK(refused[0].at("id").text == "c");
+    CHECK(refused[0].at("detail").text == "The program runs 2 operations at once, and that many have not finished.");
+    CHECK(events_of(run, "a").back().at("reason").text == "completed");
+    CHECK(events_of(run, "b").back().at("reason").text == "completed");
+    // One request is prepared at a time, in the order they came: b's set is read after a's.
+    CHECK(milliseconds_of(events_of(run, "a").front()) >= 10'000);
+    CHECK(milliseconds_of(events_of(run, "b").front()) >= 20'000);
+    CHECK(bench.preparer.submitted == std::vector<std::uint64_t>{1, 2});
+}
+
+TEST_CASE("a cancel while the media set is read is taken: the operation starts, and ends aborted at once",
+          "[load][integration][serve][prepare]")
+{
+    ServeBench bench(1, uploads_the_sample);
+    const InstalledMediaSet set(bench.loader_host, sample_load().members);
+    bench.preparer.takes = [](std::uint64_t) { return 10'000ms; };
+    ScriptedSource source(bench.world);
+    source.at(0ms, upload_request("u", 0, set)).at(2000ms, "cancel\tu");
+    const CommandRun run = bench.serve(source);
+    CHECK(run.exit_code == 0);
+    check_serve_stream(run, "end_of_input");
+    CHECK(refusals_of(run).empty()); // the cancel was taken, not refused
+
+    const std::vector<Json> own = events_of(run, "u");
+    REQUIRE_FALSE(own.empty());
+    // Nothing was written until the set had been read, and then the operation says how it ended and no more.
+    CHECK(milliseconds_of(own.front()) >= 10'000);
+    CHECK(names_of(own).front() == "started");
+    CHECK(names_of(own)[1] == "media_set_checked");
+    CHECK(own.back().at("reason").text == "aborted");
+    CHECK(own.back().at("result").text == "failed");
+    CHECK(own.back().at("exit_code").as_number() == 1);
+    CHECK(own.back().at("status_code").is(Json::Kind::null));
+    // The target was never asked anything.
+    CHECK(bench.targets[0]->log().init_requests_at.empty());
+    CHECK(run.events().back().at("operations").as_number() == 1);
+}
+
+TEST_CASE("a preparation that finds wrong usage refuses the run, with its own line, and frees its id and address",
+          "[load][integration][serve][prepare]")
+{
+    ServeBench bench(2, uploads_the_sample);
+    const InstalledMediaSet set(bench.loader_host, sample_load().members);
+    bench.preparer.takes = [](std::uint64_t ticket) { return ticket == 1 ? 5'000ms : 0ms; };
+    ScriptedSource source(bench.world);
+    source.at(0ms, upload_request("u", 0, set, {"--load", "NO-SUCH-PART"}))
+        .at(1000ms, information_request("i", 1))
+        .at(20'000ms, upload_request("u", 0, set));
+    const CommandRun run = bench.serve(source);
+    CHECK(run.exit_code == 0);
+    check_serve_stream(run, "end_of_input");
+
+    const std::vector<Json> refused = refusals_of(run);
+    REQUIRE(refused.size() == 1);
+    CHECK(refused[0].at("id").text == "u");
+    CHECK(refused[0].at("request").text == "run");
+    CHECK(refused[0].at("line").as_number() == 1); // the line of the request, not of the input when it was found out
+    CHECK(refused[0].at("detail").text == "The media set has no load with the part number \"NO-SUCH-PART\".");
+    CHECK(milliseconds_of(refused[0]) >= 5'000);
+    // The same id and the same address are free again, and the second request ran.
+    const std::vector<Json> own = events_of(run, "u");
+    REQUIRE_FALSE(own.empty());
+    CHECK(own.back().at("reason").text == "completed");
+    CHECK(run.events().back().at("operations").as_number() == 2);
+}
+
+TEST_CASE("a stop while a media set is read waits for it, and the operation goes on",
+          "[load][integration][serve][prepare]")
+{
+    ServeBench bench(1, uploads_the_sample);
+    const InstalledMediaSet set(bench.loader_host, sample_load().members);
+    bench.preparer.takes = [](std::uint64_t) { return 10'000ms; };
+    ScriptedSource source(bench.world);
+    source.at(0ms, upload_request("u", 0, set)).at(1000ms, "stop");
+    const CommandRun run = bench.serve(source);
+    CHECK(run.exit_code == 0);
+    check_serve_stream(run, "stop");
+    CHECK(events_of(run, "u").back().at("reason").text == "completed");
+    CHECK(run.events().back().at("operations").as_number() == 1);
+    CHECK(milliseconds_of(run.events().back()) > 10'000);
+}
+
+TEST_CASE("an upload whose media set cannot be read ends there, after the wait, with its own events",
+          "[load][integration][serve][prepare]")
+{
+    ServeBench bench(2);
+    bench.preparer.takes = [](std::uint64_t) { return 3'000ms; };
+    ScriptedSource source(bench.world);
+    source
+        .at(0ms, tabs({"run", "bad", "upload", "--target", "10.0.1.1", "--position", "HNPFMS_L", "--media-set",
+                       "/not/a/media/set", "--all-loads"}))
+        .at(0ms, information_request("good", 1));
+    const CommandRun run = bench.serve(source);
+    check_serve_stream(run, "end_of_input");
+    const std::vector<Json> bad = events_of(run, "bad");
+    CHECK(names_of(bad) == std::vector<std::string>{"started", "log", "log", "finished"});
+    CHECK(milliseconds_of(bad.front()) >= 3'000);
+    CHECK(bad.back().at("reason").text == "media_set_unreadable");
+    CHECK(events_of(run, "good").back().at("reason").text == "completed");
+}
+
+TEST_CASE("a preparer that cannot start ends serve with exit code 5, before anything is read",
+          "[load][integration][serve][prepare]")
+{
+    class Failing final : public adl::load::Preparer
+    {
+    public:
+        adl::platform::Result<void> start() override
+        {
+            return adl::platform::fail(adl::platform::ErrorCode::resource_exhausted);
+        }
+        void submit(std::uint64_t, adl::load::PreparationWork) override {}
+        void poll(adl::platform::Instant, std::vector<adl::load::Preparation>&) override {}
+    };
+    ServeBench bench(0);
+    ScriptedSource source(bench.world);
+    Failing preparer;
+    std::vector<std::string_view> arguments{"serve"};
+    const auto parsed = adl::load::parse_options(arguments);
+    REQUIRE(parsed.has_value());
+    std::ostringstream out;
+    std::ostringstream err;
+    const int code = adl::load::run_serve(bench.loader_host, parsed->options, source, preparer, out, err,
+                                          bench.loader_host.clock().now());
+    CHECK(code == 5);
+    CHECK(out.str().empty());
+    CHECK(err.str() == "adl_load: the media sets could not be prepared (resource exhausted).\n");
+    CHECK(source.starts == 0);
 }
 
 TEST_CASE("a request line can be read whatever the characters of its fields", "[load][integration][serve]")

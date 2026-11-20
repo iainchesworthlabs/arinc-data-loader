@@ -465,12 +465,13 @@ add_test(NAME tools.adl_load.unicode_folder
 set_tests_properties(tools.adl_load.unicode_folder PROPERTIES LABELS "system")
 
 # adl_load serve started as a process with pipes for its standard input and output (tests/load/serve_process_test.py): a
-# stop that arrives while standard input stays open, the end of the input, a port that is held, wrong usage, and a
-# request in UTF-8 whose path has characters no Windows code page holds. No target is needed.
+# stop that arrives while standard input stays open, the end of the input, a port that is held, wrong usage, a
+# request in UTF-8 whose path has characters no Windows code page holds, and an upload whose media set is read by the
+# program's own thread for it (the set comes from adl_write_payloads) and is cancelled. No target is needed.
 if(Python3_Interpreter_FOUND)
     add_test(NAME tools.adl_load.serve
         COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_CURRENT_SOURCE_DIR}/load/serve_process_test.py"
-            "$<TARGET_FILE:adl_load>" "${CMAKE_CURRENT_BINARY_DIR}/adl_load-serve")
+            "$<TARGET_FILE:adl_load>" "${CMAKE_CURRENT_BINARY_DIR}/adl_load-serve" "$<TARGET_FILE:adl_write_payloads>")
     set_tests_properties(tools.adl_load.serve PROPERTIES LABELS "system" TIMEOUT 180)
 endif()
 

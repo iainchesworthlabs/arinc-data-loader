@@ -27,6 +27,21 @@ enum class RequestKind : std::uint8_t
     stop
 };
 
+// "run", "cancel" or "stop": the word the request starts with, and the `request` of a `request_refused` event.
+[[nodiscard]] constexpr std::string_view to_string(RequestKind kind) noexcept
+{
+    switch (kind)
+    {
+    case RequestKind::run:
+        return "run";
+    case RequestKind::cancel:
+        return "cancel";
+    case RequestKind::stop:
+        return "stop";
+    }
+    return "stop";
+}
+
 // A request that was read. `id` is the caller's name for the operation (empty for `stop`); `options` are those of
 // the command a `run` names (they have the defaults for the others).
 struct Request
@@ -36,11 +51,13 @@ struct Request
     Options options;
 };
 
-// A line that is not a request: the sentence for a person, and the id if the line had one that could be read
-// (a `run` or `cancel` whose second field is a valid id).
+// A line that is not a request: the sentence for a person, the id if the line had one that could be read (a `run` or
+// `cancel` whose second field is a valid id), and which request it was meant to be (`run`, `cancel` or `stop`) when
+// its first field says so and the line is UTF-8 that can be taken apart.
 struct RequestError
 {
     std::optional<std::string> id;
+    std::optional<std::string> request;
     std::string detail;
 };
 

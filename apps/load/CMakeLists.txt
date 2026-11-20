@@ -14,6 +14,7 @@ add_library(adl_load_cli STATIC
     src/json_line.cpp
     src/operation.cpp
     src/options.cpp
+    src/preparer.cpp
     src/record_file.cpp
     src/request.cpp
     src/run.cpp

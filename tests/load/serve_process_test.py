@@ -3,7 +3,7 @@
 platform can be: what standard input does when it is a pipe that stays open, bytes that arrive in UTF-8 and have
 to reach the program as they are, and a process that ends by itself when it is told to stop.
 
-    python3 serve_process_test.py <adl_load program> <work directory>
+    python3 serve_process_test.py <adl_load program> <work directory> <adl_write_payloads program>
 
 Nothing needs a target: an operation is aborted by a cancel before the target has answered anything, and a
 request is refused before it starts. The control port is a free high one, found by binding it and letting it go.
@@ -11,6 +11,7 @@ Exit code 0 when everything held, 1 with a message for each thing that did not."
 
 import json
 import os
+import shutil
 import socket
 import subprocess
 import sys
@@ -18,6 +19,7 @@ import threading
 
 PROGRAM = sys.argv[1]
 WORK = sys.argv[2]
+PAYLOADS = sys.argv[3]
 PROBLEMS = []
 
 
@@ -160,6 +162,33 @@ def test_refusal_and_cancel_with_a_path_in_any_script():
     serve.process.stdin.close()
 
 
+def test_upload_whose_set_is_read_away_from_the_loop_and_cancelled():
+    """An upload's media set is read by a thread of its own and the answer comes back to the loop, on the real
+    program and the real files. A cancel sent at once is taken whether it arrives while the set is read or after."""
+    sets = os.path.join(WORK, "sets")
+    shutil.rmtree(sets, ignore_errors=True)  # adl_write_payloads never overwrites a scenario that has files in it
+    made = subprocess.run([PAYLOADS, "--scenario", "two-member", sets], capture_output=True, timeout=60)
+    check(made.returncode == 0, "adl_write_payloads should write the sample set: %r" % made.stderr)
+    media_set = os.path.join(sets, "two-member")
+    serve = Serve("--local-address", "127.0.0.1", "--control-port", str(free_port()))
+    serve.event()  # started
+    fields = ["run", "set", "upload", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--media-set", media_set,
+              "--all-loads", "--target-port", str(free_port())]
+    serve.send("	".join(fields))
+    serve.send("cancel	set")
+    events = serve.events_until("finished")
+    names = [event["event"] for event in events]
+    check(names and names[0] == "started" and names[-1] == "finished", "the upload's events: %r" % names)
+    check("media_set_checked" in names, "the set was read and checked, away from the loop: %r" % names)
+    check(all(event.get("id") == "set" for event in events), "each event carries the id: %r" % events)
+    check(events[-1]["reason"] == "aborted" and events[-1]["exit_code"] == 1, "a cancel aborts: %r" % events[-1])
+    serve.send("stop")
+    code, rest, err = serve.finish()
+    check(code == 0, "the process ends with code 0, not %r (stderr: %s)" % (code, err))
+    check(rest and rest[-1]["event"] == "stopped" and rest[-1]["operations"] == 1, "stopped: %r" % rest)
+    serve.process.stdin.close()
+
+
 def main():
     os.makedirs(WORK, exist_ok=True)
     test_wrong_usage()
@@ -167,6 +196,7 @@ def main():
     test_stop_with_standard_input_left_open()
     test_end_of_input()
     test_refusal_and_cancel_with_a_path_in_any_script()
+    test_upload_whose_set_is_read_away_from_the_loop_and_cancelled()
     if PROBLEMS:
         return 1
     print("adl_load serve as a process: ok")

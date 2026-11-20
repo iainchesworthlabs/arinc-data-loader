@@ -290,13 +290,13 @@ It opens the control port, writes `started`, and then reads requests from standa
 
 An operation is told from another by the address its datagrams come from, so **one address has one operation at a time**. Several targets on one computer each need an address of their own (`127.0.0.2`, `127.0.0.3`), since a target sends from ports of its own choosing and two on one address collide.
 
-**Requests.** One request is one line of UTF-8 ended by a line feed, and a carriage return before the line feed is accepted. Its fields are separated by one tab character. A field is taken as it is, with no quoting, so a path may have spaces; it cannot hold a tab or the end of a line. The bytes are read as they arrive and no code page touches them. A line has at most 1048576 bytes.
+**Requests.** One request is one line of UTF-8 ended by a line feed, and a carriage return before the line feed is accepted. Its fields are separated by one tab character. A field is taken as it is, with no quoting, so a path may have spaces; it cannot hold a tab or the end of a line. The bytes are read as they arrive and no code page touches them. A line has at most 1048576 bytes. (On Windows standard input is a text stream, so a byte 0x1A, which UTF-8 text never holds, would end the input.)
 
 | Request | Fields | What it does |
 | --- | --- | --- |
 | `run` | `run`, an id, a command and its arguments, one argument in a field | Starts the operation. The command is `information`, `upload` or `download`, with the options of the command line above, but not `--local-address`, `--control-port` or `--json`, which belong to the program, and not `--help` or `--version`. `find` is not a request. |
 | `cancel` | `cancel`, an id | Aborts that operation from this side. It ends with the reason `aborted`. |
-| `stop` | `stop` | No new operation is taken. The ones that are running finish, and the program ends. The end of the input does the same. |
+| `stop` | `stop` | No new operation is taken. The ones that are running finish, and the program ends. The end of the input does the same. After a `stop` a `run` is refused, a `cancel` is still taken (so that a caller that is told to end can end what is running), and a second `stop` changes nothing. |
 
 An id is 1 to 64 of the characters `A` to `Z`, `a` to `z`, `0` to `9`, `.`, `_` and `-`. It is the caller's, and it may be used again once its operation has finished. `--record` works as for one operation, with a file for each. An example, with `→` standing for a tab:
 
@@ -304,15 +304,15 @@ An id is 1 to 64 of the characters `A` to `Z`, `a` to `z`, `0` to `9`, `.`, `_` 
 run→fms-left.1→upload→--target→192.168.10.21→--position→HNPFMS_L→--media-set→E:\sets\FMS STD14→--all-loads→--record→E:\runs\fms-left.1.json
 ```
 
-An upload reads and checks its media set when its request is taken, before anything is written for it, and the other operations wait for that. A large set holds them for as long as it takes to read.
+**Starting an operation does not hold up the ones that are running.** An upload's media set is read and checked by a thread of its own, one request at a time, in the order the requests came, because a set of a gigabyte takes longer to read than a target waits for an answer. Until the set has been read nothing is written for the request's id; the id is in use and its address is taken, and it counts among the operations that run at once. Then its `started` and the rest are written, or, if the choice does not fit the set (a part number it does not hold), the `run` is refused, with the number of the line it was on. A `cancel` for it in that time is taken: the operation starts when its set has been read and at once ends with the reason `aborted`, without the target having been asked anything.
 
 **Events.** Every event has `event` first and `t` second, as above.
 
 - The first is `started`, with `program`, `version`, `events`, `command` (`serve`), `address` (the interface, `0.0.0.0` for every one), `control_port` and `max_operations`. It is written once the port is held, so it means that requests are being taken. The last is `stopped`, with `reason` (`stop`, `end_of_input` or `error`) and `operations`, the count that were started.
 - An event with an `id` belongs to that operation. The events of one id are the events of that command on its own, from `started` to `finished`, each with `id` after `t`. The `exit_code` of a `finished` is the code `adl_load` would have ended with had it run that operation alone. Whole lines are written one at a time and flushed, so events of different operations are never mixed.
-- `request_refused` is a request that was not started. It has `id` (`null` when the line had none that could be read), `line` (the number of the input line, from 1) and `detail`, one sentence. Every `run` has exactly one `finished` or one `request_refused`.
+- `request_refused` is a request that was not done. It has `id` (`null` when the line had none that could be read), `request` (`run`, `cancel` or `stop`, or `null` when the line could not be read that far), `line` (the number of the input line, from 1) and `detail`, one sentence. Every `run` has exactly one `finished`, or one `request_refused` whose `request` is `run`; a refused `cancel` is told apart from it by its `request`.
 
-A request is refused when its line cannot be read, when its arguments are wrong, when its id is in use, when its target's address is in an operation, when `--max-operations` operations are running, and after `stop`. Wrong usage that only shows once a media set has been read (a part number it does not hold) is a refusal too, and nothing of that operation is written. A `cancel` for an id that is not running is refused.
+A line is refused when it cannot be read: it is empty, is not UTF-8, names no request, or has a NUL in it, it has more than 1048576 bytes, or it is the last one and the input ends in the middle of it with no line feed, so that a `run` that was cut off never starts. A `run` is refused when its arguments are wrong, when its id is in use, when its target's address is in an operation, when `--max-operations` operations are running, and after `stop`. Wrong usage that only shows once a media set has been read (a part number it does not hold) is a refusal of the `run`, and nothing of that operation is written. A `cancel` for an id that is not running is refused.
 
 **Exit codes of `serve`:** 0 it stopped as asked, whatever happened to the operations, because each one's outcome is in its `finished`. 2 wrong usage. 5 the control port could not be opened, the requests could not be read, or standard output could not be written. A program that finds no `serve` (an `adl_load` from before it answers `adl_load serve` with code 2) can fall back to one `adl_load` for each operation, and run one at a time for each place a loader listens.
 
@@ -321,6 +321,8 @@ A datagram on the control port from an address that has no operation is dropped,
 | Message | Where | What to do |
 | --- | --- | --- |
 | `adl_load: the loader's port could not be opened (<code>).` | Error output, code 5 | Another program holds the port. Choose another with `--control-port`, or an interface with `--local-address`. No event was written. |
+| `Give --local-address <ipv4> to listen on one interface only.` | Error output, after the one above, when the port is in use | Listening on every interface is refused when anything holds the port on any one of them (on Linux, simulated targets on port 59 on this computer do), and listening on one interface is not. |
+| `adl_load: the media sets could not be prepared (<code>).` | Error output, code 5 | The system could not start the thread that reads media sets. |
 | `adl_load: the requests could not be read (<code>).` | Error output, code 5 | The system could not start the reading of standard input. |
 | `The line is longer than <n> bytes.` | `detail` | The line was skipped. |
 | `The input ended in the middle of a line, which is not a request.` | `detail` | The last line has no line feed, so it was not taken: it may have been cut short. |
@@ -340,7 +342,7 @@ A datagram on the control port from an address that has no operation is dropped,
 | `The target <address> has an operation that has not finished (id <id>).` | `detail` | One address has one operation at a time. |
 | `The program runs <n> operations at once, and that many have not finished.` | `detail` | Wait for one to finish, or start the program with a larger `--max-operations`. |
 | `No operation with this id is running.` | `detail` | A `cancel` for an id that is not running, or has finished. |
-| `The program has been told to stop and takes no more requests.` | `detail` | Every request after `stop` is refused. |
+| `The program has been told to stop and starts no more operations.` | `detail` | A `run` after `stop` is refused. |
 
 The wrong usage that an operation would be refused with on a command line of its own (`--position is missing.`, `--target takes an IPv4 address ...`, and the rest of the table above) is the `detail` of the refusal.
 

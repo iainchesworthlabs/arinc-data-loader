@@ -76,7 +76,9 @@
   is the one command that runs several operations at once: its loop (`serve.cpp`) takes request lines
   from a `LineSource`, the program's standard input read on a thread of its own (`stream_source.cpp`) or a
   test's script, and runs them on the loader core's `OperationPool`, so that one process holds the
-  loader's control port for all of them.
+  loader's control port for all of them. What an upload reads before it can start, its media set, is done
+  by a `Preparer` (`preparer.cpp`) on a thread of its own, so that a large set does not hold up the
+  operations that are running.
 - **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `libs/platform/interfaces/adl/platform/`, with one implementation per platform

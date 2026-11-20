@@ -82,9 +82,15 @@ struct RequestFuzzResult
         const auto request = adl::load::parse_request(text);
         if (!request)
         {
-            result.consistent = result.consistent && !request.error().detail.empty() &&
-                                (!request.error().id || (adl::load::is_valid_id(*request.error().id) &&
-                                                         text.find('\t' + *request.error().id) != std::string::npos));
+            const auto& error = request.error();
+            const bool id_is_in_the_line =
+                !error.id || (adl::load::is_valid_id(*error.id) && text.find('\t' + *error.id) != std::string::npos);
+            const bool request_is_the_first_word =
+                !error.request ||
+                ((*error.request == "run" || *error.request == "cancel" || *error.request == "stop") &&
+                 text.starts_with(*error.request));
+            result.consistent =
+                result.consistent && !error.detail.empty() && id_is_in_the_line && request_is_the_first_word;
             continue;
         }
         ++result.requests;

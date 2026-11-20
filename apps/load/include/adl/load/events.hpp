@@ -94,8 +94,10 @@ public:
     // The three events of `adl_load serve` that belong to no operation. They are written as JSON lines.
     // `address` is the interface the loader listens on, as dotted numbers.
     void serve_started(std::string_view address, std::uint16_t control_port, std::size_t max_operations);
-    // A request that was not started. `id` is the request's, if it had one that could be read.
-    void request_refused(const std::optional<std::string>& id, std::uint64_t line_number, std::string_view detail);
+    // A request that was not done. `id` is the request's, if it had one that could be read, and `request` is
+    // `run`, `cancel` or `stop`, or none when the line could not be read that far. `line_number` counts from 1.
+    void request_refused(const std::optional<std::string>& id, const std::optional<std::string>& request,
+                         std::uint64_t line_number, std::string_view detail);
     // `reason` is `stop`, `end_of_input` or `error`; `operations` how many were started.
     void stopped(std::string_view reason, std::uint64_t operations);
 

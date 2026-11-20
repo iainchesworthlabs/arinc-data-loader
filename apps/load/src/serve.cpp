@@ -3,6 +3,10 @@
 // what happens. Everything here runs on one thread: the requests are read from the source without waiting, the
 // pool is stepped for a short time between them, and an operation's events are written from its completion, from
 // the pool's step. So every event is a whole line written by itself.
+//
+// What an operation needs read before it can start (an upload's media set, which can take longer than a target
+// waits) is not done here: it is handed to a Preparer, which runs it on a thread of its own, and the operation goes
+// on when the answer comes back. Until then nothing is written for its id, which is in use, and its address is taken.
 
 #include "adl/load/serve.hpp"
 
@@ -30,14 +34,16 @@ namespace
 // How long the loop waits on the network between looks at the requests. A request is taken at most this late.
 constexpr std::chrono::milliseconds pass_length{20};
 
-// One operation that was started and has not finished: its options, the writer that puts its id on each event,
-// and the steps of the operation. Not moved once made, since the parts point at one another.
+// One operation that was taken and has not finished: its options, the writer that puts its id on each event, and the
+// steps of the operation. Not moved once made, since the parts point at one another. It is shared with the
+// preparation, which runs on another thread and may outlast the loop that was told to give up (the output could not
+// be written), so it lives as long as the work that uses it.
 struct Served
 {
     Served(std::string operation_id, Options operation_options, adl::platform::Host& host, std::ostream& out,
-           adl::platform::Instant start)
-        : id(std::move(operation_id)), options(std::move(operation_options)), events(out, true, host.clock(), start),
-          command(host, options, events)
+           adl::platform::Instant start, std::uint64_t input_line)
+        : id(std::move(operation_id)), line(input_line), options(std::move(operation_options)),
+          events(out, true, host.clock(), start), command(host, options, events)
     {
         events.set_id(id);
     }
@@ -45,17 +51,22 @@ struct Served
     Served& operator=(const Served&) = delete;
 
     std::string id;
+    std::uint64_t line; // of the request that asked for it
     Options options;
     EventWriter events;
     OperationCommand command;
+    // Its media set is being read, away from the loop: nothing has been written for it. Only the loop changes these,
+    // and the preparation touches `command` and nothing else.
+    bool preparing = false;
+    bool cancelled = false; // a `cancel` came while it was being prepared
 };
 
 class Server
 {
 public:
-    Server(adl::platform::Host& host, const Options& options, LineSource& input, std::ostream& out, std::ostream& err,
-           adl::platform::Instant start)
-        : host_(host), options_(options), input_(input), out_(out), err_(err), start_(start),
+    Server(adl::platform::Host& host, const Options& options, LineSource& input, Preparer& preparer, std::ostream& out,
+           std::ostream& err, adl::platform::Instant start)
+        : host_(host), options_(options), input_(input), preparer_(preparer), out_(out), err_(err), start_(start),
           events_(out, true, host.clock(), start), pool_(host, pool_config(options))
     {
     }
@@ -65,7 +76,20 @@ public:
         if (const auto opened = pool_.open(); !opened)
         {
             err_ << "adl_load: the loader's port could not be opened (" << adl::platform::to_string(opened.error().code)
-                 << ").\n";
+                 << ").";
+            if (opened.error().code == adl::platform::ErrorCode::address_in_use)
+            {
+                // Listening on every interface is refused when anything has the port on one of them, simulated targets
+                // on port 59 included, and listening on one interface is not.
+                err_ << " Give --local-address <ipv4> to listen on one interface only.";
+            }
+            err_ << '\n';
+            return exit_local_error;
+        }
+        if (const auto preparing = preparer_.start(); !preparing)
+        {
+            err_ << "adl_load: the media sets could not be prepared ("
+                 << adl::platform::to_string(preparing.error().code) << ").\n";
             return exit_local_error;
         }
         if (const auto reading = input_.start(); !reading)
@@ -81,6 +105,7 @@ public:
         for (;;)
         {
             take_requests();
+            take_prepared();
             if (events_.failed())
             {
                 return exit_local_error;
@@ -129,46 +154,52 @@ private:
         }
     }
 
-    void refuse(const std::optional<std::string>& id, std::string_view detail)
+    // A request of the line being handled that is not done.
+    void refuse(const std::optional<std::string>& id, const std::optional<std::string>& request,
+                std::string_view detail)
     {
-        events_.request_refused(id, line_number_, detail);
+        events_.request_refused(id, request, line_number_, detail);
     }
 
     void handle(const InputLine& line)
     {
         if (line.end == LineEnd::too_long)
         {
-            refuse(std::nullopt, "The line is longer than " + std::to_string(max_request_line_bytes) + " bytes.");
+            refuse(std::nullopt, std::nullopt,
+                   "The line is longer than " + std::to_string(max_request_line_bytes) + " bytes.");
             return;
         }
         if (line.end == LineEnd::unfinished)
         {
-            refuse(std::nullopt, "The input ended in the middle of a line, which is not a request.");
+            refuse(std::nullopt, std::nullopt, "The input ended in the middle of a line, which is not a request.");
             return;
         }
         auto request = parse_request(line.text);
         if (!request)
         {
-            refuse(request.error().id, request.error().detail);
-            return;
-        }
-        const std::optional<std::string> id =
-            request->kind == RequestKind::stop ? std::nullopt : std::optional<std::string>{request->id};
-        if (stopping_)
-        {
-            refuse(id, "The program has been told to stop and takes no more requests.");
+            refuse(request.error().id, request.error().request, request.error().detail);
             return;
         }
         switch (request->kind)
         {
         case RequestKind::stop:
-            stopping_ = true;
-            reason_ = "stop";
+            // A second stop changes nothing.
+            if (!stopping_)
+            {
+                stopping_ = true;
+                reason_ = "stop";
+            }
             return;
         case RequestKind::cancel:
+            // Still taken after a stop: a caller that is told to end has to be able to end what is running.
             cancel(*request);
             return;
         case RequestKind::run:
+            if (stopping_)
+            {
+                refuse(request->id, "run", "The program has been told to stop and starts no more operations.");
+                return;
+            }
             run_request(std::move(*request));
             return;
         }
@@ -179,7 +210,14 @@ private:
         const auto found = served_.find(request.id);
         if (found == served_.end())
         {
-            refuse(request.id, "No operation with this id is running.");
+            refuse(request.id, "cancel", "No operation with this id is running.");
+            return;
+        }
+        if (found->second->preparing)
+        {
+            // Its set is still being read. The operation is started when it has been, and ends as soon as it has, with
+            // the reason a cancel gives, so that the caller meets the same events as for a cancel a moment later.
+            found->second->cancelled = true;
             return;
         }
         // An operation that could not be started is already ending and has nothing to abort.
@@ -191,7 +229,7 @@ private:
         const std::string id = request.id;
         if (served_.contains(id))
         {
-            refuse(id, "An operation with this id has not finished.");
+            refuse(id, "run", "An operation with this id has not finished.");
             return;
         }
         const adl::arinc615a::Address address{request.options.target};
@@ -199,35 +237,101 @@ private:
         {
             if (adl::arinc615a::Address{other->options.target} == address)
             {
-                refuse(id, "The target " + adl::loader_core::format_ipv4(request.options.target) +
-                               " has an operation that has not finished (id " + other_id + ").");
+                refuse(id, "run",
+                       "The target " + adl::loader_core::format_ipv4(request.options.target) +
+                           " has an operation that has not finished (id " + other_id + ").");
                 return;
             }
         }
         if (served_.size() >= options_.max_operations)
         {
-            refuse(id, "The program runs " + std::to_string(options_.max_operations) +
-                           " operations at once, and that many have not finished.");
+            refuse(id, "run",
+                   "The program runs " + std::to_string(options_.max_operations) +
+                       " operations at once, and that many have not finished.");
             return;
         }
 
-        auto served = std::make_unique<Served>(id, std::move(request.options), host_, out_, start_);
-        // Wrong usage that only shows once the media set is read is told as a refusal, as a command line tells it
-        // as wrong usage: nothing of the operation has been written.
-        if (const std::optional<std::string> problem = served->command.prepare())
+        const bool reads_a_set = request.options.command == Command::upload;
+        auto served = std::make_shared<Served>(id, std::move(request.options), host_, out_, start_, line_number_);
+        served_.emplace(id, served);
+        if (reads_a_set)
         {
-            refuse(id, *problem);
+            // The media set is read away from here, one request at a time, and the answer comes back by
+            // take_prepared(). Nothing is written for the id until then, and it and its address are in use.
+            served->preparing = true;
+            const std::uint64_t ticket = ++last_ticket_;
+            tickets_.emplace(ticket, id);
+            preparer_.submit(ticket, [served] { return served->command.prepare(); });
             return;
         }
+        // What can be wrong with the choice is found before anything is written: a refusal, as a command line tells it
+        // as wrong usage.
+        if (const std::optional<std::string> problem = served->command.prepare())
+        {
+            refuse(id, "run", *problem);
+            served_.erase(id);
+            return;
+        }
+        launch(served);
+    }
+
+    // The preparations that have ended: each operation goes on, or is refused for what the preparation found.
+    void take_prepared()
+    {
+        std::vector<Preparation> done;
+        preparer_.poll(host_.clock().now(), done);
+        for (Preparation& preparation : done)
+        {
+            const auto ticket = tickets_.find(preparation.ticket);
+            if (ticket == tickets_.end())
+            {
+                continue;
+            }
+            const std::string id = ticket->second;
+            tickets_.erase(ticket);
+            const auto found = served_.find(id);
+            if (found == served_.end())
+            {
+                continue;
+            }
+            const std::shared_ptr<Served> served = found->second;
+            served->preparing = false;
+            if (preparation.problem)
+            {
+                // Wrong usage that only the media set shows (a part number it does not hold): the run is refused, with
+                // the number of the line it was on, and nothing of it has been written.
+                events_.request_refused(id, "run", served->line, *preparation.problem);
+                served_.erase(id);
+                continue;
+            }
+            launch(served);
+        }
+    }
+
+    // Writes `started` and what follows it until the engine is needed, and gives the operation to the pool.
+    void launch(const std::shared_ptr<Served>& served)
+    {
         ++started_;
         if (served->command.begin())
         {
-            return; // it ended there (the set could not be read, the folder could not be made), and has said so
+            // It ended there (the set could not be read, the folder could not be made), and has said so.
+            served_.erase(served->id);
+            return;
         }
         served->command.announce();
+        if (served->cancelled)
+        {
+            // Cancelled while its set was being read: it ends as an operation aborted at once would.
+            adl::loader_core::OperationResult aborted;
+            aborted.reason = adl::loader_core::Reason::aborted;
+            aborted.outcome.code = adl::arinc615a::OutcomeCode::aborted_by_operator;
+            static_cast<void>(served->command.end(aborted));
+            served_.erase(served->id);
+            return;
+        }
 
         adl::loader_core::PoolTarget target;
-        target.address = address;
+        target.address = adl::arinc615a::Address{served->options.target};
         target.thw_id_pos = served->options.position;
         target.port = served->options.target_port;
         Served* const raw = served.get();
@@ -236,16 +340,16 @@ private:
             static_cast<void>(raw->command.end(result));
             finished_.push_back(raw->id);
         };
-        served_.emplace(id, std::move(served));
-        if (const auto started = pool_.start(target, raw->command.operation(), raw->command.services(), completion);
+        if (const auto started =
+                pool_.start(target, served->command.operation(), served->command.services(), completion);
             !started)
         {
-            // The checks above leave nothing for the pool to refuse. If it does, the operation ends as one that
-            // could not run, which is what it is.
+            // The checks made when the request came leave nothing for the pool to refuse. If it does, the operation
+            // ends as one that could not run, which is what it is.
             adl::loader_core::OperationResult none;
             none.not_run = adl::arinc615a::RunError{};
-            static_cast<void>(raw->command.end(none));
-            served_.erase(id);
+            static_cast<void>(served->command.end(none));
+            served_.erase(served->id);
         }
     }
 
@@ -262,13 +366,16 @@ private:
     adl::platform::Host& host_;
     const Options& options_;
     LineSource& input_;
+    Preparer& preparer_;
     std::ostream& out_;
     std::ostream& err_;
     adl::platform::Instant start_;
     EventWriter events_;
     adl::loader_core::OperationPool pool_;
-    std::map<std::string, std::unique_ptr<Served>> served_;
+    std::map<std::string, std::shared_ptr<Served>> served_;
+    std::map<std::uint64_t, std::string> tickets_; // the preparations that have not ended, by ticket
     std::vector<std::string> finished_;
+    std::uint64_t last_ticket_ = 0;
     std::uint64_t line_number_ = 0;
     std::uint64_t started_ = 0;
     bool stopping_ = false;
@@ -277,10 +384,10 @@ private:
 
 } // namespace
 
-int run_serve(adl::platform::Host& host, const Options& options, LineSource& input, std::ostream& out,
-              std::ostream& err, adl::platform::Instant start)
+int run_serve(adl::platform::Host& host, const Options& options, LineSource& input, Preparer& preparer,
+              std::ostream& out, std::ostream& err, adl::platform::Instant start)
 {
-    return Server(host, options, input, out, err, start).run();
+    return Server(host, options, input, preparer, out, err, start).run();
 }
 
 } // namespace adl::load

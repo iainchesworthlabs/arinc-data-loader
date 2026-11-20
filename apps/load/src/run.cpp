@@ -42,7 +42,8 @@ int run(adl::platform::Host& host, std::span<const std::string_view> arguments, 
     if (options.command == Command::serve)
     {
         StreamLineSource requests(host, in);
-        return run_serve(host, options, requests, out, err, start);
+        ThreadPreparer preparer(host);
+        return run_serve(host, options, requests, preparer, out, err, start);
     }
     EventWriter events(out, options.json, host.clock(), start);
     if (options.command == Command::find)
