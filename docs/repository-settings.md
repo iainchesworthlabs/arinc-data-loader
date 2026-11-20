@@ -9,7 +9,7 @@ in the settings pages, so the files are the record.
 
 | File | Holds |
 | --- | --- |
-| `.github/rulesets/*.json` | The five rulesets below |
+| `.github/rulesets/*.json` | The six rulesets below |
 | `.github/labels.json` | The label set |
 | `.github/repo-settings.json` | This repository's description, homepage and topics. Everything else comes from the script's defaults: squash merge only, auto-merge on, branch deleted on merge, read-only workflow token, SHA pinning required, secret scanning with push protection, Dependabot security updates, private vulnerability reporting, Pages built by Actions, and the `release` environment with the maintainer as reviewer |
 
@@ -19,6 +19,10 @@ in the settings pages, so the files are the record.
 merge queue. `main` holds published releases: the release workflow moves it to the tagged commit with
 the release bot, so `main` is always an ancestor of `develop`. Nobody opens a pull request into `main`.
 
+`site` is the third long-lived branch. It holds the commit of `develop` that the documentation site was last
+built from, and the release bot moves it when the maintainer runs `publish-site.yml`
+([Publishing](ci.md#publishing)). It is always an ancestor of `develop` too, and nobody opens a pull request into it.
+
 ## The rulesets
 
 | Ruleset | Does |
@@ -26,8 +30,9 @@ the release bot, so `main` is always an ancestor of `develop`. Nobody opens a pu
 | `develop-protection` | No deletion, no force push, linear history, a pull request that is squash-merged with its conversations resolved, and the required checks below. No bypass |
 | `merge-queue-develop` | Merge queue: squash, `ALLGREEN`, up to 4 builds at once |
 | `main-release-only` | Only the release bot can move `main`; no deletion, no force push |
+| `site-publish-only` | Only the release bot can create or move `site`; no deletion, no force push. The company site's deploy role trusts a push to this branch, so it is the one branch that can publish the documentation |
 | `tags` | A `v*` tag cannot be moved or deleted; it is created by the maintainer or the release bot |
-| `branch-names` | A branch may be created only as `develop`, `main`, `feature/*`, `bugfix/*`, `docs/*`, `chore/*`, `agent/*`, `release/*`, `dependabot/*` or the queue's `gh-readonly-queue/*` |
+| `branch-names` | A branch may be created only as `develop`, `main`, `site`, `feature/*`, `bugfix/*`, `docs/*`, `chore/*`, `agent/*`, `release/*`, `dependabot/*` or the queue's `gh-readonly-queue/*` |
 
 The required checks are `CI Status` and `Scan dependency diff`, both defined in `ci.yml`. A check from a
 called workflow is reported as `<caller job> / <called job>`, so the aggregator job `CI Status` is what the

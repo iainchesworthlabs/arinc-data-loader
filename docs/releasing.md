@@ -110,16 +110,30 @@ The workflow stops, and says why, when:
 4. **Approve.** After the build the run waits at *Sign and publish* for your approval (the `release`
    environment). The job signs, checks the signatures against `docs/signing-key.asc`, runs
    `tools/release/verify_release.sh` over the signed files and drafts the release with the notes from
-   `CHANGELOG.md`. For a final release it then moves `main` to the tag, which publishes the
-   documentation site ([Documentation site](ci.md#documentation-site)): the site is the documentation of
-   the latest release, so build it (`mkdocs serve`) and read the pages that changed before you approve.
+   `CHANGELOG.md`. For a final release it then moves `main` to the tag, which publishes the pages that
+   forward the old documentation addresses ([Documentation site](ci.md#documentation-site)). It does not
+   publish the documentation site: that is a step of its own, below.
 5. **Publish the draft** on the Releases page after reading it.
+6. **Publish the documentation**, if the release changed it ([below](#publish-the-documentation)).
 
 A hotfix is the same, with its own fragment, tagged from `develop`.
 
 Abandoning a release after the tag was pushed and before it was published: delete the draft, delete the
 tag locally and on GitHub, fix, and tag again. Once a release is published, it is not changed: a new
 patch version is.
+
+### Publish the documentation
+
+The documentation site, <https://iainchesworthlabs.com/adl/>, is published from the branch `site`, not from a release, so a change to the
+pages can go up on its own and a release does not carry it. To publish what `develop` holds:
+
+```sh
+gh workflow run publish-site.yml --ref develop
+```
+
+The workflow moves `site` to the tip of `develop`, and the push starts `docs.yml`, which builds and deploys it. Build the site first
+(`mkdocs serve`) and read the pages that changed. After a release, publish again, so that the pages describe the version that is out.
+([Publishing](ci.md#publishing) has the details and the one-off setup.)
 
 ## Setup
 
@@ -134,8 +148,9 @@ belong to this repository:
 | Secrets `DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET`, `DOCS_DISTRIBUTION_ID` | Settings, Secrets and variables, Actions, Secrets | The values the company site's deploy gives for this repository ([CI](ci.md#publishing)). Until they are set, `docs.yml` skips the deploy and the previews with a warning |
 
 The secrets are the organisation's `REPO_GPG_PRIVATE_KEY` and `REPO_GPG_PASSPHRASE` (the signing key) and
-`RELEASE_BOT_APP_ID` and `RELEASE_BOT_PRIVATE_KEY` (the bot that moves `main`). Only the shared publish
-job reads them, in the `release` environment.
+`RELEASE_BOT_APP_ID` and `RELEASE_BOT_PRIVATE_KEY` (the bot that moves `main` and `site`). The shared
+publish job reads them, in the `release` environment. `publish-site.yml` reads the bot's two, with no
+environment, to move `site`, and only on `develop`.
 
 ### The signing key
 
