@@ -37,6 +37,8 @@ add_custom_target(adl_ui_test_qml ALL
 
 add_executable(adl_ui_tests
     main.cpp
+    licence_fixtures.hpp
+    licence_rig.hpp
     ui_harness.cpp
     ui_harness.hpp
     ui_setup.hpp)
@@ -44,6 +46,7 @@ add_executable(adl_ui_tests
 target_include_directories(adl_ui_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${PROJECT_SOURCE_DIR}/tests/support"
+    "${PROJECT_SOURCE_DIR}/tests/licence"
     "${PROJECT_SOURCE_DIR}/apps/app/tests")
 
 target_compile_definitions(adl_ui_tests PRIVATE
@@ -58,6 +61,7 @@ target_link_libraries(adl_ui_tests
         adl::app_core
         adl_sim_target
         adl::arinc665
+        adl::licence_test_keys
         adl::media_tree
         adl::samples
         Qt6::Qml
@@ -81,7 +85,7 @@ add_dependencies(adl_ui_tests adl_app_tests)
 # holding the run. The offscreen platform plugin is not one the deployment step copies beside the
 # program, so it is looked for in the Qt kit's own plugin directory.
 foreach(test_file tst_main_window tst_dialogs tst_first_run tst_window_close tst_right_to_left
-                 tst_keyboard tst_navigation tst_accessibility tst_layout tst_tones)
+                 tst_keyboard tst_navigation tst_accessibility tst_layout tst_tones tst_licence)
     add_test(NAME ui.${test_file}
         COMMAND adl_ui_tests -input "${CMAKE_CURRENT_SOURCE_DIR}/qml/${test_file}.qml")
     set_tests_properties(ui.${test_file} PROPERTIES
@@ -112,6 +116,36 @@ adl_deploy_sanitizer_runtime(adl_window_state_tests)
 add_dependencies(adl_window_state_tests adl_ui_tests)
 add_test(NAME ui.window_state COMMAND adl_window_state_tests)
 set_tests_properties(ui.window_state PROPERTIES
+    TIMEOUT 120
+    LABELS "ui;unit"
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")
+
+# What the licence model (libs/ui/licence_model.cpp) says for every state a licence can be in, and what
+# importing and removing a licence file do. QtTest, offscreen, with the licence files held in memory,
+# the published test key of RFC 8032 as the only key, a time of the test's own, and the settings in a
+# scratch directory.
+add_executable(adl_licence_model_tests
+    licence_model_test.cpp)
+target_include_directories(adl_licence_model_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${PROJECT_SOURCE_DIR}/tests/support"
+    "${PROJECT_SOURCE_DIR}/tests/licence")
+adl_add_ui_support(adl_licence_model_tests)
+target_link_libraries(adl_licence_model_tests
+    PRIVATE
+        adl::licence_test_keys
+        Qt6::Gui
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::Test
+        adl::warnings
+        adl::sanitizers
+        adl::coverage)
+adl_platform_deploy_qt_runtime(adl_licence_model_tests "")
+adl_deploy_sanitizer_runtime(adl_licence_model_tests)
+add_dependencies(adl_licence_model_tests adl_ui_tests)
+add_test(NAME ui.licence_model COMMAND adl_licence_model_tests)
+set_tests_properties(ui.licence_model PROPERTIES
     TIMEOUT 120
     LABELS "ui;unit"
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_PLUGIN_PATH=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}")

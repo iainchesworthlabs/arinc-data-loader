@@ -9,7 +9,10 @@ shows how the workbench is laid out; the tasks have their own pages.
 
 At the top: the **ADL** mark and the name, a **readiness chip** (**SETUP** on the first-run screen,
 **NOT READY**, **READY**, **RUNNING** while a job runs, then **COMPLETE** or **FAILED** until the next one; the status bar at the bottom says the same), and the buttons
-[Preferences](preferences.md) and **About**.
+[Preferences](preferences.md) and **About**. Under the header a [licence notice](licence.md#the-notice-under-the-header) shows when a licence
+ends soon, is in its grace period or has ended, or when the date of the computer looks wrong; it is never a dialog. At the
+right of the status bar the **edition chip** says which edition this is (**Community**, **Pro** or **Enterprise**); pressing
+it opens the [Licence window](licence.md).
 
 ## The rail (left): what you are working with
 

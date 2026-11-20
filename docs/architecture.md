@@ -100,10 +100,12 @@
   store: the licence files of a user's folder and of a folder an administrator keeps (up to 64 of each, in
   name order, the best one wins), importing a file (never replacing one), removing one from the user's
   folder, the signed revocation lists found beside the licences, and the clock file. It is on a desktop only
-  and is not part of the installed `adl` package. No program links it yet, and nothing a program does
-  depends on a licence. Signing is a
-  separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the published test key
-  (`adl_licence_test_keys`); no program links either. The library takes no product name except in
+  and is not part of the installed `adl` package. The three Qt applications link it, through the licence
+  model of `libs/ui` (`adl::ui::LicenceModel`, which words the licence for the windows and keeps the
+  Licence dialog, the notice, the edition chip and the Support dialog current); `adl_write_payloads` does
+  not. Nothing a program does depends on a licence: the windows show what it says and switch nothing off.
+  Signing is a separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the
+  published test key (`adl_licence_test_keys`); no program links either. The library takes no product name except in
   `product.hpp`, `trusted_keys.cpp` and `revocations_release.cpp`, so that it can move into a repository
   that more than one product shares.
 - **`libs/licence_platform`** is the part of the licence work that is this product's: the store's `Files`
@@ -111,7 +113,8 @@
   and its clock file in (below the platform's user and machine folders, or below `ADL_SETTINGS_DIR`, which a
   program passes in, so that a test never reads a real licence). It is under the GPL alone, where `libs/licence`
   is also offered under the BSD 2-Clause licence ([licensing](licensing.md)), because it uses `adl::platform`.
-  It is on a desktop only, is not part of the installed `adl` package, and no program links it yet.
+  It is on a desktop only, is not part of the installed `adl` package, and the three Qt applications link it
+  (through the licence model of `libs/ui`).
 - **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock

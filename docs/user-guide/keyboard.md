@@ -31,6 +31,9 @@ that is untested).
 - In a number field (a port, a time, a count) type the number, or use the **up** and **down**
   arrow keys, or the **−** and **+** buttons.
 
+The **edition chip** at the right of the status bar is a button: Tab reaches it, and Enter or Space opens the
+[Licence window](licence.md).
+
 ## Dialogs
 
 A dialog (Preferences, the properties pages, About, Licences, the question and error dialogs)

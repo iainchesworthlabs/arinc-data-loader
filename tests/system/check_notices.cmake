@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # The notices the build places beside the executables are the ones About > Licences shows (they
 # are embedded from the same file): check that the file is there, names what the build ships, and
-# carries the text of the terms - the LGPL for Qt, the OFL for the typeface - and no placeholder.
+# carries the text of the terms - the LGPL for Qt, the OFL for the typeface, the BSD licence and CC0 for
+# Monocypher, which checks a licence file - and no placeholder.
 #
 #   cmake -DBIN_DIR=<bin> -DQT_VERSION=<x.y.z> [-DEXPECTED="<text>|<text>"] -P check_notices.cmake
 #
@@ -28,6 +29,8 @@ set(_expected
     "SIL OPEN FONT LICENSE"
     "Archivo"
     "Noto Sans Hebrew"
+    "Monocypher"
+    "BSD 2-Clause"
     "version 3 or later"
     "Aeronautical Radio, Inc.")
 if(EXPECTED)
