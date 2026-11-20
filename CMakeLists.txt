@@ -145,6 +145,9 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(libs/licence_platform)
     # The owner's licence tool: built with the other tools, never installed (tools/licence/CMakeLists.txt).
     add_subdirectory(tools/licence)
+    # What the scenario files of the mock target and of the loader have in common: the random numbers and the
+    # shared reading of the file. It reads JSON with the licence library, so it is a desktop library too.
+    add_subdirectory(libs/scenario_base)
 endif()
 
 # The mock target's logic without a window and without Qt: its 615A engine and the link that runs

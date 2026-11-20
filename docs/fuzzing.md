@@ -3,7 +3,7 @@
 *For developers. What CI runs is [CI](ci.md); the tests that hold the decoders down by hand are in [Testing](testing.md).*
 
 Everything that reads bytes from outside has a [libFuzzer](https://llvm.org/docs/LibFuzzer.html)
-harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, a licence file,
+harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, a licence file, a scenario file,
 the text of a target's address, and the command line of a program (the platform layer's split of it and
 its text conversions). A
 decoder returns an error for a bad input and never crashes; the fuzzers are there to find the input for
@@ -17,6 +17,7 @@ which that is not true.
 | `libs/arinc615a/fuzz` | `tftp_packet` (the datagrams of the TFTP dialogue, with the transfer options of a request or an option acknowledgement), `find` (a FIND packet), and one for each protocol file: `initialization_file`, `configuration_list`, `configuration_status`, `upload_request`, `upload_status`, `download_request`, `download_status`, `download_list`, `download_answer`. |
 | `tools/licence/fuzz` | `owner`: what the owner's tool reads that is not a licence file ([the tool](licence-owner-tool.md)): a public key file (what is accepted is what the writer writes, and reads back as the same key), the words of a command line, a UTF-16 command line, a licence number and a key id. The seeds are written by `tools/fuzz/make_seeds.py`, as they have no golden data. |
 | `libs/licence/fuzz` | `licence`: the signed envelope, the strict JSON reader, the licence payload, a revocation list, the clock file the store keeps and the dates, all from one input. What a reader accepts is written back and read again, and has to come out the same. The seeds are licence files and payloads signed with the published test key, and two clock files. |
+| `libs/scenario_base/fuzz` | `envelope`: the input is a scenario file, read as the mock target's and as the loader's. It checks that a file that is refused says why in one line, and that one that is read keeps every number inside its limit, the steps numbered from 1, a seed for every step that draws, and nothing but the keys the kind named. The seeds are written by `tools/fuzz/make_seeds.py`, as they have no golden data, and the `scenario.base` test replays them under the ordinary compilers too. |
 
 A harness is in `libs/<lib>/fuzz` or, for a program of the repository's tools, in `tools/<tool>/fuzz`. Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
 `python3 tools/fuzz/make_seeds.py` from the golden data of the tests (`tests/golden`), and a directory of
