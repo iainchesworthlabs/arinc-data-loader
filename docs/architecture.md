@@ -91,6 +91,16 @@
   It also has a `FileSource` and a `FileSink` over a directory of the platform's files. That is what
   makes the engine portable to an RTOS (a port replaces the runner) and testable without a network (the
   tests replace the platform with the fake and the target with a simulated one).
+- **`libs/licence`** reads and judges a licence file: the signed envelope (Ed25519, by Monocypher in
+  `third_party/monocypher`), the payload, the state a licence is in (none, valid, expiring, grace, expired,
+  not yet valid, clock suspect or invalid), what it grants, the clock check and the revocation list. It is
+  GUI-free and platform-free: it reads no file and no clock and does not ask the computer's name, so the
+  caller passes them in and every state is tested. It is on a desktop only and is not part of the installed
+  `adl` package. No program links it yet, and nothing a program does depends on a licence. Signing is a
+  separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the published test key
+  (`adl_licence_test_keys`); no program links either. The library takes no product name except in
+  `product.hpp`, `trusted_keys.cpp` and `revocations_release.cpp`, so that it can move into a repository
+  that more than one product shares.
 - **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock
@@ -129,6 +139,7 @@ route to remove it.
 | `libs/arinc615a` | `adl_arinc615a` | `adl::arinc615a` | `adl::arinc615a` | `adl/arinc615a/*.hpp` |
 | `libs/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
 | `libs/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
+| `libs/licence` | `adl_licence` (with `adl_licence_sign` and `adl_licence_test_keys`) | `adl::licence` (and `adl::licence_sign`, `adl::licence_test_keys`) | `adl::licence` | `adl/licence/*.hpp` |
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
 | `libs/mock_target_core` | `adl_mock_target_core` | `adl::mock_target_core` | `adl::mock` | `adl/mock/*.hpp` |

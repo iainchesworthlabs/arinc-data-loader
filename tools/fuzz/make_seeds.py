@@ -5,8 +5,8 @@
     python3 tools/fuzz/make_seeds.py
 
 The golden headers (tests/golden/golden_payloads.hpp for ARINC 665, tests/golden/golden_615a.hpp for
-ARINC 615A) hold the hexadecimal of valid files and packets that were written independently of the
-library. Each becomes one binary file under libs/<lib>/fuzz/corpus/<target>/, so the fuzzers start from
+ARINC 615A, tests/golden/golden_licence.hpp for licence files) hold the hexadecimal of valid files and
+packets that were written independently of the library. Each becomes one binary file under libs/<lib>/fuzz/corpus/<target>/, so the fuzzers start from
 inputs that get past the first checks. Run it again after the golden data changes; the files it writes
 are committed. The harness of libs/loader_core reads text and not a file, so its seeds are written
 out below, and so are the command lines that seed libs/platform/fuzz.
@@ -56,6 +56,11 @@ SEEDS_IPV4 = {
     "space-after": "10.0.0.2 ",
     "not-a-number": "a.b.c.d",
 }
+
+# Licence files, a revocation list and the payloads behind the signature all go to the one harness.
+SEEDS_LICENCE = [
+    (r"(licence|revocations)_\w+_hex", "licence"),
+]
 
 
 # Command lines for libs/platform/fuzz (target command_line), which reads its input as UTF-16, low byte first:
@@ -118,6 +123,7 @@ def main() -> int:
     total = write(ROOT / "tests/golden/golden_payloads.hpp", "arinc665", SEEDS_665)
     total += write(ROOT / "tests/golden/golden_615a.hpp", "arinc615a", SEEDS_615A)
     total += write_text("loader_core", "ipv4_address", SEEDS_IPV4)
+    total += write(ROOT / "tests/golden/golden_licence.hpp", "licence", SEEDS_LICENCE)
     total += write_command_lines()
     print(f"{total} seed file(s) written")
     return 0

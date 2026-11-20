@@ -20,3 +20,37 @@ path = ["libs/ui/fonts/NotoSansHebrew-*.ttf", "libs/ui/fonts/NotoSansHebrew-OFL.
 precedence = "override"
 SPDX-FileCopyrightText = "2022 The Noto Project Authors (https://github.com/notofonts/hebrew)"
 SPDX-License-Identifier = "OFL-1.1"
+
+# Test vectors of Project Wycheproof (github.com/C2SP/wycheproof), unchanged. Test data only.
+[[annotations]]
+path = "tests/licence/data/wycheproof/**"
+precedence = "override"
+SPDX-FileCopyrightText = "Google LLC and the Wycheproof contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Monocypher is vendored unchanged (third_party/monocypher/README.md) and keeps its own terms, which are not
+# the project's: the four source files and the licence text that came with them are BSD-2-Clause or CC0-1.0
+# and nothing else. (The source files carry that line; the override keeps the catch-all above from adding
+# the project's licence to a report on them.)
+[[annotations]]
+path = [
+    "third_party/monocypher/LICENCE.md",
+    "third_party/monocypher/monocypher.c",
+    "third_party/monocypher/monocypher.h",
+    "third_party/monocypher/monocypher-ed25519.c",
+    "third_party/monocypher/monocypher-ed25519.h",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Loup Vaillant, Michael Savage, Fabio Scotoni"
+SPDX-License-Identifier = "BSD-2-Clause OR CC0-1.0"
+
+# The licence library (libs/licence, with its tests, its fuzz harness and its golden data) is offered under the
+# GPL or the BSD 2-Clause licence, at the user's choice: each of its source files says so in its own SPDX line
+# (docs/licensing.md). The seeds of the fuzz harness are binary files, which cannot carry a line, and the note
+# on the test data is a plain text file, so they take the same terms here. The Wycheproof vectors
+# (tests/licence/data/wycheproof) are Apache-2.0, above, and are not offered under either; Monocypher is above.
+[[annotations]]
+path = ["libs/licence/fuzz/corpus/**", "libs/licence/fuzz/regressions/**", "tests/licence/data/README.md"]
+precedence = "override"
+SPDX-FileCopyrightText = "Iain Chesworth Labs contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later OR BSD-2-Clause"

@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Monocypher is not ours and is kept byte for byte as released (README.md), so it is not formatted.
+DisableFormat: true
+SortIncludes: Never

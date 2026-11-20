@@ -1,0 +1,8 @@
+Monocypher 4.0.2
+----------------
+
+The check of a licence file is an Ed25519 signature check, and it is done by Monocypher 4.0.2, by
+Loup Vaillant and contributors, unmodified. It is offered under either of two licences, the 2-clause
+BSD licence or CC0 1.0, whichever you choose. Both are reproduced below as they ship with it.
+
+{{FILE:MONOCYPHER}}
