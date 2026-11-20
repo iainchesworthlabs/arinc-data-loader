@@ -37,10 +37,37 @@ target_link_libraries(adl_load_cli
         adl::sanitizers
         adl::coverage)
 
+# The licence the record says the operation ran under: read from this computer's licence files on a desktop, where the
+# licence libraries are built, and nothing on the other platforms (a record then says null). main asks for it and
+# adl_load_cli knows only the interface (adl/load/licence.hpp), so that the library and its tests build everywhere.
+if(ADL_PLATFORM_DESKTOP)
+    add_library(adl_load_licence STATIC
+        licence/licence_files.cpp
+        licence/system_licence.cpp)
+    target_link_libraries(adl_load_licence
+        PUBLIC
+            adl_load_cli
+            adl::licence
+            adl::licence_platform
+        PRIVATE
+            adl::warnings
+            adl::sanitizers
+            adl::coverage)
+else()
+    add_library(adl_load_licence STATIC licence/no_system_licence.cpp)
+    target_link_libraries(adl_load_licence
+        PUBLIC
+            adl_load_cli
+        PRIVATE
+            adl::warnings
+            adl::sanitizers
+            adl::coverage)
+endif()
+
 add_executable(adl_load main.cpp)
 target_link_libraries(adl_load
     PRIVATE
-        adl_load_cli
+        adl_load_licence
         adl::warnings
         adl::sanitizers
         adl::coverage)

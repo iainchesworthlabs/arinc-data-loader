@@ -6,9 +6,19 @@
 #
 # Not part of the installed adl package: nothing outside this repository builds on it.
 
+# The part that differs between systems: os/<platform>.cmake names the source that reads an environment
+# variable, and CMake picks it by the platform's name, as libs/platform does. A platform with no file there
+# gets the one that reads the environment as bytes.
+set(ADL_LICENCE_PLATFORM_ENVIRONMENT_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/os/posix/environment.cpp")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/os/${ADL_PLATFORM}.cmake")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/os/${ADL_PLATFORM}.cmake")
+endif()
+
 add_library(adl_licence_platform STATIC
     src/files.cpp
-    src/locations.cpp)
+    src/locations.cpp
+    src/stamp.cpp
+    "${ADL_LICENCE_PLATFORM_ENVIRONMENT_SOURCE}")
 add_library(adl::licence_platform ALIAS adl_licence_platform)
 
 target_include_directories(adl_licence_platform PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")

@@ -242,6 +242,7 @@ add_executable(adl_load_command_tests
     load/download_test.cpp
     load/find_test.cpp
     load/information_test.cpp
+    load/licence_test.cpp
     load/preparer_test.cpp
     load/record_test.cpp
     load/serve_test.cpp
@@ -271,6 +272,38 @@ target_link_libraries(adl_load_command_tests
 adl_deploy_sanitizer_runtime(adl_load_command_tests)
 
 catch_discover_tests(adl_load_command_tests PROPERTIES LABELS "integration")
+
+# The licence source of adl_load on a desktop: the licence files of the computer through the host, in a record. It
+# needs the licence libraries and the published test key, so it is a desktop test.
+if(ADL_PLATFORM_DESKTOP AND TARGET adl::licence_test_keys)
+    add_executable(adl_load_licence_tests
+        load/licence_files_test.cpp)
+
+    target_include_directories(adl_load_licence_tests PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/load"
+        "${CMAKE_CURRENT_SOURCE_DIR}/licence"
+        "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+    target_compile_definitions(adl_load_licence_tests PRIVATE
+        ADL_LOAD_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/load/golden")
+
+    target_link_libraries(adl_load_licence_tests
+        PRIVATE
+            adl_fake_platform
+            adl_load_licence
+            adl_sim_target
+            adl::arinc665
+            adl::licence_test_keys
+            adl::samples
+            adl::warnings
+            adl::sanitizers
+            adl::coverage
+            Catch2::Catch2WithMain)
+
+    adl_deploy_sanitizer_runtime(adl_load_licence_tests)
+
+    catch_discover_tests(adl_load_licence_tests PROPERTIES LABELS "integration")
+endif()
 
 # The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
 # fake platform, and the simulated target the whole of an operation is run against.

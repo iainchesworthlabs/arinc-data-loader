@@ -41,9 +41,9 @@ constexpr std::chrono::milliseconds pass_length{20};
 struct Served
 {
     Served(std::string operation_id, Options operation_options, adl::platform::Host& host, std::ostream& out,
-           adl::platform::Instant start, std::uint64_t input_line)
+           adl::platform::Instant start, std::uint64_t input_line, LicenceSource licence)
         : id(std::move(operation_id)), line(input_line), options(std::move(operation_options)),
-          events(out, true, host.clock(), start), command(host, options, events)
+          events(out, true, host.clock(), start), command(host, options, events, std::move(licence))
     {
         events.set_id(id);
     }
@@ -65,9 +65,9 @@ class Server
 {
 public:
     Server(adl::platform::Host& host, const Options& options, LineSource& input, Preparer& preparer, std::ostream& out,
-           std::ostream& err, adl::platform::Instant start)
+           std::ostream& err, adl::platform::Instant start, const LicenceSource& licence)
         : host_(host), options_(options), input_(input), preparer_(preparer), out_(out), err_(err), start_(start),
-          events_(out, true, host.clock(), start), pool_(host, pool_config(options))
+          licence_(licence), events_(out, true, host.clock(), start), pool_(host, pool_config(options))
     {
     }
 
@@ -252,7 +252,8 @@ private:
         }
 
         const bool reads_a_set = request.options.command == Command::upload;
-        auto served = std::make_shared<Served>(id, std::move(request.options), host_, out_, start_, line_number_);
+        auto served =
+            std::make_shared<Served>(id, std::move(request.options), host_, out_, start_, line_number_, licence_);
         served_.emplace(id, served);
         if (reads_a_set)
         {
@@ -370,6 +371,7 @@ private:
     std::ostream& out_;
     std::ostream& err_;
     adl::platform::Instant start_;
+    LicenceSource licence_; // each operation gets a copy and reads the licence when it starts
     EventWriter events_;
     adl::loader_core::OperationPool pool_;
     std::map<std::string, std::shared_ptr<Served>> served_;
@@ -385,9 +387,9 @@ private:
 } // namespace
 
 int run_serve(adl::platform::Host& host, const Options& options, LineSource& input, Preparer& preparer,
-              std::ostream& out, std::ostream& err, adl::platform::Instant start)
+              std::ostream& out, std::ostream& err, adl::platform::Instant start, const LicenceSource& licence)
 {
-    return Server(host, options, input, preparer, out, err, start).run();
+    return Server(host, options, input, preparer, out, err, start, licence).run();
 }
 
 } // namespace adl::load

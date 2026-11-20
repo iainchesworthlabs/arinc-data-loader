@@ -182,7 +182,8 @@ public:
         std::ostringstream out;
         std::ostringstream err;
         CommandRun result;
-        result.exit_code = adl::load::run_serve(host, parsed->options, source, preparer, out, err, host.clock().now());
+        result.exit_code =
+            adl::load::run_serve(host, parsed->options, source, preparer, out, err, host.clock().now(), licence);
         result.out = out.str();
         result.err = err.str();
         world.advance_by(std::chrono::seconds(1)); // the targets see the loader's last datagram
@@ -194,6 +195,8 @@ public:
     adl::fake::FakeHost loader_host;
     ScriptedPreparer preparer;
     std::vector<std::unique_ptr<SimTarget>> targets;
+    // How each operation's record gets the licence it ran under: none, unless a test gives one.
+    adl::load::LicenceSource licence;
 };
 
 // The fields of a request, separated by tabs.
@@ -1191,6 +1194,56 @@ TEST_CASE("a preparer that cannot start ends serve with exit code 5, before anyt
     CHECK(out.str().empty());
     CHECK(err.str() == "adl_load: the media sets could not be prepared (resource exhausted).\n");
     CHECK(source.starts == 0);
+}
+
+TEST_CASE("each operation of serve reads the licence when it starts and says it in its own record",
+          "[load][integration][serve][licence]")
+{
+    // The source is asked once for each operation, and what it gives is in that operation's record, and in no event:
+    // the stream is the one a program with no licence source gets.
+    const auto serve_two = [](adl::load::LicenceSource licence)
+    {
+        ServeBench bench(2);
+        bench.licence = std::move(licence);
+        bench.world.set_wall_origin(1'795'083'330);
+        ScriptedSource source(bench.world);
+        source
+            .at(0ms, tabs({"run", "a", "information", "--target", ServeBench::address(0), "--position", "HNPFMS_L",
+                           "--record", "/a.json"}))
+            .at(0ms, tabs({"run", "b", "information", "--target", ServeBench::address(1), "--position", "HNPFMS_L",
+                           "--record", "/b.json"}));
+        CommandRun run = bench.serve(source);
+        CHECK(run.exit_code == 0);
+        check_serve_stream(run, "end_of_input");
+        return std::pair{std::move(run), std::pair{adl::test::fake_text(bench.loader_host, "/a.json"),
+                                                   adl::test::fake_text(bench.loader_host, "/b.json")}};
+    };
+
+    int asked = 0;
+    const auto [with, records] = serve_two(
+        adl::load::LicenceSource{[&asked](adl::platform::Host&) -> std::optional<adl::loader_core::RecordedLicence>
+                                 {
+                                     ++asked;
+                                     return adl::loader_core::RecordedLicence{"pro", "valid", "ADL-2026-000123"};
+                                 }});
+    CHECK(asked == 2);
+    for (const std::string& record : {records.first, records.second})
+    {
+        const auto parsed = adl::test::parse_json(record);
+        REQUIRE(parsed.has_value());
+        CHECK(parsed->at("licence").at("edition").text == "pro");
+        CHECK(parsed->at("licence").at("state").text == "valid");
+        CHECK(parsed->at("licence").at("number").text == "ADL-2026-000123");
+    }
+
+    const auto [without, plain] = serve_two({});
+    CHECK(with.out == without.out);
+    for (const std::string& record : {plain.first, plain.second})
+    {
+        const auto parsed = adl::test::parse_json(record);
+        REQUIRE(parsed.has_value());
+        CHECK(parsed->at("licence").is(Json::Kind::null));
+    }
 }
 
 TEST_CASE("a request line can be read whatever the characters of its fields", "[load][integration][serve]")

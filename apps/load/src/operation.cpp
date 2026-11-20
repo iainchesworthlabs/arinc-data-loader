@@ -258,8 +258,10 @@ std::string phrase_of(Reason reason, const OperationResult& result, const Job& j
 
 } // namespace
 
-OperationCommand::OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events)
-    : host_(host), options_(options), events_(events), address_(adl::loader_core::format_ipv4(options.target)),
+OperationCommand::OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events,
+                                   LicenceSource licence)
+    : host_(host), options_(options), events_(events), licence_(std::move(licence)),
+      address_(adl::loader_core::format_ipv4(options.target)),
       job_(events, kind_of(options), address_, options.position, adl::loader_core::wall_clock_of(host.clock()))
 {
 }
@@ -313,6 +315,9 @@ std::optional<std::string> OperationCommand::prepare()
 
 std::optional<int> OperationCommand::begin()
 {
+    // The licence the operation runs under is read now, once, before anything is written, and never again: a record
+    // says what the program ran as when it started. Nothing depends on the answer, and the events do not carry it.
+    job_.record().licence = licence_.stamp(host_);
     events_.started(to_string(options_.command), address_, options_.position);
     if (options_.command == Command::upload)
     {
@@ -522,9 +527,10 @@ int OperationCommand::finish(Reason reason, std::string detail, const std::strin
     return event.exit_code;
 }
 
-int run_operation_command(adl::platform::Host& host, const Options& options, EventWriter& events, std::ostream& err)
+int run_operation_command(adl::platform::Host& host, const Options& options, EventWriter& events, std::ostream& err,
+                          const LicenceSource& licence)
 {
-    OperationCommand command(host, options, events);
+    OperationCommand command(host, options, events, licence);
     // What can be wrong with the choice is found before anything is written: that is wrong usage, and no event is
     // written for it.
     if (const std::optional<std::string> problem = command.prepare())

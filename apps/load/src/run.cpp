@@ -15,7 +15,7 @@ namespace adl::load
 {
 
 int run(adl::platform::Host& host, std::span<const std::string_view> arguments, std::istream& in, std::ostream& out,
-        std::ostream& err)
+        std::ostream& err, const LicenceSource& licence)
 {
     // `t` of every event counts from here.
     const adl::platform::Instant start = host.clock().now();
@@ -43,20 +43,21 @@ int run(adl::platform::Host& host, std::span<const std::string_view> arguments, 
     {
         StreamLineSource requests(host, in);
         ThreadPreparer preparer(host);
-        return run_serve(host, options, requests, preparer, out, err, start);
+        return run_serve(host, options, requests, preparer, out, err, start, licence);
     }
     EventWriter events(out, options.json, host.clock(), start);
     if (options.command == Command::find)
     {
         return run_find_command(host, options, events);
     }
-    return run_operation_command(host, options, events, err);
+    return run_operation_command(host, options, events, err, licence);
 }
 
-int run(adl::platform::Host& host, std::span<const std::string_view> arguments, std::ostream& out, std::ostream& err)
+int run(adl::platform::Host& host, std::span<const std::string_view> arguments, std::ostream& out, std::ostream& err,
+        const LicenceSource& licence)
 {
     std::istringstream nothing;
-    return run(host, arguments, nothing, out, err);
+    return run(host, arguments, nothing, out, err, licence);
 }
 
 } // namespace adl::load
