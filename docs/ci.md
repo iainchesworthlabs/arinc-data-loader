@@ -182,7 +182,9 @@ person using them (a catalogue entry whose source is a `.cpp` or `.hpp` file, as
 and so must every finding of the ARINC 665 checks (the literals of the `add(findings, ...)` calls in `libs/arinc665/src`, listed in `docs/user-guide/findings.md`), every exit code and every text that `adl_write_payloads` prints. The match ignores case, emphasis and spacing and lets a
 placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six characters or more between placeholders. It runs in
 `docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
-the description is there, and not that it is good.
+the description is there, and not that it is good. The owner's licence tool is not shipped and is not a program of the guide, so it has a page of its
+own, `docs/licence-owner-tool.md`: every sentence of `tools/licence/src/messages.hpp` and every `exit_*` constant of `tools/licence/src/owner.hpp`
+must be on it, by the same rules.
 
 ### The claims
 

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Fuzzing.cmake
 #
-# ADL_ENABLE_FUZZING builds the libFuzzer harnesses under libs/<lib>/fuzz and instruments every
+# ADL_ENABLE_FUZZING builds the libFuzzer harnesses under libs/<lib>/fuzz and tools/<tool>/fuzz and instruments every
 # target for them (AddressSanitizer, UndefinedBehaviorSanitizer and libFuzzer's coverage hooks).
 # libFuzzer is Clang's, so the option needs Clang. It cannot be combined with the other sanitizer
 # switches, Tracy or coverage; the linux-fuzz preset sets it on its own.

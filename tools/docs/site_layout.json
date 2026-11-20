@@ -280,6 +280,11 @@
    "old": null,
    "src": "editions.md",
    "new": "licensing/"
+  },
+  {
+   "old": null,
+   "src": "licence-owner-tool.md",
+   "new": "developers/licence-owner-tool/"
   }
  ]
 }

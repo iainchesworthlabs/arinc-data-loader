@@ -21,3 +21,8 @@ CMakeLists.txt text
 
 # Git hooks are run by sh: LF only, whatever the checkout platform.
 tools/hooks/* text eol=lf
+
+# Signed files: the signature covers the payload and not the line ends, but the test licences are compared byte
+# for byte with what the owner's tool writes (tests/licence/make_test_licences.py), so no checkout may change one.
+*.adllic -text
+*.adlrev -text

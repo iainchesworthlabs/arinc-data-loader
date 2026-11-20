@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
+#
+# The states the licence library knows, one row for each case: which test licence, when and where it is judged,
+# and the state and reason it is in. The files are made again by tests/licence/make_test_licences.py from the
+# requests in tests/licence/data/requests, signed with the throwaway test key (RFC 8032, test 1) that no program
+# accepts; a test that judges them passes that key in. Each row is the same as
+#
+#   adl_licence_owner verify --test <file> --now <now> [--latest-seen <t>] [--computer <name>] [--revocations <list>]
+#
+# Columns, separated by white space, `-` for "not given":
+#
+#   file  now  latest_seen  computer  revocations  state  reason
+#
+# The state `none` is the absence of a file, so its row has no file. Anything after a row's last column is a
+# note. The states and reasons are the words of adl::licence (state_name, reason names).
+
+# file                  now                   latest_seen           computer    revocations        state          reason
+-                       2026-06-01T00:00:00Z  -                     -           -                  none           no_licence
+
+valid.adllic            2026-06-01T00:00:00Z  -                     -           -                  valid          ok
+valid.adllic            2026-12-15T00:00:00Z  -                     -           -                  expiring       ok               17 days left
+expiring.adllic         2026-11-20T12:00:00Z  -                     -           -                  expiring       ok               10 days left
+grace.adllic            2026-03-10T00:00:00Z  -                     -           -                  grace          ok               the 28 days after the end
+expired.adllic          2026-06-01T00:00:00Z  -                     -           -                  expired        expired
+not_yet_valid.adllic    2026-11-20T00:00:00Z  -                     -           -                  not_yet_valid  not_yet_valid
+clock_suspect.adllic    2026-03-01T00:00:00Z  2026-06-15T00:00:00Z  -           -                  clock_suspect  clock_suspect    the clock is months behind the latest time seen
+
+# A trial is 14 days with no grace, and counts as ending soon for its last 3 days.
+trial.adllic            2026-11-15T00:00:00Z  -                     -           -                  valid          ok
+trial.adllic            2026-11-22T12:00:00Z  -                     -           -                  expiring       ok
+trial.adllic            2026-11-25T00:00:00Z  -                     -           -                  expired        expired
+
+# The other kinds of licence, all in their term.
+enterprise.adllic       2026-12-01T00:00:00Z  -                     -           -                  valid          ok               Enterprise, a site licence, with a name outside ASCII
+clock_reset.adllic      2026-11-20T00:00:00Z  -                     -           -                  valid          ok               carries a clock_reset token
+renewal.adllic          2026-12-15T00:00:00Z  -                     -           -                  valid          ok               replaces ADL-2026-900001
+
+# A licence for some computers: a name that ends in * matches a prefix, and letters compare without case.
+machines.adllic         2026-06-01T00:00:00Z  -                     BENCH-07    -                  valid          ok
+machines.adllic         2026-06-01T00:00:00Z  -                     LAB-PC-01   -                  valid          ok
+machines.adllic         2026-06-01T00:00:00Z  -                     OFFICE-PC   -                  invalid        wrong_computer
+
+# Withdrawn: a list that names the licence, and the same licence with no list.
+revoked.adllic          2026-06-01T00:00:00Z  -                     -           -                  valid          ok
+revoked.adllic          2026-06-01T00:00:00Z  -                     -           revocations_1.adlrev  invalid     revoked
+revoked.adllic          2026-06-01T00:00:00Z  -                     -           revocations_2.adlrev  invalid     revoked
+
+# Files a program must refuse.
+wrong_product.adllic    2026-06-01T00:00:00Z  -                     -           -                  invalid        wrong_product    signed for another product
+bad_signature.adllic    2026-06-01T00:00:00Z  -                     -           -                  invalid        bad_signature
+malformed.adllic        2026-06-01T00:00:00Z  -                     -           -                  invalid        malformed        cut short
+newer_version.adllic    2026-06-01T00:00:00Z  -                     -           -                  invalid        newer_version    envelope format 2
+unknown_key.adllic      2026-06-01T00:00:00Z  -                     -           -                  invalid        newer_version    a key no program knows

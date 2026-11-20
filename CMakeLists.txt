@@ -143,6 +143,8 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(libs/licence)
     # The same library over the platform layer: the store's file interface and the folders. GPL only.
     add_subdirectory(libs/licence_platform)
+    # The owner's licence tool: built with the other tools, never installed (tools/licence/CMakeLists.txt).
+    add_subdirectory(tools/licence)
 endif()
 
 # The mock target's logic without a window and without Qt: its 615A engine and the link that runs

@@ -6,7 +6,8 @@
 
 The golden headers (tests/golden/golden_payloads.hpp for ARINC 665, tests/golden/golden_615a.hpp for
 ARINC 615A, tests/golden/golden_licence.hpp for licence files) hold the hexadecimal of valid files and
-packets that were written independently of the library. Each becomes one binary file under libs/<lib>/fuzz/corpus/<target>/, so the fuzzers start from
+packets that were written independently of the library. Each becomes one binary file under
+libs/<lib>/fuzz/corpus/<target>/ (tools/<tool>/fuzz/corpus/<target>/ for a tool), so the fuzzers start from
 inputs that get past the first checks. Run it again after the golden data changes; the files it writes
 are committed. The harness of libs/loader_core reads text and not a file, so its seeds are written
 out below, and so are the command lines that seed libs/platform/fuzz.
@@ -119,12 +120,36 @@ def write_text(library: str, target: str, seeds: dict[str, str]) -> int:
     return len(seeds)
 
 
+# The owner's tool (tools/licence) reads a public key file, a command line and a UTF-16 command line, which have no
+# golden data: their seeds are written here. The public key is the published test key's, from RFC 8032.
+TEST_PUBLIC_KEY = "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+SEEDS_OWNER = {
+    "public_key_licence": f'{{"key_id":"lic-2026-a","purpose":"licence","public_key":"{TEST_PUBLIC_KEY}"}}\n'.encode(),
+    "public_key_revocations": f'{{"key_id":"rev-2026-a","purpose":"revocations","public_key":"{TEST_PUBLIC_KEY}"}}\n'.encode(),
+    "public_key_no_line_end": f'{{"key_id":"lic-2026-b","purpose":"licence","public_key":"{TEST_PUBLIC_KEY}"}}'.encode(),
+    "command_line": b"--trust\nkey.adlownerpub\n--now\n2026-11-13T02:10:00Z\n--test\nlicence.adllic\n",
+    "licence_number": b"ADL-2026-000123",
+    "format_text": b"%1 needs %2 and %3",
+    # U+00FC, U+1F511 (a surrogate pair in UTF-16), U+822A and U+7A7A, as little-endian UTF-16.
+    "utf16_text": "".join(map(chr, (0xFC, 0x1F511, 0x822A, 0x7A7A))).encode("utf-16-le"),
+}
+
+
+def write_owner() -> int:
+    out = ROOT / "tools" / "licence" / "fuzz" / "corpus" / "owner"
+    out.mkdir(parents=True, exist_ok=True)
+    for name, data in SEEDS_OWNER.items():
+        (out / (name + ".bin")).write_bytes(data)
+    return len(SEEDS_OWNER)
+
+
 def main() -> int:
     total = write(ROOT / "tests/golden/golden_payloads.hpp", "arinc665", SEEDS_665)
     total += write(ROOT / "tests/golden/golden_615a.hpp", "arinc615a", SEEDS_615A)
     total += write_text("loader_core", "ipv4_address", SEEDS_IPV4)
     total += write(ROOT / "tests/golden/golden_licence.hpp", "licence", SEEDS_LICENCE)
     total += write_command_lines()
+    total += write_owner()
     print(f"{total} seed file(s) written")
     return 0
 

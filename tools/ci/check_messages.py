@@ -19,6 +19,9 @@ What the programs say to the person using them has two sources, and this check h
 3. Exit codes and the command line. Every exit code that the programs' code sets (the exit_* constants of
    apps/write_payloads/main.cpp, and the exit(N) calls of the three windowed programs and of the smoke test) must be a row of
    the table in docs/user-guide/command-line.md, and every text that adl_write_payloads prints must be in that page.
+4. The owner's licence tool (tools/licence), which is not shipped and so is not a program of the guide. Every sentence in
+   tools/licence/src/messages.hpp and every exit_* constant of tools/licence/src/owner.hpp must be on its own page,
+   docs/licence-owner-tool.md, by the same rules (a placeholder stands for anything; a row of a table for a code).
 
 The check does not decide that the description is good, only that it is there. A new message or exit code fails it until the guide says
 something about it. Run it after a change to a message. tests/CMakeLists.txt runs it as the test docs.messages.
@@ -146,6 +149,64 @@ def finding_literals(root: Path) -> list[tuple[str, int, list[str]]]:
     return found
 
 
+OWNER_TOOL_MESSAGES = "tools/licence/src/messages.hpp"
+OWNER_TOOL_EXIT_CODES = "tools/licence/src/owner.hpp"
+OWNER_TOOL_PAGE = "docs/licence-owner-tool.md"
+# A string literal of the sentences' header: an ordinary one, or a raw one (the usage text).
+STRING_LITERAL = re.compile(r'R"\((.*?)\)"|"((?:[^"\\]|\\.)*)"', flags=re.S)
+STRING_VIEW_DECLARATION = re.compile(r"inline constexpr std::string_view \w+\s*=")
+WHITESPACE = re.compile(r"\s*")
+
+
+def owner_tool_messages(root: Path) -> list[str]:
+    """The sentences of the owner's tool: each `inline constexpr std::string_view` of its messages.hpp, literals joined."""
+    path = root / OWNER_TOOL_MESSAGES
+    if not path.is_file():
+        return []
+    source = path.read_text(encoding="utf-8")
+    sentences = []
+    # The literals of a declaration are read one after another from where the `=` ends, and not by one pattern
+    # that repeats the alternation of the two literal forms (a repeated alternation is the shape CodeQL flags as
+    # able to backtrack without end).
+    for declaration in STRING_VIEW_DECLARATION.finditer(source):
+        pieces = []
+        position = declaration.end()
+        while True:
+            literal = STRING_LITERAL.match(source, WHITESPACE.match(source, position).end())
+            if literal is None:
+                break
+            raw, ordinary = literal.groups()
+            pieces.append(raw if raw is not None else re.sub(r"\\(.)", lambda m: "\n" if m.group(1) == "n" else m.group(1), ordinary))
+            position = literal.end()
+        if source.startswith(";", WHITESPACE.match(source, position).end()):
+            sentences.append("".join(pieces))
+    return sentences
+
+
+def owner_tool_problems(root: Path) -> list[str]:
+    """What the owner's tool says and returns that its page does not have."""
+    problems = []
+    sentences = owner_tool_messages(root)
+    codes_path = root / OWNER_TOOL_EXIT_CODES
+    codes = sorted({int(n) for n in re.findall(r"constexpr\s+int\s+exit_\w+\s*=\s*(\d+)\s*;", codes_path.read_text(encoding="utf-8"))}) if codes_path.is_file() else []
+    if not sentences and not codes:
+        return problems
+    page_path = root / OWNER_TOOL_PAGE
+    if not page_path.is_file():
+        return [f"the owner's licence tool has sentences and exit codes and {OWNER_TOOL_PAGE} does not exist"]
+    raw = page_path.read_text(encoding="utf-8")
+    page = normalise(raw)
+    for sentence in sentences:
+        for part in segments(sentence):
+            if part not in page:
+                problems.append(f"the sentence {sentence.strip()!r} of the owner's tool is not on {OWNER_TOOL_PAGE}: describe it there")
+                break
+    for code in codes:
+        if not re.search(rf"^\|\s*{code}\s*\|", raw, flags=re.M):
+            problems.append(f"the exit code {code} of the owner's tool is not a row of the table in {OWNER_TOOL_PAGE}")
+    return problems
+
+
 def check(root: Path) -> list[str]:
     problems: list[str] = []
     guide = guide_text(root)
@@ -170,6 +231,7 @@ def check(root: Path) -> list[str]:
                 if part not in page:
                     problems.append(f"the text {line.strip()!r} of adl_write_payloads is not in {COMMAND_LINE_PAGE}")
                     break
+    problems.extend(owner_tool_problems(root))
     return problems
 
 

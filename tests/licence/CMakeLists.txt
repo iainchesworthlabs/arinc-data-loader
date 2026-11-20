@@ -34,3 +34,47 @@ target_link_libraries(adl_licence_tests
 adl_deploy_sanitizer_runtime(adl_licence_tests)
 
 catch_discover_tests(adl_licence_tests PROPERTIES LABELS "unit")
+
+# ---------------------------------------------------------------------------
+# The owner's licence tool (tools/licence)
+# ---------------------------------------------------------------------------
+# In process: the rules of its own parts and the commands run against streams (unit).
+add_executable(adl_licence_owner_tests owner_test.cpp)
+target_link_libraries(adl_licence_owner_tests
+    PRIVATE
+        adl_licence_owner_core
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+adl_deploy_sanitizer_runtime(adl_licence_owner_tests)
+catch_discover_tests(adl_licence_owner_tests PROPERTIES LABELS "unit")
+
+# As a process: the built program is started with arguments and its output and files are read (system). Every
+# command and refusal, a key made and used from end to end, names outside the code page, the manifest of test
+# licences judged by `verify`, and the test licences made again from their requests (test_owner_tool.py).
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME licence.owner_tool
+        COMMAND "${Python3_EXECUTABLE}" -X utf8 -I "${CMAKE_CURRENT_SOURCE_DIR}/test_owner_tool.py"
+            --tool "$<TARGET_FILE:adl_licence_owner>" --data "${CMAKE_CURRENT_SOURCE_DIR}/data")
+    set_tests_properties(licence.owner_tool PROPERTIES TIMEOUT 300 LABELS "system")
+
+    # The check of a package for the owner's tool, a signing library and a key file (tools/release/
+    # check_package_contents.py, which Test-Package.ps1 runs on every package of a release): it fails each of
+    # them, as a .zip, a .tar.gz and a folder, and passes a package without them. The built tool is the bytes it
+    # must find under another name.
+    add_test(NAME licence.package_check
+        COMMAND "${Python3_EXECUTABLE}" -X utf8 -I "${CMAKE_CURRENT_SOURCE_DIR}/test_package_check.py"
+            --tool "$<TARGET_FILE:adl_licence_owner>")
+    set_tests_properties(licence.package_check PROPERTIES TIMEOUT 300 LABELS "system")
+
+    # Writes tests/licence/data/licences again from tests/licence/data/requests, byte for byte (make_test_licences.py
+    # says how). Not part of `all`: run it when a request changes, then commit what it wrote.
+    add_custom_target(licence_test_licences
+        COMMAND "${Python3_EXECUTABLE}" -X utf8 -I "${CMAKE_CURRENT_SOURCE_DIR}/make_test_licences.py"
+            --tool "$<TARGET_FILE:adl_licence_owner>"
+        DEPENDS adl_licence_owner
+        COMMENT "Making the test licences again from tests/licence/data/requests"
+        VERBATIM)
+endif()

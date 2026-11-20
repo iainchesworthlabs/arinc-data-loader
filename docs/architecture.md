@@ -115,6 +115,11 @@
   is also offered under the BSD 2-Clause licence ([licensing](licensing.md)), because it uses `adl::platform`.
   It is on a desktop only, is not part of the installed `adl` package, and the three Qt applications link it
   (through the licence model of `libs/ui`).
+- **`tools/licence`** is the owner's licence tool (`adl_licence_owner`): it makes a signing key, issues a licence file,
+  checks one and writes a revocation list, on `adl::licence`, `adl::licence_sign` and the test key and the standard
+  library, and nothing else of this repository. It is built with the other tools and never installed; a package check
+  fails a release that holds it. Its entry point is the one part that differs between systems, and CMake picks it by
+  the platform's name ([the tool](licence-owner-tool.md)).
 - **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock
