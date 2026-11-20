@@ -184,7 +184,9 @@ placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six
 `docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
 the description is there, and not that it is good. The owner's licence tool is not shipped and is not a program of the guide, so it has a page of its
 own, `docs/licence-owner-tool.md`: every sentence of `tools/licence/src/messages.hpp` and every `exit_*` constant of `tools/licence/src/owner.hpp`
-must be on it, by the same rules.
+must be on it, by the same rules. `adl_licence` is a program of the guide with its sentences in a header of its own, so it is held to the same
+rules on the command-line page: every sentence of `libs/licence_cli/src/messages.hpp` and every `exit_*` constant of
+`libs/licence_cli/include/adl/licence_cli/licence_cli.hpp` must be on `docs/user-guide/command-line.md`.
 
 ### The claims
 
