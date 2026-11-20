@@ -31,10 +31,10 @@
             Windows prompt made (their group is "TCP Query User" or "UDP Query User").
 
 .PARAMETER Program
-    Full paths of the programs to cover. Default: the three that are in -BinDir.
+    Full paths of the programs to cover. Default: the four that are in -BinDir.
 
 .PARAMETER BinDir
-    The folder that holds adl_app.exe, adl_mock_target.exe and adl_media_gen.exe. Default: the
+    The folder that holds adl_app.exe, adl_mock_target.exe, adl_media_gen.exe and adl_mock.exe. Default: the
     first of build\windows-msvc-release\bin under the repository, or the script's own folder, that
     has them.
 
@@ -74,7 +74,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $group = 'ARINC Data Loader'
-$names = 'adl_app.exe', 'adl_mock_target.exe', 'adl_media_gen.exe'
+$names = 'adl_app.exe', 'adl_mock_target.exe', 'adl_media_gen.exe', 'adl_mock.exe'
 
 function Test-Elevated {
     $principal = New-Object Security.Principal.WindowsPrincipal(

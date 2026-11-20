@@ -499,5 +499,5 @@ Still open from the other plans and needed here: the support channel and respons
 - Whether the licence library's strict JSON reader can read a scenario or a description file is not known: the licensing plan describes it as reading a flat payload. C5 and C6 depend on the answer.
 - The statements about ARINC 615, 827 and 835 in 5.8 are from memory and were not checked against the documents.
 - No customer was asked what they would pay for. The order in 5.9 is a judgement from what the product lacks.
-- The legal points (linking, other terms for the code, code written with an assistant's help, which VSS's own plan also raises) are for a solicitor. Nothing here is legal advice.
+- The legal points (linking, other terms for the code, how the code was written, which VSS's own plan also raises) are for a solicitor. Nothing here is legal advice.
 - The licence feature names in section 4 are not in the licensing plan yet. That page is being worked on by another session and was not edited.

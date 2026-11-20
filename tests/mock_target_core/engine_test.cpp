@@ -136,6 +136,27 @@ TEST_CASE("FIND is answered with an identity whose text is long and no longer he
     CHECK(answers[0].manufacturer_code.view() == std::string(3, 'M'));
 }
 
+TEST_CASE("a configuration list is encoded, or refused when it cannot be", "[mock][information]")
+{
+    const std::vector<adl::mock::HardwareItem> good = {
+        adl::mock::HardwareItem{"FMS LEFT", "SN-0001", {{"ACM47-1234-5678", "", "FMS 1 OPS"}}}};
+    const auto bytes = encode_configuration(good);
+    REQUIRE(bytes);
+    CHECK_FALSE(bytes->empty());
+
+    auto no_serial = good;
+    no_serial[0].serial_number.clear(); // a serial number is 1 to 254 characters
+    CHECK_FALSE(encode_configuration(no_serial));
+
+    auto too_long = good;
+    too_long[0].parts[0].part_number = std::string(255, 'P');
+    CHECK_FALSE(encode_configuration(too_long));
+
+    auto too_many = good; // more than the file the engine writes can hold
+    too_many[0].parts.assign(100, adl::mock::HardwarePart{std::string(60, 'P'), "", std::string(20, 'D')});
+    CHECK_FALSE(encode_configuration(too_many));
+}
+
 TEST_CASE("an Information operation delivers the configuration", "[mock][information]")
 {
     Config config;

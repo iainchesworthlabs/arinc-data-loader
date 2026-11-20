@@ -141,10 +141,10 @@ std::expected<std::vector<HeldFile>, std::string> read_held_files(const std::fil
     return found;
 }
 
-HeldFile demonstration_file()
+HeldFile demonstration_file(std::string_view where)
 {
-    const std::string note = "The mock target serves the files it holds from <storage>/holds in a download.\n"
-                             "Put files there and ask for them by name.\n";
+    const std::string note = "The mock target serves the files it holds from " + std::string{where} +
+                             " in a download.\nPut files there and ask for them by name.\n";
     return HeldFile{"DEMO.TXT", to_bytes(note), "a demonstration file"};
 }
 

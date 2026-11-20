@@ -35,6 +35,7 @@ TEST_CASE("the default settings make the default engine configuration", "[mock][
     CHECK_FALSE(config.wrong_checksum);
     CHECK_FALSE(config.abort_after_statuses.has_value());
     CHECK_FALSE(config.silent);
+    CHECK_FALSE(config.garbage_init);
 }
 
 TEST_CASE("the identity names the protocol files and answers FIND", "[mock][settings]")
@@ -135,4 +136,16 @@ TEST_CASE("each operation can be the one that is refused, with 0x1000", "[mock][
         CHECK(config.refusal->code == StatusCode::operation_denied);
         CHECK_FALSE(config.refusal->text.empty());
     }
+}
+
+TEST_CASE("a refusal can carry 0x1002, and an initialization file can be made invalid", "[mock][settings]")
+{
+    TargetSettings settings;
+    settings.refuse_operation = OperationKind::upload;
+    settings.refuse_code = StatusCode::operation_not_supported;
+    settings.invalid_init_file = true;
+    const Config config = make_config(settings);
+    REQUIRE(config.refusal.has_value());
+    CHECK(config.refusal->code == StatusCode::operation_not_supported);
+    CHECK(config.garbage_init);
 }

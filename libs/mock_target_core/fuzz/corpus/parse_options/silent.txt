@@ -1,0 +1,3 @@
+--silent
+--seconds
+5

@@ -36,6 +36,10 @@ adl_deploy_sanitizer_runtime(adl_loopback_test)
 # One test that runs every scenario; a hang fails after five minutes instead of holding the
 # run, and the label lets a person (or CI) pick the real-socket test out of the suite.
 add_test(NAME loopback.integration COMMAND adl_loopback_test)
+# The engine of the target writes from ports of its own, from 40000 up, on the address it listens on; two
+# targets on one address at once would take them from each other, so the tests that run a real target do
+# not overlap (ctest -j). tests/mock_cli has the others.
 set_tests_properties(loopback.integration PROPERTIES
     TIMEOUT 300
+    RESOURCE_LOCK mock_target_transfer_ports
     LABELS "integration;system")

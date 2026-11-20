@@ -26,6 +26,114 @@ an operation, drop status files, send a wrong checksum, abort on its own, or go 
 | The log | Every status file, file read or written, WAIT and abort as a line with a severity, shown in the window like the loader's activity log. |
 | The language | A language box in the header, beside About, offers the eight languages of the family; the choice applies at once and is kept. Hebrew and Yiddish mirror the window ([Hebrew picture](images/mock-hebrew.png)). The window, its model's messages and the shared components are translated (machine drafts no speaker has read, [translations](translations.md)); the activity lines the 615A engine writes about its own work (`listening: FIND on port ...`, `served ...`) are English in every language. |
 
+## The command
+
+`adl_mock` is the same mock target as a command, for test rigs and CI jobs: no window, no Qt, one target in
+one process. A job starts it, points a loader at it by address, and reads what happened. It is a mock, not a
+real target, and it has not been run against real equipment. It answers FIND, serves the initialization
+files, and runs the Information, Upload and Download operations exactly as the window's target does (the
+engine is the same, [How it is put together](#how-it-is-put-together)). Its source is `apps/mock`.
+
+```sh
+adl_mock --storage out/kept --operations 1 --json
+```
+
+It runs until it has served `--operations` operations, or for `--seconds`, or until it is killed. It handles
+no signal: killing it abandons what it was doing, and the loader that was in an operation times out by itself.
+
+### Options
+
+Options are written `--name value`. A value is never a list with commas: an option that takes several values
+(`--part`) is given several times. The same options and exit codes, and each message, are in the user's guide:
+[Command line and exit codes](user-guide/command-line.md#adl_mock). A folder (`--holds`, `--storage`) is given as the system
+writes it, in any characters it allows: `main` takes its arguments from `adl::platform::arguments` as UTF-8, and makes each
+folder with `path_from_utf8` ([Command-line programs](architecture.md#command-line-programs)).
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--hardware-id <text>`, `--position <text>` | The target's identity. `THW_ID_POS` is the two joined by `_`, and it names the protocol files. Letters, digits, `.`, `_` and `-` only; at most 15 and 8 characters. | `HNPFMS`, `L` |
+| `--type-name <text>`, `--literal-name <text>`, `--manufacturer <text>` | The rest of the FIND answer: at most 8, 20 and 3 characters | `FMS`, `FMS LEFT`, `HNP` |
+| `--part <hardware>:<part number>[:<amendment>[:<designation>]]`, repeatable | The hardware and parts the Information operation reports. The parts of one piece of hardware share its name; the serial numbers are `SN-0001`, `SN-0002` and so on in the order the hardware is first named; a part with no designation is designated by its hardware | The engine's own list |
+| `--holds <folder>` | The files it holds for a download: the files directly in the folder, read once when the program starts | One demonstration file, `DEMO.TXT` |
+| `--storage <folder>` | Where uploads are stored, as `<folder>/<load part number>/<file name>`. The folder is made if it is not there | None: uploads are served and not kept |
+| `--address <ipv4>` | The local address it listens on. `0.0.0.0` is every interface | `127.0.0.1` |
+| `--tftp-port <n>`, `--find-port <n>` | The ports | 59, 1001 |
+| `--think-time-ms <n>`, `--status-period <seconds>` | The pace: 0 to 60000 ms before it starts work, and 0 to 3600 s between status files | 1000, 4 |
+| `--wait-first <seconds>`, `--wait-every <seconds>` | Answer the first request, or every request, with WAIT for that many seconds (1 to 65535) | Off |
+| `--refuse <operation>` | Refuse that operation: `information`, `upload`, `download-media` or `download-operator` | Off |
+| `--refuse-code <code>` | Refuse with `0x1000` (denied) or `0x1002` (not supported). Needs `--refuse` | `0x1000` |
+| `--invalid-init-file` | Serve an initialization file of an invalid structure | Off |
+| `--drop-status-every <n>` | Lose every nth status file (never the first or the last) | Off |
+| `--corrupt-served` | Flip a bit in the files it serves | Off |
+| `--wrong-checksum` | Write a wrong check value option | Off |
+| `--abort-after <n>` | Abort (0x1003) after n status files | Off |
+| `--silent` | Say nothing after the first status file, so the loader runs into its 13 second time-out. The operation never ends, so it needs `--seconds` | Off |
+| `--operations <n>`, `--seconds <n>` | Stop after n operations (a refused one counts), or after n seconds | Run until killed |
+| `--json` | One JSON object a line | One plain line an event |
+| `--help`, `--version` | The usage; `adl_mock <version> events 1` | |
+
+Faults are as in [the window](#what-it-does), with two that the window has no control for: `--refuse-code 0x1002`
+and `--invalid-init-file`. Wrong options are refused, with exit code 2 and nothing on standard output: an option
+given twice, a number out of its range, `--refuse-code` without `--refuse`, `--silent` without `--seconds`,
+`--wait-first` with `--wait-every`, and parts that do not fit in a configuration list.
+
+FIND is fixed to port 1001. Two programs on one computer sharing that port is not reliable, so a loader on the same
+computer names the target by its address, as the window's does. On Linux and macOS ports below 1024 (59 and 1001)
+may need privileges; give `--tftp-port` and `--find-port` high ports and tell the loader the TFTP port. The default
+address, `127.0.0.1`, listens on this computer only and raises no firewall prompt; a rig that wants the network
+says `--address 0.0.0.0` (or the address of one interface).
+
+Several targets on one computer: the engine writes some of its datagrams from ports of its own, from 40000 up, on the
+address it listens on, so two targets on one address take those ports from each other. Give each its own address
+(`127.0.0.2`, `127.0.0.3` and so on; they have port 59 and port 1001 each). A datagram that cannot be sent because its port
+is taken is lost, as UDP allows, and the loader's operation then times out.
+
+### Output
+
+Standard output carries the events and nothing else. Standard error carries what is not a result: a usage error,
+a file that could not be stored, why a run failed. Each event is written, and flushed, when it happens.
+
+By default an event is one plain line for a person: the seconds since the program started, the name of the event
+and `key=value` pairs (a value with a space or a quote in it is written as a JSON string):
+
+```text
+0.003 started program=adl_mock version=0.1.1 events=1 thw_id_pos=HNPFMS_L address=127.0.0.1 find_port=1001 tftp_port=59 faults=none
+1.210 operation_began operation=information
+1.211 progress operation=information percent=0
+...
+5.730 operation_ended operation=information status=3 status_name=completed refused=false
+5.731 stopped reason=operations operations=1
+```
+
+With `--json` an event is one JSON object on a line: UTF-8, ended by a line feed (on Windows the standard output is a text stream, so the line ends in a carriage return and a line feed; a reader that splits at the line feed and ignores a carriage return at the end of a line reads both), with `"event"` as the first key and
+`"t"` as the second. `"t"` is the seconds since the program started, as a number with three decimals. A name that
+came off the wire is written as JSON; bytes in it that are not UTF-8 are written as U+FFFD.
+
+| `event` | When | Keys beside `event` and `t` |
+| --- | --- | --- |
+| `started` | First: the ports are open | `program` (`adl_mock`), `version`, `events` (the number of this format, 1), `thw_id_pos`, `address`, `find_port`, `tftp_port`, `faults` (the fault options that are on, as written, without their values) |
+| `operation_began` | A request was accepted | `operation`: `information`, `upload`, `download_media_defined` or `download_operator_defined` |
+| `progress` | The percentage of the list it has got through changed | `operation`, `percent` (0 to 100) |
+| `upload_received` | An upload completed, before it ends | `part_number`, `files` (the names, the header file first), `stored_in` (the load's folder, or `null` when nothing was kept) |
+| `operation_ended` | The last status file went out, or the operation was refused and never began | `operation`, `status` (the status code as a number, or `null` for an invalid initialization file), `status_name` (the name of the code: `completed`, `aborted_by_target`, `operation_denied`, `operation_not_supported`, ..., or `invalid_initialization_file`), `refused` |
+| `stopped` | Last | `reason` (`operations`, `seconds` or `error`), `operations` (how many ended) |
+
+A reader refuses an `events` number it does not know, and ignores a key it does not know: a key can be added
+without changing the number, and removing or renaming one, or changing what one means, changes it. A target that
+has gone silent never ends its operation and writes no `operation_ended` for it.
+
+### Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| 0 | It stopped as asked (`--operations` served, `--seconds` passed), or printed `--help` or `--version` |
+| 1 | The run failed: the platform would not start, or waiting on the network failed (`stopped` says `error`) |
+| 2 | Wrong usage |
+| 3 | A folder cannot be used: `--holds` is not a folder or cannot be read, or `--storage` is not a folder and cannot be made |
+| 4 | A port cannot be opened: it is in use, or needs a privilege |
+
+On exits 2, 3 and 4 no event is written: the target never started.
+
 ## Layout
 
 ```text
@@ -36,6 +144,9 @@ libs/mock_target_core/  adl_mock_target_core: the target without a window and wi
                         sockets, and the tests' FakeTargetLink on the fake network
   storage               the files it holds for a download and what an upload leaves on disk
   settings              the operator's settings turned into the engine's configuration
+apps/mock/              adl_mock: the same target as a command (no window, no Qt)
+  main.cpp              the call to run_command
+  src/, include/        options, events, the JSON writer, and the run function
 apps/mock_target/
   main.cpp              creates the QGuiApplication, one MockTargetModel and the QML engine
   qml/                  TargetWindow.qml (the window)
@@ -43,6 +154,7 @@ apps/mock_target/
     model               MockTargetModel: the worker thread, the properties and signals the
                         window binds to
 tests/mock_target_core/ the engine against the loader's real engine on the fake platform
+tests/mock_cli/         adl_mock: its writer, events and options, and the program against the loader
 apps/mock_target/tests/ the model, and the window loaded offscreen
 libs/ui/                 the shared design system (Theme, controls, header, footer, log)
 ```
@@ -110,7 +222,7 @@ confirmation, and every injection the loader has a path for (denied, DLP time-ou
 error, checksum mismatch, a lost status file, a target-side abort, WAIT). The same dialogues
 over **real sockets**, through the loopback integration test (`loopback.integration`): the
 loader's runner over the real platform against the engine over `RealTargetLink` on 127.0.0.1 —
-Information, an Upload stored byte for byte, both Download modes and an abort. The model on its
+Information, an Upload stored byte for byte, both Download modes and an abort. The command `adl_mock`, started from its own run function in a thread, against the same real runner over loopback sockets (`mock.command`): Information, an Upload stored byte for byte, both Downloads, a refused operation counted, `--seconds`, and its exit codes for wrong usage, a folder that cannot be used and a port that cannot be opened; its JSON writer and options without a network (`mock.cli`). The model on its
 worker thread, storage written to disk, and the window loaded offscreen with no QML complaints,
 in the light and the dark scheme. The platform-isolation check covers the new sources.
 

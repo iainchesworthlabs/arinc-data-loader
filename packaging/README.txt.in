@@ -8,6 +8,8 @@ What is here
                     over ARINC 615A (or downloads from it)
   adl_media_gen     the media set generator: builds an ARINC 665 media set from files
   adl_mock_target   a mock ARINC 615A target, to try the loader against
+  adl_mock          the same mock target as a command with no window, for test rigs and CI
+                    jobs (command line)
   adl_write_payloads  writes sample media sets to a directory (command line)
 
   LICENSE.txt       the GNU General Public License, version 3 or later, which covers
