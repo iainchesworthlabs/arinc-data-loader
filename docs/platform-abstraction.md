@@ -781,6 +781,7 @@ own files are named from the directory the option gave:
 set(ADL_PLATFORM_SOURCES
     ${ADL_PLATFORM_DIR}/paths_myos.cpp
     ${ADL_PLATFORM_DIR}/os_myos.cpp
+    detail/arguments_passthrough.cpp
     posix/posix_common.cpp
     posix/clock_posix.cpp
     posix/memory_posix.cpp
@@ -792,6 +793,9 @@ set(ADL_PLATFORM_SOURCES
 ```
 
 The fragments of the repository need no change for this: one way of writing a path serves both.
+`detail/arguments_passthrough.cpp` is the implementation of `arguments.hpp` for a system whose `main` is given
+the arguments as bytes (every system but Windows); a port whose system gives them in another form supplies its
+own.
 
 What the port's sources can include: the interfaces (`<adl/platform/files.hpp>` and the others), and the
 private headers the repository's own platforms include (`"posix/posix_os.hpp"`, `"detail/path_rules.hpp"`),
