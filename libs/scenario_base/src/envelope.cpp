@@ -18,7 +18,7 @@ constexpr std::array<std::string_view, 3> trigger_keys{"request", "status_file",
     return std::unexpected(ReadError{std::move(message)});
 }
 
-[[nodiscard]] std::string quoted(std::string_view key)
+[[nodiscard]] std::string in_quotes(std::string_view key)
 {
     std::string text;
     text.reserve(key.size() + 2);
@@ -216,12 +216,12 @@ std::expected<std::int64_t, ReadError> whole_number(const json::Object& object, 
     const json::Value* value = json::find(object, key);
     if (value == nullptr)
     {
-        return fail(prefix(step) + quoted(key) + " is missing; it is a whole number from " + from_to(low, high));
+        return fail(prefix(step) + in_quotes(key) + " is missing; it is a whole number from " + from_to(low, high));
     }
     const std::int64_t* number = value->as_integer();
     if (number == nullptr || *number < low || *number > high)
     {
-        return fail(prefix(step) + quoted(key) + " must be a whole number from " + from_to(low, high));
+        return fail(prefix(step) + in_quotes(key) + " must be a whole number from " + from_to(low, high));
     }
     return *number;
 }
@@ -249,13 +249,13 @@ std::expected<std::string, ReadError> text(const json::Object& object, std::stri
     const json::Value* value = json::find(object, key);
     if (value == nullptr)
     {
-        return fail(prefix(step) + quoted(key) + " is missing; it is " + what);
+        return fail(prefix(step) + in_quotes(key) + " is missing; it is " + what);
     }
     const std::string* content = value->as_string();
     if (content == nullptr || content->empty() || character_count(*content) > max_characters ||
         has_control_character(*content))
     {
-        return fail(prefix(step) + quoted(key) + " must be " + what + ", with no control character");
+        return fail(prefix(step) + in_quotes(key) + " must be " + what + ", with no control character");
     }
     return *content;
 }
@@ -284,7 +284,7 @@ std::optional<ReadError> only_keys(const json::Object& object, std::span<const s
         {
             continue;
         }
-        const std::string unknown = "the key " + quoted(member.key) + ", which this version does not know";
+        const std::string unknown = "the key " + in_quotes(member.key) + ", which this version does not know";
         if (step == 0)
         {
             return ReadError{"the file has " + unknown};
@@ -293,19 +293,19 @@ std::optional<ReadError> only_keys(const json::Object& object, std::span<const s
         {
             return ReadError{"step " + std::to_string(step) + " has " + unknown};
         }
-        return ReadError{prefix(step) + quoted(part) + " has " + unknown};
+        return ReadError{prefix(step) + in_quotes(part) + " has " + unknown};
     }
     return std::nullopt;
 }
 
 ReadError missing_seed(std::size_t step, std::string_view key)
 {
-    return ReadError{"step " + std::to_string(step) + " uses " + quoted(key) + " but the scenario has no \"seed\""};
+    return ReadError{"step " + std::to_string(step) + " uses " + in_quotes(key) + " but the scenario has no \"seed\""};
 }
 
 ReadError not_taken(std::size_t step, std::string_view key, std::string_view what)
 {
-    return ReadError{prefix(step) + quoted(key) + " must be " + std::string{what}};
+    return ReadError{prefix(step) + in_quotes(key) + " must be " + std::string{what}};
 }
 
 std::expected<Envelope, ReadError> read_envelope(std::string_view text_of_file, const Family& family)
@@ -332,7 +332,7 @@ std::expected<Envelope, ReadError> read_envelope(std::string_view text_of_file, 
     const json::Value* kind = json::find(*top, "kind");
     if (kind == nullptr)
     {
-        return fail("\"kind\" is missing; it must be " + quoted(family.kind));
+        return fail("\"kind\" is missing; it must be " + in_quotes(family.kind));
     }
     const std::string* kind_text = kind->as_string();
     if (kind_text == nullptr || *kind_text != family.kind)
@@ -340,9 +340,9 @@ std::expected<Envelope, ReadError> read_envelope(std::string_view text_of_file, 
         if (kind_text != nullptr && (*kind_text == mock_kind || *kind_text == loader_kind))
         {
             return fail("this is a scenario for " + std::string{whom(*kind_text)} + ", not for " +
-                        std::string{whom(family.kind)} + " (\"kind\" is " + quoted(*kind_text) + ")");
+                        std::string{whom(family.kind)} + " (\"kind\" is " + in_quotes(*kind_text) + ")");
         }
-        return fail("\"kind\" must be " + quoted(family.kind));
+        return fail("\"kind\" must be " + in_quotes(family.kind));
     }
     const json::Value* format = json::find(*top, "format");
     if (format == nullptr)
