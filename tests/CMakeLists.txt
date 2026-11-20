@@ -88,6 +88,11 @@ if(TARGET adl::licence_test_keys)
     add_subdirectory(licence)
 endif()
 
+# What the scenario files have in common (libs/scenario_base): its own program of tests, in tests/scenario_base.
+if(TARGET adl::scenario_base)
+    add_subdirectory(scenario_base)
+endif()
+
 # The fake platform: a clock, network, file system, memory and threads that run in
 # memory and on a clock that only moves when told to (tests/fake). The engine is
 # tested against it; the conformance tests hold it to the real hosts' behaviour.

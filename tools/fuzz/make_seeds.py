@@ -196,6 +196,53 @@ def write_owner() -> int:
     return len(SEEDS_OWNER)
 
 
+# Scenario files for libs/scenario_base/fuzz (target envelope), which reads its input as the file: a good one for each
+# trigger, the shapes of the two kinds, and the ways a file is refused (the strict JSON reader's and the reader's own).
+SEEDS_SCENARIO = {
+    "mock_full": """{
+  "kind": "adl-mock-scenario",
+  "format": 1,
+  "name": "Slow start, lost status files, then an abort",
+  "description": "The first request waits 2 s. Half the status files from the 2nd on are lost, 3 times at most.",
+  "seed": 20261120,
+  "steps": [
+    { "when": { "request": 1 }, "do": { "action": "wait", "seconds": 2 } },
+    { "comment": "only the second upload request", "when": { "request": 2, "operation": "upload" },
+      "do": { "action": "delay", "min_ms": 200, "max_ms": 900 } },
+    { "when": { "status_file": 2, "every": 1, "times": 3 }, "per_mille": 500, "do": { "action": "drop_status_file" } },
+    { "when": { "after_ms": 20000, "every": 10 }, "do": { "action": "abort" } }
+  ]
+}
+""",
+    "empty_steps": '{"kind":"adl-mock-scenario","format":1,"steps":[]}',
+    "loader_style": """{"kind":"adl-loader-scenario","format":1,"seed":7,"steps":[
+  {"when":{"request":3},"on":{"datagram":"data"},"count":2,"do":{"action":"drop"}}]}""",
+    "non_ascii_name": r'{"kind":"adl-mock-scenario","format":1,"name":"Abbruch nach fünf Sekunden – 😀","steps":[]}',
+    # The same as JSON escapes (a surrogate pair among them) and not as the characters themselves.
+    "escaped_name": '{"kind":"adl-mock-scenario","format":1,"name":"a' + chr(92) + 'u00fc ' + chr(92) + 'ud83d' + chr(92) + 'ude00","steps":[]}',
+    "wrong_kind": '{"kind":"adl-loader-scenario","format":1,"steps":[]}',
+    "unknown_kind": '{"kind":"adl-other","format":1,"steps":[]}',
+    "newer_format": '{"kind":"adl-mock-scenario","format":2,"steps":[],"new_key":true}',
+    "unknown_key": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"chanse":5,"do":{"action":"wait"}}]}',
+    "two_triggers": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1,"after_ms":5},"do":{"action":"silent"}}]}',
+    "no_trigger": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{},"do":{"action":"silent"}}]}',
+    "per_mille_without_seed": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":1},"per_mille":100,"do":{"action":"abort"}}]}',
+    "fraction": '{"kind":"adl-mock-scenario","format":1,"seed":1.5,"steps":[]}',
+    "repeated_key": '{"kind":"adl-mock-scenario","kind":"adl-mock-scenario","format":1,"steps":[]}',
+    "too_deep": '{"kind":"adl-mock-scenario","format":1,"steps":[[[[[[[[[[1]]]]]]]]]]}',
+    "comment_in_file": '{"kind":"adl-mock-scenario",/* no */"format":1,"steps":[]}',
+    "limits": '{"kind":"adl-mock-scenario","format":1,"seed":9007199254740991,"steps":[{"when":{"after_ms":86400000,"every":86400000,"times":1000000},"per_mille":1000,"do":{"action":"silent"}}]}',
+}
+
+
+def write_scenarios() -> int:
+    out = ROOT / "libs" / "scenario_base" / "fuzz" / "corpus" / "envelope"
+    out.mkdir(parents=True, exist_ok=True)
+    for name, text in SEEDS_SCENARIO.items():
+        (out / (name + ".json")).write_bytes(text.encode("utf-8"))
+    return len(SEEDS_SCENARIO)
+
+
 def main() -> int:
     total = write(ROOT / "tests/golden/golden_payloads.hpp", "arinc665", SEEDS_665)
     total += write(ROOT / "tests/golden/golden_615a.hpp", "arinc615a", SEEDS_615A)
@@ -204,6 +251,7 @@ def main() -> int:
     total += write_loader_scenario()
     total += write_command_lines()
     total += write_owner()
+    total += write_scenarios()
     print(f"{total} seed file(s) written")
     return 0
 
