@@ -50,12 +50,14 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          current="$(gh api "repos/$REPO/git/ref/heads/site" --jq .object.sha 2>/dev/null || true)"
-          if [ "$current" = "$GITHUB_SHA" ]; then
-            echo "The site branch is already at $GITHUB_SHA, so there is nothing new to publish. To publish this commit again, re-run the last Docs run of the push to site." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          if [ -n "$current" ]; then
+          # Whether the branch exists is the exit status of the call, not its output: for a missing branch `gh api` prints the
+          # error body, and `--jq .object.sha` of that body is the text "null".
+          if gh api "repos/$REPO/git/ref/heads/site" >/dev/null 2>&1; then
+            current="$(gh api "repos/$REPO/git/ref/heads/site" --jq .object.sha)"
+            if [ "$current" = "$GITHUB_SHA" ]; then
+              echo "The site branch is already at $GITHUB_SHA, so there is nothing new to publish. To publish this commit again, re-run the last Docs run of the push to site." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
             # force=false: the move must be a fast-forward, so a commit that is not ahead of the branch stops here.
             gh api --method PATCH "repos/$REPO/git/refs/heads/site" -f sha="$GITHUB_SHA" -F force=false
           else
