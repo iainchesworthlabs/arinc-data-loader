@@ -27,8 +27,10 @@ tools/hooks/* text eol=lf
 *.adllic -text
 *.adlrev -text
 
-# The files that the tests of adl_make_set make a set from, and the seeds of its fuzz harnesses: the bytes of a
-# set are compared with what is written down, so no checkout may change a line end in any of them.
+# The files that the tests of adl_make_set make a set from: the bytes of a set are compared with what is written
+# down, so no checkout may change a line end in any of them.
 tests/make_set/data/** -text
-libs/set_maker/fuzz/corpus/** -text
-libs/set_maker/fuzz/regressions/** -text
+# The fuzzers' seed inputs and past crashes are bytes: git does not change their line endings, so
+# that a seed that is a command line (libs/mock_target_core/fuzz) is the same on every checkout.
+libs/*/fuzz/corpus/** -text
+libs/*/fuzz/regressions/** -text

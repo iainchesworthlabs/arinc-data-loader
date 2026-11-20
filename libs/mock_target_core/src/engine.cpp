@@ -754,7 +754,12 @@ void MockEngine::heartbeat_tick(std::uint64_t generation)
 
 Bytes MockEngine::build_configuration_list() const
 {
-    const std::vector<HardwareItem> items = config_.information.empty() ? default_information() : config_.information;
+    return encode_configuration(config_.information.empty() ? default_information() : config_.information)
+        .value_or(Bytes{});
+}
+
+std::optional<Bytes> encode_configuration(const std::vector<HardwareItem>& items)
+{
     // The views the encoder is given must stay put while it reads them: the parts of each
     // item live in their own vector, made before any HardwareItem views them.
     std::vector<std::vector<adl::arinc615a::HardwarePart>> part_storage;
@@ -778,7 +783,11 @@ Bytes MockEngine::build_configuration_list() const
     }
     Bytes bytes(4096);
     const auto size = encode_configuration_list(ConfigurationList{view_items}, bytes);
-    bytes.resize(size.value_or(0));
+    if (!size)
+    {
+        return std::nullopt;
+    }
+    bytes.resize(*size);
     return bytes;
 }
 
