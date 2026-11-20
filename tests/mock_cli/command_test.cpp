@@ -263,6 +263,13 @@ struct Recorder final : public OperationListener
     std::vector<std::string> received_names;
     std::vector<std::string> listed_names;
     std::vector<std::string> choose; // an operator defined download: the names to take (empty: all)
+    struct Noticed
+    {
+        Notice notice;
+        std::string subject;
+        std::uint32_t value;
+    };
+    std::vector<Noticed> notices;
 
     void on_initialization(const InitializationFile& file) noexcept override
     {
@@ -303,6 +310,16 @@ struct Recorder final : public OperationListener
     void on_file_received(std::string_view name, const ReceivedFile&) noexcept override
     {
         received_names.emplace_back(name);
+    }
+    void on_notice(Notice notice, std::string_view subject, std::uint32_t value) noexcept override
+    {
+        notices.push_back(Noticed{notice, std::string{subject}, value});
+    }
+    // How many times the loader's engine gave this notice.
+    [[nodiscard]] std::size_t count(Notice notice) const
+    {
+        return static_cast<std::size_t>(
+            std::ranges::count_if(notices, [notice](const Noticed& noticed) { return noticed.notice == notice; }));
     }
 };
 
@@ -683,6 +700,265 @@ TEST_CASE("a port that cannot be opened exits 4 and names the port", "[mock_cli]
     CHECK(program.join() == cli::exit_port);
     CHECK(program.output.out_buffer.text().empty());
     CHECK(program.output.err_buffer.text().contains(std::to_string(target_tftp_port)));
+}
+
+// ---- The faults, one at a time ---------------------------------------------------------------------------
+//
+// Each starts the program with the option of one fault, runs the loader against it over real sockets, and
+// asserts what the loader's engine reports and what the program writes. The loader's time-outs are the
+// loader's own configuration: shortened where the fault is a silence, so that the group stays short.
+
+namespace
+{
+
+[[nodiscard]] std::vector<std::string> strings_of(const Json& array)
+{
+    std::vector<std::string> strings;
+    for (const Json& item : array.items())
+    {
+        strings.push_back(item.string());
+    }
+    return strings;
+}
+
+// The operation_ended event of a run, which must be there exactly once.
+[[nodiscard]] const Json& the_end_of(const std::vector<Json>& events)
+{
+    const auto count =
+        std::ranges::count_if(events, [](const Json& e) { return e.at("event").string() == "operation_ended"; });
+    REQUIRE(count == 1);
+    return *find_event(events, "operation_ended");
+}
+
+} // namespace
+
+TEST_CASE("WAIT on the first request makes the loader ask again, and the operation then completes",
+          "[mock_cli][faults]")
+{
+    Program program({"--wait-first", "1", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const auto before = std::chrono::steady_clock::now();
+    const Outcome outcome = rig.run(InformationOperation{});
+    const auto took = std::chrono::steady_clock::now() - before;
+    CHECK(outcome.code == OutcomeCode::completed);
+    REQUIRE(rig.recorder.count(Notice::waiting) == 1);
+    CHECK(rig.recorder.notices.front().value == 1);
+    CHECK(took >= std::chrono::milliseconds(900)); // it waited the second it was told to
+    CHECK(rig.recorder.configuration_lists == 1);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--wait-first"});
+    CHECK(find_event(events, "operation_began") != nullptr);
+    CHECK(the_end_of(events).at("status_name").string() == "completed");
+    CHECK(events.back().at("operations").number() == 1);
+}
+
+TEST_CASE("WAIT on every request keeps the operation from starting, until the loader gives up", "[mock_cli][faults]")
+{
+    Program program({"--wait-every", "1", "--seconds", "5", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    rig.config.max_waits = 2; // the loader's own limit is 10: a shorter one keeps the test short
+    const Outcome outcome = rig.run(InformationOperation{});
+    CHECK(outcome.code == OutcomeCode::transfer_failed);
+    CHECK(rig.recorder.count(Notice::waiting) == 3); // the third is the one over the limit
+    CHECK(rig.recorder.initialization.empty());      // the initialization file never came
+    CHECK(program.join() == cli::exit_ok);
+
+    // The target never accepted a request, so no operation began or ended.
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "stopped"});
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--wait-every"});
+    CHECK(events.back().at("reason").string() == "seconds");
+    CHECK(events.back().at("operations").number() == 0);
+}
+
+TEST_CASE("each operation can be refused, and the loader is told it is denied", "[mock_cli][faults]")
+{
+    struct Case
+    {
+        const char* option;
+        const char* operation;
+    };
+    const adl::arinc665::Load load = make_load(100, 1);
+    const std::vector<LoadReference> references = {
+        LoadReference{load.header_file_name, adl::samples::sample_load_part_number}};
+    const std::vector<FileRequest> files = {FileRequest{"F1.BIN", {}}};
+    for (const Case& test : {Case{"upload", "upload"}, Case{"download-media", "download_media_defined"},
+                             Case{"download-operator", "download_operator_defined"}})
+    {
+        INFO(test.option);
+        Program program({"--refuse", test.option, "--operations", "1", "--seconds", "60", "--json"});
+        REQUIRE(program.listening());
+        LoaderRig rig;
+        const Operation operation = std::string_view{test.option} == "upload"
+                                        ? Operation{UploadOperation{UploadRequest{references}}}
+                                    : std::string_view{test.option} == "download-media"
+                                        ? Operation{MediaDownloadOperation{DownloadRequest{files}}}
+                                        : Operation{OperatorDownloadOperation{}};
+        CHECK(rig.run(operation).code == OutcomeCode::denied);
+        CHECK(rig.recorder.initialization == std::vector<StatusCode>{StatusCode::operation_denied});
+        CHECK(program.join() == cli::exit_ok);
+
+        const std::vector<Json> events = events_of(program.output.out_buffer.text());
+        CHECK(names_of(events) == std::vector<std::string>{"started", "operation_ended", "stopped"});
+        CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--refuse"});
+        const Json& ended = events[1];
+        CHECK(ended.at("operation").string() == test.operation);
+        CHECK(ended.at("status").number() == 0x1000);
+        CHECK(ended.at("status_name").string() == "operation_denied");
+        CHECK(ended.at("refused").boolean());
+    }
+}
+
+TEST_CASE("a refusal with 0x1002 is not supported, not denied", "[mock_cli][faults]")
+{
+    const adl::arinc665::Load load = make_load(100, 1);
+    const std::vector<LoadReference> references = {
+        LoadReference{load.header_file_name, adl::samples::sample_load_part_number}};
+    Program program(
+        {"--refuse", "upload", "--refuse-code", "0x1002", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    CHECK(rig.run(UploadOperation{UploadRequest{references}}).code == OutcomeCode::not_supported);
+    CHECK(rig.recorder.initialization == std::vector<StatusCode>{StatusCode::operation_not_supported});
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "operation_ended", "stopped"});
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--refuse", "--refuse-code"});
+    CHECK(events[1].at("operation").string() == "upload");
+    CHECK(events[1].at("status").number() == 0x1002);
+    CHECK(events[1].at("status_name").string() == "operation_not_supported");
+    CHECK(events[1].at("refused").boolean());
+}
+
+TEST_CASE("an initialization file of invalid structure is a protocol error, and has no status", "[mock_cli][faults]")
+{
+    Program program({"--invalid-init-file", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::protocol_error);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "operation_ended", "stopped"});
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--invalid-init-file"});
+    const Json& ended = events[1];
+    CHECK(ended.at("status").is_null());
+    CHECK(ended.at("status_name").string() == "invalid_initialization_file");
+    CHECK(ended.at("refused").boolean());
+}
+
+TEST_CASE("every second status file lost is a gap the loader sees by the counter", "[mock_cli][faults]")
+{
+    Program program({"--drop-status-every", "2", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const adl::arinc665::Load load = make_load(300'000, 13);
+    rig.put_load(load);
+    const std::vector<LoadReference> references = {
+        LoadReference{load.header_file_name, adl::samples::sample_load_part_number}};
+    CHECK(rig.run(UploadOperation{UploadRequest{references}}).code == OutcomeCode::completed);
+    CHECK(rig.recorder.count(Notice::status_counter_gap) >= 1);
+    CHECK(rig.recorder.status_codes.back() == StatusCode::completed); // the last one is never lost
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--drop-status-every"});
+    CHECK(the_end_of(events).at("status_name").string() == "completed");
+}
+
+TEST_CASE("a bit flipped in what it serves is refused by the loader at the first file", "[mock_cli][faults]")
+{
+    adl::test::TempDir holds;
+    write_bytes(holds.path() / "F1.BIN", pattern(2000, 31));
+    // The target does not know the loader has left, and takes its time to find out (the loader's abort).
+    Program program(
+        {"--corrupt-served", "--holds", utf8_of(holds.path()), "--operations", "1", "--seconds", "30", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const std::vector<FileRequest> files = {FileRequest{"F1.BIN", {}}};
+    // The initialization file is the first one it serves, and it is one of those with a bit flipped.
+    CHECK(rig.run(MediaDownloadOperation{DownloadRequest{files}}).code == OutcomeCode::unsupported_protocol_version);
+    CHECK(rig.recorder.received_names.empty());
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--corrupt-served"});
+    CHECK(find_event(events, "operation_began")->at("operation").string() == "download_media_defined");
+    // The target had accepted the request as far as it could tell; it ends with the loader's abort.
+    const Json& ended = the_end_of(events);
+    CHECK(ended.at("status_name").string() == "aborted_by_data_loader");
+    CHECK_FALSE(ended.at("refused").boolean());
+}
+
+TEST_CASE("a wrong check value option is reported by the loader and the file is kept all the same",
+          "[mock_cli][faults]")
+{
+    adl::test::TempDir holds;
+    const std::vector<std::byte> content = pattern(2000, 31);
+    write_bytes(holds.path() / "F1.BIN", content);
+    Program program(
+        {"--wrong-checksum", "--holds", utf8_of(holds.path()), "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const std::vector<FileRequest> files = {FileRequest{"F1.BIN", {}}};
+    CHECK(rig.run(MediaDownloadOperation{DownloadRequest{files}}).code == OutcomeCode::completed);
+    CHECK(rig.recorder.count(Notice::checksum_mismatch) == 1);
+    CHECK(rig.recorder.notices.front().subject == "F1.BIN");
+    CHECK(rig.recorder.received_names == std::vector<std::string>{"F1.BIN"});
+    CHECK(read_bytes(rig.download_directory.path() / "F1.BIN") == content); // kept (5.3.2.3.8.5)
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--wrong-checksum"});
+    CHECK(the_end_of(events).at("status_name").string() == "completed");
+}
+
+TEST_CASE("the target aborts after n status files, and the loader reports it", "[mock_cli][faults]")
+{
+    Program program({"--abort-after", "2", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const adl::arinc665::Load load = make_load(30000, 15);
+    rig.put_load(load);
+    const std::vector<LoadReference> references = {
+        LoadReference{load.header_file_name, adl::samples::sample_load_part_number}};
+    CHECK(rig.run(UploadOperation{UploadRequest{references}}).code == OutcomeCode::aborted_by_target);
+    REQUIRE_FALSE(rig.recorder.status_codes.empty());
+    CHECK(rig.recorder.status_codes.back() == StatusCode::aborted_by_target);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--abort-after"});
+    const Json& ended = the_end_of(events);
+    CHECK(ended.at("operation").string() == "upload");
+    CHECK(ended.at("status").number() == 0x1003);
+    CHECK(ended.at("status_name").string() == "aborted_by_target");
+    CHECK_FALSE(ended.at("refused").boolean());
+    CHECK(events.back().at("operations").number() == 1);
+}
+
+TEST_CASE("a silent target ends the operation with the loader's time-out, and never says it ended",
+          "[mock_cli][faults]")
+{
+    Program program({"--silent", "--seconds", "6", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    rig.config.dlp_timeout = std::chrono::seconds(2); // the loader's own is 13 seconds
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::dlp_timed_out);
+    CHECK(rig.recorder.configuration_lists == 0);
+    CHECK(program.join() == cli::exit_ok); // it stops when the seconds are up: its operation never ends
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--silent"});
+    CHECK(find_event(events, "operation_began") != nullptr);
+    CHECK(find_event(events, "operation_ended") == nullptr);
+    CHECK(events.back().at("reason").string() == "seconds");
+    CHECK(events.back().at("operations").number() == 0);
 }
 
 // ---- The client of the Unicode folders test -------------------------------------------------------------
