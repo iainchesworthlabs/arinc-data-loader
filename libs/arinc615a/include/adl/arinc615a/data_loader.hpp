@@ -22,8 +22,10 @@
 //
 // docs/arinc615a-engine.md says what the standard leaves unclear and how this resolves it.
 
+#include "adl/arinc615a/command.hpp"
 #include "adl/arinc615a/endpoint.hpp"
 #include "adl/arinc615a/error.hpp"
+#include "adl/arinc615a/fault_hook.hpp"
 #include "adl/arinc615a/file_io.hpp"
 #include "adl/arinc615a/limits.hpp"
 #include "adl/arinc615a/protocol_files.hpp"
@@ -334,21 +336,10 @@ struct LoaderServices
     FileSource* source = nullptr; // an upload reads the load's files through this
     FileSink* sink = nullptr;     // a download writes the target's files through this
     OperationListener* listener = nullptr;
-};
-
-// What the runner is to do after each call, in order.
-struct Command
-{
-    enum class Kind : std::uint8_t
-    {
-        send_from_slot,    // send `bytes` to `to` from the socket of slot `slot`
-        send_from_control, // send `bytes` to `to` from the control socket
-        release_slot,      // close the socket of slot `slot`
-    };
-    Kind kind = Kind::release_slot;
-    std::uint8_t slot = 0;
-    Endpoint to;
-    std::span<const std::byte> bytes;
+    // Sees every datagram that arrives and every command the loader means to carry out, and may change what
+    // is carried out (fault_hook.hpp). None, the default, means the loader's commands are carried out as they
+    // are made. It has to outlive the loader.
+    FaultHook* faults = nullptr;
 };
 
 // The data loader's side of one operation. Construct it with its workspace, call
@@ -524,8 +515,9 @@ private:
     static constexpr std::size_t no_index = static_cast<std::size_t>(-1);
 
     // data_loader.cpp
-    void begin_calls() noexcept;
+    void begin_calls(Instant now) noexcept;
     void push(const Command& command) noexcept;
+    void append(const Command& command) noexcept;
     void pump(Instant now, std::size_t index) noexcept;
     void run_retries(Instant now) noexcept;
     [[nodiscard]] std::size_t allocate_slot() noexcept;
@@ -586,6 +578,7 @@ private:
 
     std::array<Command, max_commands> commands_{};
     std::size_t command_count_ = 0;
+    Instant now_{};                      // the time of the call that is being made, for the hook
     std::array<std::byte, 128> reply_{}; // control socket replies (errors, WAIT, ABORT)
 
     char init_name_[260]{};
