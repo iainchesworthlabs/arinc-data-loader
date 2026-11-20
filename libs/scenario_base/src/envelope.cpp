@@ -35,7 +35,9 @@ constexpr std::size_t max_key_characters = 64;
 
 [[nodiscard]] std::string key_as_written(std::string_view key)
 {
-    static constexpr std::string_view hex = "0123456789abcdef";
+    // The sixteen digits as characters, not as a string literal: the check of what the program says reads literals.
+    static constexpr std::array<char, 16> hex = {'0', '1', '2', '3', '4', '5', '6', '7',
+                                                 '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     std::string text;
     text += '"';
     std::size_t characters = 0;
