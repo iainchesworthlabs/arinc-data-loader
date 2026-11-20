@@ -26,6 +26,7 @@ set(ADL_PLATFORM_QT_ARCH_DIRS "")
 
 set(ADL_PLATFORM_SOURCES
     ghs178b/paths_ghs178b.cpp
+    detail/arguments_passthrough.cpp
     ghs178b/memory_ghs178b.cpp
     ghs178b/clock_ghs178b.cpp
     ghs178b/threads_ghs178b.cpp

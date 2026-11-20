@@ -177,6 +177,26 @@ in `camelCase`, which is QML's convention, and the roles of a list model take Qt
 the `.clang-tidy` file in each of those directories allows both cases for a method. A new class follows the case of
 its neighbours.
 
+## Command-line programs
+
+A program that is started from a command line (`adl_write_payloads`, and any other that does not open a window) is
+written this way:
+
+- **Its `main` takes its arguments from `adl::platform::arguments` and never reads `argv` itself.**
+  `adl/platform/arguments.hpp` has it: `const std::vector<std::string> arguments = adl::platform::arguments(argc, argv);`
+  is the first line. On Windows `argv` is the command line narrowed to the system's code page, in which a folder or
+  file named with a character outside the page (Japanese on a Western system) has already been lost, and nothing
+  tells the program. `arguments` reads the command line of the process instead and returns each argument as UTF-8, on
+  every system, with the program name first, as `argv` has it.
+- **A path comes from an argument with `adl::platform::path_from_utf8`**, never from `std::filesystem::path{argument}`:
+  on Windows that reads the bytes in the code page, and makes another name without an error.
+- **Text for the person comes from a path with `to_utf8(path.u8string())`** (`paths.hpp`), never `path.string()` or
+  `path.generic_string()`: on Windows those are the code page again, and throw for a character outside it.
+- The three Qt programs take their arguments through Qt, which reads the command line itself, and are not
+  concerned.
+
+[Platform abstraction](platform-abstraction.md#the-programs-arguments-argumentshpp) has how each platform does it.
+
 ## Choices the libraries make
 
 - **C++23, extensions off.** Every first-party target is built with warnings as
