@@ -48,6 +48,7 @@ PROGRAMS = [
     ("adl_mock", "The mock ARINC 615A target as a command-line program, with no window"),
     ("adl_write_payloads", "A command-line tool that writes sample ARINC 665 media sets"),
     ("adl_make_set", "A command-line tool that makes a media set from a description file and says what one holds"),
+    ("adl_load", "A command-line program that runs one ARINC 615A operation on one target, with no window"),
     ("adl_licence", "A command-line tool that shows, imports and removes the licence on this computer"),
 ]
 # The programs that read a licence file, and so carry the Ed25519 check of Monocypher.
@@ -279,6 +280,8 @@ def main():
         add_relationship(program_ids["adl_mock"], "STATIC_LINK", library_ids[library])
     for library in ("adl_arinc665", "adl_media_tree", "adl_loader_core", "adl_platform"):
         add_relationship(program_ids["adl_make_set"], "STATIC_LINK", library_ids[library])
+    for library in ("adl_arinc665", "adl_arinc615a", "adl_arinc615a_runner", "adl_media_tree", "adl_platform"):
+        add_relationship(program_ids["adl_load"], "STATIC_LINK", library_ids[library])
     add_relationship(program_ids["adl_licence"], "STATIC_LINK", library_ids["adl_platform"])
 
     # The kit's own SPDX documents, referenced by namespace and SHA-1, for the Qt modules whose
@@ -452,6 +455,7 @@ def main():
     depends("adl_write_payloads", "adl_arinc665", "adl_media_tree")
     depends("adl_mock", "adl_arinc665", "adl_arinc615a", "adl_platform")
     depends("adl_make_set", "adl_arinc665", "adl_media_tree", "adl_loader_core", "adl_platform")
+    depends("adl_load", "adl_arinc665", "adl_arinc615a", "adl_arinc615a_runner", "adl_media_tree", "adl_platform")
     for archive in archives:
         ref = "package-" + archive["name"]
         components.append(component(ref, "file", archive["name"], version,

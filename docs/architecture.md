@@ -24,12 +24,14 @@
 
    adl::media_tree (libs/media_tree): members <-> a directory tree, over adl::arinc665
    adl::loader_core (libs/loader_core): what the loader does without a window and without Qt (the media
-   set on disk and its check, the folder a download is written into, the target's address), over the
-   libraries above; the application calls it
+   set on disk and its check, the folder a download is written into, the target's address, one operation
+   made and run against a target, the record of an operation and the file it is written as), over the libraries above; the application calls it
    adl::set_maker (libs/set_maker): the media set generator without a window and without Qt (a plan, the
    making of a set, the reading of one into facts), over adl::loader_core; the generator's window and the
    command adl_make_set build on it
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
+   adl_load (apps/load): one operation on one target, or several at once with `serve`, with no window and no Qt,
+   over adl::loader_core and the runner; a library of its own (adl_load_cli) is the program, under a short main
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target's engine (libs/mock_target_core)
 ```
@@ -47,10 +49,21 @@
   overwrites or follows a link.
 - **`libs/loader_core`** is what the loader does that is not showing a window, with no Qt: a media set on
   disk read and checked into a report (`check_media_set`), the index of its files and the `FileSource` an
-  upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, and
-  the target's address. The loader's application (`apps/app/core`) calls it and puts what it returns in the
-  operator's words and in Qt's types, so a program with no window can do the same by the same rules. It is in
-  the [development package](libraries.md).
+  upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, the
+  target's address, and one operation (an `OperationPlan` of what was chosen, `run_operation` over the host's
+  sockets with the operator's `OperationGate`) reduced to a result and a reason. `run_operation` holds the
+  loader's control port for the one operation, so two of them cannot share port 59 on one address; the
+  `OperationPool` (`operation_pool.hpp`) holds it once and runs one operation for each target at once, each
+  with its own engine object and transfer sockets, giving every datagram on the control port to the operation
+  whose target sent it (one address has one operation at a time, and a datagram from an address with none is
+  dropped and counted). It runs on the thread that calls its `step()` and builds its results with the same
+  `make_result` as `run_operation`. It also holds the record of
+  an operation (`OperationRecord`), the recorder that fills it from what the engine reports
+  (`OperationRecorder`, an `OperationListener` that logs in English, in the window's sentences) and the writer
+  of the file the record is kept in ([the operation record](file-reference.md#the-operation-record)). The
+  loader's application (`apps/app/core`) calls the first part and puts what it returns in the operator's words
+  and in Qt's types, so a program with no window can do the same by the same rules; the window does not use
+  the recorder. It is in the [development package](libraries.md).
 - **`libs/set_maker`** is the media set generator without a window and without Qt, and is not in the
   development package. A `SetPlan` is what a person decides about a media set (the files, the part numbers,
   the members, the check value types, a batch, and more than one load). `validate` holds a plan to the rules
@@ -70,6 +83,18 @@
   (`adl::mock::cli::run_command`) over `libs/mock_target_core` with a command line, one line or one JSON
   object for each event, and exit codes. `main()` only calls the function, so the tests run it in a thread
   and put the loader's real engine against it.
+- **`apps/load`** is the `adl_load` program: one ARINC 615A operation on one target, or FIND,
+  with no window and no Qt, for scripts and other programs ([the command](load-command.md)). It is
+  a static library of its own, `adl_load_cli` (the options, the events as JSON lines or plain lines,
+  and the run function that takes a platform host and the streams it writes to), and a `main` that
+  makes the real host. The library is not exported and not installed, so that a test can run a
+  whole command on the fake platform; the work of an operation is `adl::loader_core`. `adl_load serve`
+  is the one command that runs several operations at once: its loop (`serve.cpp`) takes request lines
+  from a `LineSource`, the program's standard input read on a thread of its own (`stream_source.cpp`) or a
+  test's script, and runs them on the loader core's `OperationPool`, so that one process holds the
+  loader's control port for all of them. What an upload reads before it can start, its media set, is done
+  by a `Preparer` (`preparer.cpp`) on a thread of its own, so that a large set does not hold up the
+  operations that are running.
 - **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `libs/platform/interfaces/adl/platform/`, with one implementation per platform
@@ -216,7 +241,7 @@ route to remove it.
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 | `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
-The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock`, `adl_write_payloads`, `adl_make_set` and `adl_licence`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock`, `adl_write_payloads`, `adl_make_set`, `adl_load` and `adl_licence`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
 applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include

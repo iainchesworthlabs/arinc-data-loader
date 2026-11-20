@@ -12,63 +12,29 @@
 #include "adl/app/events.hpp"
 #include "adl/app/host_access.hpp"
 #include "adl/arinc615a/runner.hpp"
+#include "adl/loader_core/gate.hpp"
 #include "adl/loader_core/media_source.hpp"
+#include "adl/loader_core/operation_plan.hpp"
 
 #include <QList>
 #include <QObject>
 #include <QString>
 #include <QStringList>
-#include <atomic>
 #include <memory>
-#include <mutex>
 #include <string>
 
 namespace adl::app
 {
 
-// The operator's controls of a running operation, handed to the runner as its controller. Both
-// are written from the window's thread (request_abort, post_selection) and turned into a call
-// to the loader by the runner's thread in on_poll: the request into one DataLoader::abort, the
-// choice into one DataLoader::provide_selection. An empty choice - "none" - is what a listener
-// answering the target's list with SelectionDecision::cancelled would do: one abort, with
-// aborted_by_operator. The abort wins if both have been made: once it has been asked for, a
-// choice no longer matters. Each is issued once per job, and clear() is called before a job is
-// queued, so a request or a choice left over from an earlier job cannot stop or answer the
-// next.
-class OperationGate final : public adl::arinc615a::RunController
+// The operator's controls of a running operation: adl::loader_core's gate (gate.hpp, which says how the abort
+// and the choice reach the runner's thread), with the file choice given as the Qt list the window holds.
+// Everything else - request_abort, clear, the two questions and on_poll - is the library's.
+class OperationGate final : public adl::loader_core::OperationGate
 {
 public:
-    // Thread safe. Asks the job that is running (or the next one to start) to abort.
-    void request_abort() noexcept
-    {
-        abort_requested_.store(true, std::memory_order_release);
-    }
     // Thread safe. Hands the operator's file choice to the job that is running. The names are
     // copied at once; an empty list is the choice "none".
-    void post_selection(QStringList names) noexcept;
-    // Forgets a request and a choice. Called before a job is queued, never while one is running.
-    void clear() noexcept;
-    [[nodiscard]] bool abort_requested() const noexcept
-    {
-        return abort_requested_.load(std::memory_order_acquire);
-    }
-    [[nodiscard]] bool selection_posted() const noexcept
-    {
-        return selection_ready_.load(std::memory_order_acquire);
-    }
-
-    void on_poll(adl::arinc615a::DataLoader& loader, adl::arinc615a::Instant now) noexcept override;
-
-private:
-    // The choice that was posted, once the runner's thread is reading it.
-    [[nodiscard]] QStringList take_selection() noexcept;
-
-    std::atomic<bool> abort_requested_{false};
-    std::atomic<bool> selection_ready_{false};
-    std::mutex selection_mutex_;
-    QStringList selection_;
-    bool abort_issued_ = false;     // the runner's thread only
-    bool selection_issued_ = false; // the runner's thread only
+    void post_selection(const QStringList& names) noexcept;
 };
 
 class EngineWorker : public QObject
@@ -151,15 +117,17 @@ private:
     // do about it. `download_directory` (when set) is a directory that was made for the job and
     // is reported all the same, so the operator knows where it is.
     void fail(const Message& text, const Message& hint = {}, const QString& download_directory = {});
-    // Runs `operation` against the target and reports how it ended; the part the Information,
-    // Upload and Download operations share. `listener`, `source` and `sink` live for the call;
-    // `download_path` (when set) is the directory made for a download's files (platform path):
-    // it is reported in the summary, or removed when nothing was received.
-    // `media` (an upload's source) says if it refused a file that had changed since the check.
+    // What is said of a choice that makes no operation (adl::loader_core::OperationPlan).
+    static Message plan_problem(const adl::loader_core::PlanError& error);
+    // Runs `operation` against the target (adl::loader_core::run_operation) and reports how it ended; the
+    // part the Information, Upload and Download operations share. `listener`, `upload_source` and `sink`
+    // live for the call; `download_path` (when set) is the directory made for a download's files (platform
+    // path): it is reported in the summary, or removed when nothing was received. `upload_source` says if it
+    // refused a file that had changed since the check.
     void run_operation(adl::platform::Host& host, const adl::arinc615a::Address& target, const QString& thw_id_pos,
                        const adl::arinc615a::Operation& operation, adl::arinc615a::OperationListener& listener,
-                       adl::arinc615a::FileSource* source, adl::arinc615a::FileSink* sink, quint16 control_port,
-                       const std::string& download_path = {}, const adl::loader_core::MediaTreeSource* media = nullptr);
+                       adl::loader_core::MediaTreeSource* upload_source, adl::arinc615a::FileSink* sink,
+                       quint16 control_port, const std::string& download_path = {});
     // The part the two Download modes share: the host, the DNLD_DATA directory and the runner.
     void run_download(const adl::arinc615a::Address& target, const QString& thw_id_pos,
                       const adl::arinc615a::Operation& operation, const QString& download_directory,

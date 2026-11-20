@@ -7,12 +7,15 @@
 #include "adl/arinc615a/directory_files.hpp"
 #include "adl/arinc665/crc.hpp"
 #include "adl/loader_core/media_source.hpp"
+#include "adl/loader_core/record_json.hpp"
+#include "adl/loader_core/recorder.hpp"
 #include "adl/media_tree/media_tree.hpp"
 #include "adl/platform/host.hpp"
 
 #include <cstddef>
 #include <iostream>
 #include <span>
+#include <string>
 #include <string_view>
 
 namespace
@@ -49,6 +52,15 @@ int main()
     // adl::loader_core: an index of the files of a media set that lists none holds none.
     const auto index = adl::loader_core::MediaSetIndex::make("/set", adl::arinc665::FilesList{});
     ok &= check(index.has_value() && index->entries().empty(), "an empty media set index");
+
+    // adl::loader_core: a recorder logs what the engine reports, and the record is written as the file
+    // other programs read.
+    adl::loader_core::OperationRecorder recorder{
+        adl::arinc615a::OperationKind::information, "10.0.0.2", "HNPFMS_L", {}};
+    recorder.on_notice(adl::arinc615a::Notice::waiting, "A.LUI", 5);
+    const std::string record = adl::loader_core::record_to_json(recorder.record());
+    ok &= check(record.starts_with("{\n  \"format\": 1,\n") && record.contains("target asked to wait: A.LUI (5 s)"),
+                "an operation record is written");
 
     // adl::platform: this host's implementation of the interfaces starts.
     auto host = adl::platform::make_host();

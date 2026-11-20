@@ -827,6 +827,66 @@ TEST_CASE("a target that ignores the port option is noticed", "[engine][operatio
     CHECK(rig.target.log().loader_port_used == 59);
 }
 
+TEST_CASE("a target that is not on port 59 is told where the loader is", "[engine][operation][port]")
+{
+    constexpr std::uint16_t target_port = 5059;
+    // A target that is not on 59 and is told nothing writes to the port it listens on, as the mock target
+    // does; the loader at 59 is not heard there.
+    SimPlan plan;
+    plan.fast_information = true;
+    plan.control_port = target_port;
+    plan.loader_port_without_option = target_port;
+
+    SECTION("with the loader on 59")
+    {
+        Rig rig(plan);
+        rig.config.target.port = target_port;
+        const auto outcome = rig.run(InformationOperation{});
+        REQUIRE(outcome);
+        CHECK(outcome->code == OutcomeCode::completed);
+        CHECK(packets_containing(rig.network.captured(), "port", target_port) == 1);
+        CHECK(rig.target.log().loader_port_used == 59);
+        CHECK(rig.recorder.count(Notice::port_option_ignored) == 0);
+        CHECK(rig.recorder.configuration_lists == 1);
+    }
+
+    SECTION("with the loader's port moved as well")
+    {
+        Rig rig(plan);
+        rig.config.target.port = target_port;
+        rig.config.control_port = 1615;
+        const auto outcome = rig.run(InformationOperation{});
+        REQUIRE(outcome);
+        CHECK(outcome->code == OutcomeCode::completed);
+        CHECK(rig.target.log().loader_port_used == 1615);
+        CHECK(rig.recorder.count(Notice::port_option_ignored) == 0);
+    }
+
+    SECTION("a target that does not take the option is noticed, as one on 59 is")
+    {
+        plan.honor_port_option = false;
+        Rig rig(plan);
+        rig.config.target.port = target_port;
+        const auto outcome = rig.run(InformationOperation{});
+        REQUIRE(outcome);
+        CHECK(outcome->code == OutcomeCode::dlp_timed_out);
+        CHECK(rig.recorder.count(Notice::port_option_ignored) == 1);
+        CHECK(rig.target.log().loader_port_used == target_port);
+    }
+
+    SECTION("a target on 59 with the loader on 59 is told nothing")
+    {
+        SimPlan on_59;
+        on_59.fast_information = true;
+        Rig rig(on_59);
+        const auto outcome = rig.run(InformationOperation{});
+        REQUIRE(outcome);
+        CHECK(outcome->code == OutcomeCode::completed);
+        CHECK(packets_containing(rig.network.captured(), "port", 59) == 0);
+        CHECK(rig.recorder.count(Notice::port_option_ignored) == 0);
+    }
+}
+
 // ---- Status files
 // -----------------------------------------------------------------------------------------
 

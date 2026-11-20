@@ -117,7 +117,7 @@ void SimTarget::on_datagram(adl::platform::Instant /*at*/, const adl::platform::
         handle_find(source, payload);
         return;
     }
-    if (to.port == tftp_control_port)
+    if (to.port == plan_.control_port)
     {
         const auto packet = decode_packet(payload);
         if (packet)
@@ -254,7 +254,7 @@ void SimTarget::serve_init(const Endpoint& from, const TftpRequest& request, Kin
             return;
         }
     }
-    loader_ = Endpoint{from.address, tftp_control_port};
+    loader_ = Endpoint{from.address, plan_.loader_port_without_option.value_or(tftp_control_port)};
     if (plan_.honor_port_option)
     {
         const auto options = read_transfer_options(request.options);
@@ -561,6 +561,14 @@ Bytes SimTarget::build_status(const StatusSpec& spec, std::uint16_t counter)
         for (const UploadItem& load : plan_.loads)
         {
             const bool done = spec.code == StatusCode::completed;
+            const auto failed = plan_.failed_loads.find(load.header_name);
+            if (failed != plan_.failed_loads.end() && spec.code != StatusCode::accepted)
+            {
+                loads.push_back(LoadProgress{load.header_name, load.load_part_number,
+                                             static_cast<std::uint8_t>(progress_percent()), StatusCode::item_failed,
+                                             failed->second});
+                continue;
+            }
             loads.push_back(LoadProgress{load.header_name, load.load_part_number,
                                          static_cast<std::uint8_t>(done ? 100 : progress_percent()),
                                          done ? StatusCode::completed : StatusCode::in_progress, ""});

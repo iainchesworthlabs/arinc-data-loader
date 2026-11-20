@@ -1,0 +1,3 @@
+run	a1	information	--target	10.0.0.2	--position	HNPFMS_L
+cancel	a1
+stop

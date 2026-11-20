@@ -190,6 +190,10 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(apps/mock)
 endif()
 
+# adl_load: one ARINC 615A operation on one target, with no window and no Qt, for programs and scripts
+# (docs/load-command.md). A thin main over the static library adl_load_cli.
+add_subdirectory(apps/load)
+
 # adl_licence: shows, imports, removes and checks the licence on this computer, from a command line.
 if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(apps/licence)
