@@ -153,6 +153,12 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(tools/licence)
 endif()
 
+# adl_make_set: the media set generator as a command with no window. It reads its description file with the
+# licence library's strict JSON reader, so it is a desktop program.
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(apps/make_set)
+endif()
+
 # The mock target's logic without a window and without Qt: its 615A engine and the link that runs
 # it over adl::platform's sockets. The mock target application builds on it below, and so do the
 # tests. Not installed and not part of the adl package.

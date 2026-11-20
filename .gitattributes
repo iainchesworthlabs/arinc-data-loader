@@ -26,3 +26,9 @@ tools/hooks/* text eol=lf
 # for byte with what the owner's tool writes (tests/licence/make_test_licences.py), so no checkout may change one.
 *.adllic -text
 *.adlrev -text
+
+# The files that the tests of adl_make_set make a set from, and the seeds of its fuzz harnesses: the bytes of a
+# set are compared with what is written down, so no checkout may change a line end in any of them.
+tests/make_set/data/** -text
+libs/set_maker/fuzz/corpus/** -text
+libs/set_maker/fuzz/regressions/** -text

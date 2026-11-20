@@ -46,6 +46,7 @@ PROGRAMS = [
     ("adl_media_gen", "The ARINC 665 media set generator application"),
     ("adl_mock_target", "The mock ARINC 615A target application"),
     ("adl_write_payloads", "A command-line tool that writes sample ARINC 665 media sets"),
+    ("adl_make_set", "A command-line tool that makes a media set from a description file and says what one holds"),
 ]
 LIBRARIES = [
     ("adl_arinc665", "The ARINC 665 media set, load and check-value library"),
@@ -251,6 +252,8 @@ def main():
     add_relationship(library_ids["adl_arinc615a_runner"], "DEPENDS_ON", library_ids["adl_platform"])
     for library in ("adl_arinc665", "adl_media_tree"):
         add_relationship(program_ids["adl_write_payloads"], "STATIC_LINK", library_ids[library])
+    for library in ("adl_arinc665", "adl_media_tree", "adl_loader_core", "adl_platform"):
+        add_relationship(program_ids["adl_make_set"], "STATIC_LINK", library_ids[library])
 
     # The kit's own SPDX documents, referenced by namespace and SHA-1, for the Qt modules whose
     # libraries a package holds.
@@ -410,6 +413,7 @@ def main():
     depends("adl_loader_core", "adl_arinc665", "adl_arinc615a", "adl_arinc615a_runner", "adl_media_tree",
             "adl_platform")
     depends("adl_write_payloads", "adl_arinc665", "adl_media_tree")
+    depends("adl_make_set", "adl_arinc665", "adl_media_tree", "adl_loader_core", "adl_platform")
     for archive in archives:
         ref = "package-" + archive["name"]
         components.append(component(ref, "file", archive["name"], version,

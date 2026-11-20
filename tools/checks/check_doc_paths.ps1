@@ -57,6 +57,7 @@ $AllowedPaths = [ordered]@{
     'src/target_app'           = 'planned: the target-side program of docs/roadmap.md'
     # A file inside a package, not in the tree.
     'tools/adl_write_payloads' = 'inside the macOS disk image'
+    'tools/adl_make_set'       = 'inside the macOS disk image'
     # The name a new picture would have.
     'docs/images/name.png'     = 'a placeholder in docs/screenshots.md'
 }
