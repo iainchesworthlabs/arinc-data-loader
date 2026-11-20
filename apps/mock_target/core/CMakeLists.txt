@@ -20,6 +20,7 @@ target_link_libraries(adl_mock_core
         Qt6::Core
         adl::ui_message
         adl::mock_target_core
+        adl::mock_scenario
         adl::arinc615a
         adl::arinc615a_mini
         adl::arinc665

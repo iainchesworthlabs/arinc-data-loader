@@ -134,6 +134,12 @@ add_subdirectory(libs/media_tree)
 # the download folder and the target's address. No Qt; apps/app/core calls it.
 add_subdirectory(libs/loader_core)
 
+# What the media set generator does without a window: the plan, the making of a set (read, build, write,
+# read back with the loader's own check, move into place) and the reading of a set into its facts. The
+# generator's window (apps/media_gen) and the command adl_make_set (apps/make_set) build on it. No Qt. Not
+# installed and not part of the adl package.
+add_subdirectory(libs/set_maker)
+
 # The licence library: the signed licence file, its states and the checks a program asks. Platform-free.
 # Its Ed25519 is Monocypher, vendored in third_party/monocypher, which is C: the language is enabled here,
 # and only on a desktop, because a target build has no use for a licence and may have no C compiler.
@@ -152,10 +158,22 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(libs/scenario_base)
 endif()
 
+# adl_make_set: the media set generator as a command with no window. It reads its description file with the
+# licence library's strict JSON reader, so it is a desktop program.
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(apps/make_set)
+endif()
+
 # The mock target's logic without a window and without Qt: its 615A engine and the link that runs
 # it over adl::platform's sockets. The mock target application builds on it below, and so do the
 # tests. Not installed and not part of the adl package.
 add_subdirectory(libs/mock_target_core)
+
+# The mock target's scenarios: the file that says which fault happens when, and the player that gives it to the
+# engine. A desktop library, as it reads the file with the licence library.
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(libs/mock_scenario)
+endif()
 
 # Sample loads and media sets, for the tests and for the program below.
 add_subdirectory(libs/samples)
@@ -166,7 +184,11 @@ add_subdirectory(apps/write_payloads)
 
 # adl_mock: the mock ARINC 615A target as a command, with no window and no Qt, for test rigs and CI
 # jobs.
-add_subdirectory(apps/mock)
+# It takes a scenario file, which needs the licence library's reader, so it is built on a desktop only (as it is
+# installed only there).
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(apps/mock)
+endif()
 
 # adl_licence: shows, imports, removes and checks the licence on this computer, from a command line.
 if(ADL_PLATFORM_DESKTOP)

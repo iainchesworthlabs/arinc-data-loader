@@ -10,12 +10,16 @@ packets that were written independently of the library. Each becomes one binary 
 libs/<lib>/fuzz/corpus/<target>/ (tools/<tool>/fuzz/corpus/<target>/ for a tool), so the fuzzers start from
 inputs that get past the first checks. Run it again after the golden data changes; the files it writes
 are committed. The harness of libs/loader_core reads text and not a file, so its seeds are written
-out below, and so are the command lines that seed libs/platform/fuzz.
+out below, and so are the command lines that seed libs/platform/fuzz. The description files that seed
+libs/set_maker/fuzz are written out below too, and so is the golden media set as an archive of its files (the golden
+set is made by tests/golden/make_golden.py, which this loads).
 """
 
 from __future__ import annotations
 
+import importlib.util
 import re
+import struct
 import sys
 from pathlib import Path
 
@@ -173,6 +177,145 @@ def write_licence_cli() -> int:
     return len(seeds)
 
 
+# The description file of adl_make_set (libs/set_maker/fuzz, target description): a good one, the smallest one, and a
+# refusal of each kind, so that the fuzzer starts on both sides of every check.
+_DESCRIPTION_HEAD = '{"format":1,"kind":"adl-media-set-description",'
+_ONE_LOAD = '"loads":[{"part_number":"ACM47-1234-5678","files":[{"source":"a/app.bin","name":"APP.LUP"}]}]'
+SEEDS_DESCRIPTION = {
+    "example": """{
+  "format": 1,
+  "kind": "adl-media-set-description",
+  "media_set": { "part_number": "ACM-SET-0001", "members": 2, "files_check": "sha1", "files_list_check": "crc32" },
+  "loads": [
+    {
+      "part_number": "ACM47-1234-5678",
+      "header_file": "ACM47.LUH",
+      "type": "OPS",
+      "target_hardware_ids": ["ACME", "ACMEFMS"],
+      "check": "sha1",
+      "files": [
+        { "source": "payloads/app.bin", "name": "APPCODE.LUP", "kind": "data", "check": "crc32" },
+        { "source": "payloads/nav.bin", "name": "NAVDATA.LUP", "kind": "data", "check": "crc32" },
+        { "source": "payloads/CONFIG.LDR", "kind": "support" }
+      ]
+    },
+    {
+      "part_number": "ACM4C-0100-0200",
+      "type": { "description": "Test software", "id": 4 },
+      "target_hardware_ids": ["ACME"],
+      "files": [ { "source": "payloads/selftest.bin", "name": "SELFTEST.LUP" } ]
+    }
+  ],
+  "batch": { "part_number": "ACM4D-0100-0300", "comment": "Both loads for the unit" }
+}
+""",
+    "minimal": _DESCRIPTION_HEAD + '"media_set":{"part_number":"ACM-SET-0001"},' + _ONE_LOAD + "}",
+    "batch-targets": _DESCRIPTION_HEAD + '"media_set":{"part_number":"ACM-SET-0001","members":3},'
+    '"loads":[{"part_number":"ACM47-1234-5678","target_hardware_ids":["ACME_L"],"files":[{"source":"a/app.bin"}]}],'
+    '"batch":{"part_number":"ACM4C-0100-0200","file_name":"BATCH.LUB","targets":'
+    '[{"id":"ACME_L","loads":["ACM47-1234-5678"]}]}}',
+    "type-object": _DESCRIPTION_HEAD + '"media_set":{"part_number":"ACM-SET-0001"},'
+    '"loads":[{"part_number":"ACM47-1234-5678","type":{"description":"EEC Operational Software","id":65535},'
+    '"files":[{"source":"a/app.bin","name":"APP.LUP","check":"md5"}]}]}',
+    "unknown-key": _DESCRIPTION_HEAD + '"media_set":{"part_number":"ACM-SET-0001","member":2},' + _ONE_LOAD + "}",
+    "format-2": '{"format":2,"kind":"adl-media-set-description"}',
+    "duplicate-key": _DESCRIPTION_HEAD + '"media_set":{"part_number":"A","part_number":"B"},' + _ONE_LOAD + "}",
+    "absolute-source": _DESCRIPTION_HEAD + '"media_set":{"part_number":"ACM-SET-0001"},'
+    '"loads":[{"part_number":"ACM47-1234-5678","files":[{"source":"/etc/app.bin","name":"APP.LUP"}]}]}',
+    "name-the-window-refuses": _DESCRIPTION_HEAD + '"media_set":{"part_number":"ACM-SET-0001"},'
+    '"loads":[{"part_number":"ACM47-1234-5678","files":[{"source":"a/app.bin","name":"CON.LUP"}]}]}',
+    "part-number-wrong": _DESCRIPTION_HEAD + '"media_set":{"part_number":"ACM SET"},'
+    '"loads":[{"part_number":"nope","files":[{"source":"a/app.bin","name":"APP.LUP"}]}]}',
+    "trailing-comma": _DESCRIPTION_HEAD + '"media_set":{"part_number":"ACM-SET-0001"},' + _ONE_LOAD + ",}",
+    "not-an-object": "[]",
+    "empty": "",
+}
+
+
+# The command line of adl_make_set, one argument to a line: each way it can be right and each way it can be wrong.
+SEEDS_OPTIONS = {
+    "make": "make\nset.json\n--output\nout\n",
+    "make-all": "make\nset.json\n--output\nout\n--source-root\nsrc\n--json\n",
+    "verify": "verify\nfolder\n",
+    "inspect-json": "inspect\nfolder\n--json\n",
+    "options-first": "--json\nmake\n--output\nout\nset.json\n",
+    "help": "--help\n",
+    "version": "make\n--version\n",
+    "no-command": "",
+    "unknown-command": "compare\na\n",
+    "needs-output": "make\nset.json\n",
+    "output-for-verify": "verify\nfolder\n--output\nout\n",
+    "output-needs-a-value": "make\nset.json\n--output\n--json\n",
+    "given-twice": "make\nset.json\n--output\nx\n--output\ny\n",
+    "two-subjects": "inspect\na\nb\n",
+    "empty-subject": "inspect\n\n",
+    "unknown-option": "verify\nfolder\n--quiet\n",
+}
+
+
+def _golden_module():
+    """tests/golden/make_golden.py, the independent writer of the golden media set, loaded as a module."""
+    spec = importlib.util.spec_from_file_location("make_golden", ROOT / "tests" / "golden" / "make_golden.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _set_archive(files) -> bytes:
+    """The input of libs/set_maker/fuzz (target inspect_set): for each file, the member number as 16 bits, the
+    length and the bytes of its pathname, of its name, and the 32-bit length and the bytes of its content."""
+    out = b""
+    for member, pathname, name, content in files:
+        out += struct.pack(">H", member) + bytes([len(pathname)]) + pathname.encode("ascii")
+        out += bytes([len(name)]) + name.encode("ascii") + struct.pack(">I", len(content)) + content
+    return out
+
+
+def write_set_maker() -> int:
+    """The description seeds, and the golden media set (two members, a batch, a stray file) as an archive of its
+    files, whole and in the ways it can be wrong."""
+    base = ROOT / "libs" / "set_maker" / "fuzz" / "corpus"
+    description = base / "description"
+    description.mkdir(parents=True, exist_ok=True)
+    for name, text in SEEDS_DESCRIPTION.items():
+        (description / f"{name}.bin").write_bytes(text.encode("utf-8"))
+
+    golden = _golden_module()
+    built = golden.media_set()
+    root = "\\" + golden.LOAD_PN.replace("-", "") + "\\"
+    whole = [
+        (1, "\\", "LOADS.LUM", built["loads"][0]),
+        (1, "\\", "BATCHES.LUM", built["batches"][0]),
+        (1, "\\", "FILES.LUM", built["files"][0]),
+        (1, root, golden.HEADER_NAME, built["header"]),
+        (1, root, "APP.LUP", golden.DATA1),
+        (1, root, "CONFIG.LDR", golden.CONFIG),
+        (1, "\\", "NON_LOAD.CRC", golden.NON_LOAD),
+        (2, "\\", "LOADS.LUM", built["loads"][1]),
+        (2, "\\", "BATCHES.LUM", built["batches"][1]),
+        (2, "\\", "FILES.LUM", built["files"][1]),
+        (2, "\\", "ACM47.LUB", built["batch"]),
+        (2, root + "disk001\\", "DATA.LUP", golden.DATA2),
+    ]
+    changed = [(m, p, n, c if n != "APP.LUP" else bytes([c[0] ^ 1]) + c[1:]) for m, p, n, c in whole]
+    seeds = {
+        "two-member-set": _set_archive(whole),
+        "member-2-missing": _set_archive([f for f in whole if f[0] == 1]),
+        "lists-only": _set_archive([f for f in whole if f[2].endswith(".LUM")]),
+        "one-byte-changed": _set_archive(changed),
+        "no-files": b"",
+    }
+    options = base / "options"
+    options.mkdir(parents=True, exist_ok=True)
+    for name, text in SEEDS_OPTIONS.items():
+        (options / f"{name}.bin").write_bytes(text.encode("utf-8"))
+    out = base / "inspect_set"
+    out.mkdir(parents=True, exist_ok=True)
+    for name, data in seeds.items():
+        (out / f"{name}.bin").write_bytes(data)
+    return len(SEEDS_DESCRIPTION) + len(SEEDS_OPTIONS) + len(seeds)
+
+
 # Scenario files for libs/scenario_base/fuzz (target envelope), which reads its input as the file: a good one for each
 # trigger, the shapes of the two kinds, and the ways a file is refused (the strict JSON reader's and the reader's own).
 SEEDS_SCENARIO = {
@@ -220,6 +363,74 @@ def write_scenarios() -> int:
     return len(SEEDS_SCENARIO)
 
 
+# The mock target's scenario files for libs/mock_scenario/fuzz (target scenario): the example of the guide, every action
+# with a trigger it goes with, the limits, and the ways a file is refused (the reader's own sentences).
+SEEDS_MOCK_SCENARIO = {
+    "guide_example": """{
+  "kind": "adl-mock-scenario",
+  "format": 1,
+  "name": "Slow start, lost status files, then an abort",
+  "description": "The first request waits 2 s. Uploads answer a little late. Half the status files from the 2nd on are lost, 3 times at most. 20 s into an operation the target gives up.",
+  "seed": 20261120,
+  "steps": [
+    {
+      "when": { "request": 1 },
+      "do": { "action": "wait", "seconds": 2 }
+    },
+    {
+      "comment": "only the second upload request, held back between 200 and 900 ms",
+      "when": { "request": 2, "operation": "upload" },
+      "do": { "action": "delay", "min_ms": 200, "max_ms": 900 }
+    },
+    {
+      "when": { "status_file": 2, "every": 1, "times": 3 },
+      "per_mille": 500,
+      "do": { "action": "drop_status_file" }
+    },
+    {
+      "when": { "after_ms": 20000 },
+      "do": { "action": "abort" }
+    }
+  ]
+}
+""",
+    "every_action": """{"kind":"adl-mock-scenario","format":1,"seed":3,"steps":[
+  {"when":{"request":1},"do":{"action":"wait","seconds":5}},
+  {"when":{"request":2},"do":{"action":"refuse","code":"0x1002"}},
+  {"when":{"request":3},"do":{"action":"invalid_init_file"}},
+  {"when":{"request":4},"do":{"action":"corrupt_served"}},
+  {"when":{"request":5},"do":{"action":"delay","ms":250}},
+  {"when":{"status_file":3},"do":{"action":"drop_status_file"}},
+  {"when":{"status_file":4},"do":{"action":"abort"}},
+  {"when":{"status_file":5},"do":{"action":"silent"}},
+  {"when":{"status_file":6},"do":{"action":"wrong_checksum"}},
+  {"when":{"after_ms":1500,"every":500,"times":2,"operation":"download_media_defined"},"per_mille":300,
+   "do":{"action":"delay","min_ms":10,"max_ms":90}}]}""",
+    "minimum": '{"kind":"adl-mock-scenario","format":1,"steps":[]}',
+    "limits": '{"kind":"adl-mock-scenario","format":1,"seed":9007199254740991,"steps":[{"when":{"after_ms":86400000,"every":86400000,"times":1000000},"per_mille":1000,"do":{"action":"delay","min_ms":0,"max_ms":60000}}]}',
+    "wrong_trigger_for_wait": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":2},"do":{"action":"wait","seconds":1}}]}',
+    "wrong_trigger_for_abort": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":2},"do":{"action":"abort"}}]}',
+    "unknown_action": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"explode"}}]}',
+    "unknown_key_in_do": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":1},"do":{"action":"silent","for_ms":5}}]}',
+    "delay_without_seed": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"delay","min_ms":1,"max_ms":9}}]}',
+    "delay_both_forms": '{"kind":"adl-mock-scenario","format":1,"seed":1,"steps":[{"when":{"request":1},"do":{"action":"delay","ms":5,"max_ms":9}}]}',
+    "refuse_code": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"refuse","code":"0x1001"}}]}',
+    "operation_word": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1,"operation":"download"},"do":{"action":"invalid_init_file"}}]}',
+    "wait_zero": '{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"wait","seconds":0}}]}',
+    "loader_kind": '{"kind":"adl-loader-scenario","format":1,"steps":[]}',
+    "newer_format": '{"kind":"adl-mock-scenario","format":2,"steps":[],"new_key":true}',
+    "not_json": '{"kind":"adl-mock-scenario","format":1,"steps":[],}',
+}
+
+
+def write_mock_scenarios() -> int:
+    out = ROOT / "libs" / "mock_scenario" / "fuzz" / "corpus" / "scenario"
+    out.mkdir(parents=True, exist_ok=True)
+    for name, text in SEEDS_MOCK_SCENARIO.items():
+        (out / (name + ".json")).write_bytes(text.encode("utf-8"))
+    return len(SEEDS_MOCK_SCENARIO)
+
+
 def main() -> int:
     total = write(ROOT / "tests/golden/golden_payloads.hpp", "arinc665", SEEDS_665)
     total += write(ROOT / "tests/golden/golden_615a.hpp", "arinc615a", SEEDS_615A)
@@ -227,7 +438,9 @@ def main() -> int:
     total += write(ROOT / "tests/golden/golden_licence.hpp", "licence", SEEDS_LICENCE)
     total += write_command_lines()
     total += write_owner()
+    total += write_set_maker()
     total += write_scenarios()
+    total += write_mock_scenarios()
     total += write_licence_cli()
     print(f"{total} seed file(s) written")
     return 0

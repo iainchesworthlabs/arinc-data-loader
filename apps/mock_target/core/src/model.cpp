@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/mock/model.hpp"
 
+#include "adl/mock/scenario_file.hpp"
+#include "adl/mock/scenario_player.hpp"
 #include "adl/mock/settings.hpp"
 #include "adl/mock/storage.hpp"
+#include "adl/platform/arguments.hpp"
 #include "adl/platform/host.hpp"
 #include "adl/platform/paths.hpp"
 
 #include <QDir>
+#include <QFileInfo>
 #include <QMetaObject>
 #include <QTime>
 #include <QUrl>
@@ -390,6 +394,47 @@ void MockTargetModel::set_error(const adl::ui::Message& text)
 void MockTargetModel::retranslate()
 {
     Q_EMIT errorTextChanged();
+    Q_EMIT scenarioChanged();
+}
+
+void MockTargetModel::loadScenario(const QString& location)
+{
+    if (running_)
+    {
+        return;
+    }
+    // A FileDialog hands over a file URL; a path is taken as it is.
+    const QString path = location.startsWith(QLatin1String("file:")) ? QUrl(location).toLocalFile() : location;
+    auto loaded = adl::mock::load_scenario_file(adl::platform::path_from_utf8(path.toStdString()));
+    if (!loaded)
+    {
+        scenario_.reset();
+        scenario_summary_ = {};
+        scenario_error_ =
+            adl::ui::Message::translated(&MockTargetModel::tr, QT_TR_NOOP("The scenario file was refused: %1"),
+                                         {adl::ui::Message::verbatim(QString::fromStdString(loaded.error().message))});
+        Q_EMIT scenarioChanged();
+        return;
+    }
+    const QString label = loaded->name.empty() ? QFileInfo(path).fileName() : QString::fromStdString(loaded->name);
+    const int steps = static_cast<int>(loaded->steps.size());
+    scenario_ = std::make_shared<const adl::mock::Scenario>(std::move(*loaded));
+    scenario_error_ = {};
+    scenario_summary_ = adl::ui::Message::translated(&MockTargetModel::tr, QT_TR_N_NOOP("Scenario %1: %n step(s)"),
+                                                     {adl::ui::Message::verbatim(label)}, steps);
+    Q_EMIT scenarioChanged();
+}
+
+void MockTargetModel::removeScenario()
+{
+    if (running_ || (scenario_ == nullptr && scenario_error_.isEmpty()))
+    {
+        return;
+    }
+    scenario_.reset();
+    scenario_summary_ = {};
+    scenario_error_ = {};
+    Q_EMIT scenarioChanged();
 }
 
 void MockTargetModel::setHardwareId(const QString& value)
@@ -600,30 +645,60 @@ Config MockTargetModel::make_config() const
     settings.loopback_only = loopback_only_;
     settings.think_time_ms = think_time_ms_;
     settings.status_period_sec = status_period_sec_;
-    settings.wait_first_seconds = wait_first_seconds_;
-    settings.wait_every_request = wait_every_request_;
-    settings.drop_status_every = drop_status_every_;
-    settings.corrupt_served_file = corrupt_served_file_;
-    settings.wrong_checksum = wrong_checksum_;
-    settings.abort_after_statuses = abort_after_statuses_;
-    settings.silent = silent_;
-    if (refuse_operation_ == QLatin1String("information"))
+    // A scenario takes the place of the injections: with one loaded they are left as they were set, and not used.
+    if (scenario_ == nullptr)
     {
-        settings.refuse_operation = OperationKind::information;
+        settings.wait_first_seconds = wait_first_seconds_;
+        settings.wait_every_request = wait_every_request_;
+        settings.drop_status_every = drop_status_every_;
+        settings.corrupt_served_file = corrupt_served_file_;
+        settings.wrong_checksum = wrong_checksum_;
+        settings.abort_after_statuses = abort_after_statuses_;
+        settings.silent = silent_;
+        if (refuse_operation_ == QLatin1String("information"))
+        {
+            settings.refuse_operation = OperationKind::information;
+        }
+        else if (refuse_operation_ == QLatin1String("upload"))
+        {
+            settings.refuse_operation = OperationKind::upload;
+        }
+        else if (refuse_operation_ == QLatin1String("downloadMedia"))
+        {
+            settings.refuse_operation = OperationKind::download_media;
+        }
+        else if (refuse_operation_ == QLatin1String("downloadOperator"))
+        {
+            settings.refuse_operation = OperationKind::download_operator;
+        }
     }
-    else if (refuse_operation_ == QLatin1String("upload"))
+    Config config = adl::mock::make_config(settings);
+    if (scenario_ != nullptr)
     {
-        settings.refuse_operation = OperationKind::upload;
+        // The plan is played on the engine's thread; each step that fires is a line of the activity log, in the words
+        // of the file (like the engine's own lines, which are English).
+        MockWorker* const worker = worker_;
+        config.fault_plan = std::make_shared<ScenarioPlayer>(
+            *scenario_,
+            [worker](const StepFired& fired)
+            {
+                std::string text = "scenario step " + std::to_string(fired.step) + " (" +
+                                   std::string{adl::scenario::trigger_name(fired.trigger)} + " " +
+                                   std::to_string(fired.at) + ", " + std::string{operation_word(fired.operation)} +
+                                   "): " + std::string{effect_word(fired.effect)};
+                if (fired.value)
+                {
+                    text += " " + std::to_string(*fired.value);
+                }
+                if (!fired.applied)
+                {
+                    text += ", not applied";
+                }
+                Q_EMIT worker->log_line(
+                    LogEntry{static_cast<int>(Severity::notice), time_now(), QString::fromStdString(text)});
+            });
     }
-    else if (refuse_operation_ == QLatin1String("downloadMedia"))
-    {
-        settings.refuse_operation = OperationKind::download_media;
-    }
-    else if (refuse_operation_ == QLatin1String("downloadOperator"))
-    {
-        settings.refuse_operation = OperationKind::download_operator;
-    }
-    return adl::mock::make_config(settings);
+    return config;
 }
 
 void MockTargetModel::start()

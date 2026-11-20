@@ -36,4 +36,15 @@
         </translation>
     </message>
 </context>
+<context>
+    <name>adl::mock::MockTargetModel</name>
+    <message numerus="yes">
+        <location filename="../core/src/model.cpp" line="423"/>
+        <source>Scenario %1: %n step(s)</source>
+        <translation>
+            <numerusform>Scenario %1: %n step</numerusform>
+            <numerusform>Scenario %1: %n steps</numerusform>
+        </translation>
+    </message>
+</context>
 </TS>

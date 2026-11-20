@@ -84,6 +84,12 @@ namespace adl::test
                     part.amendment.size() <= 254 && !part.designation.empty() && part.designation.size() <= 254;
         }
     }
+    // A scenario takes the faults, so none of the options that set one is on beside it.
+    holds =
+        holds && (!options.scenario ||
+                  (settings.wait_first_seconds == 0 && !settings.wait_every_request && !settings.refuse_operation &&
+                   !settings.invalid_init_file && settings.drop_status_every == 0 && !settings.corrupt_served_file &&
+                   !settings.wrong_checksum && settings.abort_after_statuses == 0 && !settings.silent));
     static_cast<void>(fault_options(options));
     return holds;
 }

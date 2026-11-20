@@ -26,6 +26,7 @@ target_link_libraries(adl_gen_tests
         adl::arinc665
         adl::media_tree
         adl::samples
+        adl::set_maker
         Qt6::Test
         adl::warnings
         adl::sanitizers

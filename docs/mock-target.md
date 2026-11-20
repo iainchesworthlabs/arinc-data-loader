@@ -68,6 +68,7 @@ folder with `path_from_utf8` ([Command-line programs](architecture.md#command-li
 | `--wrong-checksum` | Write a wrong check value option | Off |
 | `--abort-after <n>` | Abort (0x1003) after n status files | Off |
 | `--silent` | Say nothing after the first status file, so the loader runs into its 13 second time-out. The operation never ends, so it needs `--seconds` | Off |
+| `--scenario <file>` | Take the faults from a scenario file, which says which fault happens when, in place of the fault options above ([Scenarios](#scenarios)) | Off |
 | `--operations <n>`, `--seconds <n>` | Stop after n operations (a refused one counts), or after n seconds | Run until killed |
 | `--json` | One JSON object a line | One plain line an event |
 | `--help`, `--version` | The usage; `adl_mock <version> events 1` | |
@@ -116,7 +117,8 @@ came off the wire is written as JSON; bytes in it that are not UTF-8 are written
 | `progress` | The percentage of the list it has got through changed | `operation`, `percent` (0 to 100) |
 | `upload_received` | An upload completed, before it ends | `part_number`, `files` (the names, the header file first), `stored_in` (the load's folder, or `null` when nothing was kept) |
 | `operation_ended` | The last status file went out, or the operation was refused and never began | `operation`, `status` (the status code as a number, or `null` for an invalid initialization file), `status_name` (the name of the code: `completed`, `aborted_by_target`, `operation_denied`, `operation_not_supported`, ..., or `invalid_initialization_file`), `refused` |
-| `stopped` | Last | `reason` (`operations`, `seconds` or `error`), `operations` (how many ended) |
+| `scenario_step` | With `--scenario`: the trigger of a step occurred, before what the action causes | `step`, `trigger`, `at`, `operation`, `action`, `applied`, and `seconds`, `status` or `ms` for the action that has one ([Scenarios](#scenarios)) |
+| `stopped` | Last | `reason` (`operations`, `seconds` or `error`), `operations` (how many ended), and with `--scenario` `scenario_unused` (the numbers of the steps that never fired) |
 
 A reader refuses an `events` number it does not know, and ignores a key it does not know: a key can be added
 without changing the number, and removing or renaming one, or changing what one means, changes it. A target that
@@ -131,8 +133,25 @@ has gone silent never ends its operation and writes no `operation_ended` for it.
 | 2 | Wrong usage |
 | 3 | A folder cannot be used: `--holds` is not a folder or cannot be read, or `--storage` is not a folder and cannot be made |
 | 4 | A port cannot be opened: it is in use, or needs a privilege |
+| 5 | The scenario file given with `--scenario` cannot be read or is refused |
 
-On exits 2, 3 and 4 no event is written: the target never started.
+On exits 2, 3, 4 and 5 no event is written: the target never started.
+
+### Scenarios
+
+A scenario is a file that says which fault the target shows and when, so that a run with faults can be repeated: a list
+of steps, each with a trigger (the nth request, the nth status file, or a time since the operation began) and an action
+(any of the faults above, or a delay), and a seed that fixes every chance. `--scenario <file>` takes it in place of the
+fault options (it cannot be given with one), and the file is read before anything is opened: a file that cannot be read
+or is refused ends the program with exit code 5 and one sentence on the standard error. The file, the triggers, the
+actions, the seed and every sentence are in the guide, [Scenarios for the mock target](user-guide/mock-scenarios.md).
+
+The engine knows nothing of scenario files. It asks a plan (`FaultPlan`, `adl/mock/fault_plan.hpp`) at each request for
+an initialization file, at each status file, and when a step set for a time after an operation began comes due, and does
+what the answer says with the faults it already has, and one thing more, a datagram held back. `ScenarioPlayer`
+(`libs/mock_scenario`) is the plan that a scenario makes: it counts the occurrences of each step, draws from the stream
+of the step (SplitMix64, `libs/scenario_base`), and tells an observer about each, which is what `adl_mock` writes as the
+`scenario_step` events. With no plan the engine behaves as it always did.
 
 ## Layout
 

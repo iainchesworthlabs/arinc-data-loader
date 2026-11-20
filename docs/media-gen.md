@@ -32,10 +32,11 @@ apps/media_gen/
   qml/GeneratorWindow.qml the window
   core/                   adl_gen_core: everything but the window, Qt Core only
     source_file_model     the table of files the operator chose, with its validation
-    generator_worker      the job on its own thread: read, build, place, write, verify
+    generator_worker      the job on its own thread: calls libs/set_maker's make_set, and says in the window's words how it ended
     generator_model       what the QML talks to: properties and a few invokable functions
 apps/media_gen/tests/          QtTest headless (including reading a generated set back through the
                           loader's own media set summary), and the window loaded offscreen
+libs/set_maker/            the making of a set without Qt (shared with the command adl_make_set)
 libs/ui/                   the shared design system (Theme, controls, header, footer, log)
 ```
 
@@ -89,6 +90,12 @@ check value, size and `Remove` are fixed widths), so they stay aligned at any wi
   if the removal itself failed, where the remains are). A file too large to be held in memory ends the job
   with its name, not a crash. `write_media_set_tree` itself also removes what it made when a write fails
   part of the way.
+- **The window and the command make the set with the same code.** Reading the files, building the loads, placing
+  the files, writing the tree beside its place, reading it back and moving it into place are `adl::set_maker::make_set`
+  (`libs/set_maker`, no Qt), which the window's worker calls and which the command `adl_make_set` calls too. The window
+  keeps what is Qt's: the form, the thread, the cancel flag and its words in eight languages. The command takes the
+  same rules for names and part numbers (`adl::set_maker::validate`, which a test holds to the window's form) and makes a
+  set from a description file with no window ([Command line and exit codes](user-guide/command-line.md#adl_make_set)).
 - **Generation is verification.** The write step is followed by reading the set back with the
   same functions the data loader reads it with (`read_media_set_tree`, `read_media_set`, and
   the loader's own summary in the tests), so a set the generator calls good is a set the loader

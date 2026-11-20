@@ -1,0 +1,6 @@
+make
+set.json
+--output
+x
+--output
+y

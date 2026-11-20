@@ -250,3 +250,309 @@ The program is in [`main.cpp`](../apps/write_payloads/main.cpp) and the scenario
 | `arinc615-boeing777` | `ACM-ALL-SET` | 1 | A load both kinds of loader can use (Appendix F-3). Data file `ACM12345.001`. Support files `ACM12345.HDR`, `CONFIG.LDR` and `EXCONFIG.LDR`. Header file `ACM62.LUH` |
 
 The three Appendix F sets record no check value beyond the 16-bit CRCs, which are always written.
+
+## The media set description
+
+`adl_make_set make` makes a media set from a description file: a JSON file that names the files to put in the set, their part numbers, the number of members, the check value types and the batch file. The same description and the same files give the same set, byte for byte, on every run and on every desktop, because a description holds nothing of the computer it was written on: no output path, no time, and no path of its own (a `source` is relative). [Command line and exit codes](user-guide/command-line.md#adl_make_set) says how the program is run. The window of the media set generator makes one load; a description can make several.
+
+The file is UTF-8 without a byte order mark. It is read with the strict JSON reader of the licence library (`adl/licence/json.hpp`), which refuses what a plain parser lets through, so that no two readers can disagree about what a file says: a key given twice in one object, a comment, a trailing comma, text after the value, a control character in a string, bytes that are not UTF-8, a lone surrogate in an escape, and a value nested more than eight levels deep (a description needs five). The reader says only that the text is not JSON it reads, and does not say where. A key that is not in the tables below is refused, with its place in the file, so that a mistyped key cannot make a set other than the one meant. A new key that changes what a set is will come with a new `format`.
+
+### An example
+
+Two loads, two members and a batch. The files it names are in a folder `payloads` beside it. The first load is for two targets and the second is for one of them, so the batch that is derived names both loads for `ACME` and the first for `ACMEFMS`.
+
+```json
+{
+  "format": 1,
+  "kind": "adl-media-set-description",
+  "media_set": {
+    "part_number": "ACM-SET-0001",
+    "members": 2,
+    "files_check": "sha1",
+    "files_list_check": "crc32"
+  },
+  "loads": [
+    {
+      "part_number": "ACM47-1234-5678",
+      "header_file": "ACM47.LUH",
+      "type": "OPS",
+      "target_hardware_ids": ["ACME", "ACMEFMS"],
+      "check": "sha1",
+      "files": [
+        { "source": "payloads/app.bin", "name": "APPCODE.LUP", "kind": "data", "check": "crc32" },
+        { "source": "payloads/nav.bin", "name": "NAVDATA.LUP", "kind": "data", "check": "md5" },
+        { "source": "payloads/CONFIG.LDR", "kind": "support" }
+      ]
+    },
+    {
+      "part_number": "ACM4C-0100-0200",
+      "type": { "description": "Test software", "id": 4 },
+      "target_hardware_ids": ["ACME"],
+      "files": [
+        { "source": "payloads/selftest.bin", "name": "SELFTEST.LUP", "check": "crc16" }
+      ]
+    }
+  ],
+  "batch": {
+    "part_number": "ACM4D-0100-0300",
+    "comment": "Both loads for the unit"
+  }
+}
+```
+
+### The keys
+
+A key marked required has to be there. Any other key may be left out, and then the default applies. A JSON `null` is the same as leaving the key out. A string that is there has to hold at least one character, so to say "no comment" leave `comment` out.
+
+**The whole file**
+
+| Key | Value |
+| --- | --- |
+| `format` | Required. The whole number 1. Any other number is refused: "format 2 is not one this program reads (it reads format 1)" |
+| `kind` | Required. The text `adl-media-set-description` |
+| `media_set` | Required. An object, below |
+| `loads` | Required. A list of 1 to 100 objects, below, in the order they are listed in `LOADS.LUM` |
+| `batch` | An object, below. No batch when it is left out |
+
+**`media_set`**
+
+| Key | Value | Default |
+| --- | --- | --- |
+| `part_number` | Required. The media set part number. The rules of ARINC 665-3 section 3.1 that the generator's window applies: at most 15 characters, no blank, not ending in a hyphen, without I, Q and Z | |
+| `members` | The number of members, 1 to 255 | 1 |
+| `files_check` | The check value that `FILES.LUM` records for each file it lists: a check type | `none` |
+| `files_list_check` | The check value that `FILES.LUM` records for itself: a check type | `none` |
+
+A **check type** is one of `none`, `crc8`, `crc16`, `crc32`, `md5` and `sha1`: the types of ARINC 665-3 table 5.1.
+
+**Each of `loads`**
+
+| Key | Value | Default |
+| --- | --- | --- |
+| `part_number` | Required. The load part number, in the form `MMMCC-SSSS-SSSS` with the right check characters (section 2.1). Two loads cannot have the same one | |
+| `header_file` | The header file's name: a manufacturer's code, then the rest, ending in `.LUH`, and a name every system accepts. Two loads cannot have the same one | The first three characters of the part number, then `.LUH` |
+| `type` | The load type: `null` for none, one of `OPS`, `NDB`, `ADB` and `TST` (the window's four: operational software 0x0001, navigation database 0x0002, aeronautical database 0x0003 and test software 0x0004, with the English words the window writes into the header file), or an object `{"description": ..., "id": ...}` for a type that the system designer assigned: the description is 1 to 255 printable ASCII characters and the id is 0 to 65535 | none |
+| `target_hardware_ids` | A list of 0 to 64 target hardware IDs, each 4 to 15 characters or an ARINC 429 equipment code (section 1.5). One twice is refused | empty |
+| `check` | The load check value that the header file records: a check type | `none` |
+| `files` | Required. A list of 1 to 2000 objects, below, in the order of the header file's lists. At least one is a data file | |
+
+At most 20000 files are named in all.
+
+**Each of `files`**
+
+| Key | Value | Default |
+| --- | --- | --- |
+| `source` | Required. The file to read: a relative path with `/` between its parts, 1 to 1024 bytes. It has no `\`, no `:`, no control character, no part that is empty or is `.`, and does not start with `/`. A part `..` is allowed. It is read from the folder that holds the description, or from `--source-root`. The path is never written into the set | |
+| `name` | The name on the media set. The rules of the window: ARINC 665's rules for a data file or for a support file (a data file cannot have an extension that table 3.2.2-1 reserves, such as `LDR`), and a name every system accepts (no `* ? " < > |`, no dot or space at the end, no device name such as `CON`). Two files of one load cannot have names that differ only in capitals | The last part of `source` |
+| `kind` | `data` or `support`. A support file is for a file such as `CONFIG.LDR` | `data` |
+| `check` | The check value that the header file records for this file: a check type | `none` |
+
+**`batch`**
+
+| Key | Value | Default |
+| --- | --- | --- |
+| `part_number` | Required. The batch part number, in the form `MMMCC-SSSS-SSSS` | |
+| `file_name` | The batch file's name, ending in `.LUB` and a name every system accepts (`NUL.LUB` is refused) | The first three characters of the batch part number, then `.LUB` |
+| `comment` | 1 to 255 printable ASCII characters | none |
+| `targets` | A list of 1 to 64 objects `{"id": ..., "loads": [...]}`: the `THW_ID_POS` of a target, and 1 to 100 load part numbers of this set | Each target hardware ID of the loads, in the order they are first met, with the loads that name it, in the order of the loads |
+
+A batch that names no target (no `targets`, and no load has a hardware ID) is refused.
+
+The strings of the text keys above are at most 255 bytes, before the rule of the standard that applies to them.
+
+### How the set is laid out
+
+This is the layout of the generator's window, and the description does not change it.
+
+- A load's folder is named for its part number without the hyphens (`ACM4712345678`) and is in the root of the member that holds its header file, which is member 1. The header file and the support files are in it.
+- With one member, the data files are there too. With more than one, a load's data files are dealt out round-robin starting at member 1, each into a folder of the same name inside the load's folder (`ACM4712345678/ACM4712345678`), on member 1 as on the others. Each load starts again at member 1.
+- Two loads can each have a file of one name: they are in folders of their own.
+- The batch file is in the root of member 1. `BATCHES.LUM` is on every member when there is a batch.
+- Every member has `LOADS.LUM` and `FILES.LUM`. The tree is written as `member_001`, `member_002` and so on ([The media set on disk](#the-media-set-on-disk)).
+
+What a description leaves out: user defined data, part flags, target positions in the header file, files that belong to no load (such as `DISK.DIR`), a `member` for a file, and a description on standard input. They can be added as keys.
+
+## The media set inspection
+
+`adl_make_set inspect <folder> --json` reads any media set, not only one that `adl_make_set` made, and writes **one JSON object on one line** that says what a comparison, a manifest or a rule about a site's own part numbers and layout needs. It is not an event: it has no `event` and no `t`, and no `started` or `finished`. It carries its own outcome, so a folder that is not a media set is a document too, with the lists empty. It is written once, when the work is done, and nothing else is written to standard output.
+
+It is UTF-8, written by hand, with the keys in the order of the tables below, no spaces, and a line feed at the end (on Windows a carriage return may come before it). A reader accepts both. Every string is valid UTF-8: a byte that is not part of a well-formed sequence is written as U+FFFD. A reader refuses a `format` it does not know and ignores a key it does not know. A key can be added without changing `format`; removing one, renaming one or changing what one means changes it. The order of every list is the order in the media set's own files, so the same set always gives the same document.
+
+The set is read with `read_media_set`, which verifies every file and every check value, so a set that can be inspected is a set that verifies.
+
+### The keys
+
+**The whole document**
+
+| Key | Value |
+| --- | --- |
+| `format` | 1 |
+| `kind` | `adl-media-set-inspection` |
+| `program` | `{"name": "adl_make_set", "version": ...}` |
+| `result` | `completed` or `failed` |
+| `reason` | `completed`, `set_invalid` or `folder_unreadable`: the words of the table in [Command line and exit codes](user-guide/command-line.md#exit-codes-of-adl_make_set) |
+| `detail` | One English sentence |
+| `exit_code` | The exit code of the program |
+| `folder` | The folder as it was given |
+| `media_set` | The header fields, below; `null` when `result` is `failed` |
+| `loads` | The loads, below; empty when it failed |
+| `batches` | The batches, below; empty when it failed |
+| `files` | Every file that `FILES.LUM` lists, below; empty when it failed |
+| `unlisted_files` | Files that are on a member and that `FILES.LUM` does not list (it never lists itself), by member, then folder, then name: `name`, `pathname`, `member`, `size`; empty when there are none |
+| `findings` | Where the set departs from the standard's recommendations, as sentences `clause: message`; empty when there are none |
+
+**`media_set`**
+
+| Key | Value |
+| --- | --- |
+| `part_number` | The media set part number |
+| `members` | The number of members the lists say |
+| `members_present` | The member numbers that were read, in order |
+| `format_versions` | `{"loads_list": ..., "files_list": ..., "batches_list": ...}`: the file format version of each list, as text such as `0xA004`; `batches_list` is `null` when the set has no batch |
+| `user_defined_data` | `{"loads_list": ..., "files_list": ..., "batches_list": ...}`: the user defined data of each list as upper-case hexadecimal, an empty string for none; `batches_list` is `null` when the set has no batch |
+| `files_list_check_type` | The check type word of the check value that `FILES.LUM` records for itself |
+| `files_list_check_value` | Its value, or `null` |
+
+**Each of `loads`** (from `LOADS.LUM` and the header file)
+
+| Key | Value |
+| --- | --- |
+| `part_number`, `header_file` | The part number and the header file's name |
+| `header_member`, `header_pathname` | The member that holds the header file, and its folder as `FILES.LUM` writes it (`\ACM4712345678\`) |
+| `format_version` | The file format version of the header file, such as `0x8004` |
+| `type` | `{"description": ..., "id": ...}`, or `null` |
+| `is_download` | The part flag, `true` or `false` |
+| `target_hardware_ids` | A list of text |
+| `target_hardware_ids_with_positions` | A list of `{"id": ..., "positions": [...]}`; empty when the load is for every position |
+| `check_type`, `check_value` | The load check value: a check type word and its value, or `none` and `null` |
+| `load_crc` | The Load CRC, 8 upper-case hexadecimal digits |
+| `user_defined_data` | Upper-case hexadecimal, an empty string for none |
+| `data_files`, `support_files` | Lists of load files, below, in the order of the header file |
+
+**Each load file** (what the header file records for a file, joined with where `FILES.LUM` has it)
+
+| Key | Value |
+| --- | --- |
+| `name`, `part_number` | As in the header file. The file's own part number is usually an empty string |
+| `size` | The size in bytes of the file on its member |
+| `crc16` | The 16-bit CRC, 4 upper-case hexadecimal digits |
+| `check_type`, `check_value` | The check value that the *header file* records for the file: a check type word and its value, or `none` and `null` |
+| `member`, `pathname` | Where the file is, found as ARINC 665-3 section 3.2.4.2 says: the file of that name below the load's folder, then the one with the CRC the header records, then the first |
+
+**Each of `batches`**
+
+| Key | Value |
+| --- | --- |
+| `part_number`, `file_name` | The batch part number and the batch file's name |
+| `member`, `pathname` | Where the batch file is |
+| `format_version`, `comment` | The file format version, such as `0x9004`, and the comment (an empty string for none) |
+| `targets` | A list of `{"target_hardware_id_position": ..., "loads": [{"header_file_name": ..., "load_part_number": ...}]}` |
+
+**Each of `files`** (what `FILES.LUM` lists, `LOADS.LUM` and `BATCHES.LUM` of every member included)
+
+| Key | Value |
+| --- | --- |
+| `name`, `pathname`, `member` | The file and where it is |
+| `size` | The size in bytes of the file on its member |
+| `crc16` | The 16-bit CRC, 4 upper-case hexadecimal digits |
+| `check_type`, `check_value` | The check value that *`FILES.LUM`* records for the file: a check type word and its value, or `none` and `null` |
+
+A check type word is `none`, `crc8`, `crc16`, `crc32`, `md5` or `sha1`, and `type_<n>` for a number that is none of them (`type_9`). A check value is the bytes as the file stores them, in 16-bit words with the most significant byte first, as upper-case hexadecimal: an 8-bit CRC is four digits, a zero byte and the CRC.
+
+### An example
+
+The set of the example above, made by `adl_make_set make` and read by `adl_make_set inspect --json` (the document is one line; it is wrapped here, and the list of `files` is cut after its first two entries):
+
+```json
+{
+  "format": 1,
+  "kind": "adl-media-set-inspection",
+  "program": { "name": "adl_make_set", "version": "0.1.2" },
+  "result": "completed",
+  "reason": "completed",
+  "detail": "Media set ACM-SET-0001 read: 2 members, 13 files, 2 findings.",
+  "exit_code": 0,
+  "folder": "out/ACM-SET-0001",
+  "media_set": {
+    "part_number": "ACM-SET-0001",
+    "members": 2,
+    "members_present": [1, 2],
+    "format_versions": { "loads_list": "0xA004", "files_list": "0xA004", "batches_list": "0xA004" },
+    "user_defined_data": { "loads_list": "", "files_list": "", "batches_list": "" },
+    "files_list_check_type": "crc32",
+    "files_list_check_value": "347489EF"
+  },
+  "loads": [
+    {
+      "part_number": "ACM47-1234-5678",
+      "header_file": "ACM47.LUH",
+      "header_member": 1,
+      "header_pathname": "\\ACM4712345678\\",
+      "format_version": "0x8004",
+      "type": { "description": "Operational software", "id": 1 },
+      "is_download": false,
+      "target_hardware_ids": ["ACME", "ACMEFMS"],
+      "target_hardware_ids_with_positions": [],
+      "check_type": "sha1",
+      "check_value": "FA115FD351D82BBA22114E26D601900A77EECF58",
+      "load_crc": "ED82CAFF",
+      "user_defined_data": "",
+      "data_files": [
+        {
+          "name": "APPCODE.LUP", "part_number": "", "size": 81, "crc16": "F283",
+          "check_type": "crc32", "check_value": "2FDA8452",
+          "member": 1, "pathname": "\\ACM4712345678\\ACM4712345678\\"
+        },
+        {
+          "name": "NAVDATA.LUP", "part_number": "", "size": 5, "crc16": "49D6",
+          "check_type": "md5", "check_value": "EB61EEAD90E3B899C6BCBE27AC581660",
+          "member": 2, "pathname": "\\ACM4712345678\\ACM4712345678\\"
+        }
+      ],
+      "support_files": [
+        {
+          "name": "CONFIG.LDR", "part_number": "", "size": 4, "crc16": "BFFA",
+          "check_type": "none", "check_value": null,
+          "member": 1, "pathname": "\\ACM4712345678\\"
+        }
+      ]
+    }
+  ],
+  "batches": [
+    {
+      "part_number": "ACM4D-0100-0300",
+      "file_name": "ACM.LUB",
+      "member": 1,
+      "pathname": "\\",
+      "format_version": "0x9004",
+      "comment": "Both loads for the unit",
+      "targets": [
+        {
+          "target_hardware_id_position": "ACME",
+          "loads": [
+            { "header_file_name": "ACM47.LUH", "load_part_number": "ACM47-1234-5678" },
+            { "header_file_name": "ACM.LUH", "load_part_number": "ACM4C-0100-0200" }
+          ]
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "name": "LOADS.LUM", "pathname": "\\", "member": 1, "size": 132, "crc16": "0000",
+      "check_type": "sha1", "check_value": "4A49883D21A91B38D3F5036CA9FE7367E14D2C12"
+    }
+  ],
+  "unlisted_files": [],
+  "findings": [
+    "2.2.3.2: the data file APPCODE.LUP is not a whole number of 16-bit words",
+    "2.2.3.2: the data file NAVDATA.LUP is not a whole number of 16-bit words"
+  ]
+}
+```
+
+The second load, the second batch target and the other files are cut from this copy. A folder that is not a media set gives the same keys with the failure in them:
+
+```json
+{"format":1,"kind":"adl-media-set-inspection","program":{"name":"adl_make_set","version":"0.1.2"},"result":"failed","reason":"folder_unreadable","detail":"nothing is not a folder, or cannot be read.","exit_code":3,"folder":"nothing","media_set":null,"loads":[],"batches":[],"files":[],"unlisted_files":[],"findings":[]}
+```

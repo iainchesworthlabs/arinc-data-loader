@@ -12,6 +12,7 @@
 
 #include "adl/mock/engine.hpp"
 #include "adl/mock/link.hpp"
+#include "adl/mock/scenario.hpp"
 #include "adl/ui/message.hpp"
 
 #include <QAbstractListModel>
@@ -204,6 +205,12 @@ class MockTargetModel : public QObject
     Q_PROPERTY(int abortAfterStatuses READ abortAfterStatuses WRITE setAbortAfterStatuses NOTIFY injectionsChanged)
     Q_PROPERTY(bool silent READ silent WRITE setSilent NOTIFY injectionsChanged)
 
+    // A scenario file (docs/user-guide/mock-scenarios.md) in place of the injections above: while one is
+    // loaded the injections are not used. A file that is refused loads nothing and says why.
+    Q_PROPERTY(bool hasScenario READ hasScenario NOTIFY scenarioChanged)
+    Q_PROPERTY(QString scenarioSummary READ scenarioSummary NOTIFY scenarioChanged)
+    Q_PROPERTY(QString scenarioError READ scenarioError NOTIFY scenarioChanged)
+
     // What is happening.
     Q_PROPERTY(QString currentOperation READ currentOperation NOTIFY operationChanged)
     Q_PROPERTY(int progress READ progress NOTIFY progressChanged)
@@ -324,6 +331,21 @@ public:
     void setAbortAfterStatuses(int value);
     void setSilent(bool value);
 
+    [[nodiscard]] bool hasScenario() const noexcept
+    {
+        return scenario_ != nullptr;
+    }
+    // "Scenario <name>: 4 steps", or empty when none is loaded.
+    [[nodiscard]] QString scenarioSummary() const
+    {
+        return scenario_summary_.text();
+    }
+    // Why the file that was chosen last was refused, or empty.
+    [[nodiscard]] QString scenarioError() const
+    {
+        return scenario_error_.text();
+    }
+
     [[nodiscard]] QString currentOperation() const
     {
         return current_operation_;
@@ -347,6 +369,10 @@ public Q_SLOTS:
     // Asks the session that is running to stop.
     void stop();
     void clearLog();
+    // Reads the scenario file at `location` (a path, or the file URL a FileDialog hands over). Not while the
+    // target runs. A file that cannot be used leaves no scenario loaded and sets scenarioError.
+    void loadScenario(const QString& location);
+    void removeScenario();
     // The language changed: the error on show is said again in the new one.
     void retranslate();
 
@@ -358,6 +384,7 @@ Q_SIGNALS:
     void behaviourChanged();
     void storageDirectoryChanged();
     void injectionsChanged();
+    void scenarioChanged();
     void operationChanged();
     void progressChanged();
     // The worker's reports, for the window.
@@ -397,6 +424,10 @@ private:
     bool wrong_checksum_ = false;
     int abort_after_statuses_ = 0;
     bool silent_ = false;
+
+    std::shared_ptr<const adl::mock::Scenario> scenario_;
+    adl::ui::Message scenario_summary_;
+    adl::ui::Message scenario_error_;
 
     QString current_operation_;
     int progress_ = -1;
