@@ -81,7 +81,12 @@ foreach ($file in 'LICENSE.txt', 'NOTICES.txt') {
 # --- what signs licences stays with the owner ----------------------------------------
 # The owner's licence tool, the libraries it signs with and a key file are never in a package
 # (docs/licence-owner-tool.md). If the check cannot run, that is a failure too: it passes nothing it did not read.
-$python = Get-Command python3, python -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+$python = $null
+foreach ($candidate in @(Get-Command python3, python -CommandType Application -ErrorAction SilentlyContinue)) {
+    # The Microsoft Store's stub is called python3 and answers with a message and a failure: use one that is Python.
+    $version = & $candidate.Source --version 2>&1
+    if ($LASTEXITCODE -eq 0 -and "$version" -match '^Python 3') { $python = $candidate; break }
+}
 if (-not $python) {
     Add-Problem 'Python was not found, so the package could not be checked for the owner tool, a signing library and key files'
 } else {
