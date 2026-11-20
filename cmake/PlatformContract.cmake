@@ -48,7 +48,8 @@ set(ADL_PLATFORM_DESKTOP_CONTRACT_HOOKS
 #   - ADL_PLATFORM_DESKTOP is ON or OFF;
 #   - ADL_PLATFORM_STATUS is supported, experimental, unbuilt or design-only,
 #     and a platform that says design-only compiles nothing;
-#   - every file the fragment compiles exists under <platforms_dir>.
+#   - every file the fragment compiles exists: a relative path under <platforms_dir>, an
+#     absolute one (a platform outside the repository) where it says.
 # `fragment` only names it in the message.
 function(adl_platform_check_contract fragment platforms_dir)
     foreach(_variable IN LISTS ADL_PLATFORM_CONTRACT_VARIABLES)
@@ -110,8 +111,14 @@ function(adl_platform_check_contract fragment platforms_dir)
             "not '${ADL_PLATFORM_STATUS}'.")
     endif()
 
+    # A relative path is under <platforms_dir>; an absolute one is a file of a platform kept outside
+    # the repository (ADL_PLATFORM_DIR) and is taken as it is.
     foreach(_file IN LISTS ADL_PLATFORM_SOURCES)
-        if(NOT EXISTS "${platforms_dir}/${_file}")
+        if(IS_ABSOLUTE "${_file}")
+            if(NOT EXISTS "${_file}")
+                message(FATAL_ERROR "${fragment} lists ${_file}, which does not exist.")
+            endif()
+        elseif(NOT EXISTS "${platforms_dir}/${_file}")
             message(FATAL_ERROR
                 "${fragment} lists ${_file}, which does not exist under "
                 "${platforms_dir}.")
