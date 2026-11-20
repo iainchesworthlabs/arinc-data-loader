@@ -32,7 +32,7 @@ work only.
 | Workflow | Purpose | Runs on a private copy? |
 | --- | --- | --- |
 | `ci.yml` | The gate: Policy, the planner, `clang-format`, `platform-isolation`, the documentation build, the build legs, coverage, workflow analysis, the dependency scan, and the aggregator `CI Status`; the RTOS simulators run beside it ([The jobs](#the-jobs-in-ciyml)) | yes |
-| `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
+| `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night, the nightly run in three shards of its own; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
 | `clusterfuzzlite.yml` | Fuzzes the code a pull request changes for ten minutes with ClusterFuzzLite; not a required check ([Fuzzing](fuzzing.md#in-ci)) | yes |
 | `docs.yml` | Builds the site and deploys it to the company site when the branch `site` moves, previews a pull request that changes the documentation, and publishes the pages that forward the old GitHub Pages addresses when `main` moves ([Documentation site](#documentation-site)) | yes |
 | `publish-site.yml` | Run by hand on `develop`: moves the branch `site` to the tip of `develop`, which publishes the documentation without a release ([Publishing](#publishing)) | no - manual only |

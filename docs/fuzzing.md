@@ -63,10 +63,16 @@ corpus is meant to stay small and readable.
   every ready pull request and every queue entry. It is part of `CI Status`.
 - `fuzz.yml` fuzzes each target for 60 seconds on every push to `develop` (one run at a time, with at
   most one waiting), and for ten minutes each night. The inputs it finds are kept between runs in the
-  Actions cache; they are not committed. A crash fails the run, uploads the input as the `fuzz-crashes`
-  artifact, and on the nightly run opens or updates one `nightly-analysis` issue. The nightly run takes about
-  close to five hours (every target in turn, ten minutes each); the job's limit is 330 minutes, and a run that
-  hits it is reported in the same issue.
+  Actions cache; they are not committed. The nightly run is split into three **shards**, each a job of its
+  own that builds the harnesses and fuzzes every third of them in name order, ten minutes each, so that it takes
+  about two hours and a half (27 targets: nine to a shard, 90 minutes of fuzzing and the build) and not five;
+  a shard's limit is 150 minutes, which holds 11 targets, and a shard is added with one number in the list
+  `strategy.matrix.shard` of `fuzz.yml` (a hosted job may run for 360 minutes at most). A push to `develop`
+  and a manual run use one shard, and a manual run can ask for three. A shard keeps the inputs of its own targets
+  in the Actions cache under a key of its own. A crash fails its shard and uploads the input as the
+  `fuzz-crashes-shard-<n>` artifact. The last job of the workflow, named `Fuzz (Linux, Clang)` as the one job was,
+  ends with the result of all the shards, and on the nightly run opens or updates one `nightly-analysis` issue
+  (once, and not by each shard); a shard that hits its limit is cancelled, which counts as a failure there.
 
 - `clusterfuzzlite.yml` runs [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) on a ready pull
   request that changes `libs/`, `tools/licence/`, `cmake/` or the files in `.clusterfuzzlite/`: it builds the harnesses with
