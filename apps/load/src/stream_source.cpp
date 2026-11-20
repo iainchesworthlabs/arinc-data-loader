@@ -39,9 +39,10 @@ struct StreamLineSource::State
 
     std::istream& in;
     adl::platform::Owned<adl::platform::Mutex> mutex;
-    adl::platform::Owned<adl::platform::Thread> thread; // after the mutex: it is joined before the mutex goes
-    std::deque<InputLine> lines;                        // guarded by the mutex
-    bool done = false;                                  // guarded by the mutex
+    std::deque<InputLine> lines; // guarded by the mutex
+    bool done = false;           // guarded by the mutex
+    // Last, so that it is destroyed first, and joined, before anything the thread uses is.
+    adl::platform::Owned<adl::platform::Thread> thread;
 };
 
 StreamLineSource::StreamLineSource(adl::platform::Host& host, std::istream& in) : host_(host), in_(in) {}

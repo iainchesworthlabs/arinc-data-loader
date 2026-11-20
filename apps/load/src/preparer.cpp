@@ -60,10 +60,11 @@ struct ThreadPreparer::State
 
     adl::platform::Owned<adl::platform::Mutex> mutex;
     adl::platform::Owned<adl::platform::Semaphore> signal;
-    adl::platform::Owned<adl::platform::Thread> thread; // after the others: it is joined before they go
-    std::deque<Job> jobs;                               // guarded by the mutex
-    std::vector<Preparation> ended;                     // guarded by the mutex
-    bool stopping = false;                              // guarded by the mutex
+    std::deque<Job> jobs;           // guarded by the mutex
+    std::vector<Preparation> ended; // guarded by the mutex
+    bool stopping = false;          // guarded by the mutex
+    // Last, so that it is destroyed first, and joined, before anything the thread uses is.
+    adl::platform::Owned<adl::platform::Thread> thread;
 };
 
 ThreadPreparer::ThreadPreparer(adl::platform::Host& host) : host_(host) {}
