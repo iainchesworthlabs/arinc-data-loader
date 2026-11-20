@@ -203,6 +203,35 @@ if (-not $tool) {
     }
 }
 
+# --- the licence command -----------------------------------------------------------------
+# On an empty computer (its settings folder is a new one, so no real licence is read) it shows no licence, and says
+# so with the words a script reads.
+$licenceTool = Find-Program 'adl_licence'
+if (-not $licenceTool) {
+    Add-Problem 'adl_licence is not in the package'
+} else {
+    $previousSettings = $env:ADL_SETTINGS_DIR
+    $env:ADL_SETTINGS_DIR = Join-Path $Work 'licence-settings'
+    try {
+        $shown = @(& $licenceTool show 2>&1)
+        $shownCode = $LASTEXITCODE
+        $helped = @(& $licenceTool --help 2>&1)
+        $helpedCode = $LASTEXITCODE
+    } finally {
+        $env:ADL_SETTINGS_DIR = $previousSettings
+    }
+    if ($shownCode -eq 0 -and ($shown -contains 'State: none') -and ($shown -contains 'Edition: community')) {
+        Add-Ok 'adl_licence show reports the Community edition on an empty computer'
+    } else {
+        Add-Problem "adl_licence show exited with $shownCode and said: $($shown -join ' | ')"
+    }
+    if ($helpedCode -eq 0 -and ($helped -join "`n") -match 'usage: adl_licence show') {
+        Add-Ok 'adl_licence --help prints the usage'
+    } else {
+        Add-Problem "adl_licence --help exited with $helpedCode"
+    }
+}
+
 # --- macOS: the bundles are signed and carry the licences ---------------------------------
 if ($IsMacOS) {
     foreach ($bundle in Get-ChildItem -LiteralPath $root -Filter '*.app' -Directory) {

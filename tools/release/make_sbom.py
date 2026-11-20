@@ -46,7 +46,13 @@ PROGRAMS = [
     ("adl_media_gen", "The ARINC 665 media set generator application"),
     ("adl_mock_target", "The mock ARINC 615A target application"),
     ("adl_write_payloads", "A command-line tool that writes sample ARINC 665 media sets"),
+    ("adl_licence", "A command-line tool that shows, imports and removes the licence on this computer"),
 ]
+# The programs that read a licence file, and so carry the Ed25519 check of Monocypher.
+LICENCE_PROGRAMS = ("adl_app", "adl_media_gen", "adl_mock_target", "adl_licence")
+MONOCYPHER_VERSION = "4.0.2"
+MONOCYPHER_URL = "https://monocypher.org/"
+
 LIBRARIES = [
     ("adl_arinc665", "The ARINC 665 media set, load and check-value library"),
     ("adl_arinc615a", "The ARINC 615A codec and data loader state machines"),
@@ -237,6 +243,22 @@ def main():
                        "instances (Regular, Medium, SemiBold, ExtraBold) cut from the variable font the Noto "
                        "Project publishes; the letters are not otherwise changed",
     })
+    # Monocypher, once. It is C source in third_party/monocypher, compiled into every program that reads a licence
+    # file (notices/fragments/monocypher.txt), and the programs offer it under the licence of their choice.
+    monocypher_id = "SPDXRef-Monocypher"
+    packages.append({
+        "SPDXID": monocypher_id, "name": "Monocypher", "versionInfo": MONOCYPHER_VERSION,
+        "supplier": "Person: Loup Vaillant", "downloadLocation":
+        f"{MONOCYPHER_URL}download/monocypher-{MONOCYPHER_VERSION}.tar.gz", "filesAnalyzed": False,
+        "homepage": MONOCYPHER_URL, "licenseConcluded": "BSD-2-Clause OR CC0-1.0",
+        "licenseDeclared": "BSD-2-Clause OR CC0-1.0", "copyrightText": NOASSERTION,
+        "primaryPackagePurpose": "LIBRARY",
+        "description": "Ed25519 signature checking for licence files, unmodified, compiled into the programs "
+                       "that read a licence file",
+        "externalRefs": [purl("generic", "monocypher", MONOCYPHER_VERSION)],
+    })
+    for name in LICENCE_PROGRAMS:
+        add_relationship(program_ids[name], "STATIC_LINK", monocypher_id)
     for name in ("adl_app", "adl_media_gen", "adl_mock_target"):
         add_relationship(program_ids[name], "DYNAMIC_LINK", qt_id)
         add_relationship(program_ids[name], "CONTAINS", font_id)
@@ -251,6 +273,7 @@ def main():
     add_relationship(library_ids["adl_arinc615a_runner"], "DEPENDS_ON", library_ids["adl_platform"])
     for library in ("adl_arinc665", "adl_media_tree"):
         add_relationship(program_ids["adl_write_payloads"], "STATIC_LINK", library_ids[library])
+    add_relationship(program_ids["adl_licence"], "STATIC_LINK", library_ids["adl_platform"])
 
     # The kit's own SPDX documents, referenced by namespace and SHA-1, for the Qt modules whose
     # libraries a package holds.
@@ -305,6 +328,7 @@ def main():
             add_relationship(ident, "CONTAINS", qt_id)
             add_relationship(ident, "CONTAINS", font_id)
             add_relationship(ident, "CONTAINS", hebrew_font_id)
+            add_relationship(ident, "CONTAINS", monocypher_id)
             for pattern, key, label, license_, homepage, description in RUNTIME_FILES:
                 if any(pattern.search(f) for f in archive["files"]):
                     component = spdx_id("Runtime-" + key)
@@ -402,8 +426,18 @@ def main():
                                 description="The typeface of the Hebrew and Yiddish windows, embedded in every "
                                             "program: four static instances cut from the variable font the Noto "
                                             "Project publishes"))
+    components.append(component("monocypher", "library", "Monocypher", MONOCYPHER_VERSION,
+                                supplier={"name": "Loup Vaillant"},
+                                purl=f"pkg:generic/monocypher@{MONOCYPHER_VERSION}",
+                                licenses=licence("BSD-2-Clause OR CC0-1.0"),
+                                externalReferences=[{"type": "website", "url": MONOCYPHER_URL}],
+                                description="Ed25519 signature checking for licence files, unmodified, compiled "
+                                            "into the programs that read a licence file"))
+    for name in LICENCE_PROGRAMS:
+        depends(name, "monocypher")
     for name in ("adl_app", "adl_media_gen", "adl_mock_target"):
         depends(name, "qt", "archivo", "noto-sans-hebrew")
+    depends("adl_licence", "adl_platform")
     depends("adl_arinc615a", "adl_arinc665")
     depends("adl_media_tree", "adl_arinc665")
     depends("adl_arinc615a_runner", "adl_arinc615a", "adl_platform")
@@ -417,7 +451,7 @@ def main():
                                     description=f"Built on the {archive['leg']} leg"))
         depends(root_ref, ref)
         if archive["runtime"]:
-            depends(ref, *program_ids.keys(), "qt", "archivo", "noto-sans-hebrew")
+            depends(ref, *program_ids.keys(), "qt", "archivo", "noto-sans-hebrew", "monocypher")
             for pattern, key, label, license_, homepage, description in RUNTIME_FILES:
                 if any(pattern.search(f) for f in archive["files"]):
                     cref = "runtime-" + key
