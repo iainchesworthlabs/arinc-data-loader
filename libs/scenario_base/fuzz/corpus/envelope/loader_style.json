@@ -1,0 +1,2 @@
+{"kind":"adl-loader-scenario","format":1,"seed":7,"steps":[
+  {"when":{"request":3},"on":{"datagram":"data"},"count":2,"do":{"action":"drop"}}]}
