@@ -412,6 +412,7 @@ The set is read with `read_media_set`, which verifies every file and every check
 | `user_defined_data` | `{"loads_list": ..., "files_list": ..., "batches_list": ...}`: the user defined data of each list as upper-case hexadecimal, an empty string for none; `batches_list` is `null` when the set has no batch |
 | `files_list_check_type` | The check type word of the check value that `FILES.LUM` records for itself |
 | `files_list_check_value` | Its value, or `null` |
+| `member_sizes` | A list with one entry for each member read, in order: `{"member": ..., "files": ..., "size": ...}`, the number of the member, how many files are on it and their size in bytes. It counts every file on the member: the lists, `FILES.LUM` (which is in neither `files` nor `unlisted_files`) and any file that `FILES.LUM` does not list. So the sum of `size` over the members is what the set takes on disk, which the sizes in `files` and `unlisted_files` do not give |
 
 **Each of `loads`** (from `LOADS.LUM` and the header file)
 
@@ -480,7 +481,11 @@ The set of the example above, made by `adl_make_set make` and read by `adl_make_
     "format_versions": { "loads_list": "0xA004", "files_list": "0xA004", "batches_list": "0xA004" },
     "user_defined_data": { "loads_list": "", "files_list": "", "batches_list": "" },
     "files_list_check_type": "crc32",
-    "files_list_check_value": "347489EF"
+    "files_list_check_value": "347489EF",
+    "member_sizes": [
+      { "member": 1, "files": 9, "size": 1545 },
+      { "member": 2, "files": 4, "size": 899 }
+    ]
   },
   "loads": [
     {

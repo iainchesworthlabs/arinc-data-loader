@@ -530,10 +530,29 @@ TEST_CASE("command: inspect writes one document that has the facts of the descri
     const json::Object& media_set = object_of(get(top, "media_set"));
     CHECK(keys(media_set) == std::vector<std::string>{"part_number", "members", "members_present", "format_versions",
                                                       "user_defined_data", "files_list_check_type",
-                                                      "files_list_check_value"});
+                                                      "files_list_check_value", "member_sizes"});
     CHECK(text(media_set, "part_number") == "ACM-SET-0001");
     CHECK(number(media_set, "members") == 2);
     CHECK(text(media_set, "files_list_check_type") == "crc32");
+    // Each member's size is what is on its folder, FILES.LUM and the lists included.
+    const json::Array& sizes = *get(media_set, "member_sizes").as_array();
+    REQUIRE(sizes.size() == 2);
+    std::int64_t on_disk = 0;
+    for (const auto& [name, bytes] : tree_bytes(output))
+    {
+        on_disk += static_cast<std::int64_t>(bytes.size());
+    }
+    std::int64_t total = 0;
+    for (std::size_t i = 0; i < sizes.size(); ++i)
+    {
+        const json::Object& entry = object_of(sizes[i]);
+        CHECK(keys(entry) == std::vector<std::string>{"member", "files", "size"});
+        CHECK(number(entry, "member") == static_cast<std::int64_t>(i + 1));
+        total += number(entry, "size");
+    }
+    CHECK(total == on_disk);
+    CHECK(number(object_of(sizes[0]), "files") + number(object_of(sizes[1]), "files") ==
+          static_cast<std::int64_t>(tree_bytes(output).size()));
 
     const json::Array& loads = *get(top, "loads").as_array();
     REQUIRE(loads.size() == 2);

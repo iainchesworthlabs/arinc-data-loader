@@ -62,6 +62,15 @@ void media_set(JsonWriter& out, const Inspection& inspection)
     out.end_object();
     out.member("files_list_check_type", inspection.files_list_check_type);
     optional_text(out, "files_list_check_value", inspection.files_list_check_value);
+    out.key("member_sizes").begin_array();
+    for (const adl::set_maker::MemberSize& size : inspection.member_sizes)
+    {
+        out.begin_object();
+        out.member_int("member", size.member).member_int("files", static_cast<std::int64_t>(size.files));
+        out.member_int("size", static_cast<std::int64_t>(size.size));
+        out.end_object();
+    }
+    out.end_array();
     out.end_object();
 }
 
