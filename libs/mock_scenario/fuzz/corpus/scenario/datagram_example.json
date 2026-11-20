@@ -1,0 +1,33 @@
+{
+  "kind": "adl-mock-scenario",
+  "format": 1,
+  "name": "A line that loses data",
+  "description": "One in ten blocks of a status file is lost. The acknowledgement of block 3 of an upload is sent three times. After the first status file, the next two datagrams are held back until another has gone. From half a second into an operation, 20 datagrams of LOAD1.BIN are late by 100 to 300 ms.",
+  "seed": 20261121,
+  "steps": [
+    {
+      "when": { "request": 1, "every": 1 },
+      "on": { "datagram": "data", "file": ".LUS" },
+      "per_mille": 100,
+      "count": 65535,
+      "do": { "action": "drop_datagram" }
+    },
+    {
+      "when": { "request": 1, "operation": "upload" },
+      "on": { "datagram": "ack", "block": 3 },
+      "do": { "action": "duplicate_datagram", "copies": 3 }
+    },
+    {
+      "when": { "status_file": 1 },
+      "on": {},
+      "count": 2,
+      "do": { "action": "reorder_datagram", "within_ms": 400 }
+    },
+    {
+      "when": { "after_ms": 500 },
+      "on": { "file": "LOAD1.BIN" },
+      "count": 20,
+      "do": { "action": "delay", "min_ms": 100, "max_ms": 300 }
+    }
+  ]
+}
