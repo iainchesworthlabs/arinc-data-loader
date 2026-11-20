@@ -166,7 +166,10 @@ SCENARIO_READER = """std::unexpected<ReadError> fail() { return ReadError{"step 
 SCENARIO_PAGE = "# Scenarios\n`step <n> has the key <key>, which this version does not know`\n"
 
 
-class Check(unittest.TestCase):
+class CheckFixture(unittest.TestCase):
+    """A tree of a repository in a temporary folder, and what the tests of the check need to change it. It has no
+    test of its own: the classes below derive from it, and each runs its own tests and no one else's."""
+
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
@@ -190,6 +193,24 @@ class Check(unittest.TestCase):
 
     def problems(self) -> str:
         return "\n".join(check_messages.check(self.root))
+
+    def add_mock(self, page: str = GOOD_PAGE + MOCK_SECTION) -> None:
+        (self.root / "apps" / "mock" / "src").mkdir(parents=True)
+        (self.root / "apps" / "mock" / "include" / "adl" / "mock" / "cli").mkdir(parents=True)
+        (self.root / "libs" / "mock_target_core" / "src").mkdir(parents=True)
+        (self.root / "apps" / "mock" / "src" / "options.cpp").write_text(MOCK_OPTIONS, encoding="utf-8")
+        (self.root / "apps" / "mock" / "include" / "adl" / "mock" / "cli" / "command.hpp").write_text(MOCK_HEADER, encoding="utf-8")
+        (self.root / "libs" / "mock_target_core" / "src" / "engine.cpp").write_text(MOCK_ENGINE, encoding="utf-8")
+        (self.root / "docs" / "user-guide" / "command-line.md").write_text(page, encoding="utf-8")
+
+    def add_scenario_reader(self, page: str = SCENARIO_PAGE) -> None:
+        (self.root / "libs" / "scenario_base" / "src").mkdir(parents=True, exist_ok=True)
+        (self.root / "libs" / "scenario_base" / "src" / "envelope.cpp").write_text(SCENARIO_READER, encoding="utf-8")
+        (self.root / "docs" / "user-guide" / "mock-scenarios.md").write_text(page, encoding="utf-8")
+
+
+class Check(CheckFixture):
+    """The check on the programs that have a catalogue, and the parts that are not in a section of a program."""
 
     def test_a_guide_that_has_everything_passes(self) -> None:
         self.assertEqual(self.problems(), "")
@@ -282,21 +303,6 @@ class Check(unittest.TestCase):
         self.assertIn("no scenario called ", texts)
         self.assertNotIn("member", "".join(texts))
 
-
-    def add_mock(self, page: str = GOOD_PAGE + MOCK_SECTION) -> None:
-        (self.root / "apps" / "mock" / "src").mkdir(parents=True)
-        (self.root / "apps" / "mock" / "include" / "adl" / "mock" / "cli").mkdir(parents=True)
-        (self.root / "libs" / "mock_target_core" / "src").mkdir(parents=True)
-        (self.root / "apps" / "mock" / "src" / "options.cpp").write_text(MOCK_OPTIONS, encoding="utf-8")
-        (self.root / "apps" / "mock" / "include" / "adl" / "mock" / "cli" / "command.hpp").write_text(MOCK_HEADER, encoding="utf-8")
-        (self.root / "libs" / "mock_target_core" / "src" / "engine.cpp").write_text(MOCK_ENGINE, encoding="utf-8")
-        (self.root / "docs" / "user-guide" / "command-line.md").write_text(page, encoding="utf-8")
-
-    def add_scenario_reader(self, page: str = SCENARIO_PAGE) -> None:
-        (self.root / "libs" / "scenario_base" / "src").mkdir(parents=True, exist_ok=True)
-        (self.root / "libs" / "scenario_base" / "src" / "envelope.cpp").write_text(SCENARIO_READER, encoding="utf-8")
-        (self.root / "docs" / "user-guide" / "mock-scenarios.md").write_text(page, encoding="utf-8")
-
     def test_a_sentence_of_the_scenario_readers_has_to_be_on_the_scenario_page(self) -> None:
         self.add_scenario_reader()
         self.assertEqual(self.problems(), "")
@@ -369,7 +375,7 @@ usage: tool <command>
 """
 
 
-class OwnerTool(Check):
+class OwnerTool(CheckFixture):
     """The owner's licence tool is not shipped: its own page is held to its own sentences and exit codes."""
 
     def setUp(self) -> None:
@@ -449,7 +455,7 @@ The first line of `show` is `Edition: pro`. `cannot read %1: %2`.
 """
 
 
-class LicenceCommand(Check):
+class LicenceCommand(CheckFixture):
     """adl_licence is a program of the guide, but its sentences and exit codes are held to its own section of the page.
 
     The tests of Check that rewrite the command-line page run here too, so the program's files are put in by each test
@@ -488,10 +494,6 @@ class LicenceCommand(Check):
 
     def test_without_the_program_nothing_is_asked(self) -> None:
         self.assertEqual(self.problems(), "")
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 MAKE_SET_COMMAND = """#include "adl/make_set/something that is not a text.hpp"
@@ -534,7 +536,7 @@ usage: tool make <description>
 """
 
 
-class MakeSet(Check):
+class MakeSet(CheckFixture):
     """adl_make_set has no catalogue: its sentences and exit codes are held to the section of its page."""
 
     def setUp(self) -> None:
@@ -581,3 +583,7 @@ class MakeSet(Check):
         (self.root / "apps" / "make_set" / "include" / "adl" / "make_set" / "command.hpp").unlink()
         self.page.write_text(GOOD_PAGE, encoding="utf-8")
         self.assertEqual(self.problems(), "")
+
+
+if __name__ == "__main__":
+    unittest.main()
