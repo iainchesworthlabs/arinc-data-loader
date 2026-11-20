@@ -203,7 +203,8 @@ openssl rand -out seed.bin 32                       # anywhere with OpenSSL
 ```
 
 ```powershell
-$seed = [byte[]]::new(32); [System.Security.Cryptography.RandomNumberGenerator]::Fill($seed)   # PowerShell 7
+$seed = [byte[]]::new(32)
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($seed)     # Windows PowerShell and PowerShell 7
 [IO.File]::WriteAllBytes('seed.bin', $seed)
 ```
 
@@ -211,6 +212,103 @@ The reason is that the owner then names the source and can check it, it is the s
 standard library stands between the generator and the key (on Linux with an Intel or AMD processor, GCC's library asks
 the processor's own instructions before the kernel). The default is sound where the three tables above hold, which is
 why it is there, and it is what the tests of the tool use.
+
+## Making the owner's keys
+
+Done once, by the owner, on the offline computer that will keep the keys. The licence key signs licence files and the
+revocation key signs revocation lists ([a key signs one purpose only](#keygen)); each has a standby, made now, so that a
+leak of one can be answered at once. That is four keys: `lic-2026-a`, `lic-2026-b`, `rev-2026-a` and `rev-2026-b`.
+
+**1. Build the tool** in a checkout of the repository, on the computer that will keep the keys, or build it anywhere
+and carry the program. The tool is a program of the build tree and is never installed:
+
+```powershell
+cmake --preset windows-msvc-release -DADL_BUILD_APP=OFF -DADL_BUILD_TESTS=OFF
+cmake --build --preset windows-msvc-release --target adl_licence_owner
+```
+
+The two options leave out Qt and the tests, so neither Qt nor vcpkg is needed ([Building](building.md)). The program is
+`build\windows-msvc-release\bin\adl_licence_owner.exe`. On Linux and macOS use the preset `linux-release` or
+`macos-release`, and the program is `build/<preset>/bin/adl_licence_owner`.
+
+**2. Choose the folder that will keep the keys**, on the encrypted drive, outside every git work tree (no folder above
+it holds a `.git`, so not a checkout of this repository or of any other). `keygen` refuses a folder inside a work tree
+and says so. Make the folder first; `keygen` does not:
+
+```powershell
+$keys = 'F:\adl-keys'          # the drive that will keep the keys; change it to yours
+New-Item -ItemType Directory -Path $keys
+$tool = '.\build\windows-msvc-release\bin\adl_licence_owner.exe'
+```
+
+**3. Make the licence key**, from a seed file of 32 bytes the system's generator draws now
+([why a seed file](#where-the-32-bytes-of-a-key-come-from)):
+
+```powershell
+$seed = [byte[]]::new(32)
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($seed)
+[IO.File]::WriteAllBytes("$keys\lic-2026-a.seed", $seed)
+& $tool keygen --key-id lic-2026-a --purpose licence --out $keys --seed-file "$keys\lic-2026-a.seed"
+```
+
+**4. Make the revocation key**, the same way with its own seed and its own id and purpose:
+
+```powershell
+$seed = [byte[]]::new(32)
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($seed)
+[IO.File]::WriteAllBytes("$keys\rev-2026-a.seed", $seed)
+& $tool keygen --key-id rev-2026-a --purpose revocations --out $keys --seed-file "$keys\rev-2026-a.seed"
+```
+
+**5. Make the two standbys**, the same two commands with the ids `lic-2026-b` and `rev-2026-b` (and the seed files
+`lic-2026-b.seed` and `rev-2026-b.seed`).
+
+On Linux and macOS each of steps 3 to 5 is the same, with the folder in `keys=/media/adl-keys` (any folder outside a
+work tree) and `tool=build/linux-release/bin/adl_licence_owner`:
+
+```sh
+head -c 32 /dev/urandom > "$keys/lic-2026-a.seed"
+"$tool" keygen --key-id lic-2026-a --purpose licence --out "$keys" --seed-file "$keys/lic-2026-a.seed"
+head -c 32 /dev/urandom > "$keys/rev-2026-a.seed"
+"$tool" keygen --key-id rev-2026-a --purpose revocations --out "$keys" --seed-file "$keys/rev-2026-a.seed"
+```
+
+Each `keygen` prints `Private key:` and `Public key file:` (the two files it wrote), `Key:`, `Purpose:`, `Key source:`
+(the seed file, read and not changed), `Public key:` (43 characters of base64url) and `Public key (hex):` (64
+characters). It does not print the private key. It has read both files back before it says anything, and if it could
+not, it removed them and exited 1. The folder now holds, for each key, a `.adlownerkey`, an `.adlownerpub` and the
+`.seed` it was made from.
+
+**6. Destroy the seed files**, which are the keys again (the `.adlownerkey` holds the same 32 bytes), or keep them
+exactly as carefully as the `.adlownerkey` files:
+
+```powershell
+Remove-Item "$keys\*.seed"
+```
+
+**7. Keep the private halves.** Copy the four `*.adlownerkey` files onto **two encrypted copies on separate media** and
+keep the media apart. Never put one in a repository, an email or a chat; the release's package check fails a package
+that holds a file with that name. The four `*.adlownerpub` files are not secret: keep them with the licence records.
+
+**8. Give the public halves to the programs.** Add one entry for each of the four to `builtin_keys()` in
+`libs/licence/src/trusted_keys.cpp`: the key id (`lic-2026-a`), the purpose (`licence` or `revocations`) and the 32
+bytes of the public key (the `Public key (hex)` line, two characters to a byte, or the `.adlownerpub` file), in a pull
+request, and release. A program of that release accepts a licence signed with `lic-2026-a` and a revocation list signed
+with `rev-2026-a`; a program of an earlier release does not know these keys and does not accept their files.
+
+**9. Check it** with the first licence you issue ([`issue`](#issue) has the request), signed with the private key of
+`lic-2026-a`, and `verify` with its public key file:
+
+```powershell
+& $tool issue --request .\request.json --out .\licence.adllic --key-id lic-2026-a --key-file "$keys\lic-2026-a.adlownerkey"
+& $tool verify .\licence.adllic --trust "$keys\lic-2026-a.adlownerpub"
+```
+
+`Signature: verifies` says the file was signed by the key of that public file. `Key trusted by this build: yes` says the
+tool itself was built from a source that holds that key in `builtin_keys()`, as a program of that release does; with a
+tool built before step 8 it says `no`, and without `--trust` that tool says `State: invalid` and `Reason: newer_version`
+(the library reads a key it does not know as one of a newer release), which is also what a program built before step 8
+says of the file.
 
 ## Exit codes
 
