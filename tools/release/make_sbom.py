@@ -52,6 +52,7 @@ LIBRARIES = [
     ("adl_arinc665", "The ARINC 665 media set, load and check-value library"),
     ("adl_arinc615a", "The ARINC 615A codec and data loader state machines"),
     ("adl_arinc615a_runner", "The runner that drives the 615A engine over adl::platform sockets"),
+    ("adl_loader_core", "The loader without a window: checks a media set, runs an ARINC 615A operation"),
     ("adl_media_tree", "A media set as a directory tree on disk"),
     ("adl_platform", "The platform interfaces and this host's implementation of them"),
 ]
@@ -245,6 +246,8 @@ def main():
     # one carries it).
     add_relationship(library_ids["adl_arinc615a"], "DEPENDS_ON", library_ids["adl_arinc665"])
     add_relationship(library_ids["adl_media_tree"], "DEPENDS_ON", library_ids["adl_arinc665"])
+    for dependency in ("adl_arinc665", "adl_arinc615a", "adl_arinc615a_runner", "adl_media_tree", "adl_platform"):
+        add_relationship(library_ids["adl_loader_core"], "DEPENDS_ON", library_ids[dependency])
     add_relationship(library_ids["adl_arinc615a_runner"], "DEPENDS_ON", library_ids["adl_arinc615a"])
     add_relationship(library_ids["adl_arinc615a_runner"], "DEPENDS_ON", library_ids["adl_platform"])
     for library in ("adl_arinc665", "adl_media_tree"):
@@ -407,6 +410,8 @@ def main():
     depends("adl_arinc615a", "adl_arinc665")
     depends("adl_media_tree", "adl_arinc665")
     depends("adl_arinc615a_runner", "adl_arinc615a", "adl_platform")
+    depends("adl_loader_core", "adl_arinc665", "adl_arinc615a", "adl_arinc615a_runner", "adl_media_tree",
+            "adl_platform")
     depends("adl_write_payloads", "adl_arinc665", "adl_media_tree")
     depends("adl_load", "adl_arinc665", "adl_arinc615a", "adl_arinc615a_runner", "adl_media_tree", "adl_platform")
     for archive in archives:

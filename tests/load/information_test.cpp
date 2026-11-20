@@ -258,6 +258,17 @@ TEST_CASE("a target that is not on port 59 is reached with --target-port", "[loa
         adl::test::check_stream(run);
         CHECK(run.finished().at("reason").text == "completed");
         CHECK(run.events_named("configuration").size() == 1);
+        // The loader's own port is 59, and the target is told so: it would otherwise write to its own port, 30959.
+        CHECK(rig.rig.target.log().init_options_seen == 1);
+        CHECK(rig.rig.target.log().loader_port_used == 59);
+    }
+    SECTION("the loader's own port is moved as well")
+    {
+        CommandRig rig(plan);
+        const CommandRun run = information(rig, {"--target-port", "30959", "--control-port", "30901"});
+        CHECK(run.exit_code == 0);
+        CHECK(run.finished().at("reason").text == "completed");
+        CHECK(rig.rig.target.log().loader_port_used == 30901);
     }
     SECTION("it is not, and the target on 30959 does not answer a request sent to 59")
     {

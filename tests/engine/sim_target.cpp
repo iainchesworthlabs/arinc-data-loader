@@ -254,7 +254,7 @@ void SimTarget::serve_init(const Endpoint& from, const TftpRequest& request, Kin
             return;
         }
     }
-    loader_ = Endpoint{from.address, tftp_control_port};
+    loader_ = Endpoint{from.address, plan_.loader_port_without_option.value_or(tftp_control_port)};
     if (plan_.honor_port_option)
     {
         const auto options = read_transfer_options(request.options);

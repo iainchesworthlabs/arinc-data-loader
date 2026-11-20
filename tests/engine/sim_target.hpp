@@ -72,6 +72,10 @@ struct SimPlan
     std::string thw = "HNPFMS_L";
     // The port it takes the loader's first request on. The standard's 59, unless a test puts it elsewhere.
     std::uint16_t control_port = adl::arinc615a::tftp_control_port;
+    // Where it writes what it starts (status files, lists, the files of a download) when the request has
+    // no port option: the standard's 59 if this is empty. A target that is not on 59 has no standard to
+    // go by; the mock target takes its own port (what it listens on), which this lets a test be.
+    std::optional<std::uint16_t> loader_port_without_option;
 
     // ---- the initialization file ----
     std::uint16_t init_wait_seconds = 0; // answer the first request with WAIT:x
