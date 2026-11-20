@@ -17,8 +17,9 @@ What the programs say to the person using them has two sources, and this check h
    add(findings, clause, message) and are not in a catalogue. Every string literal of such a call must appear in the guide
    (docs/user-guide/findings.md lists them).
 3. Exit codes and the command line. Every exit code that the programs' code sets (the exit_* constants of
-   apps/write_payloads/main.cpp, and the exit(N) calls of the three windowed programs and of the smoke test) must be a row of
-   the table in docs/user-guide/command-line.md, and every text that adl_write_payloads prints must be in that page.
+   apps/write_payloads/main.cpp and of apps/load/include/adl/load/exit_codes.hpp, and the exit(N) calls of the three windowed programs
+   and of the smoke test) must be a row of the table in docs/user-guide/command-line.md, and every text that adl_write_payloads
+   prints must be in that page.
 4. adl_mock, which has no Qt and so no catalogue. Its exit codes (the exit_* constants of its command.hpp) must be rows of the table
    in the page's section of adl_mock, and every text in the literals of the sources that make what it says (MOCK_SOURCES: the
    usage errors, the folder and port errors, the usage text) must be in the page, with the same match as the rest.
@@ -36,6 +37,9 @@ What the programs say to the person using them has two sources, and this check h
    constant of the other must be on the program's page, by the same rules (a placeholder stands for anything; a row of a table
    for a code). There are two: the owner's licence tool (tools/licence), which is not shipped and so has a page of its own,
    docs/licence-owner-tool.md; and adl_licence (libs/licence_cli), which is in the guide's command-line page.
+9. The words of adl_load (apps/load/src). It builds its sentences from pieces, so each string literal of more than one word in those
+   files, and each line of its usage text, must be in docs/user-guide/command-line.md as it is written there, with the values it is
+   joined to written as a placeholder.
 
 The check does not decide that the description is good, only that it is there. A new message or exit code fails it until the guide says
 something about it. Run it after a change to a message. tests/CMakeLists.txt runs it as the test docs.messages.
@@ -53,6 +57,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CATALOGUES = ("apps/*/translations/*.ts", "libs/ui/translations/*.ts")
 GUIDE = ("docs/user-guide/*.md", "docs/file-reference.md")
 COMMAND_LINE_PAGE = "docs/user-guide/command-line.md"
+LOAD_SOURCES = "apps/load/src/*.cpp"
+EXIT_CODE_HEADERS = "apps/*/include/adl/*/exit_codes.hpp"
 MIN_SEGMENT = 6
 
 # adl_mock (apps/mock) has no catalogue: what it says is in the literals of these sources. A file with no pattern is read
@@ -117,6 +123,8 @@ def exit_codes(root: Path) -> set[int]:
     main = root / "apps" / "write_payloads" / "main.cpp"
     if main.is_file():
         codes.update(int(n) for n in re.findall(r"constexpr\s+int\s+exit_\w+\s*=\s*(\d+)\s*;", main.read_text(encoding="utf-8")))
+    for path in sorted(root.glob(EXIT_CODE_HEADERS)):
+        codes.update(int(n) for n in re.findall(r"constexpr\s+int\s+exit_\w+\s*=\s*(\d+)\s*;", path.read_text(encoding="utf-8")))
     for path in [*sorted((root / "apps").glob("*/main.cpp")), root / "libs" / "ui" / "smoke_test.cpp"]:
         if path.is_file():
             codes.update(int(n) for n in re.findall(r"\bexit\(\s*(\d+)\s*\)", path.read_text(encoding="utf-8")))
@@ -189,6 +197,29 @@ def mock_exit_codes(root: Path) -> set[int]:
     if not path.is_file():
         return set()
     return {int(n) for n in re.findall(r"constexpr\s+int\s+exit_\w+\s*=\s*(\d+)\s*;", path.read_text(encoding="utf-8"))}
+
+
+def load_texts(root: Path) -> list[str]:
+    """The words of adl_load: the lines of its usage text, and every string literal of more than one word in apps/load/src.
+
+    The program joins its sentences to the names and numbers they are about (a literal, a name, another literal), so each literal is a
+    piece, and a piece has to be in the guide. A literal of one word is a key, a name or a reason. Comments and #include lines are not
+    read.
+    """
+    texts: list[str] = []
+    for path in sorted(root.glob(LOAD_SOURCES)):
+        source = path.read_text(encoding="utf-8")
+        for raw in re.findall(r'R"\((.*?)\)"', source, flags=re.S):
+            texts.extend(line for line in raw.splitlines() if line.strip())
+        source = re.sub(r'R"\(.*?\)"', "", source, flags=re.S)
+        source = re.sub(r"^\s*#.*$", "", source, flags=re.M)
+        source = re.sub(r"//.*$", "", source, flags=re.M)
+        source = source.replace("'\"'", "''")  # a character literal that is a quote
+        for literal in re.findall(r'"((?:[^"\\\n]|\\.)*)"', source):
+            text = re.sub(r"\\(.)", r"\1", literal)
+            if len(text.split()) > 1:
+                texts.append(text)
+    return texts
 
 
 FINDING_CALL = re.compile(r"(?<![\w:.])(?:add|findings\.push_back)\(")
@@ -407,6 +438,11 @@ def check(root: Path) -> list[str]:
                 break
     problems.extend(owner_tool_problems(root))
     problems.extend(make_set_problems(root))
+    for text in load_texts(root):
+        for part in segments(text) or ([normalise(text)] if len(normalise(text)) >= MIN_SEGMENT else []):
+            if part not in page:
+                problems.append(f"the text {text.strip()!r} of adl_load is not in {COMMAND_LINE_PAGE}")
+                break
     return problems
 
 
@@ -424,8 +460,8 @@ def main(argv: list[str] | None = None) -> int:
     if problems:
         return 1
     messages = code_messages(args.root)
-    print(f"Messages: {len(messages)} texts of the code, {len(finding_literals(args.root))} findings and "
-          f"{len(exit_codes(args.root))} exit codes are in the guide")
+    print(f"Messages: {len(messages)} texts of the code, {len(finding_literals(args.root))} findings, "
+          f"{len(load_texts(args.root))} pieces of what adl_load says and {len(exit_codes(args.root))} exit codes are in the guide")
     return 0
 
 

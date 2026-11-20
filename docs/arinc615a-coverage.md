@@ -51,7 +51,7 @@ files) exists only as the simulated target of the tests and the mock target appl
 | 5.3.2.3.8.3 | The timeout option may be used | taken from a peer's request, 1 to 255 s, and used for our retransmissions | `tftp_transfer_test` ("the timeout option the peer asks for") |
 | 5.3.2.3.8.4 | "Part Number" option | **there is none**: the text of 5.3.2.3.8.4 repeats the Timeout paragraph; nothing implemented | n/a (see [below](#places-the-standard-is-unclear)) |
 | 5.3.2.3.8.5 | `checksum_<n>` on a read request names a file among two of one name (the 16-bit CRC from the header); on a write it gives a check value of the file the loader should verify, must not fail the transfer, and the file is handled the same either way | read: handed to the `FileSource`; write: acknowledged if the algorithm can be calculated, calculated while the blocks arrive, verdict reported, file kept | `tftp_transfer_test` ("a checksum is verified", "every algorithm", "a read request's 16-bit CRC"), `data_loader_test` ("two files of one name", "a wrong checksum is reported and the file is kept") |
-| 5.3.2.3.8.6 | `port` option, on an operation's initialization request only, moves the loader's control port for the operation; the target's stays 59; a refusal may fail the operation | sent with the initialization request when the loader's port is not 59; not taken is a notice, and the time-out ends the operation | `data_loader_test` ("the port option moves", "the default control port", "a target that ignores the port option"), `operations_test` ("the first thing sent") |
+| 5.3.2.3.8.6 | `port` option, on an operation's initialization request only, moves the loader's control port for the operation; the target's stays 59; a refusal may fail the operation | sent with the initialization request when the loader's port is not 59 and when the target's is not (the option then names the loader's port, 59 included); not taken is a notice, and the time-out ends the operation if the target writes elsewhere | `data_loader_test` ("the port option moves", "the default control port", "a target that ignores the port option", "a target that is not on port 59 is told where the loader is"), `operations_test` ("the first thing sent", "the loader's port is sent whenever the target could not otherwise know it") |
 | 5.3.2.3.9 | Block numbers 16 bits, first is 1, a WRQ is acknowledged with 0, after 65535 comes 1 | `next_block`, used by both directions | `tftp_transfer_test` ("block numbers go 65535 and then 1", written across too), `tftp_test` |
 | 5.3.3, Attachment 3 | FIND: one broadcast request on port 1001, 3 s window, answers registered, invalid ones ignored | `FindClient`, `Runner::find` | `find_client_test`, `find_test` (codec) |
 | 5.3.4 | `THW_ID_POS`: the identifier, an underscore and 0 to 8 characters | the loader is configured with it (`thw_id_pos`) and names the protocol files with it; a name with a path in it is refused | `operations_test` ("a request that cannot be made") |
@@ -119,7 +119,9 @@ real device. [The engine page](arinc615a-engine.md) says how each is resolved; t
 10. **The dally**: "optional" in 5.4.3.1, done (two seconds) after the last ACK of a received file.
 11. **The block size** the loader asks for (1024) and allows (4096) is not set by the standard.
 12. **The `port` option**: the standard says "should" be 49152 or more (the codec takes any port); a target
-    that does not acknowledge it is noted, not failed.
+    that does not acknowledge it is noted, not failed. The standard has every target on 59; for one that is
+    not, the loader sends the option as well, naming its own port (59 included), because nothing else tells
+    that target where to write.
 13. **Appendix G is figures with no packet bytes**, so the TFTP layouts and options are checked against the
     RFCs and the standard's own WAIT and FIND examples only.
 14. **The displayed text** of Table 6.4.10-1 is the application's; the engine reports codes.

@@ -1,0 +1,74 @@
+{
+  "format": 1,
+  "kind": "adl-operation-record",
+  "program": {
+    "name": "adl_load",
+    "version": "@VERSION@"
+  },
+  "operation": "information",
+  "target": {
+    "address": "10.0.0.2",
+    "position": "HNPFMS_L"
+  },
+  "started_at": "2026-11-19T10:15:30Z",
+  "ended_at": "2026-11-19T10:15:34Z",
+  "result": "completed",
+  "reason": "completed",
+  "status_code": 3,
+  "detail": "The operation completed.",
+  "media_set": null,
+  "loads": [],
+  "configuration": [
+    {
+      "literal_name": "FMS LEFT",
+      "serial_number": "SN-0001",
+      "parts": [
+        {
+          "part_number": "ACM47-1234-5678",
+          "amendment": "",
+          "designation": "FMS 1 OPS"
+        },
+        {
+          "part_number": "ACM47-8765-4321",
+          "amendment": "A",
+          "designation": "FMS 1 DATA"
+        }
+      ]
+    }
+  ],
+  "files": [],
+  "download_folder": null,
+  "licence": null,
+  "log": [
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "Asking 10.0.0.2 (HNPFMS_L) for its configuration..."
+    },
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "The target answered: accepted"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "Status 0: accepted"
+    },
+    {
+      "at": "2026-11-19T10:15:32Z",
+      "severity": "info",
+      "text": "The target listed its configuration."
+    },
+    {
+      "at": "2026-11-19T10:15:32Z",
+      "severity": "info",
+      "text": "Status 1: completed"
+    },
+    {
+      "at": "2026-11-19T10:15:34Z",
+      "severity": "info",
+      "text": "Finished: completed."
+    }
+  ]
+}

@@ -13,6 +13,8 @@ What is here
   adl_write_payloads  writes sample media sets to a directory (command line)
   adl_make_set      makes a media set from a description file, checks one and says what it holds
                     (command line)
+  adl_load          runs one operation on one target with no window, or looks for
+                    targets (command line)
   adl_licence       shows, imports and removes the licence on this computer (command line)
 
   LICENSE.txt       the GNU General Public License, version 3 or later, which covers

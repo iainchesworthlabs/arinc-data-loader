@@ -1,0 +1,83 @@
+{
+  "format": 1,
+  "kind": "adl-operation-record",
+  "program": {
+    "name": "adl_load",
+    "version": "@VERSION@"
+  },
+  "operation": "upload",
+  "target": {
+    "address": "10.0.0.2",
+    "position": "HNPFMS_L"
+  },
+  "started_at": "2026-11-19T10:15:30Z",
+  "ended_at": "2026-11-19T10:15:33Z",
+  "result": "completed",
+  "reason": "completed",
+  "status_code": 3,
+  "detail": "The operation completed. The target read 4 file(s).",
+  "media_set": {
+    "path": "@DIR@",
+    "part_number": "ACM-SET-0001",
+    "members": 2
+  },
+  "loads": [
+    {
+      "part_number": "ACM47-1234-5678",
+      "header_file": "ACM47.LUH",
+      "status": "completed",
+      "percent": 100
+    }
+  ],
+  "configuration": null,
+  "files": [],
+  "download_folder": null,
+  "licence": null,
+  "log": [
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "Uploading 1 load(s) to 10.0.0.2 (HNPFMS_L)..."
+    },
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "The target answered: accepted"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "Status 0: accepted, 0% of the list"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "The target read ACM47.LUH (258 bytes)"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "The target read APP.LUP (3000 bytes)"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "The target read DATA.LUP (5 bytes)"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "The target read CONFIG.LDR (4 bytes)"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "Status 1: completed, 100% of the list"
+    },
+    {
+      "at": "2026-11-19T10:15:33Z",
+      "severity": "info",
+      "text": "Finished: completed."
+    }
+  ]
+}

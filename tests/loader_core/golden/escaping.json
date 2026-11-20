@@ -1,0 +1,43 @@
+{
+  "format": 1,
+  "kind": "adl-operation-record",
+  "program": {
+    "name": "quote\" backslash\\ slash/ tab\t newline\n return\r bell\u0007 unit\u001f backspace\b formfeed\f",
+    "version": "Größe 日本語 😀"
+  },
+  "operation": "information",
+  "target": {
+    "address": "10.0.0.2",
+    "position": "H�NP"
+  },
+  "started_at": null,
+  "ended_at": "2026-11-19T10:15:41Z",
+  "result": "failed",
+  "reason": "local_error",
+  "status_code": null,
+  "detail": "said \"no\" at C:\\temp\\x then ��",
+  "media_set": null,
+  "loads": [],
+  "configuration": null,
+  "files": [
+    {
+      "name": "dätei.bin",
+      "size": 18446744073709551615,
+      "path": "C:\\dl\\dätei.bin"
+    }
+  ],
+  "download_folder": null,
+  "licence": null,
+  "log": [
+    {
+      "at": null,
+      "severity": "warning",
+      "text": "a\u0000b"
+    },
+    {
+      "at": "2026-11-19T10:15:41Z",
+      "severity": "error",
+      "text": "line one\nline two"
+    }
+  ]
+}

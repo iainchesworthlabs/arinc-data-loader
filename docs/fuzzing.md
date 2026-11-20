@@ -5,7 +5,7 @@
 Everything that reads bytes from outside has a [libFuzzer](https://llvm.org/docs/LibFuzzer.html)
 harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, a licence file, a scenario file,
 the text of a target's address, the description file of `adl_make_set` and the members of a media set that it inspects, and the command line of a program (the platform layer's split of it and
-its text conversions). A
+its text conversions, and the options of `adl_load`). A
 decoder returns an error for a bad input and never crashes; the fuzzers are there to find the input for
 which that is not true.
 
@@ -13,6 +13,7 @@ which that is not true.
 | --- | --- |
 | `libs/arinc665/fuzz` | `header_file` (a load's `.LUH`), `batch_file` (`.LUB`), `loads_list` (`LOADS.LUM`), `files_list` (`FILES.LUM`), `batches_list` (`BATCHES.LUM`). A decoded file is also checked against the standard and written back. |
 | `libs/loader_core/fuzz` | `ipv4_address` (the text of a target's address, as an operator types it; a text that parses is written out and parsed again and has to give the same four numbers). |
+| `apps/load/fuzz` | `load_options` (the arguments of an `adl_load` command line, cut from the bytes at each NUL; a command line that is accepted is written out and read again and has to give the same options). Its seeds are also read by a test under the ordinary compilers (`tests/load/options_seeds_test.cpp`). `serve_request` (the standard input of `adl_load serve`: the bytes are cut into lines as the program cuts them, a line over a short limit is skipped, and each line is read as a request, which has to have the id its line names, and a `run` has to give the same options when written out and read again; a line that is refused has to say why). Its seeds are read by `tests/load/request_test.cpp`. |
 | `libs/set_maker/fuzz` | `description` (the bytes of a description file for `adl_make_set`: a text that is refused says why in a sentence; one that is accepted is inside every limit of format 1, passes the generator's rules, and is written out as a canonical description that reads back as the same one) and `inspect_set` (the files of a media set, as a list of files in a small container that `libs/set_maker/fuzz/checks.hpp` describes: what does not read as a media set is refused with a reason, and what does is inspected and written as the document of `adl_make_set inspect --json`, which the strict JSON reader has to read). A third, `options`, is the command line of `adl_make_set` (one argument to a line): what cannot be used is refused with a sentence, and what can is a command with its subject and only the options that belong to it. The harnesses are built from `apps/make_set`, where the reader is. Their checks are functions of `checks.hpp`, which the test `make_set.fuzz` also runs on every seed and every prefix of one, and on the disk path of `inspect` (each set seed is written out as a tree and read back), so a build with no Clang knows the seeds are good. The seeds are written by `tools/fuzz/make_seeds.py`: the guide's example description and a refusal of each kind, and the golden media set of `tests/golden/make_golden.py` whole and in four ways of being wrong, and command lines that are right and wrong. |
 | `libs/platform/fuzz` | `command_line` (the split of a Windows command line and the conversions between UTF-8 and UTF-16 in `libs/platform/detail/command_line.hpp`; the harness checks that what comes out is UTF-8, which converts to UTF-16 and back unchanged). Its seeds are command lines, as UTF-16 with the low byte first. |
 | `libs/arinc615a/fuzz` | `tftp_packet` (the datagrams of the TFTP dialogue, with the transfer options of a request or an option acknowledgement), `find` (a FIND packet), and one for each protocol file: `initialization_file`, `configuration_list`, `configuration_status`, `upload_request`, `upload_status`, `download_request`, `download_status`, `download_list`, `download_answer`. |
@@ -23,8 +24,8 @@ which that is not true.
 | `libs/scenario_base/fuzz` | `envelope`: the input is a scenario file, read as the mock target's and as the loader's. It checks that a file that is refused says why in one line, and that one that is read keeps every number inside its limit, the steps numbered from 1, a seed for every step that draws, and nothing but the keys the kind named. The seeds are written by `tools/fuzz/make_seeds.py`, as they have no golden data, and the `scenario.base` test replays them under the ordinary compilers too. |
 | `libs/licence_cli/fuzz` | `licence_cli`: the commands of `adl_licence` ([the command](user-guide/command-line.md#adl_licence)): a command line, one word to a tab, and the bytes of a file, which are put where each command can meet them (the file the line names, a licence file and a list of withdrawn licences in each folder, the clock file, and signed with the test key as a licence and as a list). Every run must end with the exit code 0, 1 or 2; `show` and `verify` must write nothing; nothing printed may hold a control character. The seeds are written by `tools/fuzz/make_seeds.py`: one for each command, from the golden licence files. |
 
-A harness is in `libs/<lib>/fuzz` or, for a program of the repository's tools, in `tools/<tool>/fuzz`. Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
-`python3 tools/fuzz/make_seeds.py` from the golden data of the tests (`tests/golden`; those of `parse_options` are written by hand: they are command lines, and the `mock.cli` test replays them under the ordinary compilers too), and a directory of
+A harness is in `libs/<lib>/fuzz`, for a program of the repository's tools in `tools/<tool>/fuzz`, and for a command in `apps/<app>/fuzz`. Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
+`python3 tools/fuzz/make_seeds.py` from the golden data of the tests (`tests/golden`; those of `parse_options` are written by hand: they are command lines, and the `mock.cli` test replays them under the ordinary compilers too; for the text of an address and the command line of `adl_load` they come from the lists in the script), and a directory of
 **regressions** (`regressions/<name>/`): inputs that once crashed it.
 
 ## Running them
@@ -52,7 +53,7 @@ the report again. The sanitizers abort on the first undefined behaviour (`-fno-s
 
 ## When a fuzzer finds something
 
-Fix the decoder, and add the input that crashed it to `regressions/<name>/` beside its harness (`libs/<lib>/fuzz` or `tools/<tool>/fuzz`) in the same
+Fix the decoder, and add the input that crashed it to `regressions/<name>/` beside its harness (`libs/<lib>/fuzz`, `tools/<tool>/fuzz` or `apps/<app>/fuzz`) in the same
 pull request, so that the pull request gate replays it from then on. Give the file a name that says what
 it was (`truncated-option.bin`). Do not add the files libFuzzer found that did not crash; the seed
 corpus is meant to stay small and readable.

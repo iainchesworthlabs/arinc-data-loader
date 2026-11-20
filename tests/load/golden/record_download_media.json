@@ -1,0 +1,78 @@
+{
+  "format": 1,
+  "kind": "adl-operation-record",
+  "program": {
+    "name": "adl_load",
+    "version": "@VERSION@"
+  },
+  "operation": "download_media_defined",
+  "target": {
+    "address": "10.0.0.2",
+    "position": "HNPFMS_L"
+  },
+  "started_at": "2026-11-19T10:15:30Z",
+  "ended_at": "2026-11-19T10:15:33Z",
+  "result": "completed",
+  "reason": "completed",
+  "status_code": 3,
+  "detail": "The operation completed. Received 2 file(s).",
+  "media_set": null,
+  "loads": [],
+  "configuration": null,
+  "files": [
+    {
+      "name": "A.BIN",
+      "size": 16,
+      "path": "/dl/DNLD_DATA_HNPFMS_L_1/A.BIN"
+    },
+    {
+      "name": "B.BIN",
+      "size": 16,
+      "path": "/dl/DNLD_DATA_HNPFMS_L_1/B.BIN"
+    }
+  ],
+  "download_folder": "/dl/DNLD_DATA_HNPFMS_L_1",
+  "licence": null,
+  "log": [
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "Downloading 2 file(s) from 10.0.0.2 (HNPFMS_L)..."
+    },
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "The target answered: accepted"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "Status 0: accepted, 0% of the list"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "note",
+      "text": "request refused: A.BIN"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "Received A.BIN (16 bytes)"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "Received B.BIN (16 bytes)"
+    },
+    {
+      "at": "2026-11-19T10:15:31Z",
+      "severity": "info",
+      "text": "Status 1: completed, 100% of the list"
+    },
+    {
+      "at": "2026-11-19T10:15:33Z",
+      "severity": "info",
+      "text": "Finished: completed."
+    }
+  ]
+}

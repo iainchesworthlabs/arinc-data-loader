@@ -13,7 +13,7 @@ description: Download the ARINC Data Loader programs for Windows, Linux and macO
 
 <section class="icl-section icl-section--tint"><div class="icl-wrap">
 <h2>The programs</h2>
-<p>Each package holds the Data Loader, the Media Set Generator, the Mock Target and the command-line programs <code>adl_write_payloads</code> and <code>adl_licence</code>, with the Qt files they need. There is nothing to install first: unpack it and start a program.</p>
+<p>Each package holds the Data Loader, the Media Set Generator, the Mock Target and the command-line programs <code>adl_write_payloads</code>, <code>adl_load</code> and <code>adl_licence</code>, with the Qt files they need. There is nothing to install first: unpack it and start a program.</p>
 <div class="adl-table"><table>
 <thead><tr><th scope="col">System</th><th scope="col">Package</th><th scope="col">To start</th></tr></thead>
 <tbody>

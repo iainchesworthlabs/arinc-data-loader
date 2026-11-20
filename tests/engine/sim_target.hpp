@@ -15,6 +15,7 @@
 
 #include "adl/arinc615a/endpoint.hpp"
 #include "adl/arinc615a/find.hpp"
+#include "adl/arinc615a/limits.hpp"
 #include "adl/arinc615a/protocol_files.hpp"
 #include "adl/arinc615a_mini/mini_tftp.hpp"
 #include "fake_host.hpp"
@@ -69,6 +70,12 @@ enum class ChecksumMode
 struct SimPlan
 {
     std::string thw = "HNPFMS_L";
+    // The port it takes the loader's first request on. The standard's 59, unless a test puts it elsewhere.
+    std::uint16_t control_port = adl::arinc615a::tftp_control_port;
+    // Where it writes what it starts (status files, lists, the files of a download) when the request has
+    // no port option: the standard's 59 if this is empty. A target that is not on 59 has no standard to
+    // go by; the mock target takes its own port (what it listens on), which this lets a test be.
+    std::optional<std::uint16_t> loader_port_without_option;
 
     // ---- the initialization file ----
     std::uint16_t init_wait_seconds = 0; // answer the first request with WAIT:x
@@ -104,6 +111,9 @@ struct SimPlan
 
     // ---- the data ----
     std::vector<UploadItem> loads;
+    // An upload: the loads, by header file name, that the target reports as failed (0x1007, with this text)
+    // in every status file after the first.
+    std::map<std::string, std::string> failed_loads;
     std::vector<DownloadItem> files;
     bool list_unrequested_file = false; // a download: also writes a file nobody asked for
 
