@@ -21,7 +21,11 @@ namespace
 
 using namespace adl::arinc615a;
 using namespace adl::loader_scenario;
-using namespace adl::mock;
+using adl::mock::Config;
+using adl::mock::EngineListener;
+using adl::mock::MockEngine;
+using adl::mock::Severity;
+using adl::mock::UploadRecord;
 using adl::test::FakeTargetLink;
 using adl::test::LoaderRecorder;
 using adl::test::MockRig;
