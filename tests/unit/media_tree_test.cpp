@@ -9,6 +9,7 @@
 #include "temp_dir.hpp"
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <algorithm>
 #include <cstdlib>
@@ -16,6 +17,7 @@
 #include <fstream>
 #include <optional>
 #include <string>
+#include <system_error>
 #include <tuple>
 #include <vector>
 
@@ -106,6 +108,63 @@ void put_file(const fs::path& path, std::string_view content)
     fs::create_directories(path.parent_path());
     std::ofstream out(path, std::ios::binary);
     out << content;
+}
+
+// Names no Windows code page holds all of: an accented letter (in the Western pages), Japanese (in none of
+// them) and a character outside the Basic Multilingual Plane (two UTF-16 units). Written as escapes, so that
+// this file is ASCII and the compiler's source character set does not matter.
+fs::path wide_folder()
+{
+    return fs::path{u8"set-\u00e9-\u65e5\u672c\u8a9e-\U0001F600 and spaces"};
+}
+
+// A name that is not text: half of a surrogate pair where the file system holds UTF-16 (Windows lets a
+// file have one), and a byte that is not UTF-8 where it holds bytes (Linux does). A file system that refuses
+// to make such a file (a Mac's) leaves the test with nothing to do.
+fs::path name_that_is_not_text()
+{
+    using unit = fs::path::value_type;
+    const unit last = static_cast<unit>(sizeof(unit) == 1 ? 0xFF : 0xD800);
+    return fs::path{
+        fs::path::string_type{static_cast<unit>('b'), static_cast<unit>('a'), static_cast<unit>('d'), last}};
+}
+
+// Makes a file, and says whether the system let it have that name.
+bool made_file(const fs::path& path)
+{
+    std::error_code ec;
+    fs::create_directories(path.parent_path(), ec);
+    {
+        std::ofstream out(path, std::ios::binary);
+        out << "stray";
+    }
+    return fs::exists(path, ec);
+}
+
+// Whether `failure` names the entry `name` in `directory`. A file system may keep a name that is not text
+// under another one (WSL's Windows drives do), so the name is compared only where the directory lists it as
+// it was made; otherwise the failure has to be for an entry that is there, in that directory.
+bool names_entry(const TreeFailure& failure, const fs::path& directory, const fs::path& name)
+{
+    bool listed = false;
+    for (const auto& entry : fs::directory_iterator(directory))
+    {
+        listed = listed || entry.path().filename() == name;
+    }
+    std::error_code ec;
+    return failure.path.parent_path() == directory && fs::exists(failure.path, ec) &&
+           (!listed || failure.path.filename() == name);
+}
+
+// A sample set of members, to put on a disk.
+std::vector<MediaMember> sample_members()
+{
+    const auto scenarios = adl::samples::scenarios();
+    const auto spec = scenarios.front().make();
+    REQUIRE(spec.has_value());
+    auto members = build_media_set(*spec);
+    REQUIRE(members.has_value());
+    return *members;
 }
 
 } // namespace
@@ -534,6 +593,174 @@ TEST_CASE("a link in a tree is refused, not followed", "[media-tree]")
 
     REQUIRE_FALSE(read.has_value());
     CHECK(read.error().error == TreeError::unexpected_entry);
+}
+
+TEST_CASE("a set is written to and read from a folder whose name is outside the code page", "[media-tree][wide]")
+{
+    TempDir dir;
+    const auto members = sample_members();
+
+    SECTION("the folder is made, below another that is not made yet")
+    {
+        const fs::path root = dir.path() / wide_folder() / wide_folder();
+
+        REQUIRE(write_media_set_tree(root, members).has_value());
+
+        // The folder on the disk has the name that was given, not another one.
+        CHECK(entries(dir.path()) == std::vector<fs::path>{wide_folder()});
+        CHECK(fs::is_directory(root / "member_001"));
+        const auto read = read_media_set_tree(root);
+        REQUIRE(read.has_value());
+        CHECK(same_members(*read, sorted(members)));
+        const auto set = read_media_set(*read);
+        REQUIRE(set.has_value());
+        CHECK(set->findings == read_media_set(members)->findings);
+    }
+    SECTION("the folder is there already, and empty")
+    {
+        const fs::path root = dir.path() / wide_folder();
+        fs::create_directories(root);
+
+        REQUIRE(write_media_set_tree(root, members).has_value());
+
+        const auto read = read_media_set_tree(root);
+        REQUIRE(read.has_value());
+        CHECK(same_members(*read, sorted(members)));
+    }
+    SECTION("a set written there is not written over")
+    {
+        const fs::path root = dir.path() / wide_folder();
+        REQUIRE(write_media_set_tree(root, members).has_value());
+
+        const auto again = write_media_set_tree(root, members);
+
+        REQUIRE_FALSE(again.has_value());
+        CHECK(again.error().error == TreeError::already_exists);
+        CHECK(again.error().path == root / "member_001");
+    }
+    SECTION("the folder is not a tree of members")
+    {
+        const fs::path root = dir.path() / wide_folder();
+        fs::create_directories(root);
+        const auto read = read_media_set_tree(root);
+        REQUIRE_FALSE(read.has_value());
+        CHECK(read.error().error == TreeError::no_members);
+        CHECK(read.error().path == root);
+
+        const auto missing = read_media_set_tree(dir.path() / wide_folder() / "missing");
+        REQUIRE_FALSE(missing.has_value());
+        CHECK(missing.error().error == TreeError::not_a_directory);
+    }
+}
+
+TEST_CASE("a file or folder in a tree with a name that cannot be in a media set refuses the set", "[media-tree][wide]")
+{
+    // The set is refused, as it is for a name with a colon or a trailing dot, and the failure says which
+    // entry. Nothing throws, whatever the name is made of, and whatever the folder the tree is in is called.
+    const auto name = GENERATE(fs::path{u8"\u65e5\u672c\u8a9e.txt"},       // Japanese: in no Western code page
+                               fs::path{u8"caf\u00e9.txt"},                // an accented letter: in some
+                               fs::path{u8"\U0001F600.txt"},               // outside the Basic Multilingual Plane
+                               fs::path{u8"\u65e5\u672c\u8a9e\U0001F600"}, // no ASCII at all
+                               name_that_is_not_text());
+    const bool in_wide_folder = GENERATE(false, true);
+    CAPTURE(name.native().size(), in_wide_folder);
+    TempDir dir;
+    const fs::path root = in_wide_folder ? dir.path() / wide_folder() : dir.path();
+    REQUIRE(write_media_set_tree(root, sample_members()).has_value());
+    const fs::path member = root / "member_001";
+
+    SECTION("a file below a member")
+    {
+        if (!made_file(member / name))
+        {
+            SKIP("this file system does not let a file have this name");
+        }
+
+        const auto read = read_media_set_tree(root);
+
+        REQUIRE_FALSE(read.has_value());
+        CHECK(read.error().error == TreeError::invalid_file_name);
+        CHECK(names_entry(read.error(), member, name));
+    }
+    SECTION("a folder below a member, with a file in it")
+    {
+        if (!made_file(member / name / "A.BIN"))
+        {
+            SKIP("this file system does not let a folder have this name");
+        }
+
+        const auto read = read_media_set_tree(root);
+
+        REQUIRE_FALSE(read.has_value());
+        CHECK(read.error().error == TreeError::invalid_file_name);
+        CHECK(names_entry(read.error(), member, name));
+    }
+    SECTION("an entry beside the members")
+    {
+        if (!made_file(root / name))
+        {
+            SKIP("this file system does not let a file have this name");
+        }
+
+        const auto read = read_media_set_tree(root);
+
+        REQUIRE_FALSE(read.has_value());
+        CHECK(read.error().error == TreeError::unexpected_entry);
+        CHECK(names_entry(read.error(), root, name));
+    }
+}
+
+TEST_CASE("the text of a name that is refused is read as UTF-8 into the failure's path", "[media-tree][wide]")
+{
+    // A path made from a std::string would read these bytes in the system's code page on Windows: another
+    // name, with no error. The text is UTF-8; a byte that is not part of valid UTF-8 is U+FFFD.
+    const auto failure_for = [](MediaFile file)
+    {
+        TempDir dir;
+        const auto written = write_media_set_tree(dir.path(), std::vector<MediaMember>{member_with(1, {file})});
+        REQUIRE_FALSE(written.has_value());
+        return written.error();
+    };
+
+    SECTION("a file name")
+    {
+        const TreeFailure accented = failure_for(file_at("\\", "caf\xC3\xA9.txt"));
+        CHECK(accented.error == TreeError::invalid_file_name);
+        CHECK(accented.path == fs::path{u8"caf\u00e9.txt"});
+
+        const TreeFailure japanese = failure_for(file_at("\\", "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E.txt"));
+        CHECK(japanese.path == fs::path{u8"\u65e5\u672c\u8a9e.txt"});
+
+        const TreeFailure beyond = failure_for(file_at("\\", "\xF0\x9F\x98\x80.txt"));
+        CHECK(beyond.path == fs::path{u8"\U0001F600.txt"});
+    }
+    SECTION("bytes that are not UTF-8, one U+FFFD for each")
+    {
+        CHECK(failure_for(file_at("\\", "a\xFF"
+                                        "b"))
+                  .path == fs::path{u8"a\uFFFDb"});
+        CHECK(failure_for(file_at("\\", "a\xE6\x97")).path == fs::path{u8"a\uFFFD\uFFFD"});
+        CHECK(failure_for(file_at("\\", "\xC0\x80")).path == fs::path{u8"\uFFFD\uFFFD"});
+        CHECK(failure_for(file_at("\\", "\xED\xA0\x80")).path == fs::path{u8"\uFFFD\uFFFD\uFFFD"});
+        CHECK(failure_for(file_at("\\", "\xF4\x90\x80\x80")).path == fs::path{u8"\uFFFD\uFFFD\uFFFD\uFFFD"});
+        CHECK(failure_for(file_at("\\", "\xE0\x80\x80")).path == fs::path{u8"\uFFFD\uFFFD\uFFFD"});
+        CHECK(failure_for(file_at("\\", "\xE6\x97x")).path == fs::path{u8"\uFFFD\uFFFDx"});
+    }
+    SECTION("a pathname")
+    {
+        const TreeFailure failure = failure_for(file_at("\\\xE6\x97\xA5\\", "A.BIN"));
+        CHECK(failure.error == TreeError::invalid_pathname);
+        CHECK(failure.path == fs::path{u8"\\\u65e5\\"});
+    }
+    SECTION("two files that are one")
+    {
+        TempDir dir;
+        const auto written = write_media_set_tree(
+            dir.path(), std::vector<MediaMember>{member_with(1, {file_at("\\", "A.BIN"), file_at("\\", "a.bin")})});
+        REQUIRE_FALSE(written.has_value());
+        CHECK(written.error().error == TreeError::duplicate_file);
+        CHECK(written.error().path == fs::path{"\\a.bin"});
+    }
 }
 
 TEST_CASE("damage done to a file on the disk is found when the set is read", "[media-tree]")

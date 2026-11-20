@@ -15,6 +15,7 @@
 
 #include <array>
 #include <expected>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -25,6 +26,16 @@ using namespace adl::test;
 namespace
 {
 
+// How an operation ended, as the engine said it.
+struct Ended
+{
+    std::string name;
+    std::optional<StatusCode> status;
+    bool refused = false;
+
+    friend bool operator==(const Ended&, const Ended&) = default;
+};
+
 // What the mock target reported, for the assertions.
 struct EngineRecorder final : public EngineListener
 {
@@ -32,6 +43,7 @@ struct EngineRecorder final : public EngineListener
     std::vector<std::string> operations;
     std::vector<int> progress;
     std::vector<UploadRecord> uploads;
+    std::vector<Ended> ended;
 
     void log(Severity severity, std::string_view text) override
     {
@@ -48,6 +60,10 @@ struct EngineRecorder final : public EngineListener
     void upload_received(const UploadRecord& record) override
     {
         uploads.push_back(record);
+    }
+    void operation_ended(std::string_view name, std::optional<StatusCode> status, bool refused) override
+    {
+        ended.push_back(Ended{std::string{name}, status, refused});
     }
 
     [[nodiscard]] bool contains(std::string_view part) const
@@ -94,6 +110,32 @@ TEST_CASE("FIND is answered with the configured identity", "[mock][find]")
     CHECK(target.listener.contains("answered FIND"));
 }
 
+TEST_CASE("FIND is answered with an identity whose text is long and no longer held by the caller", "[mock][find]")
+{
+    Config config;
+    {
+        // Past the small-string buffer, so the text is on the heap and a view of it that outlived
+        // these strings would read freed memory (which AddressSanitizer reports).
+        const std::string hardware(15, 'H');
+        const std::string type_name(8, 'T');
+        const std::string position(8, 'P');
+        const std::string literal_name(20, 'L');
+        const std::string manufacturer(3, 'M');
+        config.find_identity = FindIdentity{hardware, type_name, position, literal_name, manufacturer};
+    }
+    MockTarget target(config);
+    std::array<FindTarget, 8> answers{};
+    Runner runner(target.rig.loader_host);
+    const auto count = runner.find(FindConfig{}, answers);
+    REQUIRE(count);
+    REQUIRE(*count == 1);
+    CHECK(answers[0].hardware_id.view() == std::string(15, 'H'));
+    CHECK(answers[0].type_name.view() == std::string(8, 'T'));
+    CHECK(answers[0].position.view() == std::string(8, 'P'));
+    CHECK(answers[0].literal_name.view() == std::string(20, 'L'));
+    CHECK(answers[0].manufacturer_code.view() == std::string(3, 'M'));
+}
+
 TEST_CASE("an Information operation delivers the configuration", "[mock][information]")
 {
     Config config;
@@ -117,6 +159,7 @@ TEST_CASE("an Information operation delivers the configuration", "[mock][informa
     CHECK(target.listener.contains("served HNPFMS_L.LCI"));
     CHECK(target.listener.contains("Information operation started"));
     CHECK(target.listener.contains("Information operation finished: completed"));
+    CHECK(target.listener.ended == std::vector<Ended>{Ended{"Information", StatusCode::completed, false}});
 }
 
 TEST_CASE("an Upload delivers every file byte for byte", "[mock][upload]")
@@ -231,6 +274,7 @@ TEST_CASE("an operator abort in the middle of an Upload is confirmed", "[mock][a
     CHECK(target.listener.contains("sees ABORT"));
     REQUIRE_FALSE(recorder.status_codes.empty());
     CHECK(recorder.status_codes.back() == StatusCode::aborted_by_operator);
+    CHECK(target.listener.ended == std::vector<Ended>{Ended{"Upload", StatusCode::aborted_by_operator, false}});
 }
 
 TEST_CASE("an operator abort the moment the first status file arrives is confirmed at once", "[mock][abort]")
@@ -290,6 +334,23 @@ TEST_CASE("a refused Upload is denied by the target", "[mock][injections]")
     CHECK(outcome->code == OutcomeCode::denied);
     CHECK(recorder.initialization == std::vector<StatusCode>{StatusCode::operation_denied});
     CHECK(recorder.initialization_text == std::vector<std::string>{"not today"});
+    CHECK(target.listener.ended == std::vector<Ended>{Ended{"Upload", StatusCode::operation_denied, true}});
+}
+
+TEST_CASE("an operation refused as not supported is reported with 0x1002", "[mock][injections]")
+{
+    Config config;
+    config.refusal = Refusal{adl::mock::OperationKind::information, StatusCode::operation_not_supported, "not here"};
+    MockTarget target(config);
+    LoaderRecorder recorder;
+    LoaderServices services;
+    services.listener = &recorder;
+    const auto outcome = target.rig.run(InformationOperation{}, services);
+    REQUIRE(outcome);
+    CHECK(outcome->code == OutcomeCode::not_supported);
+    CHECK(recorder.initialization == std::vector<StatusCode>{StatusCode::operation_not_supported});
+    CHECK(recorder.initialization_text == std::vector<std::string>{"not here"});
+    CHECK(target.listener.ended == std::vector<Ended>{Ended{"Information", StatusCode::operation_not_supported, true}});
 }
 
 TEST_CASE("a silent target ends the operation with the DLP time-out", "[mock][injections]")
@@ -304,6 +365,7 @@ TEST_CASE("a silent target ends the operation with the DLP time-out", "[mock][in
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::dlp_timed_out);
     CHECK(target.listener.contains("goes silent"));
+    CHECK(target.listener.ended.empty()); // a silent operation never ends
 }
 
 TEST_CASE("a garbage initialization file is a protocol error", "[mock][injections]")
@@ -317,6 +379,8 @@ TEST_CASE("a garbage initialization file is a protocol error", "[mock][injection
     const auto outcome = target.rig.run(InformationOperation{}, services);
     REQUIRE(outcome);
     CHECK(outcome->code == OutcomeCode::protocol_error);
+    // Refused, with no status to give: the file has no valid structure.
+    CHECK(target.listener.ended == std::vector<Ended>{Ended{"Information", std::nullopt, true}});
 }
 
 TEST_CASE("a wrong checksum option on a download is reported and kept", "[mock][injections]")
@@ -378,6 +442,7 @@ TEST_CASE("the target aborts the operation after N status files", "[mock][inject
     CHECK(outcome->code == OutcomeCode::aborted_by_target);
     REQUIRE_FALSE(recorder.status_codes.empty());
     CHECK(recorder.status_codes.back() == StatusCode::aborted_by_target);
+    CHECK(target.listener.ended == std::vector<Ended>{Ended{"Upload", StatusCode::aborted_by_target, false}});
 }
 
 TEST_CASE("a WAIT answer makes the loader ask again", "[mock][injections]")

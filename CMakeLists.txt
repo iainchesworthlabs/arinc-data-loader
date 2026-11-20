@@ -139,6 +139,11 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(libs/licence)
 endif()
 
+# The mock target's logic without a window and without Qt: its 615A engine and the link that runs
+# it over adl::platform's sockets. The mock target application builds on it below, and so do the
+# tests. Not installed and not part of the adl package.
+add_subdirectory(libs/mock_target_core)
+
 # Sample loads and media sets, for the tests and for the program below.
 add_subdirectory(libs/samples)
 

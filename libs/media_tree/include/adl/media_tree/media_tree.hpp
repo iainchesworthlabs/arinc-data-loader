@@ -37,7 +37,12 @@ enum class TreeError
 };
 
 // The error, and the path (native, absolute or as given) it concerns; for a
-// pathname or a file name that is not valid, the offending text as given.
+// pathname or a file name that is not valid, the offending text, read as UTF-8 (a
+// byte that is not part of valid UTF-8 is U+FFFD in it, on every system). A path
+// found on the disk is the system's own and can hold what no text can (half of a
+// surrogate pair on Windows, bytes that are not UTF-8 on Linux), so a function
+// that turns a path into text can throw for it: u8string() does on Windows, and
+// u16string() does on Linux.
 struct TreeFailure
 {
     TreeError error = TreeError::no_members;
@@ -81,10 +86,17 @@ using TreeResult = std::expected<T, TreeFailure>;
 
 // Reads the members under `root`, ordered by sequence number, with the files of
 // each ordered by pathname and name. Every plain file below a member directory is
-// a file of that member, whatever its name; empty directories leave nothing.
-// A root entry other than a member directory, and anything below one that is
+// a file of that member; empty directories leave nothing.
+//
+// What is not a tree of members refuses the whole set, with the path of the entry:
+// a root entry other than a member directory, and anything below one that is
 // neither a directory nor a plain file (a link, for instance), is refused rather
-// than followed.
+// than followed (unexpected_entry), and so is a file or a directory below a member
+// whose name is not one every platform accepts (invalid_file_name, see
+// adl::arinc665::is_portable_file_name). That is every name with a character that
+// is not printable ASCII, whatever it is: an accented letter, Japanese, half of a
+// surrogate pair, bytes that are not UTF-8. A name is judged on the path's own
+// text and is never converted, so no name can make this function throw.
 //
 // What it reads can be given to adl::arinc665::read_media_set().
 [[nodiscard]] TreeResult<std::vector<arinc665::MediaMember>> read_media_set_tree(const std::filesystem::path& root);
