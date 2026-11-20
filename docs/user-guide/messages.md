@@ -6,7 +6,7 @@ Other pages hold the rest:
 
 - The lines of the loader's activity log, the notices, the outcomes and the failure dialogs: [The log, the receipt and failures](log-and-receipt.md).
 - The messages of the media set check, the *findings*: [Findings of the media set check](findings.md), with [Choose and check a media set](choose-a-media-set.md) and the coverage page for [ARINC 665-3](../arinc665-coverage.md).
-- The command line and exit codes: [Command line and exit codes](command-line.md).
+- The command line and exit codes: [Command line and exit codes](command-line.md). The messages of `adl_make_set`, the command that makes a media set from a description file and says what one holds, are in [its section of that page](command-line.md#messages-of-adl_make_set): the sentences about a description, with the place in the file, and the ones about a source file, an output folder and a set that does not verify.
 - Causes and cures by symptom: [Troubleshooting](troubleshooting.md).
 
 A test (`docs.messages`) checks that every message of the programs' code that reports a problem or a condition appears in this guide, so a new message cannot be added without being described.

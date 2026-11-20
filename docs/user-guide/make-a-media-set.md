@@ -216,7 +216,8 @@ most four directories deep.
 
 - It writes one load per media set. A set with several loads, or a load spread over members in
   another pattern, is not made by this window (the library underneath can; the window does not
-  offer it yet).
+  offer it yet). The command `adl_make_set` makes a set with several loads from a description file,
+  with no window ([Command line and exit codes](command-line.md#adl_make_set)).
 - It reads each file completely into memory, so the files are limited by the computer's memory.
 - It does not change files you give it, and it never writes over anything.
 

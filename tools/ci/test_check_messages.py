@@ -261,3 +261,92 @@ class OwnerTool(Check):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+MAKE_SET_COMMAND = """#include "adl/make_set/something that is not a text.hpp"
+namespace adl::make_set {
+// A comment that says "words the guide need not have" is not a text.
+inline constexpr int exit_ok = 0;
+inline constexpr int exit_input = 3;
+}
+"""
+MAKE_SET_SOURCE = """#include <string>
+/* "a block comment with a literal in it" */
+std::string say(const std::string& path)
+{
+    return "Cannot read " + path + " at all.";   // "and a trailing comment"
+}
+const char* usage = R"(usage: tool make <description>
+  --output <folder>)";
+"""
+MAKE_SET_PAGE = """# Command line
+| Code | Meaning |
+| --- | --- |
+| 0 | ok |
+| 1 | failed |
+| 2 | usage |
+| 3 | another program's three |
+
+## `adl_make_set`
+
+usage: tool make <description>
+  --output <folder>
+
+| Code | Meaning |
+| --- | --- |
+| 0 | done |
+| 3 | an input cannot be used |
+
+`Cannot read <path> at all.`
+
+## Other programs
+"""
+
+
+class MakeSet(Check):
+    """adl_make_set has no catalogue: its sentences and exit codes are held to the section of its page."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        (self.root / "apps" / "make_set" / "src").mkdir(parents=True)
+        (self.root / "apps" / "make_set" / "include" / "adl" / "make_set").mkdir(parents=True)
+        (self.root / "apps" / "make_set" / "src" / "command.cpp").write_text(MAKE_SET_SOURCE, encoding="utf-8")
+        (self.root / "apps" / "make_set" / "include" / "adl" / "make_set" / "command.hpp").write_text(
+            MAKE_SET_COMMAND, encoding="utf-8")
+        self.page = self.root / "docs" / "user-guide" / "command-line.md"
+        self.page.write_text(GOOD_PAGE + "\n" + MAKE_SET_PAGE, encoding="utf-8")
+
+    def test_a_page_that_has_everything_passes(self) -> None:
+        self.assertEqual(self.problems(), "")
+
+    def test_the_literals_are_read_without_the_comments_and_includes(self) -> None:
+        literals = check_messages.source_literals(self.root / "apps" / "make_set" / "src" / "command.cpp")
+        self.assertEqual(literals, ["Cannot read ", " at all.", "usage: tool make <description>\n  --output <folder>"])
+
+    def test_a_sentence_that_is_not_in_the_section_is_found(self) -> None:
+        self.page.write_text((GOOD_PAGE + "\n" + MAKE_SET_PAGE).replace("`Cannot read <path> at all.`", ""), encoding="utf-8")
+        self.assertIn("the text 'Cannot read' of command.cpp is not in the section adl_make_set", self.problems())
+
+    def test_a_sentence_on_another_part_of_the_page_does_not_count(self) -> None:
+        self.page.write_text(
+            (GOOD_PAGE + "\n" + MAKE_SET_PAGE).replace("`Cannot read <path> at all.`", "").replace(
+                "## Other programs", "## Other programs\n\nCannot read <path> at all."), encoding="utf-8")
+        self.assertIn("the text 'Cannot read'", self.problems())
+
+    def test_an_exit_code_that_is_a_row_of_another_table_only_is_found(self) -> None:
+        self.page.write_text((GOOD_PAGE + "\n" + MAKE_SET_PAGE).replace("| 3 | an input cannot be used |\n", ""), encoding="utf-8")
+        self.assertIn("the exit code 3 of adl_make_set is not a row of the table in the section adl_make_set", self.problems())
+
+    def test_a_page_with_no_section_is_found(self) -> None:
+        self.page.write_text(GOOD_PAGE, encoding="utf-8")
+        self.assertIn("command-line.md has no section for it", self.problems())
+
+    def test_the_usage_text_is_asked_for_whole(self) -> None:
+        self.page.write_text((GOOD_PAGE + "\n" + MAKE_SET_PAGE).replace("  --output <folder>\n\n| Code", "\n\n| Code"), encoding="utf-8")
+        self.assertIn("usage: tool make", self.problems())
+
+    def test_without_the_program_nothing_is_asked(self) -> None:
+        (self.root / "apps" / "make_set" / "src" / "command.cpp").unlink()
+        (self.root / "apps" / "make_set" / "include" / "adl" / "make_set" / "command.hpp").unlink()
+        self.page.write_text(GOOD_PAGE, encoding="utf-8")
+        self.assertEqual(self.problems(), "")
