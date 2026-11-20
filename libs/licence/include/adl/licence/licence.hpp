@@ -174,6 +174,9 @@ enum class Reason
     not_in_licence, // the licence is fine and does not include the feature asked for
 };
 
+// The reason a file that could not be read or judged amounts to: what a screen says about it.
+[[nodiscard]] Reason reason_for(Error error) noexcept;
+
 // What the program knows when it judges a licence. All of it is passed in.
 struct Context
 {
@@ -250,6 +253,9 @@ struct Entitlement
 // Whether a `machines` entry names a computer. Letters compare without regard to ASCII case; a trailing
 // '*' matches any ending.
 [[nodiscard]] bool machine_matches(std::string_view entry, std::string_view computer_name);
+
+// The most `clock_reset` tokens the stored clock state remembers. The oldest is forgotten first.
+inline constexpr std::size_t max_applied_resets = 32;
 
 // What the program stores between runs for the clock check.
 struct ClockState

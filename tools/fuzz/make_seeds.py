@@ -40,9 +40,9 @@ SEEDS_615A = [
     (r"download_list_hex", "download_list"),
     (r"download_answer_hex", "download_answer"),
 ]
-# Licence files, a revocation list and the payloads behind the signature all go to the one harness.
+# Licence files, a revocation list, a clock file and the payloads behind the signature all go to the one harness.
 SEEDS_LICENCE = [
-    (r"(licence|revocations)_\w+_hex", "licence"),
+    (r"(licence|revocations|clock)_\w+_hex", "licence"),
 ]
 
 

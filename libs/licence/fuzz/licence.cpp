@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
-// The fuzz harness for licence files. A licence file is whatever a person chose to import, so the readers must
-// refuse bad input with an error and never crash. The signature keeps a fuzzer away from the payload readers,
-// so the same bytes are also given to them directly. What a reader accepts must write back and read again as
-// the same value.
+// The fuzz harness for licence files and the clock file. A licence file is whatever a person chose to import, and
+// the clock file is a file in the user's folder that anyone may have changed, so the readers must refuse bad
+// input with an error and never crash. The signature keeps a fuzzer away from the payload readers, so the same
+// bytes are also given to them directly. What a reader accepts must write back and read again as the same value.
 
 #include "adl/licence/licence.hpp"
 
 #include "adl/licence/signed_file.hpp"
+#include "adl/licence/store.hpp"
 #include "adl/licence/test_keys.hpp"
 
 #include <chrono>
@@ -56,6 +57,15 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
     if (const auto list = lic::parse_revocations(bytes))
     {
         if (!lic::write_revocations(*list))
+        {
+            std::abort();
+        }
+    }
+
+    if (const auto clock = lic::store::parse_clock(text))
+    {
+        const auto again = lic::store::parse_clock(lic::store::write_clock(*clock));
+        if (!again || !(*again == *clock))
         {
             std::abort();
         }

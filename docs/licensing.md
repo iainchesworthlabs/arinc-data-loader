@@ -66,7 +66,9 @@ licence.
    - The Project Wycheproof vectors (`tests/licence/data/wycheproof`) are Apache-2.0, unchanged,
      from Google and the Wycheproof contributors.
    - Nothing outside the paths above changes. `libs/platform`, the other libraries, the programs and
-     the rest of the tests stay GPL-3.0-or-later.
+     the rest of the tests stay GPL-3.0-or-later. That includes `libs/licence_platform`, which fills in
+     the store's file interface with `adl::platform::FileSystem` and chooses the product's folders: it
+     uses the platform layer, so it is GPL-3.0-or-later only, with its tests in `tests/licence_platform`.
 
    The library includes nothing from this repository: it takes the C++ standard library and Monocypher
    (`tests/licence` also takes Catch2, which is BSL-1.0). Its CMake files use this repository's

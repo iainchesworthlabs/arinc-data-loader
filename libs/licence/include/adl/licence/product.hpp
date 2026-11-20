@@ -18,6 +18,11 @@ inline constexpr std::string_view product_id = "adl";
 // A licence number is this, the year and six digits: ADL-2026-000001.
 inline constexpr std::string_view licence_id_prefix = "ADL-";
 
+// The extension of a licence file and of a signed revocation list in a licence folder. The store looks at
+// these and no other file.
+inline constexpr std::string_view licence_extension = ".adllic";
+inline constexpr std::string_view revocations_extension = ".adlrev";
+
 // What a licence can carry. The edition alone grants nothing: a licence names the features it turns on.
 // A name is lower case letters, digits, '.', '-' and '_'; a licence may also carry a prefix that ends in
 // ".*" to cover every name below it.
