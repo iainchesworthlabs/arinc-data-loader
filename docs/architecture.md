@@ -96,8 +96,10 @@
   datagrams the loader sends it acts on, and what it does to them (drop one, send it twice or late, change a byte, a
   check value or the length, answer with an ERROR, WAIT or ABORT, abort at a chosen moment, go silent). The `Player`
   carries a scenario out through the engine's `FaultHook` (`libs/arinc615a/include/adl/arinc615a/fault_hook.hpp`),
-  which is the only place the engine knows of faults. No Qt, no platform code; it is on a desktop only (its reader
-  uses the licence library's strict JSON reader) and is not part of the installed `adl` package.
+  which is the only place the engine knows of faults. The top level of the file, the reading of `when` and the
+  random numbers are `libs/scenario_base`'s, which it shares with the mock target's scenario file; the loader's own
+  are the `on`, `count` and `do` of a step and the player. No Qt, no platform code; it is on a desktop only (the
+  reader uses the licence library's strict JSON reader) and is not part of the installed `adl` package.
 - **`libs/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
   opens the sockets the engine asks for, waits on all of them from one thread with
   `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.

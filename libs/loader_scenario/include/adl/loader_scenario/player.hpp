@@ -16,6 +16,7 @@
 
 #include "adl/arinc615a/fault_hook.hpp"
 #include "adl/loader_scenario/scenario.hpp"
+#include "adl/scenario/random.hpp"
 
 #include <array>
 #include <cstddef>
@@ -130,9 +131,7 @@ private:
                                     bool& handled) noexcept;
     void report(std::size_t index, adl::arinc615a::Instant now, const Seen* seen,
                 const adl::arinc615a::Command* command, std::int64_t amount) noexcept;
-    // The step's own stream: the next number, a number from low to high, and the step's chance.
-    [[nodiscard]] std::uint64_t next_random(std::size_t index) noexcept;
-    [[nodiscard]] std::uint64_t draw(std::size_t index, std::uint64_t low, std::uint64_t high) noexcept;
+    // The step's chance, drawn from the step's own stream (adl::scenario::step_stream).
     [[nodiscard]] bool chance(std::size_t index) noexcept;
 
     Scenario scenario_;
@@ -140,7 +139,7 @@ private:
     FaultListener* listener_;
     std::vector<std::size_t> applied_;
     std::vector<bool> spent_;
-    std::vector<std::uint64_t> stream_;
+    std::vector<adl::scenario::SplitMix64> stream_;
     std::vector<std::byte> scratch_;
     std::size_t scratch_used_ = 0;
     std::vector<std::byte> held_storage_;

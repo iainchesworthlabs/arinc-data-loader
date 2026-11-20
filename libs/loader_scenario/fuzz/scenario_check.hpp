@@ -5,6 +5,7 @@
 // can run the same thing on the seeds under the ordinary compilers on every preset.
 
 #include "adl/loader_scenario/reader.hpp"
+#include "adl/scenario/envelope.hpp"
 
 #include <string>
 #include <string_view>
@@ -27,7 +28,7 @@ enum class Verdict
         return scenario.error().message.empty() ? Verdict::inconsistent : Verdict::refused;
     }
     const std::string written = write_scenario(*scenario);
-    if (written.size() > max_file_bytes)
+    if (written.size() > adl::scenario::max_file_size)
     {
         // The writer's form is longer than the file it was read from; a file that large is not read again.
         return Verdict::read_and_agreed;

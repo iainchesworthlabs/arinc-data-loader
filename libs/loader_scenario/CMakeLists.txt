@@ -2,7 +2,8 @@
 # Faults on purpose in the data loader: a scenario (an ordered list of steps that say when the loader is to do
 # something wrong and what), the reader of the file that holds one, and the Player that carries it out through
 # the 615A engine's FaultHook. No Qt, no platform code: the player is driven by the engine's own calls, and the
-# reader takes text. The strict JSON reader is the licence library's (adl/licence/json.hpp).
+# reader takes text. The top level of the file, the reading of `when` and the random numbers are the shared ones of libs/scenario_base,
+# which reads with the licence library's strict JSON reader (adl/licence/json.hpp).
 #
 # Not part of the installed adl package: a program that wants to run a scenario is in this repository (adl_load).
 
@@ -17,6 +18,7 @@ target_compile_features(adl_loader_scenario PUBLIC cxx_std_23)
 target_link_libraries(adl_loader_scenario
     PUBLIC
         adl::arinc615a
+        adl::scenario_base
     PRIVATE
         adl::licence
         $<BUILD_LOCAL_INTERFACE:adl::warnings>

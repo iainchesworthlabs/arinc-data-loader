@@ -17,22 +17,11 @@
 namespace adl::loader_scenario
 {
 
-// The `kind` and `format` of the file, and what the reader accepts. The top level is the mock target's scenario
-// file's (docs/file-reference.md): the same `kind` family, `format`, `name`, `description`, `seed`, `steps`, the
-// same `when` and `per_mille`; the `do` actions and the `on` and `count` of a step are the loader's own.
-inline constexpr std::string_view scenario_kind = "adl-loader-scenario";
-inline constexpr std::string_view mock_scenario_kind = "adl-mock-scenario";
-inline constexpr std::int64_t scenario_format = 1;
-inline constexpr std::size_t max_file_bytes = 256 * 1024;
-inline constexpr std::size_t max_steps = 1000;
-inline constexpr std::size_t max_name_chars = 64;
-inline constexpr std::size_t max_description_chars = 1000;
-inline constexpr std::size_t max_comment_chars = 200;
-inline constexpr std::size_t max_text_chars = 64;
+// What the reader accepts of the loader's own keys. The top level of the file, the limits of the whole file, the
+// `when` and the random numbers are the shared ones (adl/scenario/envelope.hpp, adl/scenario/random.hpp).
+inline constexpr std::size_t max_error_text_chars = 64;
 inline constexpr std::size_t max_file_selector_chars = 254;
-inline constexpr std::int64_t max_seed = (std::int64_t{1} << 53) - 1;
 inline constexpr std::int64_t max_delay_milliseconds = 60'000;
-inline constexpr std::int64_t max_after_milliseconds = 86'400'000;
 
 // What a step does.
 enum class Action : std::uint8_t

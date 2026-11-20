@@ -3,6 +3,7 @@
 // the writer, which gives back what was read.
 
 #include "adl/loader_scenario/reader.hpp"
+#include "adl/scenario/envelope.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -208,7 +209,7 @@ TEST_CASE("count is a number or all, and per_mille needs a seed", "[loader_scena
     CHECK(refused(with_step(R"({ "when": { "request": 1 }, "do": { "action": "drop" }, "per_mille": 5 })", "")) ==
           "step 1 uses \"per_mille\" but the scenario has no \"seed\"");
     CHECK(refused(with_step(R"({ "when": { "request": 1 }, "do": { "action": "delay", "min_ms": 1, "max_ms": 2 } })",
-                            "")) == "step 1 uses a delay range but the scenario has no \"seed\"");
+                            "")) == "step 1 uses \"min_ms\" but the scenario has no \"seed\"");
     // A delay of one length needs no draw, and so no seed.
     CHECK(read_scenario(with_step(R"({ "when": { "request": 1 }, "do": { "action": "delay", "ms": 5 } })", "")));
 }
@@ -231,9 +232,8 @@ TEST_CASE("the selector's keys are read", "[loader_scenario][reader]")
 
 TEST_CASE("a file that is not strict JSON is refused with one sentence", "[loader_scenario][reader]")
 {
-    const std::string not_json =
-        "it is not valid JSON, or it has a repeated key, a comment, a trailing comma, text that is not UTF-8, or is "
-        "nested deeper than 8 levels";
+    const std::string not_json = "it is not valid JSON, or it has a repeated key, a comment, a trailing comma, text "
+                                 "that is not UTF-8, or is nested deeper than 8 levels";
     CHECK(refused("") == not_json);
     CHECK(refused("{") == not_json);
     CHECK(refused(R"({ "kind": "adl-loader-scenario", "kind": "x" })") == not_json);                // a repeated key
@@ -247,19 +247,20 @@ TEST_CASE("a file that is not strict JSON is refused with one sentence", "[loade
 
 TEST_CASE("the top level is checked", "[loader_scenario][reader]")
 {
-    CHECK(refused("[]") == "it must be a JSON object");
-    CHECK(refused(R"({ "format": 1, "steps": [] })") == "\"kind\" must be \"adl-loader-scenario\"");
+    CHECK(refused("[]") == "the file must be one JSON object");
+    CHECK(refused(R"({ "format": 1, "steps": [] })") == "\"kind\" is missing; it must be \"adl-loader-scenario\"");
     CHECK(refused(R"({ "kind": "scenario", "format": 1, "steps": [] })") == "\"kind\" must be \"adl-loader-scenario\"");
     CHECK(refused(R"({ "kind": "adl-mock-scenario", "format": 1, "steps": [] })") ==
-          "\"kind\" is \"adl-mock-scenario\": that file is for adl_mock, and this is the loader's scenario");
-    CHECK(refused(R"({ "kind": "adl-loader-scenario", "steps": [] })") == "\"format\" must be 1");
+          "this is a scenario for a mock target, not for a loader (\"kind\" is \"adl-mock-scenario\")");
+    CHECK(refused(R"({ "kind": "adl-loader-scenario", "steps": [] })") == "\"format\" is missing; it must be 1");
     CHECK(refused(R"({ "kind": "adl-loader-scenario", "format": "1", "steps": [] })") == "\"format\" must be 1");
     CHECK(refused(R"({ "kind": "adl-loader-scenario", "format": 2, "steps": [] })") ==
           "\"format\" is 2; this version reads 1, so the file was made for a newer version");
-    CHECK(refused(R"({ "kind": "adl-loader-scenario", "format": 1 })") == "it needs \"steps\"");
+    CHECK(refused(R"({ "kind": "adl-loader-scenario", "format": 1 })") ==
+          "\"steps\" is missing; it is a list of steps");
     CHECK(refused(R"({ "kind": "adl-loader-scenario", "format": 1, "steps": {} })") == "\"steps\" must be a list");
     CHECK(refused(R"({ "kind": "adl-loader-scenario", "format": 1, "steps": [], "chanse": 1 })") ==
-          "it has the key \"chanse\", which this version does not know");
+          "the file has the key \"chanse\", which this version does not know");
 }
 
 TEST_CASE("name, description and seed have limits", "[loader_scenario][reader]")
@@ -287,9 +288,11 @@ TEST_CASE("name, description and seed have limits", "[loader_scenario][reader]")
 
 TEST_CASE("a step is checked, key by key", "[loader_scenario][reader]")
 {
-    CHECK(refused(with_step("3")) == "step 1: it must be an object");
-    CHECK(refused(with_step(R"({ "do": { "action": "drop" } })")) == "step 1: it needs \"when\"");
-    CHECK(refused(with_step(R"({ "when": { "request": 1 } })")) == "step 1: it needs \"do\"");
+    CHECK(refused(with_step("3")) == "step 1 must be an object");
+    CHECK(refused(with_step(R"({ "do": { "action": "drop" } })")) ==
+          "step 1: \"when\" is missing; it says when the step happens");
+    CHECK(refused(with_step(R"({ "when": { "request": 1 } })")) ==
+          "step 1: \"do\" is missing; it says what the step does");
     CHECK(refused(with_step(R"({ "when": { "request": 1 }, "do": { "action": "drop" }, "chanse": 5 })")) ==
           "step 1 has the key \"chanse\", which this version does not know");
     CHECK(refused(with_step(R"({ "when": 3, "do": { "action": "drop" } })")) == "step 1: \"when\" must be an object");
@@ -309,7 +312,7 @@ TEST_CASE("a step is checked, key by key", "[loader_scenario][reader]")
     // The number is the step's place in the list.
     CHECK(refused(with_step(
               R"({ "when": { "request": 1 }, "do": { "action": "drop" } }, { "do": { "action": "drop" } })")) ==
-          "step 2: it needs \"when\"");
+          "step 2: \"when\" is missing; it says when the step happens");
 }
 
 TEST_CASE("when is checked", "[loader_scenario][reader]")
@@ -359,9 +362,9 @@ TEST_CASE("on is checked", "[loader_scenario][reader]")
         refused(on(R"({ "datagram": 3 })")) ==
         "step 1: \"datagram\" must be \"any\", \"request\", \"option_ack\", \"ack\", \"data\", \"error\" or \"reply\"");
     CHECK(refused(on(R"({ "file": "" })")) ==
-          "step 1: \"file\" must be a file name or an extension from its dot, of 1 to 254 characters");
+          "step 1: \"file\" must be text of 1 to 254 characters, with no control character");
     CHECK(refused(on(R"({ "file": ")" + std::string(255, 'f') + R"(" })")) ==
-          "step 1: \"file\" must be a file name or an extension from its dot, of 1 to 254 characters");
+          "step 1: \"file\" must be text of 1 to 254 characters, with no control character");
     CHECK(read_scenario(on(R"({ "file": ")" + std::string(254, 'f') + R"(" })")));
     CHECK(refused(on(R"({ "block": 65536 })")) == "step 1: \"block\" must be a whole number from 0 to 65535");
     CHECK(refused(on(R"({ "block": -1 })")) == "step 1: \"block\" must be a whole number from 0 to 65535");
@@ -373,10 +376,11 @@ TEST_CASE("do is checked, action by action", "[loader_scenario][reader]")
 {
     const auto action = [](std::string_view text)
     { return with_step(R"({ "when": { "request": 1 }, "do": )" + std::string{text} + " }"); };
-    CHECK(refused(action("{}")) == "step 1: \"do\" needs an \"action\"");
+    CHECK(refused(action("{}")) == "step 1: \"action\" is missing; it is text of 1 to 32 characters");
     CHECK(refused(action(R"({ "action": "explode" })")) ==
           "step 1: \"action\" is \"explode\", which this version does not know");
-    CHECK(refused(action(R"({ "action": 3 })")) == "step 1: \"action\" is not text, which this version does not know");
+    CHECK(refused(action(R"({ "action": 3 })")) ==
+          "step 1: \"action\" must be text of 1 to 32 characters, with no control character");
     CHECK(refused(action(R"({ "action": "drop", "ms": 5 })")) == "step 1: \"drop\" does not take the key \"ms\"");
     CHECK(refused(action(R"({ "action": "duplicate", "copies": 1 })")) ==
           "step 1: \"copies\" must be a whole number from 2 to 16");
@@ -390,7 +394,8 @@ TEST_CASE("do is checked, action by action", "[loader_scenario][reader]")
           "step 1: \"ms\" must be a whole number from 1 to 60000");
     CHECK(refused(action(R"({ "action": "delay", "ms": 5, "min_ms": 1, "max_ms": 2 })")) ==
           "step 1: \"delay\" takes \"ms\", or \"min_ms\" and \"max_ms\", not both");
-    CHECK(refused(action(R"({ "action": "delay", "min_ms": 1 })")) == "step 1: it needs \"max_ms\"");
+    CHECK(refused(action(R"({ "action": "delay", "min_ms": 1 })")) ==
+          "step 1: \"max_ms\" is missing; it is a whole number from 0 to 60000");
     CHECK(refused(action(R"({ "action": "delay", "min_ms": 9, "max_ms": 2 })")) ==
           "step 1: \"min_ms\" must not be more than \"max_ms\"");
     CHECK(refused(action(R"({ "action": "reorder", "within_ms": 0 })")) ==
@@ -399,21 +404,25 @@ TEST_CASE("do is checked, action by action", "[loader_scenario][reader]")
           "step 1: \"offset\" must be a whole number from 0 to 65535");
     CHECK(refused(action(R"({ "action": "corrupt", "xor": 0 })")) ==
           "step 1: \"xor\" must be a whole number from 1 to 255");
-    CHECK(refused(action(R"({ "action": "length" })")) == "step 1: it needs \"delta\"");
+    CHECK(refused(action(R"({ "action": "length" })")) ==
+          "step 1: \"delta\" is missing; it is a whole number from -65535 to 65535");
     CHECK(refused(action(R"({ "action": "length", "delta": 0 })")) == "step 1: \"delta\" must not be 0");
     CHECK(refused(action(R"({ "action": "length", "delta": 65536 })")) ==
           "step 1: \"delta\" must be a whole number from -65535 to 65535");
-    CHECK(refused(action(R"({ "action": "error" })")) == "step 1: it needs \"code\"");
+    CHECK(refused(action(R"({ "action": "error" })")) ==
+          "step 1: \"code\" is missing; it is a whole number from 0 to 65535");
     CHECK(refused(action(R"({ "action": "error", "code": 65536 })")) ==
           "step 1: \"code\" must be a whole number from 0 to 65535");
     CHECK(refused(action(R"({ "action": "error", "code": 1, "text": ")" + std::string(65, 't') + R"(" })")) ==
           "step 1: \"text\" must be text of 1 to 64 characters, with no control character");
-    CHECK(refused(action(R"({ "action": "wait" })")) == "step 1: it needs \"seconds\"");
+    CHECK(refused(action(R"({ "action": "wait" })")) ==
+          "step 1: \"seconds\" is missing; it is a whole number from 1 to 65535");
     CHECK(refused(action(R"({ "action": "wait", "seconds": 0 })")) ==
           "step 1: \"seconds\" must be a whole number from 1 to 65535");
     CHECK(refused(action(R"({ "action": "wait", "seconds": 65536 })")) ==
           "step 1: \"seconds\" must be a whole number from 1 to 65535");
-    CHECK(refused(action(R"({ "action": "abort_message" })")) == "step 1: it needs \"status\"");
+    CHECK(refused(action(R"({ "action": "abort_message" })")) ==
+          "step 1: \"status\" is missing; it is text such as \"0x1004\"");
     CHECK(refused(action(R"({ "action": "abort_message", "status": "1004" })")) ==
           "step 1: \"status\" must be text such as \"0x1004\": 0x and four hexadecimal digits");
     CHECK(refused(action(R"({ "action": "abort_message", "status": "0x10045" })")) ==
@@ -472,8 +481,8 @@ TEST_CASE("the number of steps and the size of the file are limited", "[loader_s
     CHECK(refused(many(1001)) == "there are more than 1000 steps");
 
     std::string padded = R"({ "kind": "adl-loader-scenario", "format": 1, "steps": [] })";
-    padded += std::string(max_file_bytes - padded.size(), ' ');
-    REQUIRE(padded.size() == max_file_bytes);
+    padded += std::string(adl::scenario::max_file_size - padded.size(), ' ');
+    REQUIRE(padded.size() == adl::scenario::max_file_size);
     CHECK(read_scenario(padded));
     padded += ' ';
     CHECK(refused(padded) == "the file is larger than 262144 bytes");

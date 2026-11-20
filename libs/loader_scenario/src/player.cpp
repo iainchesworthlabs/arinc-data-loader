@@ -62,16 +62,6 @@ constexpr std::int64_t default_reorder_hold_ms = 1000;
     return c == '0' ? '1' : '0';
 }
 
-// SplitMix64 (Steele, Lea and Flood, 2014): integer arithmetic only, so every system gives the same numbers.
-[[nodiscard]] std::uint64_t splitmix64(std::uint64_t& state) noexcept
-{
-    state += 0x9E3779B97F4A7C15ULL;
-    std::uint64_t z = state;
-    z = (z ^ (z >> 30U)) * 0xBF58476D1CE4E5B9ULL;
-    z = (z ^ (z >> 27U)) * 0x94D049BB133111EBULL;
-    return z ^ (z >> 31U);
-}
-
 } // namespace
 
 struct Player::Seen
@@ -86,15 +76,14 @@ struct Player::Seen
 
 Player::Player(Scenario scenario, OperationName operation, FaultListener* listener)
     : scenario_(std::move(scenario)), operation_(operation), listener_(listener), applied_(scenario_.steps.size(), 0),
-      spent_(scenario_.steps.size(), false), stream_(scenario_.steps.size(), 0),
-      scratch_(scratch_capacity * datagram_capacity), held_storage_(held_capacity * datagram_capacity)
+      spent_(scenario_.steps.size(), false), scratch_(scratch_capacity * datagram_capacity),
+      held_storage_(held_capacity * datagram_capacity)
 {
-    // One stream for each step, so that what one step draws never depends on what another did: the seed starts a
-    // first generator, and its nth output seeds the generator of the nth step.
-    std::uint64_t first = scenario_.seed.value_or(0);
-    for (std::uint64_t& stream : stream_)
+    // One stream for each step, so that what one step draws never depends on what another did (random.hpp).
+    stream_.reserve(scenario_.steps.size());
+    for (std::size_t i = 0; i < scenario_.steps.size(); ++i)
     {
-        stream = splitmix64(first);
+        stream_.push_back(adl::scenario::step_stream(scenario_.seed.value_or(0), i + 1));
     }
 }
 
@@ -102,34 +91,10 @@ Player::~Player() = default;
 
 // ---- The generators --------------------------------------------------------------------------------------------
 
-std::uint64_t Player::next_random(std::size_t index) noexcept
-{
-    return splitmix64(stream_[index]);
-}
-
-// A number in [low, high] by rejection, so that every number is as likely as any other.
-std::uint64_t Player::draw(std::size_t index, std::uint64_t low, std::uint64_t high) noexcept
-{
-    const std::uint64_t range = high - low + 1;
-    if (range == 0)
-    {
-        return next_random(index);
-    }
-    const std::uint64_t remainder = (0 - range) % range; // 2^64 mod range
-    for (;;)
-    {
-        const std::uint64_t output = next_random(index);
-        if (remainder == 0 || output < 0 - remainder)
-        {
-            return low + output % range;
-        }
-    }
-}
-
 bool Player::chance(std::size_t index) noexcept
 {
     const auto& per_mille = scenario_.steps[index].per_mille;
-    return !per_mille || draw(index, 1, 1000) <= *per_mille;
+    return !per_mille || stream_[index].chance(*per_mille);
 }
 
 // ---- Bookkeeping -----------------------------------------------------------------------------------------------
@@ -692,8 +657,9 @@ std::size_t Player::apply(std::size_t index, const Seen& seen, const Command& co
         std::int64_t wait = fault.milliseconds;
         if (!reorder && fault.min_milliseconds < fault.max_milliseconds)
         {
-            wait = static_cast<std::int64_t>(draw(index, static_cast<std::uint64_t>(fault.min_milliseconds),
-                                                  static_cast<std::uint64_t>(fault.max_milliseconds)));
+            wait =
+                static_cast<std::int64_t>(stream_[index].between(static_cast<std::uint64_t>(fault.min_milliseconds),
+                                                                 static_cast<std::uint64_t>(fault.max_milliseconds)));
         }
         else if (reorder && wait <= 0)
         {
