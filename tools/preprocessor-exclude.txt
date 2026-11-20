@@ -1,3 +1,4 @@
 cmake/icl/**
 build/**
 .icl-infra/**
+third_party/**
