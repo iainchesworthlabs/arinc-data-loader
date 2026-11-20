@@ -377,6 +377,10 @@ set_tests_properties(tools.write_payloads.unicode_folder PROPERTIES LABELS "syst
 # platform, and the folders it reads and writes. No Qt.
 add_subdirectory(mock_target_core)
 
+# adl_mock, the mock target as a command: its writer, events and options, and the program run against
+# the loader over loopback sockets. No Qt.
+add_subdirectory(mock_cli)
+
 # The loopback integration test: the loader's runner over real sockets against the mock target's
 # engine on 127.0.0.1. No Qt.
 add_subdirectory(loopback)

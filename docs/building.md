@@ -110,8 +110,9 @@ The build has a source side and a target side, and the libraries sit on both.
 | --- | --- | --- | --- |
 | Portable libraries | `adl::platform`, `adl::arinc665`, `adl::arinc615a`, `adl::arinc615a_mini`, `adl::arinc615a_runner`, `adl::media_tree`, `adl::samples` | always | source and target |
 | Payload writer | `adl_write_payloads` | always | source (desktop) |
+| Mock target as a command | `adl_mock` (the mock target with no window and no Qt, [described here](mock-target.md#the-command)) | always | source (desktop) |
 | Source-side applications (Qt) | `adl_app` (the data loader), `adl_media_gen` (the media set generator), `adl_mock_target` (a 615A target, for demonstrations) | `ADL_BUILD_APP`, on by default on a desktop | source (desktop) |
-| Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`, `adl_mock_tests`, `adl_loopback_test`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_ui_tests`, `adl_window_state_tests`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_model_test`, `adl_mock_qml_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
+| Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`, `adl_mock_tests`, `adl_mock_core_tests`, `adl_mock_cli_tests`, `adl_mock_command_test`, `adl_loopback_test`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_ui_tests`, `adl_window_state_tests`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_model_test`, `adl_mock_qml_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
 | Target side | the libraries above, for the target's platform | `ADL_TARGET_PLATFORM` (or a toolchain that sets it) | target (embedded) |
 
 The **source side** is the operator's machine: the loader, the generator and the payload writer. The
@@ -345,7 +346,7 @@ cd build/linux-gcc-release && cpack -B packages
 pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.2-linux-x86_64.tar.gz
 ```
 
-`cpack` writes the runtime package (the three applications, `adl_write_payloads`, Qt's runtime files,
+`cpack` writes the runtime package (the three applications, `adl_mock`, `adl_write_payloads`, Qt's runtime files,
 `README.txt`, `LICENSE.txt`, `NOTICES.txt`) and the development package (the libraries, headers and the `adl`
 CMake package) for this system; `-DADL_RELEASE_VERSION=0.2.0-rc.1` names them for a pre-release. To use the
 development package, `find_package(adl 0.1 REQUIRED)` with its directory on `CMAKE_PREFIX_PATH`. The macOS
