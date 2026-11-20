@@ -105,6 +105,11 @@ struct RunServices
     // empty, and left alone if anything is in it.
     adl::arinc615a::FileSink* download_sink = nullptr;
     std::string_view download_folder;
+    // Faults on purpose: the engine's hook, which sees every datagram the loader means to send (adl/arinc615a/
+    // fault_hook.hpp). Null for an operation that has none, which then runs exactly as it does without the member.
+    // run_operation passes it to the engine; the operation pool (operation_pool.hpp) does not, because the faults
+    // are for one operation on one command line and `adl_load serve` takes none.
+    adl::arinc615a::FaultHook* faults = nullptr;
 };
 
 struct OperationResult
