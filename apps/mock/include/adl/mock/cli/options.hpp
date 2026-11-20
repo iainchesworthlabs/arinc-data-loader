@@ -26,6 +26,7 @@ enum class Action : std::uint8_t
     run,
     help,
     version,
+    scenario_actions, // print the action words of a scenario file, one for each line
 };
 
 struct Options

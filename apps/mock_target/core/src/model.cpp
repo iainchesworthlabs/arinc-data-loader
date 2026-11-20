@@ -696,6 +696,26 @@ Config MockTargetModel::make_config() const
                 }
                 Q_EMIT worker->log_line(
                     LogEntry{static_cast<int>(Severity::notice), time_now(), QString::fromStdString(text)});
+            },
+            [worker](const DatagramFaulted& hit)
+            {
+                // A step on datagrams met one that matches it: the datagram, in the words of the file.
+                std::string text = "scenario step " + std::to_string(hit.step) + ": " +
+                                   std::string{effect_word(hit.effect)} + " on " + std::string{datagram_word(hit.kind)};
+                if (!hit.file.empty())
+                {
+                    text += " " + hit.file;
+                }
+                if (hit.block)
+                {
+                    text += " block " + std::to_string(*hit.block);
+                }
+                if (!hit.applied)
+                {
+                    text += ", not applied";
+                }
+                Q_EMIT worker->log_line(
+                    LogEntry{static_cast<int>(Severity::notice), time_now(), QString::fromStdString(text)});
             });
     }
     return config;
