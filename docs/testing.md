@@ -116,7 +116,7 @@ branch and a line the compiler proves unreachable.
 
 The gate measures the portable code:
 `libs/arinc665`, `libs/arinc615a`, `libs/arinc615a_mini`, `libs/arinc615a_runner`, `libs/media_tree`, `libs/loader_core`,
-`libs/samples`, `apps/write_payloads` and `libs/platform/interfaces` with `libs/platform/detail`.
+`libs/samples`, `apps/write_payloads`, `apps/load` and `libs/platform/interfaces` with `libs/platform/detail`.
 The OS fragments under `libs/platform` are left out because each host builds a different set (the
 same gate has to mean the same thing on all three) and the conformance suite is what holds them to
 the platform contract. QML cannot be measured by gcovr, which is why the gate is the libraries' and

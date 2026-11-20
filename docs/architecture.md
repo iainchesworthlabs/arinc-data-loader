@@ -30,6 +30,8 @@
    making of a set, the reading of one into facts), over adl::loader_core; the generator's window and the
    command adl_make_set build on it
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
+   adl_load (apps/load): one operation on one target with no window and no Qt, over adl::loader_core and
+   the runner; a library of its own (adl_load_cli) is the program, under a short main
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target's engine (libs/mock_target_core)
 ```
@@ -75,6 +77,12 @@
   (`adl::mock::cli::run_command`) over `libs/mock_target_core` with a command line, one line or one JSON
   object for each event, and exit codes. `main()` only calls the function, so the tests run it in a thread
   and put the loader's real engine against it.
+- **`apps/load`** is the `adl_load` program: one ARINC 615A operation on one target, or FIND,
+  with no window and no Qt, for scripts and other programs ([the command](load-command.md)). It is
+  a static library of its own, `adl_load_cli` (the options, the events as JSON lines or plain lines,
+  and the run function that takes a platform host and the streams it writes to), and a `main` that
+  makes the real host. The library is not exported and not installed, so that a test can run a
+  whole command on the fake platform; the work of an operation is `adl::loader_core`.
 - **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `libs/platform/interfaces/adl/platform/`, with one implementation per platform
@@ -207,7 +215,7 @@ route to remove it.
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 | `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
-The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock`, `adl_write_payloads` and `adl_make_set`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock`, `adl_write_payloads`, `adl_make_set` and `adl_load`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
 applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include

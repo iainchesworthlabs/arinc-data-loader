@@ -188,6 +188,10 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(apps/mock)
 endif()
 
+# adl_load: one ARINC 615A operation on one target, with no window and no Qt, for programs and scripts
+# (docs/load-command.md). A thin main over the static library adl_load_cli.
+add_subdirectory(apps/load)
+
 # The Qt application: a thin layer over the libraries above, and the only place Qt is used.
 if(ADL_BUILD_APP)
     add_subdirectory(libs/ui)

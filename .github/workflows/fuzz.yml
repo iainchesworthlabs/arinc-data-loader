@@ -1,6 +1,6 @@
 name: Fuzz
 
-# The libFuzzer harnesses of libs/*/fuzz and tools/*/fuzz (docs/fuzzing.md). The pull request
+# The libFuzzer harnesses of libs/*/fuzz, tools/*/fuzz and apps/*/fuzz (docs/fuzzing.md). The pull request
 # gate replays the seeds and the past crashes (the `Fuzz regression` job of ci.yml, a few seconds). This
 # workflow fuzzes:
 #
@@ -86,10 +86,11 @@ jobs:
           failed=0
           for exe in build/linux-fuzz/bin/adl_fuzz_*; do
             target="${exe##*/adl_fuzz_}"
-            # A harness is in libs/<lib>/fuzz or tools/<tool>/fuzz, and its seeds and regressions are beside it.
+            # A harness is in libs/<lib>/fuzz, tools/<tool>/fuzz or apps/<app>/fuzz, and its seeds and regressions are beside it.
             dirs=(
               libs/*/fuzz/corpus/"$target" libs/*/fuzz/regressions/"$target"
               tools/*/fuzz/corpus/"$target" tools/*/fuzz/regressions/"$target"
+              apps/*/fuzz/corpus/"$target" apps/*/fuzz/regressions/"$target"
             )
             mkdir -p "fuzz-work/$target"
             echo "::group::$target ($SECONDS_PER_TARGET s)"
@@ -125,7 +126,7 @@ jobs:
         uses: iainchesworthlabs/icl-common-infra/actions/report-nightly-failure@54f3b7ecd95fa07034f6f50a057c537ee98cd30d # v0.1.28
         with:
           engine: libFuzzer
-          detail: A fuzz target crashed, or the run failed or ran out of time. A crashing input is in the fuzz-crashes artifact of the run; add it to the regressions/<target>/ directory beside the harness (libs/<lib>/fuzz or tools/<tool>/fuzz) in the fix. For a timeout, see timeout-minutes in fuzz.yml.
+          detail: A fuzz target crashed, or the run failed or ran out of time. A crashing input is in the fuzz-crashes artifact of the run; add it to the regressions/<target>/ directory beside the harness (libs/<lib>/fuzz, tools/<tool>/fuzz or apps/<app>/fuzz) in the fix. For a timeout, see timeout-minutes in fuzz.yml.
 
       - name: Save the vcpkg caches
         if: always()

@@ -202,6 +202,66 @@ adl_deploy_sanitizer_runtime(adl_loader_core_run_tests)
 
 catch_discover_tests(adl_loader_core_run_tests PROPERTIES LABELS "integration")
 
+# The command-line program adl_load (apps/load): its options and its events, which need no host.
+add_executable(adl_load_tests
+    load/events_test.cpp
+    load/options_seeds_test.cpp
+    load/options_test.cpp
+    load/reason_test.cpp)
+
+target_include_directories(adl_load_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+# The seeds of the options fuzzer, which the tests replay as files.
+target_compile_definitions(adl_load_tests PRIVATE
+    ADL_LOAD_FUZZ_DIR="${PROJECT_SOURCE_DIR}/apps/load/fuzz")
+
+target_link_libraries(adl_load_tests
+    PRIVATE
+        adl_load_cli
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_load_tests)
+
+catch_discover_tests(adl_load_tests PROPERTIES LABELS "unit")
+
+# The same program run whole: adl_load's run function on the fake platform against the simulated target, so the
+# runner, the engine and the second TFTP implementation are in it. Integration tests, with no socket.
+add_executable(adl_load_command_tests
+    load/download_test.cpp
+    load/find_test.cpp
+    load/information_test.cpp
+    load/record_test.cpp
+    load/upload_test.cpp
+    load/usage_test.cpp)
+
+target_include_directories(adl_load_command_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/load"
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+# The records and the other output that the tests compare with files that have been read and kept.
+target_compile_definitions(adl_load_command_tests PRIVATE
+    ADL_LOAD_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/load/golden")
+
+target_link_libraries(adl_load_command_tests
+    PRIVATE
+        adl_fake_platform
+        adl_load_cli
+        adl_sim_target
+        adl::arinc665
+        adl::samples
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_load_command_tests)
+
+catch_discover_tests(adl_load_command_tests PROPERTIES LABELS "integration")
+
 # The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
 # fake platform, and the simulated target the whole of an operation is run against.
 add_executable(adl_engine_tests
@@ -452,6 +512,15 @@ endif()
 # The loopback integration test: the loader's runner over real sockets against the mock target's
 # engine on 127.0.0.1. No Qt.
 add_subdirectory(loopback)
+
+# adl_load started as a process, for what needs no target (tests/load/check_program.cmake): --version, --help, wrong
+# usage, and a media set that is not there.
+add_test(NAME tools.adl_load
+    COMMAND "${CMAKE_COMMAND}"
+        "-DPROGRAM=$<TARGET_FILE:adl_load>"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/adl_load"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/load/check_program.cmake")
+set_tests_properties(tools.adl_load PROPERTIES LABELS "system")
 
 # The application's tests (apps/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)

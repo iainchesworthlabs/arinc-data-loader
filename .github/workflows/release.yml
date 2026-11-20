@@ -200,7 +200,7 @@ jobs:
         env:
           CMAKE_PRESET: ${{ matrix.preset }}
         run: |
-          $programs = 'adl_app', 'adl_media_gen', 'adl_mock_target', 'adl_mock', 'adl_write_payloads', 'adl_make_set'
+          $programs = 'adl_app', 'adl_media_gen', 'adl_mock_target', 'adl_mock', 'adl_write_payloads', 'adl_make_set', 'adl_load'
           $files = ($programs | ForEach-Object { (Resolve-Path "build/$env:CMAKE_PRESET/bin/$_.exe").Path }) -join "`n"
           "files<<EOF`n$files`nEOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 

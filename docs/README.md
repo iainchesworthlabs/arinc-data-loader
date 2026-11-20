@@ -98,6 +98,7 @@ website has its own home page. The project overview is the [README](../README.md
 | [The application](app.md) | The loader, for developers: threads, models, what it does and does not check |
 | [The media set generator](media-gen.md) | The generator, for developers |
 | [The mock target](mock-target.md) | The mock target, for developers |
+| [The command adl_load](load-command.md) | One operation on one target with no window: the options, the events, the exit codes and the record |
 | [Design overhaul](design-overhaul.md) | The human-factors analysis behind the three windows, before and after |
 | [Design system](design-system.md) | The shared look: tokens, components, keyboard |
 | [Translations](translations.md) | The eight languages, how a language is switched and the window mirrored for Hebrew and Yiddish, adding a string, the typefaces; [the glossaries](translation-glossaries.md) the drafts chose |

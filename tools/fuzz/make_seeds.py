@@ -9,7 +9,8 @@ ARINC 615A, tests/golden/golden_licence.hpp for licence files) hold the hexadeci
 packets that were written independently of the library. Each becomes one binary file under
 libs/<lib>/fuzz/corpus/<target>/ (tools/<tool>/fuzz/corpus/<target>/ for a tool), so the fuzzers start from
 inputs that get past the first checks. Run it again after the golden data changes; the files it writes
-are committed. The harness of libs/loader_core reads text and not a file, so its seeds are written
+are committed. The harness of libs/loader_core reads text and not a file, and so does the one of
+apps/load (the arguments of a command line, each ended by a NUL), so their seeds are written
 out below, and so are the command lines that seed libs/platform/fuzz. The description files that seed
 libs/set_maker/fuzz are written out below too, and so is the golden media set as an archive of its files (the golden
 set is made by tests/golden/make_golden.py, which this loads).
@@ -60,6 +61,45 @@ SEEDS_IPV4 = {
     "four-digits": "1000.0.0.1",
     "space-after": "10.0.0.2 ",
     "not-a-number": "a.b.c.d",
+}
+# Command lines for the harness of apps/load: the commands with each of their options, and what is
+# refused. The arguments are joined by NUL bytes, as the harness cuts them.
+TARGET = ["--target", "10.0.0.2", "--position", "HNPFMS_L"]
+SEEDS_LOAD = {
+    "find": ["find"],
+    "find-all-options": ["find", "--seconds", "10", "--local-address", "192.168.1.5", "--json"],
+    "information": ["information", *TARGET],
+    "information-all-options": ["information", *TARGET, "--control-port", "30901", "--local-address", "127.0.0.1",
+                                "--json", "--record", "out/record.json"],
+    "upload-loads": ["upload", *TARGET, "--media-set", "set", "--load", "PN-1", "--load", "PN-2"],
+    "upload-all-loads": ["upload", *TARGET, "--media-set", "set", "--all-loads", "--json"],
+    "download-files": ["download", *TARGET, "--into", "out", "--file", "A.BIN", "--file", "B.BIN"],
+    "download-pick": ["download", *TARGET, "--into", "out", "--pick", "A.BIN"],
+    "download-pick-all": ["download", *TARGET, "--into", "out", "--pick-all", "--record", "r.json"],
+    "help": ["--help"],
+    "version": ["--version"],
+    "command-help": ["upload", "--help"],
+    "empty": [],
+    "no-command": ["--json"],
+    "unknown-command": ["fetch"],
+    "unknown-option": ["find", "--bogus"],
+    "equals-form": ["information", "--target=10.0.0.2"],
+    "stray-word": ["information", "10.0.0.2"],
+    "missing-value": ["information", "--target"],
+    "value-is-option": ["information", "--target", "--position", "HNPFMS_L"],
+    "empty-value": ["information", "--target", ""],
+    "duplicate-option": ["information", *TARGET, "--target", "10.0.0.3"],
+    "wrong-command": ["find", "--target", "10.0.0.2"],
+    "bad-address": ["information", "--target", "10.0.0", "--position", "HNPFMS_L"],
+    "bad-port": ["information", *TARGET, "--control-port", "65536"],
+    "bad-seconds": ["find", "--seconds", "0"],
+    "bad-position": ["information", "--target", "10.0.0.2", "--position", "A/B"],
+    "position-not-for-a-folder": ["download", "--target", "10.0.0.2", "--position", "A:B", "--into", "o", "--pick-all"],
+    "no-loads": ["upload", *TARGET, "--media-set", "set"],
+    "loads-and-all": ["upload", *TARGET, "--media-set", "set", "--load", "PN", "--all-loads"],
+    "duplicate-load": ["upload", *TARGET, "--media-set", "set", "--load", "PN", "--load", "PN"],
+    "file-and-pick": ["download", *TARGET, "--into", "out", "--file", "A", "--pick", "B"],
+    "no-files": ["download", *TARGET, "--into", "out"],
 }
 
 # Licence files, a revocation list, a clock file and the payloads behind the signature all go to the one harness.
@@ -116,8 +156,8 @@ def write(golden: Path, library: str, table) -> int:
     return count
 
 
-def write_text(library: str, target: str, seeds: dict[str, str]) -> int:
-    out = ROOT / "libs" / library / "fuzz" / "corpus" / target
+def write_text(library: str, target: str, seeds: dict[str, str], root: str = "libs") -> int:
+    out = ROOT / root / library / "fuzz" / "corpus" / target
     out.mkdir(parents=True, exist_ok=True)
     for name, text in seeds.items():
         (out / f"{name}.bin").write_bytes(text.encode("ascii"))
@@ -411,6 +451,8 @@ def main() -> int:
     total += write_set_maker()
     total += write_scenarios()
     total += write_mock_scenarios()
+    nul = chr(0)
+    total += write_text("load", "load_options", {n: nul.join(a) for n, a in SEEDS_LOAD.items()}, root="apps")
     print(f"{total} seed file(s) written")
     return 0
 
