@@ -89,7 +89,7 @@ inline void append_utf8(std::string& text, char32_t code_point)
         }
         else
         {
-            append_utf8(utf8, unit);
+            append_utf8(utf8, static_cast<char32_t>(unit)); // not a surrogate, so the unit is the code point
         }
     }
     return utf8;
