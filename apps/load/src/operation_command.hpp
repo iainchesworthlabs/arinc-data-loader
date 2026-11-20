@@ -13,6 +13,7 @@
 #include "adl/arinc615a/data_loader.hpp"
 #include "adl/arinc615a/directory_files.hpp"
 #include "adl/load/events.hpp"
+#include "adl/load/licence.hpp"
 #include "adl/load/options.hpp"
 #include "adl/load/reason.hpp"
 #include "adl/loader_core/gate.hpp"
@@ -32,8 +33,10 @@ namespace adl::load
 class OperationCommand
 {
 public:
-    // `options` and `events` have to outlive the object.
-    OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events);
+    // `options` and `events` have to outlive the object. `licence` is kept: begin() asks it for the licence the
+    // operation runs under, and the record says it.
+    OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events,
+                     LicenceSource licence = {});
 
     // The plan of the operation and, for an upload, the media set read and the loads chosen from it. Returns the
     // sentence of wrong usage when the choice and what it refers to do not fit (a part number the set does not
@@ -68,6 +71,7 @@ private:
     adl::platform::Host& host_;
     const Options& options_;
     EventWriter& events_;
+    LicenceSource licence_;
     std::string address_;
     Job job_;
     std::unique_ptr<adl::loader_core::OperationPlan> plan_; // what prepare() made; none for a set that cannot be read

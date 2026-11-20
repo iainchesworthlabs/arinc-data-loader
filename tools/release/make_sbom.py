@@ -52,7 +52,7 @@ PROGRAMS = [
     ("adl_licence", "A command-line tool that shows, imports and removes the licence on this computer"),
 ]
 # The programs that read a licence file, and so carry the Ed25519 check of Monocypher.
-LICENCE_PROGRAMS = ("adl_app", "adl_media_gen", "adl_mock_target", "adl_licence")
+LICENCE_PROGRAMS = ("adl_app", "adl_media_gen", "adl_mock_target", "adl_load", "adl_licence")
 MONOCYPHER_VERSION = "4.0.2"
 MONOCYPHER_URL = "https://monocypher.org/"
 

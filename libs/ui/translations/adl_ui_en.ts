@@ -4,7 +4,7 @@
 <context>
     <name>adl::ui::LicenceModel</name>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="314"/>
+        <location filename="../licence_model.cpp" line="325"/>
         <source>Valid until %1. %n day(s) left.</source>
         <translation>
             <numerusform>Valid until %1. %n day left.</numerusform>
@@ -12,7 +12,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="346"/>
+        <location filename="../licence_model.cpp" line="357"/>
         <source>%1, %n day(s) left</source>
         <translation>
             <numerusform>%1, %n day left</numerusform>
@@ -20,7 +20,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="406"/>
+        <location filename="../licence_model.cpp" line="417"/>
         <source>%n seat(s)</source>
         <translation>
             <numerusform>%n seat</numerusform>

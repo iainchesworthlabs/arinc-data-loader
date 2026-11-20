@@ -264,6 +264,31 @@ private Q_SLOTS:
         QVERIFY(model.noticeKind().isEmpty());
     }
 
+    void the_stamp_names_the_edition_in_force_and_its_licence_number()
+    {
+        Rig rig;
+        auto& model = *rig.model;
+        QCOMPARE(model.stamp(), QStringLiteral("Edition: Community"));
+
+        rig.put_user("a.adllic", pro());
+        rig.model->refresh();
+        QCOMPARE(model.stamp(), QStringLiteral("Edition: Pro, licence ADL-2026-000123"));
+
+        // Ending soon and in the grace period: the licence is still in force.
+        rig.now = at(2027, 11, 1, 12);
+        rig.model->refresh();
+        QCOMPARE(model.stamp(), QStringLiteral("Edition: Pro, licence ADL-2026-000123"));
+        rig.now = at(2027, 11, 20, 12);
+        rig.model->refresh();
+        QCOMPARE(model.stamp(), QStringLiteral("Edition: Pro, licence ADL-2026-000123"));
+
+        // Ended: the program is the Community edition, and the number of a licence that is not in force is not given.
+        rig.now = at(2028, 2, 1, 12);
+        rig.model->refresh();
+        QCOMPARE(model.stamp(), QStringLiteral("Edition: Community"));
+        QVERIFY(!model.stamp().contains(QStringLiteral("ADL-")));
+    }
+
     void a_licence_that_has_not_started_says_when_it_does()
     {
         Rig rig;

@@ -9,6 +9,7 @@
 
 #include "adl/load/exit_codes.hpp"
 #include "adl/load/run.hpp"
+#include "adl/load/system_licence.hpp"
 #include "adl/platform/arguments.hpp"
 #include "adl/platform/host.hpp"
 
@@ -38,7 +39,8 @@ int main(int argc, char** argv)
     // `serve` reads standard input on a thread of its own while the loop writes to standard output: the reading
     // must not flush the output as a tied stream does, from the other thread, in the middle of an event.
     std::cin.tie(nullptr);
-    const int code = adl::load::run(**host, arguments, std::cin, std::cout, std::cerr);
+    // The licence goes into the record of an operation, and nowhere else: nothing here depends on it.
+    const int code = adl::load::run(**host, arguments, std::cin, std::cout, std::cerr, adl::load::system_licence());
     if (!arguments.empty() && arguments.front() == "serve")
     {
         // The thread that reads standard input may be blocked in a read that nothing can end: the program was told to

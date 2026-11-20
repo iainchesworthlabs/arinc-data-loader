@@ -181,6 +181,16 @@ TestCase {
         verify(result.visible)
         verify(result.text.length > 0)
         verify(harness.eventCount() > 0)
+
+        // The receipt says which edition the program ran as: the licence model's words, which the window hands to
+        // the loader. With no licence installed that is the Community edition.
+        compare(licence.stamp, "Edition: Community")
+        compare(appModel.licenceStamp, licence.stamp)
+        compare(appModel.resultStamp, licence.stamp)
+        const stamp = find("receiptStamp")
+        verify(stamp.visible)
+        compare(stamp.text, licence.stamp)
+        verify(harness.eventText().indexOf(licence.stamp) >= 0)
     }
 
     function test_05_the_media_set_is_checked_and_its_loads_can_be_ticked() {
@@ -245,6 +255,11 @@ TestCase {
         const number = lastDownloadNumber()
         verify(harness.downloadedFileExists("a.bin", number))
         compare(harness.downloadedFileText("a.bin", number), "downloaded")
+
+        // The receipt of a download carries the stamp too.
+        const downloadStamp = find("downloadReceiptStamp")
+        verify(downloadStamp.visible)
+        compare(downloadStamp.text, licence.stamp)
     }
 
     function test_11_operator_defined_download_takes_the_choice_from_the_window() {

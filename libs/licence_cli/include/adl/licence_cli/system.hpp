@@ -3,7 +3,8 @@
 
 // The Environment of this computer: its file system and clock through the platform layer, the licence folders
 // (licence_platform/locations.hpp), the name of the computer and the keys of this release. The program that
-// reads ADL_SETTINGS_DIR passes its value in, because the platform has no environment reader (apps/licence/os).
+// reads ADL_SETTINGS_DIR passes its value in, because the platform has no environment reader
+// (adl/licence_platform/environment.hpp).
 
 #include "adl/licence_cli/licence_cli.hpp"
 #include "adl/licence_platform/files.hpp"

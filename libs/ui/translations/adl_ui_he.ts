@@ -438,7 +438,7 @@
     <message>
         <location filename="../licence_model.cpp" line="191"/>
         <location filename="../licence_model.cpp" line="240"/>
-        <location filename="../licence_model.cpp" line="352"/>
+        <location filename="../licence_model.cpp" line="363"/>
         <source>Community</source>
         <translation>Community</translation>
     </message>
@@ -473,52 +473,57 @@
         <translation>לא תקף</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="269"/>
+        <location filename="../licence_model.cpp" line="251"/>
+        <source>Edition: %1, licence %2</source>
+        <translation>מהדורה: %1, רישיון %2</translation>
+    </message>
+    <message>
+        <location filename="../licence_model.cpp" line="280"/>
         <source>This version of ARINC Data Loader cannot check licence files yet, so it accepts none. The Community edition works as it always did.</source>
         <translation>גרסה זו של ARINC Data Loader עדיין אינה יכולה לבדוק קובצי רישיון, ולכן אינה מקבלת אף קובץ. מהדורת Community פועלת כפי שתמיד פעלה.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="275"/>
+        <location filename="../licence_model.cpp" line="286"/>
         <source>This licence needs a newer version of ARINC Data Loader. Install the latest version, then import the licence again.</source>
         <translation>רישיון זה דורש גרסה חדשה יותר של ARINC Data Loader. התקן את הגרסה העדכנית ביותר, ואז ייבא את הרישיון שוב.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="278"/>
+        <location filename="../licence_model.cpp" line="289"/>
         <source>This licence was withdrawn. Contact support.</source>
         <translation>רישיון זה נשלל. פנה לתמיכה.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="280"/>
+        <location filename="../licence_model.cpp" line="291"/>
         <source>This licence is for other computers. This computer is %1. Ask your administrator for a licence that names it.</source>
         <translation>רישיון זה מיועד למחשבים אחרים. מחשב זה הוא %1. בקש ממנהל המערכת שלך רישיון שמציין אותו.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="285"/>
+        <location filename="../licence_model.cpp" line="296"/>
         <source>This licence is for another product. Ask for an ARINC Data Loader licence.</source>
         <translation>רישיון זה מיועד למוצר אחר. בקש רישיון ל-ARINC Data Loader.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="291"/>
+        <location filename="../licence_model.cpp" line="302"/>
         <source>This file is not a valid ARINC Data Loader licence. It may be damaged or incomplete. Ask for the file again.</source>
         <translation>קובץ זה אינו רישיון ARINC Data Loader תקף. ייתכן שהוא פגום או לא שלם. בקש את הקובץ שוב.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="305"/>
+        <location filename="../licence_model.cpp" line="316"/>
         <source>No licence is installed. This is the Community edition. Every function of the programs is available without a licence.</source>
         <translation>לא מותקן רישיון. זו מהדורת Community. כל פונקציה של התוכנות זמינה ללא רישיון.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="308"/>
+        <location filename="../licence_model.cpp" line="319"/>
         <source>Valid until %1.</source>
         <translation>תקף עד %1.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="312"/>
+        <location filename="../licence_model.cpp" line="323"/>
         <source>Valid until %1. It ends today.</source>
         <translation>תקף עד %1. הוא מסתיים היום.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="314"/>
+        <location filename="../licence_model.cpp" line="325"/>
         <source>Valid until %1. %n day(s) left.</source>
         <translation>
             <numerusform>תקף עד %1. נותר %n יום.</numerusform>
@@ -526,32 +531,32 @@
         </translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="316"/>
+        <location filename="../licence_model.cpp" line="327"/>
         <source>Ended on %1. The grace period lasts until %2.</source>
         <translation>הסתיים ב-%1. תקופת החסד נמשכת עד %2.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="319"/>
+        <location filename="../licence_model.cpp" line="330"/>
         <source>Ended on %1. This is the Community edition again. Nothing you made is lost: media sets, receipts and logs are unchanged.</source>
         <translation>הסתיים ב-%1. זו שוב מהדורת Community. דבר ממה שיצרת לא אבד: ערכות המדיה, הקבלות והיומנים לא השתנו.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="324"/>
+        <location filename="../licence_model.cpp" line="335"/>
         <source>Starts on %1.</source>
         <translation>מתחיל ב-%1.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="326"/>
+        <location filename="../licence_model.cpp" line="337"/>
         <source>The date on this computer looks wrong, so the licence cannot be judged until the date is right.</source>
         <translation>התאריך במחשב זה נראה שגוי, ולכן לא ניתן להעריך את הרישיון עד שהתאריך יהיה נכון.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="344"/>
+        <location filename="../licence_model.cpp" line="355"/>
         <source>%1, ends today</source>
         <translation>%1, מסתיים היום</translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="346"/>
+        <location filename="../licence_model.cpp" line="357"/>
         <source>%1, %n day(s) left</source>
         <translation>
             <numerusform>%1, נותר %n יום</numerusform>
@@ -559,28 +564,28 @@
         </translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="348"/>
+        <location filename="../licence_model.cpp" line="359"/>
         <source>%1, licence ended</source>
         <translation>%1, הרישיון הסתיים</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="370"/>
+        <location filename="../licence_model.cpp" line="381"/>
         <source>Edition: %1. Open the licence window.</source>
         <translation>מהדורה: %1. פתח את חלון הרישיון.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="396"/>
-        <location filename="../licence_model.cpp" line="506"/>
+        <location filename="../licence_model.cpp" line="407"/>
+        <location filename="../licence_model.cpp" line="517"/>
         <source>%1 to %2</source>
         <translation>%1 עד %2</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="406"/>
+        <location filename="../licence_model.cpp" line="417"/>
         <source>Site licence</source>
         <translation>רישיון אתר</translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="406"/>
+        <location filename="../licence_model.cpp" line="417"/>
         <source>%n seat(s)</source>
         <translation>
             <numerusform>%n מושב</numerusform>
@@ -588,212 +593,213 @@
         </translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="420"/>
+        <location filename="../licence_model.cpp" line="431"/>
         <source>%1. This computer is %2.</source>
         <translation>%1. מחשב זה הוא %2.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="437"/>
+        <location filename="../licence_model.cpp" line="448"/>
         <source>Support</source>
         <translation>תמיכה</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="437"/>
+        <location filename="../licence_model.cpp" line="448"/>
         <source>Needs a Pro or Enterprise licence.</source>
         <translation>נדרש רישיון Pro או Enterprise.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="438"/>
+        <location filename="../licence_model.cpp" line="449"/>
         <source>Data packs</source>
         <translation>חבילות נתונים</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="438"/>
+        <location filename="../licence_model.cpp" line="449"/>
         <source>Needs an Enterprise licence.</source>
         <translation>נדרש רישיון Enterprise.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="459"/>
+        <location filename="../licence_model.cpp" line="470"/>
         <source>Your licence does not include this.</source>
         <translation>הרישיון שלך אינו כולל זאת.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="462"/>
+        <location filename="../licence_model.cpp" line="473"/>
         <source>Your licence ended on %1.</source>
         <translation>הרישיון שלך הסתיים ב-%1.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="465"/>
+        <location filename="../licence_model.cpp" line="476"/>
         <source>Your licence starts on %1.</source>
         <translation>הרישיון שלך מתחיל ב-%1.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="468"/>
+        <location filename="../licence_model.cpp" line="479"/>
         <source>The date on this computer looks wrong.</source>
         <translation>התאריך במחשב זה נראה שגוי.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="471"/>
+        <location filename="../licence_model.cpp" line="482"/>
         <source>Your licence is for other computers.</source>
         <translation>הרישיון שלך מיועד למחשבים אחרים.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="474"/>
+        <location filename="../licence_model.cpp" line="485"/>
         <source>The installed licence is not valid.</source>
         <translation>הרישיון המותקן אינו תקף.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="584"/>
+        <location filename="../licence_model.cpp" line="595"/>
         <source>Your licence ends on %1.</source>
         <translation>הרישיון שלך מסתיים ב-%1.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="586"/>
+        <location filename="../licence_model.cpp" line="597"/>
         <source>Your licence ended on %1. Its grace period ends on %2.</source>
         <translation>הרישיון שלך הסתיים ב-%1. תקופת החסד שלו מסתיימת ב-%2.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="589"/>
+        <location filename="../licence_model.cpp" line="600"/>
         <source>Your licence has ended. This is the Community edition again, and nothing you made is lost.</source>
         <translation>הרישיון שלך הסתיים. זו שוב מהדורת Community, ודבר ממה שיצרת לא אבד.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="591"/>
+        <location filename="../licence_model.cpp" line="602"/>
         <source>The date on this computer looks wrong, so the licence cannot be judged.</source>
         <translation>התאריך במחשב זה נראה שגוי, ולכן לא ניתן להעריך את הרישיון.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="600"/>
+        <location filename="../licence_model.cpp" line="611"/>
         <source>Remind me tomorrow</source>
         <translation>הזכר לי מחר</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="600"/>
+        <location filename="../licence_model.cpp" line="611"/>
         <source>Dismiss</source>
         <translation>סגור</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="648"/>
+        <location filename="../licence_model.cpp" line="659"/>
         <source>Could not import the licence</source>
         <translation>לא ניתן היה לייבא את הרישיון</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="655"/>
+        <location filename="../licence_model.cpp" line="666"/>
         <source>ARINC Data Loader could not read %1. Check that the file still exists and that you are allowed to open it.</source>
         <translation>ARINC Data Loader לא הצליח לקרוא את %1. בדוק שהקובץ עדיין קיים ושמותר לך לפתוח אותו.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="683"/>
+        <location filename="../licence_model.cpp" line="694"/>
         <source>The licence folder already holds %1 files. Remove one, then import again.</source>
         <translation>ספריית הרישיון כבר מכילה %1 קבצים. הסר אחד מהם, ואז ייבא שוב.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="689"/>
+        <location filename="../licence_model.cpp" line="700"/>
         <source>The licence could not be saved in %1. Check that the folder can be written.</source>
         <translation>לא ניתן היה לשמור את הרישיון ב-%1. בדוק שאפשר לכתוב לספרייה.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="710"/>
+        <location filename="../licence_model.cpp" line="721"/>
         <source>Licence imported</source>
         <translation>הרישיון יובא</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="713"/>
+        <location filename="../licence_model.cpp" line="724"/>
         <source>List of withdrawn licences imported</source>
         <translation>רשימת הרישיונות שנשללו יובאה</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="714"/>
+        <location filename="../licence_model.cpp" line="725"/>
         <source>The list was imported. A licence on it is shown as withdrawn.</source>
         <translation>הרשימה יובאה. רישיון שמופיע בה מוצג כנשלל.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="718"/>
+        <location filename="../licence_model.cpp" line="729"/>
         <source>That licence is already installed.</source>
         <translation>הרישיון הזה כבר מותקן.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="723"/>
+        <location filename="../licence_model.cpp" line="734"/>
         <source>This licence ended on %1. It was imported, but it includes nothing now.</source>
         <translation>רישיון זה הסתיים ב-%1. הוא יובא, אך כעת אינו כולל דבר.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="729"/>
+        <location filename="../licence_model.cpp" line="740"/>
         <source>This licence ended on %1. It was imported, and its grace period lasts until %2.</source>
         <translation>רישיון זה הסתיים ב-%1. הוא יובא, ותקופת החסד שלו נמשכת עד %2.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="735"/>
+        <location filename="../licence_model.cpp" line="746"/>
         <source>This licence starts on %1.</source>
         <translation>רישיון זה מתחיל ב-%1.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="741"/>
+        <location filename="../licence_model.cpp" line="752"/>
         <source>The date on this computer looks wrong, so the licence cannot be judged yet. It was imported.</source>
         <translation>התאריך במחשב זה נראה שגוי, ולכן עדיין לא ניתן להעריך את הרישיון. הוא יובא.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="745"/>
+        <location filename="../licence_model.cpp" line="756"/>
         <source>This is now the %1 edition.</source>
         <translation>זו עכשיו מהדורת %1.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="761"/>
+        <location filename="../licence_model.cpp" line="772"/>
         <source>Could not remove the licence</source>
         <translation>לא ניתן היה להסיר את הרישיון</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="762"/>
+        <location filename="../licence_model.cpp" line="773"/>
         <source>The file %1 could not be removed from %2.</source>
         <translation>לא ניתן היה להסיר את הקובץ %1 מ-%2.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="802"/>
+        <location filename="../licence_model.cpp" line="813"/>
         <source>Support included</source>
         <translation>תמיכה כלולה</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="804"/>
+        <location filename="../licence_model.cpp" line="815"/>
         <source>Support ended</source>
         <translation>התמיכה הסתיימה</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="808"/>
+        <location filename="../licence_model.cpp" line="819"/>
         <source>Community support</source>
         <translation>תמיכת Community</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="833"/>
+        <location filename="../licence_model.cpp" line="844"/>
         <source>Your %1 licence includes support until %2. Write to the support address you were given with the licence, and quote your licence number, %3.</source>
         <translation>רישיון %1 שלך כולל תמיכה עד %2. כתוב לכתובת התמיכה שקיבלת עם הרישיון, וציין את מספר הרישיון שלך, %3.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="838"/>
+        <location filename="../licence_model.cpp" line="849"/>
         <source>Support ended with your licence on %1.</source>
         <translation>התמיכה הסתיימה עם הרישיון שלך ב-%1.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="842"/>
+        <location filename="../licence_model.cpp" line="853"/>
         <source>No licence that includes support is installed. Read the guide first, then open an issue on the project&apos;s GitHub page. The Community edition has no support promised; the maintainer is one person.</source>
         <translation>לא מותקן רישיון שכולל תמיכה. קרא קודם את המדריך, ואז פתח דיווח על בעיה בדף ה-GitHub של הפרויקט. במהדורת Community לא מובטחת תמיכה; המתחזק הוא אדם אחד.</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="850"/>
+        <location filename="../licence_model.cpp" line="861"/>
         <source>Version: %1</source>
         <translation>גרסה: %1</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="851"/>
+        <location filename="../licence_model.cpp" line="253"/>
+        <location filename="../licence_model.cpp" line="862"/>
         <source>Edition: %1</source>
         <translation>מהדורה: %1</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="854"/>
+        <location filename="../licence_model.cpp" line="865"/>
         <source>Licence number: %1</source>
         <translation>מספר רישיון: %1</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="856"/>
+        <location filename="../licence_model.cpp" line="867"/>
         <source>Built for: %1</source>
         <translation>נבנה עבור: %1</translation>
     </message>

@@ -18,6 +18,7 @@ on a Mac).
 | Line | Meaning |
 | --- | --- |
 | `Looking for targets (broadcast, three seconds)...` / `2 targets answered` | A FIND started, and how it ended |
+| `Edition: Pro, licence ADL-2026-000123` / `Edition: Community` | Which edition the program ran as. It is the first line of every transfer (Read information, Upload, Download), before the line that says what is asked, and it is the licence in force when the transfer started. A licence that has ended is the Community edition, and the line then gives no number (see [Your licence and edition](licence.md)) |
 | `Asking 127.0.0.1 (HNPFMS_L) for its configuration...` | An Information operation started |
 | `Uploading 1 load to 127.0.0.1 (HNPFMS_L)...` / `Downloading 2 files from ...` | An upload or a media defined download started |
 | `Asking 127.0.0.1 (HNPFMS_L) for the files it can download...` | An operator defined download started |
@@ -86,6 +87,11 @@ where they went, and for an abort whether the target confirmed that it stopped.
   ("no folder" when none was kept), with no time.
 - A **Read information** run also ends with **COMPLETE** or **FAILED** in the header and a receipt
   in the Upload view, in the form of the upload receipt.
+
+Every receipt has one more line under the last one, which says which edition the program ran as, as the log
+does at the start of the transfer: `Edition: Pro, licence ADL-2026-000123`, or `Edition: Community`. It names the
+licence that was in force when the transfer started, and does not change if the licence ends while the transfer
+runs. It is words only: nothing in the loader is switched off by a licence.
 
 The receipt belongs to the last transfer: it is replaced by the next. The log has the time of every
 line.

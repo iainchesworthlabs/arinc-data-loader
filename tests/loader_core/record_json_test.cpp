@@ -26,6 +26,7 @@ using adl::loader_core::OperationRecord;
 using adl::loader_core::record_to_json;
 using adl::loader_core::RecordedFile;
 using adl::loader_core::RecordedHardware;
+using adl::loader_core::RecordedLicence;
 using adl::loader_core::RecordedLoad;
 using adl::loader_core::RecordedLogLine;
 using adl::loader_core::RecordedPart;
@@ -170,6 +171,7 @@ OperationRecord full_record()
     record.configuration = information_record().configuration;
     record.files = download_media_record().files;
     record.download_folder = "/dl";
+    record.licence = RecordedLicence{"pro", "expiring", "ADL-2026-000123"};
     return record;
 }
 
@@ -311,9 +313,53 @@ TEST_CASE("the file has the layout the contract gives it", "[loader_core][record
         CHECK_FALSE(json.ends_with("\n\n"));
         CHECK(json.find('\r') == std::string::npos);
         CHECK(json.find('\t') == std::string::npos);
-        // The licence is reserved and written as null, whatever the record holds.
-        CHECK(member_line(json, "licence") == "  \"licence\": null,");
     }
+}
+
+// ---- The licence ---------------------------------------------------------------------------------
+
+TEST_CASE("a record whose program said nothing of the licence has a null licence", "[loader_core][record_json]")
+{
+    // Format 1 reserved the key as null; a program that reads no licence still writes that.
+    for (const OperationRecord& record : {OperationRecord{}, information_record(), escaping_record()})
+    {
+        CHECK_FALSE(record.licence.has_value());
+        CHECK(member_line(record_to_json(record), "licence") == "  \"licence\": null,");
+    }
+}
+
+TEST_CASE("an Information record that carries a licence is written as its golden file", "[loader_core][record_json]")
+{
+    OperationRecord record = information_record();
+    record.licence = RecordedLicence{"pro", "expiring", "ADL-2026-000123"};
+    CHECK(record_to_json(record) == golden("information_licensed.json"));
+}
+
+TEST_CASE("the Community edition with no licence file has a state and no number", "[loader_core][record_json]")
+{
+    OperationRecord record = information_record();
+    record.licence = RecordedLicence{"community", "none", std::nullopt};
+    const std::string json = record_to_json(record);
+    CHECK(json.find("  \"licence\": {\n    \"edition\": \"community\",\n    \"state\": \"none\",\n"
+                    "    \"number\": null\n  },\n") != std::string::npos);
+}
+
+TEST_CASE("an ended licence is the Community edition with its state and no number", "[loader_core][record_json]")
+{
+    // What a program writes for a licence that is not in force: the edition it ran as, and why.
+    OperationRecord record = information_record();
+    record.licence = RecordedLicence{"community", "expired", std::nullopt};
+    const std::string json = record_to_json(record);
+    CHECK(json.find("    \"edition\": \"community\",\n    \"state\": \"expired\",\n    \"number\": null\n") !=
+          std::string::npos);
+}
+
+TEST_CASE("a licence number is escaped like any other text", "[loader_core][record_json]")
+{
+    OperationRecord record = information_record();
+    record.licence = RecordedLicence{"enterprise", "valid", "A\"B"};
+    const std::string json = record_to_json(record);
+    CHECK(json.find("    \"number\": \"A\\\"B\"\n") != std::string::npos);
 }
 
 // ---- The keys ------------------------------------------------------------------------------------

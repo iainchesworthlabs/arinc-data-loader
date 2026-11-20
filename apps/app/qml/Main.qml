@@ -20,6 +20,14 @@ ApplicationWindow {
     // keeping the switch here means Download is never below a scroll fold.
     property int mode: 0
 
+    // The loader says which edition it ran as in its log and its receipt. The words are the licence model's, in
+    // the person's language; the loader reads no licence and nothing depends on it.
+    Binding {
+        target: window.app
+        property: "licenceStamp"
+        value: licence.stamp
+    }
+
     // Closing during a job asks first, then waits for the target to confirm the abort.
     property bool closeRequested: false
     property bool closeAfterStop: false

@@ -147,7 +147,7 @@ Package C2. One JSON file for one operation. It is what the window's receipt and
 | `configuration` | For an Information operation: the list of hardware items that the `configuration` event carries as `hardware`, written as an array. `null` otherwise, and when the target's list never arrived |
 | `files` | For a download: list of `name`, `size`, `path` |
 | `download_folder` | For a download: the folder the files were written into, or `null` when none was kept |
-| `licence` | `null`. Reserved for the edition and the licence number, which the licensing plan's slice 5b adds |
+| `licence` | `null` when the program that wrote the record says nothing. `adl_load` writes `edition` (`community`, `pro` or `enterprise`), `state` and `number` (`null` unless a licence is in force) of the licence in force when the operation started, as the licensing plan's slice 5b says |
 | `log` | List of `at` (a time), `severity`, `text` |
 
 Every value in `configuration` is text: `literal_name`, `serial_number`, `part_number`, `amendment` and `designation` are strings, and one the target did not give is an empty string. `parts` is a list, empty when the hardware reports none.
