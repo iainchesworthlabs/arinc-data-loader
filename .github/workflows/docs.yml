@@ -2,10 +2,11 @@ name: Docs
 
 # Builds the documentation site and puts it where readers find it (docs/ci.md, "Publishing").
 #
-#  - The site is the /adl/ section of the company site. A push to the branch `site` deploys it. Nothing else moves
-#    that branch but publish-site.yml, which the owner runs by hand and which fast-forwards it to the tip of develop with
-#    the release bot's App token (a push made with an App token starts workflows, one made with GITHUB_TOKEN does not).
-#    `site` holds the source commit that is built here, not built pages. A pull request that changes the documentation
+#  - The site is the /adl/ section of the company site. A push to the branch `site` deploys it. Two things move that
+#    branch, both with the release bot's App token (a push made with an App token starts workflows, one made with
+#    GITHUB_TOKEN does not): a final release (the job `site` of release.yml, to the tag) and publish-site.yml, which the
+#    owner runs by hand to publish between releases (to the tip of develop). `site` holds the source commit that is built
+#    here, not built pages. A pull request that changes the documentation
 #    gets a preview at /_preview/adl/pr-<number>/, commented on the pull request and removed when it closes. The deploy
 #    is the shared reusable workflow of icl-common-infra: it assumes a role by OIDC that may write this section only,
 #    from four repository secrets that the owner sets. A run that does not have them skips the deploy with a warning and

@@ -111,10 +111,11 @@ The workflow stops, and says why, when:
    environment). The job signs, checks the signatures against `docs/signing-key.asc`, runs
    `tools/release/verify_release.sh` over the signed files and drafts the release with the notes from
    `CHANGELOG.md`. For a final release it then moves `main` to the tag, which publishes the pages that
-   forward the old documentation addresses ([Documentation site](ci.md#documentation-site)). It does not
-   publish the documentation site: that is a step of its own, below.
+   forward the old documentation addresses ([Documentation site](ci.md#documentation-site)), and moves the
+   branch `site` to the tag, which publishes the documentation site ([below](#publish-the-documentation)).
+   The site is the documentation of the release, so build it (`mkdocs serve`) and read the pages that
+   changed before you approve.
 5. **Publish the draft** on the Releases page after reading it.
-6. **Publish the documentation**, if the release changed it ([below](#publish-the-documentation)).
 
 A hotfix is the same, with its own fragment, tagged from `develop`.
 
@@ -124,16 +125,18 @@ patch version is.
 
 ### Publish the documentation
 
-The documentation site, at {{ site_url }}, is published from the branch `site`, not from a release, so a change to the
-pages can go up on its own and a release does not carry it. To publish what `develop` holds:
+The documentation site, at {{ site_url }}, is published from the branch `site`. A final release moves `site` to the tag (the job
+`Publish the documentation` of `release.yml`, after `main` moves), so the site follows each release, and a pre-release leaves it alone.
+A change to the pages can also go up on its own, between releases. To publish what `develop` holds:
 
 ```sh
 gh workflow run publish-site.yml --ref develop
 ```
 
-The workflow moves `site` to the tip of `develop`, and the push starts `docs.yml`, which builds and deploys it. No other CI runs for it,
-and a pull request that changes only pages ran no build to get to `develop` ([CI](ci.md#the-planner-and-documentation-only-changes)). Build the site first
-(`mkdocs serve`) and read the pages that changed. After a release, publish again, so that the pages describe the version that is out.
+The workflow moves `site` to the tip of `develop`, and the push starts `docs.yml`, which builds and deploys it. It can be run from the
+Actions page too (*Publish site*, *Run workflow*, branch `develop`). No other CI runs for it, and a pull request that changes only pages
+ran no build to get to `develop` ([CI](ci.md#the-planner-and-documentation-only-changes)). Build the site first (`mkdocs serve`) and read
+the pages that changed. If `site` is already ahead of a release tag when the release is made, the release leaves it where it is.
 ([Publishing](ci.md#publishing) has the details and the one-off setup.)
 
 ## Setup

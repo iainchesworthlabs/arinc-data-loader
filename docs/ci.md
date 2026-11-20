@@ -257,8 +257,9 @@ reason, on a bad one.
   built pages (this is not a `gh-pages` branch). Run `gh workflow run publish-site.yml --ref develop`, or *Run workflow* on the Actions page
   with `develop` chosen, and `publish-site.yml` fast-forwards `site` to the tip of `develop` (it creates the branch the first time) with
   the release bot's App token. The push starts `docs.yml`, which deploys it. Nothing is forced, so `site` only moves forward along `develop`,
-  and a run on any other branch does nothing. A release does not move `site`: publish after it too, if the pages are to show what the
-  release changed ([Releasing](releasing.md#publish-the-documentation)). To publish the commit that `site` already holds again, re-run the
+  and a run on any other branch does nothing. A final release moves `site` too: the job `Publish the documentation` of `release.yml` moves it
+  to the tag once `main` is there, unless `site` is already at the tag or ahead of it because a run of `publish-site.yml` published a later
+  commit, and a pre-release moves nothing ([Releasing](releasing.md#publish-the-documentation)). To publish the commit that `site` already holds again, re-run the
   last `Docs` run of the push to `site`; a run started by hand cannot deploy, because the company site's role trusts a push to `site` and
   nothing else. Two rules in `.github/rulesets/` keep it that way: `branch-names` lets the name `site` exist, and `site-publish-only` lets
   only the release bot create, move or delete it ([Repository settings](repository-settings.md#the-rulesets)).
