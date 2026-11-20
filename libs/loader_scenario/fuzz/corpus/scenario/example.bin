@@ -1,0 +1,13 @@
+{
+  "kind": "adl-loader-scenario",
+  "format": 1,
+  "name": "A block lost twice, then a wrong abort code",
+  "description": "Block 2 of LOAD1.BIN is lost twice after the third request. The fourth status file is answered with an ABORT of a code the loader does not use. Twenty seconds in the loader goes silent for five. One data block in fifty is damaged.",
+  "seed": 7,
+  "steps": [
+    { "when": { "request": 3 }, "on": { "datagram": "data", "file": "LOAD1.BIN", "block": 2 }, "do": { "action": "drop" }, "count": 2 },
+    { "when": { "status_file": 4 }, "on": { "datagram": "reply" }, "do": { "action": "abort_message", "status": "0x7777" } },
+    { "when": { "after_ms": 20000 }, "do": { "action": "silent", "for_ms": 5000 } },
+    { "comment": "random damage", "when": { "after_ms": 0, "operation": "upload" }, "on": { "datagram": "data" }, "do": { "action": "corrupt", "offset": 4, "xor": 1 }, "count": "all", "per_mille": 20 }
+  ]
+}

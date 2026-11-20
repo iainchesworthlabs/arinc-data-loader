@@ -10,7 +10,8 @@ packets that were written independently of the library. Each becomes one binary 
 libs/<lib>/fuzz/corpus/<target>/ (tools/<tool>/fuzz/corpus/<target>/ for a tool), so the fuzzers start from
 inputs that get past the first checks. Run it again after the golden data changes; the files it writes
 are committed. The harness of libs/loader_core reads text and not a file, so its seeds are written
-out below, and so are the command lines that seed libs/platform/fuzz.
+out below, and so are the scenario files that seed libs/loader_scenario/fuzz and the command lines that seed
+libs/platform/fuzz.
 """
 
 from __future__ import annotations
@@ -120,6 +121,58 @@ def write_text(library: str, target: str, seeds: dict[str, str]) -> int:
     return len(seeds)
 
 
+# Scenario files for the harness of libs/loader_scenario: the guide's example (read from the test that holds it), a
+# step for each action, and files that are refused.
+_HEAD = '{ "kind": "adl-loader-scenario", "format": 1, "seed": 7, "steps": [ '
+_REQUEST = '{ "when": { "request": 1 }, '
+SEEDS_LOADER_SCENARIO = {
+    "no_steps": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [] }',
+    "drop": _HEAD + _REQUEST + '"do": { "action": "drop" } } ] }',
+    "duplicate": _HEAD + _REQUEST + '"do": { "action": "duplicate", "copies": 4 }, "count": "all" } ] }',
+    "delay": _HEAD + _REQUEST + '"do": { "action": "delay", "ms": 3000 } } ] }',
+    "delay_range": _HEAD + _REQUEST + '"do": { "action": "delay", "min_ms": 200, "max_ms": 900 }, "per_mille": 500 } ] }',
+    "reorder": _HEAD + _REQUEST + '"do": { "action": "reorder", "within_ms": 300 } } ] }',
+    "corrupt": _HEAD + _REQUEST + '"on": { "datagram": "data", "block": 1 }, "do": { "action": "corrupt", "offset": 9, "xor": 128 } } ] }',
+    "check_value": _HEAD + _REQUEST + '"do": { "action": "check_value" } } ] }',
+    "length": _HEAD + _REQUEST + '"do": { "action": "length", "delta": -3 } } ] }',
+    "error": _HEAD + _REQUEST + '"do": { "action": "error", "code": 5, "text": "unknown transfer id" } } ] }',
+    "wait": _HEAD + _REQUEST + '"do": { "action": "wait", "seconds": 12 }, "count": 3 } ] }',
+    "abort_message": _HEAD + _REQUEST + '"on": { "file": ".LUS" }, "do": { "action": "abort_message", "status": "0x1004" } } ] }',
+    "abort": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [ { "when": { "status_file": 2, "operation": "upload" }, "do": { "action": "abort", "status": "0x1004" } } ] }',
+    "silent": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [ { "when": { "after_ms": 5000 }, "do": { "action": "silent" } } ] }',
+    "every_times": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [ { "when": { "request": 2, "every": 3, "times": 4 }, "do": { "action": "drop" } } ] }',
+    "refused_unknown_key": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [], "chanse": 1 }',
+    "refused_mock_kind": '{ "kind": "adl-mock-scenario", "format": 1, "steps": [] }',
+    "refused_format": '{ "kind": "adl-loader-scenario", "format": 2, "steps": [] }',
+    "refused_status": _HEAD + _REQUEST + '"do": { "action": "abort_message", "status": "1004" } } ] }',
+    "refused_two_triggers": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [ { "when": { "request": 1, "after_ms": 5 }, "do": { "action": "drop" } } ] }',
+    "refused_no_seed": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [ { "when": { "request": 1 }, "do": { "action": "drop" }, "per_mille": 5 } ] }',
+    "refused_repeated_key": '{ "kind": "adl-loader-scenario", "kind": "adl-loader-scenario", "format": 1, "steps": [] }',
+    "refused_comment": '{ // no' + chr(10) + ' "kind": "adl-loader-scenario", "format": 1, "steps": [] }',
+    "refused_trailing_comma": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [], }',
+    "refused_fraction": '{ "kind": "adl-loader-scenario", "format": 1, "seed": 1.5, "steps": [] }',
+    "refused_too_deep": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [[[[[[[[[[]]]]]]]]]] }',
+    "refused_abort_with_on": '{ "kind": "adl-loader-scenario", "format": 1, "steps": [ { "when": { "request": 1 }, "on": {}, "do": { "action": "abort" } } ] }',
+}
+
+
+def write_loader_scenario() -> int:
+    out = ROOT / "libs" / "loader_scenario" / "fuzz" / "corpus" / "scenario"
+    out.mkdir(parents=True, exist_ok=True)
+    seeds: dict[str, bytes] = {name: text.encode("utf-8") for name, text in SEEDS_LOADER_SCENARIO.items()}
+    test = (ROOT / "tests" / "loader_scenario" / "reader_test.cpp").read_text(encoding="utf-8")
+    example = re.search(r'constexpr std::string_view example = R"\((.*?)\)";', test, re.DOTALL)
+    if example is None:
+        print("reader_test.cpp: the example of the guide was not found", file=sys.stderr)
+        return 0
+    seeds["example"] = example.group(1).encode("utf-8")
+    seeds["refused_byte_order_mark"] = bytes.fromhex("efbbbf") + seeds["no_steps"]
+    seeds["refused_not_utf8"] = b'{ "kind": "adl-loader-scenario", "format": 1, "name": "' + bytes.fromhex("ff") + b'", "steps": [] }'
+    for name, data in seeds.items():
+        (out / f"{name}.bin").write_bytes(data)
+    return len(seeds)
+
+
 # The owner's tool (tools/licence) reads a public key file, a command line and a UTF-16 command line, which have no
 # golden data: their seeds are written here. The public key is the published test key's, from RFC 8032.
 TEST_PUBLIC_KEY = "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
@@ -148,6 +201,7 @@ def main() -> int:
     total += write(ROOT / "tests/golden/golden_615a.hpp", "arinc615a", SEEDS_615A)
     total += write_text("loader_core", "ipv4_address", SEEDS_IPV4)
     total += write(ROOT / "tests/golden/golden_licence.hpp", "licence", SEEDS_LICENCE)
+    total += write_loader_scenario()
     total += write_command_lines()
     total += write_owner()
     print(f"{total} seed file(s) written")

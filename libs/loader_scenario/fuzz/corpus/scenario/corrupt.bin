@@ -1,0 +1,1 @@
+{ "kind": "adl-loader-scenario", "format": 1, "seed": 7, "steps": [ { "when": { "request": 1 }, "on": { "datagram": "data", "block": 1 }, "do": { "action": "corrupt", "offset": 9, "xor": 128 } } ] }

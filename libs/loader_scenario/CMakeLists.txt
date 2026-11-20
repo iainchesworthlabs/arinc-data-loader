@@ -8,6 +8,7 @@
 
 add_library(adl_loader_scenario STATIC
     src/player.cpp
+    src/reader.cpp
     src/scenario.cpp)
 add_library(adl::loader_scenario ALIAS adl_loader_scenario)
 
@@ -21,3 +22,8 @@ target_link_libraries(adl_loader_scenario
         $<BUILD_LOCAL_INTERFACE:adl::warnings>
         $<BUILD_LOCAL_INTERFACE:adl::sanitizers>
         $<BUILD_LOCAL_INTERFACE:adl::coverage>)
+
+# The libFuzzer harness for the file this library reads, when fuzzing is on (cmake/Fuzzing.cmake).
+if(ADL_ENABLE_FUZZING)
+    add_subdirectory(fuzz)
+endif()

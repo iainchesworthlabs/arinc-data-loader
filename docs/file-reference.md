@@ -250,3 +250,99 @@ The program is in [`main.cpp`](../apps/write_payloads/main.cpp) and the scenario
 | `arinc615-boeing777` | `ACM-ALL-SET` | 1 | A load both kinds of loader can use (Appendix F-3). Data file `ACM12345.001`. Support files `ACM12345.HDR`, `CONFIG.LDR` and `EXCONFIG.LDR`. Header file `ACM62.LUH` |
 
 The three Appendix F sets record no check value beyond the 16-bit CRCs, which are always written.
+
+## Loader scenario file
+
+A scenario file makes the loader do something wrong on purpose, at a chosen moment, and the same way every run, so that a supplier of a target can see how the target reacts. It is read by `adl_load` (`--scenario <file>`, [the command line](user-guide/command-line.md)) and by nothing else. It is the loader's side of the file the mock target reads (`adl-mock-scenario`): the same top level, the same `when`, the same `per_mille` and the same random numbers, and its own `on`, `count` and `do`, because what the loader can do wrong is what it sends.
+
+The commands never say that a target is right or wrong. They say what the loader did and when (`scenario_step`), and how the operation ended. What a target should do, in the table below, is how this project reads the standard; nothing here has been run against real equipment ([what has been checked](status.md)).
+
+```json
+{
+  "kind": "adl-loader-scenario",
+  "format": 1,
+  "name": "A block lost twice, then a wrong abort code",
+  "description": "Block 2 of LOAD1.BIN is lost twice after the third request. The fourth status file is answered with an ABORT of a code the loader does not use. Twenty seconds in the loader goes silent for five. One data block in fifty is damaged.",
+  "seed": 7,
+  "steps": [
+    { "when": { "request": 3 }, "on": { "datagram": "data", "file": "LOAD1.BIN", "block": 2 }, "do": { "action": "drop" }, "count": 2 },
+    { "when": { "status_file": 4 }, "on": { "datagram": "reply" }, "do": { "action": "abort_message", "status": "0x7777" } },
+    { "when": { "after_ms": 20000 }, "do": { "action": "silent", "for_ms": 5000 } },
+    { "comment": "random damage", "when": { "after_ms": 0, "operation": "upload" }, "on": { "datagram": "data" }, "do": { "action": "corrupt", "offset": 4, "xor": 1 }, "count": "all", "per_mille": 20 }
+  ]
+}
+```
+
+The file is UTF-8 JSON, read by the strict reader of the licence library: no comment, no trailing comma, no repeated key, nested at most eight levels, whole numbers only (a number written with a fraction or an exponent is refused wherever a number is wanted). It is at most 256 KiB. A key that this version does not know is refused, not ignored, so that a misspelt `per_mile` cannot silently leave a fault out.
+
+### The top level
+
+| Key | Value | Limits |
+| --- | --- | --- |
+| `kind` | `adl-loader-scenario` | required. A file with `adl-mock-scenario` is for `adl_mock` and is refused with a sentence that says so |
+| `format` | 1 | required. A larger number is refused as "made for a newer version" |
+| `name` | text | optional, 1 to 64 characters, no control character |
+| `description` | text | optional, 1 to 1000 characters |
+| `seed` | whole number | optional, 0 to 9007199254740991. Required when a step has `per_mille` or a delay range |
+| `steps` | list of steps | required, 0 to 1000 steps. An empty list changes nothing |
+
+### A step
+
+A step says when it is in effect (`when`), which of the datagrams the loader sends it acts on (`on`) and what it does to them (`do`). Steps are counted from 1 in the events and the sentences.
+
+| Key | Value |
+| --- | --- |
+| `when` | required, below |
+| `do` | required, below |
+| `on` | optional, below. Not for `abort` or `silent`, which act on the operation |
+| `count` | optional: 1 to 1000000, or `"all"`. Each time the trigger occurs the step acts on this many of the next datagrams that match `on` (default 1), or on every one that matches from then on. Not for `abort` or `silent` |
+| `per_mille` | optional, 1 to 1000. The chance, in thousandths, that the step acts on a datagram it could act on; drawn from the step's own random numbers (below). The mock target's file draws once for each occurrence of the trigger; the loader's unit is the datagram, so it draws for each datagram |
+| `comment` | optional, 1 to 200 characters, never used |
+
+When more than one step could act on a datagram the first in the list does, and the others wait for the next. A step whose chance says no does not take the datagram.
+
+**`when`** has exactly one trigger. The loader counts what it receives: a request is a request the target sends to it.
+
+| Key | Meaning |
+| --- | --- |
+| `request` (1 to 1000000) | the nth request the target has sent (a read or write request arriving on the loader's control port) |
+| `status_file` (1 to 1000000) | the nth status file (`.LCS`, `.LUS`, `.LNS`) the target has started to write |
+| `after_ms` (0 to 86400000) | this many milliseconds after the operation began, which is when the loader sent its first datagram. `0` is from the start |
+| `every` (1 to 1000000; with `after_ms` 10 to 86400000) | after the first time, again each so many requests, status files or milliseconds. Not for `abort` or `silent` |
+| `times` (1 to 1000000) | at most so many times in all. Not for `abort` or `silent` |
+| `operation` | `information`, `upload`, `download_media_defined` or `download_operator_defined`: the step is in effect only in a run of that operation, and is not counted as unused in another |
+
+**`on`** names the datagrams a step acts on; a datagram has to match every key that is given.
+
+| Key | Meaning |
+| --- | --- |
+| `datagram` | `request`, `option_ack`, `ack`, `data`, `error` (WAIT and ABORT included), `reply` (the first datagram the loader sends in answer to a request of the target, whatever it is) or `any` (the default). For `wait` the default is `reply` |
+| `file` | the file the datagram's transfer is for: a name (letters of either case), or an extension from its dot (`".LUS"`) for every file with it |
+| `block` | a `data` or `ack` datagram of this block number, 0 to 65535. A block sent again matches again |
+
+### What the steps do
+
+| `action` | Keys | What the loader sends | What a target should do (this project's reading of the standard) |
+| --- | --- | --- | --- |
+| `drop` | none | the datagram is not sent | send its own last datagram again after its time-out (2 s, one retry), and carry on when the loader sends again |
+| `duplicate` | `copies` 2 to 16 (2) | the datagram is sent that many times in a row. Several copies of a request are a burst | answer a repeated request with its first answer; acknowledge a repeated block again and write it once; never send a block again because it saw a duplicate acknowledgement |
+| `delay` | `ms` 1 to 60000, or `min_ms` and `max_ms` 0 to 60000 (the time is drawn from the step's random numbers; it needs a `seed`) | the datagram is sent later. Past the 2 s time-out the target has already sent its own datagram again, so the late one arrives as a duplicate | as for a duplicate; a late block of a transfer that has moved on is ignored |
+| `reorder` | `within_ms` 1 to 60000 (1000) | the datagram is held and sent after the next datagram the loader sends, to anyone. One transfer is lock-step, so this shows between two transfers; if none follows within `within_ms` the datagram is sent then | a block or an acknowledgement that is not the one expected is ignored or answered with the last acknowledgement, never written out of place |
+| `corrupt` | `offset` 0 to 65535 (4), `xor` 1 to 255 (1) | one byte of the datagram is changed: byte `offset`, counted from the datagram's first byte (4 is the first byte of a block's data), is exclusive-or'ed with `xor`. Past the end it is the last byte | find the damage with the check value the load's header file holds for the file, and fail that load in its status file |
+| `check_value` | none | in the next option acknowledgement that carries a `checksum_<n>` option, the value's first hexadecimal digit is changed. The loader has such an option only when it echoes one the target sent in a read request | the option is the target's own value coming back; one that is not what it sent is not what it asked for: note it, and go by the header file's check value |
+| `length` | `delta` -65535 to 65535, not 0 | the datagram is made `delta` bytes longer (zeros) or shorter (cut). A last block that is cut makes the file shorter than the `tsize` announced; a block cut in the middle is a short block, which ends a file | a file whose length is not the size announced fails the transfer; a block longer than the block size is an illegal operation (error 4) |
+| `error` | `code` 0 to 65535, `text` 1 to 64 characters (none) | the datagram is replaced by an ERROR packet | end that transfer; the operation goes on if it can |
+| `wait` | `seconds` 1 to 65535 | the datagram, which is meant to be the answer to a request, is replaced by `WAIT:seconds`. With `count` more than 1 each request is answered with it | stop that transfer, ask again after the seconds, and give up after a number of tries of its own (the loader's is 10) |
+| `abort_message` | `status`: `"0x"` and four hexadecimal digits | the datagram is replaced by `ABORT:XXXX`. The loader goes on as if its own answer had been sent. This is how the loader answers a status file with a code it should not use | end the operation and say so in its last status file. 0x1004 and 0x1005 are the loader's two codes; what a target does with another is not defined by the standard as this project reads it, and the report says what it did |
+| `abort` | `status`: `"0x1004"` or `"0x1005"` (`"0x1005"`) | the loader's own abort at that moment (the operator's abort): the open transfers get `ABORT`, and the next status file is answered with it | stop its transfers and confirm with a status file that carries the loader's code. The loader then ends as `aborted` with the abort confirmed |
+| `silent` | `for_ms` 1 to 86400000 (none) | nothing the loader would send leaves it, for `for_ms` or, with none, for the rest of the operation | give up on its transfers after its retries and end the operation or time it out; never hang. The loader's own time-out is 13 seconds |
+
+The loader goes on as it would if the datagram had been lost or damaged on the network: its time-outs and retries are its own and are not changed by a step.
+
+### Random numbers
+
+A scenario that uses `per_mille` or a delay range has a `seed`, and the same scenario against the same target gives the same history. The generator is SplitMix64, with integer arithmetic only, so that any program can reproduce it. The seed starts a first generator, and its nth output seeds the generator of step n, so that what one step draws never depends on what another did. A chance draws one number from [1, 1000] and the step acts when it is at most `per_mille`; a delay range draws one number from [`min_ms`, `max_ms`]; both by rejection, so that every number is as likely as any other. A step with an `after_ms` trigger is as repeatable as the clock and the target's own timing.
+
+### When the file is refused
+
+`adl_load` refuses the file before it opens a port or writes anything, with one sentence that names the file and the step and the key (`step 3: "seconds" must be a whole number from 1 to 65535`), and exits with 5. The strict reader says only that a file is not valid JSON, with no place in it. A step that was in effect and never acted (the datagram it waited for did not come) is not an error: the last event lists the steps that never acted, so that a run that did not do what the file says can be seen.

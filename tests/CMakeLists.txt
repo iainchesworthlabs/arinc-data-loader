@@ -190,11 +190,17 @@ catch_discover_tests(adl_engine_tests PROPERTIES LABELS "integration")
 # and the engine run against the simulated target with the fault hook in place.
 if(TARGET adl::loader_scenario)
     add_executable(adl_loader_scenario_tests
-        loader_scenario/player_test.cpp)
+        loader_scenario/fuzz_seeds_test.cpp
+        loader_scenario/player_test.cpp
+        loader_scenario/reader_test.cpp)
 
     target_include_directories(adl_loader_scenario_tests PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/engine"
-        "${CMAKE_CURRENT_SOURCE_DIR}/support")
+        "${CMAKE_CURRENT_SOURCE_DIR}/support"
+        "${PROJECT_SOURCE_DIR}/libs/loader_scenario/fuzz")
+    # Where the seeds of the harness are, which the tests replay.
+    target_compile_definitions(adl_loader_scenario_tests PRIVATE
+        ADL_SCENARIO_FUZZ_DIR="${PROJECT_SOURCE_DIR}/libs/loader_scenario/fuzz")
 
     target_link_libraries(adl_loader_scenario_tests
         PRIVATE
