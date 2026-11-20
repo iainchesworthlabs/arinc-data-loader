@@ -56,9 +56,9 @@ TEST_CASE("each event is one JSON object with event first and t second", "[mock_
         REQUIRE(json);
         REQUIRE(json->is_object());
         REQUIRE(json->members().size() >= 2);
-        CHECK(json->members()[0].first == "event");
-        CHECK(json->members()[0].second.string() == names[i]);
-        CHECK(json->members()[1].first == "t");
+        CHECK(json->members()[0].name == "event");
+        CHECK(json->members()[0].value.string() == names[i]);
+        CHECK(json->members()[1].name == "t");
     }
 }
 

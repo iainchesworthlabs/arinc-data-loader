@@ -160,9 +160,9 @@ TEST_CASE("an object with hostile strings reads back as the same strings", "[moc
     REQUIRE(json);
     REQUIRE(json->is_object());
     REQUIRE(json->members().size() == 1);
-    CHECK(json->members()[0].first == key);
+    CHECK(json->members()[0].name == key);
     // The byte that is not UTF-8 came back as U+FFFD; the rest is as it was.
-    CHECK(json->members()[0].second.string() == std::string("v\x01\xEF\xBF\xBD\xC3\xA9\"", 8));
+    CHECK(json->members()[0].value.string() == std::string("v\x01\xEF\xBF\xBD\xC3\xA9\"", 8));
 }
 
 TEST_CASE("the reader the tests use refuses what is not JSON", "[mock_cli][json]")

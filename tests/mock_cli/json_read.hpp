@@ -20,7 +20,11 @@ namespace adl::test
 {
 
 struct Json;
-using JsonMembers = std::vector<std::pair<std::string, Json>>;
+struct JsonMember;
+// A member is a struct of its own and not a std::pair: libstdc++ 16 asks a pair for the default
+// constructibility of its second type when the pair is instantiated, which for a Json that is still
+// being defined loops back to the destructor of the vector that holds the pair, and Clang rejects it.
+using JsonMembers = std::vector<JsonMember>;
 using JsonItems = std::vector<Json>;
 
 struct Json
@@ -57,33 +61,43 @@ struct Json
         return std::get<JsonMembers>(value);
     }
     // The value of `key` in an object, or null when there is no such key.
-    [[nodiscard]] const Json* find(std::string_view key) const
-    {
-        if (!is_object())
-        {
-            return nullptr;
-        }
-        for (const auto& [name, member] : members())
-        {
-            if (name == key)
-            {
-                return &member;
-            }
-        }
-        return nullptr;
-    }
+    [[nodiscard]] const Json* find(std::string_view key) const;
     // The value of `key` in an object. A test that asks for a key that is not there fails (Catch2 reports the
     // exception), where a dereference of the null `find` gives would be undefined, and GCC says so at -O2.
-    [[nodiscard]] const Json& at(std::string_view key) const
-    {
-        const Json* const found = find(key);
-        if (found == nullptr)
-        {
-            throw std::out_of_range("the JSON value has no member '" + std::string(key) + "'");
-        }
-        return *found;
-    }
+    [[nodiscard]] const Json& at(std::string_view key) const;
 };
+
+struct JsonMember
+{
+    std::string name;
+    Json value;
+};
+
+inline const Json* Json::find(std::string_view key) const
+{
+    if (!is_object())
+    {
+        return nullptr;
+    }
+    for (const JsonMember& member : members())
+    {
+        if (member.name == key)
+        {
+            return &member.value;
+        }
+    }
+    return nullptr;
+}
+
+inline const Json& Json::at(std::string_view key) const
+{
+    const Json* const found = find(key);
+    if (found == nullptr)
+    {
+        throw std::out_of_range("the JSON value has no member '" + std::string(key) + "'");
+    }
+    return *found;
+}
 
 class JsonReader
 {
@@ -197,7 +211,7 @@ private:
             {
                 return std::nullopt;
             }
-            members.emplace_back(std::move(*key), std::move(*member));
+            members.push_back(JsonMember{std::move(*key), std::move(*member)});
             skip_space();
             if (at_end())
             {
