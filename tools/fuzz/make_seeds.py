@@ -5,8 +5,8 @@
     python3 tools/fuzz/make_seeds.py
 
 The golden headers (tests/golden/golden_payloads.hpp for ARINC 665, tests/golden/golden_615a.hpp for
-ARINC 615A) hold the hexadecimal of valid files and packets that were written independently of the
-library. Each becomes one binary file under libs/<lib>/fuzz/corpus/<target>/, so the fuzzers start from
+ARINC 615A, tests/golden/golden_licence.hpp for licence files) hold the hexadecimal of valid files and
+packets that were written independently of the library. Each becomes one binary file under libs/<lib>/fuzz/corpus/<target>/, so the fuzzers start from
 inputs that get past the first checks. Run it again after the golden data changes; the files it writes
 are committed. The command lines that seed libs/platform/fuzz are in this script.
 """
@@ -39,6 +39,10 @@ SEEDS_615A = [
     (r"download_status_hex", "download_status"),
     (r"download_list_hex", "download_list"),
     (r"download_answer_hex", "download_answer"),
+]
+# Licence files, a revocation list and the payloads behind the signature all go to the one harness.
+SEEDS_LICENCE = [
+    (r"(licence|revocations)_\w+_hex", "licence"),
 ]
 
 
@@ -93,6 +97,7 @@ def write(golden: Path, library: str, table) -> int:
 def main() -> int:
     total = write(ROOT / "tests/golden/golden_payloads.hpp", "arinc665", SEEDS_665)
     total += write(ROOT / "tests/golden/golden_615a.hpp", "arinc615a", SEEDS_615A)
+    total += write(ROOT / "tests/golden/golden_licence.hpp", "licence", SEEDS_LICENCE)
     total += write_command_lines()
     print(f"{total} seed file(s) written")
     return 0
