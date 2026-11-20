@@ -21,6 +21,7 @@ set(ADL_PLATFORM_QT_ARCH_DIRS macos clang_64)
 # differs on macOS is macos/os_macos.cpp.
 set(ADL_PLATFORM_SOURCES
     macos/paths_macos.cpp
+    detail/arguments_passthrough.cpp
     macos/os_macos.cpp
     posix/posix_common.cpp
     posix/locations_posix.cpp

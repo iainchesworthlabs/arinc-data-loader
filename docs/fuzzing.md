@@ -3,13 +3,15 @@
 *For developers. What CI runs is [CI](ci.md); the tests that hold the decoders down by hand are in [Testing](testing.md).*
 
 Everything that reads bytes from outside has a [libFuzzer](https://llvm.org/docs/LibFuzzer.html)
-harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, and a licence file. A
+harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, a licence file, and the
+command line of a program (the platform layer's split of it and its text conversions). A
 decoder returns an error for a bad input and never crashes; the fuzzers are there to find the input for
 which that is not true.
 
 | Library | Targets (`adl_fuzz_<name>`) |
 | --- | --- |
 | `libs/arinc665/fuzz` | `header_file` (a load's `.LUH`), `batch_file` (`.LUB`), `loads_list` (`LOADS.LUM`), `files_list` (`FILES.LUM`), `batches_list` (`BATCHES.LUM`). A decoded file is also checked against the standard and written back. |
+| `libs/platform/fuzz` | `command_line` (the split of a Windows command line and the conversions between UTF-8 and UTF-16 in `libs/platform/detail/command_line.hpp`; the harness checks that what comes out is UTF-8, which converts to UTF-16 and back unchanged). Its seeds are command lines, as UTF-16 with the low byte first. |
 | `libs/arinc615a/fuzz` | `tftp_packet` (the datagrams of the TFTP dialogue, with the transfer options of a request or an option acknowledgement), `find` (a FIND packet), and one for each protocol file: `initialization_file`, `configuration_list`, `configuration_status`, `upload_request`, `upload_status`, `download_request`, `download_status`, `download_list`, `download_answer`. |
 | `libs/licence/fuzz` | `licence`: the signed envelope, the strict JSON reader, the licence payload, a revocation list, the clock file the store keeps and the dates, all from one input. What a reader accepts is written back and read again, and has to come out the same. The seeds are licence files and payloads signed with the published test key, and two clock files. |
 
