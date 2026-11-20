@@ -6,6 +6,8 @@
 
 #include "adl/arinc665/media_set.hpp"
 #include "adl/media_tree/media_tree.hpp"
+#include "adl/platform/arguments.hpp"
+#include "adl/platform/paths.hpp"
 #include "adl/samples/scenarios.hpp"
 
 #include <algorithm>
@@ -48,24 +50,32 @@ struct Arguments
     bool list = false;
 };
 
-// False if the arguments are not usable; the reason has been printed.
-bool parse(int argc, char** argv, Arguments& arguments)
+// A path as UTF-8 text, in the system's own separators. (path::string() is the text in the system's code
+// page on Windows, and throws for a name that has a character outside it.)
+std::string utf8(const std::filesystem::path& path)
 {
-    for (int i = 1; i < argc; ++i)
+    return adl::platform::to_utf8(path.u8string());
+}
+
+// False if the arguments are not usable; the reason has been printed. `command_line` is the program name
+// and then the arguments, as UTF-8.
+bool parse(const std::vector<std::string>& command_line, Arguments& arguments)
+{
+    for (std::size_t i = 1; i < command_line.size(); ++i)
     {
-        const std::string_view argument = argv[i];
+        const std::string_view argument = command_line[i];
         if (argument == "--list")
         {
             arguments.list = true;
         }
         else if (argument == "--scenario")
         {
-            if (++i >= argc)
+            if (++i >= command_line.size())
             {
                 std::cerr << "--scenario needs a name\n";
                 return false;
             }
-            arguments.scenario_names.emplace_back(argv[i]);
+            arguments.scenario_names.push_back(command_line[i]);
         }
         else if (argument.starts_with("--"))
         {
@@ -74,7 +84,7 @@ bool parse(int argc, char** argv, Arguments& arguments)
         }
         else if (arguments.output.empty())
         {
-            arguments.output = argument;
+            arguments.output = adl::platform::path_from_utf8(argument);
         }
         else
         {
@@ -121,7 +131,7 @@ bool write_scenario(const adl::samples::Scenario& scenario, const std::filesyste
     const std::filesystem::path directory = output / std::string{scenario.name};
     if (const auto written = adl::media_tree::write_media_set_tree(directory, *members); !written)
     {
-        std::cerr << scenario.name << ": cannot write " << written.error().path.string() << ": "
+        std::cerr << scenario.name << ": cannot write " << utf8(written.error().path) << ": "
                   << to_string(written.error().error) << '\n';
         return false;
     }
@@ -130,7 +140,7 @@ bool write_scenario(const adl::samples::Scenario& scenario, const std::filesyste
     const auto on_disk = adl::media_tree::read_media_set_tree(directory);
     if (!on_disk)
     {
-        std::cerr << scenario.name << ": cannot read back " << on_disk.error().path.string() << ": "
+        std::cerr << scenario.name << ": cannot read back " << utf8(on_disk.error().path) << ": "
                   << to_string(on_disk.error().error) << '\n';
         return false;
     }
@@ -151,7 +161,7 @@ bool write_scenario(const adl::samples::Scenario& scenario, const std::filesyste
     std::cout << scenario.name << ": " << count_text(on_disk->size(), "member", "members") << ", "
               << count_text(files, "file", "files") << ", " << count_text(set->loads.size(), "load", "loads") << ", "
               << count_text(set->batches.size(), "batch", "batches") << ", "
-              << count_text(set->findings.size(), "finding", "findings") << " -> " << directory.string() << '\n';
+              << count_text(set->findings.size(), "finding", "findings") << " -> " << utf8(directory) << '\n';
     for (const adl::arinc665::Finding& finding : set->findings)
     {
         std::cout << "    " << finding.clause << ": " << finding.message << '\n';
@@ -163,8 +173,10 @@ bool write_scenario(const adl::samples::Scenario& scenario, const std::filesyste
 
 int main(int argc, char** argv)
 {
+    // Not argv: on Windows that has lost any character outside the code page (docs/architecture.md).
+    const std::vector<std::string> command_line = adl::platform::arguments(argc, argv);
     Arguments arguments;
-    if (!parse(argc, argv, arguments))
+    if (!parse(command_line, arguments))
     {
         print_usage(std::cerr);
         return exit_usage;

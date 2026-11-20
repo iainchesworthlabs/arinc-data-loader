@@ -4,6 +4,7 @@ target_link_libraries(adl_write_payloads
     PRIVATE
         adl::arinc665
         adl::media_tree
+        adl::platform
         adl::samples
         adl::warnings
         adl::sanitizers

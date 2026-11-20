@@ -20,6 +20,7 @@ set(ADL_PLATFORM_QT_ARCH_DIRS "")
 
 set(ADL_PLATFORM_SOURCES
     ghs508/paths_ghs508.cpp
+    detail/arguments_passthrough.cpp
     ghs508/os_ghs508.cpp
     posix/posix_common.cpp
     posix/clock_posix.cpp

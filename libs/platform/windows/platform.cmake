@@ -21,6 +21,7 @@ set(ADL_PLATFORM_QT_ARCH_DIRS msvc2022_64 msvc2019_64)
 
 set(ADL_PLATFORM_SOURCES
     windows/paths_windows.cpp
+    windows/arguments_windows.cpp
     windows/windows_common.cpp
     windows/clock_windows.cpp
     windows/memory_windows.cpp
