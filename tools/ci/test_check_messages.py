@@ -112,6 +112,9 @@ The media set holds no load to send.
 The part number "<part number>" names more than one load.
 """
 
+# Every page of a test has adl_load in it, whatever else the test adds: its words and its exit code are checked too.
+GOOD_PAGE = GOOD_PAGE + LOAD_PAGE
+
 FINDINGS_SOURCE = """namespace
 {
 void add(Findings& findings, std::string clause, std::string message)
@@ -176,7 +179,7 @@ class Check(unittest.TestCase):
         (self.root / "apps" / "load" / "include" / "adl" / "load").mkdir(parents=True)
         (self.root / "apps" / "load" / "src" / "options.cpp").write_text(LOAD_SOURCE, encoding="utf-8")
         (self.root / "apps" / "load" / "include" / "adl" / "load" / "exit_codes.hpp").write_text(LOAD_EXIT_CODES, encoding="utf-8")
-        (self.root / "docs" / "user-guide" / "command-line.md").write_text(GOOD_PAGE + LOAD_PAGE, encoding="utf-8")
+        (self.root / "docs" / "user-guide" / "command-line.md").write_text(GOOD_PAGE, encoding="utf-8")
         (self.root / "docs" / "user-guide" / "messages.md").write_text(GOOD_MESSAGES, encoding="utf-8")
         (self.root / "docs" / "file-reference.md").write_text("", encoding="utf-8")
         (self.root / "libs" / "arinc665" / "src").mkdir(parents=True)
@@ -239,7 +242,7 @@ class Check(unittest.TestCase):
     def test_the_exit_codes_of_adl_load_are_read_from_its_header(self) -> None:
         self.assertEqual(check_messages.exit_codes(self.root), {0, 1, 2, 4})
         page = self.root / "docs" / "user-guide" / "command-line.md"
-        page.write_text((GOOD_PAGE + LOAD_PAGE).replace("| 4 | no answer |", "| four | no answer |"), encoding="utf-8")
+        page.write_text(GOOD_PAGE.replace("| 4 | no answer |", "| four | no answer |"), encoding="utf-8")
         self.assertIn("the exit code 4 is not a row", self.problems())
 
     def test_the_words_of_adl_load_are_its_usage_and_the_literals_of_more_than_one_word(self) -> None:
@@ -256,12 +259,12 @@ class Check(unittest.TestCase):
 
     def test_a_sentence_of_adl_load_that_is_not_in_the_page_is_found(self) -> None:
         page = self.root / "docs" / "user-guide" / "command-line.md"
-        page.write_text((GOOD_PAGE + LOAD_PAGE).replace("The media set holds no load to send.", ""), encoding="utf-8")
+        page.write_text(GOOD_PAGE.replace("The media set holds no load to send.", ""), encoding="utf-8")
         self.assertIn("'The media set holds no load to send.' of adl_load", self.problems())
 
     def test_a_line_of_the_usage_of_adl_load_that_is_not_in_the_page_is_found(self) -> None:
         page = self.root / "docs" / "user-guide" / "command-line.md"
-        page.write_text((GOOD_PAGE + LOAD_PAGE).replace("Runs one operation on one target.", ""), encoding="utf-8")
+        page.write_text(GOOD_PAGE.replace("Runs one operation on one target.", ""), encoding="utf-8")
         self.assertIn("'Runs one operation on one target.' of adl_load", self.problems())
 
     def test_a_windowed_program_exit_code_is_read(self) -> None:
@@ -270,7 +273,7 @@ class Check(unittest.TestCase):
 
     def test_a_printed_text_that_is_not_in_the_page_is_found(self) -> None:
         page = self.root / "docs" / "user-guide" / "command-line.md"
-        page.write_text((GOOD_PAGE + LOAD_PAGE).replace("no scenario called <name> (see --list)", "no scenario"), encoding="utf-8")
+        page.write_text(GOOD_PAGE.replace("no scenario called <name> (see --list)", "no scenario"), encoding="utf-8")
         self.assertIn("no scenario called", self.problems())
 
     def test_the_printed_texts_are_the_literal_operands(self) -> None:
