@@ -19,6 +19,10 @@
 namespace adl::test
 {
 
+struct JsonMember;
+
+// A value of a JSON document. It holds its own members through the named type JsonMember (declared above, defined below):
+// a std::pair of an incomplete type, as a member of the type itself, is not allowed (and a newer standard library says so).
 struct Json
 {
     enum class Kind
@@ -35,44 +39,56 @@ struct Json
     bool boolean = false;
     std::string text; // a string's characters, or a number as written
     std::vector<Json> elements;
-    std::vector<std::pair<std::string, Json>> members;
+    std::vector<JsonMember> members;
 
     [[nodiscard]] bool is(Kind wanted) const noexcept
     {
         return kind == wanted;
     }
-    [[nodiscard]] const Json* find(std::string_view key) const noexcept
-    {
-        for (const auto& [name, value] : members)
-        {
-            if (name == key)
-            {
-                return &value;
-            }
-        }
-        return nullptr;
-    }
+    [[nodiscard]] const Json* find(std::string_view key) const noexcept;
     // The member called `key`, which has to be there (an empty null value otherwise).
-    [[nodiscard]] const Json& at(std::string_view key) const noexcept
-    {
-        static const Json missing;
-        const Json* found = find(key);
-        return found != nullptr ? *found : missing;
-    }
-    [[nodiscard]] std::vector<std::string> keys() const
-    {
-        std::vector<std::string> names;
-        for (const auto& member : members)
-        {
-            names.push_back(member.first);
-        }
-        return names;
-    }
+    [[nodiscard]] const Json& at(std::string_view key) const noexcept;
+    [[nodiscard]] std::vector<std::string> keys() const;
     [[nodiscard]] std::uint64_t as_number() const
     {
         return std::stoull(text);
     }
 };
+
+struct JsonMember
+{
+    std::string first;
+    Json second;
+};
+
+inline const Json* Json::find(std::string_view key) const noexcept
+{
+    for (const auto& [name, value] : members)
+    {
+        if (name == key)
+        {
+            return &value;
+        }
+    }
+    return nullptr;
+}
+
+inline const Json& Json::at(std::string_view key) const noexcept
+{
+    static const Json missing;
+    const Json* found = find(key);
+    return found != nullptr ? *found : missing;
+}
+
+inline std::vector<std::string> Json::keys() const
+{
+    std::vector<std::string> names;
+    for (const auto& member : members)
+    {
+        names.push_back(member.first);
+    }
+    return names;
+}
 
 namespace detail
 {
@@ -436,7 +452,7 @@ private:
             {
                 return std::nullopt;
             }
-            value.members.emplace_back(std::move(key), std::move(*member));
+            value.members.push_back(JsonMember{std::move(key), std::move(*member)});
             skip_space();
             if (peek() == ',')
             {
