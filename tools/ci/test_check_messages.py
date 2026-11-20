@@ -179,5 +179,85 @@ class Check(unittest.TestCase):
         self.assertNotIn("member", "".join(texts))
 
 
+OWNER_MESSAGES = """namespace adl::licence_owner::message {
+inline constexpr std::string_view read_failed = "cannot read %1: %2";
+inline constexpr std::string_view usage = R"(usage: tool <command>
+  verify <file>   judge it
+)";
+inline constexpr std::string_view joined = "the first half of a sentence, "
+    "and the second half of it";
+inline constexpr std::string_view reason = "it does not exist";
+}
+"""
+OWNER_EXIT_CODES = """inline constexpr int exit_ok = 0;
+inline constexpr int exit_failed = 1;
+inline constexpr int exit_usage = 2;
+"""
+OWNER_PAGE = """# The owner's tool
+usage: tool <command>
+  verify <file>   judge it
+
+| Code | Meaning |
+| --- | --- |
+| 0 | done |
+| 1 | not done |
+| 2 | usage |
+
+`cannot read %1: %2`, `the first half of a sentence, and the second half of it`, `it does not exist`
+"""
+
+
+class OwnerTool(Check):
+    """The owner's licence tool is not shipped: its own page is held to its own sentences and exit codes."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        (self.root / "tools" / "licence" / "src").mkdir(parents=True)
+        (self.root / "tools" / "licence" / "src" / "messages.hpp").write_text(OWNER_MESSAGES, encoding="utf-8")
+        (self.root / "tools" / "licence" / "src" / "owner.hpp").write_text(OWNER_EXIT_CODES, encoding="utf-8")
+        self.page = self.root / "docs" / "licence-owner-tool.md"
+        self.page.write_text(OWNER_PAGE, encoding="utf-8")
+
+    def test_a_page_that_has_everything_passes(self) -> None:
+        self.assertEqual(self.problems(), "")
+
+    def test_a_raw_string_and_joined_literals_are_one_sentence_each(self) -> None:
+        self.assertEqual(
+            check_messages.owner_tool_messages(self.root),
+            ["cannot read %1: %2", "usage: tool <command>\n  verify <file>   judge it\n",
+             "the first half of a sentence, and the second half of it", "it does not exist"])
+
+    def test_a_sentence_that_is_not_on_the_page_is_found(self) -> None:
+        self.page.write_text(OWNER_PAGE.replace("`it does not exist`", ""), encoding="utf-8")
+        self.assertIn("'it does not exist' of the owner's tool is not on docs/licence-owner-tool.md", self.problems())
+
+    def test_a_joined_sentence_is_asked_for_whole(self) -> None:
+        self.page.write_text(OWNER_PAGE.replace("and the second half of it", ""), encoding="utf-8")
+        self.assertIn("the first half of a sentence", self.problems())
+
+    def test_the_usage_text_is_asked_for_whole(self) -> None:
+        self.page.write_text(OWNER_PAGE.replace("  verify <file>   judge it\n", ""), encoding="utf-8")
+        self.assertIn("usage: tool", self.problems())
+
+    def test_an_exit_code_that_is_not_a_row_is_found(self) -> None:
+        self.page.write_text(OWNER_PAGE.replace("| 2 | usage |\n", ""), encoding="utf-8")
+        self.assertIn("the exit code 2 of the owner's tool is not a row of the table in docs/licence-owner-tool.md", self.problems())
+
+    def test_a_new_exit_code_is_found(self) -> None:
+        header = self.root / "tools" / "licence" / "src" / "owner.hpp"
+        header.write_text(OWNER_EXIT_CODES + "inline constexpr int exit_other = 3;\n", encoding="utf-8")
+        self.assertIn("the exit code 3 of the owner's tool", self.problems())
+
+    def test_a_missing_page_is_found(self) -> None:
+        self.page.unlink()
+        self.assertIn("docs/licence-owner-tool.md does not exist", self.problems())
+
+    def test_without_the_tool_nothing_is_asked(self) -> None:
+        (self.root / "tools" / "licence" / "src" / "messages.hpp").unlink()
+        (self.root / "tools" / "licence" / "src" / "owner.hpp").unlink()
+        self.page.unlink()
+        self.assertEqual(self.problems(), "")
+
+
 if __name__ == "__main__":
     unittest.main()

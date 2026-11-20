@@ -59,6 +59,15 @@ if(Python3_Interpreter_FOUND)
             --tool "$<TARGET_FILE:adl_licence_owner>" --data "${CMAKE_CURRENT_SOURCE_DIR}/data")
     set_tests_properties(licence.owner_tool PROPERTIES TIMEOUT 300 LABELS "system")
 
+    # The check of a package for the owner's tool, a signing library and a key file (tools/release/
+    # check_package_contents.py, which Test-Package.ps1 runs on every package of a release): it fails each of
+    # them, as a .zip, a .tar.gz and a folder, and passes a package without them. The built tool is the bytes it
+    # must find under another name.
+    add_test(NAME licence.package_check
+        COMMAND "${Python3_EXECUTABLE}" -X utf8 -I "${CMAKE_CURRENT_SOURCE_DIR}/test_package_check.py"
+            --tool "$<TARGET_FILE:adl_licence_owner>")
+    set_tests_properties(licence.package_check PROPERTIES TIMEOUT 300 LABELS "system")
+
     # Writes tests/licence/data/licences again from tests/licence/data/requests, byte for byte (make_test_licences.py
     # says how). Not part of `all`: run it when a request changes, then commit what it wrote.
     add_custom_target(licence_test_licences

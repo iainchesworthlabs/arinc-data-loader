@@ -43,8 +43,9 @@ public:
     Scratch()
     {
         static int counter = 0;
-        path_ = fs::temp_directory_path() / ("adl-owner-unit-" + std::to_string(++counter) + "-" +
-                                              std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+        path_ =
+            fs::temp_directory_path() / ("adl-owner-unit-" + std::to_string(++counter) + "-" +
+                                         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
         fs::create_directories(path_);
     }
     Scratch(const Scratch&) = delete;
@@ -102,21 +103,25 @@ TEST_CASE("UTF-16 is converted to UTF-8, and a lone surrogate is refused", "[uni
     CHECK(own::utf16_to_utf8(u"lic-2026") == std::string("lic-2026"));
     // U+00FC, U+822A U+7A7A, and U+1F511 as a surrogate pair.
     CHECK(own::utf16_to_utf8(u"\U000000fc") == std::string("\xC3\xBC"));
-    CHECK(own::utf16_to_utf8(u"\U0000822a\U00007a7a") == std::string("\xE8\x88\xAA" "\xE7\xA9\xBA"));
+    CHECK(own::utf16_to_utf8(u"\U0000822a\U00007a7a") == std::string("\xE8\x88\xAA"
+                                                                     "\xE7\xA9\xBA"));
     CHECK(own::utf16_to_utf8(u"\xD83D\xDD11") == std::string("\xF0\x9F\x94\x91"));
     // The highest and the lowest code points that are not surrogates.
     CHECK(own::utf16_to_utf8(u"\xD7FF") == std::string("\xED\x9F\xBF"));
     CHECK(own::utf16_to_utf8(u"\xE000") == std::string("\xEE\x80\x80"));
 
-    CHECK_FALSE(own::utf16_to_utf8(u"\xD83D").has_value());      // a high surrogate at the end
-    CHECK_FALSE(own::utf16_to_utf8(u"\xDD11").has_value());      // a low surrogate alone
-    CHECK_FALSE(own::utf16_to_utf8(u"\xD83Dx").has_value());     // a high surrogate and something else
+    CHECK_FALSE(own::utf16_to_utf8(u"\xD83D").has_value());       // a high surrogate at the end
+    CHECK_FALSE(own::utf16_to_utf8(u"\xDD11").has_value());       // a low surrogate alone
+    CHECK_FALSE(own::utf16_to_utf8(u"\xD83Dx").has_value());      // a high surrogate and something else
     CHECK_FALSE(own::utf16_to_utf8(u"\xD83D\xD83D").has_value()); // two high ones
 }
 
 TEST_CASE("a path made from UTF-8 gives the same UTF-8 back", "[unit][licence][owner]")
 {
-    for (const std::string name : {std::string("plain.adllic"), std::string("\xC3\x9C" "berpr\xC3\xBC" "fung"),
+    for (const std::string name : {std::string("plain.adllic"),
+                                   std::string("\xC3\x9C"
+                                               "berpr\xC3\xBC"
+                                               "fung"),
                                    std::string("\xE3\x83\xA9\xE3\x83\x9C"), std::string("\xF0\x9F\x94\x91")})
     {
         const fs::path path = own::path_from_utf8(name);
@@ -145,8 +150,9 @@ TEST_CASE("a licence number is ADL, a year and six digits", "[unit][licence][own
 {
     CHECK(own::is_licence_number("ADL-2026-000123"));
     CHECK(own::is_licence_number("ADL-2100-999999"));
-    for (const char* bad : {"", "ADL-2026-00012", "ADL-2026-0001234", "ADL-26-000123", "VSS-2026-000123",
-                            "adl-2026-000123", "ADL-1999-000123", "ADL-2026-00012A", "ADL-2026_000123", "ADL-2026-000123 "})
+    for (const char* bad :
+         {"", "ADL-2026-00012", "ADL-2026-0001234", "ADL-26-000123", "VSS-2026-000123", "adl-2026-000123",
+          "ADL-1999-000123", "ADL-2026-00012A", "ADL-2026_000123", "ADL-2026-000123 "})
     {
         CHECK_FALSE(own::is_licence_number(bad));
     }
@@ -193,15 +199,22 @@ TEST_CASE("a public key file is written and read in one form", "[unit][licence][
     CHECK(own::parse_public_key(own::format_public_key(key)));
 
     const std::string good = text.substr(0, text.size() - 1);
-    for (const std::string& bad : std::vector<std::string>{
-             "", "{}", good + " ", " " + good, good + good,
-             "{\"key_id\":\"Lic\",\"purpose\":\"licence\",\"public_key\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}",
-             "{\"key_id\":\"lic\",\"purpose\":\"plugin\",\"public_key\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}",
-             "{\"key_id\":\"lic\",\"purpose\":\"licence\",\"public_key\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHUR\"}",
-             "{\"key_id\":\"lic\",\"purpose\":\"licence\",\"public_key\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURp\"}",
-             "{\"key_id\":\"lic\",\"purpose\":\"licence\",\"public_key\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo=\"}",
-             "{ \"key_id\":\"lic\",\"purpose\":\"licence\",\"public_key\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}",
-             "{\"purpose\":\"licence\",\"key_id\":\"lic\",\"public_key\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}"})
+    for (const std::string& bad : std::vector<std::string>{"", "{}", good + " ", " " + good, good + good,
+                                                           "{\"key_id\":\"Lic\",\"purpose\":\"licence\",\"public_key\":"
+                                                           "\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}",
+                                                           "{\"key_id\":\"lic\",\"purpose\":\"plugin\",\"public_key\":"
+                                                           "\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}",
+                                                           "{\"key_id\":\"lic\",\"purpose\":\"licence\",\"public_key\":"
+                                                           "\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHUR\"}",
+                                                           "{\"key_id\":\"lic\",\"purpose\":\"licence\",\"public_key\":"
+                                                           "\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURp\"}",
+                                                           "{\"key_id\":\"lic\",\"purpose\":\"licence\",\"public_key\":"
+                                                           "\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo=\"}",
+                                                           "{ "
+                                                           "\"key_id\":\"lic\",\"purpose\":\"licence\",\"public_key\":"
+                                                           "\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}",
+                                                           "{\"purpose\":\"licence\",\"key_id\":\"lic\",\"public_key\":"
+                                                           "\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"}"})
     {
         CHECK_FALSE(own::parse_public_key(bad));
     }
@@ -209,7 +222,8 @@ TEST_CASE("a public key file is written and read in one form", "[unit][licence][
 
 TEST_CASE("options are read as a command lists them", "[unit][licence][owner]")
 {
-    static constexpr std::array<own::OptionSpec, 3> specs{{{"--test", false, false}, {"--trust", true, true}, {"--now", true, false}}};
+    static constexpr std::array<own::OptionSpec, 3> specs{
+        {{"--test", false, false}, {"--trust", true, true}, {"--now", true, false}}};
     const std::vector<std::string> arguments{"--trust", "a", "file", "--test", "--trust", "b", "--now", "t"};
     const auto options = own::parse_options("verify", arguments, specs, 1);
     REQUIRE(options);
@@ -285,8 +299,8 @@ TEST_CASE("a signed file is read back before it is reported, and removed if it f
 
     // A check that fails removes the file and says so.
     const fs::path refused = scratch.path() / "refused.adllic";
-    const auto failed = own::sign_and_write(lic::licence_purpose, key, *payload, refused,
-                                            [](const std::string&) { return std::optional<std::string>{"nobody agrees"}; });
+    const auto failed = own::sign_and_write(lic::licence_purpose, key, *payload, refused, [](const std::string&)
+                                            { return std::optional<std::string>{"nobody agrees"}; });
     REQUIRE_FALSE(failed);
     CHECK(failed.error().find("was removed") != std::string::npos);
     CHECK(failed.error().find("nobody agrees") != std::string::npos);
@@ -355,8 +369,8 @@ TEST_CASE("the commands run in process", "[unit][licence][owner]")
         const fs::path work = scratch.path() / "work";
         fs::create_directories(work / ".git");
         fs::create_directories(work / "keys");
-        const Ran inside = run({"keygen", "--key-id", "lic-2026-a", "--purpose", "licence", "--out",
-                                own::path_to_utf8(work / "keys")});
+        const Ran inside = run(
+            {"keygen", "--key-id", "lic-2026-a", "--purpose", "licence", "--out", own::path_to_utf8(work / "keys")});
         CHECK(inside.code == own::exit_failed);
         CHECK(inside.err.find("is inside a git repository") != std::string::npos);
         CHECK(fs::is_empty(work / "keys"));
@@ -377,8 +391,8 @@ TEST_CASE("the commands run in process", "[unit][licence][owner]")
     {
         const fs::path junk = scratch.path() / "junk.adlkey";
         REQUIRE(own::write_new_file(junk, "not a key at all\n", true));
-        const Ran refused = run({"issue", "--request", request_name, "--out", out, "--key-id", "lic-2026-a", "--key-file",
-                                 own::path_to_utf8(junk)});
+        const Ran refused = run({"issue", "--request", request_name, "--out", out, "--key-id", "lic-2026-a",
+                                 "--key-file", own::path_to_utf8(junk)});
         CHECK(refused.code == own::exit_failed);
         CHECK(refused.err.find("does not hold a key") != std::string::npos);
         CHECK(refused.err.find("not a key at all") == std::string::npos);

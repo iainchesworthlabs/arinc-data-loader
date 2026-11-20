@@ -104,7 +104,8 @@ inline constexpr std::string_view cannot_sign = "the request could not be writte
 inline constexpr std::string_view wrote_file = "Wrote: %1";
 
 // keygen.
-inline constexpr std::string_view folder_missing = "the folder %1 does not exist: make it first, on the drive that will keep the key";
+inline constexpr std::string_view folder_missing =
+    "the folder %1 does not exist: make it first, on the drive that will keep the key";
 inline constexpr std::string_view folder_in_repository =
     "the folder %1 is inside a git repository: a key made there could be committed by mistake. Choose a folder "
     "that no repository holds";
@@ -116,12 +117,11 @@ inline constexpr std::string_view key_private_advice1 =
 inline constexpr std::string_view key_private_advice2 =
     "  Never put it in a repository, an email or a chat. Whoever holds it can make licences that programs accept.";
 inline constexpr std::string_view key_written_public = "Public key file: %1";
-inline constexpr std::string_view key_public_advice =
-    "  It is not secret. Keep it with the licence records.";
+inline constexpr std::string_view key_public_advice = "  It is not secret. Keep it with the licence records.";
 inline constexpr std::string_view key_trust_advice1 =
     "To make programs accept licences signed with this key, add its public half to builtin_keys() in";
 inline constexpr std::string_view key_trust_advice2 =
-    "libs/licence/src/trusted_keys.cpp, with this key id, this purpose and the 32 bytes below, and build a release.";
+    "libs/licence/src/trusted_keys.cpp, with this key id, this purpose and the public key above, and build a release.";
 inline constexpr std::string_view key_standby_advice =
     "Make a standby key now with the same command and another id, and add its public half to the same list, so "
     "that a leak of this key can be answered at once.";

@@ -25,6 +25,10 @@ drafts a GitHub release. Nothing is published until the maintainer reads the dra
 Both the runtime and the development archive unpack into a directory named
 `arinc-data-loader-<v>-<system>-<arch>`, so extracting both in one place gives one tree.
 
+No package holds the owner's licence tool, a library it signs with or a key file. `tools/release/Test-Package.ps1` runs
+`tools/release/check_package_contents.py` on every package it unpacks, and *Test the packages* fails the release if it finds
+one ([the tool](licence-owner-tool.md#the-package-check)).
+
 ### The development package
 
 It holds the libraries a program can build on without Qt and without an operating-system header of its

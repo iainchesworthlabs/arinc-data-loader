@@ -45,7 +45,8 @@ constexpr std::string_view end = "\"}";
 bool is_key_id(std::string_view text) noexcept
 {
     return !text.empty() && text.size() <= max_key_id_length &&
-           std::ranges::all_of(text, [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-'; });
+           std::ranges::all_of(text,
+                               [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-'; });
 }
 
 std::string format_public_key(const sf::TrustedKey& key)

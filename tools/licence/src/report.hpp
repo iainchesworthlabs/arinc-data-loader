@@ -32,8 +32,7 @@ struct SignatureCheck
 
 // Checks the envelope against `keys` for `purpose`, then the key's window against `issued_at`, which the
 // caller read from the payload (null when the payload is not readable: the window is then not checked).
-[[nodiscard]] SignatureCheck check_signature(const adl::licence::signed_file::Envelope& file,
-                                             std::string_view purpose,
+[[nodiscard]] SignatureCheck check_signature(const adl::licence::signed_file::Envelope& file, std::string_view purpose,
                                              std::span<const adl::licence::signed_file::TrustedKey> keys,
                                              const adl::licence::TimePoint* issued_at);
 

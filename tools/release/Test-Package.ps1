@@ -78,6 +78,19 @@ foreach ($file in 'LICENSE.txt', 'NOTICES.txt') {
     }
 }
 
+# --- what signs licences stays with the owner ----------------------------------------
+# The owner's licence tool, the libraries it signs with and a key file are never in a package
+# (docs/licence-owner-tool.md). If the check cannot run, that is a failure too: it passes nothing it did not read.
+$python = Get-Command python3, python -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+if (-not $python) {
+    Add-Problem 'Python was not found, so the package could not be checked for the owner tool, a signing library and key files'
+} else {
+    $checkOutput = & $python.Source -I (Join-Path $PSScriptRoot 'check_package_contents.py') --directory $root 2>&1
+    $checkOutput | ForEach-Object { Write-Host "        $_" }
+    if ($LASTEXITCODE -eq 0) { Add-Ok 'no owner tool, signing library or key file is in the package' }
+    else { Add-Problem 'the package holds the owner tool, a signing library or a key file, or could not be checked for them' }
+}
+
 if ($Settle -gt 0) { Start-Sleep -Seconds $Settle }
 
 # --- a development package: its files, and a program built against it ---------------------------------

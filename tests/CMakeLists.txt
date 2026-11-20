@@ -372,6 +372,8 @@ if(ADL_PLATFORM_DESKTOP AND CMAKE_BUILD_TYPE MATCHES "^(Release|RelWithDebInfo|M
             "-DCXX_COMPILER=${CMAKE_CXX_COMPILER}"
             "-DBUILD_TYPE=${CMAKE_BUILD_TYPE}"
             "-DDOC_DIR=${ADL_PLATFORM_INSTALL_DOCDIR}"
+            "-DPYTHON=${Python3_EXECUTABLE}"
+            "-DPACKAGE_CHECK=${PROJECT_SOURCE_DIR}/tools/release/check_package_contents.py"
             -P "${CMAKE_CURRENT_SOURCE_DIR}/packaging/check_install.cmake")
     set_tests_properties(system.install_consumer PROPERTIES TIMEOUT 300 LABELS "system")
 endif()

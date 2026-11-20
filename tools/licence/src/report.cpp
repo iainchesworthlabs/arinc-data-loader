@@ -85,12 +85,9 @@ SignatureCheck check_signature(const sf::Envelope& file, std::string_view purpos
 bool trusted_by_this_build(const sf::TrustedKey& key)
 {
     const std::vector<sf::TrustedKey> own = sf::product_trust_list();
-    return std::ranges::any_of(own,
-                               [&key](const sf::TrustedKey& entry)
-                               {
-                                   return entry.key_id == key.key_id && entry.purpose == key.purpose &&
-                                          entry.key == key.key;
-                               });
+    return std::ranges::any_of(
+        own, [&key](const sf::TrustedKey& entry)
+        { return entry.key_id == key.key_id && entry.purpose == key.purpose && entry.key == key.key; });
 }
 
 std::string_view reason_name(lic::Reason value) noexcept

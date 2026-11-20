@@ -24,7 +24,6 @@ namespace adl::licence_owner
 [[nodiscard]] std::string format_public_key(const adl::licence::signed_file::TrustedKey& key);
 
 // The key a file holds, or why not (a sentence from messages.hpp).
-[[nodiscard]] std::expected<adl::licence::signed_file::TrustedKey, std::string> parse_public_key(
-    std::string_view text);
+[[nodiscard]] std::expected<adl::licence::signed_file::TrustedKey, std::string> parse_public_key(std::string_view text);
 
 } // namespace adl::licence_owner

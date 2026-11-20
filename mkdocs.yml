@@ -203,6 +203,7 @@ nav:
           - Security and threat model: security.md
       - Project:
           - Licensing: licensing.md
+          - The owner's licence tool: licence-owner-tool.md
           - Roadmap: roadmap.md
           - Releases: https://github.com/iainchesworthlabs/arinc-data-loader/releases
           - Changelog: https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/CHANGELOG.md

@@ -95,7 +95,7 @@ void say_test_note(const Console& console, const Options& options)
 
 // The time an option holds, nothing when it was not given, or the sentence for a usage error.
 [[nodiscard]] std::expected<std::optional<lic::TimePoint>, std::string> time_option(const Options& options,
-                                                                                   std::string_view name)
+                                                                                    std::string_view name)
 {
     if (!options.has(name))
     {
@@ -232,8 +232,8 @@ struct LoadedFile
 }
 
 // What a successful issue or revocations reports.
-void print_written(std::ostream& out, const std::string& out_name, const WrittenFile& written,
-                   const SigningKey& key, std::string_view purpose)
+void print_written(std::ostream& out, const std::string& out_name, const WrittenFile& written, const SigningKey& key,
+                   std::string_view purpose)
 {
     sf::TrustedKey own;
     own.key_id = key.id();
@@ -394,9 +394,9 @@ int verify_command(std::span<const std::string> arguments, const Console& consol
             out << "Test key: yes\n";
         }
         out << "Signature: " << message::signature_verifies << '\n';
-        const auto signer = std::ranges::find_if(*keys,
-                                                 [&](const sf::TrustedKey& key)
-                                                 { return key.key_id == status.key_id && key.purpose == lic::licence_purpose; });
+        const auto signer =
+            std::ranges::find_if(*keys, [&](const sf::TrustedKey& key)
+                                 { return key.key_id == status.key_id && key.purpose == lic::licence_purpose; });
         if (signer != keys->end())
         {
             out << "Key trusted by this build: " << (trusted_by_this_build(*signer) ? "yes" : "no") << '\n';
@@ -448,22 +448,24 @@ int issue_command(std::span<const std::string> arguments, const Console& console
     const auto value = lic::parse_payload(as_bytes(*request));
     if (!value)
     {
-        return fail(console, format(message::request_refused,
-                                    {request_name, format(message::request_not_read, {lic::to_string(value.error())})}));
+        return fail(console, format(message::request_refused, {request_name, format(message::request_not_read,
+                                                                                    {lic::to_string(value.error())})}));
     }
     const bool test = options->has("--test");
     if (!test && value->product != lic::product_id)
     {
-        return fail(console, format(message::request_refused, {request_name, format(message::product_wrong, {value->product})}));
+        return fail(console,
+                    format(message::request_refused, {request_name, format(message::product_wrong, {value->product})}));
     }
     if (!is_licence_number(value->licence_id))
     {
-        return fail(console, format(message::request_refused, {request_name, format(message::id_wrong, {value->licence_id})}));
+        return fail(console,
+                    format(message::request_refused, {request_name, format(message::id_wrong, {value->licence_id})}));
     }
     if (!test && is_test_licence_number(value->licence_id))
     {
-        return fail(console,
-                    format(message::request_refused, {request_name, format(message::id_in_test_range, {value->licence_id})}));
+        return fail(console, format(message::request_refused,
+                                    {request_name, format(message::id_in_test_range, {value->licence_id})}));
     }
     const auto payload = lic::write_payload(*value);
     if (!payload)
@@ -484,17 +486,16 @@ int issue_command(std::span<const std::string> arguments, const Console& console
         return fail(console, loaded.error());
     }
     const std::string out_name = options->value("--out");
-    const auto written = sign_and_write(
-        lic::licence_purpose, key, *payload, path_from_utf8(out_name),
-        [&value](const std::string& read_back) -> std::optional<std::string>
-        {
-            const auto again = lic::parse_payload(as_bytes(read_back));
-            if (!again || *again != *value)
-            {
-                return std::string(message::read_back_differs);
-            }
-            return std::nullopt;
-        });
+    const auto written = sign_and_write(lic::licence_purpose, key, *payload, path_from_utf8(out_name),
+                                        [&value](const std::string& read_back) -> std::optional<std::string>
+                                        {
+                                            const auto again = lic::parse_payload(as_bytes(read_back));
+                                            if (!again || *again != *value)
+                                            {
+                                                return std::string(message::read_back_differs);
+                                            }
+                                            return std::nullopt;
+                                        });
     if (!written)
     {
         return fail(console, written.error());
@@ -532,8 +533,8 @@ int revocations_command(std::span<const std::string> arguments, const Console& c
     const auto value = lic::parse_revocations(as_bytes(*request));
     if (!value)
     {
-        return fail(console, format(message::request_refused,
-                                    {request_name, format(message::request_not_read, {lic::to_string(value.error())})}));
+        return fail(console, format(message::request_refused, {request_name, format(message::request_not_read,
+                                                                                    {lic::to_string(value.error())})}));
     }
     if (value->sequence == 0)
     {
@@ -558,17 +559,16 @@ int revocations_command(std::span<const std::string> arguments, const Console& c
         return fail(console, loaded.error());
     }
     const std::string out_name = options->value("--out");
-    const auto written = sign_and_write(
-        lic::revocations_purpose, key, *payload, path_from_utf8(out_name),
-        [&value](const std::string& read_back) -> std::optional<std::string>
-        {
-            const auto again = lic::parse_revocations(as_bytes(read_back));
-            if (!again || *again != *value)
-            {
-                return std::string(message::read_back_differs);
-            }
-            return std::nullopt;
-        });
+    const auto written = sign_and_write(lic::revocations_purpose, key, *payload, path_from_utf8(out_name),
+                                        [&value](const std::string& read_back) -> std::optional<std::string>
+                                        {
+                                            const auto again = lic::parse_revocations(as_bytes(read_back));
+                                            if (!again || *again != *value)
+                                            {
+                                                return std::string(message::read_back_differs);
+                                            }
+                                            return std::nullopt;
+                                        });
     if (!written)
     {
         return fail(console, written.error());

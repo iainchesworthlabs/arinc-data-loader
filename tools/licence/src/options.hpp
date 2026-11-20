@@ -36,7 +36,7 @@ public:
 
 private:
     friend std::expected<Options, std::string> parse_options(std::string_view, std::span<const std::string>,
-                                                              std::span<const OptionSpec>, std::size_t);
+                                                             std::span<const OptionSpec>, std::size_t);
     std::vector<std::string> positional_;
     std::vector<std::pair<std::string, std::string>> given_;
 };
@@ -44,8 +44,8 @@ private:
 // `arguments` are what follows the command's name. At most `max_positional` words that are not options. The
 // error is one sentence from messages.hpp.
 [[nodiscard]] std::expected<Options, std::string> parse_options(std::string_view command,
-                                                                 std::span<const std::string> arguments,
-                                                                 std::span<const OptionSpec> specs,
-                                                                 std::size_t max_positional);
+                                                                std::span<const std::string> arguments,
+                                                                std::span<const OptionSpec> specs,
+                                                                std::size_t max_positional);
 
 } // namespace adl::licence_owner
