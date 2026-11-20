@@ -383,6 +383,13 @@ set_tests_properties(tools.write_payloads.unicode_folder PROPERTIES LABELS "syst
 # platform, and the folders it reads and writes. No Qt.
 add_subdirectory(mock_target_core)
 
+# The media set generator's logic (libs/set_maker), and the command adl_make_set built on it (the command is
+# a desktop program: it reads its description with the licence library's JSON reader). No Qt.
+add_subdirectory(set_maker)
+if(TARGET adl::make_set_cli)
+    add_subdirectory(make_set)
+endif()
+
 # The loopback integration test: the loader's runner over real sockets against the mock target's
 # engine on 127.0.0.1. No Qt.
 add_subdirectory(loopback)

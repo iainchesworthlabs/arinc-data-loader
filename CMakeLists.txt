@@ -134,6 +134,12 @@ add_subdirectory(libs/media_tree)
 # the download folder and the target's address. No Qt; apps/app/core calls it.
 add_subdirectory(libs/loader_core)
 
+# What the media set generator does without a window: the plan, the making of a set (read, build, write,
+# read back with the loader's own check, move into place) and the reading of a set into its facts. The
+# generator's window (apps/media_gen) and the command adl_make_set (apps/make_set) build on it. No Qt. Not
+# installed and not part of the adl package.
+add_subdirectory(libs/set_maker)
+
 # The licence library: the signed licence file, its states and the checks a program asks. Platform-free.
 # Its Ed25519 is Monocypher, vendored in third_party/monocypher, which is C: the language is enabled here,
 # and only on a desktop, because a target build has no use for a licence and may have no C compiler.
