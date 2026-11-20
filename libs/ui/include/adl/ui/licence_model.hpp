@@ -58,6 +58,9 @@ class LicenceModel : public QObject
     // The edition in force: "community", "pro" or "enterprise" (a word for a script), and the words for the person.
     Q_PROPERTY(QString edition READ edition NOTIFY changed)
     Q_PROPERTY(QString editionText READ editionText NOTIFY changed)
+    // What the loader puts in its activity log and its receipt: "Edition: Community", or the edition and the number
+    // of the licence in force ("Edition: Pro, licence ADL-2026-000123"). A licence that is not in force is not named.
+    Q_PROPERTY(QString stamp READ stamp NOTIFY changed)
     // The state of the best licence: none, valid, expiring, grace, expired, not_yet_valid, clock_suspect or invalid.
     Q_PROPERTY(QString state READ state NOTIFY changed)
     // The state as a chip says it, the tone of the chip (neutral, ok, warn or fail) and the sentence under it.
@@ -114,6 +117,7 @@ public:
 
     [[nodiscard]] QString edition() const;
     [[nodiscard]] QString editionText() const;
+    [[nodiscard]] QString stamp() const;
     [[nodiscard]] QString state() const;
     [[nodiscard]] QString stateLabel() const;
     [[nodiscard]] QString stateTone() const;

@@ -6,9 +6,9 @@
 #include "adl/licence/signed_file.hpp"
 #include "adl/licence_cli/licence_cli.hpp"
 #include "adl/licence_cli/system.hpp"
+#include "adl/licence_platform/environment.hpp"
 #include "adl/platform/arguments.hpp"
 #include "adl/ui/build_info.hpp"
-#include "environment.hpp"
 
 #include <iostream>
 #include <span>
@@ -26,7 +26,8 @@ int main(int argc, char** argv)
         command_line.empty() ? std::span<const std::string>{} : std::span<const std::string>{command_line}.subspan(1);
 
     // ADL_SETTINGS_DIR moves the licence folders and the clock file, as it moves the programs' settings.
-    const std::string settings = adl::licence_program::environment_variable("ADL_SETTINGS_DIR").value_or(std::string{});
+    const std::string settings =
+        adl::licence_platform::environment_variable("ADL_SETTINGS_DIR").value_or(std::string{});
     // The commit time of the source of this build is a time that has certainly passed.
     const auto built = cli::parse_commit_time(adl::ui::kGitCommitTime);
     auto system = cli::SystemEnvironment::open(settings, adl::licence::signed_file::product_trust_list(),

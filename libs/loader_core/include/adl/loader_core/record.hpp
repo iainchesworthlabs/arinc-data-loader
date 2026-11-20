@@ -126,6 +126,16 @@ struct RecordedFile
     std::string path; // where it was written, as the operating system writes a path; empty when not known
 };
 
+// The licence in force when the operation started: what the program ran as. The words are the licence
+// library's own (adl/licence/words.hpp), which this library does not include: the program that wrote the record
+// fills them in.
+struct RecordedLicence
+{
+    std::string edition; // "community", "pro" or "enterprise": the edition in force
+    std::string state; // "none", "valid", "expiring", "grace", "expired", "not_yet_valid", "clock_suspect" or "invalid"
+    std::optional<std::string> number; // the licence number of the licence in force; nothing when none is
+};
+
 // One line of the log.
 struct RecordedLogLine
 {
@@ -164,6 +174,10 @@ struct OperationRecord
     std::optional<std::vector<RecordedHardware>> configuration; // an Information operation, once it was read
     std::vector<RecordedFile> files;                            // a download
     std::optional<std::string> download_folder;                 // a download, unless no folder was kept
+
+    // The licence the program ran under, when it says (a program that reads no licence leaves it empty, and the
+    // file writes `null`). It is set before the operation starts and does not change while it runs.
+    std::optional<RecordedLicence> licence;
 
     std::vector<RecordedLogLine> log;
 };

@@ -629,6 +629,7 @@ A scenario file that cannot be used is told on the error output with code 5, bef
 | `adl_load: --scenario <file>: <why>` | The file was refused. Nothing was written to standard output, and no port or folder was opened. `<why>` is one of the sentences below. |
 | `the file cannot be read (<code>)` | The file is not there (`not found`) or cannot be opened. |
 | `the file is larger than <n> bytes` | A scenario file is at most 262144 bytes. |
+| `scenario files are not used by this program on this system` | This build of the program has no scenario libraries, which only a platform with no file system for them lacks. The desktop programs have them. |
 | `step <n>: <sentence about a key>` | The sentence names the step and the key, as `step 3: "seconds" must be a whole number from 1 to 65535`. [When the file is refused](../file-reference.md#when-the-file-is-refused) has the others. |
 
 With `--json` the sentences of what happened are in the events. In a `finished` event the `detail` is one of these, and the same words are the last lines of the log in the record:

@@ -44,41 +44,42 @@ set_tests_properties(loopback.integration PROPERTIES
     RESOURCE_LOCK mock_target_transfer_ports
     LABELS "integration;system")
 
-if(TARGET adl_load_cli)
-    # adl_load's whole commands over the same sockets (tests/loopback/load_command_test.cpp): the program's run
-    # function on the real host against the mock target's engine, on high ports (--target-port, --control-port), so
-    # that an unprivileged account runs them too. Only one test holds the sockets at a time: the loopback test has the
-    # same lock.
-    add_executable(adl_load_system_test
-        load_command_test.cpp)
+# adl_load's whole commands over the same sockets (tests/loopback/load_command_test.cpp): the program's run
+# function on the real host against the mock target's engine, on high ports (--target-port, --control-port), so
+# that an unprivileged account runs them too. Only one test holds the sockets at a time: the loopback test has the
+# same lock.
+add_executable(adl_load_system_test
+    load_command_test.cpp)
 
-    target_include_directories(adl_load_system_test PRIVATE
-        "${PROJECT_SOURCE_DIR}/tests/support")
+target_include_directories(adl_load_system_test PRIVATE
+    "${PROJECT_SOURCE_DIR}/tests/support")
 
-    target_link_libraries(adl_load_system_test
-        PRIVATE
-            adl_load_cli
-            adl::mock_target_core
-            adl::arinc615a
-            adl::arinc665
-            adl::media_tree
-            adl::platform
-            adl::samples
-            Catch2::Catch2WithMain
-            adl::warnings
-            adl::sanitizers
-            adl::coverage)
+target_link_libraries(adl_load_system_test
+    PRIVATE
+        adl_load_cli
+        adl::mock_target_core
+        adl::arinc615a
+        adl::arinc665
+        adl::media_tree
+        adl::platform
+        adl::samples
+        Catch2::Catch2WithMain
+        adl::warnings
+        adl::sanitizers
+        adl::coverage)
 
-    adl_deploy_sanitizer_runtime(adl_load_system_test)
+adl_deploy_sanitizer_runtime(adl_load_system_test)
 
-    add_test(NAME load.system COMMAND adl_load_system_test)
-    set_tests_properties(load.system PROPERTIES
-        TIMEOUT 300
-        RESOURCE_LOCK mock_target_transfer_ports
-        LABELS "system")
+add_test(NAME load.system COMMAND adl_load_system_test)
+set_tests_properties(load.system PROPERTIES
+    TIMEOUT 300
+    RESOURCE_LOCK mock_target_transfer_ports
+    LABELS "system")
 
-    # The same with a scenario file (--scenario): the loader doing something wrong on purpose, one action to a test,
-    # against the mock target's engine over the same sockets, and the same lock.
+# The same with a scenario file (--scenario): the loader doing something wrong on purpose, one action to a test,
+# against the mock target's engine over the same sockets, and the same lock. A desktop test, as the library that
+# carries out a scenario is a desktop library.
+if(ADL_PLATFORM_DESKTOP)
     add_executable(adl_load_scenario_system_test
         load_scenario_test.cpp)
 
@@ -87,6 +88,7 @@ if(TARGET adl_load_cli)
 
     target_link_libraries(adl_load_scenario_system_test
         PRIVATE
+            adl_load_scenario
             adl_load_cli
             adl::mock_target_core
             adl::arinc615a

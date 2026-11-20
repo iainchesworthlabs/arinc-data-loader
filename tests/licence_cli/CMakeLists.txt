@@ -57,8 +57,8 @@ catch_discover_tests(adl_licence_cli_integration_tests PROPERTIES LABELS "integr
 add_executable(adl_licence_test_program test_program/main.cpp)
 target_link_libraries(adl_licence_test_program
     PRIVATE
-        adl_licence_environment
         adl::licence_cli
+        adl::licence_platform
         adl::licence_test_keys
         adl::warnings
         adl::sanitizers

@@ -379,7 +379,25 @@ std::string record_to_json(const OperationRecord& record)
         json.null("download_folder");
     }
 
-    json.null("licence");
+    if (record.licence)
+    {
+        json.begin_object("licence");
+        json.string("edition", record.licence->edition);
+        json.string("state", record.licence->state);
+        if (record.licence->number)
+        {
+            json.string("number", *record.licence->number);
+        }
+        else
+        {
+            json.null("number");
+        }
+        json.end_object();
+    }
+    else
+    {
+        json.null("licence");
+    }
 
     json.begin_array("log");
     for (const RecordedLogLine& line : record.log)

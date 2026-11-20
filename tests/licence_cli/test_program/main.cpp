@@ -11,8 +11,8 @@
 #include "adl/licence/test_keys.hpp"
 #include "adl/licence_cli/licence_cli.hpp"
 #include "adl/licence_cli/system.hpp"
+#include "adl/licence_platform/environment.hpp"
 #include "adl/platform/arguments.hpp"
-#include "environment.hpp"
 
 #include <cstddef>
 #include <iostream>
@@ -54,7 +54,8 @@ int main(int argc, char** argv)
                                                        ? std::span<const std::string>{command_line}.subspan(at)
                                                        : std::span<const std::string>{};
 
-    const std::string settings = adl::licence_program::environment_variable("ADL_SETTINGS_DIR").value_or(std::string{});
+    const std::string settings =
+        adl::licence_platform::environment_variable("ADL_SETTINGS_DIR").value_or(std::string{});
     const auto test_key = lic::test_keys::trusted();
     std::vector<lic::signed_file::TrustedKey> keys(test_key.begin(), test_key.end());
     auto system = cli::SystemEnvironment::open(settings, std::move(keys), lic::TimePoint::min(), "test");

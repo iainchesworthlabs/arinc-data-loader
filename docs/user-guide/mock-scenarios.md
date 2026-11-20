@@ -82,7 +82,7 @@ The steps with `on` and `count` are explained in [the datagrams](#on-and-count-t
 
 ## The file
 
-The file is JSON in UTF-8, at most 262144 bytes. It is read strictly: no comment, no trailing comma, no key given twice, no text that is not UTF-8, at most 8 levels of nesting. Numbers are whole numbers; a number with a fraction or an exponent is refused where a number is wanted. A key that this version does not know is refused and not ignored, so that a mistyped key cannot be a fault that never happens.
+The file is JSON in UTF-8, at most 262144 bytes. It is read strictly: no comment, no trailing comma, no key given twice, no text that is not UTF-8, at most 8 levels of nesting. Numbers are whole numbers; a number with a fraction or an exponent is refused where a number is wanted. A key that this version does not know is refused and not ignored, so that a mistyped key cannot be a fault that never happens. The sentence that refuses it shows the key as JSON writes it (a new line in it is `\n`) and no more than its first 64 characters, with `...` after them when it is longer.
 
 Other scenario files of the same family have the same top level and the same shape of step: `kind` says whom the file is for, and `format` which version of the file it is.
 

@@ -7,6 +7,7 @@
 // whole and flushed, from the one thread that calls run_serve: the events of different operations are never
 // mixed. The source is an interface so that a test can give the lines at chosen moments of the fake clock.
 
+#include "adl/load/licence.hpp"
 #include "adl/load/options.hpp"
 #include "adl/load/preparer.hpp"
 #include "adl/load/request.hpp"
@@ -74,8 +75,10 @@ private:
 // upload has to read before it can start (its media set) is done by `preparer`, away from the loop, so that starting
 // an operation does not hold up the ones that are running. `start` is the moment `t` counts from. Returns the exit
 // code: 0 it stopped as asked, whatever happened to the operations; 5 the control port could not be opened, the
-// input could not be read or the preparer started, or standard output could not be written to.
+// input could not be read or the preparer started, or standard output could not be written to. Each operation's
+// record gets the licence it ran under from `licence`, read when that operation starts (licence.hpp).
 [[nodiscard]] int run_serve(adl::platform::Host& host, const Options& options, LineSource& input, Preparer& preparer,
-                            std::ostream& out, std::ostream& err, adl::platform::Instant start);
+                            std::ostream& out, std::ostream& err, adl::platform::Instant start,
+                            const LicenceSource& licence = {});
 
 } // namespace adl::load

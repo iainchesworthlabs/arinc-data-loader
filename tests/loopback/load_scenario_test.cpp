@@ -13,6 +13,7 @@
 #include "adl/arinc665/load.hpp"
 #include "adl/arinc665/media_set.hpp"
 #include "adl/load/run.hpp"
+#include "adl/load/system_scenario.hpp"
 #include "adl/media_tree/media_tree.hpp"
 #include "adl/mock/engine.hpp"
 #include "adl/mock/link.hpp"
@@ -209,7 +210,7 @@ struct Run
     std::ostringstream out;
     std::ostringstream err;
     Run run;
-    run.exit_code = adl::load::run(**host, arguments, out, err);
+    run.exit_code = adl::load::run(**host, arguments, out, err, {}, adl::load::system_scenario());
     run.out = out.str();
     run.err = err.str();
     INFO(run.out);

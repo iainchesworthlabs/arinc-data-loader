@@ -2,15 +2,15 @@
 // The environment as UTF-16 (Windows), converted to UTF-8, so that the code page is never involved. The C
 // run-time's own copy of the variable is read with _wdupenv_s, which needs no operating system header and does
 // not warn as getenv does. CMake compiles this file and not os/posix/environment.cpp, chosen by the platform's
-// name (apps/licence/CMakeLists.txt).
+// name (libs/licence_platform/CMakeLists.txt).
 
-#include "../environment.hpp"
+#include "adl/licence_platform/environment.hpp"
 
 #include <cstddef>
 #include <cstdlib>
 #include <string>
 
-namespace adl::licence_program
+namespace adl::licence_platform
 {
 
 namespace
@@ -92,4 +92,4 @@ std::optional<std::string> environment_variable(std::string_view name)
     return text;
 }
 
-} // namespace adl::licence_program
+} // namespace adl::licence_platform

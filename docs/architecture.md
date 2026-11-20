@@ -97,11 +97,16 @@
   test's script, and runs them on the loader core's `OperationPool`, so that one process holds the
   loader's control port for all of them. What an upload reads before it can start, its media set, is done
   by a `Preparer` (`preparer.cpp`) on a thread of its own, so that a large set does not hold up the
-  operations that are running. With `--scenario` (`scenario_run.cpp`) the file is read first, through the
-  platform's file system, and a `ScenarioRun` gives the engine the player of `adl::loader_scenario` as its
-  fault hook and writes each fault it does as a `scenario_step` event; without the option the engine has no
-  hook. `adl_load` is built on a desktop only, since the scenario file is read with the licence library's
-  reader.
+  operations that are running. With `--scenario` the file is read first, through the platform's file system, and
+  the engine is given the player of `adl::loader_scenario` as its fault hook, which writes each fault it does as a
+  `scenario_step` event; without the option the engine has no hook. As with the licence, `adl_load_cli` knows only a
+  `ScenarioSource` (`scenario.hpp`, a function from the host and the file's name to the faults of one operation), and
+  the program's `main` gives it the one of this system (`adl_load_scenario`, on a desktop, where the scenario libraries
+  are built; a platform that has none gets a source that refuses the option with a sentence).
+  The licence an operation ran under goes into its record: `adl_load_cli` knows only a `LicenceSource` (`licence.hpp`, a
+  function from the host to the edition, the state and the number), so it and its tests build on every platform, and the
+  program's `main` gives it the one that reads this computer's licence files (`adl_load_licence`, on a desktop, over
+  `adl::licence_platform::stamp_of`; a platform with no licence files gets one that reads none).
 - **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `libs/platform/interfaces/adl/platform/`, with one implementation per platform
@@ -178,10 +183,14 @@
 - **`libs/licence_platform`** is the part of the licence work that is this product's: the store's `Files`
   interface filled in with `adl::platform::FileSystem`, and the folders ARINC Data Loader keeps its licences
   and its clock file in (below the platform's user and machine folders, or below `ADL_SETTINGS_DIR`, which a
-  program passes in, so that a test never reads a real licence). It is under the GPL alone, where `libs/licence`
-  is also offered under the BSD 2-Clause licence ([licensing](licensing.md)), because it uses `adl::platform`.
-  It is on a desktop only, is not part of the installed `adl` package, and the three Qt applications link it
-  (through the licence model of `libs/ui`).
+  program passes in, so that a test never reads a real licence). It also reads that variable for the programs
+  without Qt (`environment_variable`, which `adl_licence` and `adl_load` use): the one part that differs between
+  systems, so CMake compiles `os/<platform>/environment.cpp` chosen by the platform's name. It is here and not
+  in `adl::platform` because a platform function would need an implementation on every platform, the real-time
+  ones included, and only a program with a file system reads a licence. It is under the GPL alone, where
+  `libs/licence` is also offered under the BSD 2-Clause licence ([licensing](licensing.md)), because it uses
+  `adl::platform`. It is on a desktop only, is not part of the installed `adl` package, and the three Qt
+  applications link it (through the licence model of `libs/ui`).
 - **`libs/licence_cli`** is the commands of `adl_licence`: `show`, `import`, `remove` and `verify`, over the store and
   `libs/licence_platform`. `adl::licence_cli::run` takes the command line and an `Environment` (the files, the folders, the
   time, the computer's name and the keys) and writes to two streams, so that a test gives it files in memory, a clock of
@@ -189,12 +198,10 @@
   `adl::licence` and no signing code, so no program that ships holds a key or the test key. It is under the GPL alone, on a
   desktop only, and not part of the installed `adl` package.
 - **`apps/licence`** is the `adl_licence` program around those commands: its arguments through `adl::platform::arguments`,
-  and the one thing `adl::platform` does not give, an environment variable (`ADL_SETTINGS_DIR`), which is the one part
-  that differs between systems: CMake compiles `os/<platform>/environment.cpp` chosen by the platform's name, as it does
-  for the entry point of the owner's tool. It can move into `adl::platform` if a second program needs it. The target is
-  `adl_licence_program`, because `adl_licence` is the library of the licence; the file is `adl_licence`. A program of the
-  tests, `adl_licence_test_program`, runs the same commands with the test key and a clock the test sets, and is never
-  installed.
+  and the one environment variable it reads (`ADL_SETTINGS_DIR`, through `adl::licence_platform::environment_variable`).
+  The target is `adl_licence_program`, because `adl_licence` is the library of the licence; the file is `adl_licence`. A
+  program of the tests, `adl_licence_test_program`, runs the same commands with the test key and a clock the test sets,
+  and is never installed.
 - **`tools/licence`** is the owner's licence tool (`adl_licence_owner`): it makes a signing key, issues a licence file,
   checks one and writes a revocation list, on `adl::licence`, `adl::licence_sign` and the test key and the standard
   library, and nothing else of this repository. It is built with the other tools and never installed; a package check

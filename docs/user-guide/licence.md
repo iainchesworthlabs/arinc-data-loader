@@ -24,6 +24,7 @@ nothing. It reads the name of the computer only to compare it with the computers
 | The **edition chip**, at the right of the status bar | The edition, and when the licence is ending or has ended, how much is left. Press it to open the Licence window |
 | The **Licence** window | Which edition this is, whose licence it is, for how long, what it includes, every licence file found, and the buttons that import and remove one |
 | The **notice** under the header | One line, when a licence ends soon, is in its grace period, has ended, or when the date of the computer looks wrong. It never blocks anything |
+| The loader's **log** and **receipt** | One line, `Edition: ...`, at the start of every transfer and under the last line of its receipt: the edition the program ran as and, when a licence is in force, its number ([The log and the receipt](log-and-receipt.md#the-receipt)). `adl_load` writes the same facts in its operation record ([The licence in a record](../file-reference.md#the-licence-in-a-record)) |
 | **About** | The line **Edition**, and a **Licence...** button. The **Licences** button of About is the third-party notices, which is another thing |
 | The **Support** window | What the licence says about support, what to send when you ask for help, and the details of this copy |
 
@@ -48,6 +49,8 @@ shown by a mark as well as by colour.
 The window has the edition in large letters, a chip with the state, and one sentence about it. Under that are
 the rows of the licence: who it is **Licensed to**, the **Licence number**, the **Term**, the **Seats** and the
 **Computers** it names. A row that has nothing to say is left out.
+
+![The Licence window for a Pro licence that ends in nine days](../images/app-licence-window.png)
 
 | State | Chip | Sentence |
 | --- | --- | --- |
@@ -93,6 +96,8 @@ A licence in its grace period still counts. A feature that is not available swit
 off: **Support** and **Data packs** are a service and documents, so there is nothing in a program to turn off.
 
 ## The notice under the header
+
+![The loader with the notice under its header and the edition chip in the status bar](../images/app-licence-notice.png)
 
 | When | Words | Button that puts it away |
 | --- | --- | --- |
@@ -213,11 +218,17 @@ A file already in a licence folder shows **Not valid** with the same sentence, a
 programs work as they did before. A release that carries the keys accepts the licences made for them, and until
 then nothing about a program depends on a licence.
 
+A computer with no licence file at all shows the Licence window like this:
+
+![The Licence window with no licence file: the Community edition](../images/app-licence-none.png)
+
 ## The Support window
 
 **Support** (a button in the Licence window) is three cards. It copies to the clipboard and does nothing else: it
 opens no web browser and no mail program, and sends nothing. ARINC Data Loader never sends anything itself. You
 choose what to share.
+
+![The Support window for a licence that includes support](../images/app-licence-support.png)
 
 | What the licence says | Chip | Words |
 | --- | --- | --- |

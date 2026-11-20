@@ -18,7 +18,6 @@ add_library(adl_load_cli STATIC
     src/record_file.cpp
     src/request.cpp
     src/run.cpp
-    src/scenario_run.cpp
     src/serve.cpp
     src/stream_source.cpp)
 
@@ -34,15 +33,68 @@ target_link_libraries(adl_load_cli
         adl::loader_core
         adl::platform
     PRIVATE
-        adl::loader_scenario
         adl::warnings
         adl::sanitizers
         adl::coverage)
 
+# The licence the record says the operation ran under: read from this computer's licence files on a desktop, where the
+# licence libraries are built, and nothing on the other platforms (a record then says null). main asks for it and
+# adl_load_cli knows only the interface (adl/load/licence.hpp), so that the library and its tests build everywhere.
+if(ADL_PLATFORM_DESKTOP)
+    add_library(adl_load_licence STATIC
+        licence/licence_files.cpp
+        licence/system_licence.cpp)
+    target_link_libraries(adl_load_licence
+        PUBLIC
+            adl_load_cli
+            adl::licence
+            adl::licence_platform
+        PRIVATE
+            adl::warnings
+            adl::sanitizers
+            adl::coverage)
+else()
+    add_library(adl_load_licence STATIC licence/no_system_licence.cpp)
+    target_link_libraries(adl_load_licence
+        PUBLIC
+            adl_load_cli
+        PRIVATE
+            adl::warnings
+            adl::sanitizers
+            adl::coverage)
+endif()
+
+# The faults on purpose that `--scenario` asks for: carried out on a desktop, where the scenario libraries are built, and
+# refused with a sentence on the other platforms. As with the licence, main asks for them and adl_load_cli knows only the
+# interface (adl/load/scenario.hpp).
+if(ADL_PLATFORM_DESKTOP)
+    add_library(adl_load_scenario STATIC
+        scenario/scenario_run.cpp
+        scenario/system_scenario.cpp)
+    target_link_libraries(adl_load_scenario
+        PUBLIC
+            adl_load_cli
+        PRIVATE
+            adl::loader_scenario
+            adl::warnings
+            adl::sanitizers
+            adl::coverage)
+else()
+    add_library(adl_load_scenario STATIC scenario/no_system_scenario.cpp)
+    target_link_libraries(adl_load_scenario
+        PUBLIC
+            adl_load_cli
+        PRIVATE
+            adl::warnings
+            adl::sanitizers
+            adl::coverage)
+endif()
+
 add_executable(adl_load main.cpp)
 target_link_libraries(adl_load
     PRIVATE
-        adl_load_cli
+        adl_load_licence
+        adl_load_scenario
         adl::warnings
         adl::sanitizers
         adl::coverage)

@@ -438,7 +438,7 @@
     <message>
         <location filename="../licence_model.cpp" line="191"/>
         <location filename="../licence_model.cpp" line="240"/>
-        <location filename="../licence_model.cpp" line="352"/>
+        <location filename="../licence_model.cpp" line="363"/>
         <source>Community</source>
         <translation>Community</translation>
     </message>
@@ -473,324 +473,330 @@
         <translation>无效</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="269"/>
+        <location filename="../licence_model.cpp" line="251"/>
+        <source>Edition: %1, licence %2</source>
+        <translation>版本类型：%1，许可证 %2</translation>
+    </message>
+    <message>
+        <location filename="../licence_model.cpp" line="280"/>
         <source>This version of ARINC Data Loader cannot check licence files yet, so it accepts none. The Community edition works as it always did.</source>
         <translation>此版本的ARINC Data Loader尚不能检查许可证文件，因此不接受任何许可证文件。Community版的工作方式与以往一样。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="275"/>
+        <location filename="../licence_model.cpp" line="286"/>
         <source>This licence needs a newer version of ARINC Data Loader. Install the latest version, then import the licence again.</source>
         <translation>此许可证需要更新版本的ARINC Data Loader。请安装最新版本，然后再次导入许可证。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="278"/>
+        <location filename="../licence_model.cpp" line="289"/>
         <source>This licence was withdrawn. Contact support.</source>
         <translation>此许可证已被撤销。请联系支持人员。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="280"/>
+        <location filename="../licence_model.cpp" line="291"/>
         <source>This licence is for other computers. This computer is %1. Ask your administrator for a licence that names it.</source>
         <translation>此许可证适用于其他计算机。本计算机是%1。请向管理员索取写明本计算机的许可证。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="285"/>
+        <location filename="../licence_model.cpp" line="296"/>
         <source>This licence is for another product. Ask for an ARINC Data Loader licence.</source>
         <translation>此许可证适用于其他产品。请索取ARINC Data Loader的许可证。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="291"/>
+        <location filename="../licence_model.cpp" line="302"/>
         <source>This file is not a valid ARINC Data Loader licence. It may be damaged or incomplete. Ask for the file again.</source>
         <translation>此文件不是有效的ARINC Data Loader许可证。文件可能已损坏或不完整。请重新索取该文件。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="305"/>
+        <location filename="../licence_model.cpp" line="316"/>
         <source>No licence is installed. This is the Community edition. Every function of the programs is available without a licence.</source>
         <translation>未安装许可证。这是Community版。无需许可证，程序的所有功能均可使用。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="308"/>
+        <location filename="../licence_model.cpp" line="319"/>
         <source>Valid until %1.</source>
         <translation>有效期至%1。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="312"/>
+        <location filename="../licence_model.cpp" line="323"/>
         <source>Valid until %1. It ends today.</source>
         <translation>有效期至%1。今天结束。</translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="314"/>
+        <location filename="../licence_model.cpp" line="325"/>
         <source>Valid until %1. %n day(s) left.</source>
         <translation>
             <numerusform>有效期至%1。还剩%n天。</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="316"/>
+        <location filename="../licence_model.cpp" line="327"/>
         <source>Ended on %1. The grace period lasts until %2.</source>
         <translation>已于%1结束。宽限期持续到%2。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="319"/>
+        <location filename="../licence_model.cpp" line="330"/>
         <source>Ended on %1. This is the Community edition again. Nothing you made is lost: media sets, receipts and logs are unchanged.</source>
         <translation>已于%1结束。现在又是Community版。您创建的内容不会丢失：介质集、回执和日志均保持不变。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="324"/>
+        <location filename="../licence_model.cpp" line="335"/>
         <source>Starts on %1.</source>
         <translation>将于%1开始。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="326"/>
+        <location filename="../licence_model.cpp" line="337"/>
         <source>The date on this computer looks wrong, so the licence cannot be judged until the date is right.</source>
         <translation>本计算机上的日期似乎有误，因此在日期正确之前无法判断许可证。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="344"/>
+        <location filename="../licence_model.cpp" line="355"/>
         <source>%1, ends today</source>
         <translation>%1，今天结束</translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="346"/>
+        <location filename="../licence_model.cpp" line="357"/>
         <source>%1, %n day(s) left</source>
         <translation>
             <numerusform>%1，还剩%n天</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="348"/>
+        <location filename="../licence_model.cpp" line="359"/>
         <source>%1, licence ended</source>
         <translation>%1，许可证已结束</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="370"/>
+        <location filename="../licence_model.cpp" line="381"/>
         <source>Edition: %1. Open the licence window.</source>
         <translation>版本类型：%1。打开许可证窗口。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="396"/>
-        <location filename="../licence_model.cpp" line="506"/>
+        <location filename="../licence_model.cpp" line="407"/>
+        <location filename="../licence_model.cpp" line="517"/>
         <source>%1 to %2</source>
         <translation>%1至%2</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="406"/>
+        <location filename="../licence_model.cpp" line="417"/>
         <source>Site licence</source>
         <translation>站点许可证</translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="406"/>
+        <location filename="../licence_model.cpp" line="417"/>
         <source>%n seat(s)</source>
         <translation>
             <numerusform>%n个席位</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="420"/>
+        <location filename="../licence_model.cpp" line="431"/>
         <source>%1. This computer is %2.</source>
         <translation>%1。本计算机是%2。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="437"/>
+        <location filename="../licence_model.cpp" line="448"/>
         <source>Support</source>
         <translation>支持</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="437"/>
+        <location filename="../licence_model.cpp" line="448"/>
         <source>Needs a Pro or Enterprise licence.</source>
         <translation>需要Pro或Enterprise许可证。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="438"/>
+        <location filename="../licence_model.cpp" line="449"/>
         <source>Data packs</source>
         <translation>数据包</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="438"/>
+        <location filename="../licence_model.cpp" line="449"/>
         <source>Needs an Enterprise licence.</source>
         <translation>需要Enterprise许可证。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="459"/>
+        <location filename="../licence_model.cpp" line="470"/>
         <source>Your licence does not include this.</source>
         <translation>您的许可证不包含此项。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="462"/>
+        <location filename="../licence_model.cpp" line="473"/>
         <source>Your licence ended on %1.</source>
         <translation>您的许可证已于%1结束。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="465"/>
+        <location filename="../licence_model.cpp" line="476"/>
         <source>Your licence starts on %1.</source>
         <translation>您的许可证将于%1开始。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="468"/>
+        <location filename="../licence_model.cpp" line="479"/>
         <source>The date on this computer looks wrong.</source>
         <translation>本计算机上的日期似乎有误。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="471"/>
+        <location filename="../licence_model.cpp" line="482"/>
         <source>Your licence is for other computers.</source>
         <translation>您的许可证适用于其他计算机。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="474"/>
+        <location filename="../licence_model.cpp" line="485"/>
         <source>The installed licence is not valid.</source>
         <translation>已安装的许可证无效。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="584"/>
+        <location filename="../licence_model.cpp" line="595"/>
         <source>Your licence ends on %1.</source>
         <translation>您的许可证将于%1结束。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="586"/>
+        <location filename="../licence_model.cpp" line="597"/>
         <source>Your licence ended on %1. Its grace period ends on %2.</source>
         <translation>您的许可证已于%1结束。其宽限期将于%2结束。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="589"/>
+        <location filename="../licence_model.cpp" line="600"/>
         <source>Your licence has ended. This is the Community edition again, and nothing you made is lost.</source>
         <translation>您的许可证已结束。现在又是Community版，您创建的内容不会丢失。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="591"/>
+        <location filename="../licence_model.cpp" line="602"/>
         <source>The date on this computer looks wrong, so the licence cannot be judged.</source>
         <translation>本计算机上的日期似乎有误，因此无法判断许可证。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="600"/>
+        <location filename="../licence_model.cpp" line="611"/>
         <source>Remind me tomorrow</source>
         <translation>明天提醒我</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="600"/>
+        <location filename="../licence_model.cpp" line="611"/>
         <source>Dismiss</source>
         <translation>忽略</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="648"/>
+        <location filename="../licence_model.cpp" line="659"/>
         <source>Could not import the licence</source>
         <translation>无法导入许可证</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="655"/>
+        <location filename="../licence_model.cpp" line="666"/>
         <source>ARINC Data Loader could not read %1. Check that the file still exists and that you are allowed to open it.</source>
         <translation>ARINC Data Loader无法读取%1。请检查该文件是否仍然存在，以及您是否有权打开它。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="683"/>
+        <location filename="../licence_model.cpp" line="694"/>
         <source>The licence folder already holds %1 files. Remove one, then import again.</source>
         <translation>许可证文件夹中已有%1个文件。请移除一个，然后再次导入。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="689"/>
+        <location filename="../licence_model.cpp" line="700"/>
         <source>The licence could not be saved in %1. Check that the folder can be written.</source>
         <translation>无法将许可证保存到%1。请检查该文件夹是否可写入。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="710"/>
+        <location filename="../licence_model.cpp" line="721"/>
         <source>Licence imported</source>
         <translation>已导入许可证</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="713"/>
+        <location filename="../licence_model.cpp" line="724"/>
         <source>List of withdrawn licences imported</source>
         <translation>已导入被撤销许可证的列表</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="714"/>
+        <location filename="../licence_model.cpp" line="725"/>
         <source>The list was imported. A licence on it is shown as withdrawn.</source>
         <translation>已导入该列表。列表中的许可证会显示为已撤销。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="718"/>
+        <location filename="../licence_model.cpp" line="729"/>
         <source>That licence is already installed.</source>
         <translation>该许可证已安装。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="723"/>
+        <location filename="../licence_model.cpp" line="734"/>
         <source>This licence ended on %1. It was imported, but it includes nothing now.</source>
         <translation>此许可证已于%1结束。它已导入，但现在不包含任何内容。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="729"/>
+        <location filename="../licence_model.cpp" line="740"/>
         <source>This licence ended on %1. It was imported, and its grace period lasts until %2.</source>
         <translation>此许可证已于%1结束。它已导入，其宽限期持续到%2。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="735"/>
+        <location filename="../licence_model.cpp" line="746"/>
         <source>This licence starts on %1.</source>
         <translation>此许可证将于%1开始。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="741"/>
+        <location filename="../licence_model.cpp" line="752"/>
         <source>The date on this computer looks wrong, so the licence cannot be judged yet. It was imported.</source>
         <translation>本计算机上的日期似乎有误，因此暂时无法判断许可证。它已导入。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="745"/>
+        <location filename="../licence_model.cpp" line="756"/>
         <source>This is now the %1 edition.</source>
         <translation>现在的版本类型是%1。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="761"/>
+        <location filename="../licence_model.cpp" line="772"/>
         <source>Could not remove the licence</source>
         <translation>无法移除许可证</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="762"/>
+        <location filename="../licence_model.cpp" line="773"/>
         <source>The file %1 could not be removed from %2.</source>
         <translation>无法从%2中移除文件%1。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="802"/>
+        <location filename="../licence_model.cpp" line="813"/>
         <source>Support included</source>
         <translation>包含支持</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="804"/>
+        <location filename="../licence_model.cpp" line="815"/>
         <source>Support ended</source>
         <translation>支持已结束</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="808"/>
+        <location filename="../licence_model.cpp" line="819"/>
         <source>Community support</source>
         <translation>Community支持</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="833"/>
+        <location filename="../licence_model.cpp" line="844"/>
         <source>Your %1 licence includes support until %2. Write to the support address you were given with the licence, and quote your licence number, %3.</source>
         <translation>您的%1许可证包含支持，有效期至%2。请写信至随许可证提供给您的支持地址，并提供您的许可证编号%3。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="838"/>
+        <location filename="../licence_model.cpp" line="849"/>
         <source>Support ended with your licence on %1.</source>
         <translation>支持已随您的许可证于%1结束。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="842"/>
+        <location filename="../licence_model.cpp" line="853"/>
         <source>No licence that includes support is installed. Read the guide first, then open an issue on the project&apos;s GitHub page. The Community edition has no support promised; the maintainer is one person.</source>
         <translation>未安装包含支持的许可证。请先阅读指南，然后在项目的GitHub页面上提交问题。Community版不承诺提供支持；维护者只有一个人。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="850"/>
+        <location filename="../licence_model.cpp" line="861"/>
         <source>Version: %1</source>
         <translation>版本：%1</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="851"/>
+        <location filename="../licence_model.cpp" line="253"/>
+        <location filename="../licence_model.cpp" line="862"/>
         <source>Edition: %1</source>
         <translation>版本类型：%1</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="854"/>
+        <location filename="../licence_model.cpp" line="865"/>
         <source>Licence number: %1</source>
         <translation>许可证编号：%1</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="856"/>
+        <location filename="../licence_model.cpp" line="867"/>
         <source>Built for: %1</source>
         <translation>构建目标：%1</translation>
     </message>

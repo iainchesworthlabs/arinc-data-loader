@@ -13,15 +13,16 @@
 #include "adl/arinc615a/data_loader.hpp"
 #include "adl/arinc615a/directory_files.hpp"
 #include "adl/load/events.hpp"
+#include "adl/load/licence.hpp"
 #include "adl/load/options.hpp"
 #include "adl/load/reason.hpp"
+#include "adl/load/scenario.hpp"
 #include "adl/loader_core/gate.hpp"
 #include "adl/loader_core/media_set_check.hpp"
 #include "adl/loader_core/operation_plan.hpp"
 #include "adl/loader_core/run.hpp"
 #include "adl/platform/host.hpp"
 #include "job.hpp"
-#include "scenario_run.hpp"
 
 #include <memory>
 #include <optional>
@@ -33,8 +34,11 @@ namespace adl::load
 class OperationCommand
 {
 public:
-    // `options` and `events` have to outlive the object.
-    OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events);
+    // `options` and `events` have to outlive the object. `licence` is kept: begin() asks it for the licence the
+    // operation runs under, and the record says it. `scenario` is kept: load_scenario() asks it to open the file
+    // `--scenario` names, and a source that opens none refuses the option.
+    OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events, LicenceSource licence = {},
+                     ScenarioSource scenario = {});
 
     // With `--scenario`: reads and checks the file and makes what carries it out. Returns the sentence that says why
     // the file cannot be used, which is a local error (exit code 5) and not wrong usage; nothing is written. Call it
@@ -74,9 +78,11 @@ private:
     adl::platform::Host& host_;
     const Options& options_;
     EventWriter& events_;
+    LicenceSource licence_;
+    ScenarioSource scenario_source_;
     std::string address_;
     Job job_;
-    std::unique_ptr<ScenarioRun> scenario_;                 // what load_scenario() made; none without `--scenario`
+    std::unique_ptr<FaultPlan> scenario_;                   // what load_scenario() made; none without `--scenario`
     std::unique_ptr<adl::loader_core::OperationPlan> plan_; // what prepare() made; none for a set that cannot be read
     adl::loader_core::MediaSetReport report_;
     std::shared_ptr<const adl::loader_core::MediaSetIndex> index_;

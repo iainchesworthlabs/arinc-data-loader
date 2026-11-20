@@ -187,7 +187,7 @@ The layout is fixed, so that a program can rely on it:
 - **A number is written in decimal.**
 - **A reader refuses a `format` it does not know and ignores a key it does not know.** A key can be added without changing `format`. Removing one, renaming one or changing what one means changes it.
 
-The files in `tests/loader_core/golden/` are examples, one for each kind of operation and one for text that has to be escaped; the tests compare what the writer writes with them byte for byte.
+The files in `tests/loader_core/golden/` are examples, one for each kind of operation, one for text that has to be escaped and one with a licence; the tests compare what the writer writes with them byte for byte.
 
 ### The keys of the record
 
@@ -231,11 +231,28 @@ A key inside a list or an object is written with the key that holds it, so `load
 | `files.size` | Its size in bytes |
 | `files.path` | Where it was written, as the operating system writes a path, or an empty text when that is not known |
 | `download_folder` | For a download, the folder the files were written into, as the operating system writes a path. `null` for any other operation, and when no folder was kept (the loader removes the one it made if nothing arrived) |
-| `licence` | Reserved. Always `null` |
+| `licence` | The licence the program ran under when the operation started: see [the licence in a record](#the-licence-in-a-record). `null` when the program that wrote the record did not say, which `adl_load` always does |
+| `licence.edition` | The edition the program ran as: `community`, `pro` or `enterprise`. A licence that is not in force (ended, not started, withdrawn, for another computer, or a clock that looks wrong) is `community` |
+| `licence.state` | The state of the licence: `none` (no licence file), `valid`, `expiring`, `grace`, `expired`, `not_yet_valid`, `clock_suspect` or `invalid`. It says why a record is `community` |
+| `licence.number` | The licence number of the licence in force, or `null` when none is in force |
 | `log` | The lines of the log, in the order they were made |
 | `log.at` | When the line was made |
 | `log.severity` | `info`, `note`, `warning` or `error` |
 | `log.text` | The line, as the window's log says it in English |
+
+#### The licence in a record
+
+A program that reads the licence stamps what it ran as, the way the loader's window does in its log and receipt. `adl_load` reads the licence once, when an operation starts, in the folders the programs read ([Your licence and edition](user-guide/licence.md#where-licence-files-go)), and writes nothing back, not even the clock file. It never stops or changes an operation because of the licence: a licence that cannot be read is the Community edition. The licensee's name and address are not written.
+
+```json
+  "licence": {
+    "edition": "pro",
+    "state": "expiring",
+    "number": "ADL-2026-000123"
+  },
+```
+
+With no licence file it is `{"edition": "community", "state": "none", "number": null}`, and for a licence that has ended `{"edition": "community", "state": "expired", "number": null}`: the number of a licence that is not in force is not written. A computer whose system gives no date cannot judge a licence, and the record says `null`. The commands' events do not carry the licence: it is in the record only. `tests/loader_core/golden/information_licensed.json` is an example.
 
 #### The words of `reason`
 

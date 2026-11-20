@@ -4,6 +4,7 @@
 // same faults against the mock target's engine over real sockets are in tests/loopback/load_scenario_test.cpp; what
 // each action does to a datagram, byte for byte, is in tests/loader_scenario.
 
+#include "adl/load/system_scenario.hpp"
 #include "bytes.hpp"
 #include "command_rig.hpp"
 
@@ -15,7 +16,6 @@
 #include <string_view>
 #include <vector>
 
-using adl::test::CommandRig;
 using adl::test::CommandRun;
 using adl::test::DownloadItem;
 using adl::test::InstalledMediaSet;
@@ -24,6 +24,18 @@ using adl::test::SimPlan;
 
 namespace
 {
+
+// The command rig with the scenario source of this system, which is what main gives the program.
+class ScenarioRig : public adl::test::CommandRig
+{
+public:
+    explicit ScenarioRig(SimPlan plan = {}) : CommandRig(std::move(plan))
+    {
+        scenario = adl::load::system_scenario();
+    }
+};
+
+using adl::test::CommandRig;
 
 constexpr std::int64_t wall_origin = 1'795'083'330;
 constexpr std::string_view scenario_path = "/scenarios/faults.json";
@@ -99,7 +111,7 @@ TEST_CASE("a scenario with no step changes nothing but the keys it adds", "[load
 {
     CommandRig plain_rig;
     const CommandRun plain = information(plain_rig);
-    CommandRig scripted_rig;
+    ScenarioRig scripted_rig;
     const CommandRun scripted = with_scenario(scripted_rig, scenario_text(""));
     REQUIRE(plain.exit_code == 0);
     CHECK(scripted.exit_code == 0);
@@ -134,7 +146,7 @@ TEST_CASE("a scenario with no step changes nothing but the keys it adds", "[load
 TEST_CASE("without the option the program says nothing of a scenario, whatever else it is given",
           "[load][integration][scenario]")
 {
-    CommandRig rig;
+    ScenarioRig rig;
     const CommandRun run = information(rig);
     CHECK(run.out.find("scenario") == std::string::npos);
     CHECK(run.err.empty());
@@ -144,7 +156,7 @@ TEST_CASE("a request of the loader that is dropped comes again, and the step is 
 {
     CommandRig plain_rig;
     const CommandRun plain = information(plain_rig);
-    CommandRig rig;
+    ScenarioRig rig;
     const CommandRun run = with_scenario(rig, scenario_text(drop_the_request, R"("seed":3,)"));
     // The loader asks again after the timeout of two seconds, and the operation completes, later.
     CHECK(run.exit_code == 0);
@@ -182,7 +194,7 @@ TEST_CASE("a request of the loader that is dropped comes again, and the step is 
 TEST_CASE("a loader that drops every request is not answered, and the operation ends so",
           "[load][integration][scenario]")
 {
-    CommandRig rig;
+    ScenarioRig rig;
     const CommandRun run = with_scenario(
         rig,
         scenario_text(R"({"when":{"after_ms":0},"on":{"datagram":"request"},"do":{"action":"drop"},"count":"all"})"));
@@ -206,7 +218,7 @@ TEST_CASE("a loader that drops every request is not answered, and the operation 
 TEST_CASE("a step that never acted is named in finished, and a step for another operation is not in effect",
           "[load][integration][scenario]")
 {
-    CommandRig rig;
+    ScenarioRig rig;
     const std::string steps =
         // Step 1 waits for a ninth status file, which an Information operation never has.
         std::string{R"({"when":{"status_file":9},"on":{"datagram":"reply"},"do":{"action":"drop"}},)"} +
@@ -229,7 +241,7 @@ TEST_CASE("each operation is named in the events as the record names it", "[load
 {
     SECTION("information")
     {
-        CommandRig rig;
+        ScenarioRig rig;
         const CommandRun run = with_scenario(rig, scenario_text(delay_the_request));
         CHECK(run.exit_code == 0);
         REQUIRE(run.events_named("scenario_step").size() == 1);
@@ -240,7 +252,7 @@ TEST_CASE("each operation is named in the events as the record names it", "[load
         const adl::test::SampleLoad load = adl::test::make_sample_load(3'000, 3);
         SimPlan plan;
         plan.loads = {load.item};
-        CommandRig rig(plan);
+        ScenarioRig rig(plan);
         const InstalledMediaSet set(rig.rig.loader_host, load.members);
         put_scenario(rig, scenario_text(delay_the_request));
         rig.rig.world.set_wall_origin(wall_origin);
@@ -259,7 +271,7 @@ TEST_CASE("each operation is named in the events as the record names it", "[load
     {
         SimPlan plan;
         plan.files.push_back(DownloadItem{"A.BIN", adl::test::bytes_of("content of A.BIN"), "the A.BIN"});
-        CommandRig rig(plan);
+        ScenarioRig rig(plan);
         put_scenario(rig, scenario_text(delay_the_request));
         rig.rig.world.set_wall_origin(wall_origin);
         const CommandRun run = rig.run({"download", "--target", "10.0.0.2", "--position", "HNPFMS_L", "--into", "/dl",
@@ -272,7 +284,7 @@ TEST_CASE("each operation is named in the events as the record names it", "[load
     {
         SimPlan plan;
         plan.files.push_back(DownloadItem{"A.BIN", adl::test::bytes_of("content of A.BIN"), "the A.BIN"});
-        CommandRig rig(plan);
+        ScenarioRig rig(plan);
         put_scenario(rig, scenario_text(delay_the_request));
         rig.rig.world.set_wall_origin(wall_origin);
         const CommandRun run = rig.run({"download", "--target", "10.0.0.2", "--position", "HNPFMS_L", "--into", "/dl",
@@ -285,7 +297,7 @@ TEST_CASE("each operation is named in the events as the record names it", "[load
 
 TEST_CASE("the loader's own abort at a chosen moment ends the operation as aborted", "[load][integration][scenario]")
 {
-    CommandRig rig;
+    ScenarioRig rig;
     const CommandRun run = with_scenario(rig, scenario_text(R"({"when":{"after_ms":1500},"do":{"action":"abort"}})"));
     CHECK(run.exit_code == 1);
     adl::test::check_stream(run);
@@ -308,9 +320,9 @@ TEST_CASE("the same scenario against the same target gives the same events every
         R"({"when":{"after_ms":0},"on":{"datagram":"any"},"do":{"action":"delay","min_ms":10,"max_ms":400},)"
         R"("count":"all","per_mille":500})",
         R"("seed":5,)");
-    CommandRig first_rig;
+    ScenarioRig first_rig;
     const CommandRun first = with_scenario(first_rig, text);
-    CommandRig second_rig;
+    ScenarioRig second_rig;
     const CommandRun second = with_scenario(second_rig, text);
     CHECK(first.exit_code == second.exit_code);
     CHECK(first.out == second.out);
@@ -324,7 +336,7 @@ TEST_CASE("the same scenario against the same target gives the same events every
 
 TEST_CASE("without --json the steps are plain lines too", "[load][integration][scenario]")
 {
-    CommandRig rig;
+    ScenarioRig rig;
     put_scenario(rig, scenario_text(drop_the_request));
     const CommandRun run =
         rig.run({"information", "--target", "10.0.0.2", "--position", "HNPFMS_L", "--scenario", scenario_path});
@@ -350,7 +362,7 @@ TEST_CASE("a scenario file that cannot be used is told before anything else, wit
 
     SECTION("a file that is not there")
     {
-        CommandRig rig;
+        ScenarioRig rig;
         const std::vector<std::string_view> arguments = args("/scenarios/none.json");
         const CommandRun run = rig.run(arguments);
         CHECK(run.exit_code == 5);
@@ -359,7 +371,7 @@ TEST_CASE("a scenario file that cannot be used is told before anything else, wit
     }
     SECTION("a file that is not JSON")
     {
-        CommandRig rig;
+        ScenarioRig rig;
         put_scenario(rig, "not json");
         const CommandRun run = rig.run(args(scenario_path));
         CHECK(run.exit_code == 5);
@@ -370,7 +382,7 @@ TEST_CASE("a scenario file that cannot be used is told before anything else, wit
     }
     SECTION("a step that says something the loader cannot do, with the step and the key in the sentence")
     {
-        CommandRig rig;
+        ScenarioRig rig;
         put_scenario(rig, scenario_text(R"({"when":{"after_ms":0},"do":{"action":"drop","ms":5}})"));
         const CommandRun run = rig.run(args(scenario_path));
         CHECK(run.exit_code == 5);
@@ -380,7 +392,7 @@ TEST_CASE("a scenario file that cannot be used is told before anything else, wit
     }
     SECTION("a file larger than the limit is refused whole")
     {
-        CommandRig rig;
+        ScenarioRig rig;
         put_scenario(rig, std::string(262'145, ' '));
         const CommandRun run = rig.run(args(scenario_path));
         CHECK(run.exit_code == 5);
@@ -389,7 +401,7 @@ TEST_CASE("a scenario file that cannot be used is told before anything else, wit
     }
     SECTION("it is read before the media set, so a refused file is exit code 5 and not 3")
     {
-        CommandRig rig;
+        ScenarioRig rig;
         put_scenario(rig, "not json");
         const CommandRun run = rig.run({"upload", "--target", "10.0.0.2", "--position", "HNPFMS_L", "--media-set",
                                         "/not/there", "--all-loads", "--scenario", scenario_path, "--json"});
@@ -399,7 +411,7 @@ TEST_CASE("a scenario file that cannot be used is told before anything else, wit
     }
     SECTION("a file that is read leaves the media set's own problems as they are")
     {
-        CommandRig rig;
+        ScenarioRig rig;
         put_scenario(rig, scenario_text(""));
         const CommandRun run = rig.run({"upload", "--target", "10.0.0.2", "--position", "HNPFMS_L", "--media-set",
                                         "/not/there", "--all-loads", "--scenario", scenario_path, "--json"});

@@ -438,7 +438,7 @@
     <message>
         <location filename="../licence_model.cpp" line="191"/>
         <location filename="../licence_model.cpp" line="240"/>
-        <location filename="../licence_model.cpp" line="352"/>
+        <location filename="../licence_model.cpp" line="363"/>
         <source>Community</source>
         <translation>Community</translation>
     </message>
@@ -473,324 +473,330 @@
         <translation>無効</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="269"/>
+        <location filename="../licence_model.cpp" line="251"/>
+        <source>Edition: %1, licence %2</source>
+        <translation>エディション：%1、ライセンス %2</translation>
+    </message>
+    <message>
+        <location filename="../licence_model.cpp" line="280"/>
         <source>This version of ARINC Data Loader cannot check licence files yet, so it accepts none. The Community edition works as it always did.</source>
         <translation>このバージョンのARINC Data Loaderはまだライセンスファイルをチェックできないため、どのライセンスも受け付けません。Communityエディションは、これまでどおり動作します。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="275"/>
+        <location filename="../licence_model.cpp" line="286"/>
         <source>This licence needs a newer version of ARINC Data Loader. Install the latest version, then import the licence again.</source>
         <translation>このライセンスには、より新しいバージョンのARINC Data Loaderが必要です。最新バージョンをインストールしてから、ライセンスをもう一度インポートしてください。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="278"/>
+        <location filename="../licence_model.cpp" line="289"/>
         <source>This licence was withdrawn. Contact support.</source>
         <translation>このライセンスは取り消されました。サポートに連絡してください。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="280"/>
+        <location filename="../licence_model.cpp" line="291"/>
         <source>This licence is for other computers. This computer is %1. Ask your administrator for a licence that names it.</source>
         <translation>このライセンスは他のコンピューター用です。このコンピューターは%1です。このコンピューターが指定されたライセンスを、管理者に依頼してください。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="285"/>
+        <location filename="../licence_model.cpp" line="296"/>
         <source>This licence is for another product. Ask for an ARINC Data Loader licence.</source>
         <translation>このライセンスは別の製品用です。ARINC Data Loaderのライセンスを依頼してください。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="291"/>
+        <location filename="../licence_model.cpp" line="302"/>
         <source>This file is not a valid ARINC Data Loader licence. It may be damaged or incomplete. Ask for the file again.</source>
         <translation>このファイルは有効なARINC Data Loaderのライセンスではありません。破損しているか、不完全な可能性があります。ファイルをもう一度依頼してください。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="305"/>
+        <location filename="../licence_model.cpp" line="316"/>
         <source>No licence is installed. This is the Community edition. Every function of the programs is available without a licence.</source>
         <translation>ライセンスはインストールされていません。Communityエディションです。ライセンスがなくても、プログラムのすべての機能を利用できます。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="308"/>
+        <location filename="../licence_model.cpp" line="319"/>
         <source>Valid until %1.</source>
         <translation>%1まで有効です。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="312"/>
+        <location filename="../licence_model.cpp" line="323"/>
         <source>Valid until %1. It ends today.</source>
         <translation>%1まで有効です。今日で終了します。</translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="314"/>
+        <location filename="../licence_model.cpp" line="325"/>
         <source>Valid until %1. %n day(s) left.</source>
         <translation>
             <numerusform>%1まで有効です。残り%n日です。</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="316"/>
+        <location filename="../licence_model.cpp" line="327"/>
         <source>Ended on %1. The grace period lasts until %2.</source>
         <translation>%1に終了しました。猶予期間は%2までです。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="319"/>
+        <location filename="../licence_model.cpp" line="330"/>
         <source>Ended on %1. This is the Community edition again. Nothing you made is lost: media sets, receipts and logs are unchanged.</source>
         <translation>%1に終了しました。Communityエディションに戻っています。作成したものは失われません。メディアセット、受領書、ログは変更されません。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="324"/>
+        <location filename="../licence_model.cpp" line="335"/>
         <source>Starts on %1.</source>
         <translation>%1に開始します。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="326"/>
+        <location filename="../licence_model.cpp" line="337"/>
         <source>The date on this computer looks wrong, so the licence cannot be judged until the date is right.</source>
         <translation>このコンピューターの日付が正しくないようです。日付が正しくなるまで、ライセンスを判定できません。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="344"/>
+        <location filename="../licence_model.cpp" line="355"/>
         <source>%1, ends today</source>
         <translation>%1、今日で終了</translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="346"/>
+        <location filename="../licence_model.cpp" line="357"/>
         <source>%1, %n day(s) left</source>
         <translation>
             <numerusform>%1、残り%n日</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="348"/>
+        <location filename="../licence_model.cpp" line="359"/>
         <source>%1, licence ended</source>
         <translation>%1、ライセンスは終了しました</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="370"/>
+        <location filename="../licence_model.cpp" line="381"/>
         <source>Edition: %1. Open the licence window.</source>
         <translation>エディション：%1。ライセンスのウィンドウを開きます。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="396"/>
-        <location filename="../licence_model.cpp" line="506"/>
+        <location filename="../licence_model.cpp" line="407"/>
+        <location filename="../licence_model.cpp" line="517"/>
         <source>%1 to %2</source>
         <translation>%1～%2</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="406"/>
+        <location filename="../licence_model.cpp" line="417"/>
         <source>Site licence</source>
         <translation>サイトライセンス</translation>
     </message>
     <message numerus="yes">
-        <location filename="../licence_model.cpp" line="406"/>
+        <location filename="../licence_model.cpp" line="417"/>
         <source>%n seat(s)</source>
         <translation>
             <numerusform>%nシート</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="420"/>
+        <location filename="../licence_model.cpp" line="431"/>
         <source>%1. This computer is %2.</source>
         <translation>%1。このコンピューターは%2です。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="437"/>
+        <location filename="../licence_model.cpp" line="448"/>
         <source>Support</source>
         <translation>サポート</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="437"/>
+        <location filename="../licence_model.cpp" line="448"/>
         <source>Needs a Pro or Enterprise licence.</source>
         <translation>ProまたはEnterpriseのライセンスが必要です。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="438"/>
+        <location filename="../licence_model.cpp" line="449"/>
         <source>Data packs</source>
         <translation>データパック</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="438"/>
+        <location filename="../licence_model.cpp" line="449"/>
         <source>Needs an Enterprise licence.</source>
         <translation>Enterpriseのライセンスが必要です。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="459"/>
+        <location filename="../licence_model.cpp" line="470"/>
         <source>Your licence does not include this.</source>
         <translation>お使いのライセンスには含まれていません。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="462"/>
+        <location filename="../licence_model.cpp" line="473"/>
         <source>Your licence ended on %1.</source>
         <translation>お使いのライセンスは%1に終了しました。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="465"/>
+        <location filename="../licence_model.cpp" line="476"/>
         <source>Your licence starts on %1.</source>
         <translation>お使いのライセンスは%1に開始します。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="468"/>
+        <location filename="../licence_model.cpp" line="479"/>
         <source>The date on this computer looks wrong.</source>
         <translation>このコンピューターの日付が正しくないようです。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="471"/>
+        <location filename="../licence_model.cpp" line="482"/>
         <source>Your licence is for other computers.</source>
         <translation>お使いのライセンスは他のコンピューター用です。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="474"/>
+        <location filename="../licence_model.cpp" line="485"/>
         <source>The installed licence is not valid.</source>
         <translation>インストールされているライセンスは無効です。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="584"/>
+        <location filename="../licence_model.cpp" line="595"/>
         <source>Your licence ends on %1.</source>
         <translation>お使いのライセンスは%1に終了します。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="586"/>
+        <location filename="../licence_model.cpp" line="597"/>
         <source>Your licence ended on %1. Its grace period ends on %2.</source>
         <translation>お使いのライセンスは%1に終了しました。猶予期間は%2に終了します。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="589"/>
+        <location filename="../licence_model.cpp" line="600"/>
         <source>Your licence has ended. This is the Community edition again, and nothing you made is lost.</source>
         <translation>お使いのライセンスは終了しました。Communityエディションに戻りましたが、作成したものは失われません。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="591"/>
+        <location filename="../licence_model.cpp" line="602"/>
         <source>The date on this computer looks wrong, so the licence cannot be judged.</source>
         <translation>このコンピューターの日付が正しくないようです。そのため、ライセンスを判定できません。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="600"/>
+        <location filename="../licence_model.cpp" line="611"/>
         <source>Remind me tomorrow</source>
         <translation>明日知らせる</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="600"/>
+        <location filename="../licence_model.cpp" line="611"/>
         <source>Dismiss</source>
         <translation>閉じる</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="648"/>
+        <location filename="../licence_model.cpp" line="659"/>
         <source>Could not import the licence</source>
         <translation>ライセンスをインポートできませんでした</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="655"/>
+        <location filename="../licence_model.cpp" line="666"/>
         <source>ARINC Data Loader could not read %1. Check that the file still exists and that you are allowed to open it.</source>
         <translation>ARINC Data Loaderは%1を読み取れませんでした。ファイルがまだ存在していることと、開く権限があることを確認してください。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="683"/>
+        <location filename="../licence_model.cpp" line="694"/>
         <source>The licence folder already holds %1 files. Remove one, then import again.</source>
         <translation>ライセンスフォルダーには、すでに%1個のファイルがあります。1つ削除してから、もう一度インポートしてください。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="689"/>
+        <location filename="../licence_model.cpp" line="700"/>
         <source>The licence could not be saved in %1. Check that the folder can be written.</source>
         <translation>ライセンスを%1に保存できませんでした。フォルダーに書き込めることを確認してください。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="710"/>
+        <location filename="../licence_model.cpp" line="721"/>
         <source>Licence imported</source>
         <translation>ライセンスをインポートしました</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="713"/>
+        <location filename="../licence_model.cpp" line="724"/>
         <source>List of withdrawn licences imported</source>
         <translation>取り消されたライセンスの一覧をインポートしました</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="714"/>
+        <location filename="../licence_model.cpp" line="725"/>
         <source>The list was imported. A licence on it is shown as withdrawn.</source>
         <translation>一覧をインポートしました。一覧に載っているライセンスは、取り消されたものとして表示されます。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="718"/>
+        <location filename="../licence_model.cpp" line="729"/>
         <source>That licence is already installed.</source>
         <translation>そのライセンスはすでにインストールされています。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="723"/>
+        <location filename="../licence_model.cpp" line="734"/>
         <source>This licence ended on %1. It was imported, but it includes nothing now.</source>
         <translation>このライセンスは%1に終了しました。インポートはしましたが、現在は何も含まれていません。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="729"/>
+        <location filename="../licence_model.cpp" line="740"/>
         <source>This licence ended on %1. It was imported, and its grace period lasts until %2.</source>
         <translation>このライセンスは%1に終了しました。インポートしました。猶予期間は%2までです。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="735"/>
+        <location filename="../licence_model.cpp" line="746"/>
         <source>This licence starts on %1.</source>
         <translation>このライセンスは%1に開始します。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="741"/>
+        <location filename="../licence_model.cpp" line="752"/>
         <source>The date on this computer looks wrong, so the licence cannot be judged yet. It was imported.</source>
         <translation>このコンピューターの日付が正しくないようです。そのため、ライセンスをまだ判定できません。ライセンスはインポートされています。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="745"/>
+        <location filename="../licence_model.cpp" line="756"/>
         <source>This is now the %1 edition.</source>
         <translation>現在は%1エディションです。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="761"/>
+        <location filename="../licence_model.cpp" line="772"/>
         <source>Could not remove the licence</source>
         <translation>ライセンスを削除できませんでした</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="762"/>
+        <location filename="../licence_model.cpp" line="773"/>
         <source>The file %1 could not be removed from %2.</source>
         <translation>ファイル%1を%2から削除できませんでした。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="802"/>
+        <location filename="../licence_model.cpp" line="813"/>
         <source>Support included</source>
         <translation>サポート付き</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="804"/>
+        <location filename="../licence_model.cpp" line="815"/>
         <source>Support ended</source>
         <translation>サポート終了</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="808"/>
+        <location filename="../licence_model.cpp" line="819"/>
         <source>Community support</source>
         <translation>Communityサポート</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="833"/>
+        <location filename="../licence_model.cpp" line="844"/>
         <source>Your %1 licence includes support until %2. Write to the support address you were given with the licence, and quote your licence number, %3.</source>
         <translation>お使いの%1ライセンスには、%2までのサポートが含まれます。ライセンスとともに受け取ったサポート用のアドレス宛てに書き、ライセンス番号%3を記載してください。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="838"/>
+        <location filename="../licence_model.cpp" line="849"/>
         <source>Support ended with your licence on %1.</source>
         <translation>サポートは、お使いのライセンスとともに%1に終了しました。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="842"/>
+        <location filename="../licence_model.cpp" line="853"/>
         <source>No licence that includes support is installed. Read the guide first, then open an issue on the project&apos;s GitHub page. The Community edition has no support promised; the maintainer is one person.</source>
         <translation>サポートを含むライセンスはインストールされていません。まずガイドを読み、次にプロジェクトのGitHubページで問題報告を作成してください。Communityエディションにはサポートの約束はありません。メンテナーは1人です。</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="850"/>
+        <location filename="../licence_model.cpp" line="861"/>
         <source>Version: %1</source>
         <translation>バージョン：%1</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="851"/>
+        <location filename="../licence_model.cpp" line="253"/>
+        <location filename="../licence_model.cpp" line="862"/>
         <source>Edition: %1</source>
         <translation>エディション：%1</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="854"/>
+        <location filename="../licence_model.cpp" line="865"/>
         <source>Licence number: %1</source>
         <translation>ライセンス番号：%1</translation>
     </message>
     <message>
-        <location filename="../licence_model.cpp" line="856"/>
+        <location filename="../licence_model.cpp" line="867"/>
         <source>Built for: %1</source>
         <translation>ビルド対象：%1</translation>
     </message>

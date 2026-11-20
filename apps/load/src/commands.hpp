@@ -6,7 +6,9 @@
 // not hold) is told on `err` and is exit code 2 with no event written.
 
 #include "adl/load/events.hpp"
+#include "adl/load/licence.hpp"
 #include "adl/load/options.hpp"
+#include "adl/load/scenario.hpp"
 #include "adl/platform/host.hpp"
 
 #include <iosfwd>
@@ -14,9 +16,11 @@
 namespace adl::load
 {
 
-// information, upload and download: one operation on one target.
+// information, upload and download: one operation on one target. `licence` says how the record gets the licence the
+// operation runs under, and `scenario` how the file of `--scenario` is opened.
 [[nodiscard]] int run_operation_command(adl::platform::Host& host, const Options& options, EventWriter& events,
-                                        std::ostream& err);
+                                        std::ostream& err, const LicenceSource& licence = {},
+                                        const ScenarioSource& scenario = {});
 
 // find.
 [[nodiscard]] int run_find_command(adl::platform::Host& host, const Options& options, EventWriter& events);
