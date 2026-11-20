@@ -60,6 +60,7 @@ std::string_view event_name(const EventData& data) noexcept
                                  [](const Progress&) { return std::string_view{"progress"}; },
                                  [](const UploadReceived&) { return std::string_view{"upload_received"}; },
                                  [](const OperationEnded&) { return std::string_view{"operation_ended"}; },
+                                 [](const ScenarioStepFired&) { return std::string_view{"scenario_step"}; },
                                  [](const Stopped&) { return std::string_view{"stopped"}; }},
                       data);
 }
@@ -78,6 +79,20 @@ std::string to_json_line(const Event& event)
                                   .number("find_port", started.find_port)
                                   .number("tftp_port", started.tftp_port)
                                   .strings("faults", started.faults);
+                              if (started.scenario)
+                              {
+                                  object.string("scenario", started.scenario->path)
+                                      .number("scenario_steps", static_cast<std::int64_t>(started.scenario->steps));
+                                  if (started.scenario->seed)
+                                  {
+                                      object.number("scenario_seed",
+                                                    static_cast<std::int64_t>(*started.scenario->seed));
+                                  }
+                                  else
+                                  {
+                                      object.null("scenario_seed");
+                                  }
+                              }
                           },
                           [&object](const OperationBegan& began) { object.string("operation", began.operation); },
                           [&object](const Progress& progress)
@@ -107,10 +122,37 @@ std::string to_json_line(const Event& event)
                               }
                               object.string("status_name", ended.status_name).boolean("refused", ended.refused);
                           },
+                          [&object](const ScenarioStepFired& fired)
+                          {
+                              object.number("step", static_cast<std::int64_t>(fired.step))
+                                  .string("trigger", fired.trigger)
+                                  .number("at", fired.at)
+                                  .string("operation", fired.operation)
+                                  .string("action", fired.action)
+                                  .boolean("applied", fired.applied);
+                              if (fired.seconds)
+                              {
+                                  object.number("seconds", *fired.seconds);
+                              }
+                              if (fired.status)
+                              {
+                                  object.number("status", *fired.status);
+                              }
+                              if (fired.ms)
+                              {
+                                  object.number("ms", *fired.ms);
+                              }
+                          },
                           [&object](const Stopped& stopped)
                           {
                               object.string("reason", stopped.reason)
                                   .number("operations", static_cast<std::int64_t>(stopped.operations));
+                              if (stopped.scenario_unused)
+                              {
+                                  const std::vector<std::int64_t> unused(stopped.scenario_unused->begin(),
+                                                                         stopped.scenario_unused->end());
+                                  object.numbers("scenario_unused", unused);
+                              }
                           }},
                event.data);
     return object.text();
@@ -131,6 +173,13 @@ std::string to_plain_line(const Event& event)
                               add(line, "find_port", std::to_string(started.find_port));
                               add(line, "tftp_port", std::to_string(started.tftp_port));
                               add(line, "faults", started.faults.empty() ? "none" : joined(started.faults, ','));
+                              if (started.scenario)
+                              {
+                                  add(line, "scenario", started.scenario->path);
+                                  add(line, "scenario_steps", std::to_string(started.scenario->steps));
+                                  add(line, "scenario_seed",
+                                      started.scenario->seed ? std::to_string(*started.scenario->seed) : "none");
+                              }
                           },
                           [&line](const OperationBegan& began) { add(line, "operation", began.operation); },
                           [&line](const Progress& progress)
@@ -151,10 +200,40 @@ std::string to_plain_line(const Event& event)
                               add(line, "status_name", ended.status_name);
                               add(line, "refused", ended.refused ? "true" : "false");
                           },
+                          [&line](const ScenarioStepFired& fired)
+                          {
+                              add(line, "step", std::to_string(fired.step));
+                              add(line, "trigger", fired.trigger);
+                              add(line, "at", std::to_string(fired.at));
+                              add(line, "operation", fired.operation);
+                              add(line, "action", fired.action);
+                              add(line, "applied", fired.applied ? "true" : "false");
+                              if (fired.seconds)
+                              {
+                                  add(line, "seconds", std::to_string(*fired.seconds));
+                              }
+                              if (fired.status)
+                              {
+                                  add(line, "status", std::to_string(*fired.status));
+                              }
+                              if (fired.ms)
+                              {
+                                  add(line, "ms", std::to_string(*fired.ms));
+                              }
+                          },
                           [&line](const Stopped& stopped)
                           {
                               add(line, "reason", stopped.reason);
                               add(line, "operations", std::to_string(stopped.operations));
+                              if (stopped.scenario_unused)
+                              {
+                                  std::vector<std::string> unused;
+                                  for (const std::size_t step : *stopped.scenario_unused)
+                                  {
+                                      unused.push_back(std::to_string(step));
+                                  }
+                                  add(line, "scenario_unused", unused.empty() ? "none" : joined(unused, ','));
+                              }
                           }},
                event.data);
     return line;

@@ -124,6 +124,11 @@ and `the FIND port could not be bound: <reason>`.
 """
 
 
+SCENARIO_READER = """std::unexpected<ReadError> fail() { return ReadError{"step " + number + " has the key " + key + ", which this version does not know"}; }
+"""
+SCENARIO_PAGE = "# Scenarios\n`step <n> has the key <key>, which this version does not know`\n"
+
+
 class Check(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
@@ -217,6 +222,22 @@ class Check(unittest.TestCase):
         (self.root / "apps" / "mock" / "include" / "adl" / "mock" / "cli" / "command.hpp").write_text(MOCK_HEADER, encoding="utf-8")
         (self.root / "libs" / "mock_target_core" / "src" / "engine.cpp").write_text(MOCK_ENGINE, encoding="utf-8")
         (self.root / "docs" / "user-guide" / "command-line.md").write_text(page, encoding="utf-8")
+
+    def add_scenario_reader(self, page: str = SCENARIO_PAGE) -> None:
+        (self.root / "libs" / "scenario_base" / "src").mkdir(parents=True, exist_ok=True)
+        (self.root / "libs" / "scenario_base" / "src" / "envelope.cpp").write_text(SCENARIO_READER, encoding="utf-8")
+        (self.root / "docs" / "user-guide" / "mock-scenarios.md").write_text(page, encoding="utf-8")
+
+    def test_a_sentence_of_the_scenario_readers_has_to_be_on_the_scenario_page(self) -> None:
+        self.add_scenario_reader()
+        self.assertEqual(self.problems(), "")
+        self.add_scenario_reader(SCENARIO_PAGE.replace("which this version does not know", ""))
+        self.assertIn("of the scenario file readers is not in docs/user-guide/mock-scenarios.md", self.problems())
+
+    def test_a_missing_scenario_page_is_found_when_the_readers_are_there(self) -> None:
+        self.add_scenario_reader()
+        (self.root / "docs" / "user-guide" / "mock-scenarios.md").unlink()
+        self.assertIn("of the scenario file readers is not in docs/user-guide/mock-scenarios.md", self.problems())
 
     def test_adl_mock_with_everything_in_its_section_passes(self) -> None:
         self.add_mock()

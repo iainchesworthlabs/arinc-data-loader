@@ -1009,3 +1009,202 @@ TEST_CASE("the loader against adl_mock started as a process, with folders of Uni
         static_cast<void>(echo(line));
     }
 }
+
+// ---- Scenarios -----------------------------------------------------------------------------------------
+
+namespace
+{
+
+// A scenario file in a folder of its own, and the path as the program is given it.
+[[nodiscard]] std::string write_scenario_file(const adl::test::TempDir& directory, std::string_view name,
+                                              std::string_view text)
+{
+    const std::filesystem::path path = directory.path() / std::string{name};
+    std::ofstream out(path, std::ios::binary);
+    out << text;
+    return utf8_of(path);
+}
+
+// The events without their times, as the lines the program wrote, for comparing two runs.
+[[nodiscard]] std::vector<std::string> events_without_time(const std::string& text)
+{
+    std::vector<std::string> lines;
+    for (std::string line : lines_of(text))
+    {
+        const std::size_t start = line.find(",\"t\":");
+        const std::size_t end = line.find_first_of(",}", start + 5);
+        REQUIRE(start != std::string::npos);
+        line.erase(start, end - start);
+        lines.push_back(std::move(line));
+    }
+    return lines;
+}
+
+constexpr std::string_view slow_start_scenario = R"({
+  "kind": "adl-mock-scenario",
+  "format": 1,
+  "seed": 5,
+  "steps": [
+    { "when": { "request": 1 }, "do": { "action": "wait", "seconds": 1 } },
+    { "when": { "request": 2 }, "do": { "action": "delay", "min_ms": 100, "max_ms": 300 } },
+    { "when": { "request": 40 }, "do": { "action": "refuse" } }
+  ]
+})";
+
+} // namespace
+
+TEST_CASE("a scenario's steps are written as events, and the steps that never fired are told at the end",
+          "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file = write_scenario_file(directory, "slow start.json", slow_start_scenario);
+    Program program({"--scenario", file, "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const Outcome outcome = rig.run(InformationOperation{});
+    CHECK(outcome.code == OutcomeCode::completed);
+    CHECK(rig.recorder.count(Notice::waiting) == 1);
+    CHECK(program.join() == cli::exit_ok);
+    CHECK(program.output.err_buffer.text().empty());
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "scenario_step", "scenario_step", "operation_began",
+                                                       "progress", "operation_ended", "stopped"});
+    const Json& started = events.front();
+    CHECK(strings_of(started.at("faults")) == std::vector<std::string>{"--scenario"});
+    CHECK(started.at("scenario").string() == file);
+    CHECK(started.at("scenario_steps").number() == 3);
+    CHECK(started.at("scenario_seed").number() == 5);
+
+    // Request 1 is answered with WAIT:1, and the loader's repeat is request 2, which is held back for a time drawn
+    // from 100 to 300 ms by the stream of step 2 (the same number as in tests/scenario_base).
+    const Json& wait = events[1];
+    CHECK(wait.at("step").number() == 1);
+    CHECK(wait.at("trigger").string() == "request");
+    CHECK(wait.at("at").number() == 1);
+    CHECK(wait.at("operation").string() == "information");
+    CHECK(wait.at("action").string() == "wait");
+    CHECK(wait.at("applied").boolean());
+    CHECK(wait.at("seconds").number() == 1);
+    CHECK(wait.find("ms") == nullptr);
+    CHECK(wait.find("status") == nullptr);
+    const Json& delay = events[2];
+    CHECK(delay.at("step").number() == 2);
+    CHECK(delay.at("at").number() == 2);
+    CHECK(delay.at("action").string() == "delay");
+    CHECK(delay.at("ms").number() >= 100);
+    CHECK(delay.at("ms").number() <= 300);
+    CHECK(delay.find("seconds") == nullptr);
+
+    const Json& stopped = events.back();
+    CHECK(stopped.at("operations").number() == 1);
+    const auto& unused = stopped.at("scenario_unused").items();
+    REQUIRE(unused.size() == 1);
+    CHECK(unused[0].number() == 3);
+}
+
+TEST_CASE("a scenario's refusal is written before the end of the operation it refuses", "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file = write_scenario_file(directory, "refuse.json",
+                                                 R"({"kind":"adl-mock-scenario","format":1,"steps":[
+            {"when":{"request":1},"do":{"action":"refuse","code":"0x1002"}}]})");
+    Program program({"--scenario", file, "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::not_supported);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "scenario_step", "operation_ended", "stopped"});
+    CHECK(events[0].at("scenario_seed").is_null());
+    CHECK(events[1].at("action").string() == "refuse");
+    CHECK(events[1].at("status").number() == 0x1002);
+    CHECK(events[2].at("status_name").string() == "operation_not_supported");
+    CHECK(events[2].at("refused").boolean());
+    CHECK(events.back().at("scenario_unused").items().empty());
+}
+
+TEST_CASE("a scenario with a seed gives the same events on every run", "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file = write_scenario_file(directory, "again.json", slow_start_scenario);
+    std::vector<std::vector<std::string>> runs;
+    for (int run = 0; run < 2; ++run)
+    {
+        Program program({"--scenario", file, "--operations", "1", "--seconds", "60", "--json"});
+        REQUIRE(program.listening());
+        LoaderRig rig;
+        CHECK(rig.run(InformationOperation{}).code == OutcomeCode::completed);
+        CHECK(program.join() == cli::exit_ok);
+        runs.push_back(events_without_time(program.output.out_buffer.text()));
+    }
+    REQUIRE(runs[0].size() == 7);
+    CHECK(runs[0] == runs[1]);
+}
+
+TEST_CASE("the plain output of a scenario has a line for each step", "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file = write_scenario_file(
+        directory, "plain.json",
+        R"({"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"wait","seconds":1}}]})");
+    Program program({"--scenario", file, "--operations", "1", "--seconds", "60"});
+    REQUIRE(program.output.out_buffer.wait_for("started", std::chrono::seconds(20)));
+    LoaderRig rig;
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::completed);
+    CHECK(program.join() == cli::exit_ok);
+    const std::string text = program.output.out_buffer.text();
+    CHECK(text.contains(
+        "scenario_step step=1 trigger=request at=1 operation=information action=wait applied=true seconds=1"));
+    CHECK(text.contains("faults=--scenario"));
+    CHECK(text.contains("scenario_steps=1 scenario_seed=none"));
+    CHECK(text.contains("scenario_unused=none"));
+}
+
+TEST_CASE("a scenario file that cannot be used exits 5 before anything is opened, with one sentence",
+          "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string bad = write_scenario_file(
+        directory, "bad.json",
+        R"({"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":2},"do":{"action":"wait","seconds":1}}]})");
+    Program program({"--scenario", bad, "--seconds", "5", "--json"});
+    CHECK(program.join() == cli::exit_scenario);
+    CHECK(program.output.out_buffer.text().empty());
+    CHECK(program.output.err_buffer.text() ==
+          "adl_mock: --scenario " + bad +
+              ": step 1: \"wait\" does not go with a \"status_file\" trigger; it goes with \"request\"\n");
+
+    Program not_json({"--scenario", write_scenario_file(directory, "not json.json", "nothing"), "--seconds", "5"});
+    CHECK(not_json.join() == cli::exit_scenario);
+    CHECK(not_json.output.err_buffer.text().contains("it is not valid JSON"));
+
+    const std::string missing = utf8_of(directory.path() / "missing.json");
+    Program absent({"--scenario", missing, "--seconds", "5"});
+    CHECK(absent.join() == cli::exit_scenario);
+    CHECK(absent.output.out_buffer.text().empty());
+    CHECK(
+        absent.output.err_buffer.text().starts_with("adl_mock: --scenario " + missing + ": the file cannot be read ("));
+}
+
+TEST_CASE("a scenario does not go with an option that sets a fault, and a step that goes silent needs --seconds",
+          "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file =
+        write_scenario_file(directory, "ok.json", R"({"kind":"adl-mock-scenario","format":1,"steps":[]})");
+    Program with_fault({"--scenario", file, "--wrong-checksum", "--seconds", "5"}, false);
+    CHECK(with_fault.join() == cli::exit_usage);
+    CHECK(with_fault.output.out_buffer.text().empty());
+    CHECK(with_fault.output.err_buffer.text() == "adl_mock: --scenario cannot be used with --wrong-checksum: the "
+                                                 "scenario sets the faults\ntry 'adl_mock --help'\n");
+
+    const std::string silent = write_scenario_file(
+        directory, "silent.json",
+        R"({"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"after_ms":100},"do":{"action":"silent"}}]})");
+    Program without_seconds({"--scenario", silent, "--operations", "1"}, false);
+    CHECK(without_seconds.join() == cli::exit_usage);
+    CHECK(without_seconds.output.out_buffer.text().empty());
+    CHECK(without_seconds.output.err_buffer.text().contains("needs --seconds, because the operation never ends"));
+}

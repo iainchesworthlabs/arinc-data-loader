@@ -215,6 +215,21 @@ JsonObject& JsonObject::strings(std::string_view name, std::span<const std::stri
     return *this;
 }
 
+JsonObject& JsonObject::numbers(std::string_view name, std::span<const std::int64_t> values)
+{
+    key(name);
+    members_.push_back('[');
+    bool first = true;
+    for (const std::int64_t value : values)
+    {
+        members_ += first ? "" : ",";
+        members_ += std::to_string(value);
+        first = false;
+    }
+    members_.push_back(']');
+    return *this;
+}
+
 std::string JsonObject::text() const
 {
     return "{" + members_ + "}";

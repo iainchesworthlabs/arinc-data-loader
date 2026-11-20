@@ -146,6 +146,8 @@ faults (all off by default)
   --wrong-checksum          write a wrong check value option
   --abort-after <n>         abort (0x1003) after n status files
   --silent                  say nothing after the first status file; needs --seconds
+  --scenario <file>         take the faults from a scenario file, which says which happens when
+                            (instead of the fault options above); see the guide
 
 stopping
   --operations <n>          stop after n operations (a refused one counts)
@@ -156,7 +158,7 @@ output
   --help, --version
 
 exit codes: 0 stopped as asked, 1 the run failed, 2 wrong usage, 3 a folder cannot be used,
-4 a port cannot be opened
+4 a port cannot be opened, 5 a scenario file cannot be used
 ```
 
 ### The options
@@ -182,6 +184,7 @@ Options are written `--name value`. A value is never a list with commas: an opti
 | `--wrong-checksum` | Write a wrong check value option | Off |
 | `--abort-after <n>` | Abort (0x1003) after n status files | Off |
 | `--silent` | Say nothing after the first status file, so the loader runs into its 13 second time-out. The operation never ends, so it needs `--seconds` | Off |
+| `--scenario <file>` | Take the faults from a scenario file, which says which fault happens when, in place of the fault options. It cannot be given with one of them. The file is described in [Scenarios for the mock target](mock-scenarios.md). A scenario with a step that goes silent needs `--seconds` | Off |
 | `--operations <n>`, `--seconds <n>` | Stop after n operations (a refused one counts), or after n seconds | Run until killed |
 | `--json` | One JSON object a line | One plain line an event |
 | `--help`, `--version` | The usage; `adl_mock <version> events 1` | |
@@ -206,7 +209,7 @@ By default a line is for a person: the seconds since the program started, the na
 
 With `--json` a line is one JSON object, in UTF-8, for a program to read: `"event"` is the first key and `"t"` (the seconds, with three decimals) the second. On Windows the standard output is a text stream and each line ends in a carriage return and a line feed; a reader that splits at the line feed and ignores a carriage return at the end of a line reads both.
 
-The events are `started`, `operation_began`, `progress`, `upload_received`, `operation_ended` and `stopped`. The keys of each, and what a reader should do with a key or a format number it does not know, are in [The mock target](../mock-target.md#output).
+The events are `started`, `operation_began`, `progress`, `upload_received`, `operation_ended`, `scenario_step` (only with `--scenario`, see [Scenarios for the mock target](mock-scenarios.md#running-adl_mock-with-a-scenario)) and `stopped`. The keys of each, and what a reader should do with a key or a format number it does not know, are in [The mock target](../mock-target.md#output).
 
 ### Exit codes
 
@@ -217,8 +220,9 @@ The events are `started`, `operation_began`, `progress`, `upload_received`, `ope
 | 2 | Wrong usage. Nothing was started |
 | 3 | A folder cannot be used: `--holds` is not a folder or cannot be read, or `--storage` is not a folder and cannot be made |
 | 4 | A port cannot be opened: it is in use, or needs a privilege |
+| 5 | The scenario file given with `--scenario` cannot be read or is refused. The sentence on standard error says why ([the page of scenarios](mock-scenarios.md#a-file-that-is-refused)) |
 
-On exits 2, 3 and 4 no event is written: the target never started.
+On exits 2, 3, 4 and 5 no event is written: the target never started.
 
 ### Messages
 
@@ -246,6 +250,10 @@ Each message is one line of standard error, after `adl_mock: `. A usage error en
 | `--refuse-code needs --refuse` | 2 | Say which operation to refuse |
 | `--wait-first and --wait-every cannot both be given` | 2 | Give one of them |
 | `--silent needs --seconds, because the operation never ends` | 2 | Say how long it should run |
+| `--scenario needs a file` | 2 | `--scenario` takes the path of a file, not an empty text |
+| `--scenario cannot be used with <option>: the scenario sets the faults` | 2 | Take the fault option out, or put the fault in the scenario |
+| `--scenario with a step that goes silent needs --seconds, because the operation never ends` | 2 | Say how long it should run, as `--silent` needs |
+| `--scenario <file>: <sentence>` | 5 | The file cannot be read, or it is not a scenario this version can use. The sentence says which step and what is wrong: [A file that is refused](mock-scenarios.md#a-file-that-is-refused) lists them |
 | `the hardware ID and position make <name>, which is not a name every system can use for a file` | 2 | Choose another `--hardware-id` or `--position`: the protocol files are named after them |
 | `--holds <folder>: <reason>` | 3 | The folder is not there, is not a folder, or cannot be read. The reason is the system's; the program says `not a folder` when it is a file |
 | `--storage <folder>: <reason>` | 3 | The folder cannot be made or is not a folder |
