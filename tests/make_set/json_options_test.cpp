@@ -46,10 +46,10 @@ TEST_CASE("json: a string is escaped as little as JSON allows", "[cli]")
 
 TEST_CASE("json: bytes that are not UTF-8 are written as U+FFFD, and the result is read by the strict reader", "[cli]")
 {
-    for (const std::string text : {std::string{"a\xFF"
-                                               "b"},
-                                   std::string{"\xC3"}, std::string{"\xC0\xAF"}, std::string{"\xED\xA0\x80"},
-                                   std::string{"\xF4\x90\x80\x80"}, std::string{"\xE2\x82"}, std::string{"x\x80y"}})
+    for (const std::string& text : {std::string{"a\xFF"
+                                                "b"},
+                                    std::string{"\xC3"}, std::string{"\xC0\xAF"}, std::string{"\xED\xA0\x80"},
+                                    std::string{"\xF4\x90\x80\x80"}, std::string{"\xE2\x82"}, std::string{"x\x80y"}})
     {
         INFO(json_string(text));
         const auto value = json::parse_strict(json_string(text));

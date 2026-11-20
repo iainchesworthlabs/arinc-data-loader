@@ -349,7 +349,7 @@ TEST_CASE("description: the rules of the window are the rules of the description
 TEST_CASE("description: the strict reader's refusals are refusals here", "[description]")
 {
     const std::string not_json_start = "The text is not JSON that this program reads";
-    for (const std::string text :
+    for (const std::string& text :
          {std::string{}, std::string{"{"}, std::string{"{} x"},
           std::string{"\xEF\xBB\xBF"
                       "{}"},
