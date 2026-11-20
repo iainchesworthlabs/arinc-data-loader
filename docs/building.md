@@ -110,6 +110,7 @@ The build has a source side and a target side, and the libraries sit on both.
 | --- | --- | --- | --- |
 | Portable libraries | `adl::platform`, `adl::arinc665`, `adl::arinc615a`, `adl::arinc615a_mini`, `adl::arinc615a_runner`, `adl::media_tree`, `adl::samples` | always | source and target |
 | Payload writer | `adl_write_payloads` | always | source (desktop) |
+| Licence command | `adl_licence` (`apps/licence`, over `libs/licence_cli`) and, for its tests, `adl_licence_test_program`, which is never installed ([the command](user-guide/command-line.md#adl_licence)) | always, on a desktop | source (desktop) |
 | Licence library and the owner's licence tool | `adl::licence` (with `adl::licence_sign` and `adl::licence_test_keys`) and the program `adl_licence_owner` ([the tool](licence-owner-tool.md)); built, never installed or packed | always, on a desktop | source (desktop) |
 | Mock target as a command | `adl_mock` (the mock target with no window and no Qt, [described here](mock-target.md#the-command)) | always, on a desktop | source (desktop) |
 | Scenario files, the part they share | `adl::scenario_base` (the random numbers and the shared reader of the scenario files of [the mock target](mock-target.md) and the loader); built, never installed or packed | always, on a desktop | source (desktop) |
@@ -349,7 +350,7 @@ cd build/linux-gcc-release && cpack -B packages
 pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.2-linux-x86_64.tar.gz
 ```
 
-`cpack` writes the runtime package (the three applications, `adl_mock`, `adl_write_payloads`, Qt's runtime files,
+`cpack` writes the runtime package (the three applications, `adl_mock`, `adl_write_payloads`, `adl_licence`, Qt's runtime files,
 `README.txt`, `LICENSE.txt`, `NOTICES.txt`) and the development package (the libraries, headers and the `adl`
 CMake package) for this system; `-DADL_RELEASE_VERSION=0.2.0-rc.1` names them for a pre-release. To use the
 development package, `find_package(adl 0.1 REQUIRED)` with its directory on `CMAKE_PREFIX_PATH`. The macOS

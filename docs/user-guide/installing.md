@@ -26,7 +26,7 @@ on Windows, `linux-gcc-release` on Linux and `macos-clang-release` on a Mac. The
 developers and, on Windows, cannot open the system's file dialogs (see
 [Building](../building.md#presets)).
 
-A build produces these programs in `build/<preset>/bin`, and a package holds the same five:
+A build produces these programs in `build/<preset>/bin`, and a package holds the same seven:
 
 | File | Program |
 | --- | --- |
@@ -36,6 +36,7 @@ A build produces these programs in `build/<preset>/bin`, and a package holds the
 | `adl_write_payloads` | A command-line tool that writes sample media sets to a folder, for trying other loaders |
 | `adl_mock` | A command-line mock target with no window, for test rigs and CI jobs |
 | `adl_make_set` | A command-line tool that makes a media set from a description file, checks one and says what it holds |
+| `adl_licence` | A command-line tool that shows the licence on this computer and imports or removes a licence file ([Your licence and edition](licence.md#with-the-command-line)) |
 
 On Windows the build copies the Qt libraries next to the programs, so each can be started from
 anywhere: double-click it, or run it from a shell. A Linux build finds Qt the way the build did (the
@@ -43,10 +44,11 @@ Linux package carries its own Qt). On a Mac the programs are application bundles
 
 Starting a program opens its window. The programs take one option, `--smoke-test`, which draws the
 first frame, prints `smoke-test: first frame drawn` and exits with code 0; you do not need it.
-(`adl_write_payloads`, `adl_mock` and `adl_make_set` are command-line programs: see
-[Sample media sets](choose-a-media-set.md#sample-media-sets) and [Command line and exit codes](command-line.md#adl_mock) and
-[its section on adl_make_set](command-line.md#adl_make_set).
-They keep no settings.) Each program with a window keeps its settings in the
+(`adl_write_payloads`, `adl_mock`, `adl_make_set` and `adl_licence` are command-line programs: see
+[Sample media sets](choose-a-media-set.md#sample-media-sets), [Command line and exit codes](command-line.md#adl_mock),
+[its section on adl_make_set](command-line.md#adl_make_set) and [the licence command](command-line.md#adl_licence).
+`adl_mock` and `adl_make_set` keep no settings, and `adl_licence` has none of its own.)
+Each program with a window keeps its settings in the
 system's per-user settings store; to keep them in a folder instead (when the programs run from a USB
 drive, for example) set the environment variable `ADL_SETTINGS_DIR` to that folder
 ([Where files go](files-and-limits.md#where-files-go)). Closing the window ends the

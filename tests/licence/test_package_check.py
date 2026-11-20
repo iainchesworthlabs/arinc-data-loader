@@ -118,6 +118,13 @@ class PackageCheck(unittest.TestCase):
                      "libadl_licence_test_keys.a"):
             self.assert_found({f"arinc-data-loader/lib/{name}": b"x"}, name, "a library it signs with")
 
+    def test_the_programs_of_the_tests_that_carry_the_test_key(self) -> None:
+        for name in ("adl_licence_test_program.exe", "adl_licence_test_program", "adl_licence_cli_unit_tests.exe",
+                     "adl_licence_cli_integration_tests"):
+            self.assert_found({f"arinc-data-loader/bin/{name}": b"x"}, name, "program that carries the test key")
+        # The command a customer runs is not one of them.
+        self.assert_clean({**CLEAN, "arinc-data-loader/bin/adl_licence.exe": b"x", "arinc-data-loader/bin/adl_licence": b"x"})
+
     def test_the_headers_of_a_signing_library(self) -> None:
         for name in ("sign.hpp", "test_keys.hpp"):
             self.assert_found({f"arinc-data-loader/include/adl/licence/{name}": b"#pragma once\n"}, name, "header")

@@ -32,6 +32,10 @@ What the programs say to the person using them has two sources, and this check h
 7. The owner's licence tool (tools/licence), which is not shipped and so is not a program of the guide. Every sentence in
    tools/licence/src/messages.hpp and every exit_* constant of tools/licence/src/owner.hpp must be on its own page,
    docs/licence-owner-tool.md, by the same rules (a placeholder stands for anything; a row of a table for a code).
+8. A program whose sentences are in one header and its exit codes in another. Every sentence of the header and every exit_*
+   constant of the other must be on the program's page, by the same rules (a placeholder stands for anything; a row of a table
+   for a code). There are two: the owner's licence tool (tools/licence), which is not shipped and so has a page of its own,
+   docs/licence-owner-tool.md; and adl_licence (libs/licence_cli), which is in the guide's command-line page.
 
 The check does not decide that the description is good, only that it is there. A new message or exit code fails it until the guide says
 something about it. Run it after a change to a message. tests/CMakeLists.txt runs it as the test docs.messages.
@@ -284,15 +288,24 @@ def make_set_problems(root: Path) -> list[str]:
 OWNER_TOOL_MESSAGES = "tools/licence/src/messages.hpp"
 OWNER_TOOL_EXIT_CODES = "tools/licence/src/owner.hpp"
 OWNER_TOOL_PAGE = "docs/licence-owner-tool.md"
+
+# A program whose sentences are in one header (a string_view constant each), whose exit codes are exit_* constants of
+# another, and which has a page that says both: (what the problems call it, the sentences, the exit codes, the page).
+PROGRAMS_WITH_A_HEADER = (
+    ("the owner's tool", "tools/licence/src/messages.hpp", "tools/licence/src/owner.hpp", "docs/licence-owner-tool.md"),
+    ("adl_licence", "libs/licence_cli/src/messages.hpp", "libs/licence_cli/include/adl/licence_cli/licence_cli.hpp",
+     "docs/user-guide/command-line.md"),
+)
+OWNER_TOOL_MESSAGES = PROGRAMS_WITH_A_HEADER[0][1]
 # A string literal of the sentences' header: an ordinary one, or a raw one (the usage text).
 OWNER_STRING_LITERAL = re.compile(r'R"\((.*?)\)"|"((?:[^"\\]|\\.)*)"', flags=re.S)
 STRING_VIEW_DECLARATION = re.compile(r"inline constexpr std::string_view \w+\s*=")
 WHITESPACE = re.compile(r"\s*")
 
 
-def owner_tool_messages(root: Path) -> list[str]:
-    """The sentences of the owner's tool: each `inline constexpr std::string_view` of its messages.hpp, literals joined."""
-    path = root / OWNER_TOOL_MESSAGES
+def header_sentences(root: Path, relative: str) -> list[str]:
+    """The sentences of a program: each `inline constexpr std::string_view` of its messages header, literals joined."""
+    path = root / relative
     if not path.is_file():
         return []
     source = path.read_text(encoding="utf-8")
@@ -315,27 +328,40 @@ def owner_tool_messages(root: Path) -> list[str]:
     return sentences
 
 
-def owner_tool_problems(root: Path) -> list[str]:
-    """What the owner's tool says and returns that its page does not have."""
+def owner_tool_messages(root: Path) -> list[str]:
+    """The sentences of the owner's tool."""
+    return header_sentences(root, OWNER_TOOL_MESSAGES)
+
+
+def program_problems(root: Path, name: str, messages: str, exit_codes_header: str, page: str) -> list[str]:
+    """What a program says and returns that its page does not have."""
     problems = []
-    sentences = owner_tool_messages(root)
-    codes_path = root / OWNER_TOOL_EXIT_CODES
+    sentences = header_sentences(root, messages)
+    codes_path = root / exit_codes_header
     codes = sorted({int(n) for n in re.findall(r"constexpr\s+int\s+exit_\w+\s*=\s*(\d+)\s*;", codes_path.read_text(encoding="utf-8"))}) if codes_path.is_file() else []
     if not sentences and not codes:
         return problems
-    page_path = root / OWNER_TOOL_PAGE
+    page_path = root / page
     if not page_path.is_file():
-        return [f"the owner's licence tool has sentences and exit codes and {OWNER_TOOL_PAGE} does not exist"]
+        return [f"{name} has sentences and exit codes and {page} does not exist"]
     raw = page_path.read_text(encoding="utf-8")
-    page = normalise(raw)
+    page_text = normalise(raw)
     for sentence in sentences:
         for part in segments(sentence):
-            if part not in page:
-                problems.append(f"the sentence {sentence.strip()!r} of the owner's tool is not on {OWNER_TOOL_PAGE}: describe it there")
+            if part not in page_text:
+                problems.append(f"the sentence {sentence.strip()!r} of {name} is not on {page}: describe it there")
                 break
     for code in codes:
         if not re.search(rf"^\|\s*{code}\s*\|", raw, flags=re.M):
-            problems.append(f"the exit code {code} of the owner's tool is not a row of the table in {OWNER_TOOL_PAGE}")
+            problems.append(f"the exit code {code} of {name} is not a row of the table in {page}")
+    return problems
+
+
+def owner_tool_problems(root: Path) -> list[str]:
+    """What the programs with a header say and return that their pages do not have."""
+    problems = []
+    for name, messages, codes, page in PROGRAMS_WITH_A_HEADER:
+        problems.extend(program_problems(root, name, messages, codes, page))
     return problems
 
 
