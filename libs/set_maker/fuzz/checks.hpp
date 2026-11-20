@@ -9,6 +9,7 @@
 #include "adl/make_set/command.hpp"
 #include "adl/make_set/description.hpp"
 #include "adl/make_set/inspection.hpp"
+#include "adl/make_set/options.hpp"
 #include "adl/set_maker/inspect.hpp"
 #include "adl/set_maker/validate.hpp"
 
@@ -72,6 +73,44 @@ namespace adl::set_maker::fuzz
     if (write_description(*again) != written)
     {
         return "the canonical description does not read back as the same one";
+    }
+    return {};
+}
+
+// The command line of adl_make_set: the input is the arguments, each ended by a line feed. What cannot be used is
+// refused with a sentence. What can is a command with the subject it needs, and with the options that belong to it
+// only. Empty when all is as it should be.
+[[nodiscard]] inline std::string check_options(std::string_view text)
+{
+    using namespace adl::make_set;
+
+    std::vector<std::string> arguments;
+    std::size_t start = 0;
+    while (start < text.size())
+    {
+        const std::size_t end = std::min(text.find('\n', start), text.size());
+        arguments.emplace_back(text.substr(start, end - start));
+        start = end + 1;
+    }
+    const std::vector<std::string_view> views(arguments.begin(), arguments.end());
+
+    const auto options = parse_options(views);
+    if (!options)
+    {
+        return options.error().sentence.empty() ? "a refusal with no sentence" : std::string{};
+    }
+    if (options->help || options->version)
+    {
+        return {};
+    }
+    if (options->subject.empty())
+    {
+        return "a command line with no subject was accepted";
+    }
+    if (options->command == Command::make ? !options->output.has_value()
+                                          : (options->output.has_value() || options->source_root.has_value()))
+    {
+        return "the options of a command are not the ones that belong to it";
     }
     return {};
 }

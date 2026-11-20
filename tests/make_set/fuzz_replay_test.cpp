@@ -78,6 +78,22 @@ TEST_CASE("fuzz seeds: every description seed and every prefix of it is as the h
     }
 }
 
+TEST_CASE("fuzz seeds: every command line seed and every prefix of it is as the harness wants", "[fuzz]")
+{
+    const auto files = inputs("options");
+    REQUIRE(files.size() >= 6);
+    for (const fs::path& file : files)
+    {
+        INFO(file.filename().string());
+        const std::string text = read_all(file);
+        CHECK(adl::set_maker::fuzz::check_options(text).empty());
+        for (std::size_t length = 0; length < text.size(); ++length)
+        {
+            REQUIRE(adl::set_maker::fuzz::check_options(std::string_view{text}.substr(0, length)).empty());
+        }
+    }
+}
+
 TEST_CASE("fuzz seeds: every set seed is inspected as the harness wants, from memory and from disk", "[fuzz]")
 {
     const auto files = inputs("inspect_set");

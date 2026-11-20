@@ -202,6 +202,27 @@ SEEDS_DESCRIPTION = {
 }
 
 
+# The command line of adl_make_set, one argument to a line: each way it can be right and each way it can be wrong.
+SEEDS_OPTIONS = {
+    "make": "make\nset.json\n--output\nout\n",
+    "make-all": "make\nset.json\n--output\nout\n--source-root\nsrc\n--json\n",
+    "verify": "verify\nfolder\n",
+    "inspect-json": "inspect\nfolder\n--json\n",
+    "options-first": "--json\nmake\n--output\nout\nset.json\n",
+    "help": "--help\n",
+    "version": "make\n--version\n",
+    "no-command": "",
+    "unknown-command": "compare\na\n",
+    "needs-output": "make\nset.json\n",
+    "output-for-verify": "verify\nfolder\n--output\nout\n",
+    "output-needs-a-value": "make\nset.json\n--output\n--json\n",
+    "given-twice": "make\nset.json\n--output\nx\n--output\ny\n",
+    "two-subjects": "inspect\na\nb\n",
+    "empty-subject": "inspect\n\n",
+    "unknown-option": "verify\nfolder\n--quiet\n",
+}
+
+
 def _golden_module():
     """tests/golden/make_golden.py, the independent writer of the golden media set, loaded as a module."""
     spec = importlib.util.spec_from_file_location("make_golden", ROOT / "tests" / "golden" / "make_golden.py")
@@ -254,11 +275,15 @@ def write_set_maker() -> int:
         "one-byte-changed": _set_archive(changed),
         "no-files": b"",
     }
+    options = base / "options"
+    options.mkdir(parents=True, exist_ok=True)
+    for name, text in SEEDS_OPTIONS.items():
+        (options / f"{name}.bin").write_bytes(text.encode("utf-8"))
     out = base / "inspect_set"
     out.mkdir(parents=True, exist_ok=True)
     for name, data in seeds.items():
         (out / f"{name}.bin").write_bytes(data)
-    return len(SEEDS_DESCRIPTION) + len(seeds)
+    return len(SEEDS_DESCRIPTION) + len(SEEDS_OPTIONS) + len(seeds)
 
 
 def main() -> int:
