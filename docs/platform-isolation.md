@@ -139,6 +139,7 @@ The cases already in the tree:
 | --- | --- |
 | `<windows.h>` without the `min`/`max` macros, and with the wide-character API | `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE` (and `_WIN32_WINNT`) are in the Windows `platform.cmake` and passed to `adl_platform`; no source file defines them |
 | The path of the running executable | `interfaces/adl/platform/paths.hpp`; `windows/paths_windows.cpp`, `linux/paths_linux.cpp`, `macos/paths_macos.cpp` |
+| The computer's name, the folder for a user's data, the folder for an administrator's files | The same `paths.hpp` and `paths_<name>.cpp` files. Windows asks for its known folders. Linux and macOS share `posix/locations_posix.cpp` (the host name and the home directory) and apply the rules in `detail/data_locations.hpp`, which read no environment and are tested on every host |
 | Sockets, files, threads, a clock, memory, queues | The interfaces in `interfaces/adl/platform/`, one implementation per platform ([platform abstraction](platform-abstraction.md)) |
 | `MSG_NOSIGNAL` on one system, a different condition-variable wait on another | A function in `posix/posix_os.hpp`, defined once per system in `linux/os_linux.cpp` or `macos/os_macos.cpp` |
 | An RTOS target that CMake has no name for | `-DADL_TARGET_PLATFORM=<name>`, read only by `cmake/Platform.cmake` |

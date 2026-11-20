@@ -6,11 +6,8 @@
 # tests run the same operations on the fake in-memory platform; the conformance suite checks the
 # platform's sockets; this test is where the two meet.
 #
-# The test's own code uses no Qt (the engine is run on a plain std::thread), but it links
-# adl::mock_core, which is only built with the application (ADL_BUILD_APP), and whose Qt6::Core
-# dependency it therefore carries transitively. None of the test's code pulls in a Qt symbol,
-# so there is nothing Qt to deploy. Wire this subdirectory inside the ADL_BUILD_APP block of
-# tests/CMakeLists.txt, next to the mock target's tests.
+# The test uses no Qt: the engine is run on a plain std::thread, and the engine and its link are
+# the Qt-free library libs/mock_target_core, so this builds without the applications.
 
 find_package(Catch2 3 CONFIG REQUIRED)
 include(Catch)
@@ -23,7 +20,7 @@ target_include_directories(adl_loopback_test PRIVATE
 
 target_link_libraries(adl_loopback_test
     PRIVATE
-        adl::mock_core
+        adl::mock_target_core
         adl::arinc615a
         adl::arinc615a_runner
         adl::arinc665

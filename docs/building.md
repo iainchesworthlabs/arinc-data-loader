@@ -111,7 +111,7 @@ The build has a source side and a target side, and the libraries sit on both.
 | Portable libraries | `adl::platform`, `adl::arinc665`, `adl::arinc615a`, `adl::arinc615a_mini`, `adl::arinc615a_runner`, `adl::media_tree`, `adl::samples` | always | source and target |
 | Payload writer | `adl_write_payloads` | always | source (desktop) |
 | Source-side applications (Qt) | `adl_app` (the data loader), `adl_media_gen` (the media set generator), `adl_mock_target` (a 615A target, for demonstrations) | `ADL_BUILD_APP`, on by default on a desktop | source (desktop) |
-| Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_ui_tests`, `adl_window_state_tests`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_tests`, `adl_mock_model_test`, `adl_mock_qml_test`, `adl_loopback_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
+| Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`, `adl_mock_tests`, `adl_loopback_test`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_ui_tests`, `adl_window_state_tests`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_model_test`, `adl_mock_qml_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
 | Target side | the libraries above, for the target's platform | `ADL_TARGET_PLATFORM` (or a toolchain that sets it) | target (embedded) |
 
 The **source side** is the operator's machine: the loader, the generator and the payload writer. The
@@ -185,11 +185,12 @@ were built with, and `cmake --install` runs `macdeployqt` on each bundle to copy
 QML modules into it, which is how the disk image under [Packages](#packages) is made.
 
 The tests that need Qt are `app.tests` and `app.qml`, `media_gen.tests` and `media_gen.qml`, and
-`mock.engine`, `mock.model` and `mock.qml`; they run in the same `ctest` as the rest when
-`ADL_BUILD_APP` is on, and look for the offscreen platform plugin in the kit's own `plugins`
-directory. The `loopback.integration` test runs the loader's runner over real sockets on
+`mock.model` and `mock.qml`; they run in the same `ctest` as the rest when `ADL_BUILD_APP` is on,
+and look for the offscreen platform plugin in the kit's own `plugins` directory. The mock target's
+engine has no Qt in it, so its tests (`mock.engine`) and the `loopback.integration` test run with
+`ADL_BUILD_APP` off too. `loopback.integration` runs the loader's runner over real sockets on
 127.0.0.1 against the mock target's engine (nothing below port 1024, a few seconds per
-operation); it is labelled `integration` and needs `ADL_BUILD_APP` too.
+operation); it is labelled `integration`.
 
 ### The demonstration
 
@@ -311,7 +312,7 @@ in them and why). With a Release build of the applications:
 cmake --preset linux-gcc-release            # or windows-msvc-release, macos-clang-release
 cmake --build --preset linux-gcc-release
 cd build/linux-gcc-release && cpack -B packages
-pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.1-linux-x86_64.tar.gz
+pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.2-linux-x86_64.tar.gz
 ```
 
 `cpack` writes the runtime package (the three applications, `adl_write_payloads`, Qt's runtime files,

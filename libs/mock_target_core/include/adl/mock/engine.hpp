@@ -84,6 +84,17 @@ public:
     // is running.
     virtual void progress_changed(int percent) = 0;
     virtual void upload_received(const UploadRecord& record) = 0;
+    // A request has been dealt with, once for each: the status file that ends the operation has
+    // been sent (delivered or not, whatever its code: completed, an abort), or the operation was
+    // refused and never started. `status` is the code of that file or of the refusal; it is empty
+    // when there is no code to give (an initialization file of an invalid structure). `refused`
+    // says the operation never started. For one that started it comes before operation_changed("").
+    // A target that goes silent never ends its operation and never calls this for it. Listeners
+    // that do not care need not override it.
+    virtual void operation_ended(std::string_view /*name*/, std::optional<adl::arinc615a::StatusCode> /*status*/,
+                                 bool /*refused*/)
+    {
+    }
 };
 
 // Which of the four operations.
@@ -126,11 +137,23 @@ struct Refusal
     std::string text;
 };
 
+// What FIND answers with. The strings are owned: adl::arinc615a::FindAnswer only views its strings,
+// and an answer built from text that has gone (the operator's settings, a temporary) would read
+// freed memory when it is sent.
+struct FindIdentity
+{
+    std::string hardware_id = "HNPFMS";
+    std::string type_name = "FMS";
+    std::string position = "L";
+    std::string literal_name = "FMS LEFT";
+    std::string manufacturer_code = "HNP";
+};
+
 struct Config
 {
     // ---- identity ----
     std::string thw = "HNPFMS_L"; // <THW_ID_POS>: the stem of the protocol file names
-    adl::arinc615a::FindAnswer find_answer{"HNPFMS", "FMS", "L", "FMS LEFT", "HNP"};
+    FindIdentity find_identity;
     adl::arinc615a::Duration find_delay = std::chrono::milliseconds(50);
     unsigned find_copies = 1;
     std::uint16_t tftp_port = adl::arinc615a::tftp_control_port;
@@ -301,6 +324,7 @@ private:
     void finish_operation(StatusCode code, const std::string& text);
     void on_abort_seen(StatusCode status);
     void go_silent();
+    void end_operation(StatusCode code);
     void reset_operation_state();
     void hand_over_uploads();
     [[nodiscard]] Bytes build_configuration_list() const;

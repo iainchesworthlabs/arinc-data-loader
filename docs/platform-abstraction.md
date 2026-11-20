@@ -119,7 +119,8 @@ is quoted.
 
 ### Why abstract classes, not link-time functions
 
-`paths.hpp` (the executable's path) is a free function with one definition per
+`paths.hpp` (the executable's path, the computer's name, and the folders for a user's data and for an
+administrator's files) is a set of free functions with one definition per
 platform, chosen at link time. That is right for something nothing replaces.
 The services here are replaced: the fake must stand in for the real ones in the
 same program. So they are abstract classes and the one choice made at link time

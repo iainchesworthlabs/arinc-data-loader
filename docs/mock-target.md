@@ -29,18 +29,21 @@ an operation, drop status files, send a wrong checksum, abort on its own, or go 
 ## Layout
 
 ```text
+libs/mock_target_core/  adl_mock_target_core: the target without a window and without Qt
+  engine                the 615A target behaviour: no Qt, no socket, one thread, driven by
+                        datagrams and timers (like the loader's own engine, the other way round)
+  link                  the seam the engine speaks through: RealTargetLink over adl::platform's
+                        sockets, and the tests' FakeTargetLink on the fake network
+  storage               the files it holds for a download and what an upload leaves on disk
+  settings              the operator's settings turned into the engine's configuration
 apps/mock_target/
   main.cpp              creates the QGuiApplication, one MockTargetModel and the QML engine
   qml/                  TargetWindow.qml (the window)
-  core/                 adl_mock_core: everything but the window, Qt Core only
-    engine              the 615A target behaviour: no Qt, no socket, one thread, driven by
-                        datagrams and timers (like the loader's own engine, the other way round)
-    link                the seam the engine speaks through: RealTargetLink over adl::platform's
-                        sockets, and the tests' FakeTargetLink on the fake network
+  core/                 adl_mock_core: the window's side, Qt Core only
     model               MockTargetModel: the worker thread, the properties and signals the
                         window binds to
-apps/mock_target/tests/      the engine against the loader's real engine on the fake platform, the
-                        model, and the window loaded offscreen
+tests/mock_target_core/ the engine against the loader's real engine on the fake platform
+apps/mock_target/tests/ the model, and the window loaded offscreen
 libs/ui/                 the shared design system (Theme, controls, header, footer, log)
 ```
 

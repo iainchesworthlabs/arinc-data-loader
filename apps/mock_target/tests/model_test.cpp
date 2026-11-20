@@ -5,6 +5,7 @@
 
 #include "adl/arinc615a/directory_files.hpp"
 #include "adl/mock/model.hpp"
+#include "adl/mock/storage.hpp"
 #include "fake_link.hpp"
 #include "loader_rig.hpp"
 #include "temp_dir.hpp"

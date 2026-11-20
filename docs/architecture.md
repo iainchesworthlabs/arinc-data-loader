@@ -28,7 +28,7 @@
    libraries above; the application calls it
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
-   target and the mock target application
+   target and the mock target's engine (libs/mock_target_core)
 ```
 
 - **`libs/arinc665`** is the ARINC 665 library: loads, batches and media sets
@@ -80,6 +80,11 @@
   unclear, and [ARINC 615A coverage](arinc615a-coverage.md) the standard section by section.
 - **`libs/arinc615a_mini`** is a second, independent TFTP implementation (lock-step blocks, the time-out and
   retry, the options the loader uses, WAIT and ABORT), deliberately plain and written on the codec, so that the engine is checked against another reading of the standard and not against itself. It uses the codec and the figures in `limits.hpp` (the time-outs, the retry count and the default block size), so those are not independently checked. It is the TFTP of the simulated target of `tests/engine` and of the mock target application.
+- **`libs/mock_target_core`** is the mock target's logic without a window and without Qt: the engine that
+  behaves as an ARINC 615A target (`MockEngine`, event-driven and single-threaded, speaking through the
+  `TargetLink` seam) and the link that runs it over the platform's UDP sockets. It is not installed and
+  not in the `adl` package. The mock target application runs it on a worker thread, and the tests run it
+  against the loader's engine on the fake platform and over loopback sockets.
 - **`libs/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
   opens the sockets the engine asks for, waits on all of them from one thread with
   `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.
@@ -126,7 +131,8 @@ route to remove it.
 | `libs/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
-| `apps/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/*.hpp` |
+| `libs/mock_target_core` | `adl_mock_target_core` | `adl::mock_target_core` | `adl::mock` | `adl/mock/*.hpp` |
+| `apps/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/model.hpp` |
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 | `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 

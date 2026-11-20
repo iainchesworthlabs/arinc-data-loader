@@ -17,6 +17,7 @@
 #include <pthread.h>
 
 #include <cstddef>
+#include <string>
 
 namespace adl::platform::posix_os
 {
@@ -59,6 +60,11 @@ void name_current_thread(const char* name) noexcept;
 [[nodiscard]] int flush_to_storage(int fd) noexcept;
 
 // ---- shared -----------------------------------------------------------------
+
+// The signed-in user's home directory: $HOME when it holds an absolute path, otherwise what the
+// password database says. Empty when neither gives an absolute path. Defined in
+// posix/locations_posix.cpp, which only the systems that have a signed-in user compile.
+[[nodiscard]] std::string home_directory();
 
 [[nodiscard]] ErrorCode map_errno(int error) noexcept;
 [[nodiscard]] inline std::unexpected<Error> fail_errno(int error) noexcept

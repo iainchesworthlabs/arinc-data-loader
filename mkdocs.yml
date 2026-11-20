@@ -1,6 +1,6 @@
-# The documentation site (docs/ci.md, "Documentation site"): the Markdown in docs/ built into a static
-# site and published to GitHub Pages. The Markdown stays the source of truth and stays readable on
-# GitHub; nothing in it is written for the site.
+# The documentation site (docs/ci.md, "Documentation site"): the Markdown in docs/ built into the /adl/ section of
+# https://iainchesworthlabs.com/. The Markdown stays the source of truth and stays readable on GitHub; nothing in a
+# page is written for the site.
 #
 #   python -m pip install --require-hashes -r .github/requirements/docs.txt
 #   mkdocs build --strict            (or: cmake --build <dir> --target docs)
@@ -13,7 +13,9 @@ site_name: ARINC Data Loader
 site_description: >-
   ARINC 665 and ARINC 615A libraries, a data loader, a media set generator and a mock target
   for Windows, Linux and macOS.
-site_url: https://iainchesworthlabs.github.io/arinc-data-loader/
+# The one place that holds the site's address. Pages write {{ site_url }} where they need it, and
+# tools/ci/check_site_address.py holds the files that cannot read this line to it (docs/ci.md, "The site address").
+site_url: https://iainchesworthlabs.com/adl/
 repo_url: https://github.com/iainchesworthlabs/arinc-data-loader
 repo_name: iainchesworthlabs/arinc-data-loader
 # Gitflow: a change to a page goes through develop.
@@ -34,40 +36,88 @@ validation:
     unrecognized_links: warn
     anchors: warn
 
-# The standards are third-party documents that are not this project's to publish (docs/licensing.md).
-# They are not in the repository either (.gitignore), but a copy kept beside the pages for reading must
-# not reach the site.
+# The pages of the section that are not in the guide's menu: the front pages use their own bar (tools/docs/theme/).
+not_in_nav: |
+  /index.md
+  /features.md
+  /how-to-use.md
+  /faq.md
+  /whats-new.md
+  /editions.md
+  /assurance.md
+  /privacy.md
+  /support.md
+  /accessibility.md
+  /press.md
+  /products/index.md
+  /products/library.md
+  /products/data-loader.md
+  /products/media-set-generator.md
+  /products/mock-target.md
+  /platforms.md
+  /solutions.md
+  /qualification-kit.md
+  /pricing.md
+  /downloads.md
+  /resources.md
+
+# Not published on the site. The files stay in the repository and the site links to them on GitHub
+# (tools/docs/mkdocs_hooks.py), and the old address of each of them forwards there (tools/docs/site_layout.json).
+#  - The standards are third-party documents that are not this project's to publish (docs/licensing.md).
+#    They are not in the repository either (.gitignore), but a copy kept beside the pages for reading must
+#    not reach the site.
+#  - The index of docs/ for people reading it on GitHub; the site has its own home page.
+#  - The pages for the people who work on the project (tools/ci/check_site_layout.py holds this list to
+#    site_layout.json), and the pictures only they use.
 exclude_docs: |
   specs/*.pdf
+  /README.md
+  /design/
+  /plan/
+  /app.md
+  /media-gen.md
+  /mock-target.md
+  /performance.md
+  /ci.md
+  /static-analysis.md
+  /profiling.md
+  /releasing.md
+  /repository-settings.md
+  /platform-ghs.md
+  /design-system.md
+  /design-overhaul.md
+  /translations.md
+  /translation-glossaries.md
+  /screenshots.md
 
-# A page that links outside docs/ (to the README, the changelog, a source file) gets a link to the
-# file on GitHub instead, so the Markdown can keep the relative link that works when it is read there.
 hooks:
+  # A page that links outside docs/ gets a link to the file on GitHub instead, so the Markdown can keep the relative
+  # link that works when it is read there. The same hook publishes the loader's icon as icon.svg.
   - tools/docs/mkdocs_hooks.py
+  # {{ site_url }} in a page becomes the address above.
+  - tools/docs/site_address_hook.py
+  # The company shell (tools/docs/site-kit/) for the front pages and the guide.
+  - tools/docs/site_shell_hook.py
+  # Where each page lives on the site (tools/docs/site_layout.json): user-guide/ is guide/, the pages for programmers are
+  # under developers/. The files do not move in the repository.
+  - tools/docs/site_layout_hook.py
+  # The version of the program the pages describe, from CMakeLists.txt, for the templates (extra.version).
+  - tools/docs/site_version_hook.py
 
 theme:
   name: material
+  # The front pages (marketing.html) and the colours of the guide; see tools/docs/site_shell_hook.py.
+  custom_dir: tools/docs/theme
   # No web fonts: the site makes no request to a font service.
   font: false
   # The loader's icon, taken from where the Linux package takes it and not copied into docs/
-  # (tools/docs/mkdocs_hooks.py adds it to the site as images/icon.svg).
-  logo: images/icon.svg
-  favicon: images/icon.svg
+  # (tools/docs/mkdocs_hooks.py adds it to the site as icon.svg).
+  logo: icon.svg
+  favicon: icon.svg
+  # One palette. The dark colours follow the device (docs/assets/guide.css): Material would remember the first palette it
+  # chose and keep it when the device setting changed.
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: custom
-      accent: custom
-      toggle:
-        icon: material/weather-night
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: custom
-      accent: custom
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to light mode
+    scheme: default
   icon:
     repo: fontawesome/brands/github
   features:
@@ -75,21 +125,16 @@ theme:
     - content.code.copy
     - navigation.footer
     - navigation.indexes
-    - navigation.instant
     - navigation.sections
-    - navigation.tabs
     - navigation.top
-    - navigation.tracking
     - search.highlight
     - search.suggest
     - toc.follow
 
-extra_css:
-  - stylesheets/adl.css
-
 markdown_extensions:
   - admonition
   - attr_list
+  - def_list
   - tables
   - toc:
       permalink: true
@@ -102,10 +147,10 @@ markdown_extensions:
   - pymdownx.superfences
 
 nav:
-  - Home: README.md
-  - User's guide:
+  - Guide:
+      - Guide contents: user-guide/index.md
       - Get started:
-          - user-guide/index.md
+          - Getting started: user-guide/getting-started.md
           - What ARINC 615A and 665 are: user-guide/concepts.md
           - Installing and starting: user-guide/installing.md
           - The demonstration: user-guide/demonstration.md
@@ -123,54 +168,45 @@ nav:
       - The other programs:
           - Make a media set: user-guide/make-a-media-set.md
           - Run the mock target: user-guide/mock-target.md
-      - Help and limits:
-          - Where files go, and limits: user-guide/files-and-limits.md
+      - Reference:
+          - Quick reference: user-guide/quick-reference.md
+          - Configuration reference: user-guide/configuration.md
+          - Command line and exit codes: user-guide/command-line.md
+          - Messages and errors: user-guide/messages.md
+          - Findings of the media set check: user-guide/findings.md
           - Files the programs read and write: file-reference.md
+          - Where files go: user-guide/files-and-limits.md
+          - Glossary: glossary.md
+      - Limits and help:
+          - Limits and known issues: user-guide/limits.md
+          - Safety of use: user-guide/safety-of-use.md
           - What has been checked: status.md
           - Troubleshooting: user-guide/troubleshooting.md
-          - Questions and answers: faq.md
-          - Glossary: glossary.md
-  - For programmers:
+          - Questions and answers: user-guide/faq.md
+  - Developers:
+      - Developers contents: developers.md
       - Libraries and platforms:
           - Using the libraries: libraries.md
           - Architecture: architecture.md
           - Platform abstraction: platform-abstraction.md
           - Platform isolation: platform-isolation.md
-          - Green Hills INTEGRITY: platform-ghs.md
       - The standards:
           - ARINC 665-3 coverage: arinc665-coverage.md
           - ARINC 615A codec: arinc615a-codec.md
           - ARINC 615A engine: arinc615a-engine.md
           - ARINC 615A-3 coverage: arinc615a-coverage.md
           - Where the standards go: specs/README.md
-      - The programs:
-          - The application: app.md
-          - The media set generator: media-gen.md
-          - The mock target: mock-target.md
-      - Design and languages:
-          - The design system: design-system.md
-          - The design overhaul: design-overhaul.md
-          - Translations: translations.md
-          - Translation glossaries: translation-glossaries.md
-          - The screenshots: screenshots.md
-  - Building and changing:
-      - Building: building.md
-      - Testing: testing.md
-      - Fuzzing: fuzzing.md
-      - Performance: performance.md
-      - CI: ci.md
-      - Static analysis: static-analysis.md
-      - Security and threat model: security.md
-      - Profiling: profiling.md
-      - Repository settings: repository-settings.md
-      - Releasing: releasing.md
-      - Licensing: licensing.md
-      - Roadmap: roadmap.md
-  # The project's own files live at the root of the repository, outside docs/.
-  - Project:
-      - Releases: https://github.com/iainchesworthlabs/arinc-data-loader/releases
-      - Changelog: https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/CHANGELOG.md
-      - Contributing: https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/CONTRIBUTING.md
-      - Security policy: https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/SECURITY.md
-      - Code of conduct: https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/CODE_OF_CONDUCT.md
-      - Issues: https://github.com/iainchesworthlabs/arinc-data-loader/issues
+      - Building and checking:
+          - Building: building.md
+          - Testing: testing.md
+          - Fuzzing: fuzzing.md
+          - Security and threat model: security.md
+      - Project:
+          - Licensing: licensing.md
+          - Roadmap: roadmap.md
+          - Releases: https://github.com/iainchesworthlabs/arinc-data-loader/releases
+          - Changelog: https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/CHANGELOG.md
+          - Contributing: https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/CONTRIBUTING.md
+          - Security policy: https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/SECURITY.md
+          - Code of conduct: https://github.com/iainchesworthlabs/arinc-data-loader/blob/main/CODE_OF_CONDUCT.md
+          - Issues: https://github.com/iainchesworthlabs/arinc-data-loader/issues

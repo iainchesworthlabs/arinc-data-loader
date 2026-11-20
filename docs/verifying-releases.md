@@ -48,7 +48,7 @@ gpg --import arinc-data-loader-release-key.pgp     # or docs/signing-key.asc fro
 gpg --fingerprint 8149254C41894DBE       # compare with the table above, character by character
 
 gpg --verify SHA512SUMS.asc SHA512SUMS
-gpg --verify arinc-data-loader-0.1.1-linux-x86_64.tar.gz.asc arinc-data-loader-0.1.1-linux-x86_64.tar.gz
+gpg --verify arinc-data-loader-0.1.2-linux-x86_64.tar.gz.asc arinc-data-loader-0.1.2-linux-x86_64.tar.gz
 ```
 
 A good signature says `Good signature from "ARINC Data Loader Releases <...>"`. gpg also prints
@@ -64,7 +64,7 @@ shasum -a 512 --check SHA512SUMS                  # macOS
 
 ```powershell
 # Windows: compare by eye with the line in SHA512SUMS
-Get-FileHash -Algorithm SHA512 .\arinc-data-loader-0.1.1-windows-x86_64.zip
+Get-FileHash -Algorithm SHA512 .\arinc-data-loader-0.1.2-windows-x86_64.zip
 ```
 
 Signing `SHA512SUMS` signs every file in it, so a good signature on `SHA512SUMS` plus a matching sum
@@ -75,12 +75,12 @@ is as good as a signature on the file.
 With the [GitHub CLI](https://cli.github.com/) (`gh`), after `gh auth login`:
 
 ```sh
-gh attestation verify arinc-data-loader-0.1.1-linux-x86_64.tar.gz \
+gh attestation verify arinc-data-loader-0.1.2-linux-x86_64.tar.gz \
     --repo iainchesworthlabs/arinc-data-loader \
     --signer-workflow iainchesworthlabs/icl-common-infra/.github/workflows/release-publish.yml
 ```
 
-It prints the commit and the workflow run the file came from. `--source-ref refs/tags/v0.1.1` also
+It prints the commit and the workflow run the file came from. `--source-ref refs/tags/v0.1.2` also
 pins the tag. Without `gh`, the attestation is in the release's
 [attestations page](https://github.com/iainchesworthlabs/arinc-data-loader/attestations).
 

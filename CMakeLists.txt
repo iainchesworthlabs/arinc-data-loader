@@ -32,7 +32,7 @@ if(ADL_ENABLE_TRACY)
 endif()
 
 project(ArincDataLoader
-    VERSION 0.1.1
+    VERSION 0.1.2
     DESCRIPTION "An ARINC 615A and 665 data loader, written from the standards"
     HOMEPAGE_URL "https://github.com/iainchesworthlabs/arinc-data-loader"
     LANGUAGES CXX)
@@ -133,6 +133,11 @@ add_subdirectory(libs/media_tree)
 # What the loader does without a window: the media set's files and their index, the media set check,
 # the download folder and the target's address. No Qt; apps/app/core calls it.
 add_subdirectory(libs/loader_core)
+
+# The mock target's logic without a window and without Qt: its 615A engine and the link that runs
+# it over adl::platform's sockets. The mock target application builds on it below, and so do the
+# tests. Not installed and not part of the adl package.
+add_subdirectory(libs/mock_target_core)
 
 # Sample loads and media sets, for the tests and for the program below.
 add_subdirectory(libs/samples)

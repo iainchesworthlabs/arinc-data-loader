@@ -34,7 +34,7 @@ work only.
 | `ci.yml` | The gate: Policy, the planner, `clang-format`, `platform-isolation`, the documentation build, the build legs, coverage, workflow analysis, the dependency scan, and the aggregator `CI Status`; the RTOS simulators run beside it ([The jobs](#the-jobs-in-ciyml)) | yes |
 | `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
 | `clusterfuzzlite.yml` | Fuzzes the code a pull request changes for ten minutes with ClusterFuzzLite; not a required check ([Fuzzing](fuzzing.md#in-ci)) | yes |
-| `docs.yml` | Publishes the documentation site to GitHub Pages when `main` moves ([Documentation site](#documentation-site)) | yes |
+| `docs.yml` | Builds the site and deploys it to the company site when `main` moves, previews a pull request that changes the documentation, and publishes the pages that forward the old GitHub Pages addresses ([Documentation site](#documentation-site)) | yes |
 | `codeql.yml` | CodeQL static analysis of the C++, Python and workflows, nightly and on a ready pull request that changes them; not a required check | no - skipped |
 | `release.yml` | The Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on manual runs and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | The nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
@@ -73,9 +73,9 @@ reason for each, the local presets and the suppression rules are in
 
 ## Documentation site
 
-The pages in `docs/` are built into a static site with MkDocs and Material (`mkdocs.yml` at the root of the
-repository) and, from the first release on, published to GitHub Pages at <https://iainchesworthlabs.github.io/arinc-data-loader/>. The
-Markdown stays the source and stays readable on GitHub; nothing in a page is written for the site.
+The pages in `docs/` are built into a static site with MkDocs and Material (`mkdocs.yml` at the root of the repository). The site
+is the `/adl/` section of <https://iainchesworthlabs.com/adl/>, one of the company's sites for its programs. The Markdown stays the
+source and stays readable on GitHub; nothing in a page is written for the site.
 
 Locally:
 
@@ -89,25 +89,136 @@ cmake --build <build dir> --target docs       # the same, into <build dir>/site
 **What strict means here.** MkDocs' own strict mode fails on warnings, but it reports a link to a missing
 page, a link to a heading that is not there and a page missing from the navigation at a level that strict
 mode lets through. The `validation` block of `mkdocs.yml` raises all of them to warnings, so each fails the
-build. A page that is added to `docs/` must also be added to `nav` in `mkdocs.yml`.
+build. A page that is added to `docs/` must also be added to `nav` in `mkdocs.yml`, or to `not_in_nav` if it is a front page.
 
-**Links out of `docs/`.** A page may link to the README, the changelog or a source file with a relative link
-(`../README.md`), which works on GitHub. The site has no such file, so `tools/docs/mkdocs_hooks.py` turns the
-link into one to the file on GitHub (`blob/main/...`, or `tree/main/...` for a folder). A link whose target
-does not exist is left alone, and the build fails on it.
+### The pages of the site
 
-**Icon and navigation.** The logo and the favicon are the loader's icon. The same hook adds it to the site, as
-`images/icon.svg`, from `packaging/linux/icons/adl_app.svg`, where the Linux package takes it, so there is one
-copy. `navigation.instant` loads a page without reloading the site and `navigation.tracking` keeps the address
-bar on the heading being read; both depend on `site_url`, so a built site opened from disk or served from
-another address navigates the ordinary way (`mkdocs serve` sets `site_url` to its own address).
+The site has three kinds of page.
 
-**What is not published.** The standards (`docs/specs/*.pdf`) are third-party documents ([Licensing](licensing.md));
-`exclude_docs` leaves them out and the build fails if a PDF is in the site.
+- **Front pages** (the home page, and the other pages for people who are deciding whether to use the programs). They are Markdown with
+  `template: marketing.html` in the front matter. That template (`tools/docs/theme/marketing.html`) is plain HTML on the company
+  shell. It does not extend Material and ships no script, apart from a JSON-LD data block on the home page. Their links are relative.
+  They are laid out as a product site: Products (the library and each tool, in `docs/products/`), Platforms, Solutions, Developers (the
+  developer pages), Assurance (with the qualification kit), Resources and Pricing. The menus of the app bar are one list in
+  `tools/docs/theme/partials/links.html`; each opens as a native `<details>`, so they work with no script, and below 64rem they fold into
+  one Menu. The editions, prices and the kit on these pages are the owner's to decide: each open point is an `OWNER DECISION` comment.
+- **The guide** (`/adl/guide/`, the files of `docs/user-guide/` and a few pages beside them) and **the pages for programmers**
+  (`/adl/developers/`). They are Material pages, with Material's colours set from the palette (`docs/assets/guide.css`). The menu
+  holds these two groups only.
+- **Pages that are in the repository only.** The pages for the people who work on the project (CI, releasing, the repository's settings,
+  the design records, the translations) are not published. `exclude_docs` in `mkdocs.yml` lists them, and a link to one from a published
+  page becomes a link to the file on GitHub (`tools/docs/mkdocs_hooks.py`). The standards (`docs/specs/*.pdf`) are third-party
+  documents ([Licensing](licensing.md)); they are excluded too, and the build fails if a PDF is in the site.
 
-**In CI.** `.github/actions/docs-site` installs MkDocs from the hash-locked `.github/requirements/docs.txt`
-(`uv pip install --require-hashes --no-build`), builds strictly, and checks the result (the home page and the
-user's guide exist, no PDF, a minimum number of pages). Two workflows use it, so they cannot disagree:
+`docs/README.md` is the index of `docs/` for people reading it on GitHub. The site's home page is `docs/index.md`.
+
+### The site layout
+
+The files of `docs/` do not move: the code, the tests, `CONTRIBUTING.md` and the other pages cite them by path. The site's addresses
+are different. The user's guide is `/adl/guide/`, which is the folder `docs/user-guide/`, and the pages for programmers are under
+`/adl/developers/`. `tools/docs/site_layout.json` is the table: for each page of the first site (release 0.1.1, on GitHub Pages) it gives
+the old address, the file that serves it now, and its address on the new site, or `null` when it is published on GitHub only.
+
+- `tools/docs/site_layout_hook.py` applies the table while the site is built, and stops the build when it and `exclude_docs` disagree.
+- `tools/ci/check_site_layout.py` checks the built site against the table: no page lost, each canonical address right, no page at an old
+  address that belongs to another, and a forwarding page for every old address that leads somewhere that exists.
+- A new page needs no entry: it is at the address its file name gives. Move a page, or stop publishing one, by changing its entry (and
+  `exclude_docs`), never by deleting the entry: the old address must keep leading somewhere.
+
+### The site address
+
+The address is fixed: `https://iainchesworthlabs.com/adl/`. The company site serves each program under one path, and the role that
+deploys this repository may write that path only. `site_url` in `mkdocs.yml` is the one place that holds it. A page writes
+`{{ site_url }}` where it needs the address, and `tools/docs/site_address_hook.py` fills it in. `tools/ci/check_site_address.py` fails
+when `site_url` is another address, when a page of `docs/` other than this one writes the host or the old address, or when `README.md`
+links to the documentation at another address.
+
+### The company kit and the palette
+
+The pages use the company shell: its stylesheet, header and footer. `tools/docs/site-kit/v1/` is a pinned copy of the company's kit
+(version 1.1.2, from the company site's repository at commit `cba3f49`). Nothing is fetched when the site is built or checked, and the
+files are not edited. `tools/ci/check_site_kit.py` fails when a file differs from the hash in the copy's own `SHA256SUMS.txt` (line
+endings are not compared), when a file is missing or added, and when the palette does not pass the company's checker. To move to a newer
+kit, copy its files over the copy (the whole of `/assets/v1/`, same layout), run the check and say the version in the pull request.
+
+The palette is `docs/theme.css`: one rule, `[data-app="adl"]`, and the eight colour roles, each `light-dark(light, dark)`. The company
+checker (`kit/check-palette.mjs`, Node 20 or later) holds it to WCAG 2.2 AA contrast, light and dark, against the shell's own neutrals; it
+wants the file in a folder named for the program, so the check copies it into one. The palette is Graphite: graphite for buttons and the
+hero, and the programs' Signal orange-red (`libs/ui/qml/Theme.qml`) for rules and marks only. Change a colour in `docs/theme.css` and run
+`python tools/ci/check_site_kit.py`. The check does not cover the guide's own pages (code blocks, admonitions, search); their colours come
+from Material and are looked at in the browser.
+
+### The rules for the pages
+
+`tools/ci/check_site_pages.py` reads the built site. It builds the site itself when it is not given one (`--site <folder>` checks a site that
+is built already). Every page must have a title, one `h1` that is the first heading of its content, headings that do not skip a level, a
+canonical address, an alternative text on every picture, and links that lead to a file of the site and to an anchor that is in it. A link that
+starts with `/` is the company shell's (`/`, `/support/`, `/assets/v1/...`) and is not followed, but none in a page's own content may start
+with `/adl/`: the pages use relative links so that they work under a preview address. The company header and footer are the kit's, and link to
+`/adl/` as every page of the company site does; the check leaves their links alone.
+
+The front pages (`tools/docs/theme/marketing.html`) are held to more, because a preview blocks every script and the company's contract asks
+for plain pages: `lang="en-AU"`; a description, and a title and description that no other front page has; no `script` except a JSON-LD data
+block; no `style` element or attribute (the rules are in `docs/assets/adl.css`); a width and a height on every picture; nothing loaded from
+another host; no `mailto:` link, because the owner's address is private; and, at most, the one contact form (below). Stylesheets may not `@import` or load from an address. The
+check also holds the pages that the company's contract requires, and the pages that other pages lead to, to exist (`FIXED` in the script).
+The front pages are Markdown with `template: marketing.html` in the front matter, and a page is either written as HTML in the file (links
+relative to the page's built address, such as `../guide/`) or as Markdown with `layout: prose` (links to the source files, `faq.md`).
+
+The contact form (`docs/support.md`, "Talk to us") is the one form a front page may hold. It posts to `/api/contact` on the company
+site, which is the same origin, so the page needs no script and no other host. The endpoint, its fields and limits, and the bot defences
+are in the design record `contact-form.md` of `iainchesworthlabs/icl-site`. The check holds the form to that contract: `method="post"` and
+that action only, the eight field names, `required` and `maxlength` as the endpoint expects, the list of topics, a `label for` every
+field, a honeypot field (`ref_code`) inside an `aria-hidden` element and out of the tab order, and the consent box with its link to the
+company's privacy text. When the endpoint's contract changes, the `FORM_*` constants of `tools/ci/check_site_pages.py` and the form change
+with it. A pull-request preview cannot submit the form (its Content-Security-Policy `sandbox` blocks it), so the form is tried on the
+live site only.
+
+### The messages and exit codes
+
+`tools/ci/check_messages.py` holds the user's guide to what the code can say. Every text of the programs' C++ code that says something to the
+person using them (a catalogue entry whose source is a `.cpp` or `.hpp` file, as against the labels of a window) must appear in the guide,
+and so must every finding of the ARINC 665 checks (the literals of the `add(findings, ...)` calls in `libs/arinc665/src`, listed in `docs/user-guide/findings.md`), every exit code and every text that `adl_write_payloads` prints. The match ignores case, emphasis and spacing and lets a
+placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six characters or more between placeholders. It runs in
+`docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
+the description is there, and not that it is good.
+
+### The claims
+
+`tools/ci/check_claims.py` fails a page that makes a claim the project cannot back: that the tool has been through a certification, a
+qualification or an approval, that it complies with a standard, or that something is promised without limit. It looks for five words (the list is
+`WORDS` in the script), whole words, ignoring case. It reads `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, the changelog
+fragments and every page of `docs/` except `docs/plan/` (the plans are not published, and have to discuss qualification). A use that
+`tools/docs/claims_exceptions.json` lists passes: a file, the words around the word, and why it is not a claim (a denial such as "no
+guarantee of a response time", or a warning that GnuPG prints). **The owner signs off an exception** by writing a name in its `approved_by`.
+The check passes while exceptions wait for that and says how many; with `--strict` they fail it, which is how a release can be held to a
+fully signed-off list. The names of the two standards a user's own programme may apply may appear only in the files the list names
+(`standards_named_in`: the Assurance page). It runs in `docs-site` and as the CTest test `docs.claims`.
+
+### The traceability
+
+`tools/ci/check_traceability.py` holds the "Tests" column of the "Section by section" tables of `docs/arinc665-coverage.md` and
+`docs/arinc615a-coverage.md` to the tests: each test file named is a test source file of the repository, each test case named after it is in that
+file, and each row has a test or says why not (`n/a`, `by construction`, or `as` another row). It prints the gaps, and `--report` lists each. There
+are no requirement identifiers yet; the section number is the identifier ([the plan](plan/traceability.md)). It runs in `docs-site` and as the CTest
+test `docs.traceability`.
+
+### Links out of `docs/`
+
+A page may link to the README, the changelog or a source file with a relative link (`../README.md`), which works on GitHub. The site has no
+such file, so `tools/docs/mkdocs_hooks.py` turns the link into one to the file on GitHub (`blob/main/...`, or `tree/main/...` for a
+folder). A link whose target does not exist is left alone, and the build fails on it.
+
+**Icon.** The logo and the favicon are the loader's icon. The same hook adds it to the site as `icon.svg`, from
+`packaging/linux/icons/adl_app.svg`, where the Linux package takes it, so there is one copy. That is the address the company's contract
+gives an app's icon (`/adl/icon.svg`).
+
+### In CI
+
+`.github/actions/docs-site` installs MkDocs from the hash-locked `.github/requirements/docs.txt`
+(`uv pip install --require-hashes --no-build`), builds strictly, and checks the result: the home page and the user's guide exist, no PDF,
+a minimum number of pages, and then the four checks of this section (`check_site_kit.py`, `check_site_address.py`, `check_site_layout.py`,
+`check_site_pages.py`). Three workflows use it, so they cannot disagree:
 
 - `ci.yml`, job `Docs build (strict)`: on every pull request and queue entry. It has no path filter, because
   a required check that does not run blocks the pull request. After the build it runs
@@ -115,18 +226,44 @@ user's guide exist, no PDF, a minimum number of pages). Two workflows use it, so
   tests `docs.links` and `docs.paths`, over every Markdown file, so that a change to documentation alone,
   which runs no CTest ([above](#the-planner-and-documentation-only-changes)), is still checked for links,
   anchors and paths, and so is `README.md`, which the site does not contain.
-- `docs.yml`: when `main` moves (the release bot's fast-forward after a release), it builds the site again,
-  packages it, and the job `Publish the site` deploys it with `actions/deploy-pages`.
+- `docs.yml`: it builds the site again with the same checks and keeps it as an artifact, and then (below) deploys it when `main` moves (the
+  release bot's fast-forward after a release), deploys a preview for a pull request that changes the documentation, and publishes the
+  pages that forward the old addresses to GitHub Pages.
 - `release.yml`, job `Docs (strict)`: the first job after *Prepare*, ahead of the three builds, so a release
   with a broken page stops in a minute and not after an hour.
 
-**Publishing** uses Pages with the *GitHub Actions* source. A `gh-pages` branch is not an option here: the
-`branch-names` ruleset refuses a branch with a name outside its list. The deploying job runs in the
-`github-pages` environment (deployment branches: `main` only) and waits for the repository variable
-`PUBLISH_DOCS` to be `true`, so a repository that has not switched Pages on gets no failed run
-([Releasing](releasing.md#setup)). Because `main` moves only with a
-release, the published site is the documentation of the latest release. There is one version of the site;
-old releases' pages are in the tag's tree on GitHub.
+The checks' own tests are the CTest test `ci.site_checks` (`tools/ci/test_site_checks.py`): each check passes a good tree and fails, with a
+reason, on a bad one.
+
+### Publishing
+
+- **GitHub Pages: the old address.** Release 0.1.1's documentation was at `https://iainchesworthlabs.github.io/arinc-data-loader/`. From
+  the first release that carries this change, the job `Publish the site` of `docs.yml` publishes there a small page at each address of
+  that site, with a link and a refresh to the page's new address (`tools/docs/make_old_address_stubs.py`, from the table above). A page
+  that is on GitHub only forwards to the file on GitHub. The pictures and the public key (`signing-key.asc`) are files, not pages, and are
+  not forwarded; the key is also attached to every release. The job uses the Pages "GitHub Actions" source and not a `gh-pages` branch
+  (the `branch-names` ruleset refuses a branch with a name outside its list), runs in the `github-pages` environment (deployment branches:
+  `main` only) and waits for the repository variable `PUBLISH_DOCS` to be `true` ([Releasing](releasing.md#setup)).
+- **iainchesworthlabs.com/adl/: the deploy.** The company site gives each program a role that may write its own path only, and
+  `icl-common-infra`'s reusable workflow `docs-deploy-aws.yml` (version 0.1.26 or later; this repository is pinned to 0.1.28) assumes it by
+  OIDC, with no stored key, and syncs the built site to `adl/` of the company's bucket and invalidates its cache. `docs.yml` calls it three
+  ways: a push to `main` deploys the production site (`production-ref: refs/heads/main`, so no other ref can); a pull request from this
+  repository that changes the documentation deploys a preview to `/_preview/adl/pr-<number>/` and comments the address on the pull request
+  (the preview is public to anyone with the link, carries `noindex`, runs no script, and so has no search); a closed pull request removes
+  its preview. A pull request from a fork gets no secrets and no preview. A run that lacks a secret skips the deploy with a warning and does
+  not fail.
+- **What the owner does before it can run** (none of it is in this repository, and none is done by the agents that work on it):
+    1. In the company site's repository, add `adl` to `infra/lib/apps.ts` with this repository's name and numeric id, a role name, and
+       **`publishRef: 'main'`**: its default is `develop`, and this workflow deploys production from `main` only. Update the site's list of
+       protected prefixes and its tests as the company site's README says, and run `cdk deploy`. That makes the production role and the preview role.
+    2. Customise this repository's OIDC subject claim as the company site's README says.
+    3. Set four repository secrets, each from an output of that deploy: `DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET` and
+       `DOCS_DISTRIBUTION_ID`.
+    4. Run `docs.yml` from `main` once, and check `https://iainchesworthlabs.com/adl/` and a preview.
+  Until then the site is read locally (`mkdocs serve`) and the strict build is the check.
+
+Because `main` moves only with a release, the pages that forward are the ones of the latest release. There is one version of the site; old
+releases' pages are in the tag's tree on GitHub.
 
 **Not used.** Zensical, the successor to Material for MkDocs, reads the same `mkdocs.yml`. It was tried and
 does not run MkDocs hooks, so every link out of `docs/` fails its strict build. MkDocs is held below 2.0,
@@ -161,7 +298,7 @@ find is therefore found once, on the merged tree, and not on every pull request.
 | `Plan` | ubuntu-24.04 | `cmake/icl` is the copy of the commit the workflows pin (`tools/ci/sync_cmake.py --check`); what the change touches (`.github/ci/plan.json`: documentation only, no build, build, Qt needed, or the gate itself); and which legs to build. |
 | `clang-format` | ubuntu-24.04 | Every `.cpp`/`.hpp` (and sibling extensions) under `libs/`, `apps/` and `tests/` is exactly what the repository's `.clang-format` produces, with one pinned clang-format release (`.github/requirements/lint.txt`). Any difference fails; the log names file and line. |
 | `platform-isolation` | ubuntu-24.04 | `tools/checks/check_platform_isolation.ps1`: no preprocessor conditional, no OS header or OS-querying API outside `libs/platform/`, no OS test in CMake outside the selector, no `#define`, every platform source wired. Fast, and deliberately not behind the build legs. |
-| `Docs build (strict)` | ubuntu-24.04 | The documentation site builds with `mkdocs build --strict` and its checks pass; every relative link and path in the Markdown files resolves ([Documentation site](#documentation-site)). |
+| `Docs build (strict)` | ubuntu-24.04 | The documentation site builds with `mkdocs build --strict`; the company kit, the palette, the site's address and its layout pass their checks; every relative link and path in the Markdown files resolves ([Documentation site](#documentation-site)). |
 | `Linux (GCC, Release)` | ubuntu-26.04 | Preset `linux-release` with GCC 16 builds warning-free (`-Wall -Wextra -Wpedantic -Werror ...`) with the hardening options, and all of ctest passes. **Fast.** |
 | `Linux (Clang, ASan and UBSan)` | ubuntu-26.04 | Preset `linux-asan-ubsan` with Clang 23 at `-O1`, and all of ctest passes. **Fast.** |
 | `Linux (GCC, Debug)` | ubuntu-26.04 | Preset `linux-debug`, no sanitizers. |
@@ -171,7 +308,7 @@ find is therefore found once, on the merged tree, and not on every pull request.
 | `Windows (MSVC, ASan)` | windows-2025-vs2026 | Preset `windows-msvc-asan`: the same under AddressSanitizer. |
 | `Benchmarks (Linux, GCC)` | ubuntu-26.04 | Preset `linux-perf`: the micro-benchmarks of the check values, the header file, the media set and the TFTP packets run, and none is over its limit in `perf-budget.json` ([Performance](performance.md)); the budget reports and does not fail until it has been filled in from this runner. Full tier. |
 | `Fuzz regression (Linux, Clang)` | ubuntu-26.04 | Preset `linux-fuzz` builds the libFuzzer harnesses with Clang 23, and every seed input and every past crash replays without a finding ([Fuzzing](fuzzing.md)). **Fast.** |
-| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the ARINC 665 and 615A libraries, the second TFTP implementation, the runner, the media tree, the loader core, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. A **second pass** measures the applications' window-free logic (`apps/app/core`, `apps/mock_target/core`, `apps/media_gen/core`, Qt's generated files left out) at a lower floor, set a little under what the suite measures ([testing](testing.md#coverage)), and fails when it measures too little; the job therefore installs the Qt kit and configures with `-DADL_BUILD_APP=ON`. The windows' QML cannot be measured and is covered by the UI suite on the build legs. **Fast.** |
+| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the ARINC 665 and 615A libraries, the second TFTP implementation, the runner, the media tree, the loader core, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. A **second pass** measures the applications' window-free logic (`apps/app/core`, `apps/mock_target/core`, `apps/media_gen/core`, and the mock target's engine in `libs/mock_target_core`, Qt's generated files left out) at a lower floor, set a little under what the suite measures ([testing](testing.md#coverage)), and fails when it measures too little; the job therefore installs the Qt kit and configures with `-DADL_BUILD_APP=ON`. The windows' QML cannot be measured and is covered by the UI suite on the build legs. **Fast.** |
 | `Workflow analysis` | ubuntu-24.04 | `zizmor` finds nothing in the workflows. |
 | `Scan dependency diff` | ubuntu-24.04 | The change adds no moderate-or-worse known vulnerability (GitHub Actions and the vcpkg manifest). |
 | `CI Status` | ubuntu-24.04 | Every job above that the plan asked for ran and succeeded. |

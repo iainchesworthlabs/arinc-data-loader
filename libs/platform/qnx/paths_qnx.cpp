@@ -35,4 +35,23 @@ std::filesystem::path executable_path()
     return std::filesystem::path{name};
 }
 
+std::string computer_name()
+{
+    // Not written for QNX yet: the interface allows an empty name. Unbuilt like the rest of this
+    // directory, so nothing here has been compiled for QNX.
+    return {};
+}
+
+std::filesystem::path user_data_directory()
+{
+    // As above: an empty path until someone with a QNX target decides where a user's data goes.
+    return {};
+}
+
+std::filesystem::path machine_config_directory()
+{
+    // As above.
+    return {};
+}
+
 } // namespace adl::platform
