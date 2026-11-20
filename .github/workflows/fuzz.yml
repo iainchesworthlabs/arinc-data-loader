@@ -34,9 +34,9 @@ jobs:
   fuzz:
     name: Fuzz (Linux, Clang)
     runs-on: ubuntu-26.04
-    # The nightly run fuzzes every target (16 of them) for ten minutes one after the other: 160 minutes,
-    # plus the build and the cache. Raise this with the number of targets.
-    timeout-minutes: 210
+    # The nightly run fuzzes every target (27 of them) for ten minutes one after the other: 270 minutes,
+    # plus the build and the cache. Raise this with the number of targets (a hosted job may run for 360 at most: past that, split the targets over two jobs).
+    timeout-minutes: 330
     permissions:
       contents: read
       issues: write

@@ -14,7 +14,8 @@ What it looks at, in every file of the package:
 
   names    The tool, the signing library and the test key library (adl_licence_owner, adl_licence_owner_core,
            adl_licence_sign, adl_licence_test_keys, in any extension, with or without a lib prefix, or as a
-           folder of a macOS bundle), their headers (adl/licence/sign.hpp, adl/licence/test_keys.hpp), and the
+           folder of a macOS bundle), the programs of the tests that carry the test key (adl_licence_test_program
+           and the test programs of adl_licence), their headers (adl/licence/sign.hpp, adl/licence/test_keys.hpp), and the
            names of key files: *.adlownerkey and *.adlownerpub (what keygen writes), *.adlkey (a customer's own
            site key, which another tool writes), *.key, *.pem, *.p12, *.pfx, *.priv, and the names ssh-keygen uses.
   bytes    Whatever the name: the text adl_licence_owner (in a binary renamed to something else), the private
@@ -52,6 +53,10 @@ SIGNING_NAMES = {
     "adl_licence_owner_tests",
     "adl_licence_sign",
     "adl_licence_test_keys",
+    # The programs of the tests of adl_licence, which carry the throwaway test key (apps/licence, tests/licence_cli).
+    "adl_licence_test_program",
+    "adl_licence_cli_unit_tests",
+    "adl_licence_cli_integration_tests",
 }
 SIGNING_HEADERS = {("adl", "licence", "sign.hpp"), ("adl", "licence", "test_keys.hpp")}
 KEY_SUFFIXES = {".adlownerkey", ".adlownerpub", ".adlkey", ".key", ".pem", ".p12", ".pfx", ".priv"}
@@ -84,7 +89,7 @@ def name_problems(path: str) -> list[str]:
         if stem.startswith("lib"):
             stem = stem[3:]
         if stem in SIGNING_NAMES:
-            problems.append(f"{part} is the owner's licence tool or a library it signs with")
+            problems.append(f"{part} is the owner's licence tool, a library it signs with, or a program that carries the test key")
     lowered = tuple(p.lower() for p in parts)
     if len(lowered) >= 3 and lowered[-3:] in SIGNING_HEADERS:
         problems.append(f"{'/'.join(parts[-3:])} is the header of a signing library")

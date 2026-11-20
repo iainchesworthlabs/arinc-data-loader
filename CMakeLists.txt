@@ -149,6 +149,8 @@ if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(libs/licence)
     # The same library over the platform layer: the store's file interface and the folders. GPL only.
     add_subdirectory(libs/licence_platform)
+    # The commands of adl_licence (show, import, remove, verify), over the store and the platform layer. GPL only.
+    add_subdirectory(libs/licence_cli)
     # The owner's licence tool: built with the other tools, never installed (tools/licence/CMakeLists.txt).
     add_subdirectory(tools/licence)
     # What the scenario files of the mock target and of the loader have in common: the random numbers and the
@@ -186,6 +188,11 @@ add_subdirectory(apps/write_payloads)
 # installed only there).
 if(ADL_PLATFORM_DESKTOP)
     add_subdirectory(apps/mock)
+endif()
+
+# adl_licence: shows, imports, removes and checks the licence on this computer, from a command line.
+if(ADL_PLATFORM_DESKTOP)
+    add_subdirectory(apps/licence)
 endif()
 
 # The Qt application: a thin layer over the libraries above, and the only place Qt is used.

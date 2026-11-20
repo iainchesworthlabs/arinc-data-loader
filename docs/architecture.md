@@ -141,6 +141,19 @@
   is also offered under the BSD 2-Clause licence ([licensing](licensing.md)), because it uses `adl::platform`.
   It is on a desktop only, is not part of the installed `adl` package, and the three Qt applications link it
   (through the licence model of `libs/ui`).
+- **`libs/licence_cli`** is the commands of `adl_licence`: `show`, `import`, `remove` and `verify`, over the store and
+  `libs/licence_platform`. `adl::licence_cli::run` takes the command line and an `Environment` (the files, the folders, the
+  time, the computer's name and the keys) and writes to two streams, so that a test gives it files in memory, a clock of
+  its own and the published test key, and `SystemEnvironment` fills the `Environment` in from this computer. It links
+  `adl::licence` and no signing code, so no program that ships holds a key or the test key. It is under the GPL alone, on a
+  desktop only, and not part of the installed `adl` package.
+- **`apps/licence`** is the `adl_licence` program around those commands: its arguments through `adl::platform::arguments`,
+  and the one thing `adl::platform` does not give, an environment variable (`ADL_SETTINGS_DIR`), which is the one part
+  that differs between systems: CMake compiles `os/<platform>/environment.cpp` chosen by the platform's name, as it does
+  for the entry point of the owner's tool. It can move into `adl::platform` if a second program needs it. The target is
+  `adl_licence_program`, because `adl_licence` is the library of the licence; the file is `adl_licence`. A program of the
+  tests, `adl_licence_test_program`, runs the same commands with the test key and a clock the test sets, and is never
+  installed.
 - **`tools/licence`** is the owner's licence tool (`adl_licence_owner`): it makes a signing key, issues a licence file,
   checks one and writes a revocation list, on `adl::licence`, `adl::licence_sign` and the test key and the standard
   library, and nothing else of this repository. It is built with the other tools and never installed; a package check
@@ -191,6 +204,7 @@ route to remove it.
 | `libs/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
 | `libs/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
 | `libs/licence_platform` | `adl_licence_platform` | `adl::licence_platform` | `adl::licence_platform` | `adl/licence_platform/*.hpp` |
+| `libs/licence_cli` | `adl_licence_cli` | `adl::licence_cli` | `adl::licence_cli` | `adl/licence_cli/*.hpp` |
 | `libs/licence` | `adl_licence` (with `adl_licence_sign` and `adl_licence_test_keys`) | `adl::licence` (and `adl::licence_sign`, `adl::licence_test_keys`) | `adl::licence` | `adl/licence/*.hpp` |
 | `libs/scenario_base` | `adl_scenario_base` | `adl::scenario_base` | `adl::scenario` | `adl/scenario/*.hpp` |
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
@@ -202,7 +216,7 @@ route to remove it.
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 | `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
-The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock`, `adl_write_payloads` and `adl_make_set`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock`, `adl_write_payloads`, `adl_make_set` and `adl_licence`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
 applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
@@ -232,7 +246,7 @@ its neighbours.
 
 ## Command-line programs
 
-A program that is started from a command line (`adl_write_payloads`, `adl_mock`, `adl_make_set`, and any other that does not open a
+A program that is started from a command line (`adl_write_payloads`, `adl_mock`, `adl_make_set`, `adl_licence`, and any other that does not open a
 window) is written this way:
 
 - **Its `main` takes its arguments from `adl::platform::arguments` and never reads `argv` itself.**

@@ -184,7 +184,9 @@ placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six
 `docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
 the description is there, and not that it is good. The owner's licence tool is not shipped and is not a program of the guide, so it has a page of its
 own, `docs/licence-owner-tool.md`: every sentence of `tools/licence/src/messages.hpp` and every `exit_*` constant of `tools/licence/src/owner.hpp`
-must be on it, by the same rules.
+must be on it, by the same rules. `adl_licence` is a program of the guide with its sentences in a header of its own, so it is held to the same
+rules on the command-line page: every sentence of `libs/licence_cli/src/messages.hpp` and every `exit_*` constant of
+`libs/licence_cli/include/adl/licence_cli/licence_cli.hpp` must be on `docs/user-guide/command-line.md`.
 
 `adl_make_set` has no catalogue, because it has no Qt, so it is held to its own section of `docs/user-guide/command-line.md` (the section whose heading names `adl_make_set`): every `exit_*` constant of `apps/make_set/include/adl/make_set/command.hpp` must be a row of the table in that section, and every string literal of `apps/make_set/src/command.cpp`, `options.cpp` and `description.cpp` and of `libs/set_maker/src/validate.cpp` (the sentences of the rules that a description is held to), without its comments and `#include` lines, must be in that section, by the same rules.
 
