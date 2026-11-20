@@ -154,6 +154,8 @@ OWNER_TOOL_EXIT_CODES = "tools/licence/src/owner.hpp"
 OWNER_TOOL_PAGE = "docs/licence-owner-tool.md"
 # A string literal of the sentences' header: an ordinary one, or a raw one (the usage text).
 STRING_LITERAL = re.compile(r'R"\((.*?)\)"|"((?:[^"\\]|\\.)*)"', flags=re.S)
+STRING_VIEW_DECLARATION = re.compile(r"inline constexpr std::string_view \w+\s*=")
+WHITESPACE = re.compile(r"\s*")
 
 
 def owner_tool_messages(root: Path) -> list[str]:
@@ -163,11 +165,21 @@ def owner_tool_messages(root: Path) -> list[str]:
         return []
     source = path.read_text(encoding="utf-8")
     sentences = []
-    for declaration in re.finditer(r"inline constexpr std::string_view \w+\s*=\s*((?:(?:R\"\(.*?\)\"|\"(?:[^\"\\]|\\.)*\")\s*)+);", source, flags=re.S):
+    # The literals of a declaration are read one after another from where the `=` ends, and not by one pattern
+    # that repeats the alternation of the two literal forms (a repeated alternation is the shape CodeQL flags as
+    # able to backtrack without end).
+    for declaration in STRING_VIEW_DECLARATION.finditer(source):
         pieces = []
-        for raw, ordinary in STRING_LITERAL.findall(declaration.group(1)):
-            pieces.append(raw if raw else re.sub(r"\\(.)", lambda m: "\n" if m.group(1) == "n" else m.group(1), ordinary))
-        sentences.append("".join(pieces))
+        position = declaration.end()
+        while True:
+            literal = STRING_LITERAL.match(source, WHITESPACE.match(source, position).end())
+            if literal is None:
+                break
+            raw, ordinary = literal.groups()
+            pieces.append(raw if raw is not None else re.sub(r"\\(.)", lambda m: "\n" if m.group(1) == "n" else m.group(1), ordinary))
+            position = literal.end()
+        if source.startswith(";", WHITESPACE.match(source, position).end()):
+            sentences.append("".join(pieces))
     return sentences
 
 
