@@ -220,6 +220,7 @@ add_executable(adl_load_command_tests
     load/download_test.cpp
     load/find_test.cpp
     load/information_test.cpp
+    load/preparer_test.cpp
     load/record_test.cpp
     load/serve_test.cpp
     load/upload_test.cpp
