@@ -119,10 +119,10 @@ TEST_CASE("UTF-16 is converted to UTF-8, and a lone surrogate is refused", "[uni
 TEST_CASE("a path made from UTF-8 gives the same UTF-8 back", "[unit][licence][owner]")
 {
     for (const std::string& name : {std::string("plain.adllic"),
-                                   std::string("\xC3\x9C"
-                                               "berpr\xC3\xBC"
-                                               "fung"),
-                                   std::string("\xE3\x83\xA9\xE3\x83\x9C"), std::string("\xF0\x9F\x94\x91")})
+                                    std::string("\xC3\x9C"
+                                                "berpr\xC3\xBC"
+                                                "fung"),
+                                    std::string("\xE3\x83\xA9\xE3\x83\x9C"), std::string("\xF0\x9F\x94\x91")})
     {
         const fs::path path = own::path_from_utf8(name);
         CHECK(own::path_to_utf8(path) == name);
