@@ -27,7 +27,7 @@ struct OptionSpec
     bool repeatable;
 };
 
-constexpr std::array<OptionSpec, 29> known_options{{
+constexpr std::array<OptionSpec, 30> known_options{{
     {"--hardware-id", true, false},
     {"--position", true, false},
     {"--type-name", true, false},
@@ -52,6 +52,7 @@ constexpr std::array<OptionSpec, 29> known_options{{
     {"--abort-after", true, false},
     {"--silent", false, false},
     {"--scenario", true, false},
+    {"--scenario-actions", false, false},
     {"--operations", true, false},
     {"--seconds", true, false},
     {"--json", false, false},
@@ -263,6 +264,11 @@ std::expected<Options, UsageError> parse_options(std::span<const std::string_vie
         if (name == "--version")
         {
             options.action = Action::version;
+            return options;
+        }
+        if (name == "--scenario-actions")
+        {
+            options.action = Action::scenario_actions;
             return options;
         }
         if (name == "--hardware-id" || name == "--position")
@@ -560,6 +566,7 @@ std::string usage_text()
            "  --silent                  say nothing after the first status file; needs --seconds\n"
            "  --scenario <file>         take the faults from a scenario file, which says which happens when\n"
            "                            (instead of the fault options above); see the guide\n"
+           "  --scenario-actions        print the actions a scenario file may use, one for each line, and exit\n"
            "\n"
            "stopping\n"
            "  --operations <n>          stop after n operations (a refused one counts)\n"

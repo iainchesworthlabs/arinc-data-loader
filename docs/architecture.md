@@ -128,10 +128,10 @@
   not in the `adl` package. The mock target application runs it on a worker thread, and the tests run it
   against the loader's engine on the fake platform and over loopback sockets.
 - **`libs/mock_scenario`** is the mock target's scenario: a file that says which fault happens when (the nth request, the
-  nth status file, a time since the operation began; any fault the mock target has, or a delay), read over the shared
+  nth status file, a time since the operation began; any fault the mock target has, a delay, or a fault on a datagram the target sends: lost, repeated, late or reordered), read over the shared
   reader of `libs/scenario_base`, written back in one form, and a `ScenarioPlayer` that is the `FaultPlan` the engine asks.
   The engine knows nothing of files or seeds: `adl/mock/fault_plan.hpp`, in `libs/mock_target_core`, is the interface, in
-  the engine's own terms (wait, refuse, drop a status file, abort, go silent, corrupt, wrong check value, delay). A
+  the engine's own terms (wait, refuse, drop a status file, abort, go silent, corrupt, wrong check value, and for each datagram the engine is about to send: send, drop, repeat, delay or hold). A
   desktop library, like the licence library it reads JSON with; not installed. `adl_mock` and the mock target's window
   both take a scenario through it.
 - **`libs/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it

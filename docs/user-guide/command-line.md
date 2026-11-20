@@ -148,6 +148,7 @@ faults (all off by default)
   --silent                  say nothing after the first status file; needs --seconds
   --scenario <file>         take the faults from a scenario file, which says which happens when
                             (instead of the fault options above); see the guide
+  --scenario-actions        print the actions a scenario file may use, one for each line, and exit
 
 stopping
   --operations <n>          stop after n operations (a refused one counts)
@@ -185,6 +186,7 @@ Options are written `--name value`. A value is never a list with commas: an opti
 | `--abort-after <n>` | Abort (0x1003) after n status files | Off |
 | `--silent` | Say nothing after the first status file, so the loader runs into its 13 second time-out. The operation never ends, so it needs `--seconds` | Off |
 | `--scenario <file>` | Take the faults from a scenario file, which says which fault happens when, in place of the fault options. It cannot be given with one of them. The file is described in [Scenarios for the mock target](mock-scenarios.md). A scenario with a step that goes silent needs `--seconds` | Off |
+| `--scenario-actions` | Print the words that `action` may have in a scenario file, one for each line, and end with exit code 0. It starts nothing and opens nothing. The first of `--help`, `--version` and `--scenario-actions` decides | |
 | `--operations <n>`, `--seconds <n>` | Stop after n operations (a refused one counts), or after n seconds | Run until killed |
 | `--json` | One JSON object a line | One plain line an event |
 | `--help`, `--version` | The usage; `adl_mock <version> events 1` | |
@@ -200,7 +202,7 @@ Standard output carries the events and nothing else. Standard error carries what
 By default a line is for a person: the seconds since the program started, the name of the event and `key=value` pairs.
 
 ```text
-0.003 started program=adl_mock version=0.1.2 events=1 thw_id_pos=HNPFMS_L address=127.0.0.1 find_port=1001 tftp_port=59 faults=none
+0.003 started program=adl_mock version=0.1.2 events=1 thw_id_pos=HNPFMS_L address=127.0.0.1 find_port=1001 tftp_port=59 faults=none scenario_features=wait,refuse,invalid_init_file,drop_status_file,abort,silent,corrupt_served,wrong_checksum,delay,drop_datagram,duplicate_datagram,reorder_datagram
 1.210 operation_began operation=information
 1.211 progress operation=information percent=0
 5.730 operation_ended operation=information status=3 status_name=completed refused=false
@@ -209,13 +211,13 @@ By default a line is for a person: the seconds since the program started, the na
 
 With `--json` a line is one JSON object, in UTF-8, for a program to read: `"event"` is the first key and `"t"` (the seconds, with three decimals) the second. On Windows the standard output is a text stream and each line ends in a carriage return and a line feed; a reader that splits at the line feed and ignores a carriage return at the end of a line reads both.
 
-The events are `started`, `operation_began`, `progress`, `upload_received`, `operation_ended`, `scenario_step` (only with `--scenario`, see [Scenarios for the mock target](mock-scenarios.md#running-adl_mock-with-a-scenario)) and `stopped`. The keys of each, and what a reader should do with a key or a format number it does not know, are in [The mock target](../mock-target.md#output).
+The events are `started`, `operation_began`, `progress`, `upload_received`, `operation_ended`, `scenario_step` and `scenario_datagram` (only with `--scenario`, see [Scenarios for the mock target](mock-scenarios.md#running-adl_mock-with-a-scenario)) and `stopped`. The keys of each, and what a reader should do with a key or a format number it does not know, are in [The mock target](../mock-target.md#output).
 
 ### Exit codes
 
 | Code | Meaning |
 | --- | --- |
-| 0 | It stopped as asked (`--operations` served, `--seconds` passed), or printed `--help` or `--version` |
+| 0 | It stopped as asked (`--operations` served, `--seconds` passed), or printed `--help`, `--version` or `--scenario-actions` |
 | 1 | The run failed: the platform would not start, or waiting on the network failed (`stopped` says `error`) |
 | 2 | Wrong usage. Nothing was started |
 | 3 | A folder cannot be used: `--holds` is not a folder or cannot be read, or `--storage` is not a folder and cannot be made |

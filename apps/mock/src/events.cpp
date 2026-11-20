@@ -61,6 +61,7 @@ std::string_view event_name(const EventData& data) noexcept
                                  [](const UploadReceived&) { return std::string_view{"upload_received"}; },
                                  [](const OperationEnded&) { return std::string_view{"operation_ended"}; },
                                  [](const ScenarioStepFired&) { return std::string_view{"scenario_step"}; },
+                                 [](const ScenarioDatagram&) { return std::string_view{"scenario_datagram"}; },
                                  [](const Stopped&) { return std::string_view{"stopped"}; }},
                       data);
 }
@@ -79,6 +80,10 @@ std::string to_json_line(const Event& event)
                                   .number("find_port", started.find_port)
                                   .number("tftp_port", started.tftp_port)
                                   .strings("faults", started.faults);
+                              if (!started.features.empty())
+                              {
+                                  object.strings("scenario_features", started.features);
+                              }
                               if (started.scenario)
                               {
                                   object.string("scenario", started.scenario->path)
@@ -142,6 +147,54 @@ std::string to_json_line(const Event& event)
                               {
                                   object.number("ms", *fired.ms);
                               }
+                              if (fired.copies)
+                              {
+                                  object.number("copies", *fired.copies);
+                              }
+                              if (fired.within_ms)
+                              {
+                                  object.number("within_ms", *fired.within_ms);
+                              }
+                              if (fired.count)
+                              {
+                                  object.number("count", *fired.count);
+                              }
+                              if (fired.datagram)
+                              {
+                                  object.string("datagram", *fired.datagram);
+                              }
+                              if (fired.file)
+                              {
+                                  object.string("file", *fired.file);
+                              }
+                              if (fired.block)
+                              {
+                                  object.number("block", *fired.block);
+                              }
+                          },
+                          [&object](const ScenarioDatagram& hit)
+                          {
+                              object.number("step", static_cast<std::int64_t>(hit.step))
+                                  .string("action", hit.action)
+                                  .boolean("applied", hit.applied)
+                                  .string("datagram", hit.datagram);
+                              if (hit.file)
+                              {
+                                  object.string("file", *hit.file);
+                              }
+                              else
+                              {
+                                  object.null("file");
+                              }
+                              if (hit.block)
+                              {
+                                  object.number("block", *hit.block);
+                              }
+                              else
+                              {
+                                  object.null("block");
+                              }
+                              object.string("to", hit.to).number("size", static_cast<std::int64_t>(hit.size));
                           },
                           [&object](const Stopped& stopped)
                           {
@@ -152,6 +205,12 @@ std::string to_json_line(const Event& event)
                                   const std::vector<std::int64_t> unused(stopped.scenario_unused->begin(),
                                                                          stopped.scenario_unused->end());
                                   object.numbers("scenario_unused", unused);
+                              }
+                              if (stopped.scenario_idle)
+                              {
+                                  const std::vector<std::int64_t> idle(stopped.scenario_idle->begin(),
+                                                                       stopped.scenario_idle->end());
+                                  object.numbers("scenario_idle", idle);
                               }
                           }},
                event.data);
@@ -173,6 +232,10 @@ std::string to_plain_line(const Event& event)
                               add(line, "find_port", std::to_string(started.find_port));
                               add(line, "tftp_port", std::to_string(started.tftp_port));
                               add(line, "faults", started.faults.empty() ? "none" : joined(started.faults, ','));
+                              if (!started.features.empty())
+                              {
+                                  add(line, "scenario_features", joined(started.features, ','));
+                              }
                               if (started.scenario)
                               {
                                   add(line, "scenario", started.scenario->path);
@@ -220,6 +283,41 @@ std::string to_plain_line(const Event& event)
                               {
                                   add(line, "ms", std::to_string(*fired.ms));
                               }
+                              if (fired.copies)
+                              {
+                                  add(line, "copies", std::to_string(*fired.copies));
+                              }
+                              if (fired.within_ms)
+                              {
+                                  add(line, "within_ms", std::to_string(*fired.within_ms));
+                              }
+                              if (fired.count)
+                              {
+                                  add(line, "count", std::to_string(*fired.count));
+                              }
+                              if (fired.datagram)
+                              {
+                                  add(line, "datagram", *fired.datagram);
+                              }
+                              if (fired.file)
+                              {
+                                  add(line, "file", *fired.file);
+                              }
+                              if (fired.block)
+                              {
+                                  add(line, "block", std::to_string(*fired.block));
+                              }
+                          },
+                          [&line](const ScenarioDatagram& hit)
+                          {
+                              add(line, "step", std::to_string(hit.step));
+                              add(line, "action", hit.action);
+                              add(line, "applied", hit.applied ? "true" : "false");
+                              add(line, "datagram", hit.datagram);
+                              add(line, "file", hit.file ? *hit.file : "none");
+                              add(line, "block", hit.block ? std::to_string(*hit.block) : "none");
+                              add(line, "to", hit.to);
+                              add(line, "size", std::to_string(hit.size));
                           },
                           [&line](const Stopped& stopped)
                           {
@@ -233,6 +331,15 @@ std::string to_plain_line(const Event& event)
                                       unused.push_back(std::to_string(step));
                                   }
                                   add(line, "scenario_unused", unused.empty() ? "none" : joined(unused, ','));
+                              }
+                              if (stopped.scenario_idle)
+                              {
+                                  std::vector<std::string> idle;
+                                  for (const std::size_t step : *stopped.scenario_idle)
+                                  {
+                                      idle.push_back(std::to_string(step));
+                                  }
+                                  add(line, "scenario_idle", idle.empty() ? "none" : joined(idle, ','));
                               }
                           }},
                event.data);

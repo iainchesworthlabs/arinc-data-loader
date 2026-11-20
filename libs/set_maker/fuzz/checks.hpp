@@ -232,6 +232,23 @@ inline constexpr std::size_t most_files = 64;
     {
         return "the members found are not the members given";
     }
+    std::uint64_t held = 0;
+    for (const adl::arinc665::MediaMember& member : members)
+    {
+        for (const adl::arinc665::MediaFile& file : member.files)
+        {
+            held += file.bytes.size();
+        }
+    }
+    std::uint64_t counted = 0;
+    for (const MemberSize& size : inspected->member_sizes)
+    {
+        counted += size.size;
+    }
+    if (inspected->member_sizes.size() != members.size() || counted != held)
+    {
+        return "the sizes of the members are not the bytes they hold";
+    }
     return {};
 }
 

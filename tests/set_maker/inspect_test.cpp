@@ -177,6 +177,39 @@ TEST_CASE("inspect: the facts of a set that was made are the facts of its plan",
         CHECK(file.crc16.size() == 4);
     }
     CHECK(set.unlisted_files.empty());
+
+    // The size of each member is every file on it, FILES.LUM included, so the members add up to the tree.
+    REQUIRE(set.member_sizes.size() == 2);
+    std::uint64_t all_bytes = 0;
+    for (const auto& [name, bytes] : tree)
+    {
+        all_bytes += bytes.size();
+    }
+    std::uint64_t sum = 0;
+    std::size_t files = 0;
+    for (const MemberSize& size : set.member_sizes)
+    {
+        std::uint64_t on_member = 0;
+        std::size_t count = 0;
+        const std::string prefix = "member_00" + std::to_string(size.member) + "/";
+        for (const auto& [name, bytes] : tree)
+        {
+            if (name.starts_with(prefix))
+            {
+                on_member += bytes.size();
+                ++count;
+            }
+        }
+        INFO(size.member);
+        CHECK(size.size == on_member);
+        CHECK(size.files == count);
+        sum += size.size;
+        files += size.files;
+    }
+    CHECK(set.member_sizes[0].member == 1);
+    CHECK(set.member_sizes[1].member == 2);
+    CHECK(sum == all_bytes);
+    CHECK(files == tree.size());
     CHECK(set.findings.size() == 3); // the three data files that are not whole words
 }
 
@@ -296,11 +329,18 @@ TEST_CASE("inspect: a file that is on a member and not in FILES.LUM is said", "[
     REQUIRE(make_set(one_load_plan(sources.path()), Destination::exact(out.path() / "set"), hooks).has_value());
     auto members = adl::media_tree::read_media_set_tree(out.path() / "set");
     REQUIRE(members.has_value());
+    const auto before = inspect_members(*members);
+    REQUIRE(before.has_value());
+    REQUIRE(before->member_sizes.size() == 1);
     members->at(0).files.push_back(
         adl::arinc665::MediaFile{"\\", "STRAY.TXT", {std::byte{1}, std::byte{2}, std::byte{3}}});
 
     const auto inspected = inspect_members(*members);
     REQUIRE(inspected.has_value());
+    // The member's size counts the stray file, as it counts FILES.LUM, which is in neither list.
+    REQUIRE(inspected->member_sizes.size() == 1);
+    CHECK(inspected->member_sizes[0].files == before->member_sizes[0].files + 1);
+    CHECK(inspected->member_sizes[0].size == before->member_sizes[0].size + 3);
     REQUIRE(inspected->unlisted_files.size() == 1);
     CHECK(inspected->unlisted_files[0].name == "STRAY.TXT");
     CHECK(inspected->unlisted_files[0].member == 1);

@@ -153,8 +153,17 @@ std::expected<Inspection, InspectFailure> inspect_members(std::span<const MediaM
     for (const MediaMember& member : members)
     {
         result.members_present.push_back(member.sequence_number);
+        MemberSize size;
+        size.member = member.sequence_number;
+        size.files = member.files.size();
+        for (const MediaFile& file : member.files)
+        {
+            size.size += file.bytes.size();
+        }
+        result.member_sizes.push_back(size);
     }
     std::ranges::sort(result.members_present);
+    std::ranges::sort(result.member_sizes, {}, &MemberSize::member);
     result.loads_list_version = version_text(static_cast<std::uint16_t>(set.loads_list.format_version));
     result.files_list_version = version_text(static_cast<std::uint16_t>(list.format_version));
     result.loads_list_user_data = hex_of(set.loads_list.user_defined_data);

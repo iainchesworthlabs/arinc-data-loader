@@ -109,6 +109,15 @@ struct UnlistedFile
     std::uint64_t size = 0;
 };
 
+// What one member holds: every file on it, FILES.LUM and any file it does not list included, so that the sum over the
+// members is what the set takes on disk.
+struct MemberSize
+{
+    unsigned member = 0;
+    std::size_t files = 0;
+    std::uint64_t size = 0; // bytes
+};
+
 struct Inspection
 {
     std::string part_number;
@@ -122,6 +131,7 @@ struct Inspection
     std::optional<std::string> batches_list_user_data;
     std::string files_list_check_type; // the check value FILES.LUM records for itself
     std::optional<std::string> files_list_check_value;
+    std::vector<MemberSize> member_sizes; // for each member present, in order
     std::vector<InspectedLoad> loads;
     std::vector<InspectedBatch> batches;
     std::vector<InspectedFile> files;
