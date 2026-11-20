@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 #pragma once
 
 // What the licence tests share: a licence to judge, the way to sign it with the published test key, and
@@ -8,7 +8,6 @@
 #include "adl/licence/sign.hpp"
 #include "adl/licence/signed_file.hpp"
 #include "adl/licence/test_keys.hpp"
-#include "bytes.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -35,13 +34,40 @@ namespace adl::test
     return {reinterpret_cast<const std::uint8_t*>(text.data()), text.size()};
 }
 
-// Hexadecimal as bytes, and as the text those bytes spell.
+// Hexadecimal as bytes, and as the text those bytes spell. Any character that is not a hexadecimal digit
+// (a space, a new line) is skipped. The tests of this library read nothing from outside it and Catch2.
 [[nodiscard]] inline std::vector<std::uint8_t> hex_bytes(std::string_view hex)
 {
     std::vector<std::uint8_t> bytes;
-    for (const std::byte byte : from_hex(hex))
+    int high = -1;
+    for (const char c : hex)
     {
-        bytes.push_back(std::to_integer<std::uint8_t>(byte));
+        int digit = -1;
+        if (c >= '0' && c <= '9')
+        {
+            digit = c - '0';
+        }
+        else if (c >= 'a' && c <= 'f')
+        {
+            digit = c - 'a' + 10;
+        }
+        else if (c >= 'A' && c <= 'F')
+        {
+            digit = c - 'A' + 10;
+        }
+        else
+        {
+            continue;
+        }
+        if (high < 0)
+        {
+            high = digit;
+        }
+        else
+        {
+            bytes.push_back(static_cast<std::uint8_t>((high << 4) | digit));
+            high = -1;
+        }
     }
     return bytes;
 }

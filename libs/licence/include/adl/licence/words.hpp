@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 #pragma once
 
 // The plain words for a licence's state and for the reason behind it, as the command line prints them.

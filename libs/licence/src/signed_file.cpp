@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 #include "adl/licence/signed_file.hpp"
 
 #include "json.hpp"

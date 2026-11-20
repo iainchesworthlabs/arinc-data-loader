@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 // The licence files that an independent writer made (tests/golden/make_golden_licence.py): the library
 // reads them, and writes the same bytes. A licence a customer holds must keep reading, so a change that
 // makes this fail is a change of the file format.

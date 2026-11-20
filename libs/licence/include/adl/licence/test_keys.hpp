@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 #pragma once
 
 // A throwaway key pair for the tests and for the owner's tool in its test mode. It is the key of test

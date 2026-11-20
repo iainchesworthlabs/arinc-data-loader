@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 // The plain words for a licence's state, edition and reason. The command line prints them, and a program
 // that reads them reads the same eight state names whatever product it is.
 

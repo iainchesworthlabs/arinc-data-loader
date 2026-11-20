@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 # The licence library: the signed licence file, the states a licence is in, the checks a program asks and
 # the words for them. No Qt, no network and no platform code: it reads no file and no clock, so every state
 # can be tested. It takes no ADL name except the target prefix and product.hpp, trusted_keys.cpp and

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 #pragma once
 
 // What is this product's own in the licence library, and nothing else: its name in a licence file, how its

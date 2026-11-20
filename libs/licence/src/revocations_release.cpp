@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 #include "adl/licence/licence.hpp"
 
 // The revocation list this release carries. It holds licence numbers and key ids only, never names.

@@ -5,7 +5,7 @@
                ".github/rulesets/**", ".github/repo-settings.json", ".github/labels.json", "REUSE.toml", ".editorconfig",
                "LICENSES/**", ".git-blame-ignore-revs", "sonar-project.properties", "tools/hooks/**", "tools/policy/**",
                "tools/network-access/**", "tools/repo/**"],
-  "build": ["libs/**", "apps/**", "tests/**", "CMakeLists.txt", "CMakePresets.json", "vcpkg.json", "cmake/**", "packaging/**",
+  "build": ["libs/**", "apps/**", "tests/**", "third_party/**", "CMakeLists.txt", "CMakePresets.json", "vcpkg.json", "cmake/**", "packaging/**",
             "notices/**", "zephyr/**", "tools/checks/**", "tools/release/**", "tools/coverage-floors.json",
             "tools/preprocessor-*"],
   "gui": ["apps/**", "libs/ui/**", "tests/ui/**", "tests/loopback/**", "tests/system/**", "**/*.qml", "**/*.ts", "cmake/**",

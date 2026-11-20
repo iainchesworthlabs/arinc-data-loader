@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 // The signature check behind licence files: the Ed25519 code against the vectors of RFC 8032 and Project
 // Wycheproof, and the signed envelope.
 

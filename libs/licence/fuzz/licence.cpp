@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 // The fuzz harness for licence files. A licence file is whatever a person chose to import, so the readers must
 // refuse bad input with an error and never crash. The signature keeps a fuzzer away from the payload readers,
 // so the same bytes are also given to them directly. What a reader accepts must write back and read again as

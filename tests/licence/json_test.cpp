@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 // The strict JSON reader behind the signed files. It reads what a licence holds and refuses everything a
 // plain parser lets through that two readers could understand differently.
 

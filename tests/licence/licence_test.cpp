@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 // Licence payloads, the state a licence is in and what it grants.
 
 #include "adl/licence/licence.hpp"

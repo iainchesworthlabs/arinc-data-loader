@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 # The licence library's tests (libs/licence): the signature check against the vectors of RFC 8032 and Project
 # Wycheproof, the signed envelope, the payloads, every state a licence can be in, the strict JSON reader
 # behind them, and the files an independent writer made (tests/golden/make_golden_licence.py). They sign with
@@ -13,7 +13,6 @@ add_executable(adl_licence_tests
 
 target_include_directories(adl_licence_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${PROJECT_SOURCE_DIR}/tests/support"
     "${PROJECT_SOURCE_DIR}/tests/golden"
     # The strict JSON reader is internal to the library; its own tests and the Wycheproof test read it.
     "${PROJECT_SOURCE_DIR}/libs/licence/src")
