@@ -21,8 +21,9 @@ namespace adl::test
 
 struct JsonMember;
 
-// A value of a JSON document. It holds its own members through the named type JsonMember (declared above, defined below):
-// a std::pair of an incomplete type, as a member of the type itself, is not allowed (and a newer standard library says so).
+// A value of a JSON document. It holds its own members through the named type JsonMember (declared above, defined
+// below): a std::pair of an incomplete type, as a member of the type itself, is not allowed (and a newer standard
+// library says so).
 struct Json
 {
     enum class Kind
