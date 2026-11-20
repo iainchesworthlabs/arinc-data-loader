@@ -371,8 +371,16 @@ class Keys(Scratch):
     def test_the_private_file_is_for_its_owner_only_where_the_system_says_so(self) -> None:
         private, _, result = self.make_key()
         self.assertEqual(result.code, 0, result.err)
-        if os.name == "posix":
-            self.assertEqual(stat.S_IMODE(private.stat().st_mode), 0o600)
+        if os.name != "posix":
+            return
+        # A file system that does not keep permissions (a Windows drive seen from WSL) shows 0o777 whatever is
+        # asked of it; there is nothing to test there.
+        probe = self.folder / "probe"
+        probe.write_bytes(b"x")
+        probe.chmod(0o600)
+        if stat.S_IMODE(probe.stat().st_mode) != 0o600:
+            self.skipTest("the file system does not keep permissions")
+        self.assertEqual(stat.S_IMODE(private.stat().st_mode), 0o600)
 
     def test_two_keys_differ(self) -> None:
         folder = self.folder / "keys"
