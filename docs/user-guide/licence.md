@@ -49,6 +49,8 @@ The window has the edition in large letters, a chip with the state, and one sent
 the rows of the licence: who it is **Licensed to**, the **Licence number**, the **Term**, the **Seats** and the
 **Computers** it names. A row that has nothing to say is left out.
 
+![The Licence window for a Pro licence that ends in nine days](../images/app-licence-window.png)
+
 | State | Chip | Sentence |
 | --- | --- | --- |
 | None | **Community** | No licence is installed. This is the Community edition. Every function of the programs is available without a licence. |
@@ -93,6 +95,8 @@ A licence in its grace period still counts. A feature that is not available swit
 off: **Support** and **Data packs** are a service and documents, so there is nothing in a program to turn off.
 
 ## The notice under the header
+
+![The loader with the notice under its header and the edition chip in the status bar](../images/app-licence-notice.png)
 
 | When | Words | Button that puts it away |
 | --- | --- | --- |
@@ -213,11 +217,17 @@ A file already in a licence folder shows **Not valid** with the same sentence, a
 programs work as they did before. A release that carries the keys accepts the licences made for them, and until
 then nothing about a program depends on a licence.
 
+A computer with no licence file at all shows the Licence window like this:
+
+![The Licence window with no licence file: the Community edition](../images/app-licence-none.png)
+
 ## The Support window
 
 **Support** (a button in the Licence window) is three cards. It copies to the clipboard and does nothing else: it
 opens no web browser and no mail program, and sends nothing. ARINC Data Loader never sends anything itself. You
 choose what to share.
+
+![The Support window for a licence that includes support](../images/app-licence-support.png)
 
 | What the licence says | Chip | Words |
 | --- | --- | --- |
