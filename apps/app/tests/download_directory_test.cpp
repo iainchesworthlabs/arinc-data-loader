@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/app/download_directory.hpp"
+#include "adl/loader_core/download_directory.hpp"
 #include "fake_storage.hpp"
 #include "faulty_files.hpp"
 #include "test_classes.hpp"
@@ -8,6 +9,9 @@
 #include <string>
 
 using namespace adl::app;
+using adl::loader_core::can_download_from;
+using adl::loader_core::download_directory_name;
+using adl::loader_core::remove_if_empty;
 using adl::platform::ErrorCode;
 using adl::platform::FileKind;
 

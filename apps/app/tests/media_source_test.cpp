@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "adl/app/media_source.hpp"
+#include "adl/loader_core/media_source.hpp"
 #include "fake_storage.hpp"
 #include "test_classes.hpp"
 
@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-using namespace adl::app;
+using namespace adl::loader_core;
 using adl::arinc615a::ChecksumOption;
 using adl::arinc615a::IoError;
 

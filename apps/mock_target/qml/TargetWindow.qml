@@ -26,7 +26,7 @@ ApplicationWindow {
                                              + (app.silent ? 1 : 0)
     // The target is answering a request, as opposed to merely listening.
     readonly property bool working: app.running && app.currentOperation.length > 0
-    readonly property bool modalOpen: aboutDialog.opened || licencesDialog.opened
+    readonly property bool modalOpen: aboutDialog.opened || licencesDialog.opened || licenceDialog.opened || supportDialog.opened
 
     title: qsTr("ARINC Mock Target")
     width: 1280
@@ -105,47 +105,59 @@ ApplicationWindow {
         onActivated: window.close()
     }
 
-    header: AppHeader {
-        appCode: "MOCK"
-        title: qsTr("ARINC Mock Target")
-        subtitle: qsTr("ARINC 615A target · real sockets · fault injection")
+    header: ColumnLayout {
+        spacing: 0
 
-        FaultChip {
-            objectName: "headerFaultChip"
-            onClicked: window.showFaults()
+        AppHeader {
+            Layout.fillWidth: true
+            appCode: "MOCK"
+            title: qsTr("ARINC Mock Target")
+            subtitle: qsTr("ARINC 615A target · real sockets · fault injection")
+
+            FaultChip {
+                objectName: "headerFaultChip"
+                onClicked: window.showFaults()
+            }
+
+            StatusChip {
+                text: window.app.running ? qsTr("SERVING") : qsTr("STOPPED")
+                tone: window.app.running ? "accent" : "neutral"
+            }
+
+            AppButton {
+                objectName: "startButton"
+                primary: !window.app.running
+                text: qsTr("Start")
+                enabled: !window.app.running && window.app.hardwareId.length > 0
+                onClicked: window.app.start()
+                Accessible.name: qsTr("Start the mock target")
+            }
+
+            AppButton {
+                objectName: "stopButton"
+                primary: window.app.running
+                text: qsTr("Stop")
+                enabled: window.app.running
+                onClicked: window.app.stop()
+                Accessible.name: qsTr("Stop the mock target")
+            }
+
+            LanguagePicker {
+                objectName: "languagePicker"
+            }
+
+            AppButton {
+                text: qsTr("About")
+                onClicked: aboutDialog.open()
+                Accessible.name: qsTr("About the mock target")
+            }
         }
 
-        StatusChip {
-            text: window.app.running ? qsTr("SERVING") : qsTr("STOPPED")
-            tone: window.app.running ? "accent" : "neutral"
-        }
-
-        AppButton {
-            objectName: "startButton"
-            primary: !window.app.running
-            text: qsTr("Start")
-            enabled: !window.app.running && window.app.hardwareId.length > 0
-            onClicked: window.app.start()
-            Accessible.name: qsTr("Start the mock target")
-        }
-
-        AppButton {
-            objectName: "stopButton"
-            primary: window.app.running
-            text: qsTr("Stop")
-            enabled: window.app.running
-            onClicked: window.app.stop()
-            Accessible.name: qsTr("Stop the mock target")
-        }
-
-        LanguagePicker {
-            objectName: "languagePicker"
-        }
-
-        AppButton {
-            text: qsTr("About")
-            onClicked: aboutDialog.open()
-            Accessible.name: qsTr("About the mock target")
+        LicenceBanner {
+            objectName: "licenceBanner"
+            Layout.fillWidth: true
+            model: licence
+            onLicenceRequested: licenceDialog.open()
         }
     }
 
@@ -205,6 +217,14 @@ ApplicationWindow {
             onClicked: window.showFaults()
         }
 
+        EditionChip {
+            objectName: "editionChip"
+            text: licence.chipText
+            tone: licence.chipTone
+            description: licence.chipName
+            onClicked: licenceDialog.open()
+        }
+
         Text {
             text: qsTr("v%1").arg(Qt.application.version)
             color: Theme.textMuted
@@ -227,10 +247,30 @@ ApplicationWindow {
         appName: qsTr("ARINC Mock Target")
         blurb: qsTr("A 615A target over real UDP sockets, for demonstrating the loader end to end without an embedded box. FIND, Information, Upload and Download run against it; the fault injections make it misbehave on purpose.")
         onShowLicences: licencesDialog.open()
+        onShowLicence: {
+            aboutDialog.close();
+            licenceDialog.open();
+        }
     }
 
     LicencesDialog {
         id: licencesDialog
+    }
+
+    LicenceDialog {
+        id: licenceDialog
+
+        model: licence
+        onSupportRequested: {
+            licenceDialog.close();
+            supportDialog.open();
+        }
+    }
+
+    SupportDialog {
+        id: supportDialog
+
+        model: licence
     }
 
     RowLayout {

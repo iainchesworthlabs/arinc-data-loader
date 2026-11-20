@@ -74,6 +74,13 @@ The project is GPL-3.0-or-later (`LICENSE`, `vcpkg.json`). No separate licence i
 
 The loader, the generator and the mock target offer eight languages. Seven of them are machine-drafted first versions written without a translator, and no speaker of French, Spanish, German, Yiddish, Hebrew, Chinese or Japanese has read them. The tests check that every message has a translation of the right shape (placeholders, plural forms, markup). They do not check whether the wording is good. Hebrew and Yiddish, which have no established avionics vocabulary, most need review. A review is a pull request that edits the `.ts` file of the language. See [Languages and colour](languages-and-colour.md#language) and [Translations](../translations.md).
 
+### Which edition do I have, and does a licence change what the programs do?
+
+The edition chip at the right of the status bar says which edition this is: Community, Pro or Enterprise. A licence file
+records that a paid edition was bought, and nothing in a program is switched off by one: every function works with no
+licence. A paid edition adds support, supported versions and data packs, which are a service and documents. See
+[Your licence and edition](licence.md).
+
 ### Where do I report a bug?
 
 Open an issue on the project's GitHub repository with the bug report form. It asks for the version (from About), the platform, what happened and what was expected, the steps to reproduce, and logs. The log text and the dialog are what a report needs. The smallest load or header file that shows the problem helps most. The project is maintained by one person, so there is no guaranteed response time. Feature requests have a form of their own, and for more than a small change it is worth opening an issue before a pull request. See [Troubleshooting](troubleshooting.md), the [bug report form](../../.github/ISSUE_TEMPLATE/bug_report.yml) and [CONTRIBUTING.md](../../CONTRIBUTING.md).

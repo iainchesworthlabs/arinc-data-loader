@@ -3,20 +3,23 @@
 *For developers. What CI runs is [CI](ci.md); the tests that hold the decoders down by hand are in [Testing](testing.md).*
 
 Everything that reads bytes from outside has a [libFuzzer](https://llvm.org/docs/LibFuzzer.html)
-harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, a licence file, and the
-command line of a program (the platform layer's split of it and its text conversions). A
+harness: the files of an ARINC 665 media set, the packets and protocol files of ARINC 615A, a licence file,
+the text of a target's address, and the command line of a program (the platform layer's split of it and
+its text conversions). A
 decoder returns an error for a bad input and never crashes; the fuzzers are there to find the input for
 which that is not true.
 
-| Library | Targets (`adl_fuzz_<name>`) |
+| Directory | Targets (`adl_fuzz_<name>`) |
 | --- | --- |
 | `libs/arinc665/fuzz` | `header_file` (a load's `.LUH`), `batch_file` (`.LUB`), `loads_list` (`LOADS.LUM`), `files_list` (`FILES.LUM`), `batches_list` (`BATCHES.LUM`). A decoded file is also checked against the standard and written back. |
+| `libs/loader_core/fuzz` | `ipv4_address` (the text of a target's address, as an operator types it; a text that parses is written out and parsed again and has to give the same four numbers). |
 | `libs/platform/fuzz` | `command_line` (the split of a Windows command line and the conversions between UTF-8 and UTF-16 in `libs/platform/detail/command_line.hpp`; the harness checks that what comes out is UTF-8, which converts to UTF-16 and back unchanged). Its seeds are command lines, as UTF-16 with the low byte first. |
 | `libs/arinc615a/fuzz` | `tftp_packet` (the datagrams of the TFTP dialogue, with the transfer options of a request or an option acknowledgement), `find` (a FIND packet), and one for each protocol file: `initialization_file`, `configuration_list`, `configuration_status`, `upload_request`, `upload_status`, `download_request`, `download_status`, `download_list`, `download_answer`. |
 | `libs/mock_target_core/fuzz` | `parse_options` (the command line of `adl_mock`, which is not bytes but comes from outside all the same: the input is the arguments with a line feed after each one, so its seeds are text; what is accepted is checked against the limits the usage text states, and an address that is read is written back as it was). The harness is kept here because the workflows look in `libs/*/fuzz`; the program it fuzzes is `apps/mock`. |
-| `libs/licence/fuzz` | `licence`: the signed envelope, the strict JSON reader, the licence payload, a revocation list and the dates, all from one input. What a reader accepts is written back and read again, and has to come out the same. The seeds are licence files and payloads signed with the published test key. |
+| `tools/licence/fuzz` | `owner`: what the owner's tool reads that is not a licence file ([the tool](licence-owner-tool.md)): a public key file (what is accepted is what the writer writes, and reads back as the same key), the words of a command line, a UTF-16 command line, a licence number and a key id. The seeds are written by `tools/fuzz/make_seeds.py`, as they have no golden data. |
+| `libs/licence/fuzz` | `licence`: the signed envelope, the strict JSON reader, the licence payload, a revocation list, the clock file the store keeps and the dates, all from one input. What a reader accepts is written back and read again, and has to come out the same. The seeds are licence files and payloads signed with the published test key, and two clock files. |
 
-Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
+A harness is in `libs/<lib>/fuzz` or, for a program of the repository's tools, in `tools/<tool>/fuzz`. Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
 `python3 tools/fuzz/make_seeds.py` from the golden data of the tests (`tests/golden`; those of `parse_options` are written by hand: they are command lines, and the `mock.cli` test replays them under the ordinary compilers too), and a directory of
 **regressions** (`regressions/<name>/`): inputs that once crashed it.
 
@@ -45,7 +48,7 @@ the report again. The sanitizers abort on the first undefined behaviour (`-fno-s
 
 ## When a fuzzer finds something
 
-Fix the decoder, and add the input that crashed it to `libs/<lib>/fuzz/regressions/<name>/` in the same
+Fix the decoder, and add the input that crashed it to `regressions/<name>/` beside its harness (`libs/<lib>/fuzz` or `tools/<tool>/fuzz`) in the same
 pull request, so that the pull request gate replays it from then on. Give the file a name that says what
 it was (`truncated-option.bin`). Do not add the files libFuzzer found that did not crash; the seed
 corpus is meant to stay small and readable.
@@ -62,10 +65,12 @@ corpus is meant to stay small and readable.
   hits it is reported in the same issue.
 
 - `clusterfuzzlite.yml` runs [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) on a ready pull
-  request that changes `libs/`, `cmake/` or the files in `.clusterfuzzlite/`: it builds the harnesses with
+  request that changes `libs/`, `tools/licence/`, `cmake/` or the files in `.clusterfuzzlite/`: it builds the harnesses with
   AddressSanitizer and fuzzes them for ten minutes between them. It is not a required check. The build is
   `.clusterfuzzlite/build.sh` in the image of `.clusterfuzzlite/Dockerfile` (the OSS-Fuzz base builder,
-  pinned by digest and moved by Dependabot; its Clang is older than the one the `linux-fuzz` preset uses).
+  pinned by digest and moved by Dependabot; its Clang is older than the one the `linux-fuzz` preset uses). The script
+  zips the seeds and regressions of each harness from `libs/*/fuzz` and `tools/*/fuzz`, and `fuzz.yml` starts from the
+  same directories, so a harness in either place is built, seeded and fuzzed.
   ClusterFuzzLite chooses the sanitizer and passes it in `CFLAGS`, so the build sets
   `ADL_FUZZING_SANITIZERS` empty. To try it before a push, build the image from a clean copy of the
   tracked files and run `compile` in it (`build/` would otherwise be sent to Docker too):

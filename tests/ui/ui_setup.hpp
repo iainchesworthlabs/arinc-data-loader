@@ -9,6 +9,7 @@
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/language_manager.hpp"
 #include "adl/ui/version.hpp"
+#include "licence_rig.hpp"
 #include "scratch_settings.hpp"
 #include "ui_harness.hpp"
 
@@ -47,6 +48,7 @@ public Q_SLOTS:
         // this attribute) keep it a Qt Quick dialog, so the suite can click its button.
         QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
         harness_ = std::make_unique<Harness>();
+        licence_rig_ = std::make_unique<LicenceRig>();
     }
 
     void qmlEngineAvailable(QQmlEngine* engine)
@@ -60,6 +62,11 @@ public Q_SLOTS:
         QObject::connect(languages, &adl::ui::LanguageManager::currentLanguageChanged, &harness_->model(),
                          &adl::app::LoaderModel::retranslate);
         engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), languages);
+        // The licence: files in memory, the test key, and a rig that a test file puts into any state.
+        QObject::connect(languages, &adl::ui::LanguageManager::currentLanguageChanged, &licence_rig_->model(),
+                         &adl::ui::LicenceModel::retranslate);
+        engine->rootContext()->setContextProperty(QStringLiteral("licence"), &licence_rig_->model());
+        engine->rootContext()->setContextProperty(QStringLiteral("licenceRig"), licence_rig_.get());
         adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
         engine->rootContext()->setContextProperty(QStringLiteral("mainQmlUrl"),
                                                   QUrl::fromLocalFile(QString::fromUtf8(ADL_MAIN_QML)));
@@ -69,12 +76,14 @@ public Q_SLOTS:
     // application is torn down.
     void cleanupTestCase()
     {
+        licence_rig_.reset();
         harness_.reset();
     }
 
 private:
     std::unique_ptr<adl::test::ScratchSettings> scratch_;
     std::unique_ptr<Harness> harness_;
+    std::unique_ptr<LicenceRig> licence_rig_;
 };
 
 } // namespace adl::ui_test

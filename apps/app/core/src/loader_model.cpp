@@ -2,8 +2,8 @@
 #include "adl/app/loader_model.hpp"
 
 #include "adl/app/address.hpp"
-#include "adl/app/download_directory.hpp"
 #include "adl/arinc615a/data_loader.hpp"
+#include "adl/loader_core/download_directory.hpp"
 
 #include <adl/profiling.hpp>
 
@@ -262,7 +262,7 @@ bool LoaderModel::canDownload() const
     }
     // The files go into a directory named after the id: one a directory cannot be named after
     // is refused here, before anything is made (the worker checks again).
-    if (targetValid() && !can_download_from(thw_id_pos_.toStdString()))
+    if (targetValid() && !adl::loader_core::can_download_from(thw_id_pos_.toStdString()))
     {
         return false;
     }
@@ -630,7 +630,7 @@ void LoaderModel::run_pending_after_find(bool found)
     // named after the id, return without a word. Stop, and say why.
     const std::string thw_id_pos = thw_id_pos_.toStdString();
     const bool id_is_valid = adl::arinc615a::is_valid_thw_id_pos(thw_id_pos);
-    if (!id_is_valid || (pending == Pending::download && !can_download_from(thw_id_pos)))
+    if (!id_is_valid || (pending == Pending::download && !adl::loader_core::can_download_from(thw_id_pos)))
     {
         const Message text = Message::translated(
             &LoaderModel::tr, QT_TR_NOOP("The target that answered cannot be used: its THW_ID_POS is \"%1\"."),

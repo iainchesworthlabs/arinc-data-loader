@@ -34,6 +34,7 @@ These pages describe what the code does. The source is open, and [How to check t
 | What | Where | Until |
 | --- | --- | --- |
 | Settings. All three programs keep the position and size of the window and the language. The loader also keeps whether the first-run screen has been passed, the folder of the last media set, the default and the last target address and identifier, the control port, the download folder, whether FIND runs before an operation and whether a media set is checked when chosen, and how many lines the log keeps. | The system's per-user settings store. On Windows this is the registry key `HKEY_CURRENT_USER\Software\iainchesworthlabs\` and the program's name. On Linux and macOS the place is the one Qt uses, which has not been checked. If the environment variable `ADL_SETTINGS_DIR` names a folder when a program starts, the programs keep their settings in an ini file in it instead. | You delete them. |
+| Licence files, the clock file and the notice you put away | A licence file you import is copied into your licence folder (`licences` below the system's per-user data folder, or below `ADL_SETTINGS_DIR`). It holds the licensee's name, perhaps a contact and an email address, the licence number, the edition and the dates. The clock file, `licence-clock.json` beside that folder, holds the latest time the program has seen, and is written only when there is a licence file. The notice you put away is a line in the program's settings. [Your licence and edition](user-guide/licence.md) says where | You remove the licence in the Licence window, or delete the files. The clock file and the settings stay until you delete them |
 | Media sets the generator writes | The folder you choose. It writes into a temporary folder inside it first, then renames it. | You delete them. |
 | Files a download brings back | A new folder, `DNLD_DATA_<THW_ID_POS>_<number>`, in the download folder. The default download folder is `ArincDownloads` in your Documents folder, and the loader creates it at the first download. | You delete them. |
 | What an upload leaves in the mock target | The storage folder you choose. It is not remembered between runs. | You delete it. |
@@ -43,7 +44,7 @@ The settings hold paths and the last target's address. They do not hold file con
 
 ## What the programs do not collect
 
-No account. No telemetry or analytics. No crash reports. No check for updates. No check of the licence. No advertising. The only command-line option of the programs is `--smoke-test`, which draws a window once and exits.
+No account. No telemetry or analytics. No crash reports. No check for updates. No licence check over the network: a program reads a licence file on this computer, if there is one, and sends nothing. No advertising. The only command-line option of the programs is `--smoke-test`, which draws a window once and exits.
 
 A profiling build made from source with `ADL_ENABLE_TRACY` switched on opens a listener on the network. It is off by default, no release is built with it, and its licence notice appears only in such a build. See [Profiling](profiling.md).
 

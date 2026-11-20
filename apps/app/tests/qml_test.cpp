@@ -13,6 +13,7 @@
 #include "adl/app/wording.hpp"
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/language_manager.hpp"
+#include "adl/ui/licence_model.hpp"
 #include "adl/ui/version.hpp"
 #include "bytes.hpp"
 #include "frame_profiler.hpp"
@@ -151,6 +152,9 @@ int main(int argc, char* argv[])
     QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &model,
                      &adl::app::LoaderModel::retranslate);
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    // No licence is installed and no file is read: the window is the Community edition.
+    adl::ui::LicenceModel licence_model{adl::ui::LicenceEnvironment{}};
+    engine->rootContext()->setContextProperty(QStringLiteral("licence"), &licence_model);
     adl::ui::set_about_properties(*engine->rootContext(), QStringLiteral("ARINC Data Loader"));
 
     int complaints = 0;

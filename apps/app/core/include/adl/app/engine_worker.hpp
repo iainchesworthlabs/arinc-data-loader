@@ -11,8 +11,8 @@
 
 #include "adl/app/events.hpp"
 #include "adl/app/host_access.hpp"
-#include "adl/app/media_source.hpp"
 #include "adl/arinc615a/runner.hpp"
+#include "adl/loader_core/media_source.hpp"
 
 #include <QList>
 #include <QObject>
@@ -159,7 +159,7 @@ private:
     void run_operation(adl::platform::Host& host, const adl::arinc615a::Address& target, const QString& thw_id_pos,
                        const adl::arinc615a::Operation& operation, adl::arinc615a::OperationListener& listener,
                        adl::arinc615a::FileSource* source, adl::arinc615a::FileSink* sink, quint16 control_port,
-                       const std::string& download_path = {}, const MediaTreeSource* media = nullptr);
+                       const std::string& download_path = {}, const adl::loader_core::MediaTreeSource* media = nullptr);
     // The part the two Download modes share: the host, the DNLD_DATA directory and the runner.
     void run_download(const adl::arinc615a::Address& target, const QString& thw_id_pos,
                       const adl::arinc615a::Operation& operation, const QString& download_directory,
@@ -167,7 +167,7 @@ private:
 
     HostFactory host_factory_;
     // The files of the media set that was read last; used on this worker's thread only.
-    std::shared_ptr<const MediaSetIndex> index_;
+    std::shared_ptr<const adl::loader_core::MediaSetIndex> index_;
     OperationGate controls_;
 };
 

@@ -50,7 +50,16 @@ SPDX-License-Identifier = "BSD-2-Clause OR CC0-1.0"
 # on the test data is a plain text file, so they take the same terms here. The Wycheproof vectors
 # (tests/licence/data/wycheproof) are Apache-2.0, above, and are not offered under either; Monocypher is above.
 [[annotations]]
-path = ["libs/licence/fuzz/corpus/**", "libs/licence/fuzz/regressions/**", "tests/licence/data/README.md"]
+path = [
+    "libs/licence/fuzz/corpus/**",
+    "libs/licence/fuzz/regressions/**",
+    "tests/licence/data/README.md",
+    "tests/licence/data/requests/**",
+    "tests/licence/data/licences/*.adllic",
+    "tests/licence/data/licences/*.adlrev",
+    "tools/licence/fuzz/corpus/**",
+    "tools/licence/fuzz/regressions/**",
+]
 precedence = "override"
 SPDX-FileCopyrightText = "Iain Chesworth Labs contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later OR BSD-2-Clause"

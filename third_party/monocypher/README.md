@@ -25,9 +25,9 @@ The tests run the RFC 8032 vectors and the Project Wycheproof Ed25519 vectors ag
 (`tests/licence/signature_test.cpp`).
 
 The notice for About > Licences is `notices/fragments/monocypher.txt`, with the licence text in
-`notices/licences/Monocypher.txt` (a copy of `LICENCE.md`). It is not yet in the notices the programs show:
-`NOTICES.txt` lists what a program ships, and no program links `adl::licence` yet. It is added to
-`adl_generate_ui_notices` (`cmake/AdlUi.cmake`) in the change that links the library into a program.
+`notices/licences/Monocypher.txt` (a copy of `LICENCE.md`). It is in the notices the programs show:
+`NOTICES.txt` lists what a program ships, and the three Qt applications link `adl::licence`, so
+`adl_generate_ui_notices` (`cmake/AdlUi.cmake`) names the fragment.
 
 This directory is outside the rules the first-party code follows: the code is C, it uses the
 preprocessor, and it is built with its own warnings. `tools/preprocessor-exclude.txt` leaves it out of

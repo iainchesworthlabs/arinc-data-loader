@@ -38,7 +38,7 @@
 #include <string_view>
 #include <vector>
 
-namespace adl::app
+namespace adl::loader_core
 {
 
 // The files of a media set and where each is: built once, when the set is read.
@@ -127,4 +127,4 @@ private:
     std::optional<std::string> changed_;
 };
 
-} // namespace adl::app
+} // namespace adl::loader_core

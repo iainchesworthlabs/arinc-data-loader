@@ -23,6 +23,9 @@
           +------------------+
 
    adl::media_tree (libs/media_tree): members <-> a directory tree, over adl::arinc665
+   adl::loader_core (libs/loader_core): what the loader does without a window and without Qt (the media
+   set on disk and its check, the folder a download is written into, the target's address), over the
+   libraries above; the application calls it
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target's engine (libs/mock_target_core)
@@ -39,6 +42,12 @@
   keeps its freedom from file I/O. It refuses names that cannot be files on every
   platform, so that a tree written on one system reads on another, and never
   overwrites or follows a link.
+- **`libs/loader_core`** is what the loader does that is not showing a window, with no Qt: a media set on
+  disk read and checked into a report (`check_media_set`), the index of its files and the `FileSource` an
+  upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, and
+  the target's address. The loader's application (`apps/app/core`) calls it and puts what it returns in the
+  operator's words and in Qt's types, so a program with no window can do the same by the same rules. It is in
+  the [development package](libraries.md).
 - **`libs/samples`** is the sample loads and media sets (the golden scenario of
   `tests/golden/make_golden.py` and the ARINC 615 and Boeing 777 layouts of
   Appendix F), as data. The tests build from it, and so does
@@ -89,13 +98,34 @@
 - **`libs/licence`** reads and judges a licence file: the signed envelope (Ed25519, by Monocypher in
   `third_party/monocypher`), the payload, the state a licence is in (none, valid, expiring, grace, expired,
   not yet valid, clock suspect or invalid), what it grants, the clock check and the revocation list. It is
-  GUI-free and platform-free: it reads no file and no clock and does not ask the computer's name, so the
-  caller passes them in and every state is tested. It is on a desktop only and is not part of the installed
-  `adl` package. No program links it yet, and nothing a program does depends on a licence. Signing is a
-  separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the published test key
-  (`adl_licence_test_keys`); no program links either. The library takes no product name except in
+  GUI-free and platform-free: it reads no clock and does not ask the computer's name, so the caller passes
+  them in, and it reaches files only through a small interface of its own (`Files`, in `store.hpp`) that
+  the caller fills in. So every state is tested, a full disk included. On top of that interface is the
+  store: the licence files of a user's folder and of a folder an administrator keeps (up to 64 of each, in
+  name order, the best one wins), importing a file (never replacing one), removing one from the user's
+  folder, the signed revocation lists found beside the licences, and the clock file. It is on a desktop only
+  and is not part of the installed `adl` package. The three Qt applications link it, through the licence
+  model of `libs/ui` (`adl::ui::LicenceModel`, which words the licence for the windows and keeps the
+  Licence dialog, the notice, the edition chip and the Support dialog current); `adl_write_payloads` does
+  not. Nothing a program does depends on a licence: the windows show what it says and switch nothing off.
+  Signing is a separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the
+  published test key (`adl_licence_test_keys`); no program links either. The library takes no product name except in
   `product.hpp`, `trusted_keys.cpp` and `revocations_release.cpp`, so that it can move into a repository
-  that more than one product shares.
+  that more than one product shares. Its strict JSON reader (no repeated key, no comment, no trailing comma,
+  UTF-8 only, eight levels deep) is also public as `adl/licence/json.hpp` (`adl::licence::json`), for the
+  other files of this repository that have to mean one thing to every reader, such as a scenario file.
+- **`libs/licence_platform`** is the part of the licence work that is this product's: the store's `Files`
+  interface filled in with `adl::platform::FileSystem`, and the folders ARINC Data Loader keeps its licences
+  and its clock file in (below the platform's user and machine folders, or below `ADL_SETTINGS_DIR`, which a
+  program passes in, so that a test never reads a real licence). It is under the GPL alone, where `libs/licence`
+  is also offered under the BSD 2-Clause licence ([licensing](licensing.md)), because it uses `adl::platform`.
+  It is on a desktop only, is not part of the installed `adl` package, and the three Qt applications link it
+  (through the licence model of `libs/ui`).
+- **`tools/licence`** is the owner's licence tool (`adl_licence_owner`): it makes a signing key, issues a licence file,
+  checks one and writes a revocation list, on `adl::licence`, `adl::licence_sign` and the test key and the standard
+  library, and nothing else of this repository. It is built with the other tools and never installed; a package check
+  fails a release that holds it. Its entry point is the one part that differs between systems, and CMake picks it by
+  the platform's name ([the tool](licence-owner-tool.md)).
 - **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock
@@ -129,10 +159,12 @@ route to remove it.
 | --- | --- | --- | --- | --- |
 | `libs/arinc665` | `adl_arinc665` | `adl::arinc665` | `adl::arinc665` | `adl/arinc665/*.hpp` |
 | `libs/media_tree` | `adl_media_tree` | `adl::media_tree` | `adl::media_tree` | `adl/media_tree/*.hpp` |
+| `libs/loader_core` | `adl_loader_core` | `adl::loader_core` | `adl::loader_core` | `adl/loader_core/*.hpp` |
 | `libs/samples` | `adl_samples` | `adl::samples` | `adl::samples` | `adl/samples/*.hpp` |
 | `libs/arinc615a` | `adl_arinc615a` | `adl::arinc615a` | `adl::arinc615a` | `adl/arinc615a/*.hpp` |
 | `libs/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
 | `libs/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
+| `libs/licence_platform` | `adl_licence_platform` | `adl::licence_platform` | `adl::licence_platform` | `adl/licence_platform/*.hpp` |
 | `libs/licence` | `adl_licence` (with `adl_licence_sign` and `adl_licence_test_keys`) | `adl::licence` (and `adl::licence_sign`, `adl::licence_test_keys`) | `adl::licence` | `adl/licence/*.hpp` |
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |

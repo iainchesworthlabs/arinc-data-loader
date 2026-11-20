@@ -106,6 +106,12 @@ target_link_libraries(adl_fake_platform
         adl::sanitizers
         adl::coverage)
 
+# The licence library over the platform layer (a desktop build only; libs/licence_platform), tried on the fake
+# file system and on the real one: its own programs of tests, in tests/licence_platform.
+if(TARGET adl::licence_platform)
+    add_subdirectory(licence_platform)
+endif()
+
 # The simulated target (a target of 615A on the fake network, with the second TFTP
 # implementation of libs/arinc615a_mini, which shares no code with the engine). The engine tests
 # run whole operations against it, and so do the application's.
@@ -122,6 +128,32 @@ target_link_libraries(adl_sim_target
         adl::warnings
         adl::sanitizers
         adl::coverage)
+
+# The loader core (libs/loader_core): what the loader does without a window, run without one, on the
+# fake platform's files.
+add_executable(adl_loader_core_tests
+    loader_core/address_test.cpp
+    loader_core/download_directory_test.cpp
+    loader_core/media_set_check_test.cpp
+    loader_core/media_source_test.cpp)
+
+target_include_directories(adl_loader_core_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+target_link_libraries(adl_loader_core_tests
+    PRIVATE
+        adl_fake_platform
+        adl::loader_core
+        adl::media_tree
+        adl::samples
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_loader_core_tests)
+
+catch_discover_tests(adl_loader_core_tests PROPERTIES LABELS "unit")
 
 # The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
 # fake platform, and the simulated target the whole of an operation is run against.
@@ -252,6 +284,17 @@ if(ADL_PWSH)
     set_tests_properties(docs.paths PROPERTIES LABELS "system")
 endif()
 
+# The bill of materials names the libraries by hand (tools/release/make_sbom.py), and the development
+# package ships the ones that call adl_install_library. A library on one side only fails here, not on the
+# day of a release.
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME release.sbom_libraries
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/release/check_sbom_libraries.py"
+            "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(release.sbom_libraries PROPERTIES LABELS "system")
+endif()
+
 # The script that compares the benchmarks with the budget (tools/ci/perf_compare.py) is held to what it
 # promises: a result over the limit, a missing or surplus entry and a few nanoseconds of noise.
 find_package(Python3 COMPONENTS Interpreter QUIET)
@@ -376,6 +419,8 @@ if(ADL_PLATFORM_DESKTOP AND CMAKE_BUILD_TYPE MATCHES "^(Release|RelWithDebInfo|M
             "-DCXX_COMPILER=${CMAKE_CXX_COMPILER}"
             "-DBUILD_TYPE=${CMAKE_BUILD_TYPE}"
             "-DDOC_DIR=${ADL_PLATFORM_INSTALL_DOCDIR}"
+            "-DPYTHON=${Python3_EXECUTABLE}"
+            "-DPACKAGE_CHECK=${PROJECT_SOURCE_DIR}/tools/release/check_package_contents.py"
             -P "${CMAKE_CURRENT_SOURCE_DIR}/packaging/check_install.cmake")
     set_tests_properties(system.install_consumer PROPERTIES TIMEOUT 300 LABELS "system")
 endif()

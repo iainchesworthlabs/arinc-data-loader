@@ -7,6 +7,9 @@ choice (names, part numbers, which check values), and it enforces the rest.
 
 ![The generator, empty](../images/gen-empty.png)
 
+At the right of its status bar is the **edition chip**, which says which edition this is and opens the
+[Licence window](licence.md); a licence notice can show under the header. Neither changes what the generator does.
+
 The window has a rail on the left with three numbered blocks to fill in, the table of files on the
 right, and an action bar at the bottom. The button at the bottom right is always the main action:
 **Generate media set**. While something needed is missing or wrong the bar says what, and pressing

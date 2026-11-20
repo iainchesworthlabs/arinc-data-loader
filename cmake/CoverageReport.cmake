@@ -86,15 +86,15 @@ if(GCOV)
 endif()
 
 # ---- Pass 1: the portable code ------------------------------------------------------------------
-# The two format libraries, the engine and its runner, the media tree, the samples, the licence
-# library, the payload writer, and the platform interfaces. Monocypher (third_party) is not ours and
-# is not measured. The OS fragments under libs/platform are not measured (each
+# The two format libraries, the engine and its runner, the media tree, the loader core, the samples, the
+# licence library, the payload writer, and the platform interfaces. Monocypher (third_party) is not ours
+# and is not measured. The OS fragments under libs/platform are not measured (each
 # host builds a different set, and the conformance suite is what holds them to the contract), and
 # neither are the Qt windows: QML cannot be measured, which is why this gate is the libraries' and
 # not a blended figure.
 execute_process(
     COMMAND "${GCOVR}" ${_common}
-        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|licence|media_tree|samples|platform/(interfaces|detail))|apps/write_payloads)/.*"
+        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|licence|licence_platform|media_tree|loader_core|samples|platform/(interfaces|detail))|apps/write_payloads)/.*"
         --fail-under-line "${LINE_THRESHOLD}"
         --fail-under-branch "${BRANCH_THRESHOLD}"
         --html-details "${_output}/index.html"

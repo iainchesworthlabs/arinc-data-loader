@@ -232,6 +232,11 @@
    "new": "guide/languages-and-colour/"
   },
   {
+   "old": null,
+   "src": "user-guide/licence.md",
+   "new": "guide/licence/"
+  },
+  {
    "old": "user-guide/loader/",
    "src": "user-guide/loader.md",
    "new": "guide/loader/"
@@ -275,6 +280,11 @@
    "old": null,
    "src": "editions.md",
    "new": "licensing/"
+  },
+  {
+   "old": null,
+   "src": "licence-owner-tool.md",
+   "new": "developers/licence-owner-tool/"
   }
  ]
 }

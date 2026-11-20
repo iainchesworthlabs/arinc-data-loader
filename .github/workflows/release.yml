@@ -399,3 +399,53 @@ jobs:
       REPO_GPG_PASSPHRASE: ${{ secrets.REPO_GPG_PASSPHRASE }}
       RELEASE_BOT_APP_ID: ${{ secrets.RELEASE_BOT_APP_ID }}
       RELEASE_BOT_PRIVATE_KEY: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+  # The documentation site follows a final release: once main is at the tag, the branch `site` is moved to it too, and
+  # the push publishes the site (docs.yml; docs/ci.md, "Publishing"). A pre-release does not publish it. publish-site.yml
+  # publishes between releases, so `site` may already be at the tag or ahead of it, and then nothing moves. The push is
+  # made with the release bot's App token, because a push made with GITHUB_TOKEN does not start workflows.
+  site:
+    name: Publish the documentation
+    needs: [version, publish]
+    if: ${{ !cancelled() && github.ref_type == 'tag' && needs.version.outputs.prerelease == 'false' && needs.publish.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - name: Create a token for the release bot
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+
+      - name: Move the site branch to the tag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/$REPO/git/ref/heads/site" >/dev/null 2>&1; then
+            gh api --method POST "repos/$REPO/git/refs" -f ref="refs/heads/site" -f sha="$GITHUB_SHA"
+            echo "The site branch was created at $GITHUB_SHA. The Docs workflow publishes it." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # How site stands against the tagged commit: behind (move it), identical or ahead (publish-site.yml already
+          # published this commit or a later one), or diverged (not possible while only the bot moves it, and not moved).
+          status="$(gh api "repos/$REPO/compare/$GITHUB_SHA...site" --jq .status)"
+          case "$status" in
+            behind)
+              # force=false: the move must be a fast-forward.
+              gh api --method PATCH "repos/$REPO/git/refs/heads/site" -f sha="$GITHUB_SHA" -F force=false
+              echo "The site branch is now at $GITHUB_SHA. The Docs workflow publishes it." >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            identical | ahead)
+              echo "The site branch is already at this release or past it ($status), so nothing was moved." >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            *)
+              echo "::error::The site branch is $status against $GITHUB_SHA, so it was not moved."
+              exit 1
+              ;;
+          esac

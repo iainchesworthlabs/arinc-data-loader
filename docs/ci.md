@@ -34,7 +34,8 @@ work only.
 | `ci.yml` | The gate: Policy, the planner, `clang-format`, `platform-isolation`, the documentation build, the build legs, coverage, workflow analysis, the dependency scan, and the aggregator `CI Status`; the RTOS simulators run beside it ([The jobs](#the-jobs-in-ciyml)) | yes |
 | `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
 | `clusterfuzzlite.yml` | Fuzzes the code a pull request changes for ten minutes with ClusterFuzzLite; not a required check ([Fuzzing](fuzzing.md#in-ci)) | yes |
-| `docs.yml` | Builds the site and deploys it to the company site when `main` moves, previews a pull request that changes the documentation, and publishes the pages that forward the old GitHub Pages addresses ([Documentation site](#documentation-site)) | yes |
+| `docs.yml` | Builds the site and deploys it to the company site when the branch `site` moves, previews a pull request that changes the documentation, and publishes the pages that forward the old GitHub Pages addresses when `main` moves ([Documentation site](#documentation-site)) | yes |
+| `publish-site.yml` | Run by hand on `develop`: moves the branch `site` to the tip of `develop`, which publishes the documentation without a release ([Publishing](#publishing)) | no - manual only |
 | `codeql.yml` | CodeQL static analysis of the C++, Python and workflows, nightly and on a ready pull request that changes them; not a required check | no - skipped |
 | `release.yml` | The Release build on the three systems, packages, SBOM, signing, attestations and the draft release; a rehearsal on manual runs and on packaging pull requests ([Releasing](releasing.md)) | yes |
 | `static-analysis.yml` | The nightly clang-tidy, MSVC Code Analysis, Clang ASan/UBSan and optional SonarQube runs | yes |
@@ -181,7 +182,9 @@ person using them (a catalogue entry whose source is a `.cpp` or `.hpp` file, as
 and so must every finding of the ARINC 665 checks (the literals of the `add(findings, ...)` calls in `libs/arinc665/src`, listed in `docs/user-guide/findings.md`), every exit code and every text that `adl_write_payloads` prints. `adl_mock` has no Qt and so no catalogue: its exit codes (`exit_*` in its `command.hpp`) must be rows of its own section of `docs/user-guide/command-line.md`, and the string literals of the sources that make what it says (`MOCK_SOURCES` in the script) must be in that page. The match ignores case, emphasis and spacing and lets a
 placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six characters or more between placeholders. It runs in
 `docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
-the description is there, and not that it is good.
+the description is there, and not that it is good. The owner's licence tool is not shipped and is not a program of the guide, so it has a page of its
+own, `docs/licence-owner-tool.md`: every sentence of `tools/licence/src/messages.hpp` and every `exit_*` constant of `tools/licence/src/owner.hpp`
+must be on it, by the same rules.
 
 ### The claims
 
@@ -226,9 +229,9 @@ a minimum number of pages, and then the four checks of this section (`check_site
   tests `docs.links` and `docs.paths`, over every Markdown file, so that a change to documentation alone,
   which runs no CTest ([above](#the-planner-and-documentation-only-changes)), is still checked for links,
   anchors and paths, and so is `README.md`, which the site does not contain.
-- `docs.yml`: it builds the site again with the same checks and keeps it as an artifact, and then (below) deploys it when `main` moves (the
-  release bot's fast-forward after a release), deploys a preview for a pull request that changes the documentation, and publishes the
-  pages that forward the old addresses to GitHub Pages.
+- `docs.yml`: it builds the site again with the same checks and keeps it as an artifact, and then (below) deploys it when the branch `site`
+  moves (`publish-site.yml` moves it), deploys a preview for a pull request that changes the documentation, and publishes the
+  pages that forward the old addresses to GitHub Pages when `main` moves (the release bot's fast-forward after a release).
 - `release.yml`, job `Docs (strict)`: the first job after *Prepare*, ahead of the three builds, so a release
   with a broken page stops in a minute and not after an hour.
 
@@ -247,23 +250,35 @@ reason, on a bad one.
 - **iainchesworthlabs.com/adl/: the deploy.** The company site gives each program a role that may write its own path only, and
   `icl-common-infra`'s reusable workflow `docs-deploy-aws.yml` (version 0.1.26 or later; this repository is pinned to 0.1.28) assumes it by
   OIDC, with no stored key, and syncs the built site to `adl/` of the company's bucket and invalidates its cache. `docs.yml` calls it three
-  ways: a push to `main` deploys the production site (`production-ref: refs/heads/main`, so no other ref can); a pull request from this
+  ways: a push to the branch `site` deploys the production site (`production-ref: refs/heads/site`, so no other ref can); a pull request from this
   repository that changes the documentation deploys a preview to `/_preview/adl/pr-<number>/` and comments the address on the pull request
   (the preview is public to anyone with the link, carries `noindex`, runs no script, and so has no search); a closed pull request removes
   its preview. A pull request from a fork gets no secrets and no preview. A run that lacks a secret skips the deploy with a warning and does
   not fail.
+- **The `site` branch: publishing without a release.** `site` holds the commit of `develop` that the site was last built from: source, not
+  built pages (this is not a `gh-pages` branch). Run `gh workflow run publish-site.yml --ref develop`, or *Run workflow* on the Actions page
+  with `develop` chosen, and `publish-site.yml` fast-forwards `site` to the tip of `develop` (it creates the branch the first time) with
+  the release bot's App token. The push starts `docs.yml`, which deploys it. Nothing is forced, so `site` only moves forward along `develop`,
+  and a run on any other branch does nothing. A final release moves `site` too: the job `Publish the documentation` of `release.yml` moves it
+  to the tag once `main` is there, unless `site` is already at the tag or ahead of it because a run of `publish-site.yml` published a later
+  commit, and a pre-release moves nothing ([Releasing](releasing.md#publish-the-documentation)). To publish the commit that `site` already holds again, re-run the
+  last `Docs` run of the push to `site`; a run started by hand cannot deploy, because the company site's role trusts a push to `site` and
+  nothing else. Two rules in `.github/rulesets/` keep it that way: `branch-names` lets the name `site` exist, and `site-publish-only` lets
+  only the release bot create, move or delete it ([Repository settings](repository-settings.md#the-rulesets)).
 - **What the owner does before it can run** (none of it is in this repository, and none is done by the agents that work on it):
-    1. In the company site's repository, add `adl` to `infra/lib/apps.ts` with this repository's name and numeric id, a role name, and
-       **`publishRef: 'main'`**: its default is `develop`, and this workflow deploys production from `main` only. Update the site's list of
+    1. Apply the rulesets: `admin/apply.sh --only rulesets` of `icl-common-infra` ([Repository settings](repository-settings.md#applying-the-settings)).
+       It updates `branch-names` and creates `site-publish-only`.
+    2. In the company site's repository, add `adl` to `infra/lib/apps.ts` with this repository's name and numeric id, a role name, and
+       **`publishRef: 'site'`**: its default is `develop`, and this workflow deploys production from `site` only. Update the site's list of
        protected prefixes and its tests as the company site's README says, and run `cdk deploy`. That makes the production role and the preview role.
-    2. Customise this repository's OIDC subject claim as the company site's README says.
-    3. Set four repository secrets, each from an output of that deploy: `DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET` and
+    3. Customise this repository's OIDC subject claim as the company site's README says.
+    4. Set four repository secrets, each from an output of that deploy: `DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET` and
        `DOCS_DISTRIBUTION_ID`.
-    4. Run `docs.yml` from `main` once, and check `https://iainchesworthlabs.com/adl/` and a preview.
+    5. Run `publish-site.yml` on `develop` once, and check `https://iainchesworthlabs.com/adl/` and a preview.
   Until then the site is read locally (`mkdocs serve`) and the strict build is the check.
 
-Because `main` moves only with a release, the pages that forward are the ones of the latest release. There is one version of the site; old
-releases' pages are in the tag's tree on GitHub.
+The pages that forward are built from `main`, so they are the ones of the latest release, while the site is whatever `site` holds. There is
+one version of the site; old releases' pages are in the tag's tree on GitHub.
 
 **Not used.** Zensical, the successor to Material for MkDocs, reads the same `mkdocs.yml`. It was tried and
 does not run MkDocs hooks, so every link out of `docs/` fails its strict build. MkDocs is held below 2.0,
@@ -308,7 +323,7 @@ find is therefore found once, on the merged tree, and not on every pull request.
 | `Windows (MSVC, ASan)` | windows-2025-vs2026 | Preset `windows-msvc-asan`: the same under AddressSanitizer. |
 | `Benchmarks (Linux, GCC)` | ubuntu-26.04 | Preset `linux-perf`: the micro-benchmarks of the check values, the header file, the media set and the TFTP packets run, and none is over its limit in `perf-budget.json` ([Performance](performance.md)); the budget reports and does not fail until it has been filled in from this runner. Full tier. |
 | `Fuzz regression (Linux, Clang)` | ubuntu-26.04 | Preset `linux-fuzz` builds the libFuzzer harnesses with Clang 23, and every seed input and every past crash replays without a finding ([Fuzzing](fuzzing.md)). **Fast.** |
-| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the ARINC 665 and 615A libraries, the second TFTP implementation, the runner, the media tree, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. A **second pass** measures the applications' window-free logic (`apps/app/core`, `apps/mock_target/core`, `apps/media_gen/core`, and the mock target's engine in `libs/mock_target_core`, Qt's generated files left out) at a lower floor, set a little under what the suite measures ([testing](testing.md#coverage)), and fails when it measures too little; the job therefore installs the Qt kit and configures with `-DADL_BUILD_APP=ON`. The windows' QML cannot be measured and is covered by the UI suite on the build legs. **Fast.** |
+| `Coverage (Linux, GCC)` | ubuntu-26.04 | Preset `linux-coverage` passes every test and **meets the project minimum of 90% lines and 80% branches of the portable code** (the ARINC 665 and 615A libraries, the second TFTP implementation, the runner, the media tree, the loader core, the samples, the payload writer and the platform interfaces; the OS fragments are held by the conformance suite instead). `cmake/CoverageReport.cmake` runs gcovr and fails the job below either figure; the `coverage-report` artifact holds the HTML, `summary.json` and `cobertura.xml`, and the job summary carries the table. A **second pass** measures the applications' window-free logic (`apps/app/core`, `apps/mock_target/core`, `apps/media_gen/core`, and the mock target's engine in `libs/mock_target_core`, Qt's generated files left out) at a lower floor, set a little under what the suite measures ([testing](testing.md#coverage)), and fails when it measures too little; the job therefore installs the Qt kit and configures with `-DADL_BUILD_APP=ON`. The windows' QML cannot be measured and is covered by the UI suite on the build legs. **Fast.** |
 | `Workflow analysis` | ubuntu-24.04 | `zizmor` finds nothing in the workflows. |
 | `Scan dependency diff` | ubuntu-24.04 | The change adds no moderate-or-worse known vulnerability (GitHub Actions and the vcpkg manifest). |
 | `CI Status` | ubuntu-24.04 | Every job above that the plan asked for ran and succeeded. |
@@ -400,7 +415,7 @@ the fact instead of re-run.
 
 `Plan` reads the files the pull request or queue entry changes (against the base, or for a queue entry
 the commit it is built on) and `.github/ci/plan.json` sorts them: `docs` (documentation, the site's
-tooling), `no_build` (templates, ruleset files, licence files), `build` (the sources, tests, CMake and
+tooling, and the two workflows that publish it, `docs.yml` and `publish-site.yml`), `no_build` (templates, ruleset files, licence files), `build` (the sources, tests, CMake and
 packaging), `gui` (Qt needed), and `machinery` (the gate's own files: everything runs). A path that none
 of the lists names builds everything, because a false skip is silent and a false build costs minutes.
 
@@ -408,6 +423,12 @@ of the lists names builds everything, because a false skip is silent and a false
   `build` is skipped and `CI Status` accepts it because the plan did not ask for it.
 - A change that touches no GUI builds the libraries without Qt (`gui=false`).
 - A push, a manual run and an empty file list plan everything.
+- **A site update runs no build, and publishing it runs no CI.** A change to pages, the theme, `mkdocs.yml`, the company kit copy, or
+  `docs.yml` or `publish-site.yml` plans no build, so its pull request and its queue entry run the static jobs, the workflow analysis and
+  `Docs build (strict)` and nothing heavier. Publishing it afterwards ([Publishing](#publishing)) is a push to the branch `site`, and the
+  only workflow that a push to `site` starts is `docs.yml` (`ci.yml` runs for pull requests, the queue and `develop`, and `release.yml`
+  for tags). A change to the application, to `CMakeLists.txt`, to the site's own checks in `tools/ci/` or to the gate itself builds everything
+  first, as before. The site's icon is `packaging/linux/icons/adl_app.svg`, a file of the application, so a change to it builds too.
 
 `Docs build (strict)` runs for every change, because a change to code can break a link to it.
 

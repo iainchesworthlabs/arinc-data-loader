@@ -14,7 +14,6 @@ add_library(adl_app_core STATIC
     include/adl/app/host_access.hpp
     include/adl/app/loader_model.hpp
     include/adl/app/media_set_summary.hpp
-    include/adl/app/media_source.hpp
     include/adl/app/models.hpp
     include/adl/app/notice_text.hpp
     include/adl/app/settings.hpp
@@ -27,7 +26,6 @@ add_library(adl_app_core STATIC
     src/host_access.cpp
     src/loader_model.cpp
     src/media_set_summary.cpp
-    src/media_source.cpp
     src/models.cpp
     src/notice_text.cpp
     src/settings.cpp
@@ -46,6 +44,7 @@ target_link_libraries(adl_app_core
         adl::arinc615a
         adl::arinc615a_runner
         adl::arinc665
+        adl::loader_core
         adl::platform
     PRIVATE
         adl::tracy

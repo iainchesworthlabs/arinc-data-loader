@@ -1,0 +1,10 @@
+{
+  "sequence": 2,
+  "issued_at": "2026-11-19T00:00:00Z",
+  "licences": ["ADL-2026-900013", "ADL-2026-900012"],
+  "keys": [
+    { "key_id": "lic-2026-x", "from": "2026-11-01T00:00:00Z" },
+    { "key_id": "lic-2026-y" }
+  ],
+  "critical": []
+}

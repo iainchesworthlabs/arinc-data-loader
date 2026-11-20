@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/app/events.hpp"
 
+#include "adl/app/text.hpp"
+#include "adl/loader_core/address.hpp"
+
 namespace adl::app
 {
 
 QString FoundTarget::thw_id_pos() const
 {
-    return position.isEmpty() ? hardware_id : hardware_id + QLatin1Char('_') + position;
+    return to_qstring(adl::loader_core::thw_id_pos_of(hardware_id.toStdString(), position.toStdString()));
 }
 
 void register_metatypes()

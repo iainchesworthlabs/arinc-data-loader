@@ -143,7 +143,7 @@ Every download writes into a new folder, `<download folder>/DNLD_DATA_<THW_ID_PO
 - **A file whose check value does not match is kept.** The log says so.
 - **Not written:** the protocol files, and the `DNLD_INFO_...` folder that the standard also lists (5.4.4.3).
 
-Sources: [`download_directory.cpp`](../apps/app/core/src/download_directory.cpp), [`engine_worker.cpp`](../apps/app/core/src/engine_worker.cpp) and [`directory_files.cpp`](../libs/arinc615a_runner/src/directory_files.cpp). The operator's view is [Download](user-guide/download.md#where-the-files-go).
+Sources: [`download_directory.cpp`](../libs/loader_core/src/download_directory.cpp), [`engine_worker.cpp`](../apps/app/core/src/engine_worker.cpp) and [`directory_files.cpp`](../libs/arinc615a_runner/src/directory_files.cpp). The operator's view is [Download](user-guide/download.md#where-the-files-go).
 
 ### The generator's output
 
