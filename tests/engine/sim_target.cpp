@@ -117,7 +117,7 @@ void SimTarget::on_datagram(adl::platform::Instant /*at*/, const adl::platform::
         handle_find(source, payload);
         return;
     }
-    if (to.port == tftp_control_port)
+    if (to.port == plan_.control_port)
     {
         const auto packet = decode_packet(payload);
         if (packet)

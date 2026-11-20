@@ -24,8 +24,8 @@
 
    adl::media_tree (libs/media_tree): members <-> a directory tree, over adl::arinc665
    adl::loader_core (libs/loader_core): what the loader does without a window and without Qt (the media
-   set on disk and its check, the folder a download is written into, the target's address), over the
-   libraries above; the application calls it
+   set on disk and its check, the folder a download is written into, the target's address, one operation
+   made and run against a target), over the libraries above; the application calls it
    adl::set_maker (libs/set_maker): the media set generator without a window and without Qt (a plan, the
    making of a set, the reading of one into facts), over adl::loader_core; the generator's window and the
    command adl_make_set build on it
@@ -47,8 +47,9 @@
   overwrites or follows a link.
 - **`libs/loader_core`** is what the loader does that is not showing a window, with no Qt: a media set on
   disk read and checked into a report (`check_media_set`), the index of its files and the `FileSource` an
-  upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, and
-  the target's address. The loader's application (`apps/app/core`) calls it and puts what it returns in the
+  upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, the
+  target's address, and one operation (an `OperationPlan` of what was chosen, `run_operation` over the host's
+  sockets with the operator's `OperationGate`) reduced to a result and a reason. The loader's application (`apps/app/core`) calls it and puts what it returns in the
   operator's words and in Qt's types, so a program with no window can do the same by the same rules. It is in
   the [development package](libraries.md).
 - **`libs/set_maker`** is the media set generator without a window and without Qt, and is not in the

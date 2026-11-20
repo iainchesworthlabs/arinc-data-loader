@@ -8,8 +8,11 @@
 add_library(adl_loader_core STATIC
     src/address.cpp
     src/download_directory.cpp
+    src/gate.cpp
     src/media_set_check.cpp
-    src/media_source.cpp)
+    src/media_source.cpp
+    src/operation_plan.cpp
+    src/run.cpp)
 add_library(adl::loader_core ALIAS adl_loader_core)
 
 target_include_directories(adl_loader_core
@@ -21,6 +24,7 @@ target_link_libraries(adl_loader_core
     PUBLIC
         adl::arinc665
         adl::arinc615a
+        adl::arinc615a_runner
         adl::media_tree
         adl::platform
     PRIVATE
