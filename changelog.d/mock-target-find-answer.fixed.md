@@ -1,0 +1,1 @@
+**The mock target's answer to FIND now holds its own copy of the identity.** The answer was built from text the window had already let go of (the hardware ID, type, position, name and manufacturer code), so it was read from memory that could have been reused and the answer could carry the wrong text. See [the mock target](docs/mock-target.md).

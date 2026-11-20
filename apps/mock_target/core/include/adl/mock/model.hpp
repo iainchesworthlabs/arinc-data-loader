@@ -102,15 +102,6 @@ private:
     std::vector<StoredFileRow> rows_;
 };
 
-// Whether a file the loader sent can be stored under `name`: a plain name (letters, digits and
-// . _ -) that every platform takes for the same file, so a name from the wire cannot reach
-// outside the storage, name a stream, or open a device.
-[[nodiscard]] bool is_storable_name(std::string_view name) noexcept;
-
-// The directory a load is stored in, made from its part number: the same characters, anything
-// else replaced by '_'; never a name that is a device or ends in a dot.
-[[nodiscard]] std::string storage_directory_name(std::string_view part_number);
-
 // Makes the link a session runs over, on the worker's thread: the real one over
 // adl::platform, or a test's fake one. The error is for the operator.
 using LinkFactory = std::function<std::expected<std::unique_ptr<TargetLink>, QString>()>;
