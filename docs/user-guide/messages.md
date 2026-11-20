@@ -140,3 +140,5 @@ A notice may end with a number. `target asked to wait` and `file not available` 
 | `The load's folder could not be made: %1.` | The folder for the load, inside the storage folder, cannot be created. | Check that the storage folder is writable. |
 | `%1 was not stored: not a safe file name.` | The uploaded file's name is not a plain name, so it was not kept. | None: the mock target keeps only letters, digits, `.`, `_` and `-` in a name. |
 | `%1 could not be written to the storage folder.` | A file could not be written. | Check that the folder is writable and the disk is not full. |
+| `Scenario %1: %n step(s)` | A scenario file was loaded ([the window](mock-target.md#a-scenario-file)): its name, or the file's name when it has none, and the number of its steps. | Nothing: the faults above it are not used while it is loaded. |
+| `The scenario file was refused: %1` | The file chosen could not be used. `%1` is the sentence that says why. | Read the sentence in [A file that is refused](mock-scenarios.md#a-file-that-is-refused), correct the file and choose it again. |

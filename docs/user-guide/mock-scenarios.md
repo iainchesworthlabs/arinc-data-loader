@@ -1,6 +1,6 @@
 # Scenarios for the mock target
 
-A scenario is a file that says which fault the [mock target](../mock-target.md) shows, and when. It is for a test that has to be run again: the same file gives the same faults at the same moments, so a loader that failed on Tuesday can be shown the same failure on Wednesday. `adl_mock` takes one with the option `--scenario` ([command line](command-line.md#adl_mock)).
+A scenario is a file that says which fault the [mock target](../mock-target.md) shows, and when. It is for a test that has to be run again: the same file gives the same faults at the same moments, so a loader that failed on Tuesday can be shown the same failure on Wednesday. `adl_mock` takes one with the option `--scenario` ([command line](command-line.md#adl_mock)), and the [mock target's window](mock-target.md#a-scenario-file) takes the same file with its **Scenario file...** button.
 
 A scenario is a list of steps. Each step has a trigger (the second request, the fourth status file, twenty seconds into an operation) and an action: any fault the mock target has, or a delay. A seed fixes everything that is left to chance, so that "lose half of the status files" loses the same ones every time.
 
