@@ -111,7 +111,7 @@ The build has a source side and a target side, and the libraries sit on both.
 | Portable libraries | `adl::platform`, `adl::arinc665`, `adl::arinc615a`, `adl::arinc615a_mini`, `adl::arinc615a_runner`, `adl::media_tree`, `adl::samples` | always | source and target |
 | Payload writer | `adl_write_payloads` | always | source (desktop) |
 | Source-side applications (Qt) | `adl_app` (the data loader), `adl_media_gen` (the media set generator), `adl_mock_target` (a 615A target, for demonstrations) | `ADL_BUILD_APP`, on by default on a desktop | source (desktop) |
-| Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_ui_tests`, `adl_window_state_tests`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_tests`, `adl_mock_model_test`, `adl_mock_qml_test`, `adl_loopback_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
+| Test programs | `adl_unit_tests`, `adl_platform_tests`, `adl_engine_tests`, `adl_mock_tests`, `adl_loopback_test`; with the applications also `adl_app_tests`, `adl_app_qml_test`, `adl_ui_tests`, `adl_window_state_tests`, `adl_gen_tests`, `adl_gen_qml_test`, `adl_mock_model_test`, `adl_mock_qml_test` | `ADL_BUILD_TESTS=ON` | source (desktop) |
 | Target side | the libraries above, for the target's platform | `ADL_TARGET_PLATFORM` (or a toolchain that sets it) | target (embedded) |
 
 The **source side** is the operator's machine: the loader, the generator and the payload writer. The
@@ -185,11 +185,12 @@ were built with, and `cmake --install` runs `macdeployqt` on each bundle to copy
 QML modules into it, which is how the disk image under [Packages](#packages) is made.
 
 The tests that need Qt are `app.tests` and `app.qml`, `media_gen.tests` and `media_gen.qml`, and
-`mock.engine`, `mock.model` and `mock.qml`; they run in the same `ctest` as the rest when
-`ADL_BUILD_APP` is on, and look for the offscreen platform plugin in the kit's own `plugins`
-directory. The `loopback.integration` test runs the loader's runner over real sockets on
+`mock.model` and `mock.qml`; they run in the same `ctest` as the rest when `ADL_BUILD_APP` is on,
+and look for the offscreen platform plugin in the kit's own `plugins` directory. The mock target's
+engine has no Qt in it, so its tests (`mock.engine`) and the `loopback.integration` test run with
+`ADL_BUILD_APP` off too. `loopback.integration` runs the loader's runner over real sockets on
 127.0.0.1 against the mock target's engine (nothing below port 1024, a few seconds per
-operation); it is labelled `integration` and needs `ADL_BUILD_APP` too.
+operation); it is labelled `integration`.
 
 ### The demonstration
 
@@ -294,6 +295,7 @@ are not part of the installed `adl` package.
 | `ADL_ENABLE_MSVC_ANALYSIS` | `OFF` | Adds MSVC Code Analysis (`/analyze /analyze:external-`) to every first-party target; MSVC only (the `windows-msvc-analyze` preset sets it) |
 | `ADL_ENABLE_TRACY` | `OFF` | Links Tracy and pulls it from vcpkg; use a Release build for numbers worth reading |
 | `ADL_TARGET_PLATFORM` | empty | Names the platform for a cross build, where the toolchain does not (`windows`, `linux`, `macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos`, `zephyr`). A desktop build leaves it empty. `freertos` and `zephyr` are accepted and refused: their images are built by projects of their own ([below](#zephyr-and-freertos)). See [platform isolation](platform-isolation.md#how-cmake-selects) |
+| `ADL_PLATFORM_DIR` | empty | A directory outside this repository that holds the platform `ADL_TARGET_PLATFORM` names: its `platform.cmake` and its sources. With it set, `ADL_TARGET_PLATFORM` is required and may be any name; empty, the platform is the one in `libs/platform/<name>` ([below](#a-platform-from-another-directory)) |
 | `ADL_ACCEPT_UNBUILT_PLATFORM` | `OFF` | Allows building a platform whose code has never been compiled (QNX and the two INTEGRITY ports). A platform with no code at all is refused whatever this says |
 
 The Green Hills INTEGRITY platforms are [reviewed in
@@ -301,6 +303,35 @@ docs/platform-ghs.md](platform-ghs.md): what the two source trees provide, how
 `cmake/FindIntegrity.cmake` and `cmake/FindIntegrity178.cmake` find them, and
 what is still open before a first compile. They have never been compiled and
 their code says so.
+
+### A platform from another directory
+
+A port to another operating system does not have to be a directory of this repository. Set
+`ADL_TARGET_PLATFORM` to a name for it (lower-case letters, digits and underscores) and
+`ADL_PLATFORM_DIR` to the directory that holds its `platform.cmake` and its sources, and the build
+takes the platform from there. The port can be kept in a repository of its own and tried without a
+fork. Without `ADL_PLATFORM_DIR` nothing is different.
+
+The example starts from a copy of the Linux platform and builds it as `myos`, then runs the platform
+layer's tests against it:
+
+```sh
+cp -r libs/platform/linux ../myos-port
+sed -i 's|^    linux/|    ${ADL_PLATFORM_DIR}/|' ../myos-port/platform.cmake
+cmake --preset linux-debug -DADL_BUILD_APP=OFF -DADL_TARGET_PLATFORM=myos -DADL_PLATFORM_DIR="$PWD/../myos-port"
+cmake --build --preset linux-debug --target adl_platform_tests
+ctest --preset linux-debug -L unit
+```
+
+The `sed` line is the one edit the copy needs. A path in `ADL_PLATFORM_SOURCES` that is relative is
+relative to `libs/platform`, which is where the shared sources are (`posix/...`, `detail/...`) and stays
+the repository's; the port's own files are named from `${ADL_PLATFORM_DIR}`, the directory the option
+gave. [Platform abstraction](platform-abstraction.md#a-platform-kept-outside-the-repository) has the
+rest: the variables a fragment can read, which headers its sources can include, and what is and is not
+checked for a platform that is not in the repository.
+
+A configure that sets `ADL_PLATFORM_DIR` without `ADL_TARGET_PLATFORM`, or names a directory that does
+not exist or has no `platform.cmake`, stops and says which.
 
 ## Packages
 
@@ -311,7 +342,7 @@ in them and why). With a Release build of the applications:
 cmake --preset linux-gcc-release            # or windows-msvc-release, macos-clang-release
 cmake --build --preset linux-gcc-release
 cd build/linux-gcc-release && cpack -B packages
-pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.1-linux-x86_64.tar.gz
+pwsh ../../tools/release/Test-Package.ps1 -Package packages/arinc-data-loader-0.1.2-linux-x86_64.tar.gz
 ```
 
 `cpack` writes the runtime package (the three applications, `adl_write_payloads`, Qt's runtime files,

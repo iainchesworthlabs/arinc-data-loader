@@ -1,0 +1,16 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* The palette of the /adl/ pages: the one file that holds their colours. Eight roles, each light-dark(light, dark).
+   Held to the company contract by tools/ci/check_site_kit.py (WCAG 2.2 AA, light and dark, against the company shell's neutrals).
+   Change a colour here and run: python tools/ci/check_site_kit.py
+   Graphite for buttons and the hero; the programs' Signal orange-red (libs/ui/qml/Theme.qml) only for rules and marks,
+   never for text. The values are the "Graphite" candidate the owner chose; docs/ci.md, "The /adl/ pages". */
+[data-app="adl"] {
+  --app-primary:       light-dark(#2f3a46, #a8bacd);
+  --app-on-primary:    light-dark(#ffffff, #0d141b);
+  --app-accent:        light-dark(#d4361b, #ff6a4d);
+  --app-link:          light-dark(#1f4a72, #a9c4de);
+  --app-tint:          light-dark(#eef1f4, #151b22);
+  --app-gradient-from: light-dark(#1a2129, #10161c);
+  --app-gradient-to:   light-dark(#384655, #2b3846);
+  --app-on-gradient:   light-dark(#ffffff, #f1f5f9);
+}

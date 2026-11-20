@@ -6,9 +6,13 @@
 add_library(adl_platform STATIC)
 add_library(adl::platform ALIAS adl_platform)
 
+# A relative path is under this directory (the platforms of this repository and the sources they
+# share); an absolute one is a file of a platform kept outside it (ADL_PLATFORM_DIR).
 set(_adl_platform_sources "")
 foreach(_source IN LISTS ADL_PLATFORM_SOURCES)
-    list(APPEND _adl_platform_sources "${CMAKE_CURRENT_SOURCE_DIR}/${_source}")
+    cmake_path(ABSOLUTE_PATH _source BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_VARIABLE _path)
+    list(APPEND _adl_platform_sources "${_path}")
 endforeach()
 
 target_sources(adl_platform PRIVATE ${_adl_platform_sources})
@@ -30,6 +34,11 @@ target_include_directories(adl_platform
     # The implementations include each other's internal headers (detail/, posix/,
     # windows/); the public interfaces above are all that users of the library see.
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+# A platform kept outside the repository: its own directory too, for the headers its sources share.
+# Searched after the above, so a header of this repository is never hidden by one of the same name.
+if(ADL_PLATFORM_EXTERNAL)
+    target_include_directories(adl_platform PRIVATE "${ADL_PLATFORM_DIR}")
+endif()
 target_compile_features(adl_platform PUBLIC cxx_std_23)
 target_compile_definitions(adl_platform PRIVATE ${ADL_PLATFORM_COMPILE_DEFINITIONS})
 target_link_libraries(adl_platform
@@ -38,6 +47,11 @@ target_link_libraries(adl_platform
         $<BUILD_LOCAL_INTERFACE:adl::sanitizers>
         $<BUILD_LOCAL_INTERFACE:adl::coverage>
         ${ADL_PLATFORM_LINK_LIBRARIES})
+
+# The libFuzzer harness for what this library parses, when fuzzing is on (cmake/Fuzzing.cmake).
+if(ADL_ENABLE_FUZZING)
+    add_subdirectory(fuzz)
+endif()
 
 # The platform's interfaces are the development package's way to the operating system; the library
 # is this host's implementation of them.

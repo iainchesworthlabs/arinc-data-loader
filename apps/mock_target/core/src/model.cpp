@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/mock/model.hpp"
 
-#include "adl/arinc615a/limits.hpp"
-#include "adl/arinc665/portable_name.hpp"
+#include "adl/mock/settings.hpp"
+#include "adl/mock/storage.hpp"
 #include "adl/platform/host.hpp"
 #include "adl/platform/paths.hpp"
 
@@ -10,9 +10,6 @@
 #include <QMetaObject>
 #include <QTime>
 #include <QUrl>
-#include <algorithm>
-#include <fstream>
-#include <iterator>
 #include <string>
 
 namespace adl::mock
@@ -26,62 +23,12 @@ namespace
     return QString::fromUtf8(text.data(), static_cast<qsizetype>(text.size()));
 }
 
-[[nodiscard]] Bytes to_bytes(std::string_view text)
-{
-    Bytes bytes(text.size());
-    std::transform(text.begin(), text.end(), bytes.begin(),
-                   [](char c) { return std::byte{static_cast<std::uint8_t>(c)}; });
-    return bytes;
-}
-
 [[nodiscard]] QString time_now()
 {
     return QTime::currentTime().toString(QStringLiteral("hh:mm:ss"));
 }
 
-[[nodiscard]] bool is_plain_character(char c) noexcept
-{
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '_' ||
-           c == '-';
-}
-
-[[nodiscard]] std::filesystem::path fs_path(std::string_view utf8)
-{
-    return std::filesystem::path(to_qstring(utf8).toStdU16String());
-}
-
 } // namespace
-
-bool is_storable_name(std::string_view name) noexcept
-{
-    return name.size() <= 254 && adl::arinc665::is_portable_file_name(name) &&
-           std::ranges::all_of(name, is_plain_character);
-}
-
-std::string storage_directory_name(std::string_view part_number)
-{
-    std::string result;
-    result.reserve(part_number.size());
-    for (const char c : part_number.substr(0, 254))
-    {
-        result.push_back(is_plain_character(c) ? c : '_');
-    }
-    if (result.empty())
-    {
-        return "_";
-    }
-    // Windows drops a trailing dot (and with it a name made of dots only), and a device name is
-    // a device in any directory.
-    if (result.back() == '.')
-    {
-        result.back() = '_';
-    }
-    if (adl::arinc665::is_device_name(result))
-    {
-        result.insert(result.begin(), '_');
-    }
-    return result;
-}
 
 // ---- The list models -------------------------------------------------------------------------
 
@@ -311,89 +258,50 @@ void MockWorker::read_holds(Config& config)
 {
     if (!storage_path_.empty())
     {
-        const std::filesystem::path holds = storage_path_ / "holds";
-        std::error_code ec;
-        if (std::filesystem::is_directory(holds, ec))
+        // A folder that is not there (or cannot be listed) holds nothing: the demonstration file
+        // below is served instead.
+        if (auto held = read_held_files(storage_path_ / "holds"))
         {
-            std::vector<HeldFile> found;
-            // The non-throwing iteration: a folder the account cannot list (or one that changes
-            // while it is read) ends the list, it does not end the program.
-            std::filesystem::directory_iterator it(holds, ec);
-            for (const std::filesystem::directory_iterator end; !ec && it != end; it.increment(ec))
-            {
-                const std::filesystem::directory_entry& entry = *it;
-                if (!entry.is_regular_file(ec))
-                {
-                    ec.clear();
-                    continue;
-                }
-                std::ifstream in(entry.path(), std::ios::binary);
-                const std::vector<char> text{std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
-                Bytes bytes(text.size());
-                std::transform(text.begin(), text.end(), bytes.begin(),
-                               [](char c) { return std::byte{static_cast<std::uint8_t>(c)}; });
-                found.push_back(
-                    HeldFile{adl::platform::to_utf8(entry.path().filename().u8string()), std::move(bytes), ""});
-            }
-            std::ranges::sort(found, [](const HeldFile& a, const HeldFile& b) { return a.name < b.name; });
-            config.holds = std::move(found);
+            config.holds = std::move(*held);
         }
     }
     if (config.holds.empty())
     {
-        const std::string note = "The mock target serves the files it holds from <storage>/holds in a download.\n"
-                                 "Put files there and ask for them by name.\n";
-        config.holds.push_back(HeldFile{"DEMO.TXT", to_bytes(note), "a demonstration file"});
+        config.holds.push_back(demonstration_file());
     }
 }
 
 void MockWorker::store_upload(const UploadRecord& record)
 {
-    if (storage_path_.empty())
+    const StoreOutcome outcome = adl::mock::store_upload(storage_path_, record);
+    const auto say = [](const StoreIssue& issue)
     {
-        Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The storage folder is not set, so the upload is not stored.")});
-        return;
-    }
-    std::error_code ec;
-    std::filesystem::create_directories(storage_path_, ec);
-    if (ec)
+        switch (issue.problem)
+        {
+        case StoreProblem::no_storage_folder:
+            return tr("The storage folder is not set, so the upload is not stored.");
+        case StoreProblem::storage_folder_failed:
+            return tr("The storage folder could not be made: %1.").arg(to_qstring(issue.detail));
+        case StoreProblem::load_folder_failed:
+            return tr("The load's folder could not be made: %1.").arg(to_qstring(issue.detail));
+        case StoreProblem::unsafe_file_name:
+            return tr("%1 was not stored: not a safe file name.").arg(to_qstring(issue.subject));
+        case StoreProblem::file_write_failed:
+            return tr("%1 could not be written to the storage folder.").arg(to_qstring(issue.subject));
+        }
+        return QString{};
+    };
+    for (const StoreIssue& issue : outcome.issues)
     {
-        Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The storage folder could not be made: %1.").arg(QString::fromStdString(ec.message()))});
-        return;
-    }
-    const std::filesystem::path part_dir = storage_path_ / fs_path(storage_directory_name(record.load_part_number));
-    std::filesystem::create_directories(part_dir, ec);
-    if (ec)
-    {
-        Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                         tr("The load's folder could not be made: %1.").arg(QString::fromStdString(ec.message()))});
-        return;
+        Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(), say(issue)});
     }
     QList<StoredFileRow> rows;
-    for (const StoredFile& file : record.files)
+    for (const StoredOnDisk& file : outcome.stored)
     {
-        if (!is_storable_name(file.name))
-        {
-            Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                             tr("%1 was not stored: not a safe file name.").arg(to_qstring(file.name))});
-            continue;
-        }
-        const std::filesystem::path path = part_dir / fs_path(file.name);
-        std::ofstream out(path, std::ios::binary | std::ios::trunc);
-        out.write(reinterpret_cast<const char*>(file.bytes.data()), static_cast<std::streamsize>(file.bytes.size()));
-        out.close();
-        if (!out)
-        {
-            Q_EMIT log_line({static_cast<int>(Severity::warning), time_now(),
-                             tr("%1 could not be written to the storage folder.").arg(to_qstring(file.name))});
-            continue;
-        }
         StoredFileRow row;
         row.name = to_qstring(file.name);
-        row.size = static_cast<qint64>(file.bytes.size());
-        row.path = QDir::toNativeSeparators(to_qstring(adl::platform::to_utf8(path.u8string())));
+        row.size = static_cast<qint64>(file.size);
+        row.path = QDir::toNativeSeparators(to_qstring(adl::platform::to_utf8(file.path.u8string())));
         rows.append(row);
     }
     if (!rows.isEmpty())
@@ -681,58 +589,41 @@ void MockTargetModel::setSilent(bool value)
 
 Config MockTargetModel::make_config() const
 {
-    Config config;
-    const QString hardware = hardware_id_.trimmed();
-    const QString at_position = position_.trimmed();
-    config.thw = hardware.toStdString() + (at_position.isEmpty() ? std::string{} : "_" + at_position.toStdString());
-    config.find_answer = adl::arinc615a::FindAnswer{hardware.toStdString(), type_name_.trimmed().toStdString(),
-                                                    at_position.toStdString(), literal_name_.trimmed().toStdString(),
-                                                    manufacturer_code_.trimmed().toStdString()};
-    config.tftp_port = static_cast<std::uint16_t>(tftp_port_);
-    config.find_port = static_cast<std::uint16_t>(find_port_);
-    if (loopback_only_)
-    {
-        config.bind_address = adl::arinc615a::Address::loopback();
-    }
-    config.think_time = std::chrono::milliseconds(think_time_ms_);
-    config.status_period = std::chrono::seconds(status_period_sec_);
-    config.wait_first_seconds = static_cast<std::uint16_t>(
-        std::clamp(wait_first_seconds_, 0, static_cast<int>(adl::arinc615a::max_wait_seconds)));
-    config.wait_always = wait_every_request_;
-    config.drop_status_every = static_cast<unsigned>(std::max(drop_status_every_, 0));
-    config.corrupt_served = corrupt_served_file_;
-    config.wrong_checksum = wrong_checksum_;
-    if (abort_after_statuses_ > 0)
-    {
-        config.abort_after_statuses = static_cast<std::size_t>(abort_after_statuses_);
-    }
-    config.silent = silent_;
-
-    const auto make_refusal = [](OperationKind kind)
-    {
-        Refusal refusal;
-        refusal.kind = kind;
-        refusal.code = adl::arinc615a::StatusCode::operation_denied;
-        refusal.text = "refused by the mock target";
-        return refusal;
-    };
+    TargetSettings settings;
+    settings.hardware_id = hardware_id_.trimmed().toStdString();
+    settings.type_name = type_name_.trimmed().toStdString();
+    settings.position = position_.trimmed().toStdString();
+    settings.literal_name = literal_name_.trimmed().toStdString();
+    settings.manufacturer_code = manufacturer_code_.trimmed().toStdString();
+    settings.tftp_port = static_cast<std::uint16_t>(tftp_port_);
+    settings.find_port = static_cast<std::uint16_t>(find_port_);
+    settings.loopback_only = loopback_only_;
+    settings.think_time_ms = think_time_ms_;
+    settings.status_period_sec = status_period_sec_;
+    settings.wait_first_seconds = wait_first_seconds_;
+    settings.wait_every_request = wait_every_request_;
+    settings.drop_status_every = drop_status_every_;
+    settings.corrupt_served_file = corrupt_served_file_;
+    settings.wrong_checksum = wrong_checksum_;
+    settings.abort_after_statuses = abort_after_statuses_;
+    settings.silent = silent_;
     if (refuse_operation_ == QLatin1String("information"))
     {
-        config.refusal = make_refusal(OperationKind::information);
+        settings.refuse_operation = OperationKind::information;
     }
     else if (refuse_operation_ == QLatin1String("upload"))
     {
-        config.refusal = make_refusal(OperationKind::upload);
+        settings.refuse_operation = OperationKind::upload;
     }
     else if (refuse_operation_ == QLatin1String("downloadMedia"))
     {
-        config.refusal = make_refusal(OperationKind::download_media);
+        settings.refuse_operation = OperationKind::download_media;
     }
     else if (refuse_operation_ == QLatin1String("downloadOperator"))
     {
-        config.refusal = make_refusal(OperationKind::download_operator);
+        settings.refuse_operation = OperationKind::download_operator;
     }
-    return config;
+    return adl::mock::make_config(settings);
 }
 
 void MockTargetModel::start()

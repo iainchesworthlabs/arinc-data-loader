@@ -21,6 +21,7 @@ set(ADL_PLATFORM_QT_ARCH_DIRS msvc2022_64 msvc2019_64)
 
 set(ADL_PLATFORM_SOURCES
     windows/paths_windows.cpp
+    windows/arguments_windows.cpp
     windows/windows_common.cpp
     windows/clock_windows.cpp
     windows/memory_windows.cpp
@@ -30,8 +31,9 @@ set(ADL_PLATFORM_SOURCES
     windows/host_windows.cpp
     detail/ring_queue.cpp)
 
-# Winsock. Everything else the platform uses is in kernel32.
-set(ADL_PLATFORM_LINK_LIBRARIES ws2_32)
+# Winsock, and the shell's known folders (shell32, with ole32 for freeing what it returns).
+# Everything else the platform uses is in kernel32.
+set(ADL_PLATFORM_LINK_LIBRARIES ws2_32 shell32 ole32)
 
 # <windows.h> without the parts and macros nobody asked for (min/max, the
 # rarely used APIs) and with the wide-character API as the default. Passed by

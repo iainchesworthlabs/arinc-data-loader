@@ -7,6 +7,9 @@ relative link whose target is a file or folder of the repository that is not a p
 `<repo_url>/blob/main/<path>` (`tree/main` for a folder). A target that does not exist is left alone,
 so MkDocs' own validation (mkdocs.yml, `validation`) reports it and the strict build fails.
 
+A Markdown file of docs/ that the site does not publish (`exclude_docs` in mkdocs.yml: the pages for the people who work on
+the project) is treated the same way, so a published page can link to it and the link goes to the file on GitHub.
+
 Fenced code is not touched. The hook also adds the loader's icon to the site (`on_files`).
 """
 
@@ -41,8 +44,8 @@ def _rewrite(line, page_dir, docs_dir, repo_root, repo_url, page_uris):
         elif os.path.isfile(on_disk) and not on_disk.startswith(docs_dir + os.sep):
             kind = "blob"
         elif os.path.isfile(on_disk) and relative.endswith(".md"):
-            # A Markdown file inside docs/ that is not a page: let MkDocs say so.
-            return match.group(0)
+            # A Markdown file inside docs/ that the site does not publish (exclude_docs): the link goes to the file on GitHub.
+            kind = "blob"
         elif os.path.isfile(on_disk):
             # An asset inside docs/ (a picture, the public key): MkDocs publishes it and resolves the link.
             return match.group(0)
@@ -57,11 +60,12 @@ def on_files(files, config):
     """The site's logo and favicon (mkdocs.yml, theme) are the loader's icon.
 
     It is taken from where the Linux package takes it, so there is one copy of it, and added to the site
-    as images/icon.svg. MkDocs only publishes what is under docs/.
+    as icon.svg, the address the company site's contract gives an app's icon (/adl/icon.svg). MkDocs only
+    publishes what is under docs/.
     """
     repo_root = os.path.dirname(os.path.normpath(config["docs_dir"]))
     icon = os.path.join(repo_root, "packaging", "linux", "icons", "adl_app.svg")
-    files.append(File.generated(config, "images/icon.svg", abs_src_path=icon))
+    files.append(File.generated(config, "icon.svg", abs_src_path=icon))
     return files
 
 
@@ -70,7 +74,7 @@ def on_page_markdown(markdown, page, config, files):
     repo_root = os.path.dirname(docs_dir)
     repo_url = config["repo_url"].rstrip("/")
     page_dir = posixpath.dirname(page.file.src_uri)
-    page_uris = {f.src_uri for f in files if f.src_uri.endswith(".md")}
+    page_uris = {f.src_uri for f in files if f.src_uri.endswith(".md") and not f.inclusion.is_excluded()}
 
     out = []
     fenced = False

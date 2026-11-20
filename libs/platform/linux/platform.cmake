@@ -21,8 +21,10 @@ set(ADL_PLATFORM_QT_ARCH_DIRS gcc_64)
 # differs on Linux is linux/os_linux.cpp.
 set(ADL_PLATFORM_SOURCES
     linux/paths_linux.cpp
+    detail/arguments_passthrough.cpp
     linux/os_linux.cpp
     posix/posix_common.cpp
+    posix/locations_posix.cpp
     posix/clock_posix.cpp
     posix/memory_posix.cpp
     posix/files_posix.cpp

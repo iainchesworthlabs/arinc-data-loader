@@ -8,7 +8,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
+#include <optional>
 #include <set>
+#include <string>
+#include <string_view>
 #include <system_error>
 #include <tuple>
 #include <utility>
@@ -29,6 +32,109 @@ std::unexpected<TreeFailure> fail(TreeError error, fs::path path = {})
     return std::unexpected(TreeFailure{error, std::move(path)});
 }
 
+// The length of the valid UTF-8 sequence at the start of `text` (which is not empty), or 0 if what is
+// there is not one: a continuation byte on its own, an overlong form, a surrogate, a value above
+// U+10FFFF, or a sequence that stops short.
+std::size_t utf8_sequence_length(std::string_view text) noexcept
+{
+    const auto byte = [&](std::size_t index) { return static_cast<unsigned char>(text[index]); };
+    const unsigned char lead = byte(0);
+    std::size_t length = 1;
+    unsigned char lowest = 0x80;
+    unsigned char highest = 0xBF;
+    if (lead < 0x80)
+    {
+        return 1;
+    }
+    if (lead >= 0xC2 && lead <= 0xDF)
+    {
+        length = 2;
+    }
+    else if (lead >= 0xE0 && lead <= 0xEF)
+    {
+        length = 3;
+        lowest = lead == 0xE0 ? 0xA0 : 0x80;
+        highest = lead == 0xED ? 0x9F : 0xBF;
+    }
+    else if (lead >= 0xF0 && lead <= 0xF4)
+    {
+        length = 4;
+        lowest = lead == 0xF0 ? 0x90 : 0x80;
+        highest = lead == 0xF4 ? 0x8F : 0xBF;
+    }
+    else
+    {
+        return 0;
+    }
+    if (text.size() < length || byte(1) < lowest || byte(1) > highest)
+    {
+        return 0;
+    }
+    for (std::size_t index = 2; index < length; ++index)
+    {
+        if ((byte(index) & 0xC0) != 0x80)
+        {
+            return 0;
+        }
+    }
+    return length;
+}
+
+// The path that `text` names, read as UTF-8. Every path this library makes from text is made here,
+// because a std::filesystem::path made from a std::string is read in the system's code page on Windows
+// (another name, with no error, for anything that is not ASCII), and one made from a std::u8string throws
+// there for bytes that are not UTF-8. A byte that is not part of valid UTF-8 becomes U+FFFD, on every
+// system, so that the path can always be made and always means the same.
+fs::path path_from_text(std::string_view text)
+{
+    std::u8string utf8;
+    utf8.reserve(text.size());
+    for (std::size_t index = 0; index < text.size();)
+    {
+        const std::size_t length = utf8_sequence_length(text.substr(index));
+        if (length == 0)
+        {
+            utf8 += u8"\uFFFD";
+            ++index;
+            continue;
+        }
+        for (std::size_t offset = 0; offset < length; ++offset)
+        {
+            utf8 += static_cast<char8_t>(text[index + offset]);
+        }
+        index += length;
+    }
+    return fs::path{std::move(utf8)};
+}
+
+// The last name of `path` as text, if every character of it is printable ASCII, the only characters a
+// name in a media set has (arinc665::is_portable_file_name). Nothing is converted: the units of the path's
+// own text are looked at, so a name that is not text at all (half of a surrogate pair, which Windows lets a
+// name hold, or bytes that are not UTF-8, which Linux does) is only a name that is not ASCII, and nothing
+// can throw. (path::string() is the UTF-16 name read in the code page on Windows, and throws for a
+// character outside it.)
+std::optional<std::string> ascii_name(const fs::path& path)
+{
+    const fs::path filename = path.filename();
+    std::string name;
+    for (const fs::path::value_type unit : filename.native())
+    {
+        const auto code = std::char_traits<fs::path::value_type>::to_int_type(unit);
+        if (code < 0x20 || code > 0x7E)
+        {
+            return std::nullopt;
+        }
+        name += static_cast<char>(code);
+    }
+    return name;
+}
+
+// The directory of a member below the root of a tree.
+fs::path member_path(const fs::path& root, std::uint16_t sequence_number)
+{
+    return root / path_from_text(member_directory_name(sequence_number));
+}
+
 char lower(char c) noexcept
 {
     return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
@@ -46,7 +152,7 @@ TreeResult<std::vector<std::string>> split_pathname(std::string_view pathname)
 {
     if (pathname.empty() || pathname.front() != '\\' || pathname.back() != '\\')
     {
-        return fail(TreeError::invalid_pathname, fs::path{std::string{pathname}});
+        return fail(TreeError::invalid_pathname, path_from_text(pathname));
     }
     std::vector<std::string> directories;
     std::size_t start = 1;
@@ -56,7 +162,7 @@ TreeResult<std::vector<std::string>> split_pathname(std::string_view pathname)
         const std::string_view name = pathname.substr(start, end - start);
         if (!arinc665::is_portable_file_name(name))
         {
-            return fail(TreeError::invalid_pathname, fs::path{std::string{pathname}});
+            return fail(TreeError::invalid_pathname, path_from_text(pathname));
         }
         directories.emplace_back(name);
         start = end + 1;
@@ -107,7 +213,7 @@ TreeResult<void> validate(std::span<const arinc665::MediaMember> members)
         if (member.sequence_number < 1 || member.sequence_number > max_members ||
             !sequence_numbers.insert(member.sequence_number).second)
         {
-            return fail(TreeError::invalid_member, std::to_string(member.sequence_number));
+            return fail(TreeError::invalid_member, path_from_text(std::to_string(member.sequence_number)));
         }
         std::set<std::string> seen;
         for (const arinc665::MediaFile& file : member.files)
@@ -119,11 +225,11 @@ TreeResult<void> validate(std::span<const arinc665::MediaMember> members)
             }
             if (!arinc665::is_portable_file_name(file.name))
             {
-                return fail(TreeError::invalid_file_name, fs::path{file.name});
+                return fail(TreeError::invalid_file_name, path_from_text(file.name));
             }
             if (!seen.insert(lowered(to_pathname(*directories) + file.name)).second)
             {
-                return fail(TreeError::duplicate_file, fs::path{file.pathname + file.name});
+                return fail(TreeError::duplicate_file, path_from_text(file.pathname + file.name));
             }
         }
     }
@@ -181,8 +287,9 @@ TreeResult<void> read_directory(const fs::path& directory, std::vector<std::stri
             break;
         }
         const fs::path path = it->path();
-        const std::string name = path.filename().string();
-        if (!arinc665::is_portable_file_name(name))
+        // A name that is not one every platform accepts refuses the set, whatever it is made of.
+        const std::optional<std::string> name = ascii_name(path);
+        if (!name || !arinc665::is_portable_file_name(*name))
         {
             return fail(TreeError::invalid_file_name, path);
         }
@@ -193,7 +300,7 @@ TreeResult<void> read_directory(const fs::path& directory, std::vector<std::stri
         }
         if (fs::is_directory(status))
         {
-            names.push_back(name);
+            names.push_back(*name);
             if (auto below = read_directory(path, names, files); !below)
             {
                 return below;
@@ -207,7 +314,7 @@ TreeResult<void> read_directory(const fs::path& directory, std::vector<std::stri
             {
                 return std::unexpected(bytes.error());
             }
-            files.push_back(arinc665::MediaFile{to_pathname(names), name, std::move(*bytes)});
+            files.push_back(arinc665::MediaFile{to_pathname(names), *name, std::move(*bytes)});
         }
         else
         {
@@ -272,7 +379,7 @@ TreeResult<fs::path> native_directory(const fs::path& base, std::string_view pat
     fs::path path = base;
     for (const std::string& directory : *directories)
     {
-        path /= directory;
+        path /= path_from_text(directory);
     }
     return path;
 }
@@ -288,7 +395,7 @@ TreeResult<void> write_media_set_tree(const fs::path& root, std::span<const arin
     std::error_code ec;
     for (const arinc665::MediaMember& member : members)
     {
-        const fs::path directory = root / member_directory_name(member.sequence_number);
+        const fs::path directory = member_path(root, member.sequence_number);
         const fs::file_status status = fs::symlink_status(directory, ec);
         if (fs::exists(status) && (!fs::is_directory(status) || !fs::is_empty(directory, ec)))
         {
@@ -336,7 +443,7 @@ TreeResult<void> write_media_set_tree(const fs::path& root, std::span<const arin
     }
     for (const arinc665::MediaMember& member : members)
     {
-        const fs::path member_root = root / member_directory_name(member.sequence_number);
+        const fs::path member_root = member_path(root, member.sequence_number);
         made.push_back({member_root, fs::exists(member_root, ec)});
         fs::create_directories(member_root, ec);
         if (ec)
@@ -355,7 +462,7 @@ TreeResult<void> write_media_set_tree(const fs::path& root, std::span<const arin
             {
                 return undo(TreeFailure{TreeError::cannot_create_directory, *directory});
             }
-            if (auto written = write_file(*directory / file.name, file.bytes); !written)
+            if (auto written = write_file(*directory / path_from_text(file.name), file.bytes); !written)
             {
                 return undo(written.error());
             }
@@ -386,7 +493,8 @@ TreeResult<std::vector<arinc665::MediaMember>> read_media_set_tree(const fs::pat
             break;
         }
         const fs::path path = it->path();
-        const std::uint16_t sequence_number = parse_member_directory(path.filename().string());
+        const std::optional<std::string> name = ascii_name(path);
+        const std::uint16_t sequence_number = name ? parse_member_directory(*name) : 0;
         const fs::file_status status = it->symlink_status(ec);
         if (ec || sequence_number == 0 || !fs::is_directory(status))
         {

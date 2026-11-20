@@ -10,7 +10,8 @@ licence.
    (C++, QML, CMake, Python, shell and PowerShell) carry a one-line SPDX comment naming
    GPL-3.0-or-later; `REUSE.toml` gives every other file the same licence and the copyright
    holder, and the fonts their own. `reuse lint` checks it,
-   and the licence texts are in `LICENSES/`.
+   and the licence texts are in `LICENSES/`. One part, the licence library, is also offered
+   under the BSD 2-Clause licence (item 7).
 2. **The third-party code in use is a build tool (vcpkg) and a test framework
    (Catch2, BSL-1.0).** Neither is linked into anything that is distributed. The two RTOS test programs
    (`tests/platform/zephyr`, `tests/platform/freertos`) fetch, at build time, and link into those
@@ -18,6 +19,12 @@ licence.
    (MIT), lwIP (BSD-3-Clause) and littlefs (BSD-3-Clause), none of it copied into this repository.
    A product that links the platform layer to any of them distributes that component under its own
    licence beside this project's GPL-3.0-or-later, and carries its notice.
+   One library is copied into the repository: Monocypher 4.0.2 (`third_party/monocypher`), unmodified,
+   under the BSD 2-Clause licence or CC0 1.0 at your choice (`REUSE.toml` and `LICENSES/` name both). It does
+   the Ed25519 signature check of a licence file in `libs/licence`. No program links that library yet. When
+   one does, Monocypher joins the notices it shows, with the notice that is already written
+   (`notices/fragments/monocypher.txt`). The vendored directory is outside the rule that holds the
+   preprocessor count at zero (`tools/preprocessor-exclude.txt`), because the code is C and uses it.
    What the applications ship from others is Qt (item 3), the Archivo and
    Noto Sans Hebrew typefaces (item 6) and, on Windows, the runtime files Qt's
    deployment tool places beside Qt. All of it is listed, with the text of its
@@ -45,6 +52,27 @@ licence.
 
    The About dialogs name Archivo and its licence, and the Licences dialog
    carries both OFL texts.
+
+7. **The licence library is offered under two licences.** Its own files carry
+   `GPL-3.0-or-later OR BSD-2-Clause`, and you may use them under either one. They are the headers,
+   the sources (the signed-file reader, the strict JSON reader, the Ed25519 wrapper, the licence states
+   and the words) and the build files of `libs/licence`; its tests in `tests/licence`; the golden data
+   its tests compare against (`tests/golden/golden_licence.hpp` and the script that writes it,
+   `tests/golden/make_golden_licence.py`); the fuzz harness in `libs/licence/fuzz` and its seeds. The
+   texts are `LICENSES/GPL-3.0-or-later.txt` and `LICENSES/BSD-2-Clause.txt`. The reason is that
+   software kept outside this repository, which is not under the GPL, uses the same files at a pinned
+   commit. Three things in that part are not under the pair:
+   - Monocypher (`third_party/monocypher`, item 2) keeps its own terms, BSD-2-Clause or CC0-1.0.
+   - The Project Wycheproof vectors (`tests/licence/data/wycheproof`) are Apache-2.0, unchanged,
+     from Google and the Wycheproof contributors.
+   - Nothing outside the paths above changes. `libs/platform`, the other libraries, the programs and
+     the rest of the tests stay GPL-3.0-or-later.
+
+   The library includes nothing from this repository: it takes the C++ standard library and Monocypher
+   (`tests/licence` also takes Catch2, which is BSL-1.0). Its CMake files use this repository's
+   warning, sanitizer and coverage targets and `adl_add_fuzz_target`; a user of the code under the
+   BSD terms writes their own build for it. The seeds are made from the golden data by
+   `tools/fuzz/make_seeds.py`, which is GPL-3.0-or-later like the other tools.
 
 ## The notices the applications carry
 
