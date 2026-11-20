@@ -29,6 +29,7 @@ set(ADL_PLATFORM_QT_ARCH_DIRS "")
 
 set(ADL_PLATFORM_SOURCES
     freertos/paths_freertos.cpp
+    detail/arguments_passthrough.cpp
     freertos/freertos_common.cpp
     freertos/clock_freertos.cpp
     freertos/memory_freertos.cpp

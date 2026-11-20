@@ -26,6 +26,7 @@ set(ADL_PLATFORM_QT_ARCH_DIRS "")
 
 set(ADL_PLATFORM_SOURCES
     zephyr/paths_zephyr.cpp
+    detail/arguments_passthrough.cpp
     zephyr/zephyr_common.cpp
     zephyr/clock_zephyr.cpp
     zephyr/memory_zephyr.cpp
