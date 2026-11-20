@@ -199,6 +199,24 @@ add_test(NAME platform.selector
         -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_selector.cmake")
 set_tests_properties(platform.selector PROPERTIES LABELS "system")
 
+# A platform kept outside the repository (ADL_PLATFORM_DIR): the fragment and sources of this
+# build's own platform are copied out of the source tree and the project is configured and
+# built from the copy, under another name; and the mistakes that can be made with the option
+# are refused by name. A build that is itself from such a directory has no repository directory
+# to copy.
+if(NOT ADL_PLATFORM_EXTERNAL)
+    add_test(NAME platform.external
+        COMMAND "${CMAKE_COMMAND}"
+            "-DREPO_ROOT=${PROJECT_SOURCE_DIR}"
+            "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/external"
+            "-DGENERATOR=${CMAKE_GENERATOR}"
+            "-DCOMPILER=${CMAKE_CXX_COMPILER}"
+            "-DHOST_PLATFORM=${ADL_PLATFORM}"
+            "-DHOST_DIR=${ADL_PLATFORM_DIR}"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_external.cmake")
+    set_tests_properties(platform.external PROPERTIES LABELS "system")
+endif()
+
 # No preprocessor conditionals or defines, no OS headers outside the platform
 # section, no OS tests in CMake outside the selector. CI runs it as its own job
 # too; this is the same check, so a developer sees it fail locally.

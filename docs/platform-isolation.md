@@ -232,6 +232,13 @@ portable-looking call behaves differently on two systems, and compiler tests in
 CMake (`if(MSVC)`, `CXX_COMPILER_ID`) are a different axis and are not matched.
 The rule is held by review as much as by the check.
 
+It looks at the files of this repository, and so does the count of preprocessor
+conditionals and definitions in `tools/preprocessor-baseline.json`. A platform that
+a build takes from a directory outside the repository (`ADL_PLATFORM_DIR`) is in
+neither, and is not bound by the rules above; [what is and is not checked for
+it](platform-abstraction.md#what-is-checked-and-what-is-not) is written down with the
+platform layer.
+
 The CMake side has its own check, the `platform.fragments` test
 (`tests/platform/check_fragments.cmake`). A build includes only the
 `platform.cmake` of the platform it targets, so the others would otherwise be
