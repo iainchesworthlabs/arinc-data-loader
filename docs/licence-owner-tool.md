@@ -482,7 +482,8 @@ python3 tools/release/check_package_contents.py --directory <an unpacked package
 It looks at every file of a `.zip`, a `.tar.gz` or a folder, for
 
 - the **names** `adl_licence_owner`, `adl_licence_owner_core`, `adl_licence_sign` and `adl_licence_test_keys` (any
-  extension, with or without `lib`, or as a macOS bundle), the headers `adl/licence/sign.hpp` and
+  extension, with or without `lib`, or as a macOS bundle), and `adl_licence_test_program`, the program of the tests of
+  `adl_licence` that carries the test key (the command a customer runs, `adl_licence`, is not one of them), the headers `adl/licence/sign.hpp` and
   `adl/licence/test_keys.hpp`, and the names of key files: `*.adlownerkey` and `*.adlownerpub` (what `keygen` writes),
   `*.adlkey` (a customer's own site key, which another tool writes), `*.key`, `*.pem`, `*.p12`, `*.pfx`, `*.priv`,
   `id_ed25519` and the like;

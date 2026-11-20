@@ -1,6 +1,6 @@
 # User's guide
 
-This guide is for the person who prepares loads and puts them into equipment: an engineer or a technician at a bench, not a programmer. It explains three programs that come with ARINC Data Loader and work together, and one command-line tool.
+This guide is for the person who prepares loads and puts them into equipment: an engineer or a technician at a bench, not a programmer. It explains three programs that come with ARINC Data Loader and work together, and two command-line tools.
 
 | Program | What it is for | Guide |
 | --- | --- | --- |
@@ -8,6 +8,7 @@ This guide is for the person who prepares loads and puts them into equipment: an
 | **ARINC Mock Target** (`adl_mock_target`) | Stands in for a piece of equipment, so you can practise, demonstrate and test without hardware, and can be told to misbehave | [Run the mock target](mock-target.md) |
 | **ARINC Data Loader** (`adl_app`) | Finds a target on the network, reads what it holds, sends a load to it (*upload*) and fetches files from it (*download*) | [The loader, screen by screen](loader.md) |
 | `adl_write_payloads` | Writes sample media sets to a folder, from a command line | [Command line and exit codes](command-line.md) |
+| `adl_licence` | Shows the licence on this computer, imports and removes a licence file, from a command line | [Command line and exit codes](command-line.md#adl_licence) |
 
 ![The data loader after an upload to the mock target](../images/app-upload-complete.png)
 

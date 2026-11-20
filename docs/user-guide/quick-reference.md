@@ -10,6 +10,7 @@ The numbers and names the guide uses, on one page. Each section says where the d
 | ARINC Media Set Generator | `adl_media_gen` | Make a media set from files, and check it |
 | ARINC Mock Target | `adl_mock_target` | Stand in for a target, and misbehave on request |
 | (command line) | `adl_write_payloads` | Write sample media sets ([Command line](command-line.md)) |
+| (command line) | `adl_licence` | Show, import and remove a licence ([Command line](command-line.md#adl_licence)) |
 
 ## Ports
 
@@ -98,6 +99,9 @@ Each file is named `<THW_ID_POS>` and an extension, for example `HNPFMS_L.LCI`. 
 | --- | --- | --- |
 | `adl_write_payloads` | 0 | Everything was written and verified |
 | | 1 | A scenario could not be built, written, read back or verified |
+| | 2 | The command line could not be used |
+| `adl_licence` | 0 | It was done: `show` looked, a file was imported or was there already, a file was removed, or a program would accept the file |
+| | 1 | It could not be done, or a program would refuse the file |
 | | 2 | The command line could not be used |
 | The three programs with windows | 0 | The window was closed, or `--smoke-test` drew its frame |
 | | 1 | The window could not be created |
