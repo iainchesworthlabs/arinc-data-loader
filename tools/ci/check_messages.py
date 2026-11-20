@@ -126,8 +126,8 @@ def printed_texts(root: Path) -> list[str]:
     return texts
 
 
-STRING_LITERAL = r'"(?:[^"\\\n]|\\.)*"'
-SOURCE_TOKEN = re.compile(STRING_LITERAL + r"|'(?:[^'\\\n]|\\.)'|//[^\n]*|/\*.*?\*/", flags=re.S)
+MOCK_STRING_LITERAL = r'"(?:[^"\\\n]|\\.)*"'
+SOURCE_TOKEN = re.compile(MOCK_STRING_LITERAL + r"|'(?:[^'\\\n]|\\.)'|//[^\n]*|/\*.*?\*/", flags=re.S)
 
 
 def literals_of(source: str, statement: str | None = None) -> list[str]:
@@ -138,14 +138,14 @@ def literals_of(source: str, statement: str | None = None) -> list[str]:
     source = SOURCE_TOKEN.sub(lambda m: m.group(0) if m.group(0)[0] in "\"'" else " ", source)
     source = "\n".join(line for line in source.split("\n") if not line.lstrip().startswith("#"))
     if statement is not None:
-        chunks = [m.group(0) for m in re.finditer(rf"(?:{statement})(?:{STRING_LITERAL}|[^;\"])*;", source)]
+        chunks = [m.group(0) for m in re.finditer(rf"(?:{statement})(?:{MOCK_STRING_LITERAL}|[^;\"])*;", source)]
     else:
         chunks = [source]
     unescape = {"n": "\n", "t": "\t"}
     return [
         re.sub(r"\\(.)", lambda m: unescape.get(m.group(1), m.group(1)), literal[1:-1])
         for chunk in chunks
-        for literal in re.findall(STRING_LITERAL, chunk)
+        for literal in re.findall(MOCK_STRING_LITERAL, chunk)
     ]
 
 
