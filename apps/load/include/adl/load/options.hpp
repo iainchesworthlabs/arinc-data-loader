@@ -26,11 +26,12 @@ enum class Command : std::uint8_t
     find,
     information,
     upload,
-    download
+    download,
+    serve
 };
 
-// "find", "information", "upload", "download": the word the command is typed as and the `command` of the
-// `started` event.
+// "find", "information", "upload", "download", "serve": the word the command is typed as and the `command` of
+// the `started` event.
 [[nodiscard]] constexpr std::string_view to_string(Command command) noexcept
 {
     switch (command)
@@ -43,6 +44,8 @@ enum class Command : std::uint8_t
         return "upload";
     case Command::download:
         return "download";
+    case Command::serve:
+        return "serve";
     }
     return "find";
 }
@@ -60,6 +63,11 @@ inline constexpr unsigned max_find_seconds = 3600;
 // The window's three seconds.
 inline constexpr unsigned default_find_seconds = 3;
 
+// serve: how many operations run at once, from 1 to 64, and eight unless the options say otherwise.
+inline constexpr unsigned min_max_operations = 1;
+inline constexpr unsigned max_max_operations = 64;
+inline constexpr unsigned default_max_operations = 8;
+
 // A command line that was accepted.
 struct Options
 {
@@ -72,6 +80,9 @@ struct Options
 
     // find: how long to listen.
     unsigned seconds = default_find_seconds;
+
+    // serve: how many operations run at once.
+    unsigned max_operations = default_max_operations;
 
     // An operation: where it goes. `position` is the target's THW_ID_POS.
     adl::loader_core::Ipv4Octets target{};
@@ -115,6 +126,12 @@ struct Parsed
 // before the arguments after them are looked at. On wrong usage the error is one English sentence that
 // names the argument at fault.
 [[nodiscard]] std::expected<Parsed, std::string> parse_options(std::span<const std::string_view> arguments);
+
+// The arguments of one `run` request of `adl_load serve`: a command of `information`, `upload` or `download` and
+// its options, as the command line of that command writes them, except the three that belong to the program
+// (`--local-address`, `--control-port` and `--json`), which a request does not take, and `--help` and
+// `--version`. `find` and `serve` are not requests. Wrong usage is told in one English sentence.
+[[nodiscard]] std::expected<Options, std::string> parse_run_arguments(std::span<const std::string_view> arguments);
 
 // The usage text, the one that `--help` prints: the commands, their options and what they mean.
 [[nodiscard]] std::string_view usage_text() noexcept;

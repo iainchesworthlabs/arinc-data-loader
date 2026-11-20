@@ -108,6 +108,7 @@ usage:
                         (--load <part number>... | --all-loads) [common]
   adl_load download     --target <ipv4> --position <THW_ID_POS> --into <folder>
                         (--file <name>... | --pick <name>... | --pick-all) [common]
+  adl_load serve        [--local-address <ipv4>] [--control-port <n>] [--max-operations <n>]
   adl_load --help
   adl_load --version
 
@@ -125,6 +126,12 @@ several times (--load A --load B).
   download      Fetches files into a new folder inside --into. --file names the files;
                 --pick and --pick-all let the target list its files first and choose
                 from the list (--pick-all takes all of them).
+  serve         Holds the loader's port once and runs operations on several targets at
+                once, for a program to drive. Requests are lines on standard input, with
+                the fields separated by one tab: "run <id> <command and its options>",
+                "cancel <id>" and "stop". Events are JSON lines, each with the id of its
+                operation. --max-operations (1 to 64, default 8) is how many run at once.
+                It listens on every interface unless --local-address says which.
 
   --json        Write one JSON object per line on standard output, one for each event,
                 instead of a line for a person to read.
@@ -138,7 +145,9 @@ several times (--load A --load B).
 
 Exit codes: 0 completed, 1 the operation ran and failed, 2 wrong usage, 3 the media set
 could not be read or changed after it was checked, 4 the target did not answer, 5 a
-local error (a port, a folder or the record file).
+local error (a port, a folder or the record file). serve: 0 it stopped as asked,
+whatever happened to its operations, 2 wrong usage, 5 the port could not be opened or
+standard output could not be written.
 The text is English. Killing the program abandons the operation and the target times
 out by itself.
 ```
@@ -160,6 +169,7 @@ Options are written `--name value`, with a space. An option that takes several v
 | `--local-address <ipv4>` | The interface the sockets use. By default the loopback address for a target on this computer, and every interface otherwise. |
 | `--control-port <n>` | The port the loader listens on for what the target sends, 1 to 65535. The default is 59. A target on this computer holds port 59 itself, so the loader needs another. |
 | `--target-port <n>` | The port the target listens on for the request that starts an operation, 1 to 65535. The default is 59, the standard's, which is where a real target is. Another is for a simulated target that cannot have 59: a system that keeps low ports for privileged programs, or several targets on one address. `find` does not have it. |
+| `--max-operations <n>` | `serve`: how many operations run at once, 1 to 64. The default is 8. |
 | `--json` | Write one JSON object on a line for each event on the standard output, and nothing else there. Without it each event is one plain line for a person to read. |
 | `--record <file>` | Write the operation record, a JSON file, when the operation ends, whatever the outcome ([Files the programs read and write](../file-reference.md#the-operation-record)). The folder it goes into has to be there. `find` writes no record. |
 
@@ -167,7 +177,7 @@ Options are written `--name value`, with a space. An option that takes several v
 
 Every event has `event` first and `t` second, the seconds since the program started. The events are `started` (first), `target_found`, `media_set_checked`, `log`, `configuration`, `progress`, `file_list`, `file_received` and `finished` (last). `finished` carries the `result` (`completed` or `failed`), the `reason`, the `status_code` the target last reported (or `null`), a `detail` sentence and the `exit_code`. The reasons are `completed`, `target_refused`, `target_aborted`, `load_failed`, `missing_files`, `protocol_error`, `aborted`, `usage`, `media_set_unreadable`, `media_set_changed`, `no_answer` and `local_error`.
 
-Killing `adl_load` abandons the operation, and a target that was in an operation times out by itself. There is one target and one operation to a process, and no retries.
+Killing `adl_load` abandons the operation, and a target that was in an operation times out by itself. One `adl_load` is one operation on one target, with no retries; [`adl_load serve`](#adl_load-serve-one-loader-several-targets) runs several operations from one process.
 
 ### Exit codes of `adl_load`
 
@@ -186,9 +196,9 @@ What the command line is refused with goes to the error output and ends with cod
 
 | Message | What to do |
 | --- | --- |
-| `No command given: find, information, upload or download.` | Start with one of the four commands. |
-| `The first argument has to be a command (find, information, upload or download), not <argument>.` | Put the command first. |
-| `Unknown command <word>: find, information, upload or download.` | Use one of the four commands. |
+| `No command given: find, information, upload, download or serve.` | Start with one of the commands. |
+| `The first argument has to be a command (find, information, upload, download or serve), not <argument>.` | Put the command first. |
+| `Unknown command <word>: find, information, upload, download or serve.` | Use one of the commands. |
 | `Unexpected argument <word>: a value belongs to the option before it.` | Put the word after the option it is the value of. |
 | `Unknown option <option>.` | Use an option of the command in the usage above. |
 | `Unknown option <option> (write --name value, with a space).` | Write the option and its value as two arguments. |
@@ -267,6 +277,72 @@ Finished: failed, <reason> (exit code <n>): <detail> [<n> targets] [files in <fo
 ```
 
 A line that starts with a word and a colon (`info:`, `note:`, `warning:`, `error:`) is a log line. A control character in what a target sent is shown as `?`. A count of one is written `1 member`, `1 load`, `1 finding`, `1 file`, `1 byte` and `1 target`. A configuration item with no parts says `no parts`.
+
+### `adl_load serve`: one loader, several targets
+
+Every `adl_load` listens on the loader's port, 59, and two of them on one computer cannot both have it: of three operations started at once, the second and the third end with `The operation could not run: the loader's port could not be opened`. A real target writes to port 59, so a port of its own for each loader helps only with simulated targets. `adl_load serve` holds the port once and runs operations on several targets at once from it. It is for a program to drive: it has no plan, no retries, no schedule and no report. It runs the operations it is asked for and says what happened to each.
+
+```text
+adl_load serve [--local-address <ipv4>] [--control-port <n>] [--max-operations <n>]
+```
+
+It opens the control port, writes `started`, and then reads requests from standard input and writes events to standard output. The output is always JSON lines. Operations on targets that are on this computer need `--local-address 127.0.0.1`, because the loader does not know the targets when it opens its port, and without the option it listens on every interface. `--max-operations`, 1 to 64 and 8 by default, is how many operations run at once. `--json` is accepted and changes nothing.
+
+An operation is told from another by the address its datagrams come from, so **one address has one operation at a time**. Several targets on one computer each need an address of their own (`127.0.0.2`, `127.0.0.3`), since a target sends from ports of its own choosing and two on one address collide.
+
+**Requests.** One request is one line of UTF-8 ended by a line feed, and a carriage return before the line feed is accepted. Its fields are separated by one tab character. A field is taken as it is, with no quoting, so a path may have spaces; it cannot hold a tab or the end of a line. The bytes are read as they arrive and no code page touches them. A line has at most 1048576 bytes.
+
+| Request | Fields | What it does |
+| --- | --- | --- |
+| `run` | `run`, an id, a command and its arguments, one argument in a field | Starts the operation. The command is `information`, `upload` or `download`, with the options of the command line above, but not `--local-address`, `--control-port` or `--json`, which belong to the program, and not `--help` or `--version`. `find` is not a request. |
+| `cancel` | `cancel`, an id | Aborts that operation from this side. It ends with the reason `aborted`. |
+| `stop` | `stop` | No new operation is taken. The ones that are running finish, and the program ends. The end of the input does the same. |
+
+An id is 1 to 64 of the characters `A` to `Z`, `a` to `z`, `0` to `9`, `.`, `_` and `-`. It is the caller's, and it may be used again once its operation has finished. `--record` works as for one operation, with a file for each. An example, with `→` standing for a tab:
+
+```text
+run→fms-left.1→upload→--target→192.168.10.21→--position→HNPFMS_L→--media-set→E:\sets\FMS STD14→--all-loads→--record→E:\runs\fms-left.1.json
+```
+
+An upload reads and checks its media set when its request is taken, before anything is written for it, and the other operations wait for that. A large set holds them for as long as it takes to read.
+
+**Events.** Every event has `event` first and `t` second, as above.
+
+- The first is `started`, with `program`, `version`, `events`, `command` (`serve`), `address` (the interface, `0.0.0.0` for every one), `control_port` and `max_operations`. It is written once the port is held, so it means that requests are being taken. The last is `stopped`, with `reason` (`stop`, `end_of_input` or `error`) and `operations`, the count that were started.
+- An event with an `id` belongs to that operation. The events of one id are the events of that command on its own, from `started` to `finished`, each with `id` after `t`. The `exit_code` of a `finished` is the code `adl_load` would have ended with had it run that operation alone. Whole lines are written one at a time and flushed, so events of different operations are never mixed.
+- `request_refused` is a request that was not started. It has `id` (`null` when the line had none that could be read), `line` (the number of the input line, from 1) and `detail`, one sentence. Every `run` has exactly one `finished` or one `request_refused`.
+
+A request is refused when its line cannot be read, when its arguments are wrong, when its id is in use, when its target's address is in an operation, when `--max-operations` operations are running, and after `stop`. Wrong usage that only shows once a media set has been read (a part number it does not hold) is a refusal too, and nothing of that operation is written. A `cancel` for an id that is not running is refused.
+
+**Exit codes of `serve`:** 0 it stopped as asked, whatever happened to the operations, because each one's outcome is in its `finished`. 2 wrong usage. 5 the control port could not be opened, the requests could not be read, or standard output could not be written. A program that finds no `serve` (an `adl_load` from before it answers `adl_load serve` with code 2) can fall back to one `adl_load` for each operation, and run one at a time for each place a loader listens.
+
+A datagram on the control port from an address that has no operation is dropped, as a loader with one operation drops one that is not from its target.
+
+| Message | Where | What to do |
+| --- | --- | --- |
+| `adl_load: the loader's port could not be opened (<code>).` | Error output, code 5 | Another program holds the port. Choose another with `--control-port`, or an interface with `--local-address`. No event was written. |
+| `adl_load: the requests could not be read (<code>).` | Error output, code 5 | The system could not start the reading of standard input. |
+| `The line is longer than <n> bytes.` | `detail` | The line was skipped. |
+| `The input ended in the middle of a line, which is not a request.` | `detail` | The last line has no line feed, so it was not taken: it may have been cut short. |
+| `The line is not valid UTF-8.` | `detail` | Write the request in UTF-8. |
+| `The line has a NUL character in it.` | `detail` | |
+| `The line is empty.`, `The line does not begin with a request: run, cancel or stop.` | `detail` | A request starts with its word. |
+| `Unknown request "<word>": run, cancel or stop.` | `detail` | The words are lower case. |
+| `stop takes no fields.`, `cancel takes an id and nothing else.` | `detail` | Write the request with the fields it has. |
+| `<run or cancel> needs an id.` | `detail` | Put an id after the word. |
+| `<run or cancel> needs an id of 1 to 64 of the characters A to Z, a to z, 0 to 9, dot, underscore and hyphen, not "<field>".` | `detail` | Choose an id of those characters. |
+| `run needs a command after the id: information, upload or download.` | `detail` | |
+| `A run request names a command: information, upload or download.` | `detail` | |
+| `Unknown command "<word>": a run request takes information, upload or download.` | `detail` | |
+| `"<word>" is not an operation on one target, and is not a request.` | `detail` | `find` and `serve` are not requests. |
+| `<option> is not taken in a request: it belongs to the program.` | `detail` | `--json`, `--local-address`, `--control-port`, `--help` and `--version` are not written in a request. |
+| `An operation with this id has not finished.` | `detail` | Use another id, or wait for the operation's `finished`. |
+| `The target <address> has an operation that has not finished (id <id>).` | `detail` | One address has one operation at a time. |
+| `The program runs <n> operations at once, and that many have not finished.` | `detail` | Wait for one to finish, or start the program with a larger `--max-operations`. |
+| `No operation with this id is running.` | `detail` | A `cancel` for an id that is not running, or has finished. |
+| `The program has been told to stop and takes no more requests.` | `detail` | Every request after `stop` is refused. |
+
+The wrong usage that an operation would be refused with on a command line of its own (`--position is missing.`, `--target takes an IPv4 address ...`, and the rest of the table above) is the `detail` of the refusal.
 
 ## The windows programs
 

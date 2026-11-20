@@ -26,3 +26,5 @@ tools/hooks/* text eol=lf
 tests/loader_core/golden/*.json text eol=lf
 # The same for the records that the tests of adl_load compare.
 tests/load/golden/*.json text eol=lf
+# The seeds of the requests fuzzer hold line feeds and carriage returns, which a checkout must not change.
+apps/load/fuzz/corpus/serve_request/* -text

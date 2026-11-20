@@ -37,6 +37,7 @@ enum class Id : std::uint8_t
     file,
     pick,
     pick_all,
+    max_operations,
     option_count
 };
 
@@ -45,6 +46,7 @@ constexpr unsigned bit_of(Command command) noexcept
     return 1U << static_cast<unsigned>(command);
 }
 
+constexpr unsigned serve_command = bit_of(Command::serve);
 constexpr unsigned every_command =
     bit_of(Command::find) | bit_of(Command::information) | bit_of(Command::upload) | bit_of(Command::download);
 constexpr unsigned operations = bit_of(Command::information) | bit_of(Command::upload) | bit_of(Command::download);
@@ -60,11 +62,11 @@ struct OptionSpec
 
 constexpr std::array<OptionSpec, static_cast<std::size_t>(Id::option_count)> option_specs{{
     {"--seconds", Id::seconds, true, false, bit_of(Command::find)},
-    {"--local-address", Id::local_address, true, false, every_command},
-    {"--json", Id::json, false, false, every_command},
+    {"--local-address", Id::local_address, true, false, every_command | serve_command},
+    {"--json", Id::json, false, false, every_command | serve_command},
     {"--target", Id::target, true, false, operations},
     {"--position", Id::position, true, false, operations},
-    {"--control-port", Id::control_port, true, false, operations},
+    {"--control-port", Id::control_port, true, false, operations | serve_command},
     {"--target-port", Id::target_port, true, false, operations},
     {"--record", Id::record, true, false, operations},
     {"--media-set", Id::media_set, true, false, bit_of(Command::upload)},
@@ -74,6 +76,7 @@ constexpr std::array<OptionSpec, static_cast<std::size_t>(Id::option_count)> opt
     {"--file", Id::file, true, true, bit_of(Command::download)},
     {"--pick", Id::pick, true, true, bit_of(Command::download)},
     {"--pick-all", Id::pick_all, false, false, bit_of(Command::download)},
+    {"--max-operations", Id::max_operations, true, false, serve_command},
 }};
 
 const OptionSpec* find_spec(std::string_view name) noexcept
@@ -84,7 +87,8 @@ const OptionSpec* find_spec(std::string_view name) noexcept
 
 std::optional<Command> command_of(std::string_view word) noexcept
 {
-    for (const Command command : {Command::find, Command::information, Command::upload, Command::download})
+    for (const Command command :
+         {Command::find, Command::information, Command::upload, Command::download, Command::serve})
     {
         if (word == to_string(command))
         {
@@ -161,6 +165,8 @@ public:
             options_.choice = FileChoice::picked;
             options_.pick_all = true;
             return std::nullopt;
+        case Id::max_operations:
+            return number(spec, value, min_max_operations, max_max_operations, options_.max_operations);
         case Id::option_count:
             break;
         }
@@ -222,7 +228,7 @@ private:
 std::optional<std::string> check_whole(const Options& options, const std::bitset<option_specs.size()>& seen)
 {
     const auto has = [&seen](Id id) { return seen.test(static_cast<std::size_t>(id)); };
-    if (options.command == Command::find)
+    if (options.command == Command::find || options.command == Command::serve)
     {
         return std::nullopt;
     }
@@ -286,6 +292,7 @@ constexpr std::string_view usage = R"(usage:
                         (--load <part number>... | --all-loads) [common]
   adl_load download     --target <ipv4> --position <THW_ID_POS> --into <folder>
                         (--file <name>... | --pick <name>... | --pick-all) [common]
+  adl_load serve        [--local-address <ipv4>] [--control-port <n>] [--max-operations <n>]
   adl_load --help
   adl_load --version
 
@@ -303,6 +310,12 @@ several times (--load A --load B).
   download      Fetches files into a new folder inside --into. --file names the files;
                 --pick and --pick-all let the target list its files first and choose
                 from the list (--pick-all takes all of them).
+  serve         Holds the loader's port once and runs operations on several targets at
+                once, for a program to drive. Requests are lines on standard input, with
+                the fields separated by one tab: "run <id> <command and its options>",
+                "cancel <id>" and "stop". Events are JSON lines, each with the id of its
+                operation. --max-operations (1 to 64, default 8) is how many run at once.
+                It listens on every interface unless --local-address says which.
 
   --json        Write one JSON object per line on standard output, one for each event,
                 instead of a line for a person to read.
@@ -316,7 +329,9 @@ several times (--load A --load B).
 
 Exit codes: 0 completed, 1 the operation ran and failed, 2 wrong usage, 3 the media set
 could not be read or changed after it was checked, 4 the target did not answer, 5 a
-local error (a port, a folder or the record file).
+local error (a port, a folder or the record file). serve: 0 it stopped as asked,
+whatever happened to its operations, 2 wrong usage, 5 the port could not be opened or
+standard output could not be written.
 The text is English. Killing the program abandons the operation and the target times
 out by itself.
 )";
@@ -327,7 +342,7 @@ std::expected<Parsed, std::string> parse_options(std::span<const std::string_vie
 {
     if (arguments.empty())
     {
-        return std::unexpected("No command given: find, information, upload or download.");
+        return std::unexpected("No command given: find, information, upload, download or serve.");
     }
     if (arguments.front() == "--help")
     {
@@ -341,11 +356,11 @@ std::expected<Parsed, std::string> parse_options(std::span<const std::string_vie
     if (!command)
     {
         return std::unexpected(arguments.front().starts_with("--")
-                                   ? "The first argument has to be a command (find, information, upload or "
-                                     "download), not " +
+                                   ? "The first argument has to be a command (find, information, upload, download "
+                                     "or serve), not " +
                                          in_quotes(arguments.front()) + "."
                                    : "Unknown command " + in_quotes(arguments.front()) +
-                                         ": find, information, upload or download.");
+                                         ": find, information, upload, download or serve.");
     }
 
     Parsed parsed;
@@ -411,6 +426,40 @@ std::expected<Parsed, std::string> parse_options(std::span<const std::string_vie
         return std::unexpected(std::move(*problem));
     }
     return parsed;
+}
+
+std::expected<Options, std::string> parse_run_arguments(std::span<const std::string_view> arguments)
+{
+    if (arguments.empty())
+    {
+        return std::unexpected("A run request names a command: information, upload or download.");
+    }
+    const std::optional<Command> command = command_of(arguments.front());
+    if (!command)
+    {
+        return std::unexpected("Unknown command " + in_quotes(arguments.front()) +
+                               ": a run request takes information, upload or download.");
+    }
+    if (*command == Command::find || *command == Command::serve)
+    {
+        return std::unexpected(in_quotes(arguments.front()) +
+                               " is not an operation on one target, and is not a request.");
+    }
+    // A value never begins with "--", so an argument that is one of these is the option itself.
+    for (const std::string_view argument : arguments)
+    {
+        if (argument == "--local-address" || argument == "--control-port" || argument == "--json" ||
+            argument == "--help" || argument == "--version")
+        {
+            return std::unexpected(std::string{argument} + " is not taken in a request: it belongs to the program.");
+        }
+    }
+    auto parsed = parse_options(arguments);
+    if (!parsed)
+    {
+        return std::unexpected(std::move(parsed.error()));
+    }
+    return std::move(parsed->options);
 }
 
 std::string_view usage_text() noexcept

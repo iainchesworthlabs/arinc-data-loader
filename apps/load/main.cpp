@@ -34,5 +34,8 @@ int main(int argc, char** argv)
     {
         arguments.emplace_back(command_line[i]);
     }
-    return adl::load::run(**host, arguments, std::cout, std::cerr);
+    // `serve` reads standard input on a thread of its own while the loop writes to standard output: the reading
+    // must not flush the output as a tied stream does, from the other thread, in the middle of an event.
+    std::cin.tie(nullptr);
+    return adl::load::run(**host, arguments, std::cin, std::cout, std::cerr);
 }

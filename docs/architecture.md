@@ -28,8 +28,8 @@
    made and run against a target, the record of an operation and the file it is written as), over the
    libraries above; the application calls it
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
-   adl_load (apps/load): one operation on one target with no window and no Qt, over adl::loader_core and
-   the runner; a library of its own (adl_load_cli) is the program, under a short main
+   adl_load (apps/load): one operation on one target, or several at once with `serve`, with no window and no Qt,
+   over adl::loader_core and the runner; a library of its own (adl_load_cli) is the program, under a short main
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target application
 ```
@@ -72,7 +72,11 @@
   a static library of its own, `adl_load_cli` (the options, the events as JSON lines or plain lines,
   and the run function that takes a platform host and the streams it writes to), and a `main` that
   makes the real host. The library is not exported and not installed, so that a test can run a
-  whole command on the fake platform; the work of an operation is `adl::loader_core`.
+  whole command on the fake platform; the work of an operation is `adl::loader_core`. `adl_load serve`
+  is the one command that runs several operations at once: its loop (`serve.cpp`) takes request lines
+  from a `LineSource`, the program's standard input read on a thread of its own (`stream_source.cpp`) or a
+  test's script, and runs them on the loader core's `OperationPool`, so that one process holds the
+  loader's control port for all of them.
 - **`libs/platform`** is the only place that knows which operating system this
   is. Each thing the program needs from the system is a header in
   `libs/platform/interfaces/adl/platform/`, with one implementation per platform

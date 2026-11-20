@@ -15,7 +15,10 @@ add_library(adl_load_cli STATIC
     src/operation.cpp
     src/options.cpp
     src/record_file.cpp
-    src/run.cpp)
+    src/request.cpp
+    src/run.cpp
+    src/serve.cpp
+    src/stream_source.cpp)
 
 target_include_directories(adl_load_cli
     PUBLIC

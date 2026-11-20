@@ -65,18 +65,61 @@ void EventWriter::write(std::string_view line)
     out_.flush();
 }
 
-namespace
+bool EventWriter::failed() const
 {
+    return !out_;
+}
 
-JsonLine json_event(std::string_view name, std::uint64_t milliseconds)
+// The start of an event's object: `event`, `t`, and the id of the operation when the writer has one.
+JsonLine EventWriter::json_event(std::string_view name, std::uint64_t milliseconds) const
 {
     JsonLine line;
     line.string("event", name);
     line.milliseconds_as_seconds("t", milliseconds);
+    if (id_)
+    {
+        line.string("id", *id_);
+    }
     return line;
 }
 
-} // namespace
+void EventWriter::serve_started(std::string_view address, std::uint16_t control_port, std::size_t max_operations)
+{
+    JsonLine line = json_event("started", elapsed_milliseconds());
+    line.string("program", program_name);
+    line.string("version", program_version);
+    line.number("events", events_format);
+    line.string("command", "serve");
+    line.string("address", address);
+    line.number("control_port", control_port);
+    line.number("max_operations", max_operations);
+    write(line.finish());
+}
+
+void EventWriter::request_refused(const std::optional<std::string>& id, std::uint64_t line_number,
+                                  std::string_view detail)
+{
+    JsonLine line = json_event("request_refused", elapsed_milliseconds());
+    if (id)
+    {
+        line.string("id", *id);
+    }
+    else
+    {
+        line.null("id");
+    }
+    line.number("line", line_number);
+    line.string("detail", detail);
+    write(line.finish());
+}
+
+void EventWriter::stopped(std::string_view reason, std::uint64_t operations)
+{
+    JsonLine line = json_event("stopped", elapsed_milliseconds());
+    line.string("reason", reason);
+    line.number("operations", operations);
+    write(line.finish());
+}
 
 void EventWriter::started(std::string_view command, const std::optional<std::string>& target,
                           const std::optional<std::string>& position)

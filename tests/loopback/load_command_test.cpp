@@ -32,16 +32,21 @@
 
 #include <algorithm>
 #include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <istream>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sstream>
+#include <streambuf>
 #include <string>
 #include <string_view>
 #include <thread>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -403,4 +408,316 @@ TEST_CASE("the real host's wrong usage and --version come back as they do on the
     const Run usage = run_command({"upload", "--target", "127.0.0.1"});
     CHECK(usage.exit_code == 2);
     CHECK(usage.out.empty());
+}
+
+// ---- adl_load serve: one loader, several targets, over real sockets ----------------------------------------------
+//
+// Each mock target is on a loopback address of its own (127.0.0.2, 127.0.0.3 and so on: all of 127.0.0.0/8 is this
+// computer on Linux and Windows), with the same port on each, since two on one address would have their transfers
+// collide. The loader's one control port is on 127.0.0.1. `--control-port` is given as well as `--target-port`: the
+// loader offers the target its own port in the request only when that is not 59.
+
+namespace
+{
+
+// Standard input for the program that a test writes to while it runs, and closes to end it.
+class PipeBuffer final : public std::streambuf
+{
+public:
+    void write(std::string_view text)
+    {
+        {
+            const std::scoped_lock lock(mutex_);
+            pending_.append(text);
+        }
+        arrived_.notify_all();
+    }
+    void close()
+    {
+        {
+            const std::scoped_lock lock(mutex_);
+            closed_ = true;
+        }
+        arrived_.notify_all();
+    }
+
+protected:
+    int_type underflow() override
+    {
+        std::unique_lock lock(mutex_);
+        arrived_.wait(lock, [this] { return !pending_.empty() || closed_; });
+        if (pending_.empty())
+        {
+            return traits_type::eof();
+        }
+        taken_ = std::move(pending_);
+        pending_.clear();
+        setg(taken_.data(), taken_.data(), taken_.data() + taken_.size());
+        return traits_type::to_int_type(taken_.front());
+    }
+
+private:
+    std::mutex mutex_;
+    std::condition_variable arrived_;
+    std::string pending_;
+    std::string taken_;
+    bool closed_ = false;
+};
+
+// `adl_load serve` on the real host, in a thread of its own, taking its requests from the pipe.
+class ServeSession
+{
+public:
+    explicit ServeSession(std::vector<std::string> arguments) : arguments_(std::move(arguments)), input_(&pipe_)
+    {
+        worker_ = std::thread(
+            [this]
+            {
+                auto host = adl::platform::make_host();
+                if (!host)
+                {
+                    return;
+                }
+                const std::vector<std::string_view> views(arguments_.begin(), arguments_.end());
+                exit_code_ = adl::load::run(**host, views, input_, out_, err_);
+            });
+    }
+    ServeSession(const ServeSession&) = delete;
+    ServeSession& operator=(const ServeSession&) = delete;
+    ~ServeSession()
+    {
+        pipe_.close();
+        if (worker_.joinable())
+        {
+            worker_.join();
+        }
+    }
+
+    void request(const std::string& line)
+    {
+        pipe_.write(line + "\n");
+    }
+    // The end of the input: the program stops when its operations have, and this returns what it wrote.
+    Run end_input()
+    {
+        pipe_.close();
+        worker_.join();
+        Run run;
+        run.exit_code = exit_code_;
+        run.out = out_.str();
+        run.err = err_.str();
+        INFO(run.out);
+        INFO(run.err);
+        return run;
+    }
+
+private:
+    std::vector<std::string> arguments_;
+    PipeBuffer pipe_;
+    std::istream input_;
+    std::ostringstream out_;
+    std::ostringstream err_;
+    int exit_code_ = -1;
+    std::thread worker_;
+};
+
+[[nodiscard]] std::string loopback_address(unsigned last)
+{
+    return "127.0.0." + std::to_string(last);
+}
+
+// A mock target on 127.0.0.<last> with the ports the tests use.
+[[nodiscard]] adl::mock::Config mock_config_on(unsigned last)
+{
+    adl::mock::Config config = mock_config();
+    config.bind_address = adl::arinc615a::Address{{127, 0, 0, static_cast<std::uint8_t>(last)}};
+    return config;
+}
+
+[[nodiscard]] std::string request_line(std::initializer_list<std::string_view> fields)
+{
+    std::string line;
+    for (const std::string_view field : fields)
+    {
+        line += line.empty() ? "" : "\t";
+        line += field;
+    }
+    return line;
+}
+
+[[nodiscard]] std::string information_line(std::string_view id, unsigned last)
+{
+    return request_line({"run", id, "information", "--target", loopback_address(last), "--position", "HNPFMS_L",
+                         "--target-port", target_port_text});
+}
+
+// The operation of `id`: its events, in order.
+[[nodiscard]] std::vector<Json> events_of(const Run& run, std::string_view id)
+{
+    std::vector<Json> own;
+    for (const Json& event : run.events())
+    {
+        if (event.at("event").text != "request_refused" && event.find("id") != nullptr && event.at("id").text == id)
+        {
+            own.push_back(event);
+        }
+    }
+    return own;
+}
+
+// Whether this computer has 127.0.0.<last> to bind: macOS has 127.0.0.1 only, until it is given an alias.
+[[nodiscard]] bool loopback_has(unsigned last)
+{
+    auto host = adl::platform::make_host();
+    if (!host)
+    {
+        return false;
+    }
+    adl::platform::UdpOptions options;
+    options.local =
+        adl::platform::Endpoint{adl::platform::Ipv4Address{{127, 0, 0, static_cast<std::uint8_t>(last)}}, 0};
+    return (*host)->network().open_udp(options).has_value();
+}
+
+} // namespace
+
+TEST_CASE("serve runs Information operations on eight targets at once from one loader port, over real sockets",
+          "[load][system][serve]")
+{
+    if (!loopback_has(9))
+    {
+        SKIP(
+            "this computer has no loopback address 127.0.0.9 to bind (macOS has 127.0.0.1 only, until it has aliases)");
+    }
+    std::vector<std::unique_ptr<MockTarget>> targets;
+    for (unsigned last = 2; last <= 9; ++last)
+    {
+        targets.push_back(std::make_unique<MockTarget>(mock_config_on(last)));
+        INFO("the mock target on " << loopback_address(last)
+                                   << " could not start: " << targets.back()->not_started.value_or(""));
+        REQUIRE_FALSE(targets.back()->not_started.has_value());
+    }
+
+    ServeSession session({"serve", "--local-address", "127.0.0.1", "--control-port", std::string{loader_port_text}});
+    for (unsigned last = 2; last <= 9; ++last)
+    {
+        session.request(information_line("t" + std::to_string(last), last));
+    }
+    const Run run = session.end_input(); // the input ends with the eight running: they finish, then it stops
+    CHECK(run.exit_code == 0);
+    CHECK(run.err.empty());
+
+    const std::vector<Json> events = run.events();
+    REQUIRE(events.size() >= 10);
+    CHECK(events.front().at("event").text == "started");
+    CHECK(events.front().at("command").text == "serve");
+    CHECK(events.front().at("address").text == "127.0.0.1");
+    CHECK(events.front().at("control_port").as_number() == loader_control_port);
+    CHECK(events.back().at("event").text == "stopped");
+    CHECK(events.back().at("reason").text == "end_of_input");
+    CHECK(events.back().at("operations").as_number() == 8);
+    for (unsigned last = 2; last <= 9; ++last)
+    {
+        const std::string id = "t" + std::to_string(last);
+        INFO("operation " << id);
+        const std::vector<Json> own = events_of(run, id);
+        REQUIRE_FALSE(own.empty());
+        CHECK(own.front().at("event").text == "started");
+        CHECK(own.front().at("target").text == loopback_address(last));
+        CHECK(own.back().at("event").text == "finished");
+        CHECK(own.back().at("reason").text == "completed");
+        CHECK(own.back().at("exit_code").as_number() == 0);
+        std::size_t configurations = 0;
+        for (const Json& event : own)
+        {
+            if (event.at("event").text == "configuration")
+            {
+                ++configurations;
+                CHECK(event.at("hardware").elements[0].at("literal_name").text == "FMS LEFT");
+            }
+        }
+        CHECK(configurations == 1);
+    }
+}
+
+TEST_CASE("serve uploads to two targets at once, keeps a record for each, and aborts one on a cancel",
+          "[load][system][serve]")
+{
+    if (!loopback_has(3))
+    {
+        SKIP(
+            "this computer has no loopback address 127.0.0.3 to bind (macOS has 127.0.0.1 only, until it has aliases)");
+    }
+    // The second target keeps at it long enough for the cancel to arrive while it is under way.
+    adl::mock::Config slow = mock_config_on(3);
+    slow.think_time = std::chrono::milliseconds(3000);
+    MockTarget first(mock_config_on(2));
+    MockTarget second(std::move(slow));
+    INFO("the mock targets could not start: " << first.not_started.value_or("") << second.not_started.value_or(""));
+    REQUIRE_FALSE(first.not_started.has_value());
+    REQUIRE_FALSE(second.not_started.has_value());
+
+    adl::arinc665::LoadSpec load_spec = adl::samples::sample_load_spec();
+    load_spec.data_files[0].content = pattern(6000, 7);
+    auto load = adl::arinc665::build_load(load_spec);
+    REQUIRE(load.has_value());
+    auto spec = adl::samples::sample_media_set_spec();
+    REQUIRE(spec.has_value());
+    spec->loads[0].load = *load;
+    const auto members = adl::arinc665::build_media_set(*spec);
+    REQUIRE(members.has_value());
+    // A folder named with characters outside any one code page, for the set and for the records.
+    const std::u8string leaf = u8"serve-é-日本語-\U0001F600 and spaces";
+    const adl::test::TempDir directory;
+    const std::filesystem::path folder = directory.path() / leaf;
+    std::filesystem::create_directories(folder);
+    const std::filesystem::path set = folder / "set";
+    REQUIRE(adl::media_tree::write_media_set_tree(set, *members).has_value());
+    const std::string set_text = adl::test::utf8(set);
+    const std::string record_one = adl::test::utf8(folder / "one.json");
+    const std::string record_two = adl::test::utf8(folder / "two.json");
+
+    ServeSession session({"serve", "--local-address", "127.0.0.1", "--control-port", std::string{loader_port_text}});
+    session.request(
+        request_line({"run", "one", "upload", "--target", loopback_address(2), "--position", "HNPFMS_L", "--media-set",
+                      set_text, "--all-loads", "--target-port", target_port_text, "--record", record_one}));
+    session.request(
+        request_line({"run", "two", "upload", "--target", loopback_address(3), "--position", "HNPFMS_L", "--media-set",
+                      set_text, "--all-loads", "--target-port", target_port_text, "--record", record_two}));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+    session.request("cancel\ttwo");
+    session.request("stop");
+    const Run run = session.end_input();
+    CHECK(run.exit_code == 0);
+    CHECK(run.err.empty());
+
+    const std::vector<Json> one = events_of(run, "one");
+    REQUIRE_FALSE(one.empty());
+    CHECK(one.back().at("reason").text == "completed");
+    CHECK(one.back().at("record").text == record_one);
+    CHECK(first.engine.stored().at(load->header_file_name) == load->header_bytes);
+    for (const auto& file : load->data_files)
+    {
+        CHECK(first.engine.stored().at(file.name) == file.bytes);
+    }
+    const std::vector<Json> two = events_of(run, "two");
+    REQUIRE_FALSE(two.empty());
+    CHECK(two.back().at("reason").text == "aborted");
+    CHECK(two.back().at("exit_code").as_number() == 1);
+    CHECK(two.back().at("record").text == record_two);
+
+    // A record of each, in the folder, valid, for the operation it belongs to.
+    const std::vector<std::tuple<std::string, std::string, std::string>> records{
+        {record_one, loopback_address(2), "completed"}, {record_two, loopback_address(3), "aborted"}};
+    for (const auto& [path, address, reason] : records)
+    {
+        INFO(path);
+        const std::vector<std::byte> bytes = read_bytes(adl::platform::path_from_utf8(path));
+        const auto parsed =
+            adl::test::parse_json(std::string(reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+        REQUIRE(parsed.has_value());
+        CHECK(parsed->at("target").at("address").text == address);
+        CHECK(parsed->at("reason").text == reason);
+    }
+    CHECK(run.events().back().at("reason").text == "stop");
 }

@@ -192,7 +192,8 @@ add_executable(adl_load_tests
     load/events_test.cpp
     load/options_seeds_test.cpp
     load/options_test.cpp
-    load/reason_test.cpp)
+    load/reason_test.cpp
+    load/request_test.cpp)
 
 target_include_directories(adl_load_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support")
@@ -220,6 +221,7 @@ add_executable(adl_load_command_tests
     load/find_test.cpp
     load/information_test.cpp
     load/record_test.cpp
+    load/serve_test.cpp
     load/upload_test.cpp
     load/usage_test.cpp)
 
@@ -450,6 +452,16 @@ add_test(NAME tools.adl_load.unicode_folder
         "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/adl_load-unicode"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/load/unicode_folder.cmake")
 set_tests_properties(tools.adl_load.unicode_folder PROPERTIES LABELS "system")
+
+# adl_load serve started as a process with pipes for its standard input and output (tests/load/serve_process_test.py): a
+# stop that arrives while standard input stays open, the end of the input, a port that is held, wrong usage, and a
+# request in UTF-8 whose path has characters no Windows code page holds. No target is needed.
+if(Python3_Interpreter_FOUND)
+    add_test(NAME tools.adl_load.serve
+        COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_CURRENT_SOURCE_DIR}/load/serve_process_test.py"
+            "$<TARGET_FILE:adl_load>" "${CMAKE_CURRENT_BINARY_DIR}/adl_load-serve")
+    set_tests_properties(tools.adl_load.serve PROPERTIES LABELS "system" TIMEOUT 180)
+endif()
 
 # The folder is named with an accented letter, Japanese and a character outside the Basic Multilingual Plane, which
 # no Windows code page holds all of, and the program starts as a process with that name as its argument

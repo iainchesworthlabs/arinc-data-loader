@@ -63,6 +63,12 @@ namespace adl::test
         add("--seconds", std::to_string(options.seconds));
         return line;
     }
+    if (options.command == Command::serve)
+    {
+        add("--control-port", std::to_string(options.control_port));
+        add("--max-operations", std::to_string(options.max_operations));
+        return line;
+    }
     add("--target", adl::loader_core::format_ipv4(options.target));
     add("--position", options.position);
     add("--control-port", std::to_string(options.control_port));
