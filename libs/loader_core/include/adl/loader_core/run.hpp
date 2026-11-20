@@ -76,8 +76,9 @@ struct RunTarget
 {
     adl::arinc615a::Address address;
     std::string_view thw_id_pos; // as adl::arinc615a::is_valid_thw_id_pos takes it; must outlive the call
-    // The port the loader listens on. Anything but 59 is offered to the target in the port option of its
-    // request, which matters when the target runs on the same machine.
+    // The port the loader listens on. It is offered to the target in the port option of its request when it
+    // is not 59, which matters when the target runs on the same machine, and when the port below is not 59,
+    // since a target elsewhere than 59 could not otherwise know it.
     std::uint16_t control_port = adl::arinc615a::tftp_control_port;
     // The interface the sockets are bound to. Empty: the window's rule, the loopback address for a target
     // on this machine (so no firewall asks about the program) and every interface for any other.

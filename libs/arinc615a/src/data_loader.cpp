@@ -323,6 +323,15 @@ bool DataLoader::name_matches(std::string_view stem) const noexcept
     return stem == config_.thw_id_pos;
 }
 
+// 5.3.2.3.8.6: the loader says where it listens whenever the target could not otherwise know. A target on
+// 59 takes the loader to be on 59, so two ports of 59 need no option; a loader on another port says so;
+// and a target on another port is no target the standard describes (it has every target on 59), so it is
+// told the loader's port whatever that is.
+bool DataLoader::offers_port_option() const noexcept
+{
+    return config_.control_port != tftp_control_port || config_.target.port != tftp_control_port;
+}
+
 // Starts (or starts again) the transfer a client slot is for.
 void DataLoader::start_client(Instant now, std::size_t index) noexcept
 {
@@ -341,7 +350,7 @@ void DataLoader::start_client(Instant now, std::size_t index) noexcept
         {
             options.block_size = config_.preferred_block_size;
             options.transfer_size = 0;
-            if (config_.control_port != tftp_control_port)
+            if (offers_port_option())
             {
                 options.port = config_.control_port;
             }

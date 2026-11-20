@@ -51,9 +51,9 @@ Bytes status_file(StatusCode status, std::uint16_t counter, std::uint16_t except
 class Harness
 {
 public:
-    explicit Harness(const LoaderConfig& base = {}) : config(base)
+    explicit Harness(const LoaderConfig& base = {}, const Endpoint& target = target_control) : config(base)
     {
-        config.target = target_control;
+        config.target = target;
         config.thw_id_pos = "HNPFMS_L";
         workspace.assign(DataLoader::workspace_bytes(config), std::byte{0});
         LoaderServices services;
@@ -176,6 +176,44 @@ TEST_CASE("the first thing sent is the request for the initialization file", "[e
         CHECK(options->transfer_size == 0);
         // 5.3.2.3.8.6: the port option is how the loader moves its control port off 59.
         CHECK(options->port == (moved ? std::optional<std::uint16_t>(1615) : std::nullopt));
+    }
+}
+
+TEST_CASE("the loader's port is sent whenever the target could not otherwise know it", "[engine][loader][port]")
+{
+    struct Case
+    {
+        std::uint16_t control_port;
+        std::uint16_t target_port;
+        std::optional<std::uint16_t> offered;
+    };
+    // A target on 59 takes the loader's port as 59, so a loader on 59 says nothing; a loader anywhere else
+    // says where it is. A target anywhere else than 59 has no standard to go by, so the loader says its
+    // port, 59 included.
+    const std::array<Case, 4> cases{{
+        {59, 59, std::nullopt},
+        {1615, 59, 1615},
+        {59, 5059, 59},
+        {1615, 5059, 1615},
+    }};
+    for (const Case& which : cases)
+    {
+        INFO("control port " << which.control_port << ", target port " << which.target_port);
+        LoaderConfig config;
+        config.control_port = which.control_port;
+        const Endpoint target{target_control.address, which.target_port};
+        Harness harness(config, target);
+        REQUIRE(harness.start());
+        const auto sent = harness.drain();
+        REQUIRE(sent.size() == 1);
+        CHECK(sent[0].to == target);
+        const auto packet = Harness::decoded(sent[0]);
+        REQUIRE(packet);
+        const auto* request = std::get_if<TftpRequest>(&*packet);
+        REQUIRE(request != nullptr);
+        const auto options = read_transfer_options(request->options);
+        REQUIRE(options);
+        CHECK(options->port == which.offered);
     }
 }
 

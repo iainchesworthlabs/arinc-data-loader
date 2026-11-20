@@ -187,6 +187,55 @@ TEST_CASE("a target that listens on another port is reached when the request nam
     }
 }
 
+TEST_CASE("a target on another port is told where the loader is, with the loader on 59", "[loader_core][run]")
+{
+    constexpr std::uint16_t other_port = 6969;
+    // The target that is told nothing writes to the port it listens on, as the mock target does.
+    SimPlan sim;
+    sim.control_port = other_port;
+    sim.loader_port_without_option = other_port;
+
+    SECTION("an Information operation")
+    {
+        Rig rig(sim);
+        const OperationPlan plan = OperationPlan::information();
+        RunServices services;
+        services.listener = &rig.recorder;
+        RunTarget target = target_of();
+        target.port = other_port;
+
+        const OperationResult result = run_operation(rig.loader_host, target, plan.operation(), services);
+        CHECK(result.success());
+        CHECK(result.reason == Reason::completed);
+        CHECK(result.outcome.statuses_received == 2);
+        CHECK(rig.target.log().loader_port_used == 59);
+        CHECK(rig.recorder.count(adl::arinc615a::Notice::port_option_ignored) == 0);
+    }
+
+    SECTION("an upload")
+    {
+        const adl::test::SampleLoad load = adl::test::make_sample_load(5'000, 3);
+        sim.loads = {load.item};
+        Rig rig(sim);
+        MediaSetIndex index = put_media_set(rig, load);
+        MediaTreeSource source(rig.loader_host.files(), index);
+        const std::vector<LoadChoice> choice{{load.item.header_name, load.item.load_part_number}};
+        const auto plan = OperationPlan::upload(choice);
+        REQUIRE(plan.has_value());
+        RunServices services;
+        services.listener = &rig.recorder;
+        services.upload_source = &source;
+        RunTarget target = target_of();
+        target.port = other_port;
+
+        const OperationResult result = run_operation(rig.loader_host, target, plan->operation(), services);
+        CHECK(result.success());
+        CHECK(result.reason == Reason::completed);
+        CHECK(result.outcome.files_served == load.item.reads.size());
+        CHECK(rig.target.log().loader_port_used == 59);
+    }
+}
+
 TEST_CASE("an upload that completes, and one whose set changed after it was checked", "[loader_core][run]")
 {
     const adl::test::SampleLoad load = adl::test::make_sample_load(5'000, 3);
