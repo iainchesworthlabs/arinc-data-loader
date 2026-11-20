@@ -6,7 +6,7 @@
 # It is the one place those figures and the gcovr switches live; the `coverage` target and the
 # coverage CI job both call it.
 #
-#   1. The portable code in libs/ and apps/write_payloads: at least 90% of lines and 80% of branches.
+#   1. The portable code in libs/, apps/write_payloads and apps/make_set: at least 90% of lines and 80% of branches.
 #   2. The applications' window-free logic (apps/app/core, apps/mock_target/core and
 #      apps/media_gen/core: the models, the engine's worker, the settings, the generator's and the
 #      mock target's cores) and the engine the mock target's window is a layer over
@@ -86,7 +86,8 @@ if(GCOV)
 endif()
 
 # ---- Pass 1: the portable code ------------------------------------------------------------------
-# The two format libraries, the engine and its runner, the media tree, the loader core, the samples, the
+# The two format libraries, the engine and its runner, the media tree, the loader core, the media set
+# generator's logic (libs/set_maker) and the command built on it (apps/make_set), the samples, the
 # licence library, the payload writer, and the platform interfaces. Monocypher (third_party) is not ours
 # and is not measured. The OS fragments under libs/platform are not measured (each
 # host builds a different set, and the conformance suite is what holds them to the contract), and
@@ -94,7 +95,7 @@ endif()
 # not a blended figure.
 execute_process(
     COMMAND "${GCOVR}" ${_common}
-        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|licence|licence_platform|media_tree|loader_core|scenario_base|mock_scenario|samples|platform/(interfaces|detail))|apps/write_payloads)/.*"
+        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|licence|licence_platform|media_tree|loader_core|set_maker|scenario_base|mock_scenario|samples|platform/(interfaces|detail))|apps/(write_payloads|make_set))/.*"
         --fail-under-line "${LINE_THRESHOLD}"
         --fail-under-branch "${BRANCH_THRESHOLD}"
         --html-details "${_output}/index.html"

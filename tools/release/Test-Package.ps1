@@ -216,6 +216,19 @@ if (-not $mock) {
     }
 }
 
+# --- the command that makes media sets -----------------------------------------------------------
+$maker = Find-Program 'adl_make_set'
+if (-not $maker) {
+    Add-Problem 'adl_make_set is not in the package'
+} else {
+    $line = (& $maker --version 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -eq 0 -and $line -match '^adl_make_set \S+ events 1$') {
+        Add-Ok "adl_make_set says: $line"
+    } else {
+        Add-Problem "adl_make_set --version exited with $LASTEXITCODE and said: $line"
+    }
+}
+
 # --- macOS: the bundles are signed and carry the licences ---------------------------------
 if ($IsMacOS) {
     foreach ($bundle in Get-ChildItem -LiteralPath $root -Filter '*.app' -Directory) {

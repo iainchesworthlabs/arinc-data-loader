@@ -1,0 +1,4 @@
+make
+set.json
+--output
+--json

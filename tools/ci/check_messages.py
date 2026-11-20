@@ -24,7 +24,12 @@ What the programs say to the person using them has two sources, and this check h
    usage errors, the folder and port errors, the usage text) must be in the page, with the same match as the rest.
 5. The mock target's scenario file, which adl_mock and the mock target's window read. Every sentence the readers say when a file is
    wrong (the literals of SCENARIO_SOURCES) must be on its page, docs/user-guide/mock-scenarios.md, by the same rules.
-6. The owner's licence tool (tools/licence), which is not shipped and so is not a program of the guide. Every sentence in
+6. adl_make_set, which has no catalogue (no Qt). Its exit codes (the exit_* constants of command.hpp) must be rows of the table
+   in the page's section "adl_make_set" (the others are matched anywhere in the page, which would let a code pass by the table of
+   another program), and every string literal of its sources (the command, the options, the description reader, and the rules of
+   libs/set_maker that its sentences come from) must be in that section, with the match the rest of this script has. Comments and
+   #include lines are not texts.
+7. The owner's licence tool (tools/licence), which is not shipped and so is not a program of the guide. Every sentence in
    tools/licence/src/messages.hpp and every exit_* constant of tools/licence/src/owner.hpp must be on its own page,
    docs/licence-owner-tool.md, by the same rules (a placeholder stands for anything; a row of a table for a code).
 
@@ -221,6 +226,61 @@ def finding_literals(root: Path) -> list[tuple[str, int, list[str]]]:
     return found
 
 
+MAKE_SET_SOURCES = (
+    "apps/make_set/src/command.cpp",
+    "apps/make_set/src/options.cpp",
+    "apps/make_set/src/description.cpp",
+    "libs/set_maker/src/validate.cpp",
+)
+MAKE_SET_EXIT_CODES = "apps/make_set/include/adl/make_set/command.hpp"
+MAKE_SET_HEADING = re.compile(r"^## .*adl_make_set.*$", flags=re.M)
+COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", flags=re.S)
+INCLUDE_LINE = re.compile(r"^\s*#include.*$", flags=re.M)
+
+
+def source_literals(path: Path) -> list[str]:
+    """The string literals of a C++ file, ordinary and raw, without those of its comments and #include lines."""
+    source = INCLUDE_LINE.sub("", COMMENT.sub("", path.read_text(encoding="utf-8")))
+    # findall gives "" for the form that did not match, so a raw literal is the one whose first group is not empty.
+    return [raw or re.sub(r"\\(.)", lambda m: "\n" if m.group(1) == "n" else m.group(1), ordinary)
+            for raw, ordinary in OWNER_STRING_LITERAL.findall(source)]
+
+
+def make_set_section(page: str) -> str:
+    """The section of the command-line page that describes adl_make_set: from its heading to the next of its level."""
+    start = MAKE_SET_HEADING.search(page)
+    if start is None:
+        return ""
+    following = re.compile(r"^## ", flags=re.M).search(page, start.end())
+    return page[start.start() : following.start() if following else len(page)]
+
+
+def make_set_problems(root: Path) -> list[str]:
+    """What adl_make_set says and returns that the section of its page does not have."""
+    sources = [root / name for name in MAKE_SET_SOURCES if (root / name).is_file()]
+    codes_path = root / MAKE_SET_EXIT_CODES
+    codes = sorted({int(n) for n in re.findall(r"constexpr\s+int\s+exit_\w+\s*=\s*(\d+)\s*;", codes_path.read_text(encoding="utf-8"))}) if codes_path.is_file() else []
+    if not sources and not codes:
+        return []
+    page_path = root / COMMAND_LINE_PAGE
+    raw = make_set_section(page_path.read_text(encoding="utf-8")) if page_path.is_file() else ""
+    if not raw:
+        return [f"adl_make_set has sentences and exit codes and {COMMAND_LINE_PAGE} has no section for it"]
+    section = normalise(raw)
+    problems = []
+    for path in sources:
+        for literal in source_literals(path):
+            wanted = normalise(literal)
+            for part in segments(literal) or ([wanted] if len(wanted.strip(" ,.:;()[]")) >= MIN_SEGMENT else []):
+                if part not in section:
+                    problems.append(f"the text {literal.strip()!r} of {path.name} is not in the section adl_make_set of {COMMAND_LINE_PAGE}")
+                    break
+    for code in codes:
+        if not re.search(rf"^\|\s*{code}\s*\|", raw, flags=re.M):
+            problems.append(f"the exit code {code} of adl_make_set is not a row of the table in the section adl_make_set of {COMMAND_LINE_PAGE}")
+    return problems
+
+
 OWNER_TOOL_MESSAGES = "tools/licence/src/messages.hpp"
 OWNER_TOOL_EXIT_CODES = "tools/licence/src/owner.hpp"
 OWNER_TOOL_PAGE = "docs/licence-owner-tool.md"
@@ -320,6 +380,7 @@ def check(root: Path) -> list[str]:
                 problems.append(f"the text {line.strip()!r} of the scenario file readers is not in {MOCK_SCENARIO_PAGE}")
                 break
     problems.extend(owner_tool_problems(root))
+    problems.extend(make_set_problems(root))
     return problems
 
 

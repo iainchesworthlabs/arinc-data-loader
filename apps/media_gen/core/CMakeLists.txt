@@ -26,7 +26,7 @@ target_link_libraries(adl_gen_core
         adl::ui_message
         adl::arinc665
     PRIVATE
-        adl::media_tree
+        adl::set_maker
         adl::warnings
         adl::sanitizers
         adl::coverage)

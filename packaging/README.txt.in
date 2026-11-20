@@ -11,6 +11,8 @@ What is here
   adl_mock          the same mock target as a command with no window, for test rigs and CI
                     jobs (command line)
   adl_write_payloads  writes sample media sets to a directory (command line)
+  adl_make_set      makes a media set from a description file, checks one and says what it holds
+                    (command line)
 
   LICENSE.txt       the GNU General Public License, version 3 or later, which covers
                     these programs

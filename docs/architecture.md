@@ -26,6 +26,9 @@
    adl::loader_core (libs/loader_core): what the loader does without a window and without Qt (the media
    set on disk and its check, the folder a download is written into, the target's address), over the
    libraries above; the application calls it
+   adl::set_maker (libs/set_maker): the media set generator without a window and without Qt (a plan, the
+   making of a set, the reading of one into facts), over adl::loader_core; the generator's window and the
+   command adl_make_set build on it
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target's engine (libs/mock_target_core)
@@ -48,6 +51,16 @@
   the target's address. The loader's application (`apps/app/core`) calls it and puts what it returns in the
   operator's words and in Qt's types, so a program with no window can do the same by the same rules. It is in
   the [development package](libraries.md).
+- **`libs/set_maker`** is the media set generator without a window and without Qt, and is not in the
+  development package. A `SetPlan` is what a person decides about a media set (the files, the part numbers,
+  the members, the check value types, a batch, and more than one load). `validate` holds a plan to the rules
+  of the generator's window. `make_set` reads the files, builds the loads and the set, writes the members to a
+  folder beside the set's place, reads that back with `adl::loader_core::check_media_set` (the loader's own
+  check) and only then moves it into place, removing what it wrote whatever fails; its failures are values
+  that the window turns into its words in eight languages and the command into English. `inspect_set` reads
+  any media set into the facts that a manifest or a comparison needs. The generator's window
+  (`apps/media_gen/core`) and the command `adl_make_set` (`apps/make_set`) both call it, so that they cannot
+  differ.
 - **`libs/samples`** is the sample loads and media sets (the golden scenario of
   `tests/golden/make_golden.py` and the ARINC 615 and Boeing 777 layouts of
   Appendix F), as data. The tests build from it, and so does
@@ -189,7 +202,7 @@ route to remove it.
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 | `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
-The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock` and `adl_write_payloads`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
+The programs are `adl_app`, `adl_media_gen`, `adl_mock_target`, `adl_mock`, `adl_write_payloads` and `adl_make_set`. The rest of `libs/ui` is not a library: `cmake/AdlUi.cmake` adds its sources and QML to each of the three Qt
 applications.
 
 A public header is included as `"adl/<library>/<name>.hpp"`; the include
@@ -219,7 +232,7 @@ its neighbours.
 
 ## Command-line programs
 
-A program that is started from a command line (`adl_write_payloads` and `adl_mock`, and any other that does not open a
+A program that is started from a command line (`adl_write_payloads`, `adl_mock`, `adl_make_set`, and any other that does not open a
 window) is written this way:
 
 - **Its `main` takes its arguments from `adl::platform::arguments` and never reads `argv` itself.**
@@ -232,6 +245,11 @@ window) is written this way:
   on Windows that reads the bytes in the code page, and makes another name without an error.
 - **Text for the person comes from a path with `to_utf8(path.u8string())`** (`paths.hpp`), never `path.string()` or
   `path.generic_string()`: on Windows those are the code page again, and throw for a character outside it.
+- **`apps/make_set`** is `adl_make_set`: the program is `run_command` in a library of its own (`adl_make_set_cli`,
+  not installed) so that the tests run it on temporary folders, and `main.cpp` is only the call. It has no Qt, and
+  it is a desktop program, because the description file is read with the licence library's strict JSON reader
+  (`adl/licence/json.hpp`), which only a desktop build has. What it writes is JSON written by hand
+  (`json.hpp`): events, one line each, and the inspection document, one line.
 - The three Qt programs take their arguments through Qt, which reads the command line itself, and are not
   concerned.
 
