@@ -1,7 +1,7 @@
 @PACKAGE_INIT@
 
 # The ARINC Data Loader libraries: adl::arinc665, adl::arinc615a, adl::arinc615a_runner,
-# adl::media_tree and adl::platform. They are static libraries that need nothing but the C++23
+# adl::media_tree, adl::loader_core and adl::platform. They are static libraries that need nothing but the C++23
 # standard library and the host's own system libraries.
 #
 #   find_package(adl 0.1 REQUIRED)

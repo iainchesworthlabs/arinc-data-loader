@@ -130,6 +130,10 @@ add_subdirectory(libs/arinc615a_runner)
 # std::filesystem, so it needs nothing from the platform section either.
 add_subdirectory(libs/media_tree)
 
+# What the loader does without a window: the media set's files and their index, the media set check,
+# the download folder and the target's address. No Qt; apps/app/core calls it.
+add_subdirectory(libs/loader_core)
+
 # The licence library: the signed licence file, its states and the checks a program asks. Platform-free.
 # Its Ed25519 is Monocypher, vendored in third_party/monocypher, which is C: the language is enabled here,
 # and only on a desktop, because a target build has no use for a licence and may have no C compiler.

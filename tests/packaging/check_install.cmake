@@ -25,7 +25,7 @@ if(NOT result EQUAL 0)
     message(FATAL_ERROR "installing the development component failed (${result}):\n${output}\n${error}")
 endif()
 
-foreach(expected include/adl/arinc665/crc.hpp include/adl/platform/host.hpp lib/cmake/adl/adlConfig.cmake
+foreach(expected include/adl/arinc665/crc.hpp include/adl/loader_core/media_source.hpp include/adl/platform/host.hpp lib/cmake/adl/adlConfig.cmake
         lib/cmake/adl/adlTargets.cmake "${DOC_DIR}/LICENSE.txt")
     if(NOT EXISTS "${WORK_DIR}/prefix/${expected}")
         message(FATAL_ERROR "the development package lacks ${expected}")

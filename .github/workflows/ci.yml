@@ -463,7 +463,7 @@ jobs:
         uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@54f3b7ecd95fa07034f6f50a057c537ee98cd30d # v0.1.28
 
   # Line and branch coverage of the portable code (the libraries, the platform interfaces, the media
-  # tree, the samples, the runner and the payload writer), gated at the project minimum: 90% of lines
+  # tree, the loader core, the samples, the runner and the payload writer), gated at the project minimum: 90% of lines
   # and 80% of branches. The OS fragments are not in this figure: each host builds a different set,
   # and the conformance suite is what holds them to the platform contract.
   # cmake/CoverageReport.cmake holds the figures and the gcovr switches; this job only builds, tests

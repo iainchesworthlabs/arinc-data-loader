@@ -123,6 +123,32 @@ target_link_libraries(adl_sim_target
         adl::sanitizers
         adl::coverage)
 
+# The loader core (libs/loader_core): what the loader does without a window, run without one, on the
+# fake platform's files.
+add_executable(adl_loader_core_tests
+    loader_core/address_test.cpp
+    loader_core/download_directory_test.cpp
+    loader_core/media_set_check_test.cpp
+    loader_core/media_source_test.cpp)
+
+target_include_directories(adl_loader_core_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/support")
+
+target_link_libraries(adl_loader_core_tests
+    PRIVATE
+        adl_fake_platform
+        adl::loader_core
+        adl::media_tree
+        adl::samples
+        adl::warnings
+        adl::sanitizers
+        adl::coverage
+        Catch2::Catch2WithMain)
+
+adl_deploy_sanitizer_runtime(adl_loader_core_tests)
+
+catch_discover_tests(adl_loader_core_tests PROPERTIES LABELS "unit")
+
 # The 615A engine: the TFTP transfer and the data loader state machines, the runner over the
 # fake platform, and the simulated target the whole of an operation is run against.
 add_executable(adl_engine_tests
@@ -250,6 +276,17 @@ if(ADL_PWSH)
             "${PROJECT_SOURCE_DIR}/tools/checks/check_doc_paths.ps1"
             -Root "${PROJECT_SOURCE_DIR}")
     set_tests_properties(docs.paths PROPERTIES LABELS "system")
+endif()
+
+# The bill of materials names the libraries by hand (tools/release/make_sbom.py), and the development
+# package ships the ones that call adl_install_library. A library on one side only fails here, not on the
+# day of a release.
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME release.sbom_libraries
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/release/check_sbom_libraries.py"
+            "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(release.sbom_libraries PROPERTIES LABELS "system")
 endif()
 
 # The script that compares the benchmarks with the budget (tools/ci/perf_compare.py) is held to what it

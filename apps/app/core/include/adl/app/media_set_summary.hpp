@@ -3,10 +3,11 @@
 
 // Reading a media set from a directory into the summary the window shows
 // (MediaSetSummary, events.hpp), and making the index of its files that an
-// upload reads them through (media_source.hpp).
+// upload reads them through (adl/loader_core/media_source.hpp). The reading and the
+// checking are adl::loader_core's (media_set_check.hpp); this puts the result in Qt's types.
 
 #include "adl/app/events.hpp"
-#include "adl/app/media_source.hpp"
+#include "adl/loader_core/media_source.hpp"
 
 #include <QString>
 #include <memory>
@@ -19,7 +20,7 @@ namespace adl::app
 // worker's thread. A set that cannot be read comes back with `error` set.
 // With `index`, also makes the index of the set's files that an upload reads them through; it is
 // left empty when the set cannot be read.
-[[nodiscard]] MediaSetSummary read_media_set_summary(const QString& path,
-                                                     std::shared_ptr<const MediaSetIndex>* index = nullptr);
+[[nodiscard]] MediaSetSummary
+read_media_set_summary(const QString& path, std::shared_ptr<const adl::loader_core::MediaSetIndex>* index = nullptr);
 
 } // namespace adl::app

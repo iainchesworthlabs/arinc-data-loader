@@ -6,6 +6,7 @@
 #include "adl/arinc615a/checksum.hpp"
 #include "adl/arinc615a/directory_files.hpp"
 #include "adl/arinc665/crc.hpp"
+#include "adl/loader_core/media_source.hpp"
 #include "adl/media_tree/media_tree.hpp"
 #include "adl/platform/host.hpp"
 
@@ -44,6 +45,10 @@ int main()
     // adl::arinc615a_runner (and, through it, adl::arinc615a): a file name a target may ask for.
     ok &= check(adl::arinc615a::is_safe_file_name("LOADS.LUM"), "a plain file name is safe");
     ok &= check(!adl::arinc615a::is_safe_file_name("../LOADS.LUM"), "a parent directory is not");
+
+    // adl::loader_core: an index of the files of a media set that lists none holds none.
+    const auto index = adl::loader_core::MediaSetIndex::make("/set", adl::arinc665::FilesList{});
+    ok &= check(index.has_value() && index->entries().empty(), "an empty media set index");
 
     // adl::platform: this host's implementation of the interfaces starts.
     auto host = adl::platform::make_host();

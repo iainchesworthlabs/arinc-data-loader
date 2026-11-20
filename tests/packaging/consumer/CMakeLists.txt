@@ -14,6 +14,7 @@ target_link_libraries(consumer
         adl::arinc665
         adl::arinc615a
         adl::arinc615a_runner
+        adl::loader_core
         adl::media_tree
         adl::platform)
 

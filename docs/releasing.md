@@ -36,6 +36,7 @@ own, and the platform interfaces they run on:
 | `adl::arinc615a` | The ARINC 615A codec and the data loader's state machines (no sockets, no threads) |
 | `adl::arinc615a_runner` | The runner that drives those state machines over `adl::platform`'s sockets, and a file source and sink over a directory |
 | `adl::media_tree` | A media set as a directory tree on disk |
+| `adl::loader_core` | What the loader does besides showing a window: a media set on disk read and checked into a report, the index of its files, the folder a download is written into, and a target's address |
 | `adl::platform` | The platform interfaces (files, memory, threads, clock, UDP sockets, queues) and this host's implementation of them |
 
 ```cmake
@@ -188,7 +189,7 @@ workflow signs the four programs in place before CPack packs them:
 - **The SBOM** lists what the build reported, never a guess: the first-party programs and libraries,
   Qt (by reference to the kit's own SPDX documents), the typefaces, the runtime files Qt's deployment
   tool placed in a package, the vcpkg packages used for the tests (Catch2: in no package), and the
-  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with hash-locked validators, and the SPDX document is checked to list every typeface in `libs/ui/fonts` (`tools/release/check_sbom_fonts.py`).
+  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with hash-locked validators, and the SPDX document is checked to list every typeface in `libs/ui/fonts` (`tools/release/check_sbom_fonts.py`). The list of libraries in `tools/release/make_sbom.py` is checked against the libraries the development package installs by a test, `release.sbom_libraries` (`tools/release/check_sbom_libraries.py`).
 - **The attestations and the signature are independent.** A compromised runner could produce a package
   and an honest-looking attestation of it; a compromised key could sign anything. Together they say the
   maintainer's key signed what the maintainer's workflow built.

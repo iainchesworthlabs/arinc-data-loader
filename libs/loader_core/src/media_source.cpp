@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "adl/app/media_source.hpp"
+#include "adl/loader_core/media_source.hpp"
 
 #include "adl/arinc665/check_value_type.hpp"
 #include "adl/arinc665/sha1.hpp"
@@ -13,7 +13,7 @@
 #include <tuple>
 #include <vector>
 
-namespace adl::app
+namespace adl::loader_core
 {
 
 namespace
@@ -264,4 +264,4 @@ void MediaTreeSource::close(adl::arinc615a::SourceHandle file) noexcept
     }
 }
 
-} // namespace adl::app
+} // namespace adl::loader_core

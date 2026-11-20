@@ -67,11 +67,13 @@ apps/app/
     loader_model      what the QML talks to: properties and a few invokable functions
     settings          the persistent preferences (QSettings), read at start-up
     models            the list models (the loads carry the operator's ticks and the progress)
-    media_set_summary reading a media set from a directory, as plain values
-    media_source      the files of an upload: an index of the media set's files, and a FileSource over it
+    media_set_summary reading a media set from a directory, as plain values (adl::loader_core does the check)
+    download_directory the download folder's errors in the operator's words (adl::loader_core makes the folder)
     notice_text       an engine notice as a line for the operator
-    events, address   plain values, and the IPv4 parser
+    events, address   plain values, and the IPv4 parser's Qt strings (adl::loader_core has the parser)
     host_access       where the worker gets the platform from
+libs/loader_core/     adl_loader_core, no Qt: the media set's files and their index (media_source), the media
+                      set check, the download folder, the target's address (architecture.md)
 apps/app/tests/            QtTest, and the window loaded offscreen
 tests/ui/             the window driven through Qt Quick Test (testing.md)
 libs/ui/               the shared design system: Theme, the controls, the header and footer, the
@@ -161,7 +163,7 @@ refused before it starts, and the button disabled, unless there is a media set t
 ticked, and a valid address and `<THW_ID_POS>` (`canUpload`).
 
 **During an upload the files come from the media set on disk through `adl::platform`'s file system,
-not from memory.** While the media set is read (to show it), `MediaSetIndex` is made from its
+not from memory.** While the media set is read (to show it), `MediaSetIndex` (`adl::loader_core`) is made from its
 `FILES.LUM`: every file's name, member, directory and 16-bit CRC, mapped to a path below the directory
 the operator chose (member directory, then the file's own directory: `adl::media_tree`'s layout).
 Nothing but the index is kept; during the upload the bytes are read at the offsets the target asks
@@ -213,7 +215,7 @@ A Download has no `FileSource`; it has a **`FileSink`** instead: `DirectoryFileS
 (`adl::arinc615a_runner`) writes the target's files into one directory, under a temporary name
 until the whole file has arrived, and never overwrites, which is exactly what 5.4.4.3 asks of
 the `DNLD_DATA_<THW_ID_POS>_<number>` directory. The application makes that directory when the
-download starts, under the download directory of the preferences (`download_directory.hpp`): the number is
+download starts, under the download directory of the preferences (`adl::loader_core`'s `download_directory.hpp`): the number is
 the lowest free one from 1, and the parents are created on demand, through the platform's `FileSystem` (so
 the tests' fake storage receives the bytes).
 
