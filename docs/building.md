@@ -295,6 +295,7 @@ are not part of the installed `adl` package.
 | `ADL_ENABLE_MSVC_ANALYSIS` | `OFF` | Adds MSVC Code Analysis (`/analyze /analyze:external-`) to every first-party target; MSVC only (the `windows-msvc-analyze` preset sets it) |
 | `ADL_ENABLE_TRACY` | `OFF` | Links Tracy and pulls it from vcpkg; use a Release build for numbers worth reading |
 | `ADL_TARGET_PLATFORM` | empty | Names the platform for a cross build, where the toolchain does not (`windows`, `linux`, `macos`, `qnx`, `ghs508`, `ghs178b`, `vxworks`, `freertos`, `zephyr`). A desktop build leaves it empty. `freertos` and `zephyr` are accepted and refused: their images are built by projects of their own ([below](#zephyr-and-freertos)). See [platform isolation](platform-isolation.md#how-cmake-selects) |
+| `ADL_PLATFORM_DIR` | empty | A directory outside this repository that holds the platform `ADL_TARGET_PLATFORM` names: its `platform.cmake` and its sources. With it set, `ADL_TARGET_PLATFORM` is required and may be any name; empty, the platform is the one in `libs/platform/<name>` ([below](#a-platform-from-another-directory)) |
 | `ADL_ACCEPT_UNBUILT_PLATFORM` | `OFF` | Allows building a platform whose code has never been compiled (QNX and the two INTEGRITY ports). A platform with no code at all is refused whatever this says |
 
 The Green Hills INTEGRITY platforms are [reviewed in
@@ -302,6 +303,35 @@ docs/platform-ghs.md](platform-ghs.md): what the two source trees provide, how
 `cmake/FindIntegrity.cmake` and `cmake/FindIntegrity178.cmake` find them, and
 what is still open before a first compile. They have never been compiled and
 their code says so.
+
+### A platform from another directory
+
+A port to another operating system does not have to be a directory of this repository. Set
+`ADL_TARGET_PLATFORM` to a name for it (lower-case letters, digits and underscores) and
+`ADL_PLATFORM_DIR` to the directory that holds its `platform.cmake` and its sources, and the build
+takes the platform from there. The port can be kept in a repository of its own and tried without a
+fork. Without `ADL_PLATFORM_DIR` nothing is different.
+
+The example starts from a copy of the Linux platform and builds it as `myos`, then runs the platform
+layer's tests against it:
+
+```sh
+cp -r libs/platform/linux ../myos-port
+sed -i 's|^    linux/|    ${ADL_PLATFORM_DIR}/|' ../myos-port/platform.cmake
+cmake --preset linux-debug -DADL_BUILD_APP=OFF -DADL_TARGET_PLATFORM=myos -DADL_PLATFORM_DIR="$PWD/../myos-port"
+cmake --build --preset linux-debug --target adl_platform_tests
+ctest --preset linux-debug -L unit
+```
+
+The `sed` line is the one edit the copy needs. A path in `ADL_PLATFORM_SOURCES` that is relative is
+relative to `libs/platform`, which is where the shared sources are (`posix/...`, `detail/...`) and stays
+the repository's; the port's own files are named from `${ADL_PLATFORM_DIR}`, the directory the option
+gave. [Platform abstraction](platform-abstraction.md#a-platform-kept-outside-the-repository) has the
+rest: the variables a fragment can read, which headers its sources can include, and what is and is not
+checked for a platform that is not in the repository.
+
+A configure that sets `ADL_PLATFORM_DIR` without `ADL_TARGET_PLATFORM`, or names a directory that does
+not exist or has no `platform.cmake`, stops and says which.
 
 ## Packages
 
