@@ -118,7 +118,7 @@ TEST_CASE("UTF-16 is converted to UTF-8, and a lone surrogate is refused", "[uni
 
 TEST_CASE("a path made from UTF-8 gives the same UTF-8 back", "[unit][licence][owner]")
 {
-    for (const std::string name : {std::string("plain.adllic"),
+    for (const std::string& name : {std::string("plain.adllic"),
                                    std::string("\xC3\x9C"
                                                "berpr\xC3\xBC"
                                                "fung"),
