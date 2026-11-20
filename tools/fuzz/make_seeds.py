@@ -101,7 +101,7 @@ SEEDS_OWNER = {
     "public_key_licence": f'{{"key_id":"lic-2026-a","purpose":"licence","public_key":"{TEST_PUBLIC_KEY}"}}\n'.encode(),
     "public_key_revocations": f'{{"key_id":"rev-2026-a","purpose":"revocations","public_key":"{TEST_PUBLIC_KEY}"}}\n'.encode(),
     "public_key_no_line_end": f'{{"key_id":"lic-2026-b","purpose":"licence","public_key":"{TEST_PUBLIC_KEY}"}}'.encode(),
-    "command_line": b"--trust\nkey.adlpub\n--now\n2026-11-13T02:10:00Z\n--test\nlicence.adllic\n",
+    "command_line": b"--trust\nkey.adlownerpub\n--now\n2026-11-13T02:10:00Z\n--test\nlicence.adllic\n",
     "licence_number": b"ADL-2026-000123",
     "format_text": b"%1 needs %2 and %3",
     # U+00FC, U+1F511 (a surrogate pair in UTF-16), U+822A and U+7A7A, as little-endian UTF-16.

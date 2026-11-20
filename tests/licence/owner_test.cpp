@@ -387,9 +387,34 @@ TEST_CASE("the commands run in process", "[unit][licence][owner]")
         CHECK(id.err.find("begins with test-") != std::string::npos);
     }
 
+    SECTION("a seed file of the wrong size, of zeros or of the test key is refused before any folder is looked at")
+    {
+        const std::string folder = own::path_to_utf8(scratch.path());
+        const auto refused = [&](const std::string& name, const std::string& bytes, const std::string& why)
+        {
+            REQUIRE(own::write_new_file(scratch.path() / name, bytes, true));
+            const Ran ran = run({"keygen", "--key-id", "lic-2026-a", "--purpose", "licence", "--out", folder,
+                                 "--seed-file", own::path_to_utf8(scratch.path() / name)});
+            CHECK(ran.code == own::exit_failed);
+            CHECK(ran.err.find("the seed file") != std::string::npos);
+            CHECK(ran.err.find(why) != std::string::npos);
+            CHECK(ran.out.empty());
+        };
+        refused("empty.bin", "", "not exactly 32 bytes");
+        refused("short.bin", std::string(31, 'x'), "not exactly 32 bytes");
+        refused("long.bin", std::string(33, 'x'), "not exactly 32 bytes");
+        refused("zeros.bin", std::string(32, '\0'), "all zero or are the test key");
+        const auto test_seed = lic::test_keys::private_key();
+        refused("test.bin", std::string(test_seed.begin(), test_seed.end()), "all zero or are the test key");
+        const Ran missing = run({"keygen", "--key-id", "lic-2026-a", "--purpose", "licence", "--out", folder,
+                                 "--seed-file", own::path_to_utf8(scratch.path() / "nothing.bin")});
+        CHECK(missing.code == own::exit_failed);
+        CHECK(missing.err.find("it does not exist") != std::string::npos);
+    }
+
     SECTION("a key file that is not a key is refused and never printed")
     {
-        const fs::path junk = scratch.path() / "junk.adlkey";
+        const fs::path junk = scratch.path() / "junk.adlownerkey";
         REQUIRE(own::write_new_file(junk, "not a key at all\n", true));
         const Ran refused = run({"issue", "--request", request_name, "--out", out, "--key-id", "lic-2026-a",
                                  "--key-file", own::path_to_utf8(junk)});

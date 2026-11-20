@@ -49,7 +49,7 @@ options:
                 [--latest-seen <time>] [--build-time <time>] [--revocations <file>]
   issue --request <file> --out <file> (--test | --key-id <id> --key-file <file>) [--dry-run]
   revocations --request <file> --out <file> (--test | --key-id <id> --key-file <file>) [--dry-run]
-  keygen --key-id <id> --purpose licence|revocations --out <folder>
+  keygen --key-id <id> --purpose licence|revocations --out <folder> [--seed-file <file>]
 
 --test signs and checks with the throwaway key test-rfc8032-1, which no program accepts.
 Times are written like 2026-11-13T02:10:00Z. File names and output are UTF-8.
@@ -149,6 +149,7 @@ written with the extension `.adlrev`.
 
 ```sh
 adl_licence_owner keygen --key-id lic-2026-a --purpose licence --out <a folder on the drive that will keep the key>
+adl_licence_owner keygen --key-id lic-2026-a --purpose licence --out <the same folder> --seed-file <32 bytes you made>
 ```
 
 Makes a key pair for one purpose, `licence` or `revocations`, and writes two files into the folder. The folder has to
@@ -157,15 +158,59 @@ by mistake. A key id is lower-case letters, digits and hyphens; one that begins 
 
 | File | What it holds | What to do with it |
 | --- | --- | --- |
-| `<key id>.adlkey` | The private key: 43 characters of base64url and a line end. Where the system has file permissions it is readable by its owner only, from before the key is written. | Keep it **offline**, with two encrypted copies on separate media. Never put it in a repository, an email or a chat. Whoever holds it can make licences that programs accept. It is never printed and never logged. |
-| `<key id>.adlpub` | The public key: one line of JSON, `{"key_id":"lic-2026-a","purpose":"licence","public_key":"<43 characters>"}`. Not secret. | Keep it with the licence records. `--trust` reads it. Add its key to `libs/licence/src/trusted_keys.cpp` and build a release, and the programs of that release accept the licences it signs. |
+| `<key id>.adlownerkey` | The private key: 43 characters of base64url and a line end. Where the system has file permissions it is readable by its owner only, from before the key is written. | Keep it **offline**, with two encrypted copies on separate media. Never put it in a repository, an email or a chat. Whoever holds it can make licences that programs accept. It is never printed and never logged. |
+| `<key id>.adlownerpub` | The public key: one line of JSON, `{"key_id":"lic-2026-a","purpose":"licence","public_key":"<43 characters>"}`. Not secret. | Keep it with the licence records. `--trust` reads it. Add its key to `libs/licence/src/trusted_keys.cpp` and build a release, and the programs of that release accept the licences it signs. |
+
+The extensions are not `.adlkey` and `.adlpub`: the Pro tool that writes a customer's own site keys uses those, in
+another format, and two formats under one extension, one of them the owner's licence key, is a mistake waiting to happen.
 
 Make a standby key at the same time, with another id, and put its public half in the same list. If the signing key
 leaks, a later release can withdraw it, and the standby is already trusted. A key that signs licences does not sign
 revocation lists: make one for each purpose.
 
-The 32 random bytes come from `std::random_device`, which is the operating system's source of them on every
-platform the tool builds for. The tool refuses a result that is all zeros or is the test key.
+#### Where the 32 bytes of a key come from
+
+A key is 32 bytes (an Ed25519 seed, RFC 8032), and there are two ways to give `keygen` them.
+
+**Without `--seed-file`** the tool draws them from `std::random_device`, because the rules of this repository leave it
+no operating system call of its own. What that draws from depends on the standard library the tool was built with. This
+is from the library sources, read on 2026-11-20 (Microsoft's STL `stl/src/xrngdev.cpp` and the documentation of
+`rand_s`, GCC 14's `libstdc++-v3/src/c++11/random.cc`, LLVM's `libcxx/src/random.cpp` and `libcxx/include/__config`):
+
+| Built with | `std::random_device` draws from | If it cannot |
+| --- | --- | --- |
+| MSVC (Windows) | `rand_s` of the C runtime, which "uses the operating system to generate cryptographically secure random numbers" (it depends on `RtlGenRandom`) | It throws `std::out_of_range`. |
+| libstdc++ (GCC, and Clang with libstdc++, on Linux) | The first of these that works: the processor's `RDSEED` instruction, where the processor is an Intel or an AMD one that has it (with `RDRAND` to finish what `RDSEED` lacks), then `RDRAND`, then the kernel's `getentropy`, then `/dev/urandom`. | It throws `std::system_error` or `std::runtime_error` ("device not available"). |
+| libc++ (AppleClang on macOS) | `arc4random()`, the system's generator on Apple platforms (the file name `/dev/urandom` in the library's source is only a token there) | It has no failure of its own to report. |
+
+None of the three falls back to a fixed sequence: a failure is an exception, which `keygen` turns into "this computer
+gives no random numbers: no key was made". (A libstdc++ built for a target with none of those sources does use a fixed
+generator, with seed 5489. The Linux and macOS systems this repository is built on are not that: each has `getentropy`, `/dev/urandom` or `arc4random`.) The
+tool also refuses a result that is all zeros or is the test key, which would mean the source is not working. It does not
+ask `entropy()`: libc++ answers 0 for some sources that are good, so no library's answer means the same.
+
+**With `--seed-file <file>`** the key is the 32 bytes of that file, exactly, made with a generator the owner chose. The
+file is read once and its content is never printed, and the tool leaves the file as it is. A file of any other size
+(a key written as text, say) is refused, and so are 32 bytes that are all zero or are the test key. The private key file
+holds the same key, so the seed file is to be kept as carefully, or destroyed.
+
+**For the real keys, use `--seed-file`**, with bytes the owner drew on the offline computer that will keep the key,
+from the operating system's generator or from a hardware one:
+
+```sh
+head -c 32 /dev/urandom > seed.bin                  # Linux and macOS
+openssl rand -out seed.bin 32                       # anywhere with OpenSSL
+```
+
+```powershell
+$seed = [byte[]]::new(32); [System.Security.Cryptography.RandomNumberGenerator]::Fill($seed)   # PowerShell 7
+[IO.File]::WriteAllBytes('seed.bin', $seed)
+```
+
+The reason is that the owner then names the source and can check it, it is the same on every system, and no choice of
+standard library stands between the generator and the key (on Linux with an Intel or AMD processor, GCC's library asks
+the processor's own instructions before the kernel). The default is sound where the three tables above hold, which is
+why it is there, and it is what the tests of the tool use.
 
 ## Exit codes
 
@@ -256,6 +301,12 @@ the code fails the check until it is described here.
 | `the folder %1 is inside a git repository: a key made there could be committed by mistake. Choose a folder that no repository holds` | |
 | `this computer gives no random numbers: no key was made` | |
 | `the random numbers were not usable: no key was made` | The 32 bytes were all zero or were the test key |
+| `the seed file %1 is refused: %2` | `--seed-file` named a file that could not be read, or that holds the wrong thing |
+| `it is not exactly 32 bytes: the key is those 32 bytes and nothing else, as a generator of your own makes them` | A reason for the sentence above |
+| `the 32 bytes are all zero or are the test key, which no real key may be: no key was made` | A reason for the sentence above |
+| `Key source: the system's random numbers (std::random_device)` | A line of the output, when there is no `--seed-file` |
+| `Key source: the seed file %1, which was read and not changed` | A line of the output, with `--seed-file` |
+| `The seed file is the same key as the private key file. Keep it as carefully, or destroy it.` | Said after it |
 | `the key files were removed, because %1` | A file could not be written or read back |
 | `the key file written could not be read back` | A reason for the sentence above |
 | `Private key: %1` | Where the private half is |
@@ -332,7 +383,8 @@ It looks at every file of a `.zip`, a `.tar.gz` or a folder, for
 
 - the **names** `adl_licence_owner`, `adl_licence_owner_core`, `adl_licence_sign` and `adl_licence_test_keys` (any
   extension, with or without `lib`, or as a macOS bundle), the headers `adl/licence/sign.hpp` and
-  `adl/licence/test_keys.hpp`, and the names of key files: `*.adlkey`, `*.key`, `*.pem`, `*.p12`, `*.pfx`, `*.priv`,
+  `adl/licence/test_keys.hpp`, and the names of key files: `*.adlownerkey` and `*.adlownerpub` (what `keygen` writes),
+  `*.adlkey` (a customer's own site key, which another tool writes), `*.key`, `*.pem`, `*.p12`, `*.pfx`, `*.priv`,
   `id_ed25519` and the like;
 - the **bytes**, whatever the name: the text `adl_licence_owner` (a renamed copy of the tool), the private half of the
   RFC 8032 test key (raw, in hexadecimal, in base64 and in base64url), and a file that is nothing but 43 characters of
@@ -349,8 +401,8 @@ clean package. The development package of a Release build is also checked as it 
 
 | Test | What it holds |
 | --- | --- |
-| `tests/licence/owner_test.cpp` (`adl_licence_owner_tests`, `unit`) | UTF-16 to UTF-8 (pairs, the edges, every way a surrogate can be alone), paths and files with names outside the code page, the form of a licence number, a key id and a public key file (every way it is refused), the options, the sentences' placeholders, the git work tree check, a signed file read back and removed when the check fails, and the commands run against streams: help, issue, verify, a request that is not a licence, keygen's refusals, a key file that is not a key |
-| `tests/licence/test_owner_tool.py` (`licence.owner_tool`, `system`) | The built program as a process: every command and every usage error, the test note and the `Test key` line, the manifest of test licences (a row for each of the eight states) judged by `verify`, the revocation lists, every refusal of `issue` leaving nothing behind, never writing over a file, a key made, used to sign and checked with its public file, the wrong purpose, a public key file in every wrong form, names outside the code page for a key folder, a request and a licence, and that the private half of the test key never appears in any output |
+| `tests/licence/owner_test.cpp` (`adl_licence_owner_tests`, `unit`) | UTF-16 to UTF-8 (pairs, the edges, every way a surrogate can be alone), paths and files with names outside the code page, the form of a licence number, a key id and a public key file (every way it is refused), the options, the sentences' placeholders, the git work tree check, a signed file read back and removed when the check fails, and the commands run against streams: help, issue, verify, a request that is not a licence, keygen's refusals (a folder in a work tree, a seed file of the wrong size, zeros or the test key), a key file that is not a key |
+| `tests/licence/test_owner_tool.py` (`licence.owner_tool`, `system`) | The built program as a process: every command and every usage error, the test note and the `Test key` line, the manifest of test licences (a row for each of the eight states) judged by `verify`, the revocation lists, every refusal of `issue` leaving nothing behind, never writing over a file, a key made (from the system's random numbers and from a seed file, which is refused when it is not 32 bytes of a key), used to sign and checked with its public file, the wrong purpose, a public key file in every wrong form, names outside the code page for a key folder, a request and a licence, and that the private half of the test key never appears in any output |
 | `tests/licence/test_package_check.py` (`licence.package_check`, `system`) | The package check, described above |
 | `tools/licence/fuzz/owner.cpp` (`fuzz.regress.owner`, `fuzz`) | What the tool reads that is not a licence file: a public key file (what is accepted is what the writer writes, and reads back the same), the words of a command line, UTF-16, a licence number and a key id. The seeds are made by `tools/fuzz/make_seeds.py` ([Fuzzing](fuzzing.md)) |
 

@@ -15,8 +15,8 @@ What it looks at, in every file of the package:
   names    The tool, the signing library and the test key library (adl_licence_owner, adl_licence_owner_core,
            adl_licence_sign, adl_licence_test_keys, in any extension, with or without a lib prefix, or as a
            folder of a macOS bundle), their headers (adl/licence/sign.hpp, adl/licence/test_keys.hpp), and the
-           names of key files: *.adlkey (what keygen writes), *.key, *.pem, *.p12, *.pfx, *.priv, and the
-           names ssh-keygen uses.
+           names of key files: *.adlownerkey and *.adlownerpub (what keygen writes), *.adlkey (a customer's own
+           site key, which another tool writes), *.key, *.pem, *.p12, *.pfx, *.priv, and the names ssh-keygen uses.
   bytes    Whatever the name: the text adl_licence_owner (in a binary renamed to something else), the private
            half of the throwaway test key of RFC 8032 (raw, in hexadecimal, in base64 and in base64url), and a
            whole file that is 43 characters of base64url and a line end, which is what a key file made by keygen
@@ -54,7 +54,7 @@ SIGNING_NAMES = {
     "adl_licence_test_keys",
 }
 SIGNING_HEADERS = {("adl", "licence", "sign.hpp"), ("adl", "licence", "test_keys.hpp")}
-KEY_SUFFIXES = {".adlkey", ".key", ".pem", ".p12", ".pfx", ".priv"}
+KEY_SUFFIXES = {".adlownerkey", ".adlownerpub", ".adlkey", ".key", ".pem", ".p12", ".pfx", ".priv"}
 KEY_NAMES = {"id_ed25519", "id_rsa", "id_ecdsa", "id_dsa"}
 
 # What a file of the package may not hold, whatever it is called.

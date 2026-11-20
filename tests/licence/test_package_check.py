@@ -125,7 +125,8 @@ class PackageCheck(unittest.TestCase):
         self.assert_clean({**CLEAN, "arinc-data-loader/include/adl/licence/licence.hpp": b"#pragma once\n"})
 
     def test_a_key_file_by_name(self) -> None:
-        for name in ("lic-2026-a.adlkey", "signing.key", "private.PEM", "id_ed25519", "release.p12", "x.pfx", "a.priv"):
+        for name in ("lic-2026-a.adlownerkey", "lic-2026-a.adlownerpub", "site-2026.adlkey", "signing.key", "private.PEM",
+                     "id_ed25519", "release.p12", "x.pfx", "a.priv"):
             self.assert_found({f"arinc-data-loader/{name}": b"some text\n"}, name, "key file")
         # The public half is not secret.
         self.assert_clean({**CLEAN, "arinc-data-loader/lic-2026-a.adlpub": b'{"key_id":"lic-2026-a"}\n'})

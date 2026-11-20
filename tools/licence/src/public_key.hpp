@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later OR BSD-2-Clause
 #pragma once
 
-// The public key file that keygen writes (`<key id>.adlpub`): one line of JSON,
+// The public key file that keygen writes (`<key id>.adlownerpub`): one line of JSON,
 //
 //   {"key_id":"lic-2026-a","purpose":"licence","public_key":"<43 characters of base64url>"}
 //

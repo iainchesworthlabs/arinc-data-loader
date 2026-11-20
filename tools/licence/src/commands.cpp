@@ -578,10 +578,73 @@ int revocations_command(std::span<const std::string> arguments, const Console& c
     return exit_ok;
 }
 
+namespace
+{
+
+// A seed file is exactly the 32 bytes of the key; anything larger is not one, and is not read further.
+constexpr std::size_t max_seed_file_size = 4096;
+
+[[nodiscard]] bool unusable_seed(const lic::signing::Seed& seed)
+{
+    return std::ranges::all_of(seed, [](std::uint8_t b) { return b == 0; }) || seed == lic::test_keys::private_key();
+}
+
+// Fills `seed` from the file --seed-file names, or, without it, from std::random_device (the system's random
+// numbers: what that draws from is on the page). A result that is all zeros or is the test key is refused,
+// which would mean the source is not working. The device's `entropy()` is not asked: it is 0 in some libraries
+// that draw from a good source. The error is one sentence from messages.hpp.
+[[nodiscard]] std::expected<void, std::string> take_seed(const Options& options, lic::signing::Seed& seed)
+{
+    if (options.has("--seed-file"))
+    {
+        const std::string name = options.value("--seed-file");
+        auto bytes = read_file(path_from_utf8(name), max_seed_file_size);
+        if (!bytes)
+        {
+            return std::unexpected(format(message::seed_file_refused, {name, bytes.error()}));
+        }
+        if (bytes->size() != seed.size())
+        {
+            lic::signing::wipe(*bytes);
+            return std::unexpected(format(message::seed_file_refused, {name, message::seed_file_size}));
+        }
+        std::ranges::transform(*bytes, seed.begin(), [](char c) { return static_cast<std::uint8_t>(c); });
+        lic::signing::wipe(*bytes);
+        if (unusable_seed(seed))
+        {
+            return std::unexpected(format(message::seed_file_refused, {name, message::seed_unusable}));
+        }
+        return {};
+    }
+    try
+    {
+        std::random_device device;
+        for (std::size_t i = 0; i < seed.size(); i += 4)
+        {
+            const std::uint32_t word = device();
+            for (std::size_t k = 0; k < 4; ++k)
+            {
+                seed[i + k] = static_cast<std::uint8_t>((word >> (8 * k)) & 0xFF);
+            }
+        }
+    }
+    catch (const std::exception&)
+    {
+        return std::unexpected(std::string(message::no_random));
+    }
+    if (unusable_seed(seed))
+    {
+        return std::unexpected(std::string(message::random_refused));
+    }
+    return {};
+}
+
+} // namespace
+
 int keygen_command(std::span<const std::string> arguments, const Console& console)
 {
-    static constexpr std::array<OptionSpec, 3> specs{
-        {{"--key-id", true, false}, {"--purpose", true, false}, {"--out", true, false}}};
+    static constexpr std::array<OptionSpec, 4> specs{
+        {{"--key-id", true, false}, {"--purpose", true, false}, {"--out", true, false}, {"--seed-file", true, false}}};
     const auto options = parse_options("keygen", arguments, specs, 0);
     if (!options)
     {
@@ -609,6 +672,22 @@ int keygen_command(std::span<const std::string> arguments, const Console& consol
         return usage_error(console, format(message::bad_purpose, {purpose}));
     }
 
+    // The key's 32 bytes: from the seed file the owner made, or from the system's random numbers. Wiped when
+    // this function ends, whichever way it ends.
+    lic::signing::Seed seed{};
+    const struct Wipe
+    {
+        lic::signing::Seed& value;
+        ~Wipe()
+        {
+            lic::signing::wipe(value);
+        }
+    } wipe_seed{seed};
+    if (const auto taken = take_seed(*options, seed); !taken)
+    {
+        return fail(console, taken.error());
+    }
+
     const std::string folder_name = options->value("--out");
     const fs::path folder = path_from_utf8(folder_name);
     std::error_code error;
@@ -620,40 +699,14 @@ int keygen_command(std::span<const std::string> arguments, const Console& consol
     {
         return fail(console, format(message::folder_in_repository, {folder_name}));
     }
-    const fs::path private_path = folder / path_from_utf8(id + ".adlkey");
-    const fs::path public_path = folder / path_from_utf8(id + ".adlpub");
+    const fs::path private_path = folder / path_from_utf8(id + ".adlownerkey");
+    const fs::path public_path = folder / path_from_utf8(id + ".adlownerpub");
     for (const fs::path& path : {private_path, public_path})
     {
         if (fs::exists(fs::symlink_status(path, error)))
         {
             return fail(console, format(message::cannot_write, {path_to_utf8(path), message::reason_exists}));
         }
-    }
-
-    // 32 random bytes from the system's source of them. The key is refused if it came out as the test key
-    // or as nothing but zeros, which would mean the source is not working.
-    lic::signing::Seed seed{};
-    try
-    {
-        std::random_device device;
-        for (std::size_t i = 0; i < seed.size(); i += 4)
-        {
-            const std::uint32_t word = device();
-            for (std::size_t k = 0; k < 4; ++k)
-            {
-                seed[i + k] = static_cast<std::uint8_t>((word >> (8 * k)) & 0xFF);
-            }
-        }
-    }
-    catch (const std::exception&)
-    {
-        lic::signing::wipe(seed);
-        return fail(console, message::no_random);
-    }
-    if (std::ranges::all_of(seed, [](std::uint8_t b) { return b == 0; }) || seed == lic::test_keys::private_key())
-    {
-        lic::signing::wipe(seed);
-        return fail(console, message::random_refused);
     }
 
     sf::TrustedKey pub;
@@ -728,6 +781,15 @@ int keygen_command(std::span<const std::string> arguments, const Console& consol
     out << message::key_public_advice << '\n';
     out << "Key: " << id << '\n';
     out << "Purpose: " << purpose << '\n';
+    if (options->has("--seed-file"))
+    {
+        out << format(message::key_source_file, {options->value("--seed-file")}) << '\n';
+        out << message::seed_file_advice << '\n';
+    }
+    else
+    {
+        out << message::key_source_random << '\n';
+    }
     out << "Public key: " << sf::base64url_encode(pub.key) << '\n';
     out << "Public key (hex): " << hex(pub.key) << '\n';
     out << message::key_trust_advice1 << '\n' << message::key_trust_advice2 << '\n';

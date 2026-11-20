@@ -313,11 +313,11 @@ class Issue(Scratch):
         missing = run("issue", "--request", self.folder / "none.json", "--dry-run")
         self.assertEqual(missing.code, 1)
         no_key = run("issue", "--request", request, "--out", self.folder / "o.adllic",
-                     "--key-id", "lic-2026-a", "--key-file", self.folder / "no.adlkey")
+                     "--key-id", "lic-2026-a", "--key-file", self.folder / "no.adlownerkey")
         self.assertEqual(no_key.code, 1)
         self.assertIn("the key file", no_key.err)
         self.assertFalse((self.folder / "o.adllic").exists())
-        junk = self.write("junk.adlkey", "this is not a key\n")
+        junk = self.write("junk.adlownerkey", "this is not a key\n")
         not_a_key = run("issue", "--request", request, "--out", self.folder / "o.adllic",
                         "--key-id", "lic-2026-a", "--key-file", junk)
         self.assertEqual(not_a_key.code, 1)
@@ -326,7 +326,7 @@ class Issue(Scratch):
 
     def test_a_key_id_that_begins_with_test_is_for_test_only(self) -> None:
         request = self.write("request.json", request_text())
-        key = self.write("k.adlkey", base64.urlsafe_b64encode(bytes(range(32))).decode().rstrip("=") + "\n")
+        key = self.write("k.adlownerkey", base64.urlsafe_b64encode(bytes(range(32))).decode().rstrip("=") + "\n")
         result = run("issue", "--request", request, "--out", self.folder / "o.adllic", "--key-id", "test-x", "--key-file", key)
         self.assertEqual(result.code, 2)
         self.assertIn("begins with test-", result.err)
@@ -350,7 +350,7 @@ class Keys(Scratch):
         folder = self.folder / "keys"
         folder.mkdir(exist_ok=True)
         result = run("keygen", "--key-id", key_id, "--purpose", purpose, "--out", folder)
-        return folder / f"{key_id}.adlkey", folder / f"{key_id}.adlpub", result
+        return folder / f"{key_id}.adlownerkey", folder / f"{key_id}.adlownerpub", result
 
     def test_keygen_writes_the_pair_and_never_prints_the_private_half(self) -> None:
         private, public, result = self.make_key()
@@ -366,7 +366,7 @@ class Keys(Scratch):
         self.assertIn(text.split('"public_key":"')[1][:43], result.out)
         self.assertIn("not shown here and is never logged", result.out)
         self.assertIn("trusted_keys.cpp", result.out)
-        self.assertEqual(sorted(p.name for p in private.parent.iterdir()), ["lic-2026-a.adlkey", "lic-2026-a.adlpub"])
+        self.assertEqual(sorted(p.name for p in private.parent.iterdir()), ["lic-2026-a.adlownerkey", "lic-2026-a.adlownerpub"])
 
     def test_the_private_file_is_for_its_owner_only_where_the_system_says_so(self) -> None:
         private, _, result = self.make_key()
@@ -387,7 +387,71 @@ class Keys(Scratch):
         folder.mkdir()
         for name in ("lic-2026-a", "lic-2026-b"):
             self.assertEqual(run("keygen", "--key-id", name, "--purpose", "licence", "--out", folder).code, 0)
-        self.assertNotEqual((folder / "lic-2026-a.adlkey").read_bytes(), (folder / "lic-2026-b.adlkey").read_bytes())
+        self.assertNotEqual((folder / "lic-2026-a.adlownerkey").read_bytes(), (folder / "lic-2026-b.adlownerkey").read_bytes())
+
+    def test_keygen_says_where_the_key_came_from(self) -> None:
+        _, _, result = self.make_key()
+        self.assertEqual(result.lines()["Key source"], "the system's random numbers (std::random_device)")
+
+    def test_a_seed_file_is_the_key(self) -> None:
+        seed = bytes(range(1, 33))
+        seed_file = self.folder / "seed.bin"
+        seed_file.write_bytes(seed)
+        folder = self.folder / "keys"
+        folder.mkdir()
+        result = run("keygen", "--key-id", "lic-2026-a", "--purpose", "licence", "--out", folder, "--seed-file", seed_file)
+        self.assertEqual(result.code, 0, result.err)
+        text = base64.urlsafe_b64encode(seed).decode().rstrip("=")
+        self.assertEqual((folder / "lic-2026-a.adlownerkey").read_text(encoding="ascii"), text + "\n")
+        # The tool leaves the seed file as it was, says where the key came from and that the file is the key,
+        # and does not print the key.
+        self.assertEqual(seed_file.read_bytes(), seed)
+        self.assertTrue(result.lines()["Key source"].startswith("the seed file"), result.out)
+        self.assertIn("The seed file is the same key as the private key file", result.out)
+        everything = result.out + result.err
+        for form in (text, seed.hex(), base64.b64encode(seed).decode()):
+            self.assertNotIn(form, everything)
+        # The same seed is the same key, and it signs.
+        again = self.folder / "again"
+        again.mkdir()
+        self.assertEqual(run("keygen", "--key-id", "lic-2026-a", "--purpose", "licence", "--out", again,
+                             "--seed-file", seed_file).code, 0)
+        self.assertEqual((again / "lic-2026-a.adlownerpub").read_bytes(), (folder / "lic-2026-a.adlownerpub").read_bytes())
+        request = self.write("request.json", request_text("ADL-2026-000123"))
+        out = self.folder / "o.adllic"
+        self.assertEqual(run("issue", "--request", request, "--out", out, "--key-id", "lic-2026-a",
+                             "--key-file", folder / "lic-2026-a.adlownerkey").code, 0)
+        judged = run("verify", out, "--trust", folder / "lic-2026-a.adlownerpub", "--now", "2026-12-01T00:00:00Z")
+        self.assertEqual(judged.code, 0, judged.out)
+
+    def test_a_seed_file_that_is_not_32_bytes_of_a_key_is_refused(self) -> None:
+        folder = self.folder / "keys"
+        folder.mkdir()
+        as_text = bytes(range(1, 33)).hex().encode()
+        cases = {
+            "empty": (b"", "not exactly 32 bytes"),
+            "short": (bytes(range(1, 32)), "not exactly 32 bytes"),
+            "long": (bytes(range(1, 34)), "not exactly 32 bytes"),
+            "huge": (bytes(5000), "larger than"),
+            "text": (as_text, "not exactly 32 bytes"),
+            "zeros": (bytes(32), "all zero or are the test key"),
+            "test_key": (TEST_SEED, "all zero or are the test key"),
+        }
+        for name, (data, why) in cases.items():
+            with self.subTest(case=name):
+                seed_file = self.folder / f"{name}.bin"
+                seed_file.write_bytes(data)
+                result = run("keygen", "--key-id", "lic-2026-a", "--purpose", "licence", "--out", folder,
+                             "--seed-file", seed_file)
+                self.assertEqual(result.code, 1, result.out)
+                self.assertIn("the seed file", result.err)
+                self.assertIn(why, result.err)
+                self.assertNotIn(as_text.decode(), result.out + result.err)
+                self.assertEqual(list(folder.iterdir()), [])
+        missing = run("keygen", "--key-id", "lic-2026-a", "--purpose", "licence", "--out", folder,
+                      "--seed-file", self.folder / "nothing.bin")
+        self.assertEqual(missing.code, 1)
+        self.assertIn("it does not exist", missing.err)
 
     def test_keygen_never_writes_over_a_key(self) -> None:
         private, public, first = self.make_key()
@@ -464,7 +528,7 @@ class Keys(Scratch):
             "two_lines": good + good,
         }.items():
             with self.subTest(case=name):
-                result = run("inspect", valid, "--trust", self.write(f"{name}.adlpub", text))
+                result = run("inspect", valid, "--trust", self.write(f"{name}.adlownerpub", text))
                 self.assertEqual(result.code, 1)
                 self.assertIn("is refused", result.err)
 
@@ -485,11 +549,11 @@ class Utf8(Scratch):
                 request = self.write(f"request-{word}.json", request_text("ADL-2026-000123"))
                 out = folder / f"licence-{word}.adllic"
                 issued = run("issue", "--request", request, "--out", out,
-                             "--key-id", "lic-2026-a", "--key-file", folder / "lic-2026-a.adlkey")
+                             "--key-id", "lic-2026-a", "--key-file", folder / "lic-2026-a.adlownerkey")
                 self.assertEqual(issued.code, 0, issued.err)
                 self.assertTrue(out.is_file())
                 self.assertIn(word, issued.out)
-                judged = run("verify", out, "--trust", folder / "lic-2026-a.adlpub", "--now", "2026-12-01T00:00:00Z")
+                judged = run("verify", out, "--trust", folder / "lic-2026-a.adlownerpub", "--now", "2026-12-01T00:00:00Z")
                 self.assertEqual(judged.code, 0, judged.out)
 
     def test_a_licensee_name_outside_ascii_is_signed_and_shown(self) -> None:

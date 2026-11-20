@@ -38,7 +38,7 @@ options:
                 [--latest-seen <time>] [--build-time <time>] [--revocations <file>]
   issue --request <file> --out <file> (--test | --key-id <id> --key-file <file>) [--dry-run]
   revocations --request <file> --out <file> (--test | --key-id <id> --key-file <file>) [--dry-run]
-  keygen --key-id <id> --purpose licence|revocations --out <folder>
+  keygen --key-id <id> --purpose licence|revocations --out <folder> [--seed-file <file>]
 
 --test signs and checks with the throwaway key test-rfc8032-1, which no program accepts.
 Times are written like 2026-11-13T02:10:00Z. File names and output are UTF-8.
@@ -125,6 +125,15 @@ inline constexpr std::string_view key_trust_advice2 =
 inline constexpr std::string_view key_standby_advice =
     "Make a standby key now with the same command and another id, and add its public half to the same list, so "
     "that a leak of this key can be answered at once.";
+inline constexpr std::string_view seed_file_refused = "the seed file %1 is refused: %2";
+inline constexpr std::string_view seed_file_size =
+    "it is not exactly 32 bytes: the key is those 32 bytes and nothing else, as a generator of your own makes them";
+inline constexpr std::string_view seed_unusable =
+    "the 32 bytes are all zero or are the test key, which no real key may be: no key was made";
+inline constexpr std::string_view key_source_random = "Key source: the system's random numbers (std::random_device)";
+inline constexpr std::string_view key_source_file = "Key source: the seed file %1, which was read and not changed";
+inline constexpr std::string_view seed_file_advice =
+    "  The seed file is the same key as the private key file. Keep it as carefully, or destroy it.";
 inline constexpr std::string_view key_removed = "the key files were removed, because %1";
 inline constexpr std::string_view key_check_failed = "the key file written could not be read back";
 
