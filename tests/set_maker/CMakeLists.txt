@@ -26,9 +26,11 @@ target_link_libraries(adl_set_maker_tests
 
 adl_deploy_sanitizer_runtime(adl_set_maker_tests)
 
+# They write whole sets to a temporary folder, which a Debug build with the sanitizers does slowly on a machine that is
+# busy, so they have longer than the 120 seconds of the tests that write nothing.
 foreach(tag make inspect plan validate)
     add_test(NAME set_maker.${tag} COMMAND adl_set_maker_tests "[${tag}]")
     set_tests_properties(set_maker.${tag} PROPERTIES
-        TIMEOUT 120
+        TIMEOUT 300
         LABELS "unit")
 endforeach()

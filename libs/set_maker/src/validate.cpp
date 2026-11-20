@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cctype>
 #include <string_view>
+#include <unordered_set>
 
 namespace adl::set_maker
 {
@@ -163,6 +164,8 @@ std::vector<Problem> validate(const SetPlan& plan)
         }
 
         std::size_t data_files = 0;
+        // The names met so far, folded, so that a name is compared with the others once and not with each in turn.
+        std::unordered_set<std::string> names;
         for (std::size_t k = 0; k < load.files.size(); ++k)
         {
             const PlannedFile& file = load.files[k];
@@ -175,18 +178,14 @@ std::vector<Problem> validate(const SetPlan& plan)
             }
             const std::string text =
                 check_name(file.kind == FileKind::data ? NameKind::data_file : NameKind::support_file, file.name);
+            const bool first_of_its_name = names.insert(folded(file.name)).second;
             if (!text.empty())
             {
                 add(problems, where, text);
-                continue;
             }
-            for (std::size_t other = 0; other < k; ++other)
+            else if (!first_of_its_name)
             {
-                if (folded(load.files[other].name) == folded(file.name))
-                {
-                    add(problems, where, "another file of this load has this name");
-                    break;
-                }
+                add(problems, where, "another file of this load has this name");
             }
         }
         if (data_files == 0)

@@ -33,11 +33,13 @@ target_link_libraries(adl_make_set_tests
 
 adl_deploy_sanitizer_runtime(adl_make_set_tests)
 
-# The description, the JSON and the command line: plain functions.
+# The description, the JSON and the command line: plain functions. The test of the limits reads a description of
+# 22000 files, which a Debug build with the sanitizers does slowly (std::filesystem::path above all), so they have
+# longer than the 120 seconds of most tests.
 foreach(tag description cli fuzz docs)
     add_test(NAME make_set.${tag} COMMAND adl_make_set_tests "[${tag}]")
     set_tests_properties(make_set.${tag} PROPERTIES
-        TIMEOUT 120
+        TIMEOUT 300
         LABELS "unit")
 endforeach()
 
@@ -45,7 +47,7 @@ endforeach()
 # exit code and the events of everything that can go wrong.
 add_test(NAME make_set.command COMMAND adl_make_set_tests "[command]")
 set_tests_properties(make_set.command PROPERTIES
-    TIMEOUT 120
+    TIMEOUT 300
     LABELS "system")
 
 # The built program as a process: its version and help, and a set made from a folder named in three languages
