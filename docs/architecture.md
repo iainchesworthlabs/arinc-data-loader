@@ -107,7 +107,9 @@
   Signing is a separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the
   published test key (`adl_licence_test_keys`); no program links either. The library takes no product name except in
   `product.hpp`, `trusted_keys.cpp` and `revocations_release.cpp`, so that it can move into a repository
-  that more than one product shares.
+  that more than one product shares. Its strict JSON reader (no repeated key, no comment, no trailing comma,
+  UTF-8 only, eight levels deep) is also public as `adl/licence/json.hpp` (`adl::licence::json`), for the
+  other files of this repository that have to mean one thing to every reader, such as a scenario file.
 - **`libs/licence_platform`** is the part of the licence work that is this product's: the store's `Files`
   interface filled in with `adl::platform::FileSystem`, and the folders ARINC Data Loader keeps its licences
   and its clock file in (below the platform's user and machine folders, or below `ADL_SETTINGS_DIR`, which a
