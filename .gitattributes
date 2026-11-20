@@ -22,7 +22,22 @@ CMakeLists.txt text
 # Git hooks are run by sh: LF only, whatever the checkout platform.
 tools/hooks/* text eol=lf
 
+# Signed files: the signature covers the payload and not the line ends, but the test licences are compared byte
+# for byte with what the owner's tool writes (tests/licence/make_test_licences.py), so no checkout may change one.
+*.adllic -text
+*.adlrev -text
+
+# The files that the tests of adl_make_set make a set from: the bytes of a set are compared with what is written
+# down, so no checkout may change a line end in any of them.
+tests/make_set/data/** -text
 # The fuzzers' seed inputs and past crashes are bytes: git does not change their line endings, so
 # that a seed that is a command line (libs/mock_target_core/fuzz) is the same on every checkout.
 libs/*/fuzz/corpus/** -text
 libs/*/fuzz/regressions/** -text
+
+# The golden files of the operation record are compared byte for byte: a checkout keeps their line feeds.
+tests/loader_core/golden/*.json text eol=lf
+# The same for the records that the tests of adl_load compare.
+tests/load/golden/*.json text eol=lf
+# The seeds of the requests fuzzer hold line feeds and carriage returns, which a checkout must not change.
+apps/load/fuzz/corpus/serve_request/* -text

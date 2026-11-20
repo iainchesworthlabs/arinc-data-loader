@@ -27,7 +27,7 @@ struct OptionSpec
     bool repeatable;
 };
 
-constexpr std::array<OptionSpec, 28> known_options{{
+constexpr std::array<OptionSpec, 30> known_options{{
     {"--hardware-id", true, false},
     {"--position", true, false},
     {"--type-name", true, false},
@@ -51,6 +51,8 @@ constexpr std::array<OptionSpec, 28> known_options{{
     {"--wrong-checksum", false, false},
     {"--abort-after", true, false},
     {"--silent", false, false},
+    {"--scenario", true, false},
+    {"--scenario-actions", false, false},
     {"--operations", true, false},
     {"--seconds", true, false},
     {"--json", false, false},
@@ -264,6 +266,11 @@ std::expected<Options, UsageError> parse_options(std::span<const std::string_vie
             options.action = Action::version;
             return options;
         }
+        if (name == "--scenario-actions")
+        {
+            options.action = Action::scenario_actions;
+            return options;
+        }
         if (name == "--hardware-id" || name == "--position")
         {
             const bool is_position = name == "--position";
@@ -309,13 +316,15 @@ std::expected<Options, UsageError> parse_options(std::span<const std::string_vie
                 return std::unexpected(*error);
             }
         }
-        else if (name == "--holds" || name == "--storage")
+        else if (name == "--holds" || name == "--storage" || name == "--scenario")
         {
             if (value.empty())
             {
-                return fail(std::string{name} + " needs a folder");
+                return fail(std::string{name} + (name == "--scenario" ? " needs a file" : " needs a folder"));
             }
-            (name == "--holds" ? options.holds : options.storage) = adl::platform::path_from_utf8(value);
+            (name == "--holds"     ? options.holds
+             : name == "--storage" ? options.storage
+                                   : options.scenario) = adl::platform::path_from_utf8(value);
         }
         else if (name == "--address")
         {
@@ -430,6 +439,20 @@ std::expected<Options, UsageError> parse_options(std::span<const std::string_vie
         }
     }
 
+    if (options.scenario)
+    {
+        // The scenario says which fault happens when, so the options that set one for the whole run are not
+        // taken with it (they would have to be added to the scenario, and which wins would be a rule to learn).
+        for (const std::string_view fault :
+             {"--wait-first", "--wait-every", "--refuse", "--refuse-code", "--invalid-init-file", "--drop-status-every",
+              "--corrupt-served", "--wrong-checksum", "--abort-after", "--silent"})
+        {
+            if (seen.contains(fault))
+            {
+                return fail("--scenario cannot be used with " + std::string{fault} + ": the scenario sets the faults");
+            }
+        }
+    }
     if (wait_first && wait_every)
     {
         return fail("--wait-first and --wait-every cannot both be given");
@@ -493,6 +516,10 @@ std::vector<std::string> fault_options(const Options& options)
     {
         faults.emplace_back("--silent");
     }
+    if (options.scenario)
+    {
+        faults.emplace_back("--scenario");
+    }
     return faults;
 }
 
@@ -537,6 +564,9 @@ std::string usage_text()
            "  --wrong-checksum          write a wrong check value option\n"
            "  --abort-after <n>         abort (0x1003) after n status files\n"
            "  --silent                  say nothing after the first status file; needs --seconds\n"
+           "  --scenario <file>         take the faults from a scenario file, which says which happens when\n"
+           "                            (instead of the fault options above); see the guide\n"
+           "  --scenario-actions        print the actions a scenario file may use, one for each line, and exit\n"
            "\n"
            "stopping\n"
            "  --operations <n>          stop after n operations (a refused one counts)\n"
@@ -547,7 +577,7 @@ std::string usage_text()
            "  --help, --version\n"
            "\n"
            "exit codes: 0 stopped as asked, 1 the run failed, 2 wrong usage, 3 a folder cannot be used,\n"
-           "4 a port cannot be opened\n";
+           "4 a port cannot be opened, 5 a scenario file cannot be used\n";
 }
 
 } // namespace adl::mock::cli

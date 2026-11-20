@@ -21,6 +21,7 @@ This page lists the limits of the programs and the problems that are known. It w
 | `THW_ID_POS` | 1 to 240 characters, none a control character, a slash or a backslash. For a download also printable ASCII only, and none of colon, asterisk, question mark, quote, angle bracket or bar, because the download folder is named after it | The loader |
 | Mock target FIND answer | Hardware ID 15 characters, type name 8, position 8, literal name 20, manufacturer code 3 | ARINC 615A-3, Attachment 3 |
 | Activity log lines | 100 to 1 000 000 (default 2000) | The loader |
+| Licence files | At most 64 KiB each, and 64 files read from each of the two licence folders, in name order | The licence code ([where licence files go](licence.md#where-licence-files-go)) |
 | Ports | 1 to 65535 | UDP |
 | Time-out for a packet | 2 seconds, and one retry | ARINC 615A-3, Attachment 4 |
 | Wait for a status file | 13 seconds | ARINC 615A-3, Attachment 4 |

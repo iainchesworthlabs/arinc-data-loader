@@ -5,7 +5,7 @@
 #
 #   cmake -DBUILD_DIR=<build tree> -DSOURCE_DIR=<repository root> -DWORK_DIR=<scratch>
 #         -DGENERATOR=<generator> -DCXX_COMPILER=<compiler> -DBUILD_TYPE=<config> -DDOC_DIR=<where the
-#         licence files are installed>
+#         licence files are installed> [-DPYTHON=<python> -DPACKAGE_CHECK=<check_package_contents.py>]
 #         -P tests/packaging/check_install.cmake
 cmake_minimum_required(VERSION 3.28)
 
@@ -25,12 +25,23 @@ if(NOT result EQUAL 0)
     message(FATAL_ERROR "installing the development component failed (${result}):\n${output}\n${error}")
 endif()
 
-foreach(expected include/adl/arinc665/crc.hpp include/adl/loader_core/media_source.hpp include/adl/platform/host.hpp lib/cmake/adl/adlConfig.cmake
+foreach(expected include/adl/arinc665/crc.hpp include/adl/loader_core/media_source.hpp include/adl/loader_core/record_json.hpp include/adl/platform/host.hpp lib/cmake/adl/adlConfig.cmake
         lib/cmake/adl/adlTargets.cmake "${DOC_DIR}/LICENSE.txt")
     if(NOT EXISTS "${WORK_DIR}/prefix/${expected}")
         message(FATAL_ERROR "the development package lacks ${expected}")
     endif()
 endforeach()
+
+# What signs licences is not in a package (tools/release/check_package_contents.py, which the release runs on
+# every package it builds): no owner tool, no signing library, no key file in what was installed.
+if(PYTHON AND PACKAGE_CHECK)
+    execute_process(
+        COMMAND "${PYTHON}" -I "${PACKAGE_CHECK}" --directory "${WORK_DIR}/prefix"
+        RESULT_VARIABLE result OUTPUT_VARIABLE output ERROR_VARIABLE error)
+    if(NOT result EQUAL 0)
+        message(FATAL_ERROR "the development package holds the owner tool, a signing library or a key file:\n${output}\n${error}")
+    endif()
+endif()
 
 # The exported targets must not name the source or build tree.
 file(GLOB targets_files "${WORK_DIR}/prefix/lib/cmake/adl/adlTargets*.cmake")

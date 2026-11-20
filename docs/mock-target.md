@@ -19,7 +19,7 @@ an operation, drop status files, send a wrong checksum, abort on its own, or go 
 | FIND | Listens on UDP port 1001 (configurable) and answers a FIND request with the configured identity: target hardware ID, type name, position, literal name and manufacturer code (`adl::arinc615a`'s FIND codec). |
 | Initialization files | A TFTP server on port 59 (configurable) serves `<THW_ID_POS>.LCI`, `.LUI`, `.LND` and `.LNO` with an "accepted" status file and protocol version A4. It honors the loader's options (block size, and the `port` option that lets the loader use a control port of its own). With an injection it answers WAIT or refuses the operation with 0x1000 ("operation denied"), so the loader's error paths can be shown. The engine can also refuse with 0x1002 and serve an initialization file of an invalid structure (`Config::refusal`, `Config::garbage_init`); the window has no control for either. |
 | Information | Writes the configuration status files (`.LCS`), then the configuration list (`.LCL`, hardware with parts), then the final status 0x0003, on the DLP status cadence. |
-| Upload | Reads the upload request (`.LUR`), then each load's header, data and support files from the loader, checking each against the check value the header file records; writes upload status files (`.LUS`) with per-load progress; stores what it read to `<storage folder>/<load part number>/<file name>`; ends 0x0003, or 0x0002 naming the failed loads. |
+| Upload | Reads the upload request (`.LUR`), then each load's header, data and support files from the loader, comparing each with the check value the header file records; writes upload status files (`.LUS`) with per-load progress; stores what it read to `<storage folder>/<load part number>/<file name>`; ends 0x0003. A file that does not match its check value is written in the log as a warning and stored all the same, and the upload still ends 0x0003. A real target is expected to refuse such a load; the mock target does not. |
 | Download | Both modes: for a media defined download it serves the files the loader's `.LNR` asks for; for an operator defined one it writes the list of files it holds (`.LNL`) and serves only the ones the loader's `.LNA` chooses. The files it can serve are read **once, when Start is pressed** (the session), from `<storage folder>/holds` (a folder you make; the mock target does not create it), so a file put there while the target is running is not served until it is stopped and started again; with no storage folder, no `holds` folder or nothing in `holds` it holds one demonstration file, `DEMO.TXT`. Download status files (`.LNS`) carry the progress; it ends 0x0003. |
 | Aborts | When the loader sends ABORT, the mock target stops its transfers and ends the operation with a final status file carrying the loader's code, which is what makes the loader report the abort as confirmed. |
 | Injections | Answer the first request with WAIT for N seconds, answer every request with WAIT, refuse one chosen operation (Information, Upload, Download media defined, Download operator defined), drop every Nth status file, a bit flipped in every served file (the protocol files included, so a download ends at once as "unsupported protocol version"), a wrong checksum option (reported as a notice; the file is kept and the operation completes), an abort (status 0x1003) after N status files, and silence after the first status file (the loader then runs into its 13 second data load protocol time-out). Think time (0 to 60 000 ms, default 1000) and the status file period (0 to 3600 s, default 4) shape the pace of a dialogue. Defaults: behave. |
@@ -68,6 +68,8 @@ folder with `path_from_utf8` ([Command-line programs](architecture.md#command-li
 | `--wrong-checksum` | Write a wrong check value option | Off |
 | `--abort-after <n>` | Abort (0x1003) after n status files | Off |
 | `--silent` | Say nothing after the first status file, so the loader runs into its 13 second time-out. The operation never ends, so it needs `--seconds` | Off |
+| `--scenario <file>` | Take the faults from a scenario file, which says which fault happens when, in place of the fault options above ([Scenarios](#scenarios)) | Off |
+| `--scenario-actions` | Print the words that `action` may have in a scenario file, one for each line, and end with exit code 0 | |
 | `--operations <n>`, `--seconds <n>` | Stop after n operations (a refused one counts), or after n seconds | Run until killed |
 | `--json` | One JSON object a line | One plain line an event |
 | `--help`, `--version` | The usage; `adl_mock <version> events 1` | |
@@ -97,7 +99,7 @@ By default an event is one plain line for a person: the seconds since the progra
 and `key=value` pairs (a value with a space or a quote in it is written as a JSON string):
 
 ```text
-0.003 started program=adl_mock version=0.1.1 events=1 thw_id_pos=HNPFMS_L address=127.0.0.1 find_port=1001 tftp_port=59 faults=none
+0.003 started program=adl_mock version=0.1.1 events=1 thw_id_pos=HNPFMS_L address=127.0.0.1 find_port=1001 tftp_port=59 faults=none scenario_features=wait,refuse,invalid_init_file,drop_status_file,abort,silent,corrupt_served,wrong_checksum,delay,drop_datagram,duplicate_datagram,reorder_datagram
 1.210 operation_began operation=information
 1.211 progress operation=information percent=0
 ...
@@ -111,12 +113,14 @@ came off the wire is written as JSON; bytes in it that are not UTF-8 are written
 
 | `event` | When | Keys beside `event` and `t` |
 | --- | --- | --- |
-| `started` | First: the ports are open | `program` (`adl_mock`), `version`, `events` (the number of this format, 1), `thw_id_pos`, `address`, `find_port`, `tftp_port`, `faults` (the fault options that are on, as written, without their values) |
+| `started` | First: the ports are open | `program` (`adl_mock`), `version`, `events` (the number of this format, 1), `thw_id_pos`, `address`, `find_port`, `tftp_port`, `faults` (the fault options that are on, as written, without their values), `scenario_features` (the action words a scenario file may use in this version, as in `--scenario-actions`) |
 | `operation_began` | A request was accepted | `operation`: `information`, `upload`, `download_media_defined` or `download_operator_defined` |
 | `progress` | The percentage of the list it has got through changed | `operation`, `percent` (0 to 100) |
 | `upload_received` | An upload completed, before it ends | `part_number`, `files` (the names, the header file first), `stored_in` (the load's folder, or `null` when nothing was kept) |
 | `operation_ended` | The last status file went out, or the operation was refused and never began | `operation`, `status` (the status code as a number, or `null` for an invalid initialization file), `status_name` (the name of the code: `completed`, `aborted_by_target`, `operation_denied`, `operation_not_supported`, ..., or `invalid_initialization_file`), `refused` |
-| `stopped` | Last | `reason` (`operations`, `seconds` or `error`), `operations` (how many ended) |
+| `scenario_step` | With `--scenario`: the trigger of a step occurred, before what the action causes | `step`, `trigger`, `at`, `operation`, `action`, `applied`, and `seconds`, `status`, `ms`, `copies` or `within_ms` for the action that has one, and for an action on datagrams `count` and the `datagram`, `file` and `block` that the step names ([Scenarios](#scenarios)) |
+| `scenario_datagram` | With `--scenario`: a step that acts on datagrams met one it matches, before the datagram goes | `step`, `action`, `applied`, `datagram`, `file`, `block`, `to`, `size` |
+| `stopped` | Last | `reason` (`operations`, `seconds` or `error`), `operations` (how many ended), and with `--scenario` `scenario_unused` (the numbers of the steps that never fired) and `scenario_idle` (the numbers of the steps on datagrams that fired and met none) |
 
 A reader refuses an `events` number it does not know, and ignores a key it does not know: a key can be added
 without changing the number, and removing or renaming one, or changing what one means, changes it. A target that
@@ -126,13 +130,32 @@ has gone silent never ends its operation and writes no `operation_ended` for it.
 
 | Code | Meaning |
 | --- | --- |
-| 0 | It stopped as asked (`--operations` served, `--seconds` passed), or printed `--help` or `--version` |
+| 0 | It stopped as asked (`--operations` served, `--seconds` passed), or printed `--help`, `--version` or `--scenario-actions` |
 | 1 | The run failed: the platform would not start, or waiting on the network failed (`stopped` says `error`) |
 | 2 | Wrong usage |
 | 3 | A folder cannot be used: `--holds` is not a folder or cannot be read, or `--storage` is not a folder and cannot be made |
 | 4 | A port cannot be opened: it is in use, or needs a privilege |
+| 5 | The scenario file given with `--scenario` cannot be read or is refused |
 
-On exits 2, 3 and 4 no event is written: the target never started.
+On exits 2, 3, 4 and 5 no event is written: the target never started.
+
+### Scenarios
+
+A scenario is a file that says which fault the target shows and when, so that a run with faults can be repeated: a list
+of steps, each with a trigger (the nth request, the nth status file, or a time since the operation began) and an action
+(any of the faults above, a delay, or a fault on the datagrams the target sends: lose one, send one several times, send one late, hold one back so that the next goes first), and a seed that fixes every chance. `--scenario <file>` takes it in place of the
+fault options (it cannot be given with one), and the file is read before anything is opened: a file that cannot be read
+or is refused ends the program with exit code 5 and one sentence on the standard error. The file, the triggers, the
+actions, the seed and every sentence are in the guide, [Scenarios for the mock target](user-guide/mock-scenarios.md).
+
+The engine knows nothing of scenario files. It asks a plan (`FaultPlan`, `adl/mock/fault_plan.hpp`) at each request for
+an initialization file, at each status file, and when a step set for a time after an operation began comes due, and does
+what the answer says with the faults it already has. For each datagram it is about to send (`on_datagram`) it says
+what the datagram is (its kind, its file, its block) and the plan answers: send it, drop it, send it several times,
+send it later, or hold it until the next datagram has gone. `ScenarioPlayer` (`libs/mock_scenario`) is the plan that a
+scenario makes: it counts the occurrences of each step, draws from the stream of the step (SplitMix64,
+`libs/scenario_base`), and tells an observer about each, which is what `adl_mock` writes as the `scenario_step` and
+`scenario_datagram` events. With no plan the engine behaves as it always did.
 
 ## Layout
 
@@ -184,11 +207,14 @@ copyable; an unset storage folder is called out as "still serves, not kept".
   mock target shares no transfer code with the loader's engine, so a dialogue that completes
   exercises two implementations of the transfer, both written in this repository. Neither has met
   a real target.
-- **Uploads are checked, not just received.** Each file the target reads is verified against the
+- **Uploads are compared, not just received.** Each file the target reads is compared with the
   check value its header file records (the header's check value, or the 16-bit CRC field), and
   the header file itself is decoded with `adl::arinc665::decode_header_file` to learn which
-  files to read. A load whose file fails the check is failed in the upload status file, which
-  is what makes the loader report the operation as failed.
+  files to read. A file that does not match is written in the log as a warning and stored all the
+  same: no load is marked as failed, no upload status file says so, and the upload ends 0x0003. A
+  real target is expected to refuse a load with a damaged file, and the mock target does not. The
+  scenario action `wrong_checksum` is for the other direction, the check values the target writes
+  in its own answers ([Scenarios](user-guide/mock-scenarios.md)).
 - **The link owns the platform.** `RealTargetLink` makes an `adl::platform::Host` once per
   session on the engine's thread (like the loader's `system_host_factory`), binds the FIND and
   TFTP ports with `reuse_address` and a receive buffer, opens one socket per transfer port on

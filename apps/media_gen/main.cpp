@@ -3,6 +3,7 @@
 #include "adl/ui/build_info.hpp"
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/language_manager.hpp"
+#include "adl/ui/licence_model.hpp"
 #include "adl/ui/settings_location.hpp"
 #include "adl/ui/smoke_test.hpp"
 #include "adl/ui/version.hpp"
@@ -37,6 +38,10 @@ int main(int argc, char* argv[])
     // Declared before the engine, so the engine's thread is stopped after the window has gone.
     adl::gen::GeneratorModel model;
 
+    // What the programs say about the licence on this computer. Declared before the engine too: the
+    // windows read it until they are gone.
+    adl::ui::LicenceModel licence_model;
+
     // Held in an optional so it can be destroyed explicitly, before the language manager: the
     // window's bindings read that manager, and a binding still evaluated while the QML tree is
     // being torn down would see it as null.
@@ -51,6 +56,10 @@ int main(int argc, char* argv[])
     QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &model,
                      &adl::gen::GeneratorModel::retranslate);
     engine->rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    // The licence model's words follow a language switch too.
+    QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &licence_model,
+                     &adl::ui::LicenceModel::retranslate);
+    engine->rootContext()->setContextProperty(QStringLiteral("licence"), &licence_model);
 
     QObject::connect(
         &*engine, &QQmlApplicationEngine::objectCreationFailed, &application, [] { QCoreApplication::exit(1); },

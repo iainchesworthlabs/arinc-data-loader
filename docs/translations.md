@@ -25,7 +25,7 @@ smaller claim than that every translation is right. The terms to look at first a
 
 | Catalogue | Source of the strings | File |
 | --- | --- | --- |
-| Shared interface | `libs/ui/qml` (dialogs, log view, check tile, language picker, licences) | `libs/ui/translations/adl_ui_<code>.ts` |
+| Shared interface | `libs/ui/qml` (dialogs, log view, check tile, language picker, licences, the Licence and Support dialogs) and `libs/ui/licence_model.cpp` (the words of the licence, in the context `adl::ui::LicenceModel`: translated when read, so `retranslate()` on the model makes the windows read them again) | `libs/ui/translations/adl_ui_<code>.ts` |
 | Loader | `apps/app/qml`, `apps/app/core` | `apps/app/translations/adl_app_<code>.ts` |
 | Generator | `apps/media_gen/qml`, `apps/media_gen/core` | `apps/media_gen/translations/adl_media_gen_<code>.ts` |
 | Mock target | `apps/mock_target/qml`, `apps/mock_target/core` (its model; the 615A engine's activity lines are not translated) | `apps/mock_target/translations/adl_mock_target_<code>.ts` |

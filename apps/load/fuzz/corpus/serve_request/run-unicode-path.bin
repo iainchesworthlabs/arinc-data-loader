@@ -1,0 +1,1 @@
+run	fms-left.1	upload	--target	192.168.10.21	--position	HNPFMS_L	--media-set	wide-é-日本語-😀 and spaces	--all-loads

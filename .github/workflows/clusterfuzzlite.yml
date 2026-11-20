@@ -5,7 +5,8 @@ name: ClusterFuzzLite
 # them for ten minutes between them. A crash fails the run and the report names the input. This is an
 # addition to fuzz.yml, which keeps the corpus between runs and fuzzes after the merge, and it is not
 # one of the required checks: the gate replays the seeds and the past crashes (`Fuzz regression` in
-# ci.yml). The fix for a finding adds the input to libs/<lib>/fuzz/regressions/<target>/.
+# ci.yml). The fix for a finding adds the input to regressions/<target>/ beside the harness (libs/<lib>/fuzz
+# or tools/<tool>/fuzz).
 
 on:
   pull_request:
@@ -17,6 +18,7 @@ on:
       - "CMakeLists.txt"
       - "cmake/**"
       - "libs/**"
+      - "tools/licence/**"
   workflow_dispatch:
 
 concurrency:

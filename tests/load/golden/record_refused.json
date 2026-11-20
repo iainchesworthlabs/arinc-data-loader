@@ -1,0 +1,42 @@
+{
+  "format": 1,
+  "kind": "adl-operation-record",
+  "program": {
+    "name": "adl_load",
+    "version": "@VERSION@"
+  },
+  "operation": "information",
+  "target": {
+    "address": "10.0.0.2",
+    "position": "HNPFMS_L"
+  },
+  "started_at": "2026-11-19T10:15:30Z",
+  "ended_at": "2026-11-19T10:15:32Z",
+  "result": "failed",
+  "reason": "target_refused",
+  "status_code": 4096,
+  "detail": "The target refused the operation: denied by the target (not while in flight).",
+  "media_set": null,
+  "loads": [],
+  "configuration": null,
+  "files": [],
+  "download_folder": null,
+  "licence": null,
+  "log": [
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "info",
+      "text": "Asking 10.0.0.2 (HNPFMS_L) for its configuration..."
+    },
+    {
+      "at": "2026-11-19T10:15:30Z",
+      "severity": "warning",
+      "text": "The target answered: denied (not while in flight)"
+    },
+    {
+      "at": "2026-11-19T10:15:32Z",
+      "severity": "error",
+      "text": "Finished: denied by the target."
+    }
+  ]
+}

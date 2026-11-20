@@ -1,0 +1,15 @@
+{"kind":"adl-mock-scenario","format":1,"seed":3,"steps":[
+  {"when":{"request":1},"do":{"action":"wait","seconds":5}},
+  {"when":{"request":2},"do":{"action":"refuse","code":"0x1002"}},
+  {"when":{"request":3},"do":{"action":"invalid_init_file"}},
+  {"when":{"request":4},"do":{"action":"corrupt_served"}},
+  {"when":{"request":5},"do":{"action":"delay","ms":250}},
+  {"when":{"request":6},"do":{"action":"drop_datagram"}},
+  {"when":{"request":7},"do":{"action":"duplicate_datagram"}},
+  {"when":{"request":8},"do":{"action":"reorder_datagram"}},
+  {"when":{"status_file":3},"do":{"action":"drop_status_file"}},
+  {"when":{"status_file":4},"do":{"action":"abort"}},
+  {"when":{"status_file":5},"do":{"action":"silent"}},
+  {"when":{"status_file":6},"do":{"action":"wrong_checksum"}},
+  {"when":{"after_ms":1500,"every":500,"times":2,"operation":"download_media_defined"},"per_mille":300,
+   "do":{"action":"delay","min_ms":10,"max_ms":90}}]}

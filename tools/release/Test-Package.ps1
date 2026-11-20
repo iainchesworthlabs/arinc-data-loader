@@ -78,6 +78,24 @@ foreach ($file in 'LICENSE.txt', 'NOTICES.txt') {
     }
 }
 
+# --- what signs licences stays with the owner ----------------------------------------
+# The owner's licence tool, the libraries it signs with and a key file are never in a package
+# (docs/licence-owner-tool.md). If the check cannot run, that is a failure too: it passes nothing it did not read.
+$python = $null
+foreach ($candidate in @(Get-Command python3, python -CommandType Application -ErrorAction SilentlyContinue)) {
+    # The Microsoft Store's stub is called python3 and answers with a message and a failure: use one that is Python.
+    $version = & $candidate.Source --version 2>&1
+    if ($LASTEXITCODE -eq 0 -and "$version" -match '^Python 3') { $python = $candidate; break }
+}
+if (-not $python) {
+    Add-Problem 'Python was not found, so the package could not be checked for the owner tool, a signing library and key files'
+} else {
+    $checkOutput = & $python.Source -I (Join-Path $PSScriptRoot 'check_package_contents.py') --directory $root 2>&1
+    $checkOutput | ForEach-Object { Write-Host "        $_" }
+    if ($LASTEXITCODE -eq 0) { Add-Ok 'no owner tool, signing library or key file is in the package' }
+    else { Add-Problem 'the package holds the owner tool, a signing library or a key file, or could not be checked for them' }
+}
+
 if ($Settle -gt 0) { Start-Sleep -Seconds $Settle }
 
 # --- a development package: its files, and a program built against it ---------------------------------
@@ -195,6 +213,68 @@ if (-not $mock) {
         Add-Ok "adl_mock says: $said"
     } else {
         Add-Problem "adl_mock --version exited with $LASTEXITCODE and said: $said"
+    }
+}
+
+# --- the command that makes media sets -----------------------------------------------------------
+$maker = Find-Program 'adl_make_set'
+if (-not $maker) {
+    Add-Problem 'adl_make_set is not in the package'
+} else {
+    $line = (& $maker --version 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -eq 0 -and $line -match '^adl_make_set \S+ events 1$') {
+        Add-Ok "adl_make_set says: $line"
+    } else {
+        Add-Problem "adl_make_set --version exited with $LASTEXITCODE and said: $line"
+    }
+}
+
+# --- the command-line loader -----------------------------------------------------------------
+$load = Find-Program 'adl_load'
+if (-not $load) {
+    Add-Problem 'adl_load is not in the package'
+} else {
+    # It needs no target to say what it is, and to refuse a command that is not one (exit code 2).
+    $version = (& $load --version 2>&1) -join "`n"
+    if ($LASTEXITCODE -eq 0 -and $version -match '^adl_load \S+ events 1$') {
+        Add-Ok "adl_load says: $version"
+    } else {
+        Add-Problem "adl_load --version exited with $LASTEXITCODE and said: $version"
+    }
+    & $load no-such-command 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 2) {
+        Add-Ok 'adl_load refuses a command it does not know with exit code 2'
+    } else {
+        Add-Problem "adl_load with a command it does not know exited with $LASTEXITCODE, not 2"
+    }
+}
+
+# --- the licence command -----------------------------------------------------------------
+# On an empty computer (its settings folder is a new one, so no real licence is read) it shows no licence, and says
+# so with the words a script reads.
+$licenceTool = Find-Program 'adl_licence'
+if (-not $licenceTool) {
+    Add-Problem 'adl_licence is not in the package'
+} else {
+    $previousSettings = $env:ADL_SETTINGS_DIR
+    $env:ADL_SETTINGS_DIR = Join-Path $Work 'licence-settings'
+    try {
+        $shown = @(& $licenceTool show 2>&1)
+        $shownCode = $LASTEXITCODE
+        $helped = @(& $licenceTool --help 2>&1)
+        $helpedCode = $LASTEXITCODE
+    } finally {
+        $env:ADL_SETTINGS_DIR = $previousSettings
+    }
+    if ($shownCode -eq 0 -and ($shown -contains 'State: none') -and ($shown -contains 'Edition: community')) {
+        Add-Ok 'adl_licence show reports the Community edition on an empty computer'
+    } else {
+        Add-Problem "adl_licence show exited with $shownCode and said: $($shown -join ' | ')"
+    }
+    if ($helpedCode -eq 0 -and ($helped -join "`n") -match 'usage: adl_licence show') {
+        Add-Ok 'adl_licence --help prints the usage'
+    } else {
+        Add-Problem "adl_licence --help exited with $helpedCode"
     }
 }
 

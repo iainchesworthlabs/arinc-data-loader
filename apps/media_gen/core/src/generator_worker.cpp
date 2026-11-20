@@ -1,18 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adl/gen/generator_worker.hpp"
 
-#include "adl/arinc665/batch_file.hpp"
 #include "adl/arinc665/check_value_type.hpp"
-#include "adl/arinc665/load.hpp"
-#include "adl/arinc665/media_set.hpp"
-#include "adl/arinc665/naming.hpp"
-#include "adl/arinc665/part_number.hpp"
 #include "adl/gen/source_file_model.hpp"
-#include "adl/media_tree/media_tree.hpp"
+#include "adl/set_maker/make.hpp"
+#include "adl/set_maker/plan.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <filesystem>
-#include <fstream>
 #include <new>
 #include <stdexcept>
 #include <string>
@@ -24,48 +20,8 @@ namespace adl::gen
 namespace
 {
 
-using adl::arinc665::BatchFile;
-using adl::arinc665::BatchLoad;
-using adl::arinc665::BatchTarget;
 using adl::arinc665::CheckValueType;
-using adl::arinc665::FilePlacement;
-using adl::arinc665::LoadSpec;
-using adl::arinc665::LoadType;
-using adl::arinc665::MediaSetSpec;
-using adl::arinc665::PartNumber;
-using adl::arinc665::PlacedBatch;
-using adl::arinc665::PlacedLoad;
 using adl::ui::Message;
-
-// The media set's part root directory (section 3.2.4.1.1): the load part number without its
-// hyphens, which the standard recommends, with the backslashes the placement takes.
-std::string part_root_directory(const QString& load_part_number)
-{
-    std::string root = "\\";
-    for (const QChar c : load_part_number)
-    {
-        if (c != QLatin1Char('-'))
-        {
-            root += c.toLatin1();
-        }
-    }
-    root += '\\';
-    return root;
-}
-
-// The same name without the backslashes, for the subdirectories on the other members.
-std::string part_root_name(const QString& load_part_number)
-{
-    std::string name;
-    for (const QChar c : load_part_number)
-    {
-        if (c != QLatin1Char('-'))
-        {
-            name += c.toLatin1();
-        }
-    }
-    return name;
-}
 
 std::filesystem::path to_path(const QString& text)
 {
@@ -91,86 +47,54 @@ CheckValueType check_type(int index)
     return static_cast<CheckValueType>(index);
 }
 
-QString findings_line(const adl::arinc665::Finding& finding)
+// What the operator decided, as the plan the library makes a set from.
+adl::set_maker::SetPlan plan_of(const GenerateJob& job)
 {
-    return QStringLiteral("%1: %2").arg(to_qstring(finding.clause), to_qstring(finding.message));
-}
+    using adl::set_maker::FileKind;
 
-// The directory a media set is written to before it is given its name. Whatever is in it when
-// the job ends without keep() is the job's own debris, and is removed.
-class PartialTree
-{
-public:
-    PartialTree() = default;
-    PartialTree(const PartialTree&) = delete;
-    PartialTree& operator=(const PartialTree&) = delete;
-    ~PartialTree()
+    adl::set_maker::PlannedLoad load;
+    load.part_number = job.load_part_number.toStdString();
+    load.header_file_name = job.header_file_name.toStdString();
+    if (job.load_type_index >= 0 && job.load_type_index < load_type_options().size())
     {
-        if (claimed())
+        const LoadTypeOption& option = load_type_options().at(job.load_type_index);
+        load.type = adl::arinc665::LoadType{std::string{option.description}, option.id};
+    }
+    for (const QString& id : job.target_hardware_ids)
+    {
+        load.target_hardware_ids.push_back(id.toStdString());
+    }
+    load.check = check_type(job.load_check_type);
+    for (const JobFile& file : job.files)
+    {
+        adl::set_maker::PlannedFile planned;
+        planned.source = to_path(file.source_path);
+        planned.name = file.file_name.toStdString();
+        planned.kind = file.kind == SourceFileModel::data_kind ? FileKind::data : FileKind::support;
+        planned.check = check_type(file.check_type);
+        load.files.push_back(std::move(planned));
+    }
+
+    adl::set_maker::SetPlan plan;
+    plan.part_number = job.media_set_part_number.toStdString();
+    plan.members = static_cast<unsigned>(job.member_count);
+    plan.files_check = check_type(job.file_check_type);
+    plan.files_list_check = check_type(job.files_list_check_type);
+    if (job.include_batch)
+    {
+        // The batch names the set's load for each target.
+        adl::set_maker::PlannedBatch batch;
+        batch.part_number = job.batch_part_number.toStdString();
+        batch.file_name = adl::set_maker::default_batch_file_name(batch.part_number);
+        for (const std::string& id : load.target_hardware_ids)
         {
-            static_cast<void>(discard());
+            batch.targets.push_back({id, {load.part_number}});
         }
+        plan.batch = std::move(batch);
     }
-
-    void claim(std::filesystem::path path)
-    {
-        path_ = std::move(path);
-    }
-    [[nodiscard]] bool claimed() const noexcept
-    {
-        return !path_.empty();
-    }
-    [[nodiscard]] const std::filesystem::path& path() const noexcept
-    {
-        return path_;
-    }
-    // The set is whole and has its name: there is nothing to remove.
-    void keep() noexcept
-    {
-        path_.clear();
-    }
-
-    // Removes the directory and what is in it, and says in words, for the operator, whether
-    // anything is left.
-    [[nodiscard]] Message discard()
-    {
-        std::error_code error;
-        std::filesystem::remove_all(path_, error);
-        const bool gone = !std::filesystem::exists(path_, error);
-        const QString where = path_to_qstring(path_);
-        path_.clear();
-        // The context is the worker's: the words are the generator's, not this helper's.
-        return gone ? Message::translated(&GeneratorWorker::tr,
-                                          QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker",
-                                                            "Nothing was kept: what had been written was removed."))
-                    : Message::translated(
-                          &GeneratorWorker::tr,
-                          QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker",
-                                            "What had been written could not be removed, and is still in %1."),
-                          {Message::verbatim(where)});
-    }
-
-private:
-    std::filesystem::path path_;
-};
-
-} // namespace
-
-const QList<LoadTypeOption>& load_type_options()
-{
-    static const QList<LoadTypeOption> options = {
-        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Operational software"), QStringLiteral("OPS"), 0x0001},
-        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Navigation database"), QStringLiteral("NDB"), 0x0002},
-        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Aeronautical database"), QStringLiteral("ADB"), 0x0003},
-        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Test software"), QStringLiteral("TST"), 0x0004},
-    };
-    return options;
+    plan.loads.push_back(std::move(load));
+    return plan;
 }
-
-GeneratorWorker::GeneratorWorker(QObject* parent) : QObject(parent) {}
-
-namespace
-{
 
 Message too_large(const QString& path)
 {
@@ -187,7 +111,84 @@ Message not_written_below(const QString& directory)
         {Message::verbatim(directory)});
 }
 
+// In words, for the operator, whether anything the job had written is left.
+Message discard_message(const adl::set_maker::Discard& discard)
+{
+    // The context is the worker's: the words are the generator's, not this helper's.
+    return discard.removed
+               ? Message::translated(&GeneratorWorker::tr,
+                                     QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker",
+                                                       "Nothing was kept: what had been written was removed."))
+               : Message::translated(
+                     &GeneratorWorker::tr,
+                     QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker",
+                                       "What had been written could not be removed, and is still in %1."),
+                     {Message::verbatim(path_to_qstring(discard.where))});
+}
+
+// A path and what the system said about it, as the window has always shown them: "path (words)".
+Message path_and_words(const std::filesystem::path& path, const std::string& system)
+{
+    if (path.empty())
+    {
+        return {};
+    }
+    if (system.empty())
+    {
+        return Message::verbatim(path_to_qstring(path));
+    }
+    return Message::verbatim(
+        QStringLiteral("%1 (%2)").arg(path_to_qstring(path), QString::fromLocal8Bit(system.c_str())));
+}
+
+Message with_discard(const Message& what, const adl::set_maker::Discard& discard)
+{
+    if (!discard.attempted)
+    {
+        return what;
+    }
+    if (what.isEmpty())
+    {
+        return discard_message(discard);
+    }
+    return Message::sequence({what, Message::verbatim(QStringLiteral(" ")), discard_message(discard)});
+}
+
 } // namespace
+
+// What the library asks of the worker while it makes a set: to say how far the reading has got, and where
+// the job may be stopped.
+class GeneratorWorker::Bridge final : public adl::set_maker::Hooks
+{
+public:
+    explicit Bridge(GeneratorWorker& worker) : worker_(worker) {}
+
+    void progress(int percent) override
+    {
+        Q_EMIT worker_.progress(percent);
+    }
+
+    [[nodiscard]] bool checkpoint(std::string_view place) override
+    {
+        return worker_.checkpoint(place);
+    }
+
+private:
+    GeneratorWorker& worker_;
+};
+
+const QList<LoadTypeOption>& load_type_options()
+{
+    static const QList<LoadTypeOption> options = {
+        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Operational software"), QStringLiteral("OPS"), 0x0001},
+        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Navigation database"), QStringLiteral("NDB"), 0x0002},
+        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Aeronautical database"), QStringLiteral("ADB"), 0x0003},
+        {QT_TRANSLATE_NOOP("adl::gen::GeneratorWorker", "Test software"), QStringLiteral("TST"), 0x0004},
+    };
+    return options;
+}
+
+GeneratorWorker::GeneratorWorker(QObject* parent) : QObject(parent) {}
 
 Message GeneratorWorker::cannot_read(const QString& path)
 {
@@ -236,348 +237,115 @@ void GeneratorWorker::generate(const GenerateJob& job)
     }
 }
 
-void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome)
+void GeneratorWorker::report_failure(const GenerateJob& job, const adl::set_maker::MakeFailure& failure,
+                                     GenerateOutcome& outcome)
 {
-    // ---- 1. read every file, reporting how far the reading has got ----
-    struct PendingFile
-    {
-        JobFile meta;
-        std::vector<std::byte> bytes;
-    };
-    std::vector<PendingFile> pending;
-    pending.reserve(static_cast<std::size_t>(job.files.size()));
+    using adl::set_maker::FailureKind;
 
-    qint64 total_bytes = 0;
-    std::vector<qint64> sizes;
-    sizes.reserve(static_cast<std::size_t>(job.files.size()));
-    for (const JobFile& file : job.files)
+    switch (failure.kind)
     {
-        std::error_code error;
-        const auto size = std::filesystem::file_size(to_path(file.source_path), error);
-        if (error)
-        {
-            fail(outcome, cannot_read(file.source_path));
-            return;
-        }
-        sizes.push_back(static_cast<qint64>(size));
-        total_bytes += sizes.back();
-    }
-
-    qint64 bytes_read = 0;
-    for (qsizetype i = 0; i < job.files.size(); ++i)
-    {
-        if (checkpoint("read"))
-        {
-            stop(outcome);
-            return;
-        }
-        const JobFile& meta = job.files.at(i);
-        std::ifstream stream(to_path(meta.source_path), std::ios::binary);
-        if (!stream)
-        {
-            fail(outcome, cannot_read(meta.source_path));
-            return;
-        }
-        PendingFile entry;
-        entry.meta = meta;
-        const qint64 size = sizes[static_cast<std::size_t>(i)];
-        try
-        {
-            static_cast<void>(checkpoint("allocate"));
-            entry.bytes.resize(static_cast<std::size_t>(size));
-        }
-        catch (const std::length_error&)
-        {
-            fail(outcome, too_large(meta.source_path));
-            return;
-        }
-        catch (const std::bad_alloc&)
-        {
-            fail(outcome, too_large(meta.source_path),
-                 Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Nothing was written. Choose smaller files, or "
-                                                                      "close other programs and try again.")));
-            return;
-        }
-        stream.read(reinterpret_cast<char*>(entry.bytes.data()), static_cast<std::streamsize>(size));
-        if (!stream)
-        {
-            fail(outcome, cannot_read(meta.source_path));
-            return;
-        }
-        bytes_read += size;
-        pending.push_back(std::move(entry));
-        const int percent = total_bytes == 0 ? 100 : static_cast<int>(bytes_read * 100 / total_bytes);
-        Q_EMIT progress(percent);
-    }
-
-    // ---- 2. the load ----
-    if (checkpoint("load"))
-    {
-        stop(outcome);
-        return;
-    }
-    LoadSpec load_spec;
-    load_spec.header_file_name = job.header_file_name.toStdString();
-    load_spec.part_number = PartNumber{job.load_part_number.toStdString()};
-    if (job.load_type_index >= 0 && job.load_type_index < load_type_options().size())
-    {
-        const LoadTypeOption& option = load_type_options().at(job.load_type_index);
-        load_spec.load_type = LoadType{std::string{option.description}, option.id};
-    }
-    for (const QString& id : job.target_hardware_ids)
-    {
-        load_spec.target_hardware_ids.push_back(id.toStdString());
-    }
-    int data_files = 0;
-    int support_files = 0;
-    for (PendingFile& file : pending)
-    {
-        adl::arinc665::LoadFileSpec listed;
-        listed.name = file.meta.file_name.toStdString();
-        listed.content = std::move(file.bytes);
-        listed.check_type = check_type(file.meta.check_type);
-        if (file.meta.kind == SourceFileModel::data_kind)
-        {
-            ++data_files;
-            load_spec.data_files.push_back(std::move(listed));
-        }
-        else
-        {
-            ++support_files;
-            load_spec.support_files.push_back(std::move(listed));
-        }
-    }
-    if (load_spec.data_files.empty())
-    {
+    case FailureKind::source_unreadable:
+        fail(outcome, cannot_read(path_to_qstring(failure.path)));
+        break;
+    case FailureKind::source_too_large:
+        fail(outcome, too_large(path_to_qstring(failure.path)));
+        break;
+    case FailureKind::source_does_not_fit:
+        fail(outcome, too_large(path_to_qstring(failure.path)),
+             Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Nothing was written. Choose smaller files, or "
+                                                                  "close other programs and try again.")));
+        break;
+    case FailureKind::no_data_files:
         fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("No data files chosen.")));
-        return;
-    }
-    load_spec.load_check_type = check_type(job.load_check_type);
-
-    auto load = adl::arinc665::build_load(load_spec);
-    if (!load)
-    {
+        break;
+    case FailureKind::load_not_built:
         fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("The load could not be built: %1."),
-                                          {Message::verbatim(to_qstring(adl::arinc665::to_string(load.error())))}));
-        return;
-    }
-
-    // ---- 3. the media set ----
-    PlacedLoad placed;
-    placed.load = std::move(*load);
-    placed.header_member = 1;
-    placed.part_root_directory = part_root_directory(job.load_part_number);
-    if (job.member_count > 1)
-    {
-        // The data files go round-robin over the members, each in a directory of the part
-        // root's name (on the header file's member that is a subdirectory below the part
-        // root itself); the support files stay on the header file's member in the part root.
-        for (std::size_t i = 0; i < placed.load.data_files.size(); ++i)
-        {
-            const std::uint16_t member =
-                static_cast<std::uint16_t>((i % static_cast<std::size_t>(job.member_count)) + 1);
-            FilePlacement placement;
-            placement.member = member;
-            placement.subdirectory = part_root_name(job.load_part_number) + "\\";
-            placed.data_placements.push_back(placement);
-        }
-        for (std::size_t i = 0; i < placed.load.support_files.size(); ++i)
-        {
-            FilePlacement placement;
-            placement.member = placed.header_member;
-            placed.support_placements.push_back(placement);
-        }
-    }
-
-    MediaSetSpec media_set;
-    media_set.media_set_part_number = PartNumber{job.media_set_part_number.toStdString()};
-    media_set.number_of_members = static_cast<std::uint8_t>(job.member_count);
-    media_set.file_check_type = check_type(job.file_check_type);
-    media_set.files_list_check_type = check_type(job.files_list_check_type);
-    media_set.loads.push_back(std::move(placed));
-
-    if (job.include_batch)
-    {
-        // The batch names the set's loads for each target, on the first member.
-        BatchFile batch;
-        batch.batch_part_number = PartNumber{job.batch_part_number.toStdString()};
-        for (const QString& id : job.target_hardware_ids)
-        {
-            BatchTarget target;
-            target.target_hardware_id_position = id.toStdString();
-            target.loads.push_back(
-                BatchLoad{job.header_file_name.toStdString(), PartNumber{job.load_part_number.toStdString()}});
-            batch.targets.push_back(std::move(target));
-        }
-        PlacedBatch placed_batch;
-        placed_batch.file_name =
-            job.batch_part_number.left(3).toStdString() + "." + std::string{adl::arinc665::batch_file_extension};
-        placed_batch.batch = std::move(batch);
-        placed_batch.member = 1;
-        media_set.batches.push_back(std::move(placed_batch));
-    }
-
-    auto members = adl::arinc665::build_media_set(media_set);
-    if (!members)
-    {
+                                          {Message::verbatim(to_qstring(failure.detail))}));
+        break;
+    case FailureKind::set_not_built:
         fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("The media set could not be built: %1."),
-                                          {Message::verbatim(to_qstring(adl::arinc665::to_string(members.error())))}));
-        return;
-    }
-
-    // ---- 4. write the tree to a temporary directory beside the final one ----
-    // The set appears under its name in one step, when it is whole and has been read back; until
-    // then, and whatever goes wrong (a full disk, a cancel, a set that does not verify), what was
-    // written is removed. Nothing already there is overwritten.
-    if (checkpoint("write"))
-    {
-        stop(outcome);
-        return;
-    }
-    const std::filesystem::path base = to_path(job.output_directory);
-    std::error_code error;
-    std::filesystem::create_directories(base, error);
-    if (error || !std::filesystem::is_directory(base, error))
-    {
-        fail(outcome, not_written_below(job.output_directory),
-             Message::verbatim(
-                 QStringLiteral("%1 (%2)").arg(job.output_directory, QString::fromLocal8Bit(error.message().c_str()))));
-        return;
-    }
-    PartialTree partial;
-    for (int attempt = 1; attempt <= 100 && !partial.claimed(); ++attempt)
-    {
-        const QString temporary_name =
-            attempt == 1 ? QStringLiteral("%1.writing").arg(job.media_set_part_number)
-                         : QStringLiteral("%1.writing_%2").arg(job.media_set_part_number).arg(attempt);
-        const std::filesystem::path candidate = base / to_path(temporary_name);
-        if (std::filesystem::create_directory(candidate, error))
-        {
-            partial.claim(candidate);
-        }
-        else if (error)
-        {
-            fail(outcome, not_written_below(job.output_directory),
-                 Message::verbatim(QStringLiteral("%1 (%2)").arg(path_to_qstring(candidate),
-                                                                 QString::fromLocal8Bit(error.message().c_str()))));
-            return;
-        }
-    }
-    if (!partial.claimed())
-    {
+                                          {Message::verbatim(to_qstring(failure.detail))}));
+        break;
+    case FailureKind::not_written_below:
+        fail(outcome, not_written_below(job.output_directory), path_and_words(failure.at, failure.system));
+        break;
+    case FailureKind::too_many_unfinished:
         fail(outcome, not_written_below(job.output_directory),
              Message::translated(&GeneratorWorker::tr,
                                  QT_TR_NOOP("Too many unfinished sets (%1.writing...) are there "
                                             "already."),
                                  {Message::verbatim(job.media_set_part_number)}));
-        return;
-    }
-    const auto written = adl::media_tree::write_media_set_tree(partial.path(), *members);
-    if (!written)
-    {
-        const Message what = Message::verbatim(QStringLiteral("%1 (%2)").arg(
-            path_to_qstring(written.error().path), to_qstring(adl::media_tree::to_string(written.error().error))));
+        break;
+    case FailureKind::write_failed:
         fail(outcome, not_written_below(job.output_directory),
-             Message::sequence({what, Message::verbatim(QStringLiteral(" ")), partial.discard()}));
-        return;
-    }
-
-    // ---- 5. read the tree back and verify what is on the disk ----
-    // A cancel after the write finds the whole set on the disk, and takes it away again.
-    if (checkpoint("written"))
-    {
-        stop(outcome, partial.discard());
-        return;
-    }
-    const auto on_disk = adl::media_tree::read_media_set_tree(partial.path());
-    if (!on_disk)
-    {
+             with_discard(Message::verbatim(
+                              QStringLiteral("%1 (%2)").arg(path_to_qstring(failure.at), to_qstring(failure.detail))),
+                          failure.discard));
+        break;
+    case FailureKind::read_back_failed:
         fail(outcome,
-             Message::translated(&GeneratorWorker::tr,
-                                 QT_TR_NOOP("The written media set could not be read back: %1 (%2)."),
-                                 {Message::verbatim(to_qstring(adl::media_tree::to_string(on_disk.error().error))),
-                                  Message::verbatim(path_to_qstring(on_disk.error().path))}),
-             partial.discard());
-        return;
-    }
-    const auto set = adl::arinc665::read_media_set(*on_disk);
-    if (!set)
-    {
+             Message::translated(
+                 &GeneratorWorker::tr, QT_TR_NOOP("The written media set could not be read back: %1 (%2)."),
+                 {Message::verbatim(to_qstring(failure.detail)), Message::verbatim(path_to_qstring(failure.at))}),
+             discard_message(failure.discard));
+        break;
+    case FailureKind::not_verified:
+    case FailureKind::not_the_set_described:
         fail(outcome,
              Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("The written media set does not verify: %1."),
-                                 {Message::verbatim(to_qstring(adl::arinc665::to_string(set.error())))}),
-             partial.discard());
-        return;
-    }
-    if (checkpoint("verified"))
-    {
-        stop(outcome, partial.discard());
-        return;
-    }
-
-    // ---- 6. give the set its name: the first of the names that is free ----
-    std::filesystem::path root;
-    Message rename_error;
-    for (int attempt = 1; attempt <= 100; ++attempt)
-    {
-        const QString directory_name = attempt == 1
-                                           ? job.media_set_part_number
-                                           : QStringLiteral("%1_%2").arg(job.media_set_part_number).arg(attempt);
-        const std::filesystem::path candidate = base / to_path(directory_name);
-        const bool exists = std::filesystem::exists(candidate, error);
-        if (error)
-        {
-            rename_error = Message::verbatim(path_to_qstring(candidate));
-            break;
-        }
-        if (exists)
-        {
-            const bool empty = std::filesystem::is_empty(candidate, error);
-            if (error)
-            {
-                rename_error = Message::verbatim(path_to_qstring(candidate));
-                break;
-            }
-            if (!empty)
-            {
-                continue; // a set (or anything) is there already: take the next name
-            }
-            // An empty directory is taken over (a rename onto it fails on some systems).
-            std::filesystem::remove(candidate, error);
-        }
-        std::filesystem::rename(partial.path(), candidate, error);
-        if (!error)
-        {
-            root = candidate;
-            partial.keep();
-            break;
-        }
-        if (std::filesystem::exists(candidate))
-        {
-            continue; // appeared while we looked: take the next name
-        }
-        rename_error = Message::verbatim(
-            QStringLiteral("%1 (%2)").arg(path_to_qstring(candidate), QString::fromLocal8Bit(error.message().c_str())));
+                                 {Message::verbatim(to_qstring(failure.detail))}),
+             discard_message(failure.discard));
+        break;
+    case FailureKind::not_given_its_name:
+        fail(outcome, not_written_below(job.output_directory),
+             with_discard(path_and_words(failure.at, failure.system), failure.discard));
+        break;
+    case FailureKind::output_exists:
+        // Only a destination that must be free can say this, and the window's is the first free name.
+        fail(outcome, not_written_below(job.output_directory), Message::verbatim(path_to_qstring(failure.path)));
+        break;
+    case FailureKind::cancelled:
+        stop(outcome, failure.discard.attempted ? discard_message(failure.discard) : Message{});
+        break;
+    case FailureKind::out_of_memory:
+        fail(outcome,
+             Message::translated(&GeneratorWorker::tr,
+                                 QT_TR_NOOP("The computer ran out of memory while the media set was being made.")),
+             Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Nothing was kept. Choose smaller files, or close "
+                                                                  "other programs and try again.")));
+        break;
+    case FailureKind::error:
+        fail(outcome, Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("The media set could not be made.")),
+             Message::verbatim(QString::fromLocal8Bit(failure.detail.c_str())));
         break;
     }
-    if (root.empty())
+}
+
+void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome)
+{
+    const adl::set_maker::SetPlan plan = plan_of(job);
+    Bridge bridge{*this};
+    // The set is written below the output folder, in the first of its names that is free, so nothing
+    // that is there is overwritten.
+    const auto made = adl::set_maker::make_set(
+        plan,
+        adl::set_maker::Destination::first_free(to_path(job.output_directory), to_path(job.media_set_part_number)),
+        bridge);
+    if (!made)
     {
-        fail(outcome, not_written_below(job.output_directory),
-             rename_error.isEmpty()
-                 ? partial.discard()
-                 : Message::sequence({rename_error, Message::verbatim(QStringLiteral(" ")), partial.discard()}));
+        report_failure(job, made.error(), outcome);
         return;
     }
 
     outcome.state = 1;
-    outcome.output_path = path_to_qstring(root);
-    outcome.members = static_cast<int>(on_disk->size());
-    outcome.data_files = data_files;
-    outcome.support_files = support_files;
-    outcome.total_bytes = total_bytes;
-    for (const adl::arinc665::Finding& finding : set->findings)
+    outcome.output_path = path_to_qstring(made->path);
+    outcome.members = static_cast<int>(made->members);
+    outcome.data_files = static_cast<int>(made->data_files);
+    outcome.support_files = static_cast<int>(made->support_files);
+    outcome.total_bytes = static_cast<qint64>(made->source_bytes);
+    for (const std::string& finding : made->report.findings)
     {
-        outcome.findings.append(findings_line(finding));
+        outcome.findings.append(to_qstring(finding));
     }
     outcome.text = Message::translated(&GeneratorWorker::tr, QT_TR_NOOP("Media set %1 written and verified."),
                                        {Message::verbatim(job.media_set_part_number)});
@@ -597,7 +365,6 @@ void GeneratorWorker::run(const GenerateJob& job, GenerateOutcome& outcome)
                                  QT_TR_N_NOOP("%n difference(s) from the standard's recommendations."), {},
                                  static_cast<int>(outcome.findings.size()))});
     }
-    Q_EMIT progress(100);
     Q_EMIT finished(outcome);
 }
 

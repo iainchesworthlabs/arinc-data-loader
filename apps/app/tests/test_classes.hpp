@@ -151,6 +151,8 @@ private Q_SLOTS:
     void clearing_a_target_field_restores_its_default();
     void the_first_run_screen_is_shown_until_it_is_passed();
     void the_target_of_the_last_operation_comes_back();
+    void a_transfer_says_the_edition_before_anything_else_and_the_receipt_keeps_it();
+    void no_stamp_means_no_line_and_a_media_set_read_is_not_stamped();
     void abort_before_the_target_accepts_ends_the_operation();
     void a_second_job_is_refused_while_one_runs();
     void a_failing_host_ends_the_job_with_the_reason();

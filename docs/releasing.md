@@ -13,9 +13,9 @@ drafts a GitHub release. Nothing is published until the maintainer reads the dra
 
 | File | Holds |
 | --- | --- |
-| `arinc-data-loader-<v>-windows-x86_64[-unsigned|-testsigned].zip` | A portable folder: `adl_app.exe`, `adl_media_gen.exe`, `adl_mock_target.exe`, `adl_mock.exe`, `adl_write_payloads.exe`, the Qt DLLs, plugins and QML modules Qt's `windeployqt` places beside them, `README.txt`, `LICENSE.txt`, `NOTICES.txt` |
-| `arinc-data-loader-<v>-linux-x86_64.tar.gz` | `bin/` (the five programs), `lib/` and `plugins/` and `qml/` (the Qt files), `share/applications/*.desktop`, `share/icons/hicolor/scalable/apps/*.svg`, `share/doc/arinc-data-loader/{LICENSE,NOTICES}.txt` |
-| `arinc-data-loader-<v>-macos-arm64.dmg` | The three application bundles (Qt frameworks and QML modules inside, signed ad hoc, each with `LICENSE.txt` and `NOTICES.txt` in `Contents/Resources`), `tools/adl_mock` and `tools/adl_write_payloads`, an `Applications` link to drag them onto, `README.txt`, `LICENSE.txt`, `NOTICES.txt` |
+| `arinc-data-loader-<v>-windows-x86_64[-unsigned|-testsigned].zip` | A portable folder: `adl_app.exe`, `adl_media_gen.exe`, `adl_mock_target.exe`, `adl_mock.exe`, `adl_write_payloads.exe`, `adl_make_set.exe`, `adl_load.exe`, `adl_licence.exe`, the Qt DLLs, plugins and QML modules Qt's `windeployqt` places beside them, `README.txt`, `LICENSE.txt`, `NOTICES.txt` |
+| `arinc-data-loader-<v>-linux-x86_64.tar.gz` | `bin/` (the eight programs), `lib/` and `plugins/` and `qml/` (the Qt files), `share/applications/*.desktop`, `share/icons/hicolor/scalable/apps/*.svg`, `share/doc/arinc-data-loader/{LICENSE,NOTICES}.txt` |
+| `arinc-data-loader-<v>-macos-arm64.dmg` | The three application bundles (Qt frameworks and QML modules inside, signed ad hoc, each with `LICENSE.txt` and `NOTICES.txt` in `Contents/Resources`), `tools/adl_mock`, `tools/adl_write_payloads`, `tools/adl_make_set`, `tools/adl_load` and `tools/adl_licence`, an `Applications` link to drag them onto, `README.txt`, `LICENSE.txt`, `NOTICES.txt` |
 | `arinc-data-loader-dev-<v>-<system>-<arch>.zip` / `.tar.gz` | The development package: headers, static libraries and the `adl` CMake package (below), `LICENSE.txt`, `NOTICES.txt` |
 | `arinc-data-loader-<v>.spdx.json`, `.cdx.json` | The software bill of materials (SPDX 2.3, CycloneDX 1.6) |
 | `<leg>-qt<module>-6.12.0.spdx.json`, `.cdx.json` | The Qt kit's own SBOM documents for the modules the packages hold; the SPDX document refers to them |
@@ -24,6 +24,10 @@ drafts a GitHub release. Nothing is published until the maintainer reads the dra
 
 Both the runtime and the development archive unpack into a directory named
 `arinc-data-loader-<v>-<system>-<arch>`, so extracting both in one place gives one tree.
+
+No package holds the owner's licence tool, a library it signs with or a key file. `tools/release/Test-Package.ps1` runs
+`tools/release/check_package_contents.py` on every package it unpacks, and *Test the packages* fails the release if it finds
+one ([the tool](licence-owner-tool.md#the-package-check)).
 
 ### The development package
 
@@ -36,7 +40,7 @@ own, and the platform interfaces they run on:
 | `adl::arinc615a` | The ARINC 615A codec and the data loader's state machines (no sockets, no threads) |
 | `adl::arinc615a_runner` | The runner that drives those state machines over `adl::platform`'s sockets, and a file source and sink over a directory |
 | `adl::media_tree` | A media set as a directory tree on disk |
-| `adl::loader_core` | What the loader does besides showing a window: a media set on disk read and checked into a report, the index of its files, the folder a download is written into, and a target's address |
+| `adl::loader_core` | What the loader does besides showing a window: a media set on disk read and checked into a report, the index of its files, the folder a download is written into, a target's address, and one operation made and run against a target |
 | `adl::platform` | The platform interfaces (files, memory, threads, clock, UDP sockets, queues) and this host's implementation of them |
 
 ```cmake

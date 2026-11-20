@@ -144,7 +144,115 @@ void MockEngine::send(std::uint16_t from_port, const Endpoint& to, std::span<con
     {
         return;
     }
-    link_->send(from_port, to, payload);
+    DatagramFate fate;
+    if (config_.fault_plan)
+    {
+        fate = config_.fault_plan->on_datagram(describe(from_port, to, payload));
+    }
+    switch (fate.kind)
+    {
+    case DatagramFate::Kind::send:
+        link_->send(from_port, to, payload);
+        release_held();
+        return;
+    case DatagramFate::Kind::drop:
+        return;
+    case DatagramFate::Kind::duplicate:
+        for (std::uint32_t copy = 0; copy < std::max<std::uint32_t>(fate.amount, 1); ++copy)
+        {
+            link_->send(from_port, to, payload);
+        }
+        release_held();
+        return;
+    case DatagramFate::Kind::delay:
+        // Sent from a copy, later, unless the target has gone silent or has been destroyed by then.
+        after(std::chrono::milliseconds(fate.amount),
+              [this, from_port, to, copy = std::vector<std::byte>(payload.begin(), payload.end())]
+              {
+                  if (link_ != nullptr)
+                  {
+                      link_->send(from_port, to, copy);
+                  }
+              });
+        return;
+    case DatagramFate::Kind::hold:
+    {
+        const std::uint64_t id = next_held_id_++;
+        held_.push_back(Held{id, from_port, to, std::vector<std::byte>(payload.begin(), payload.end())});
+        after(std::chrono::milliseconds(fate.amount), [this, id] { release_held(id); });
+        return;
+    }
+    }
+}
+
+void MockEngine::release_held(std::optional<std::uint64_t> only)
+{
+    // What was held goes out, in the order it was held: all of it after a datagram that went, or the one that has
+    // waited its time (if it is still held).
+    std::vector<Held> due;
+    for (auto held = held_.begin(); held != held_.end();)
+    {
+        if (!only || held->id == *only)
+        {
+            due.push_back(std::move(*held));
+            held = held_.erase(held);
+        }
+        else
+        {
+            ++held;
+        }
+    }
+    for (const Held& datagram : due)
+    {
+        if (link_ != nullptr)
+        {
+            link_->send(datagram.from_port, datagram.to, datagram.bytes);
+        }
+    }
+}
+
+DatagramInfo MockEngine::describe(std::uint16_t from_port, const Endpoint& to, std::span<const std::byte> payload) const
+{
+    DatagramInfo info;
+    info.from_port = from_port;
+    info.to = to;
+    info.size = payload.size();
+    if (const auto found = transfer_files_.find(from_port); found != transfer_files_.end())
+    {
+        info.file = found->second;
+    }
+    if (from_port == config_.find_port || payload.size() < 2)
+    {
+        return info; // a FIND answer, or nothing a TFTP packet could be
+    }
+    const unsigned opcode = (std::to_integer<unsigned>(payload[0]) << 8U) | std::to_integer<unsigned>(payload[1]);
+    const unsigned block = payload.size() >= 4
+                               ? (std::to_integer<unsigned>(payload[2]) << 8U) | std::to_integer<unsigned>(payload[3])
+                               : 0U;
+    switch (opcode)
+    {
+    case 1:
+    case 2:
+        info.kind = DatagramKind::request;
+        break;
+    case 3:
+        info.kind = DatagramKind::data;
+        info.block = block;
+        break;
+    case 4:
+        info.kind = DatagramKind::ack;
+        info.block = block;
+        break;
+    case 5:
+        info.kind = DatagramKind::error;
+        break;
+    case 6:
+        info.kind = DatagramKind::option_ack;
+        break;
+    default:
+        break;
+    }
+    return info;
 }
 
 void MockEngine::after(adl::arinc615a::Duration delay, std::function<void()> action)
@@ -290,9 +398,10 @@ void MockEngine::send_error(const Endpoint& to, TftpErrorCode code, std::string_
     }
 }
 
-adl::arinc615a_mini::MiniTransfer& MockEngine::add_transfer(MiniTransfer::Role role)
+adl::arinc615a_mini::MiniTransfer& MockEngine::add_transfer(MiniTransfer::Role role, std::string_view file)
 {
     const std::uint16_t port = next_port_++;
+    transfer_files_[port] = std::string{file};
     auto transfer = std::make_unique<MiniTransfer>(static_cast<MiniHost&>(*this), port, role);
     MiniTransfer& reference = *transfer;
     transfers_[port] = std::move(transfer);
@@ -301,7 +410,12 @@ adl::arinc615a_mini::MiniTransfer& MockEngine::add_transfer(MiniTransfer::Role r
 
 void MockEngine::remove_later(std::uint16_t port)
 {
-    after(std::chrono::seconds(5), [this, port] { transfers_.erase(port); });
+    after(std::chrono::seconds(5),
+          [this, port]
+          {
+              transfers_.erase(port);
+              transfer_files_.erase(port);
+          });
 }
 
 void MockEngine::handle_request(const Endpoint& from, const TftpRequest& request)
@@ -344,7 +458,7 @@ void MockEngine::handle_request(const Endpoint& from, const TftpRequest& request
             note(Severity::warning, "refuses a list that came before the first status file");
             return;
         }
-        MiniTransfer& transfer = add_transfer(MiniTransfer::Role::server_write);
+        MiniTransfer& transfer = add_transfer(MiniTransfer::Role::server_write, name);
         transfer.on_done = [this, name](MiniTransfer& done)
         {
             if (done.result().kind == MiniResult::Kind::ok)
@@ -368,15 +482,65 @@ void MockEngine::serve_init(const Endpoint& from, const TftpRequest& request, Ki
         return; // one operation at a time: a repeated request after the start is not answered
     }
     kind_ = kind;
-    std::array<std::byte, 64> small{};
-    if (config_.wait_first_seconds != 0 && (!waited_once_ || config_.wait_always))
+
+    // What the faults say about this request: the ones that were set for the whole run, and a scenario's, which
+    // are asked at each request (this one counts, whatever is made of it).
+    std::uint16_t wait_seconds = 0;
+    std::optional<Refusal> refusal;
+    if (config_.refusal && config_.refusal->kind == operation_kind(kind))
+    {
+        refusal = config_.refusal;
+    }
+    bool garbage = config_.garbage_init;
+    bool corrupt = config_.corrupt_served;
+    if (config_.fault_plan)
+    {
+        for (const Action& action : config_.fault_plan->on_request(operation_kind(kind)))
+        {
+            switch (action.effect)
+            {
+            case Effect::wait:
+                if (wait_seconds == 0)
+                {
+                    wait_seconds = static_cast<std::uint16_t>(action.value);
+                }
+                break;
+            case Effect::refuse:
+                refusal =
+                    Refusal{operation_kind(kind), static_cast<StatusCode>(action.value), "refused by the mock target"};
+                break;
+            case Effect::invalid_init_file:
+                garbage = true;
+                break;
+            case Effect::corrupt_served:
+                corrupt = true;
+                break;
+            case Effect::delay:
+            case Effect::drop_datagram:
+            case Effect::duplicate_datagram:
+            case Effect::reorder_datagram:
+                break; // a fault on a datagram: the plan keeps it armed and answers on_datagram
+            case Effect::drop_status_file:
+            case Effect::abort:
+            case Effect::silent:
+            case Effect::wrong_checksum:
+                break; // for a status file or a time: a plan does not ask for them with a request
+            }
+        }
+    }
+    if (wait_seconds == 0 && config_.wait_first_seconds != 0 && (!waited_once_ || config_.wait_always))
     {
         waited_once_ = true;
-        if (const auto size = encode_wait(WaitMessage{config_.wait_first_seconds}, small))
+        wait_seconds = config_.wait_first_seconds;
+    }
+    std::array<std::byte, 64> small{};
+    if (wait_seconds != 0)
+    {
+        if (const auto size = encode_wait(WaitMessage{wait_seconds}, small))
         {
             send(next_port_++, from, std::span<const std::byte>{small}.first(*size));
         }
-        note(Severity::info, "answers the request with WAIT:" + std::to_string(config_.wait_first_seconds));
+        note(Severity::info, "answers the request with WAIT:" + std::to_string(wait_seconds));
         return;
     }
     // Where the engine writes: the loader's control port, or the one its "port" option named
@@ -389,69 +553,79 @@ void MockEngine::serve_init(const Endpoint& from, const TftpRequest& request, Ki
 
     InitializationFile init;
     init.status = StatusCode::accepted;
-    if (config_.refusal && config_.refusal->kind == operation_kind(kind))
+    if (refusal)
     {
-        init.status = config_.refusal->code;
-        init.description = config_.refusal->text;
+        init.status = refusal->code;
+        init.description = refusal->text;
     }
     Bytes file(512);
     const auto size = encode_initialization_file(init, file);
     file.resize(size.value_or(0));
-    if (config_.garbage_init)
+    if (garbage)
     {
         file.resize(file.size() > 2 ? file.size() - 2 : file.size()); // the length no longer agrees
     }
-    if (config_.corrupt_served && !file.empty())
+    if (corrupt && !file.empty())
     {
         file[file.size() / 2] ^= std::byte{0x01};
     }
-    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::server_read);
-    transfer.on_done = [this](MiniTransfer& done)
+    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::server_read, request.file_name);
+    // What was decided for this request goes with its transfer: a request that is repeated meanwhile decides again,
+    // for its own.
+    transfer.on_done = [this, kind, refusal = std::move(refusal), garbage](MiniTransfer& done)
     {
         if (done.result().kind == MiniResult::Kind::ok)
         {
-            on_init_served();
+            on_init_served(kind, refusal, garbage);
         }
         remove_later(done.port());
     };
     transfer.serve(from, request, std::move(file), serve_block_size_cap, true);
 }
 
-void MockEngine::on_init_served()
+void MockEngine::on_init_served(Kind kind, const std::optional<Refusal>& refusal, bool garbage)
 {
+    kind_ = kind;
     const std::string name =
         config_.thw + std::string{extension(kind_ == Kind::information      ? ProtocolFileKind::lci
                                             : kind_ == Kind::upload         ? ProtocolFileKind::lui
                                             : kind_ == Kind::download_media ? ProtocolFileKind::lnd
                                                                             : ProtocolFileKind::lno)};
     note(Severity::info, "served " + name);
-    const StatusCode effective = config_.refusal && config_.refusal->kind == operation_kind(kind_)
-                                     ? config_.refusal->code
-                                     : StatusCode::accepted;
-    if (effective != StatusCode::accepted || config_.garbage_init)
+    const StatusCode effective = refusal ? refusal->code : StatusCode::accepted;
+    if (effective != StatusCode::accepted || garbage)
     {
         note(Severity::warning, operation_name(kind_) + " refused");
         if (listener_ != nullptr)
         {
             listener_->operation_ended(operation_name(kind_),
-                                       config_.garbage_init ? std::nullopt : std::optional<StatusCode>{effective},
-                                       true);
+                                       garbage ? std::nullopt : std::optional<StatusCode>{effective}, true);
         }
         return;
     }
     operation_started_ = true;
+    ++operation_serial_;
     note(Severity::info, operation_name(kind_) + " operation started");
     if (listener_ != nullptr)
     {
         listener_->operation_changed(operation_name(kind_));
     }
     report_progress();
-    after(config_.think_time, [this] { start_work(); });
+    start_timed_steps();
+    // The work starts after the think time, unless the operation has ended by then (a scenario can end it at once).
+    after(config_.think_time,
+          [this, serial = operation_serial_]
+          {
+              if (serial == operation_serial_)
+              {
+                  start_work();
+              }
+          });
 }
 
 // ---- Client side: writes and reads ------------------------------------------------------------
 
-std::optional<adl::arinc615a::ChecksumOption> MockEngine::checksum_for(const Bytes& content) const
+std::optional<adl::arinc615a::ChecksumOption> MockEngine::checksum_for(const Bytes& content)
 {
     const auto value = adl::arinc665::compute_check_value(adl::arinc665::CheckValueType::crc16, content);
     if (!value || value->bytes.size() != 2)
@@ -462,7 +636,7 @@ std::optional<adl::arinc615a::ChecksumOption> MockEngine::checksum_for(const Byt
     option.type = adl::arinc665::CheckValueType::crc16;
     option.length = 2;
     std::copy(value->bytes.begin(), value->bytes.end(), option.value.begin());
-    if (config_.wrong_checksum)
+    if (take(armed_wrong_checksum_) || config_.wrong_checksum)
     {
         option.value[0] ^= std::byte{0x01};
     }
@@ -493,7 +667,7 @@ MockEngine::checksum_for_file(const adl::arinc665::UserSuppliedFile& file) const
 void MockEngine::write_file(const std::string& name, Bytes content, std::optional<ChecksumOption> checksum,
                             std::function<void(MiniResult::Kind)> then, unsigned attempt)
 {
-    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::client_write);
+    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::client_write, name);
     transfer.on_done = [this, name, content, checksum, then, attempt](MiniTransfer& done) mutable
     {
         const MiniResult result = done.result();
@@ -536,7 +710,7 @@ void MockEngine::write_file(const std::string& name, Bytes content, std::optiona
 void MockEngine::read_file(const std::string& name, std::optional<ChecksumOption> checksum,
                            std::function<void(MiniResult::Kind, const Bytes&)> then, unsigned attempt)
 {
-    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::client_read);
+    MiniTransfer& transfer = add_transfer(MiniTransfer::Role::client_read, name);
     transfer.on_done = [this, name, checksum, then, attempt](MiniTransfer& done)
     {
         const MiniResult result = done.result();
@@ -615,7 +789,50 @@ void MockEngine::pump_status()
     StatusSpec spec = std::move(status_queue_.front());
     status_queue_.erase(status_queue_.begin());
 
-    if (config_.abort_after_statuses && status_index_ == *config_.abort_after_statuses)
+    // A scenario may have something to say about this status file: it is number status_index_ + 1 of the operation.
+    bool scenario_drop = take(armed_drop_);
+    bool scenario_abort = false;
+    bool scenario_silent = false;
+    if (config_.fault_plan)
+    {
+        for (const Action& action : config_.fault_plan->on_status_file(operation_kind(kind_), status_index_ + 1))
+        {
+            switch (action.effect)
+            {
+            case Effect::drop_status_file:
+                scenario_drop = true;
+                break;
+            case Effect::abort:
+                scenario_abort = true;
+                break;
+            case Effect::silent:
+                scenario_silent = true;
+                break;
+            case Effect::corrupt_served:
+                armed_corrupt_ = true;
+                break;
+            case Effect::wrong_checksum:
+                armed_wrong_checksum_ = true;
+                break;
+            case Effect::delay:
+            case Effect::drop_datagram:
+            case Effect::duplicate_datagram:
+            case Effect::reorder_datagram:
+                break; // a fault on a datagram: the plan keeps it armed and answers on_datagram
+            case Effect::wait:
+            case Effect::refuse:
+            case Effect::invalid_init_file:
+                break; // for a request: a plan does not ask for them with a status file
+            }
+        }
+    }
+    if (scenario_silent)
+    {
+        status_busy_ = false;
+        go_silent(); // this file is not sent, and nothing after it
+        return;
+    }
+    if ((config_.abort_after_statuses && status_index_ == *config_.abort_after_statuses) || scenario_abort)
     {
         spec.code = StatusCode::aborted_by_target;
         spec.text = "the mock target gave up";
@@ -626,7 +843,8 @@ void MockEngine::pump_status()
     const bool final_status = is_final_status(spec.code);
     // Never the first status file (the one that says "accepted" synchronises the two ends,
     // and without it the loader waits for a list that never comes) and never a final one.
-    if (config_.drop_status_every != 0 && status_index_ != 0 && status_index_ % config_.drop_status_every == 0 &&
+    if (((config_.drop_status_every != 0 && status_index_ != 0 && status_index_ % config_.drop_status_every == 0) ||
+         scenario_drop) &&
         !final_status)
     {
         ++counter_; // as if a status file had been lost on its way
@@ -1113,7 +1331,7 @@ void MockEngine::download_write_next(std::uint64_t generation)
     }
     const auto checksum = checksum_for(held->content);
     Bytes content = held->content;
-    if (config_.corrupt_served && !content.empty())
+    if ((take(armed_corrupt_) || config_.corrupt_served) && !content.empty())
     {
         content[content.size() / 2] ^= std::byte{0x01};
     }
@@ -1243,11 +1461,108 @@ void MockEngine::reset_operation_state()
     final_posted_ = false;
     last_abort_status_ = StatusCode::aborted_by_data_loader;
     checksum_acknowledged_ = false;
+    armed_drop_ = false;
+    armed_corrupt_ = false;
+    armed_wrong_checksum_ = false;
+    ++operation_serial_; // the timers of the operation that ended find that out
+    if (config_.fault_plan)
+    {
+        config_.fault_plan->on_operation_ended();
+    }
     report_progress();
     if (listener_ != nullptr)
     {
         listener_->operation_changed("");
     }
+}
+
+// ---- A scenario's steps ----------------------------------------------------------------------
+
+bool MockEngine::take(bool& flag) noexcept
+{
+    const bool was = flag;
+    flag = false;
+    return was;
+}
+
+void MockEngine::start_timed_steps()
+{
+    if (!config_.fault_plan)
+    {
+        return;
+    }
+    const std::uint64_t serial = operation_serial_;
+    for (const TimedStep& step : config_.fault_plan->on_operation_began(operation_kind(kind_)))
+    {
+        if (step.after <= adl::arinc615a::Duration::zero())
+        {
+            run_timed_step(step.id, serial); // at once, so that its place among the events does not depend on a timer
+        }
+        else
+        {
+            after(step.after, [this, id = step.id, serial] { run_timed_step(id, serial); });
+        }
+    }
+}
+
+void MockEngine::run_timed_step(std::size_t id, std::uint64_t serial)
+{
+    if (serial != operation_serial_ || !operation_started_ || !config_.fault_plan)
+    {
+        return; // the operation it was for has ended
+    }
+    const TimeAnswer answer = config_.fault_plan->on_time(id, operation_kind(kind_));
+    apply_later_effects(answer.actions);
+    if (answer.again)
+    {
+        after(*answer.again, [this, id, serial] { run_timed_step(id, serial); });
+    }
+}
+
+void MockEngine::apply_later_effects(const std::vector<Action>& actions)
+{
+    for (const Action& action : actions)
+    {
+        switch (action.effect)
+        {
+        case Effect::drop_status_file:
+            armed_drop_ = true;
+            break;
+        case Effect::abort:
+            abort_now();
+            break;
+        case Effect::silent:
+            go_silent();
+            break;
+        case Effect::corrupt_served:
+            armed_corrupt_ = true;
+            break;
+        case Effect::wrong_checksum:
+            armed_wrong_checksum_ = true;
+            break;
+        case Effect::delay:
+        case Effect::drop_datagram:
+        case Effect::duplicate_datagram:
+        case Effect::reorder_datagram:
+            break; // a fault on a datagram: the plan keeps it armed and answers on_datagram
+        case Effect::wait:
+        case Effect::refuse:
+        case Effect::invalid_init_file:
+            break; // for a request: a plan does not ask for them with a time
+        }
+    }
+}
+
+void MockEngine::abort_now()
+{
+    if (!operation_started_ || aborted_ || final_posted_)
+    {
+        return;
+    }
+    heartbeat_on_ = false;
+    status_queue_.clear();
+    final_posted_ = true;
+    post_status(StatusSpec{StatusCode::aborted_by_target, 0, "the mock target gave up"});
 }
 
 } // namespace adl::mock

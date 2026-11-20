@@ -70,7 +70,7 @@ ApplicationWindow {
                                           && app.filesListCheckTypeIndex === 0
                                           && app.loadCheckTypeIndex === 0
                                           && !app.files.anyCheckValue
-    readonly property bool modalOpen: aboutDialog.opened || licencesDialog.opened
+    readonly property bool modalOpen: aboutDialog.opened || licencesDialog.opened || licenceDialog.opened || supportDialog.opened
 
     title: qsTr("ARINC Media Set Generator")
     width: 1280
@@ -125,25 +125,37 @@ ApplicationWindow {
         onActivated: window.close()
     }
 
-    header: AppHeader {
-        appCode: "GEN"
-        title: qsTr("ARINC Media Set Generator")
-        subtitle: qsTr("ARINC 665 · media set, load, files, batch")
+    header: ColumnLayout {
+        spacing: 0
 
-        StatusChip {
-            objectName: "statusChip"
-            text: window.statusText
-            tone: window.statusTone
+        AppHeader {
+            Layout.fillWidth: true
+            appCode: "GEN"
+            title: qsTr("ARINC Media Set Generator")
+            subtitle: qsTr("ARINC 665 · media set, load, files, batch")
+
+            StatusChip {
+                objectName: "statusChip"
+                text: window.statusText
+                tone: window.statusTone
+            }
+
+            LanguagePicker {
+                objectName: "languagePicker"
+            }
+
+            AppButton {
+                text: qsTr("About")
+                onClicked: aboutDialog.open()
+                Accessible.name: qsTr("About the generator")
+            }
         }
 
-        LanguagePicker {
-            objectName: "languagePicker"
-        }
-
-        AppButton {
-            text: qsTr("About")
-            onClicked: aboutDialog.open()
-            Accessible.name: qsTr("About the generator")
+        LicenceBanner {
+            objectName: "licenceBanner"
+            Layout.fillWidth: true
+            model: licence
+            onLicenceRequested: licenceDialog.open()
         }
     }
 
@@ -190,6 +202,14 @@ ApplicationWindow {
             elide: Text.ElideMiddle
         }
 
+        EditionChip {
+            objectName: "editionChip"
+            text: licence.chipText
+            tone: licence.chipTone
+            description: licence.chipName
+            onClicked: licenceDialog.open()
+        }
+
         Text {
             text: qsTr("v%1").arg(Qt.application.version)
             color: Theme.textMuted
@@ -220,10 +240,30 @@ ApplicationWindow {
         appName: qsTr("ARINC Media Set Generator")
         blurb: qsTr("Turns files chosen from disk into an ARINC 665 load and media set, written as the folder tree the data loader opens, and verifies it by reading it back.")
         onShowLicences: licencesDialog.open()
+        onShowLicence: {
+            aboutDialog.close();
+            licenceDialog.open();
+        }
     }
 
     LicencesDialog {
         id: licencesDialog
+    }
+
+    LicenceDialog {
+        id: licenceDialog
+
+        model: licence
+        onSupportRequested: {
+            licenceDialog.close();
+            supportDialog.open();
+        }
+    }
+
+    SupportDialog {
+        id: supportDialog
+
+        model: licence
     }
 
     RowLayout {

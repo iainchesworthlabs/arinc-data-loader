@@ -6,11 +6,14 @@
 #include "adl/mock/cli/version.hpp"
 #include "adl/mock/engine.hpp"
 #include "adl/mock/link.hpp"
+#include "adl/mock/scenario_file.hpp"
+#include "adl/mock/scenario_player.hpp"
 #include "adl/mock/settings.hpp"
 #include "adl/mock/storage.hpp"
 #include "adl/platform/host.hpp"
 #include "adl/platform/paths.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
@@ -34,6 +37,80 @@ constexpr std::string_view program_name = "adl_mock";
 [[nodiscard]] std::string utf8(const std::filesystem::path& path)
 {
     return adl::platform::to_utf8(path.u8string());
+}
+
+// A step of the scenario that fired, as an event: the words of the file, and the one number the action used.
+[[nodiscard]] ScenarioStepFired step_event(const StepFired& fired)
+{
+    ScenarioStepFired event;
+    event.step = fired.step;
+    event.trigger = std::string{adl::scenario::trigger_name(fired.trigger)};
+    event.at = fired.at;
+    event.operation = std::string{operation_word(fired.operation)};
+    event.action = std::string{effect_word(fired.effect)};
+    event.applied = fired.applied;
+    if (fired.value)
+    {
+        const auto value = static_cast<std::int64_t>(*fired.value);
+        switch (fired.effect)
+        {
+        case Effect::wait:
+            event.seconds = value;
+            break;
+        case Effect::refuse:
+            event.status = value;
+            break;
+        case Effect::delay:
+            event.ms = value;
+            break;
+        case Effect::duplicate_datagram:
+            event.copies = value;
+            break;
+        case Effect::reorder_datagram:
+            event.within_ms = value;
+            break;
+        default:
+            break;
+        }
+    }
+    event.count = fired.count;
+    if (fired.on)
+    {
+        if (fired.on->datagram)
+        {
+            event.datagram = std::string{datagram_word(*fired.on->datagram)};
+        }
+        if (!fired.on->file.empty())
+        {
+            event.file = fired.on->file;
+        }
+        if (fired.on->block)
+        {
+            event.block = static_cast<std::int64_t>(*fired.on->block);
+        }
+    }
+    return event;
+}
+
+// A fault on a datagram that met one, as an event.
+[[nodiscard]] ScenarioDatagram datagram_event(const DatagramFaulted& hit)
+{
+    ScenarioDatagram event;
+    event.step = hit.step;
+    event.action = std::string{effect_word(hit.effect)};
+    event.applied = hit.applied;
+    event.datagram = std::string{datagram_word(hit.kind)};
+    if (!hit.file.empty())
+    {
+        event.file = hit.file;
+    }
+    if (hit.block)
+    {
+        event.block = static_cast<std::int64_t>(*hit.block);
+    }
+    event.to = hit.to;
+    event.size = hit.size;
+    return event;
 }
 
 // What the engine reports, as events. It runs on the thread that runs the engine, inside its loop, and
@@ -179,6 +256,14 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
         out << usage_text();
         return exit_ok;
     }
+    if (options.action == Action::scenario_actions)
+    {
+        for (const std::string_view word : action_words())
+        {
+            out << word << '\n';
+        }
+        return exit_ok;
+    }
     if (options.action == Action::version)
     {
         out << program_name << ' ' << version << " events " << events_format << '\n';
@@ -227,6 +312,29 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
         }
     }
 
+    // The scenario, before anything is opened: a file that is refused ends the program with one sentence.
+    std::optional<Scenario> scenario;
+    if (options.scenario)
+    {
+        auto loaded = load_scenario_file(*options.scenario);
+        if (!loaded)
+        {
+            err << program_name << ": --scenario " << utf8(*options.scenario) << ": " << loaded.error().message << '\n';
+            return exit_scenario;
+        }
+        // A silent step ends no operation, as --silent does not, so the run needs --seconds to end (the same rule).
+        const bool goes_silent = std::ranges::any_of(loaded->steps, [](const ScenarioStep& step)
+                                                     { return step.action.effect == Effect::silent; });
+        if (goes_silent && !options.seconds)
+        {
+            err << program_name
+                << ": --scenario with a step that goes silent needs --seconds, because the operation never ends\n"
+                << "try 'adl_mock --help'\n";
+            return exit_usage;
+        }
+        scenario = std::move(*loaded);
+    }
+
     auto host = adl::platform::make_host();
     if (!host)
     {
@@ -236,6 +344,14 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
     }
     RealTargetLink link(std::move(*host));
     Reporter reporter(out, err, options.json, link, options.storage, options.operations);
+    std::shared_ptr<ScenarioPlayer> player;
+    if (scenario)
+    {
+        player = std::make_shared<ScenarioPlayer>(
+            *scenario, [&reporter](const StepFired& fired) { reporter.emit(step_event(fired)); },
+            [&reporter](const DatagramFaulted& hit) { reporter.emit(datagram_event(hit)); });
+        config.fault_plan = player;
+    }
     MockEngine engine(&reporter);
     if (const auto error = engine.start(link, config))
     {
@@ -243,8 +359,18 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
         return exit_port;
     }
 
-    reporter.emit(Started{std::string{program_name}, std::string{version}, config.thw, format_ipv4(options.address),
-                          config.find_port, config.tftp_port, fault_options(options)});
+    Started started{std::string{program_name},    std::string{version}, config.thw,
+                    format_ipv4(options.address), config.find_port,     config.tftp_port,
+                    fault_options(options)};
+    if (scenario)
+    {
+        started.scenario = ScenarioInfo{utf8(*options.scenario), scenario->steps.size(), scenario->seed};
+    }
+    for (const std::string_view word : action_words())
+    {
+        started.features.emplace_back(word);
+    }
+    reporter.emit(std::move(started));
     if (options.seconds)
     {
         link.after(std::chrono::seconds(static_cast<std::chrono::seconds::rep>(*options.seconds)),
@@ -261,7 +387,13 @@ int run_command(std::span<const std::string_view> arguments, std::ostream& out, 
         code = exit_failed;
         err << program_name << ": " << engine.last_error() << '\n';
     }
-    reporter.emit(Stopped{reason, reporter.operations()});
+    Stopped stopped{reason, reporter.operations(), std::nullopt};
+    if (player)
+    {
+        stopped.scenario_unused = player->unused_steps();
+        stopped.scenario_idle = player->idle_steps();
+    }
+    reporter.emit(std::move(stopped));
     return code;
 }
 

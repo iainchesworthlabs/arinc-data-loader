@@ -32,6 +32,8 @@ Every change is written at once.
 | `window/x`, `window/y`, `window/width`, `window/height` | The position and size of the window, written when it closes |
 | `window/maximized`, `window/placed` | Whether the window was maximised, and whether it has been placed |
 | `language/code` | The language you chose |
+| `licence/dismissed` | The licence notice you put away: the licence number and its state, such as `ADL-2026-000123\|expiring` |
+| `licence/remindAfter` | The day on which you chose **Remind me tomorrow** for a licence in its grace period |
 
 ## What the data loader also keeps
 
@@ -54,11 +56,16 @@ A value outside its range is not accepted by the window. If one in the store is 
 
 The generator and the mock target keep only the window and the language. Their other fields, such as the output folder, the ports and the faults, are set each time you start them. [Make a media set](make-a-media-set.md) and [Run the mock target](mock-target.md) list them, with their defaults.
 
+## Licence files
+
+The licence folders, the clock file and the limits on them (64 files from each folder, 64 KiB for a file) are on
+[Your licence and edition](licence.md#where-licence-files-go). A licence is never read from anywhere else.
+
 ## Environment variables
 
 | Variable | Used by | What it does |
 | --- | --- | --- |
-| `ADL_SETTINGS_DIR` | All three programs | Keeps the settings in an ini file below this folder, as above |
+| `ADL_SETTINGS_DIR` | All three programs with windows, and `adl_licence` (which has no settings of its own, and reads its licence folders and clock file from this variable) | Keeps the settings in an ini file below this folder, as above, and keeps the [licence folders and the clock file](licence.md#where-licence-files-go) there too: `licences`, `machine-licences` and `licence-clock.json` |
 | `QT_QUICK_CONTROLS_STYLE` | All three programs | If it is not set, the programs use Qt's Fusion style. If it is set, Qt's own value is used |
 
 The programs read no other environment variable. Qt reads its own.

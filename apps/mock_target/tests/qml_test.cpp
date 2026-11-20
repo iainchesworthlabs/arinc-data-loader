@@ -8,9 +8,11 @@
 #include "adl/mock/model.hpp"
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/language_manager.hpp"
+#include "adl/ui/licence_model.hpp"
 #include "fake_link.hpp"
 
 #include <QEventLoop>
+#include <QFile>
 #include <QGuiApplication>
 #include <QImage>
 #include <QPointF>
@@ -20,10 +22,12 @@
 #include <QQuickItem>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QTemporaryDir>
 #include <QTimer>
 #include <QUrl>
 #include <QVariant>
 #include <cstdio>
+#include <cstdlib>
 #include <expected>
 #include <functional>
 #include <memory>
@@ -123,6 +127,9 @@ int main(int argc, char* argv[])
     QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &model,
                      &adl::mock::MockTargetModel::retranslate);
     engine.rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    // No licence is installed and no file is read: the window is the Community edition.
+    adl::ui::LicenceModel licence_model{adl::ui::LicenceEnvironment{}};
+    engine.rootContext()->setContextProperty(QStringLiteral("licence"), &licence_model);
     engine.loadFromModule("ArincMockTarget", "TargetWindow");
 
     if (engine.rootObjects().size() != 1)
@@ -206,6 +213,69 @@ int main(int argc, char* argv[])
     if (header_chip->isVisible() || footer_chip->isVisible())
     {
         std::fprintf(stderr, "a fault chip stayed after the injections were reset\n");
+        return 1;
+    }
+
+    // A scenario file: the button and the line beside it, the injections it takes the place of, and the way back.
+    QQuickItem* scenario_button = find_item(content, QStringLiteral("scenarioButton"));
+    QQuickItem* scenario_text = find_item(content, QStringLiteral("scenarioText"));
+    QQuickItem* wait_field = find_item(content, QStringLiteral("waitFirstField"));
+    if (scenario_button == nullptr || scenario_text == nullptr || wait_field == nullptr)
+    {
+        std::fprintf(stderr, "the scenario button or its line are not in the window\n");
+        return 1;
+    }
+    if (scenario_text->property("text").toString() != QStringLiteral("No scenario file") ||
+        scenario_button->property("text").toString() != QStringLiteral("Scenario file...") ||
+        !scenario_button->property("enabled").toBool() || !wait_field->property("enabled").toBool())
+    {
+        std::fprintf(stderr, "the scenario control does not say there is none: '%s' '%s'\n",
+                     qPrintable(scenario_text->property("text").toString()),
+                     qPrintable(scenario_button->property("text").toString()));
+        return 1;
+    }
+    QTemporaryDir scenario_dir;
+    const auto write_scenario = [&scenario_dir](const char* name, const QByteArray& text)
+    {
+        QFile file(scenario_dir.filePath(QString::fromLatin1(name)));
+        if (!file.open(QIODevice::WriteOnly) || file.write(text) != text.size())
+        {
+            std::fprintf(stderr, "a scenario file could not be written\n");
+            std::exit(1);
+        }
+        return scenario_dir.filePath(QString::fromLatin1(name));
+    };
+    model.loadScenario(write_scenario("bad.json", QByteArrayLiteral("nothing")));
+    QCoreApplication::processEvents();
+    if (!scenario_text->property("text").toString().startsWith(QStringLiteral("The scenario file was refused: ")) ||
+        model.hasScenario() || !wait_field->property("enabled").toBool())
+    {
+        std::fprintf(stderr, "a refused scenario file is not said in the window: '%s'\n",
+                     qPrintable(scenario_text->property("text").toString()));
+        return 1;
+    }
+    model.loadScenario(write_scenario(
+        "good.json", QByteArrayLiteral(R"({"kind":"adl-mock-scenario","format":1,"name":"Slow start","steps":[
+                                           {"when":{"request":1},"do":{"action":"wait","seconds":1}},
+                                           {"when":{"status_file":2},"do":{"action":"abort"}}]})")));
+    QCoreApplication::processEvents();
+    if (scenario_text->property("text").toString() != QStringLiteral("Scenario Slow start: 2 steps") ||
+        scenario_button->property("text").toString() != QStringLiteral("Remove the scenario") ||
+        wait_field->property("enabled").toBool() || !header_chip->isVisible() ||
+        header_chip->property("text").toString() != QStringLiteral("1 fault injected"))
+    {
+        std::fprintf(stderr, "a loaded scenario is not shown as one: '%s' '%s' '%s'\n",
+                     qPrintable(scenario_text->property("text").toString()),
+                     qPrintable(scenario_button->property("text").toString()),
+                     qPrintable(header_chip->property("text").toString()));
+        return 1;
+    }
+    QMetaObject::invokeMethod(scenario_button, "click"); // Remove the scenario
+    QCoreApplication::processEvents();
+    if (model.hasScenario() || scenario_text->property("text").toString() != QStringLiteral("No scenario file") ||
+        !wait_field->property("enabled").toBool() || header_chip->isVisible())
+    {
+        std::fprintf(stderr, "the window's button did not remove the scenario\n");
         return 1;
     }
 

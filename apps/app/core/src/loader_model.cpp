@@ -490,6 +490,17 @@ bool LoaderModel::begin(Job job)
     set_result(0, {}, {});
     job_load_count_ = selectedLoadCount();
     set_progress(-1);
+    // A transfer says which edition the program ran as before it says anything else of itself. A media set read or
+    // check is not a transfer and has no receipt.
+    job_stamp_.clear();
+    if (job == Job::information || job == Job::upload || job == Job::download_media || job == Job::download_operator)
+    {
+        job_stamp_ = licence_stamp_;
+        if (!job_stamp_.isEmpty())
+        {
+            events_.append({Severity::info, Message::verbatim(job_stamp_)});
+        }
+    }
     if (download_choice_pending_)
     {
         download_choice_pending_ = false;
@@ -520,6 +531,7 @@ void LoaderModel::on_finished(const OperationSummary& summary)
     result_was_download_ = ended == Job::download_media || ended == Job::download_operator;
     result_load_count_ = job_load_count_;
     result_time_ = QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+    result_stamp_ = result_is_transfer_ ? job_stamp_ : QString{};
     set_result(summary.success ? 1 : 2, summary.outcome, summary.detail);
     if (!summary.success && !quiet_job_)
     {
@@ -572,6 +584,16 @@ void LoaderModel::on_finished(const OperationSummary& summary)
     }
 }
 
+void LoaderModel::setLicenceStamp(const QString& stamp)
+{
+    if (licence_stamp_ == stamp)
+    {
+        return;
+    }
+    licence_stamp_ = stamp;
+    Q_EMIT licenceStampChanged();
+}
+
 void LoaderModel::set_result(int state, const Message& text, const Message& detail)
 {
     if (state == 0)
@@ -580,6 +602,7 @@ void LoaderModel::set_result(int state, const Message& text, const Message& deta
         result_was_download_ = false;
         result_load_count_ = 0;
         result_time_.clear();
+        result_stamp_.clear();
     }
     result_state_ = state;
     result_text_ = text;

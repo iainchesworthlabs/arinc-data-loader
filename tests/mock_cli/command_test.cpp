@@ -263,6 +263,13 @@ struct Recorder final : public OperationListener
     std::vector<std::string> received_names;
     std::vector<std::string> listed_names;
     std::vector<std::string> choose; // an operator defined download: the names to take (empty: all)
+    struct Noticed
+    {
+        Notice notice;
+        std::string subject;
+        std::uint32_t value;
+    };
+    std::vector<Noticed> notices;
 
     void on_initialization(const InitializationFile& file) noexcept override
     {
@@ -303,6 +310,16 @@ struct Recorder final : public OperationListener
     void on_file_received(std::string_view name, const ReceivedFile&) noexcept override
     {
         received_names.emplace_back(name);
+    }
+    void on_notice(Notice notice, std::string_view subject, std::uint32_t value) noexcept override
+    {
+        notices.push_back(Noticed{notice, std::string{subject}, value});
+    }
+    // How many times the loader's engine gave this notice.
+    [[nodiscard]] std::size_t count(Notice notice) const
+    {
+        return static_cast<std::size_t>(
+            std::ranges::count_if(notices, [notice](const Noticed& noticed) { return noticed.notice == notice; }));
     }
 };
 
@@ -399,6 +416,17 @@ TEST_CASE("an Information operation is served and written as events", "[mock_cli
     CHECK(started.at("find_port").number() == target_find_port);
     CHECK(started.at("tftp_port").number() == target_tftp_port);
     CHECK(started.at("faults").items().empty());
+    // Every build says which actions a scenario may use, with or without one; a program from before the faults on a
+    // datagram has no such key.
+    std::vector<std::string> features;
+    for (const Json& word : started.at("scenario_features").items())
+    {
+        features.push_back(word.string());
+    }
+    CHECK(features == std::vector<std::string>{"wait", "refuse", "invalid_init_file", "drop_status_file", "abort",
+                                               "silent", "corrupt_served", "wrong_checksum", "delay", "drop_datagram",
+                                               "duplicate_datagram", "reorder_datagram"});
+    CHECK(started.find("scenario") == nullptr);
 
     const Json* began = find_event(events, "operation_began");
     REQUIRE(began != nullptr);
@@ -589,7 +617,9 @@ TEST_CASE("the plain output is one line for each event and carries no JSON", "[m
     const std::vector<std::string> lines = lines_of(program.output.out_buffer.text());
     REQUIRE(lines.size() == 2);
     CHECK(lines[0].find(" started program=adl_mock version=") != std::string::npos);
-    CHECK(lines[0].ends_with(" faults=none"));
+    CHECK(
+        lines[0].contains(" faults=none scenario_features=wait,refuse,invalid_init_file,drop_status_file,abort,silent,"
+                          "corrupt_served,wrong_checksum,delay,drop_datagram,duplicate_datagram,reorder_datagram"));
     CHECK(lines[1].find(" stopped reason=seconds operations=0") != std::string::npos);
     for (const std::string& line : lines)
     {
@@ -613,6 +643,17 @@ TEST_CASE("--version and --help say what they are and exit 0", "[mock_cli][comma
     CHECK(help.join() == cli::exit_ok);
     CHECK(help.output.out_buffer.text().starts_with("usage: adl_mock"));
     CHECK(help.output.err_buffer.text().empty());
+}
+
+TEST_CASE("--scenario-actions lists the actions of a scenario file, one for each line, and exits 0",
+          "[mock_cli][command][scenario]")
+{
+    Program program({"--scenario-actions"}, false);
+    CHECK(program.join() == cli::exit_ok);
+    CHECK(program.output.out_buffer.text() ==
+          "wait\nrefuse\ninvalid_init_file\ndrop_status_file\nabort\nsilent\ncorrupt_served\nwrong_checksum\ndelay\n"
+          "drop_datagram\nduplicate_datagram\nreorder_datagram\n");
+    CHECK(program.output.err_buffer.text().empty());
 }
 
 TEST_CASE("wrong options exit 2, write no event and say why on the error stream", "[mock_cli][command]")
@@ -685,6 +726,265 @@ TEST_CASE("a port that cannot be opened exits 4 and names the port", "[mock_cli]
     CHECK(program.output.err_buffer.text().contains(std::to_string(target_tftp_port)));
 }
 
+// ---- The faults, one at a time ---------------------------------------------------------------------------
+//
+// Each starts the program with the option of one fault, runs the loader against it over real sockets, and
+// asserts what the loader's engine reports and what the program writes. The loader's time-outs are the
+// loader's own configuration: shortened where the fault is a silence, so that the group stays short.
+
+namespace
+{
+
+[[nodiscard]] std::vector<std::string> strings_of(const Json& array)
+{
+    std::vector<std::string> strings;
+    for (const Json& item : array.items())
+    {
+        strings.push_back(item.string());
+    }
+    return strings;
+}
+
+// The operation_ended event of a run, which must be there exactly once.
+[[nodiscard]] const Json& the_end_of(const std::vector<Json>& events)
+{
+    const auto count =
+        std::ranges::count_if(events, [](const Json& e) { return e.at("event").string() == "operation_ended"; });
+    REQUIRE(count == 1);
+    return *find_event(events, "operation_ended");
+}
+
+} // namespace
+
+TEST_CASE("WAIT on the first request makes the loader ask again, and the operation then completes",
+          "[mock_cli][faults]")
+{
+    Program program({"--wait-first", "1", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const auto before = std::chrono::steady_clock::now();
+    const Outcome outcome = rig.run(InformationOperation{});
+    const auto took = std::chrono::steady_clock::now() - before;
+    CHECK(outcome.code == OutcomeCode::completed);
+    REQUIRE(rig.recorder.count(Notice::waiting) == 1);
+    CHECK(rig.recorder.notices.front().value == 1);
+    CHECK(took >= std::chrono::milliseconds(900)); // it waited the second it was told to
+    CHECK(rig.recorder.configuration_lists == 1);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--wait-first"});
+    CHECK(find_event(events, "operation_began") != nullptr);
+    CHECK(the_end_of(events).at("status_name").string() == "completed");
+    CHECK(events.back().at("operations").number() == 1);
+}
+
+TEST_CASE("WAIT on every request keeps the operation from starting, until the loader gives up", "[mock_cli][faults]")
+{
+    Program program({"--wait-every", "1", "--seconds", "5", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    rig.config.max_waits = 2; // the loader's own limit is 10: a shorter one keeps the test short
+    const Outcome outcome = rig.run(InformationOperation{});
+    CHECK(outcome.code == OutcomeCode::transfer_failed);
+    CHECK(rig.recorder.count(Notice::waiting) == 3); // the third is the one over the limit
+    CHECK(rig.recorder.initialization.empty());      // the initialization file never came
+    CHECK(program.join() == cli::exit_ok);
+
+    // The target never accepted a request, so no operation began or ended.
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "stopped"});
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--wait-every"});
+    CHECK(events.back().at("reason").string() == "seconds");
+    CHECK(events.back().at("operations").number() == 0);
+}
+
+TEST_CASE("each operation can be refused, and the loader is told it is denied", "[mock_cli][faults]")
+{
+    struct Case
+    {
+        const char* option;
+        const char* operation;
+    };
+    const adl::arinc665::Load load = make_load(100, 1);
+    const std::vector<LoadReference> references = {
+        LoadReference{load.header_file_name, adl::samples::sample_load_part_number}};
+    const std::vector<FileRequest> files = {FileRequest{"F1.BIN", {}}};
+    for (const Case& test : {Case{"upload", "upload"}, Case{"download-media", "download_media_defined"},
+                             Case{"download-operator", "download_operator_defined"}})
+    {
+        INFO(test.option);
+        Program program({"--refuse", test.option, "--operations", "1", "--seconds", "60", "--json"});
+        REQUIRE(program.listening());
+        LoaderRig rig;
+        const Operation operation = std::string_view{test.option} == "upload"
+                                        ? Operation{UploadOperation{UploadRequest{references}}}
+                                    : std::string_view{test.option} == "download-media"
+                                        ? Operation{MediaDownloadOperation{DownloadRequest{files}}}
+                                        : Operation{OperatorDownloadOperation{}};
+        CHECK(rig.run(operation).code == OutcomeCode::denied);
+        CHECK(rig.recorder.initialization == std::vector<StatusCode>{StatusCode::operation_denied});
+        CHECK(program.join() == cli::exit_ok);
+
+        const std::vector<Json> events = events_of(program.output.out_buffer.text());
+        CHECK(names_of(events) == std::vector<std::string>{"started", "operation_ended", "stopped"});
+        CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--refuse"});
+        const Json& ended = events[1];
+        CHECK(ended.at("operation").string() == test.operation);
+        CHECK(ended.at("status").number() == 0x1000);
+        CHECK(ended.at("status_name").string() == "operation_denied");
+        CHECK(ended.at("refused").boolean());
+    }
+}
+
+TEST_CASE("a refusal with 0x1002 is not supported, not denied", "[mock_cli][faults]")
+{
+    const adl::arinc665::Load load = make_load(100, 1);
+    const std::vector<LoadReference> references = {
+        LoadReference{load.header_file_name, adl::samples::sample_load_part_number}};
+    Program program(
+        {"--refuse", "upload", "--refuse-code", "0x1002", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    CHECK(rig.run(UploadOperation{UploadRequest{references}}).code == OutcomeCode::not_supported);
+    CHECK(rig.recorder.initialization == std::vector<StatusCode>{StatusCode::operation_not_supported});
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "operation_ended", "stopped"});
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--refuse", "--refuse-code"});
+    CHECK(events[1].at("operation").string() == "upload");
+    CHECK(events[1].at("status").number() == 0x1002);
+    CHECK(events[1].at("status_name").string() == "operation_not_supported");
+    CHECK(events[1].at("refused").boolean());
+}
+
+TEST_CASE("an initialization file of invalid structure is a protocol error, and has no status", "[mock_cli][faults]")
+{
+    Program program({"--invalid-init-file", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::protocol_error);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "operation_ended", "stopped"});
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--invalid-init-file"});
+    const Json& ended = events[1];
+    CHECK(ended.at("status").is_null());
+    CHECK(ended.at("status_name").string() == "invalid_initialization_file");
+    CHECK(ended.at("refused").boolean());
+}
+
+TEST_CASE("every second status file lost is a gap the loader sees by the counter", "[mock_cli][faults]")
+{
+    Program program({"--drop-status-every", "2", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const adl::arinc665::Load load = make_load(300'000, 13);
+    rig.put_load(load);
+    const std::vector<LoadReference> references = {
+        LoadReference{load.header_file_name, adl::samples::sample_load_part_number}};
+    CHECK(rig.run(UploadOperation{UploadRequest{references}}).code == OutcomeCode::completed);
+    CHECK(rig.recorder.count(Notice::status_counter_gap) >= 1);
+    CHECK(rig.recorder.status_codes.back() == StatusCode::completed); // the last one is never lost
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--drop-status-every"});
+    CHECK(the_end_of(events).at("status_name").string() == "completed");
+}
+
+TEST_CASE("a bit flipped in what it serves is refused by the loader at the first file", "[mock_cli][faults]")
+{
+    adl::test::TempDir holds;
+    write_bytes(holds.path() / "F1.BIN", pattern(2000, 31));
+    // The target does not know the loader has left, and takes its time to find out (the loader's abort).
+    Program program(
+        {"--corrupt-served", "--holds", utf8_of(holds.path()), "--operations", "1", "--seconds", "30", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const std::vector<FileRequest> files = {FileRequest{"F1.BIN", {}}};
+    // The initialization file is the first one it serves, and it is one of those with a bit flipped.
+    CHECK(rig.run(MediaDownloadOperation{DownloadRequest{files}}).code == OutcomeCode::unsupported_protocol_version);
+    CHECK(rig.recorder.received_names.empty());
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--corrupt-served"});
+    CHECK(find_event(events, "operation_began")->at("operation").string() == "download_media_defined");
+    // The target had accepted the request as far as it could tell; it ends with the loader's abort.
+    const Json& ended = the_end_of(events);
+    CHECK(ended.at("status_name").string() == "aborted_by_data_loader");
+    CHECK_FALSE(ended.at("refused").boolean());
+}
+
+TEST_CASE("a wrong check value option is reported by the loader and the file is kept all the same",
+          "[mock_cli][faults]")
+{
+    adl::test::TempDir holds;
+    const std::vector<std::byte> content = pattern(2000, 31);
+    write_bytes(holds.path() / "F1.BIN", content);
+    Program program(
+        {"--wrong-checksum", "--holds", utf8_of(holds.path()), "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const std::vector<FileRequest> files = {FileRequest{"F1.BIN", {}}};
+    CHECK(rig.run(MediaDownloadOperation{DownloadRequest{files}}).code == OutcomeCode::completed);
+    CHECK(rig.recorder.count(Notice::checksum_mismatch) == 1);
+    CHECK(rig.recorder.notices.front().subject == "F1.BIN");
+    CHECK(rig.recorder.received_names == std::vector<std::string>{"F1.BIN"});
+    CHECK(read_bytes(rig.download_directory.path() / "F1.BIN") == content); // kept (5.3.2.3.8.5)
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--wrong-checksum"});
+    CHECK(the_end_of(events).at("status_name").string() == "completed");
+}
+
+TEST_CASE("the target aborts after n status files, and the loader reports it", "[mock_cli][faults]")
+{
+    Program program({"--abort-after", "2", "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const adl::arinc665::Load load = make_load(30000, 15);
+    rig.put_load(load);
+    const std::vector<LoadReference> references = {
+        LoadReference{load.header_file_name, adl::samples::sample_load_part_number}};
+    CHECK(rig.run(UploadOperation{UploadRequest{references}}).code == OutcomeCode::aborted_by_target);
+    REQUIRE_FALSE(rig.recorder.status_codes.empty());
+    CHECK(rig.recorder.status_codes.back() == StatusCode::aborted_by_target);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--abort-after"});
+    const Json& ended = the_end_of(events);
+    CHECK(ended.at("operation").string() == "upload");
+    CHECK(ended.at("status").number() == 0x1003);
+    CHECK(ended.at("status_name").string() == "aborted_by_target");
+    CHECK_FALSE(ended.at("refused").boolean());
+    CHECK(events.back().at("operations").number() == 1);
+}
+
+TEST_CASE("a silent target ends the operation with the loader's time-out, and never says it ended",
+          "[mock_cli][faults]")
+{
+    Program program({"--silent", "--seconds", "6", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    rig.config.dlp_timeout = std::chrono::seconds(2); // the loader's own is 13 seconds
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::dlp_timed_out);
+    CHECK(rig.recorder.configuration_lists == 0);
+    CHECK(program.join() == cli::exit_ok); // it stops when the seconds are up: its operation never ends
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(strings_of(events.front().at("faults")) == std::vector<std::string>{"--silent"});
+    CHECK(find_event(events, "operation_began") != nullptr);
+    CHECK(find_event(events, "operation_ended") == nullptr);
+    CHECK(events.back().at("reason").string() == "seconds");
+    CHECK(events.back().at("operations").number() == 0);
+}
+
 // ---- The client of the Unicode folders test -------------------------------------------------------------
 
 // Not a test of its own: the other half of tools.adl_mock.unicode_folders (mock_unicode.cmake), which starts
@@ -732,4 +1032,260 @@ TEST_CASE("the loader against adl_mock started as a process, with folders of Uni
     {
         static_cast<void>(echo(line));
     }
+}
+
+// ---- Scenarios -----------------------------------------------------------------------------------------
+
+namespace
+{
+
+// A scenario file in a folder of its own, and the path as the program is given it.
+[[nodiscard]] std::string write_scenario_file(const adl::test::TempDir& directory, std::string_view name,
+                                              std::string_view text)
+{
+    const std::filesystem::path path = directory.path() / std::string{name};
+    std::ofstream out(path, std::ios::binary);
+    out << text;
+    return utf8_of(path);
+}
+
+// The events without their times and the loader's port, as the lines the program wrote, for comparing two runs.
+[[nodiscard]] std::vector<std::string> events_without_time(const std::string& text)
+{
+    std::vector<std::string> lines;
+    for (std::string line : lines_of(text))
+    {
+        const std::size_t start = line.find(",\"t\":");
+        const std::size_t end = line.find_first_of(",}", start + 5);
+        REQUIRE(start != std::string::npos);
+        line.erase(start, end - start);
+        // The port a datagram is sent to is the loader's own, and is not the same in two runs.
+        const std::size_t to = line.find("\"to\":\"");
+        if (to != std::string::npos)
+        {
+            const std::size_t colon = line.find(':', to + 6);
+            const std::size_t quote = line.find('"', colon);
+            line.erase(colon, quote - colon);
+        }
+        lines.push_back(std::move(line));
+    }
+    return lines;
+}
+
+constexpr std::string_view slow_start_scenario = R"({
+  "kind": "adl-mock-scenario",
+  "format": 1,
+  "seed": 5,
+  "steps": [
+    { "when": { "request": 1 }, "do": { "action": "wait", "seconds": 1 } },
+    { "when": { "request": 2 }, "do": { "action": "delay", "min_ms": 100, "max_ms": 300 } },
+    { "when": { "request": 40 }, "do": { "action": "refuse" } }
+  ]
+})";
+
+} // namespace
+
+TEST_CASE("a scenario's steps are written as events, and the steps that never fired are told at the end",
+          "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file = write_scenario_file(directory, "slow start.json", slow_start_scenario);
+    Program program({"--scenario", file, "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    const Outcome outcome = rig.run(InformationOperation{});
+    CHECK(outcome.code == OutcomeCode::completed);
+    CHECK(rig.recorder.count(Notice::waiting) == 1);
+    CHECK(program.join() == cli::exit_ok);
+    CHECK(program.output.err_buffer.text().empty());
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "scenario_step", "scenario_step", "scenario_datagram",
+                                                       "operation_began", "progress", "operation_ended", "stopped"});
+    const Json& started = events.front();
+    CHECK(strings_of(started.at("faults")) == std::vector<std::string>{"--scenario"});
+    CHECK(started.at("scenario").string() == file);
+    CHECK(started.at("scenario_steps").number() == 3);
+    CHECK(started.at("scenario_seed").number() == 5);
+
+    // Request 1 is answered with WAIT:1, and the loader's repeat is request 2, which is held back for a time drawn
+    // from 100 to 300 ms by the stream of step 2 (the same number as in tests/scenario_base).
+    const Json& wait = events[1];
+    CHECK(wait.at("step").number() == 1);
+    CHECK(wait.at("trigger").string() == "request");
+    CHECK(wait.at("at").number() == 1);
+    CHECK(wait.at("operation").string() == "information");
+    CHECK(wait.at("action").string() == "wait");
+    CHECK(wait.at("applied").boolean());
+    CHECK(wait.at("seconds").number() == 1);
+    CHECK(wait.find("ms") == nullptr);
+    CHECK(wait.find("status") == nullptr);
+    const Json& delay = events[2];
+    CHECK(delay.at("step").number() == 2);
+    CHECK(delay.at("at").number() == 2);
+    CHECK(delay.at("action").string() == "delay");
+    CHECK(delay.at("ms").number() >= 100);
+    CHECK(delay.at("ms").number() <= 300);
+    CHECK(delay.find("seconds") == nullptr);
+    CHECK(delay.at("count").number() == 1);
+    CHECK(delay.find("datagram") == nullptr); // the step names no datagram: it is for the next one
+    // ... and the datagram it was for: the first one the target sent after the request.
+    const Json& hit = events[3];
+    CHECK(hit.at("step").number() == 2);
+    CHECK(hit.at("action").string() == "delay");
+    CHECK(hit.at("applied").boolean());
+    CHECK(hit.at("to").string().starts_with("127.0.0.1:"));
+    CHECK(hit.at("size").number() > 0);
+
+    const Json& stopped = events.back();
+    CHECK(stopped.at("operations").number() == 1);
+    const auto& unused = stopped.at("scenario_unused").items();
+    REQUIRE(unused.size() == 1);
+    CHECK(unused[0].number() == 3);
+}
+
+TEST_CASE("a scenario's refusal is written before the end of the operation it refuses", "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file = write_scenario_file(directory, "refuse.json",
+                                                 R"({"kind":"adl-mock-scenario","format":1,"steps":[
+            {"when":{"request":1},"do":{"action":"refuse","code":"0x1002"}}]})");
+    Program program({"--scenario", file, "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::not_supported);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    CHECK(names_of(events) == std::vector<std::string>{"started", "scenario_step", "operation_ended", "stopped"});
+    CHECK(events[0].at("scenario_seed").is_null());
+    CHECK(events[1].at("action").string() == "refuse");
+    CHECK(events[1].at("status").number() == 0x1002);
+    CHECK(events[2].at("status_name").string() == "operation_not_supported");
+    CHECK(events[2].at("refused").boolean());
+    CHECK(events.back().at("scenario_unused").items().empty());
+}
+
+TEST_CASE("a scenario with a seed gives the same events on every run", "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file = write_scenario_file(directory, "again.json", slow_start_scenario);
+    std::vector<std::vector<std::string>> runs;
+    for (int run = 0; run < 2; ++run)
+    {
+        Program program({"--scenario", file, "--operations", "1", "--seconds", "60", "--json"});
+        REQUIRE(program.listening());
+        LoaderRig rig;
+        CHECK(rig.run(InformationOperation{}).code == OutcomeCode::completed);
+        CHECK(program.join() == cli::exit_ok);
+        runs.push_back(events_without_time(program.output.out_buffer.text()));
+    }
+    REQUIRE(runs[0].size() == 8);
+    CHECK(runs[0] == runs[1]);
+}
+
+TEST_CASE("the plain output of a scenario has a line for each step", "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file = write_scenario_file(
+        directory, "plain.json",
+        R"({"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"wait","seconds":1}}]})");
+    Program program({"--scenario", file, "--operations", "1", "--seconds", "60"});
+    REQUIRE(program.output.out_buffer.wait_for("started", std::chrono::seconds(20)));
+    LoaderRig rig;
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::completed);
+    CHECK(program.join() == cli::exit_ok);
+    const std::string text = program.output.out_buffer.text();
+    CHECK(text.contains(
+        "scenario_step step=1 trigger=request at=1 operation=information action=wait applied=true seconds=1"));
+    CHECK(text.contains("faults=--scenario"));
+    CHECK(text.contains("scenario_steps=1 scenario_seed=none"));
+    CHECK(text.contains("scenario_unused=none"));
+}
+
+TEST_CASE("a fault on a datagram is written for each datagram it met, and a step that was armed for none is told",
+          "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    // Step 1 sends the first datagram of the operation twice. Step 2 is for a file that is never sent: it is armed
+    // and meets nothing (idle). Step 3 never occurs (unused).
+    const std::string file =
+        write_scenario_file(directory, "datagrams.json", R"({"kind":"adl-mock-scenario","format":1,"steps":[
+            {"when":{"request":1},"count":1,"do":{"action":"duplicate_datagram","copies":2}},
+            {"when":{"request":1},"on":{"file":"NOPE.BIN"},"do":{"action":"drop_datagram"}},
+            {"when":{"request":99},"do":{"action":"drop_datagram"}}]})");
+    Program program({"--scenario", file, "--operations", "1", "--seconds", "60", "--json"});
+    REQUIRE(program.listening());
+    LoaderRig rig;
+    CHECK(rig.run(InformationOperation{}).code == OutcomeCode::completed);
+    CHECK(program.join() == cli::exit_ok);
+
+    const std::vector<Json> events = events_of(program.output.out_buffer.text());
+    const std::vector<std::string> names = names_of(events);
+    CHECK(std::ranges::count(names, "scenario_step") == 2);
+    REQUIRE(std::ranges::count(names, "scenario_datagram") == 1);
+    const Json* hit = find_event(events, "scenario_datagram");
+    CHECK(hit->at("step").number() == 1);
+    CHECK(hit->at("action").string() == "duplicate_datagram");
+    CHECK(hit->at("applied").boolean());
+    CHECK_FALSE(hit->at("datagram").string().empty());
+    CHECK(hit->at("size").number() > 0);
+
+    const Json* first = find_event(events, "scenario_step");
+    CHECK(first->at("action").string() == "duplicate_datagram");
+    CHECK(first->at("copies").number() == 2);
+    CHECK(first->at("count").number() == 1);
+
+    const Json& stopped = events.back();
+    REQUIRE(stopped.at("scenario_unused").items().size() == 1);
+    CHECK(stopped.at("scenario_unused").items()[0].number() == 3);
+    REQUIRE(stopped.at("scenario_idle").items().size() == 1);
+    CHECK(stopped.at("scenario_idle").items()[0].number() == 2);
+}
+
+TEST_CASE("a scenario file that cannot be used exits 5 before anything is opened, with one sentence",
+          "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string bad = write_scenario_file(
+        directory, "bad.json",
+        R"({"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":2},"do":{"action":"wait","seconds":1}}]})");
+    Program program({"--scenario", bad, "--seconds", "5", "--json"});
+    CHECK(program.join() == cli::exit_scenario);
+    CHECK(program.output.out_buffer.text().empty());
+    CHECK(program.output.err_buffer.text() ==
+          "adl_mock: --scenario " + bad +
+              ": step 1: \"wait\" does not go with a \"status_file\" trigger; it goes with \"request\"\n");
+
+    Program not_json({"--scenario", write_scenario_file(directory, "not json.json", "nothing"), "--seconds", "5"});
+    CHECK(not_json.join() == cli::exit_scenario);
+    CHECK(not_json.output.err_buffer.text().contains("it is not valid JSON"));
+
+    const std::string missing = utf8_of(directory.path() / "missing.json");
+    Program absent({"--scenario", missing, "--seconds", "5"});
+    CHECK(absent.join() == cli::exit_scenario);
+    CHECK(absent.output.out_buffer.text().empty());
+    CHECK(
+        absent.output.err_buffer.text().starts_with("adl_mock: --scenario " + missing + ": the file cannot be read ("));
+}
+
+TEST_CASE("a scenario does not go with an option that sets a fault, and a step that goes silent needs --seconds",
+          "[mock_cli][scenario]")
+{
+    adl::test::TempDir directory;
+    const std::string file =
+        write_scenario_file(directory, "ok.json", R"({"kind":"adl-mock-scenario","format":1,"steps":[]})");
+    Program with_fault({"--scenario", file, "--wrong-checksum", "--seconds", "5"}, false);
+    CHECK(with_fault.join() == cli::exit_usage);
+    CHECK(with_fault.output.out_buffer.text().empty());
+    CHECK(with_fault.output.err_buffer.text() == "adl_mock: --scenario cannot be used with --wrong-checksum: the "
+                                                 "scenario sets the faults\ntry 'adl_mock --help'\n");
+
+    const std::string silent = write_scenario_file(
+        directory, "silent.json",
+        R"({"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"after_ms":100},"do":{"action":"silent"}}]})");
+    Program without_seconds({"--scenario", silent, "--operations", "1"}, false);
+    CHECK(without_seconds.join() == cli::exit_usage);
+    CHECK(without_seconds.output.out_buffer.text().empty());
+    CHECK(without_seconds.output.err_buffer.text().contains("needs --seconds, because the operation never ends"));
 }

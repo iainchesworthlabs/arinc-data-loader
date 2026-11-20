@@ -56,11 +56,12 @@ target by hand, the page says that no FIND answer was used.
 **About** shows what the window is for, the version and the build it came from (release,
 commit, branch, target and Qt version, and a note if the build had uncommitted changes), the
 licence, and the repository address. The software is free software under the GNU General Public
-License, version 3 or later, and comes with **no warranty**.
+License, version 3 or later, and comes with **no warranty**. A line **Edition** says which edition this is, with a
+**Licence...** button that opens the [Licence window](licence.md).
 
 ![About](../images/app-about.png)
 
-**Licences** lists the third-party components inside the program, each with its licence: Qt (under
+**Licences**, the button of About, is not your edition (that is **Licence...**, above). It lists the third-party components inside the program, each with its licence: Qt (under
 the LGPL, with the offer of its source), the Archivo typeface (SIL Open Font License) and the
 other runtime files that ship with it.
 

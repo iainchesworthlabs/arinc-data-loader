@@ -1,0 +1,19 @@
+{
+  "product": "adl",
+  "licence_id": "ADL-2026-900009",
+  "kind": "annual",
+  "edition": "pro",
+  "licensee": {
+    "name": "Example Lab Pty Ltd",
+    "email": "tests@example-lab.invalid"
+  },
+  "issued_at": "2026-11-15T08:08:29Z",
+  "starts_at": "2026-11-15T00:00:00Z",
+  "expires_at": "2027-11-15T00:00:00Z",
+  "grace_days": 28,
+  "seats": 1,
+  "features": ["support"],
+  "machines": [],
+  "clock_reset": "reset-2026-11-a",
+  "critical": []
+}

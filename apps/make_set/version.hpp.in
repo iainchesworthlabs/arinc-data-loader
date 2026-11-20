@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+#pragma once
+
+// Made by CMake from the project's version (apps/make_set/CMakeLists.txt).
+
+namespace adl::make_set
+{
+
+inline constexpr char version[] = "@PROJECT_VERSION@";
+
+} // namespace adl::make_set

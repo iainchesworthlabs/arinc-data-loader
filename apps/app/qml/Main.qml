@@ -20,6 +20,14 @@ ApplicationWindow {
     // keeping the switch here means Download is never below a scroll fold.
     property int mode: 0
 
+    // The loader says which edition it ran as in its log and its receipt. The words are the licence model's, in
+    // the person's language; the loader reads no licence and nothing depends on it.
+    Binding {
+        target: window.app
+        property: "licenceStamp"
+        value: licence.stamp
+    }
+
     // Closing during a job asks first, then waits for the target to confirm the abort.
     property bool closeRequested: false
     property bool closeAfterStop: false
@@ -39,7 +47,7 @@ ApplicationWindow {
                                                   : lastFailed ? "fail"
                                                   : lastComplete ? "ok"
                                                   : app.canUpload || app.canDownload ? "ok" : "warn"
-    readonly property bool modalOpen: preferencesDialog.opened || aboutDialog.opened || licencesDialog.opened
+    readonly property bool modalOpen: preferencesDialog.opened || aboutDialog.opened || licencesDialog.opened || licenceDialog.opened || supportDialog.opened
                                       || mediaSetPropertiesDialog.opened
                                       || targetPropertiesDialog.opened || errorDialog.opened
                                       || closeDialog.opened
@@ -117,29 +125,41 @@ ApplicationWindow {
         onActivated: if (!window.app.busy) window.app.findTargets()
     }
 
-    header: AppHeader {
-        appCode: "ADL"
-        title: qsTr("ARINC Data Loader")
-        subtitle: qsTr("ARINC 615A · ARINC 665 · engineering load console")
+    header: ColumnLayout {
+        spacing: 0
 
-        StatusChip {
-            objectName: "headerStatusChip"
-            text: window.statusText
-            tone: window.statusTone
+        AppHeader {
+            Layout.fillWidth: true
+            appCode: "ADL"
+            title: qsTr("ARINC Data Loader")
+            subtitle: qsTr("ARINC 615A · ARINC 665 · engineering load console")
+
+            StatusChip {
+                objectName: "headerStatusChip"
+                text: window.statusText
+                tone: window.statusTone
+            }
+
+            AppButton {
+                objectName: "preferencesButton"
+                text: qsTr("Preferences")
+                onClicked: preferencesDialog.open()
+                Accessible.description: qsTr("Open preferences")
+            }
+
+            AppButton {
+                objectName: "aboutButton"
+                text: qsTr("About")
+                onClicked: aboutDialog.open()
+                Accessible.description: qsTr("About the data loader")
+            }
         }
 
-        AppButton {
-            objectName: "preferencesButton"
-            text: qsTr("Preferences")
-            onClicked: preferencesDialog.open()
-            Accessible.description: qsTr("Open preferences")
-        }
-
-        AppButton {
-            objectName: "aboutButton"
-            text: qsTr("About")
-            onClicked: aboutDialog.open()
-            Accessible.description: qsTr("About the data loader")
+        LicenceBanner {
+            objectName: "licenceBanner"
+            Layout.fillWidth: true
+            model: licence
+            onLicenceRequested: licenceDialog.open()
         }
     }
 
@@ -207,6 +227,14 @@ ApplicationWindow {
             elide: Text.ElideMiddle
         }
 
+        EditionChip {
+            objectName: "editionChip"
+            text: licence.chipText
+            tone: licence.chipTone
+            description: licence.chipName
+            onClicked: licenceDialog.open()
+        }
+
         Text {
             text: qsTr("v%1").arg(Qt.application.version)
             color: Theme.textMuted
@@ -258,10 +286,30 @@ ApplicationWindow {
         appName: qsTr("ARINC Data Loader")
         blurb: qsTr("An ARINC 615A and ARINC 665 engineering load console: media sets, targets, the Information, Upload and Download operations, and the evidence of what happened.")
         onShowLicences: licencesDialog.open()
+        onShowLicence: {
+            aboutDialog.close();
+            licenceDialog.open();
+        }
     }
 
     LicencesDialog {
         id: licencesDialog
+    }
+
+    LicenceDialog {
+        id: licenceDialog
+
+        model: licence
+        onSupportRequested: {
+            licenceDialog.close();
+            supportDialog.open();
+        }
+    }
+
+    SupportDialog {
+        id: supportDialog
+
+        model: licence
     }
 
     AppDialog {

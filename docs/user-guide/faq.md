@@ -10,7 +10,7 @@ No. The programs work together and are tested against simulated and mock targets
 
 ### Is there a program that runs on the equipment being loaded?
 
-No. The loader, the generator and `adl_write_payloads` are for the operator's computer, the source side. `adl_mock_target` stands in for a target in demonstrations and tests, and it is not one. The libraries build for a target's platform, but no program answers a loader and writes status files on real equipment. See [What these programs are, and are not](concepts.md#what-these-programs-are-and-are-not) and [Building](../building.md#what-cmake-builds).
+No. The loader, the generator, `adl_write_payloads` and `adl_licence` are for the operator's computer, the source side. `adl_mock_target` stands in for a target in demonstrations and tests, and it is not one. The libraries build for a target's platform, but no program answers a loader and writes status files on real equipment. See [What these programs are, and are not](concepts.md#what-these-programs-are-and-are-not) and [Building](../building.md#what-cmake-builds).
 
 ### Which standards does it follow, and are they needed to use it?
 
@@ -52,7 +52,7 @@ A media set goes in `<output folder>/<media set part number>/member_NNN`, and no
 
 ### Is there a command-line version of the loader?
 
-The documents describe none. The loader, the generator and the mock target each open a window. `adl_write_payloads` is a command-line program that writes sample media sets. A program that needs the protocol without a window can use the libraries. See [Installing](installing.md#getting-the-programs), [`adl_write_payloads`](../file-reference.md#adl_write_payloads) and [Using the libraries](../libraries.md).
+The documents describe none. The loader, the generator and the mock target each open a window. `adl_write_payloads` is a command-line program that writes sample media sets, and `adl_licence` is one that shows and manages the licence. A program that needs the protocol without a window can use the libraries. See [Installing](installing.md#getting-the-programs), [`adl_write_payloads`](../file-reference.md#adl_write_payloads) and [Using the libraries](../libraries.md).
 
 ## The libraries and the ports
 
@@ -73,6 +73,13 @@ The project is GPL-3.0-or-later (`LICENSE`, `vcpkg.json`). No separate licence i
 ### Why are the translations marked as unreviewed?
 
 The loader, the generator and the mock target offer eight languages. Seven of them are machine-drafted first versions written without a translator, and no speaker of French, Spanish, German, Yiddish, Hebrew, Chinese or Japanese has read them. The tests check that every message has a translation of the right shape (placeholders, plural forms, markup). They do not check whether the wording is good. Hebrew and Yiddish, which have no established avionics vocabulary, most need review. A review is a pull request that edits the `.ts` file of the language. See [Languages and colour](languages-and-colour.md#language) and [Translations](../translations.md).
+
+### Which edition do I have, and does a licence change what the programs do?
+
+The edition chip at the right of the status bar says which edition this is: Community, Pro or Enterprise. A licence file
+records that a paid edition was bought, and nothing in a program is switched off by one: every function works with no
+licence. A paid edition adds support, supported versions and data packs, which are a service and documents. See
+[Your licence and edition](licence.md).
 
 ### Where do I report a bug?
 

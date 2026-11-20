@@ -362,8 +362,8 @@ jobs:
         continue-on-error: true
         uses: iainchesworthlabs/icl-common-infra/actions/save-vcpkg-cache@54f3b7ecd95fa07034f6f50a057c537ee98cd30d # v0.1.28
 
-  # Replays the fuzzers' seed corpus and the inputs that once crashed them (libs/<lib>/fuzz/corpus and
-  # regressions, docs/fuzzing.md): the parsers do not crash on any of them. A few seconds once built.
+  # Replays the fuzzers' seed corpus and the inputs that once crashed them (the corpus and regressions
+  # directories of libs/<lib>/fuzz and tools/<tool>/fuzz, docs/fuzzing.md): the parsers do not crash on any of them. A few seconds once built.
   fuzz-regress:
     name: Fuzz regression (Linux, Clang)
     needs: plan

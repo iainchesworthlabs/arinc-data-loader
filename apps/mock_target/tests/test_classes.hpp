@@ -18,4 +18,6 @@ private Q_SLOTS:
     void a_load_directory_is_never_a_device_or_a_dotted_name();
     void starting_and_stopping_in_quick_succession_leaves_the_worker_free();
     void the_activity_roles_are_the_ones_the_log_view_reads();
+    void a_scenario_file_is_loaded_refused_and_removed();
+    void a_scenario_takes_the_place_of_the_injections_and_its_steps_are_in_the_log();
 };

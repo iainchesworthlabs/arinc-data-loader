@@ -1,0 +1,1 @@
+{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"status_file":1},"per_mille":100,"do":{"action":"abort"}}]}

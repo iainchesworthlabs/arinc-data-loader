@@ -63,7 +63,7 @@ apps/app/
                       English plural forms), compiled into the window's module; the shared
                       components' are in libs/ui/translations. LanguageManager is libs/ui's.
   core/               adl_app_core: everything but the window, Qt Core only
-    engine_worker     the engine on its own thread, the abort and the deferred download choice
+    engine_worker     the engine on its own thread, the abort and the deferred download choice (the run and the gate are adl::loader_core's)
     loader_model      what the QML talks to: properties and a few invokable functions
     settings          the persistent preferences (QSettings), read at start-up
     models            the list models (the loads carry the operator's ticks and the progress)
@@ -73,7 +73,8 @@ apps/app/
     events, address   plain values, and the IPv4 parser's Qt strings (adl::loader_core has the parser)
     host_access       where the worker gets the platform from
 libs/loader_core/     adl_loader_core, no Qt: the media set's files and their index (media_source), the media
-                      set check, the download folder, the target's address (architecture.md)
+                      set check, the download folder, the target's address, the operation plan, the run and the
+                      operator's gate (architecture.md)
 apps/app/tests/            QtTest, and the window loaded offscreen
 tests/ui/             the window driven through Qt Quick Test (testing.md)
 libs/ui/               the shared design system: Theme, the controls, the header and footer, the

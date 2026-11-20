@@ -26,6 +26,7 @@
 #include "adl/arinc615a/time.hpp"
 #include "adl/arinc615a_mini/mini_tftp.hpp"
 #include "adl/arinc665/files.hpp"
+#include "adl/mock/fault_plan.hpp"
 #include "adl/mock/link.hpp"
 
 #include <cstddef>
@@ -95,15 +96,6 @@ public:
                                  bool /*refused*/)
     {
     }
-};
-
-// Which of the four operations.
-enum class OperationKind : std::uint8_t
-{
-    information,
-    upload,
-    download_media,
-    download_operator,
 };
 
 // A part and a piece of hardware the target reports in its configuration list (.LCL).
@@ -180,6 +172,11 @@ struct Config
     unsigned drop_status_every = 0;                  // lose every Nth status file (0: lose none)
     std::optional<std::size_t> abort_after_statuses; // send 0x1003 after this many
     bool silent = false;                             // after the first status file: answer nothing (the DLP time-out)
+
+    // ---- a scenario ----
+    // Asked at each request, each status file and each time a step of it is due, and applied on top of the faults
+    // above (docs/mock-target.md, "Scenarios"). One plan for one run: it keeps its own counters.
+    std::shared_ptr<FaultPlan> fault_plan;
 
     // ---- data ----
     std::vector<HardwareItem> information; // empty: the default list
@@ -293,15 +290,19 @@ private:
     [[nodiscard]] Instant now() const;
     void note(Severity severity, std::string text);
     void report_progress();
-    MiniTransfer& add_transfer(MiniTransfer::Role role);
+    MiniTransfer& add_transfer(MiniTransfer::Role role, std::string_view file = {});
     void remove_later(std::uint16_t port);
+    // What a datagram is, for the plan, and the datagrams a plan has held back.
+    [[nodiscard]] DatagramInfo describe(std::uint16_t from_port, const Endpoint& to,
+                                        std::span<const std::byte> payload) const;
+    void release_held(std::optional<std::uint64_t> only = std::nullopt);
     void send_error(const Endpoint& to, TftpErrorCode code, std::string_view text);
 
     // Datagrams.
     void handle_find(const Endpoint& from, std::span<const std::byte> payload);
     void handle_request(const Endpoint& from, const TftpRequest& request);
     void serve_init(const Endpoint& from, const TftpRequest& request, Kind kind);
-    void on_init_served();
+    void on_init_served(Kind kind, const std::optional<Refusal>& refusal, bool garbage);
     void on_list_received(const std::string& name, const Bytes& bytes);
 
     // Client side: writes and reads, with the DLP retry and the WAIT behaviour.
@@ -309,7 +310,7 @@ private:
                     std::function<void(MiniResult::Kind)> then, unsigned attempt = 0);
     void read_file(const std::string& name, std::optional<ChecksumOption> checksum,
                    std::function<void(MiniResult::Kind, const Bytes&)> then, unsigned attempt = 0);
-    [[nodiscard]] std::optional<ChecksumOption> checksum_for(const Bytes& content) const;
+    [[nodiscard]] std::optional<ChecksumOption> checksum_for(const Bytes& content);
     [[nodiscard]] std::optional<ChecksumOption> checksum_for_file(const adl::arinc665::UserSuppliedFile& file) const;
 
     // Status files.
@@ -331,6 +332,13 @@ private:
     void end_operation(StatusCode code);
     void reset_operation_state();
     void hand_over_uploads();
+
+    // A scenario's effects (Config::fault_plan).
+    void start_timed_steps();
+    void run_timed_step(std::size_t id, std::uint64_t serial);
+    void apply_later_effects(const std::vector<Action>& actions);
+    void abort_now();
+    [[nodiscard]] static bool take(bool& flag) noexcept;
     [[nodiscard]] Bytes build_configuration_list() const;
     [[nodiscard]] Bytes build_download_list() const;
     [[nodiscard]] static std::string operation_name(Kind kind);
@@ -343,6 +351,16 @@ private:
     std::vector<std::string> log_;
     std::string last_error_;
     std::map<std::uint16_t, std::unique_ptr<MiniTransfer>> transfers_;
+    std::map<std::uint16_t, std::string> transfer_files_; // the file of each transfer, by its port
+    struct Held
+    {
+        std::uint64_t id = 0;
+        std::uint16_t from_port = 0;
+        Endpoint to{};
+        std::vector<std::byte> bytes;
+    };
+    std::vector<Held> held_; // datagrams a plan holds back until the next one goes (or its time is up)
+    std::uint64_t next_held_id_ = 1;
     std::uint16_t next_port_ = 40000;
     std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
     int reported_progress_ = -1;
@@ -382,6 +400,13 @@ private:
     StatusCode last_abort_status_ = StatusCode::aborted_by_data_loader;
     bool final_posted_ = false;
     bool checksum_acknowledged_ = false;
+
+    // What a scenario has asked for, and that waits for the next thing it acts on; all are cleared when an operation
+    // ends. (What it asks for a request is used for that request, and goes with its transfer.)
+    bool armed_drop_ = false;
+    bool armed_corrupt_ = false;
+    bool armed_wrong_checksum_ = false;
+    std::uint64_t operation_serial_ = 0; // a new number for each operation, so that its timers can tell it ended
 };
 
 } // namespace adl::mock

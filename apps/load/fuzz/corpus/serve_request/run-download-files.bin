@@ -1,0 +1,1 @@
+run	d.2	download	--target	10.0.0.3	--position	HNPFMS_R	--into	out	--file	A.BIN	--file	B.BIN

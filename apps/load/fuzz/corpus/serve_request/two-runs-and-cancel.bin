@@ -1,0 +1,3 @@
+run	a	information	--target	10.0.0.2	--position	P
+run	b	information	--target	10.0.0.3	--position	P
+cancel	a

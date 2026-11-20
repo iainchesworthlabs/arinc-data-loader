@@ -21,6 +21,12 @@ inline constexpr std::string_view product_id = "adl";
 // this product is the signed `product` field above, not the number.
 inline constexpr std::string_view licence_id_prefix = "ADL-";
 
+// The extension of a licence file (.adllic) and of a signed revocation list (.adlrev, a file type of its own,
+// as a licence is) in a licence folder. The store looks at these and no other file. Both are signed files
+// (signed_file.hpp): the first has the purpose `licence`, the second `revocations`.
+inline constexpr std::string_view licence_extension = ".adllic";
+inline constexpr std::string_view revocations_extension = ".adlrev";
+
 // What a licence can carry. The edition alone grants nothing: a licence names the features it turns on.
 // A name is lower case letters, digits, '.', '-' and '_'; a licence may also carry a prefix that ends in
 // ".*" to cover every name below it.

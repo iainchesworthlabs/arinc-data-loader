@@ -1,0 +1,1 @@
+{"kind":"adl-mock-scenario","format":1,"steps":[{"when":{"request":1},"do":{"action":"duplicate_datagram","copies":1}}]}

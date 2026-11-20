@@ -24,9 +24,12 @@ ApplicationWindow {
                                              + (app.wrongChecksum ? 1 : 0)
                                              + (app.abortAfterStatuses > 0 ? 1 : 0)
                                              + (app.silent ? 1 : 0)
+                                             + (app.hasScenario ? 1 : 0)
+    // The injections can be changed: not while it runs, and not while a scenario file takes their place.
+    readonly property bool injectionsEditable: !app.running && !app.hasScenario
     // The target is answering a request, as opposed to merely listening.
     readonly property bool working: app.running && app.currentOperation.length > 0
-    readonly property bool modalOpen: aboutDialog.opened || licencesDialog.opened
+    readonly property bool modalOpen: aboutDialog.opened || licencesDialog.opened || licenceDialog.opened || supportDialog.opened
 
     title: qsTr("ARINC Mock Target")
     width: 1280
@@ -105,47 +108,59 @@ ApplicationWindow {
         onActivated: window.close()
     }
 
-    header: AppHeader {
-        appCode: "MOCK"
-        title: qsTr("ARINC Mock Target")
-        subtitle: qsTr("ARINC 615A target · real sockets · fault injection")
+    header: ColumnLayout {
+        spacing: 0
 
-        FaultChip {
-            objectName: "headerFaultChip"
-            onClicked: window.showFaults()
+        AppHeader {
+            Layout.fillWidth: true
+            appCode: "MOCK"
+            title: qsTr("ARINC Mock Target")
+            subtitle: qsTr("ARINC 615A target · real sockets · fault injection")
+
+            FaultChip {
+                objectName: "headerFaultChip"
+                onClicked: window.showFaults()
+            }
+
+            StatusChip {
+                text: window.app.running ? qsTr("SERVING") : qsTr("STOPPED")
+                tone: window.app.running ? "accent" : "neutral"
+            }
+
+            AppButton {
+                objectName: "startButton"
+                primary: !window.app.running
+                text: qsTr("Start")
+                enabled: !window.app.running && window.app.hardwareId.length > 0
+                onClicked: window.app.start()
+                Accessible.name: qsTr("Start the mock target")
+            }
+
+            AppButton {
+                objectName: "stopButton"
+                primary: window.app.running
+                text: qsTr("Stop")
+                enabled: window.app.running
+                onClicked: window.app.stop()
+                Accessible.name: qsTr("Stop the mock target")
+            }
+
+            LanguagePicker {
+                objectName: "languagePicker"
+            }
+
+            AppButton {
+                text: qsTr("About")
+                onClicked: aboutDialog.open()
+                Accessible.name: qsTr("About the mock target")
+            }
         }
 
-        StatusChip {
-            text: window.app.running ? qsTr("SERVING") : qsTr("STOPPED")
-            tone: window.app.running ? "accent" : "neutral"
-        }
-
-        AppButton {
-            objectName: "startButton"
-            primary: !window.app.running
-            text: qsTr("Start")
-            enabled: !window.app.running && window.app.hardwareId.length > 0
-            onClicked: window.app.start()
-            Accessible.name: qsTr("Start the mock target")
-        }
-
-        AppButton {
-            objectName: "stopButton"
-            primary: window.app.running
-            text: qsTr("Stop")
-            enabled: window.app.running
-            onClicked: window.app.stop()
-            Accessible.name: qsTr("Stop the mock target")
-        }
-
-        LanguagePicker {
-            objectName: "languagePicker"
-        }
-
-        AppButton {
-            text: qsTr("About")
-            onClicked: aboutDialog.open()
-            Accessible.name: qsTr("About the mock target")
+        LicenceBanner {
+            objectName: "licenceBanner"
+            Layout.fillWidth: true
+            model: licence
+            onLicenceRequested: licenceDialog.open()
         }
     }
 
@@ -205,12 +220,28 @@ ApplicationWindow {
             onClicked: window.showFaults()
         }
 
+        EditionChip {
+            objectName: "editionChip"
+            text: licence.chipText
+            tone: licence.chipTone
+            description: licence.chipName
+            onClicked: licenceDialog.open()
+        }
+
         Text {
             text: qsTr("v%1").arg(Qt.application.version)
             color: Theme.textMuted
             font.pixelSize: Theme.fontMono
             font.family: Theme.monoFamily
         }
+    }
+
+    FileDialog {
+        id: scenarioDialog
+
+        title: qsTr("Choose a scenario file")
+        nameFilters: [qsTr("Scenario files (*.json)"), qsTr("All files (*)")]
+        onAccepted: window.app.loadScenario(selectedFile)
     }
 
     FolderDialog {
@@ -227,10 +258,30 @@ ApplicationWindow {
         appName: qsTr("ARINC Mock Target")
         blurb: qsTr("A 615A target over real UDP sockets, for demonstrating the loader end to end without an embedded box. FIND, Information, Upload and Download run against it; the fault injections make it misbehave on purpose.")
         onShowLicences: licencesDialog.open()
+        onShowLicence: {
+            aboutDialog.close();
+            licenceDialog.open();
+        }
     }
 
     LicencesDialog {
         id: licencesDialog
+    }
+
+    LicenceDialog {
+        id: licenceDialog
+
+        model: licence
+        onSupportRequested: {
+            licenceDialog.close();
+            supportDialog.open();
+        }
+    }
+
+    SupportDialog {
+        id: supportDialog
+
+        model: licence
     }
 
     RowLayout {
@@ -643,7 +694,7 @@ ApplicationWindow {
 
                             AppButton {
                                 text: qsTr("Reset all")
-                                enabled: !window.app.running && window.activeInjections > 0
+                                enabled: window.injectionsEditable && window.activeInjections > 0
                                 onClicked: {
                                     window.app.waitFirstSeconds = 0;
                                     window.app.waitEveryRequest = false;
@@ -656,6 +707,32 @@ ApplicationWindow {
                                 }
                                 Accessible.name: qsTr("Reset every fault injection")
                             }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Theme.space2
+
+                        Text {
+                            objectName: "scenarioText"
+                            Layout.fillWidth: true
+                            text: window.app.hasScenario
+                                  ? window.app.scenarioSummary
+                                  : (window.app.scenarioError.length > 0 ? window.app.scenarioError
+                                                                         : qsTr("No scenario file"))
+                            color: window.app.scenarioError.length > 0 ? Theme.fail : Theme.textMuted
+                            font.pixelSize: Theme.fontSmall
+                            wrapMode: Text.WordWrap
+                        }
+
+                        AppButton {
+                            objectName: "scenarioButton"
+                            text: window.app.hasScenario ? qsTr("Remove the scenario") : qsTr("Scenario file...")
+                            enabled: !window.app.running
+                            onClicked: window.app.hasScenario ? window.app.removeScenario() : scenarioDialog.open()
+                            Accessible.name: window.app.hasScenario ? qsTr("Remove the scenario file")
+                                                                    : qsTr("Choose a scenario file")
                         }
                     }
 
@@ -677,7 +754,7 @@ ApplicationWindow {
                             to: 65535
                             value: window.app.waitFirstSeconds
                             editable: true
-                            enabled: !window.app.running
+                            enabled: window.injectionsEditable
                             onValueModified: window.app.waitFirstSeconds = value
                             Accessible.name: qsTr("Seconds to answer the first request with WAIT")
                         }
@@ -693,7 +770,7 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         text: qsTr("Answer WAIT every request")
                         checked: window.app.waitEveryRequest
-                        enabled: !window.app.running
+                        enabled: window.injectionsEditable
                         onToggled: (value) => window.app.waitEveryRequest = value
                     }
 
@@ -716,7 +793,7 @@ ApplicationWindow {
                             { label: qsTr("Refuse Download (media defined)"), value: "downloadMedia" },
                             { label: qsTr("Refuse Download (operator defined)"), value: "downloadOperator" }
                         ]
-                        enabled: !window.app.running
+                        enabled: window.injectionsEditable
                         Component.onCompleted: currentIndex = indexOfValue(window.app.refuseOperation)
                         onActivated: window.app.refuseOperation = currentValue
                         Accessible.name: qsTr("Operation to refuse")
@@ -739,7 +816,7 @@ ApplicationWindow {
                             to: 99
                             value: window.app.dropStatusEvery
                             editable: true
-                            enabled: !window.app.running
+                            enabled: window.injectionsEditable
                             onValueModified: window.app.dropStatusEvery = value
                             Accessible.name: qsTr("Drop every Nth status file")
                         }
@@ -749,7 +826,7 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         text: qsTr("Corrupt served files")
                         checked: window.app.corruptServedFile
-                        enabled: !window.app.running
+                        enabled: window.injectionsEditable
                         onToggled: (value) => window.app.corruptServedFile = value
                     }
 
@@ -757,7 +834,7 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         text: qsTr("Send a wrong checksum option")
                         checked: window.app.wrongChecksum
-                        enabled: !window.app.running
+                        enabled: window.injectionsEditable
                         onToggled: (value) => window.app.wrongChecksum = value
                     }
 
@@ -778,7 +855,7 @@ ApplicationWindow {
                             to: 99
                             value: window.app.abortAfterStatuses
                             editable: true
-                            enabled: !window.app.running
+                            enabled: window.injectionsEditable
                             onValueModified: window.app.abortAfterStatuses = value
                             Accessible.name: qsTr("Abort after this many status files")
                         }
@@ -788,7 +865,7 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         text: qsTr("Go silent after the first status file")
                         checked: window.app.silent
-                        enabled: !window.app.running
+                        enabled: window.injectionsEditable
                         onToggled: (value) => window.app.silent = value
                     }
                 }

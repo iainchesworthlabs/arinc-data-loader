@@ -26,6 +26,7 @@ enum class Action : std::uint8_t
     run,
     help,
     version,
+    scenario_actions, // print the action words of a scenario file, one for each line
 };
 
 struct Options
@@ -41,6 +42,9 @@ struct Options
     std::vector<HardwareItem> parts;
     std::optional<std::filesystem::path> holds;
     std::optional<std::filesystem::path> storage;
+
+    // The scenario file that says which fault happens when, in place of the fault options.
+    std::optional<std::filesystem::path> scenario;
 
     // When it stops. Neither: it runs until it is killed.
     std::optional<std::uint64_t> operations;
