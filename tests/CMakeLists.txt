@@ -208,7 +208,8 @@ add_executable(adl_load_tests
     load/events_test.cpp
     load/options_seeds_test.cpp
     load/options_test.cpp
-    load/reason_test.cpp)
+    load/reason_test.cpp
+    load/request_test.cpp)
 
 target_include_directories(adl_load_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support")
@@ -235,7 +236,9 @@ add_executable(adl_load_command_tests
     load/download_test.cpp
     load/find_test.cpp
     load/information_test.cpp
+    load/preparer_test.cpp
     load/record_test.cpp
+    load/serve_test.cpp
     load/upload_test.cpp
     load/usage_test.cpp)
 
@@ -532,6 +535,17 @@ add_test(NAME tools.adl_load.unicode_folder
         "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/adl_load-unicode"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/load/unicode_folder.cmake")
 set_tests_properties(tools.adl_load.unicode_folder PROPERTIES LABELS "system")
+
+# adl_load serve started as a process with pipes for its standard input and output (tests/load/serve_process_test.py): a
+# stop that arrives while standard input stays open, the end of the input, a port that is held, wrong usage, a
+# request in UTF-8 whose path has characters no Windows code page holds, and an upload whose media set is read by the
+# program's own thread for it (the set comes from adl_write_payloads) and is cancelled. No target is needed.
+if(Python3_Interpreter_FOUND)
+    add_test(NAME tools.adl_load.serve
+        COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_CURRENT_SOURCE_DIR}/load/serve_process_test.py"
+            "$<TARGET_FILE:adl_load>" "${CMAKE_CURRENT_BINARY_DIR}/adl_load-serve" "$<TARGET_FILE:adl_write_payloads>")
+    set_tests_properties(tools.adl_load.serve PROPERTIES LABELS "system" TIMEOUT 180)
+endif()
 
 # The application's tests (apps/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)

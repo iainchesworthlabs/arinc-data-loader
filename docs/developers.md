@@ -7,7 +7,7 @@ This section is for people who build the software, use its libraries in a progra
 | Page | What it is |
 | --- | --- |
 | [Using the libraries](libraries.md) | The development package, the `adl` CMake package and its targets |
-| [The command adl_load](load-command.md) | One operation on one target with no window, for scripts and other programs: the options, the events, the exit codes and the record |
+| [The command adl_load](load-command.md) | One operation on one target with no window, or several at once (`serve`), for scripts and other programs: the options, the events, the exit codes and the record |
 | [Architecture](architecture.md) | The libraries, the programs and how they depend on each other |
 | [Platform abstraction](platform-abstraction.md) | The interfaces to files, sockets, threads, memory and time, and what each platform has verified |
 | [Platform isolation](platform-isolation.md) | How CMake, not the source, chooses the platform, and how that is enforced |

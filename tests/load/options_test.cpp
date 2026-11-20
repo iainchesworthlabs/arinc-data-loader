@@ -304,6 +304,7 @@ TEST_CASE("the usage text names every command and option, and the version line t
                                         "--pick-all",      "--control-port",
                                         "--json",          "--record",
                                         "--help",          "--version",
+                                        "adl_load serve",  "--max-operations",
                                         "Exit codes"})
     {
         CAPTURE(word);
@@ -313,4 +314,95 @@ TEST_CASE("the usage text names every command and option, and the version line t
     CHECK(version.starts_with("adl_load "));
     CHECK(version.ends_with(" events 1"));
     CHECK(version.find(".exe") == std::string::npos);
+}
+
+TEST_CASE("serve: the interface, the port, and how many operations at once", "[load][options]")
+{
+    const Options plain = accepted({"serve"});
+    CHECK(plain.command == Command::serve);
+    CHECK(plain.max_operations == 8);
+    CHECK(plain.control_port == 59);
+    CHECK_FALSE(plain.local_address.has_value());
+
+    const Options all = accepted(
+        {"serve", "--local-address", "127.0.0.1", "--control-port", "30901", "--max-operations", "64", "--json"});
+    CHECK(all.local_address == adl::loader_core::Ipv4Octets{127, 0, 0, 1});
+    CHECK(all.control_port == 30901);
+    CHECK(all.max_operations == 64);
+    CHECK(all.json); // accepted, and the output is JSON lines with or without it
+
+    CHECK(accepted({"serve", "--max-operations", "1"}).max_operations == 1);
+    CHECK(mentions(refused({"serve", "--max-operations", "0"}), "--max-operations takes a whole number from 1 to 64"));
+    CHECK(mentions(refused({"serve", "--max-operations", "65"}), "from 1 to 64"));
+    CHECK(mentions(refused({"serve", "--max-operations", "many"}), "not \"many\""));
+    CHECK(mentions(refused({"serve", "--max-operations"}), "--max-operations needs a value"));
+    CHECK(mentions(refused({"serve", "--max-operations", "2", "--max-operations", "3"}), "is given twice"));
+    CHECK(mentions(refused({"serve", "--control-port", "0"}), "--control-port takes a whole number from 1 to 65535"));
+    CHECK(mentions(refused({"serve", "--local-address", "10.0.0"}), "takes an IPv4 address"));
+    CHECK(mentions(refused({"serve", "extra"}), "Unexpected argument \"extra\""));
+}
+
+TEST_CASE("serve takes no option that belongs to one operation, and the others take no --max-operations",
+          "[load][options]")
+{
+    for (const std::string_view option : {"--target", "--position", "--record", "--target-port", "--seconds",
+                                          "--media-set", "--load", "--into", "--file", "--pick"})
+    {
+        CAPTURE(option);
+        CHECK(mentions(refused({"serve", option, "x"}), "is not an option of serve"));
+    }
+    for (const std::string_view option : {"--all-loads", "--pick-all"})
+    {
+        CAPTURE(option);
+        CHECK(mentions(refused({"serve", option}), "is not an option of serve"));
+    }
+    for (const std::string_view command : {"find", "information", "upload", "download"})
+    {
+        CAPTURE(command);
+        CHECK(mentions(refused({command, "--max-operations", "4"}), "--max-operations is not an option of"));
+    }
+    CHECK(parse_options(std::vector<std::string_view>{"serve", "--help"})->action == Action::help);
+}
+
+TEST_CASE("the arguments of a run request are those of the command, less the program's own options", "[load][options]")
+{
+    const auto accepted_arguments = [](std::initializer_list<std::string_view> arguments)
+    {
+        const std::vector<std::string_view> list(arguments);
+        auto options = parse_run_arguments(list);
+        REQUIRE(options.has_value());
+        return *options;
+    };
+    const auto refused_arguments = [](std::initializer_list<std::string_view> arguments)
+    {
+        const std::vector<std::string_view> list(arguments);
+        const auto options = parse_run_arguments(list);
+        REQUIRE_FALSE(options.has_value());
+        return options.error();
+    };
+
+    const Options info = accepted_arguments({"information", "--target", "10.0.0.2", "--position", "P"});
+    CHECK(info.command == Command::information);
+    CHECK(info == accepted({"information", "--target", "10.0.0.2", "--position", "P"}));
+    CHECK(accepted_arguments({"upload", "--target", "10.0.0.2", "--position", "P", "--media-set", "m", "--all-loads",
+                              "--record", "r.json", "--target-port", "5059"})
+              .target_port == 5059);
+
+    CHECK(mentions(refused_arguments({}), "names a command"));
+    CHECK(mentions(refused_arguments({"fetch"}), "Unknown command \"fetch\""));
+    CHECK(mentions(refused_arguments({"find"}), "is not an operation on one target"));
+    CHECK(mentions(refused_arguments({"serve"}), "is not an operation on one target"));
+    for (const std::string_view option : {"--json", "--help", "--version"})
+    {
+        CAPTURE(option);
+        CHECK(mentions(refused_arguments({"information", "--target", "10.0.0.2", "--position", "P", option}),
+                       "is not taken in a request"));
+    }
+    for (const std::string_view option : {"--local-address", "--control-port"})
+    {
+        CAPTURE(option);
+        CHECK(mentions(refused_arguments({"information", "--target", "10.0.0.2", "--position", "P", option, "59"}),
+                       "is not taken in a request"));
+    }
+    CHECK(mentions(refused_arguments({"information", "--target", "10.0.0.2"}), "--position is missing"));
 }

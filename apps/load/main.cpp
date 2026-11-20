@@ -12,6 +12,7 @@
 #include "adl/platform/arguments.hpp"
 #include "adl/platform/host.hpp"
 
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -34,5 +35,20 @@ int main(int argc, char** argv)
     {
         arguments.emplace_back(command_line[i]);
     }
-    return adl::load::run(**host, arguments, std::cout, std::cerr);
+    // `serve` reads standard input on a thread of its own while the loop writes to standard output: the reading
+    // must not flush the output as a tied stream does, from the other thread, in the middle of an event.
+    std::cin.tie(nullptr);
+    const int code = adl::load::run(**host, arguments, std::cin, std::cout, std::cerr);
+    if (!arguments.empty() && arguments.front() == "serve")
+    {
+        // The thread that reads standard input may be blocked in a read that nothing can end: the program was told to
+        // stop and the pipe it reads is still open. Leaving by `return` would wait for it on some systems, where the C
+        // library takes the lock of standard input to flush it as it ends the process, and the lock is that thread's.
+        // Everything has been written and flushed, and the host is let go, so the process ends here and now.
+        host->reset();
+        std::cout.flush();
+        std::cerr.flush();
+        std::quick_exit(code);
+    }
+    return code;
 }

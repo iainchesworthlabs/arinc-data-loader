@@ -20,7 +20,8 @@ TEST_CASE("wrong usage is told on standard error, with exit code 2 and nothing o
         const CommandRun run = rig.run({});
         CHECK(run.exit_code == 2);
         CHECK(run.out.empty());
-        CHECK(run.err.starts_with("adl_load: No command given: find, information, upload or download.\n\nusage:\n"));
+        CHECK(run.err.starts_with(
+            "adl_load: No command given: find, information, upload, download or serve.\n\nusage:\n"));
         CHECK(run.err.ends_with(std::string{adl::load::usage_text()}));
     }
     SECTION("an option the command lacks, with --json asked for")

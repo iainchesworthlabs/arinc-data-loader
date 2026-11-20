@@ -17,6 +17,7 @@
 #include "adl/platform/paths.hpp"
 #include "commands.hpp"
 #include "job.hpp"
+#include "operation_command.hpp"
 #include "record_file.hpp"
 
 #include <algorithm>
@@ -73,6 +74,7 @@ OperationKind kind_of(const Options& options)
     case Command::download:
         return options.choice == FileChoice::named ? OperationKind::download_media : OperationKind::download_operator;
     case Command::find:
+    case Command::serve:
     case Command::information:
         break;
     }
@@ -254,293 +256,290 @@ std::string phrase_of(Reason reason, const OperationResult& result, const Job& j
     return to_string(outcome.code);
 }
 
-class OperationCommand
+} // namespace
+
+OperationCommand::OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events)
+    : host_(host), options_(options), events_(events), address_(adl::loader_core::format_ipv4(options.target)),
+      job_(events, kind_of(options), address_, options.position, adl::loader_core::wall_clock_of(host.clock()))
 {
-public:
-    OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events, std::ostream& err)
-        : host_(host), options_(options), events_(events), err_(err),
-          address_(adl::loader_core::format_ipv4(options.target)),
-          job_(events, kind_of(options), address_, options.position, adl::loader_core::wall_clock_of(host.clock()))
-    {
-    }
+}
 
-    [[nodiscard]] int run()
+std::optional<std::string> OperationCommand::prepare()
+{
+    switch (options_.command)
     {
-        // What can be wrong with the choice is found before anything is written: that is wrong usage, and no
-        // event is written for it.
-        if (const std::optional<int> usage = prepare())
-        {
-            return *usage;
-        }
-        events_.started(to_string(options_.command), address_, options_.position);
-
-        if (options_.command == Command::upload)
-        {
-            if (const std::optional<int> ended = check_media_set_events())
-            {
-                return *ended;
-            }
-        }
-        if (options_.command == Command::download)
-        {
-            if (const std::optional<int> ended = make_folder())
-            {
-                return *ended;
-            }
-        }
-        return operate();
-    }
-
-private:
-    // The plan of the operation; for an upload, the media set read and the loads chosen from it.
-    [[nodiscard]] std::optional<int> prepare()
-    {
-        switch (options_.command)
-        {
-        case Command::find:
-        case Command::information:
-            plan_ = std::make_unique<adl::loader_core::OperationPlan>(adl::loader_core::OperationPlan::information());
-            return std::nullopt;
-        case Command::upload:
-        {
-            report_ = adl::loader_core::check_media_set(adl::platform::path_from_utf8(options_.media_set), &index_);
-            if (!report_.error.empty())
-            {
-                return std::nullopt; // told as the media set that could not be read, after `started`
-            }
-            auto choices = choose_loads(options_, report_);
-            if (!choices)
-            {
-                return usage_error(choices.error());
-            }
-            auto plan = adl::loader_core::OperationPlan::upload(*choices);
-            if (!plan)
-            {
-                return usage_error(plan.error().describe());
-            }
-            plan_ = std::make_unique<adl::loader_core::OperationPlan>(std::move(*plan));
-            return std::nullopt;
-        }
-        case Command::download:
-            if (options_.choice == FileChoice::picked)
-            {
-                plan_ = std::make_unique<adl::loader_core::OperationPlan>(
-                    adl::loader_core::OperationPlan::download_operator());
-                return std::nullopt;
-            }
-            auto plan = adl::loader_core::OperationPlan::download_media(options_.names);
-            if (!plan)
-            {
-                return usage_error(plan.error().describe());
-            }
-            plan_ = std::make_unique<adl::loader_core::OperationPlan>(std::move(*plan));
-            return std::nullopt;
-        }
+    case Command::find:
+    case Command::serve:
+    case Command::information:
+        plan_ = std::make_unique<adl::loader_core::OperationPlan>(adl::loader_core::OperationPlan::information());
         return std::nullopt;
-    }
-
-    [[nodiscard]] int usage_error(const std::string& problem)
+    case Command::upload:
     {
-        err_ << "adl_load: " << problem << '\n';
-        return exit_usage;
-    }
-
-    // The media set of an upload, checked: told, or refused.
-    [[nodiscard]] std::optional<int> check_media_set_events()
-    {
-        job_.record().media_set =
-            adl::loader_core::RecordedMediaSet{options_.media_set, report_.part_number, report_.members};
+        report_ = adl::loader_core::check_media_set(adl::platform::path_from_utf8(options_.media_set), &index_);
         if (!report_.error.empty())
         {
-            const std::string text = "The media set could not be read: " + report_.error + ".";
-            job_.say(Severity::error, text);
-            return finish(Reason::media_set_unreadable, text, "the media set could not be read", {});
+            return std::nullopt; // told as the media set that could not be read, after `started`
         }
-        events_.media_set_checked(
-            {options_.media_set, report_.part_number, report_.members, report_.loads.size(), report_.findings});
-        // What was checked is what is sent: a set edited since is refused here, before the target is contacted,
-        // and again as the target opens each file.
-        if (const auto changed = index_->changed_file(host_.files()))
+        auto choices = choose_loads(options_, report_);
+        if (!choices)
         {
-            const std::string text = "The media set changed after it was checked: " + *changed + ".";
-            job_.say(Severity::error, text);
-            return finish(Reason::media_set_changed, text, "the media set changed after it was checked", {});
+            return std::move(choices.error());
         }
+        auto plan = adl::loader_core::OperationPlan::upload(*choices);
+        if (!plan)
+        {
+            return plan.error().describe();
+        }
+        plan_ = std::make_unique<adl::loader_core::OperationPlan>(std::move(*plan));
         return std::nullopt;
     }
-
-    // The folder of a download, made inside the one the operator named.
-    [[nodiscard]] std::optional<int> make_folder()
-    {
-        const auto made = adl::loader_core::make_download_directory(host_.files(), platform_path_of(options_.into),
-                                                                    options_.position);
-        if (!made)
+    case Command::download:
+        if (options_.choice == FileChoice::picked)
         {
-            const std::string text = "The download folder could not be used: " + made.error().describe() + ".";
-            job_.say(Severity::error, text);
-            return finish(Reason::local_error, text, "the download folder could not be used", {});
+            plan_ =
+                std::make_unique<adl::loader_core::OperationPlan>(adl::loader_core::OperationPlan::download_operator());
+            return std::nullopt;
         }
-        folder_ = *made;
-        job_.set_download_folder(native_path_of(folder_));
+        auto plan = adl::loader_core::OperationPlan::download_media(options_.names);
+        if (!plan)
+        {
+            return plan.error().describe();
+        }
+        plan_ = std::make_unique<adl::loader_core::OperationPlan>(std::move(*plan));
         return std::nullopt;
     }
+    return std::nullopt;
+}
 
-    [[nodiscard]] int operate()
+std::optional<int> OperationCommand::begin()
+{
+    events_.started(to_string(options_.command), address_, options_.position);
+    if (options_.command == Command::upload)
     {
-        const std::string where = address_ + " (" + options_.position + ")";
-        switch (options_.command)
+        if (const std::optional<int> ended = check_media_set_events())
         {
-        case Command::find:
-        case Command::information:
-            job_.say(Severity::info, "Asking " + where + " for its configuration...");
-            break;
-        case Command::upload:
-            job_.say(Severity::info,
-                     "Uploading " + count_s(options_.all_loads ? report_.loads.size() : options_.loads.size(), "load") +
-                         " to " + where + "...");
-            break;
-        case Command::download:
-            job_.say(Severity::info,
-                     options_.choice == FileChoice::named
-                         ? "Downloading " + count_s(options_.names.size(), "file") + " from " + where + "..."
-                         : "Asking " + where + " for the files it can download...");
-            break;
+            return ended;
         }
+    }
+    if (options_.command == Command::download)
+    {
+        if (const std::optional<int> ended = make_folder())
+        {
+            return ended;
+        }
+    }
+    return std::nullopt;
+}
 
-        adl::loader_core::OperationGate gate;
-        if (options_.command == Command::download && options_.choice == FileChoice::picked)
-        {
-            job_.choose_from_list(gate, options_.pick_all, options_.names);
-        }
-        std::optional<adl::loader_core::MediaTreeSource> source;
-        if (options_.command == Command::upload)
-        {
-            source.emplace(host_.files(), *index_);
-        }
-        std::optional<adl::arinc615a::DirectoryFileSink> sink;
-        if (options_.command == Command::download)
-        {
-            sink.emplace(host_.files(), folder_);
-        }
+// The media set of an upload, checked: told, or refused.
+std::optional<int> OperationCommand::check_media_set_events()
+{
+    job_.record().media_set =
+        adl::loader_core::RecordedMediaSet{options_.media_set, report_.part_number, report_.members};
+    if (!report_.error.empty())
+    {
+        const std::string text = "The media set could not be read: " + report_.error + ".";
+        job_.say(Severity::error, text);
+        return finish(Reason::media_set_unreadable, text, "the media set could not be read", {});
+    }
+    events_.media_set_checked(
+        {options_.media_set, report_.part_number, report_.members, report_.loads.size(), report_.findings});
+    // What was checked is what is sent: a set edited since is refused here, before the target is contacted,
+    // and again as the target opens each file.
+    if (const auto changed = index_->changed_file(host_.files()))
+    {
+        const std::string text = "The media set changed after it was checked: " + *changed + ".";
+        job_.say(Severity::error, text);
+        return finish(Reason::media_set_changed, text, "the media set changed after it was checked", {});
+    }
+    return std::nullopt;
+}
 
-        adl::loader_core::RunTarget target;
-        target.address = adl::arinc615a::Address{options_.target};
-        target.thw_id_pos = options_.position;
-        target.control_port = options_.control_port;
-        target.port = options_.target_port;
-        if (options_.local_address)
-        {
-            target.local_address = adl::platform::Ipv4Address{*options_.local_address};
-        }
-        adl::loader_core::RunServices services;
-        services.listener = &job_;
-        services.controller = &gate;
-        services.upload_source = source ? &*source : nullptr;
-        services.download_sink = sink ? &*sink : nullptr;
-        services.download_folder = folder_;
+// The folder of a download, made inside the one the operator named.
+std::optional<int> OperationCommand::make_folder()
+{
+    const auto made =
+        adl::loader_core::make_download_directory(host_.files(), platform_path_of(options_.into), options_.position);
+    if (!made)
+    {
+        const std::string text = "The download folder could not be used: " + made.error().describe() + ".";
+        job_.say(Severity::error, text);
+        return finish(Reason::local_error, text, "the download folder could not be used", {});
+    }
+    folder_ = *made;
+    job_.set_download_folder(native_path_of(folder_));
+    return std::nullopt;
+}
 
-        const OperationResult result = adl::loader_core::run_operation(host_, target, plan_->operation(), services);
-
-        // A download that received nothing leaves no folder behind: it was removed if it was empty.
-        std::optional<std::string> kept;
-        if (options_.command == Command::download)
-        {
-            if (result.download_folder_removed)
-            {
-                job_.say(Severity::info, "Nothing was received, so the empty download folder " +
-                                             native_path_of(folder_) + " was removed.");
-                job_.record().download_folder.reset();
-            }
-            else if (!result.download_folder.empty())
-            {
-                kept = native_path_of(result.download_folder);
-            }
-        }
-
-        Reason reason = reason_of(result.reason);
-        // The files that were picked and that the target does not list, and a list with nothing to take, are
-        // files that were asked for and not received: the operation, ended with "none" or completed with the
-        // rest, is a failure for them.
-        if (options_.command == Command::download && options_.choice == FileChoice::picked &&
-            (!job_.unlisted().empty() || job_.chose_nothing()) &&
-            (reason == Reason::completed || (reason == Reason::aborted && job_.chose_nothing())))
-        {
-            reason = Reason::missing_files;
-        }
-        return finish(reason, detail_of(reason, result, job_, options_), phrase_of(reason, result, job_, options_),
-                      kept);
+void OperationCommand::announce()
+{
+    const std::string where = address_ + " (" + options_.position + ")";
+    switch (options_.command)
+    {
+    case Command::find:
+    case Command::serve:
+    case Command::information:
+        job_.say(Severity::info, "Asking " + where + " for its configuration...");
+        break;
+    case Command::upload:
+        job_.say(Severity::info,
+                 "Uploading " + count_s(options_.all_loads ? report_.loads.size() : options_.loads.size(), "load") +
+                     " to " + where + "...");
+        break;
+    case Command::download:
+        job_.say(Severity::info,
+                 options_.choice == FileChoice::named
+                     ? "Downloading " + count_s(options_.names.size(), "file") + " from " + where + "..."
+                     : "Asking " + where + " for the files it can download...");
+        break;
     }
 
-    // Says how it ended: the last line of the log and the `finished` event, and the exit code.
-    [[nodiscard]] int finish(Reason reason, std::string detail, const std::string& phrase,
+    if (options_.command == Command::download && options_.choice == FileChoice::picked)
+    {
+        job_.choose_from_list(gate_, options_.pick_all, options_.names);
+    }
+    if (options_.command == Command::upload)
+    {
+        source_.emplace(host_.files(), *index_);
+    }
+    if (options_.command == Command::download)
+    {
+        sink_.emplace(host_.files(), folder_);
+    }
+}
+
+adl::loader_core::RunTarget OperationCommand::target() const
+{
+    adl::loader_core::RunTarget target;
+    target.address = adl::arinc615a::Address{options_.target};
+    target.thw_id_pos = options_.position;
+    target.control_port = options_.control_port;
+    target.port = options_.target_port;
+    if (options_.local_address)
+    {
+        target.local_address = adl::platform::Ipv4Address{*options_.local_address};
+    }
+    return target;
+}
+
+const adl::arinc615a::Operation& OperationCommand::operation() const
+{
+    return plan_->operation();
+}
+
+adl::loader_core::RunServices OperationCommand::services()
+{
+    adl::loader_core::RunServices services;
+    services.listener = &job_;
+    services.controller = &gate_;
+    services.upload_source = source_ ? &*source_ : nullptr;
+    services.download_sink = sink_ ? &*sink_ : nullptr;
+    services.download_folder = folder_;
+    return services;
+}
+
+int OperationCommand::end(const OperationResult& result)
+{
+    // A download that received nothing leaves no folder behind: it was removed if it was empty.
+    std::optional<std::string> kept;
+    if (options_.command == Command::download)
+    {
+        if (result.download_folder_removed)
+        {
+            job_.say(Severity::info,
+                     "Nothing was received, so the empty download folder " + native_path_of(folder_) + " was removed.");
+            job_.record().download_folder.reset();
+        }
+        else if (!result.download_folder.empty())
+        {
+            kept = native_path_of(result.download_folder);
+        }
+    }
+
+    Reason reason = reason_of(result.reason);
+    // The files that were picked and that the target does not list, and a list with nothing to take, are
+    // files that were asked for and not received: the operation, ended with "none" or completed with the
+    // rest, is a failure for them.
+    if (options_.command == Command::download && options_.choice == FileChoice::picked &&
+        (!job_.unlisted().empty() || job_.chose_nothing()) &&
+        (reason == Reason::completed || (reason == Reason::aborted && job_.chose_nothing())))
+    {
+        reason = Reason::missing_files;
+    }
+    return finish(reason, detail_of(reason, result, job_, options_), phrase_of(reason, result, job_, options_), kept);
+}
+
+// Says how it ended: the last line of the log and the `finished` event, and the exit code.
+int OperationCommand::finish(Reason reason, std::string detail, const std::string& phrase,
                              const std::optional<std::string>& download_folder)
+{
+    job_.say(reason == Reason::completed ? Severity::info : Severity::error, "Finished: " + phrase + ".");
+    job_.finish();
+
+    // The record says how it ended, as the event does. Its status code is the recorder's, which includes
+    // the target's answer to the request that starts the operation: it is not replaced by the engine's last
+    // status, which does not.
+    adl::loader_core::OperationRecord& record = job_.record();
+    record.program_name = std::string{program_name};
+    record.program_version = std::string{program_version};
+    record.result = reason == Reason::completed ? "completed" : "failed";
+    record.reason = std::string{to_string(reason)};
+    record.detail = detail;
+
+    // The record is written whatever the outcome. One that cannot be written is a local error, and says
+    // so ahead of what the operation came to, which it keeps in the detail.
+    std::optional<std::string> written;
+    if (options_.record)
     {
-        job_.say(reason == Reason::completed ? Severity::info : Severity::error, "Finished: " + phrase + ".");
-        job_.finish();
-
-        // The record says how it ended, as the event does. Its status code is the recorder's, which includes
-        // the target's answer to the request that starts the operation: it is not replaced by the engine's last
-        // status, which does not.
-        adl::loader_core::OperationRecord& record = job_.record();
-        record.program_name = std::string{program_name};
-        record.program_version = std::string{program_version};
-        record.result = reason == Reason::completed ? "completed" : "failed";
-        record.reason = std::string{to_string(reason)};
-        record.detail = detail;
-
-        // The record is written whatever the outcome. One that cannot be written is a local error, and says
-        // so ahead of what the operation came to, which it keeps in the detail.
-        std::optional<std::string> written;
-        if (options_.record)
+        if (const auto problem =
+                write_text_file(host_.files(), *options_.record, adl::loader_core::record_to_json(record)))
         {
-            if (const auto problem =
-                    write_text_file(host_.files(), *options_.record, adl::loader_core::record_to_json(record)))
-            {
-                const std::string lost = "The operation record could not be written: " + *problem + ".";
-                job_.say(Severity::error, lost);
-                detail = lost + " The operation had ended with the reason " + std::string{to_string(reason)} + ".";
-                reason = Reason::local_error;
-            }
-            else
-            {
-                written = *options_.record;
-            }
+            const std::string lost = "The operation record could not be written: " + *problem + ".";
+            job_.say(Severity::error, lost);
+            detail = lost + " The operation had ended with the reason " + std::string{to_string(reason)} + ".";
+            reason = Reason::local_error;
         }
-
-        FinishedEvent event;
-        event.completed = reason == Reason::completed;
-        event.reason = to_string(reason);
-        if (const auto status = record.status_code)
+        else
         {
-            event.status_code = static_cast<std::uint16_t>(*status);
+            written = *options_.record;
         }
-        event.detail = std::move(detail);
-        event.exit_code = exit_code_of(reason);
-        event.is_download = options_.command == Command::download;
-        event.download_folder = download_folder;
-        event.has_record = options_.record.has_value();
-        event.record = std::move(written);
-        events_.finished(event);
-        return event.exit_code;
     }
 
-    adl::platform::Host& host_;
-    const Options& options_;
-    EventWriter& events_;
-    std::ostream& err_;
-    std::string address_;
-    Job job_;
-    std::unique_ptr<adl::loader_core::OperationPlan> plan_; // what prepare() made; none for a set that cannot be read
-    MediaSetReport report_;
-    std::shared_ptr<const MediaSetIndex> index_;
-    std::string folder_; // a download: the folder that was made, as a platform path
-};
-
-} // namespace
+    FinishedEvent event;
+    event.completed = reason == Reason::completed;
+    event.reason = to_string(reason);
+    if (const auto status = record.status_code)
+    {
+        event.status_code = static_cast<std::uint16_t>(*status);
+    }
+    event.detail = std::move(detail);
+    event.exit_code = exit_code_of(reason);
+    event.is_download = options_.command == Command::download;
+    event.download_folder = download_folder;
+    event.has_record = options_.record.has_value();
+    event.record = std::move(written);
+    events_.finished(event);
+    return event.exit_code;
+}
 
 int run_operation_command(adl::platform::Host& host, const Options& options, EventWriter& events, std::ostream& err)
 {
-    return OperationCommand(host, options, events, err).run();
+    OperationCommand command(host, options, events);
+    // What can be wrong with the choice is found before anything is written: that is wrong usage, and no event is
+    // written for it.
+    if (const std::optional<std::string> problem = command.prepare())
+    {
+        err << "adl_load: " << *problem << '\n';
+        return exit_usage;
+    }
+    if (const std::optional<int> ended = command.begin())
+    {
+        return *ended;
+    }
+    command.announce();
+    const OperationResult result =
+        adl::loader_core::run_operation(host, command.target(), command.operation(), command.services());
+    return command.end(result);
 }
 
 } // namespace adl::load

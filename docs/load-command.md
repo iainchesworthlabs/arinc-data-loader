@@ -13,6 +13,7 @@ adl_load upload       --target <ipv4> --position <THW_ID_POS> --media-set <folde
                       (--load <part number>... | --all-loads) [common]
 adl_load download     --target <ipv4> --position <THW_ID_POS> --into <folder>
                       (--file <name>... | --pick <name>... | --pick-all) [common]
+adl_load serve        [--local-address <ipv4>] [--control-port <n>] [--max-operations <n>]
 adl_load --help
 adl_load --version
 
@@ -35,6 +36,7 @@ Options are written `--name value`, with a space. An option that takes several v
 | `--local-address <ipv4>` | The interface the sockets are bound to. By default what the window does: the loopback address when the target is on this computer (an address of `127.0.0.0/8`), every interface otherwise. For `find`, every interface. |
 | `--control-port <n>` | The port the loader listens on for what the target sends, 1 to 65535; the default is 59. The loader tells the target which port to write to, in the `port` option of its request, when its own port is not 59 or the target's port is not 59: a target on another port would otherwise write to its own port, where the loader is not. A loader and a target that are both on 59 exchange no option. Another loader port matters when the target is on this computer and holds 59 itself. |
 | `--target-port <n>` | The port the target listens on for the request that starts an operation, 1 to 65535; the default is 59, the standard's. Another port is for a simulated target that cannot have 59: a system that keeps low ports for privileged programs, or several targets on one address. A real target is on 59. `find` does not have it. |
+| `--max-operations <n>` | `serve`: how many operations run at once, 1 to 64; the default is 8. |
 | `--json` | Standard output carries JSON lines and nothing else. |
 | `--record <file>` | Write the operation record when the operation ends, whatever its outcome. `find` writes no record. |
 
@@ -93,9 +95,50 @@ With `--record` the operation record, one JSON file, is written when the operati
 
 The record is written under its name with `.part` after it and renamed, so a reader never sees half of one. The folder it goes into has to be there. A record that cannot be written is `local_error`, exit code 5, in the `finished` event; the reason the operation had ended with is in its `detail`. For an upload that stopped at an unreadable media set the record's `media_set` holds the path and an empty part number and 0 members.
 
+## `serve`: one loader, several targets
+
+Every `adl_load` listens on the loader's port, and a real target writes to port 59, so two of them on one computer cannot both have it: of operations started at once, all but the first end with `local_error`, "the loader's port could not be opened (address in use)". `adl_load serve` is one process that holds the port once and runs operations on several targets at once from it. It is a seam for another program to drive. It has no plan, no retries, no schedule and no report: it runs the operations it is asked for and says what happened. The user's guide has its sentences ([`adl_load serve`](user-guide/command-line.md#adl_load-serve-one-loader-several-targets)); this page says how it works.
+
+```text
+adl_load serve [--local-address <ipv4>] [--control-port <n>] [--max-operations <n>]
+```
+
+It opens the control port, writes `started`, and reads requests from standard input until it is told to stop or the input ends. The output is always JSON lines. `--local-address` is the interface for the control socket and for every transfer socket; the targets are not known when the port is opened, so unlike one operation it does not choose loopback for a target on this computer, and without the option it listens on every interface. `--max-operations` is how many operations run at once, 1 to 64 and 8 by default. `--json` is accepted and changes nothing.
+
+**One address has one operation at a time.** That is what tells the operations apart. The loader library's `OperationPool` (`adl/loader_core/operation_pool.hpp`) holds the control socket and gives each datagram on it to the operation whose target sent it. Each operation is its own engine object, with its own workspace and its own transfer sockets on ports of the system's choosing. A datagram from an address that has no operation is dropped and counted, which is what a loader with one operation does with a datagram that is not from its target. A mock target sends from ports of its own choosing, so two on one address collide; each target of a rig needs an address of its own, which on one computer is `127.0.0.2`, `127.0.0.3` and so on.
+
+**Requests** are lines of UTF-8 on standard input, ended by a line feed (a carriage return before it is accepted), with the fields separated by one tab. A field is taken as it is, with no quoting, so a path may have spaces; it cannot hold a tab or the end of a line. They are lines of arguments and not JSON so that the command needs no JSON reader. No code page touches the bytes: a line is taken as UTF-8 as it arrives, and a byte that is not UTF-8 refuses the line. (On Windows standard input is a text stream, so a byte 0x1A, which UTF-8 text never holds, would end the input.)
+
+| Request | Fields | What it does |
+| --- | --- | --- |
+| `run` | `run`, an id, then a command and its arguments as above, one argument in a field | Starts the operation. `information`, `upload` and `download` only; `--local-address`, `--control-port`, `--json`, `--help` and `--version` are not taken, because they belong to the program. `find` is not a request. `--record` works as above, with a file for each operation. |
+| `cancel` | `cancel`, an id | Aborts that operation from this side. It ends with the reason `aborted` once the target has confirmed it. |
+| `stop` | `stop` | No new operation is taken. The ones that are running finish, and the program ends. The end of the input does the same. After a `stop` a `run` is refused, a `cancel` is still taken (a caller that is told to end has to be able to end what is running, which may be a target in a long WAIT), and a second `stop` changes nothing. |
+
+An id is 1 to 64 of `A` to `Z`, `a` to `z`, `0` to `9`, `.`, `_` and `-`, the caller's own, and it may be used again once its operation has finished. A line holds at most 1048576 bytes. A last line that has no line feed was perhaps cut short, and is refused, not run.
+
+**Events.** The first is `started`, with `program`, `version`, `events`, `command` (`serve`), `address`, `control_port` and `max_operations`; it is written once the port is held, so it means that requests are being taken. The last is `stopped`, with `reason` (`stop`, `end_of_input` or `error`) and `operations`, the count that were started. In between:
+
+| `event` | When | Keys beside `event` and `t` |
+| --- | --- | --- |
+| an event of an operation | From the operation's `started` to its `finished` | Those of that event above, with `id` after `t` |
+| `request_refused` | A request that was not done | `id` (`null` when the line had none that could be read), `request` (`run`, `cancel` or `stop`, or `null` when the line could not be read that far), `line` (the number of the input line, from 1), `detail` |
+
+The events of one id are what one `adl_load` writes for that operation, with `id` added, and every `run` is answered by exactly one `finished`, or by one `request_refused` whose `request` is `run` (a refused `cancel` has `cancel` there, so that a `cancel` that came just after its operation finished is not taken for a refused `run` of the same id). The `exit_code` of a `finished` is the code `adl_load` would have ended with for that operation alone. Each event is written as a whole line, at once, from one thread, so lines of different operations never mix.
+
+A `run` is refused when its arguments are wrong, when its id is in use, when its target's address is in an operation, when `--max-operations` operations are running, and after `stop`. Wrong usage that only the media set shows is a refusal of the `run` as well, and nothing of that operation is written. A `cancel` for an id that is not running is refused. A line that cannot be read is refused: empty, not UTF-8, with a NUL, naming no request, over 1048576 bytes, or the last one with no line feed.
+
+An operation that ends, however it ends, does not end the program: each outcome is in its `finished`. The exit codes are 0 (it stopped as asked), 2 (wrong usage), and 5 (the control port could not be opened, the requests could not be read, or standard output could not be written). A port that cannot be opened is told on standard error, with no event, because `started` means the port is held; when the port is in use the sentence says to give `--local-address`, since listening on every interface is refused when anything holds the port on one of them (on Linux, simulated targets on port 59 on the same computer) and listening on one interface is not.
+
+The loop reads requests, steps the pool for 20 milliseconds, and writes what finished, on one thread. Standard input is read on a thread of its own, since reading blocks, and what it reads is handed over under a lock. So a request is taken at most about 20 milliseconds late. After a `stop` the pipe may still be open and the thread blocked in its read, which nothing can end: the program writes and flushes its last event and ends the process there (`quick_exit`), since leaving the usual way would wait for that thread on some systems. 
+
+**Starting an operation does not hold up the ones that are running.** An upload's media set is read and checked away from the loop, because a set of a gigabyte takes longer than the 13 seconds that a target waits for the loader's next word (checking one of 1 GB took 17 seconds in a release build on the development machine). A `Preparer` (`apps/load/include/adl/load/preparer.hpp`) takes the work of a request, runs it on a thread of its own, one request at a time and in the order they came, and gives the result back to the loop when the loop asks, without the loop ever waiting; the tests give an interface that works by the fake clock. The loop writes nothing for the id until its preparation ends: the id is in use, the address is taken and it counts among the operations that run at once. When it ends, the operation's `started`, `media_set_checked` and the rest are written and the operation goes to the pool, or, when the choice does not fit the set (a part number it does not hold), the `run` is refused with the number of the line it was on. A `cancel` while it is prepared is taken and remembered: the operation starts when its set has been read and ends at once with the reason `aborted`, no datagram sent, so that the caller sees the same events as for a cancel a moment later. The preparation of an operation that is not an upload is trivial and is done by the loop, as it was found. Dropping the program waits for the set that is being read, which cannot be interrupted.
+
+A program that finds an `adl_load` from before `serve` meets wrong usage, exit code 2, when it starts `adl_load serve`; it can then fall back to one `adl_load` for each operation, and start one at a time for each place a loader listens.
+
 ## Stopping, and what it does not do
 
-No command handles a signal. Killing `adl_load` abandons what it was doing, and a target that was in an operation times out by itself. There are no retries, no plan file, and no way to read a description from a file: one process is one target and one operation, so a program that needs more starts as many as it needs.
+No command handles a signal. Killing `adl_load` abandons what it was doing, and a target that was in an operation times out by itself. There are no retries, no plan file, and no way to read a description from a file: one `adl_load` is one target and one operation, and a program that needs several at once runs `adl_load serve`, because two loaders on one computer cannot both have port 59.
 
 A firewall on the computer may ask about the program the first time it listens on the network; `tools/network-access/windows/adl_firewall.ps1` makes the rule beforehand. Nothing is asked when the target is on the same computer and the loader's sockets stay on the loopback address, which is what they do by default.
 
@@ -121,4 +164,4 @@ A run of the second, with `--json`, writes lines of this kind (shortened):
 
 ## Tests
 
-The options, the events and the reasons are unit tests (`tests/load`). Whole commands are run on the fake platform against the simulated target, with no socket: an Information operation, uploads of one load and of all loads, both kinds of download, a refusal, a target that ends the operation, a load the target fails, a target that does not answer, a media set that cannot be read and one that changes, `find`, and the records, compared byte for byte with files in `tests/load/golden`. The same commands run on the real host over sockets on 127.0.0.1 against the mock target's engine on high ports (`tests/loopback`, with `--target-port` and `--control-port`, so an account that may not bind port 59 runs them too), and the built program is started as a process for `--version`, `--help`, wrong usage and an unreadable media set. The options have a [fuzz harness](fuzzing.md). See [Testing](testing.md) for the labels.
+The options, the events and the reasons are unit tests (`tests/load`). Whole commands are run on the fake platform against the simulated target, with no socket: an Information operation, uploads of one load and of all loads, both kinds of download, a refusal, a target that ends the operation, a load the target fails, a target that does not answer, a media set that cannot be read and one that changes, `find`, and the records, compared byte for byte with files in `tests/load/golden`. The same commands run on the real host over sockets on 127.0.0.1 against the mock target's engine on high ports (`tests/loopback`, with `--target-port` and `--control-port`, so an account that may not bind port 59 runs them too), and `serve` is run against eight mock targets at once, each on a loopback address of its own, with a cancel and with a record for each operation. The built program is started as a process for `--version`, `--help`, wrong usage and an unreadable media set. `serve` is run on the fake platform with two and with eight simulated targets at once, a cancel, each refusal, the end of the input while operations run and an operation that fails beside one that completes, and the library's pool has its own tests. The options and the request lines have [fuzz harnesses](fuzzing.md). See [Testing](testing.md) for the labels.

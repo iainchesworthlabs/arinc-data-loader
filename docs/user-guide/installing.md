@@ -36,7 +36,7 @@ A build produces these programs in `build/<preset>/bin`, and a package holds the
 | `adl_write_payloads` | A command-line tool that writes sample media sets to a folder, for trying other loaders |
 | `adl_mock` | A command-line mock target with no window, for test rigs and CI jobs |
 | `adl_make_set` | A command-line tool that makes a media set from a description file, checks one and says what it holds |
-| `adl_load` | A command-line program that runs one operation on one target with no window, for scripts and other programs |
+| `adl_load` | A command-line program that runs one operation on one target with no window, or several at once with `serve`, for scripts and other programs |
 
 On Windows the build copies the Qt libraries next to the programs, so each can be started from
 anywhere: double-click it, or run it from a shell. A Linux build finds Qt the way the build did (the

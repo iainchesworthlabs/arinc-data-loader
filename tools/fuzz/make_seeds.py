@@ -104,6 +104,61 @@ SEEDS_LOAD = {
     "duplicate-load": ["upload", *TARGET, "--media-set", "set", "--load", "PN", "--load", "PN"],
     "file-and-pick": ["download", *TARGET, "--into", "out", "--file", "A", "--pick", "B"],
     "no-files": ["download", *TARGET, "--into", "out"],
+    "serve": ["serve"],
+    "serve-all-options": ["serve", "--local-address", "127.0.0.1", "--control-port", "30901", "--max-operations", "64", "--json"],
+    "bad-max-operations-zero": ["serve", "--max-operations", "0"],
+    "bad-max-operations-too-big": ["serve", "--max-operations", "65"],
+    "max-operations-for-find": ["find", "--max-operations", "8"],
+    "serve-with-target": ["serve", "--target", "10.0.0.2"],
+}
+
+# The standard input of `adl_load serve` for the harness of apps/load (serve_request): lines of requests, with
+# a tab between the fields, and what is not a request. Bytes where the text is not UTF-8.
+HERE = "run\tfms-left.1\tupload\t--target\t192.168.10.21\t--position\tHNPFMS_L\t--media-set\t"
+SEEDS_SERVE = {
+    "run-information": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\tHNPFMS_L\n",
+    "run-upload": HERE + "E:\\sets\\FMS STD14\t--all-loads\t--record\tE:\\runs\\fms-left.1.json\n",
+    "run-upload-loads": HERE + "sets/fms\t--load\tPN-1\t--load\tPN-2\t--target-port\t5059\n",
+    "run-download-files": "run\td.2\tdownload\t--target\t10.0.0.3\t--position\tHNPFMS_R\t--into\tout\t--file\tA.BIN\t--file\tB.BIN\n",
+    "run-download-pick-all": "run\td.3\tdownload\t--target\t10.0.0.4\t--position\tHNPFMS_C\t--into\tout\t--pick-all\n",
+    "run-unicode-path": HERE + "wide-\u00e9-\u65e5\u672c\u8a9e-\U0001F600 and spaces\t--all-loads\n",
+    "cancel": "cancel\tfms-left.1\n",
+    "stop": "stop\n",
+    "run-then-stop": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\tHNPFMS_L\nstop\n",
+    "two-runs-and-cancel": "run\ta\tinformation\t--target\t10.0.0.2\t--position\tP\nrun\tb\tinformation\t--target\t10.0.0.3\t--position\tP\ncancel\ta\n",
+    "crlf-line-ends": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\tHNPFMS_L\r\ncancel\ta1\r\nstop\r\n",
+    "stop-with-a-field": "stop\tnow\n",
+    "cancel-without-id": "cancel\n",
+    "cancel-with-two-ids": "cancel\ta\tb\n",
+    "run-without-id": "run\n",
+    "run-without-command": "run\ta1\n",
+    "run-empty-id": "run\t\tinformation\t--target\t10.0.0.2\t--position\tP\n",
+    "run-id-with-a-space": "run\ta b\tinformation\t--target\t10.0.0.2\t--position\tP\n",
+    "run-id-too-long": "run\t" + "x" * 65 + "\tinformation\t--target\t10.0.0.2\t--position\tP\n",
+    "run-id-longest": "run\t" + "x" * 64 + "\tinformation\t--target\t10.0.0.2\t--position\tP\n",
+    "run-find": "run\ta1\tfind\n",
+    "run-serve": "run\ta1\tserve\n",
+    "run-json": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\tP\t--json\n",
+    "run-local-address": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\tP\t--local-address\t127.0.0.1\n",
+    "run-control-port": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\tP\t--control-port\t59\n",
+    "run-help": "run\ta1\tinformation\t--help\n",
+    "run-wrong-option": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\tP\t--bogus\n",
+    "run-empty-field": "run\ta1\tinformation\t\t10.0.0.2\n",
+    "unknown-request": "pause\ta1\n",
+    "empty-line": "\n",
+    "empty-lines": "\n\n\n",
+    "only-a-tab": "\t\n",
+    "unfinished-last-line": "stop",
+    "unfinished-after-a-line": "cancel\ta\nrun\tb\tinformation",
+    "invalid-utf8": b"run\ta1\tinformation\t--target\t10.0.0.2\t--position\tP\xff\xfe\n",
+    "overlong-utf8": b"run\ta1\tinformation\t--target\t10.0.0.2\t--position\t\xc0\x80\n",
+    "surrogate-utf8": b"run\ta1\tinformation\t--target\t10.0.0.2\t--position\t\xed\xa0\x80\n",
+    "cut-utf8": b"run\ta1\tinformation\t--target\t10.0.0.2\t--position\t\xe6\x97\n",
+    "nul-in-a-line": b"run\ta1\tinformation\t--target\t10.0.0.2\t--position\tP\x00Q\n",
+    "line-too-long": "run\ta1\tinformation\t--target\t10.0.0.2\t--position\t" + "P" * 600 + "\nstop\n",
+    "line-at-the-limit": "x" * 512 + "\r\n",
+    "line-over-the-limit-by-a-return": "x" * 513 + "\r\n",
+    "stop-after-too-long": "y" * 2000 + "\nstop\n",
 }
 
 # Licence files, a revocation list, a clock file and the payloads behind the signature all go to the one harness.
@@ -160,11 +215,11 @@ def write(golden: Path, library: str, table) -> int:
     return count
 
 
-def write_text(library: str, target: str, seeds: dict[str, str], root: str = "libs") -> int:
+def write_text(library: str, target: str, seeds: dict[str, str | bytes], root: str = "libs") -> int:
     out = ROOT / root / library / "fuzz" / "corpus" / target
     out.mkdir(parents=True, exist_ok=True)
     for name, text in seeds.items():
-        (out / f"{name}.bin").write_bytes(text.encode("ascii"))
+        (out / f"{name}.bin").write_bytes(text if isinstance(text, bytes) else text.encode("utf-8"))
     return len(seeds)
 
 
@@ -457,6 +512,7 @@ def main() -> int:
     total += write_mock_scenarios()
     nul = chr(0)
     total += write_text("load", "load_options", {n: nul.join(a) for n, a in SEEDS_LOAD.items()}, root="apps")
+    total += write_text("load", "serve_request", SEEDS_SERVE, root="apps")
     print(f"{total} seed file(s) written")
     return 0
 

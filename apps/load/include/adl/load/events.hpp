@@ -17,10 +17,13 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace adl::load
 {
+
+class JsonLine;
 
 // A target that answered FIND.
 struct FoundTarget
@@ -80,6 +83,24 @@ public:
         return json_;
     }
 
+    // Every event of this writer then carries `id`, after `t`: the events of one operation of `adl_load serve`.
+    void set_id(std::string id)
+    {
+        id_ = std::move(id);
+    }
+    // Standard output could not be written to (a closed pipe, a full disk): the stream has failed.
+    [[nodiscard]] bool failed() const;
+
+    // The three events of `adl_load serve` that belong to no operation. They are written as JSON lines.
+    // `address` is the interface the loader listens on, as dotted numbers.
+    void serve_started(std::string_view address, std::uint16_t control_port, std::size_t max_operations);
+    // A request that was not done. `id` is the request's, if it had one that could be read, and `request` is
+    // `run`, `cancel` or `stop`, or none when the line could not be read that far. `line_number` counts from 1.
+    void request_refused(const std::optional<std::string>& id, const std::optional<std::string>& request,
+                         std::uint64_t line_number, std::string_view detail);
+    // `reason` is `stop`, `end_of_input` or `error`; `operations` how many were started.
+    void stopped(std::string_view reason, std::uint64_t operations);
+
     // `target` and `position` are for an operation; find has neither.
     void started(std::string_view command, const std::optional<std::string>& target,
                  const std::optional<std::string>& position);
@@ -94,14 +115,17 @@ public:
     void finished(const FinishedEvent& event);
 
 private:
-    // The start of an event's object: `event` and `t`.
     [[nodiscard]] std::uint64_t elapsed_milliseconds();
+    // The start of an event's object: `event` and `t`, and `id` when there is one.
+    [[nodiscard]] JsonLine json_event(std::string_view name, std::uint64_t milliseconds) const;
+    // A whole line, written out at once.
     void write(std::string_view line);
 
     std::ostream& out_;
     bool json_;
     adl::platform::Clock& clock_;
     adl::platform::Instant start_;
+    std::optional<std::string> id_;
 };
 
 } // namespace adl::load
