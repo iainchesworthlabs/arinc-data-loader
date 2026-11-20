@@ -12,6 +12,7 @@ The numbers and names the guide uses, on one page. Each section says where the d
 | (command line) | `adl_write_payloads` | Write sample media sets ([Command line](command-line.md)) |
 | (command line) | `adl_make_set` | Make a media set from a description file, check one, say what it holds ([Command line](command-line.md#adl_make_set)) |
 | (command line) | `adl_load` | Run one operation on one target with no window ([Command line](command-line.md#adl_load)) |
+| (command line) | `adl_licence` | Show, import and remove a licence ([Command line](command-line.md#adl_licence)) |
 
 ## Ports
 
@@ -113,6 +114,9 @@ Each file is named `<THW_ID_POS>` and an extension, for example `HNPFMS_L.LCI`. 
 | | 3 | The media set could not be read, or changed after it was checked |
 | | 4 | The target did not answer |
 | | 5 | A port, a folder or the record file could not be used |
+| `adl_licence` | 0 | It was done: `show` looked, a file was imported or was there already, a file was removed, or a program would accept the file |
+| | 1 | It could not be done, or a program would refuse the file |
+| | 2 | The command line could not be used |
 | The three programs with windows | 0 | The window was closed, or `--smoke-test` drew its frame |
 | | 1 | The window could not be created |
 

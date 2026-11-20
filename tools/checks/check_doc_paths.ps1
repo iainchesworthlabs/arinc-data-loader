@@ -60,6 +60,7 @@ $AllowedPaths = [ordered]@{
     'tools/adl_mock'           = 'inside the macOS disk image'
     'tools/adl_make_set'       = 'inside the macOS disk image'
     'tools/adl_load'           = 'inside the macOS disk image'
+    'tools/adl_licence'        = 'inside the macOS disk image'
     # The name a new picture would have.
     'docs/images/name.png'     = 'a placeholder in docs/screenshots.md'
 }

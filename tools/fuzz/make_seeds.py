@@ -246,6 +246,36 @@ def write_owner() -> int:
     return len(SEEDS_OWNER)
 
 
+# The commands of adl_licence (libs/licence_cli) read a command line and the file it names. A seed is a command
+# line, one word to a tab, a line end, and then the bytes of a file: the licence, the list of withdrawn licences and
+# the clock file of the golden data, with each command that can meet them.
+def write_licence_cli() -> int:
+    golden = constants(ROOT / "tests" / "golden" / "golden_licence.hpp")
+    licence = golden["licence_annual_hex"]
+    seeds = {
+        "show_empty": b"show\n",
+        "show_licence": b"show\n" + licence,
+        "show_clock": b"show\n" + golden["clock_seen_hex"],
+        "import_licence": b"import\tf\n" + licence,
+        "import_signed": b"import\tg\n" + licence,
+        "import_list": b"import\tf\n" + golden["revocations_list_hex"],
+        "verify_licence": b"verify\tf\n" + licence,
+        "remove_licence": b"remove\tin-folder.adllic\n" + licence,
+        "remove_dot_dot": b"remove\t..\n",
+        "remove_machine": b"remove\tin-machine.adllic\n" + licence,
+        "usage_extra_word": b"show\tx\n",
+        "unknown_command": b"frobnicate\n",
+        "help": b"--help\n",
+        "version": b"--version\n",
+        "name_outside_ascii": "import\tcafé 日本語\n".encode("utf-8") + licence,
+    }
+    out = ROOT / "libs" / "licence_cli" / "fuzz" / "corpus" / "licence_cli"
+    out.mkdir(parents=True, exist_ok=True)
+    for name, data in seeds.items():
+        (out / (name + ".bin")).write_bytes(data)
+    return len(seeds)
+
+
 # The description file of adl_make_set (libs/set_maker/fuzz, target description): a good one, the smallest one, and a
 # refusal of each kind, so that the fuzzer starts on both sides of every check.
 _DESCRIPTION_HEAD = '{"format":1,"kind":"adl-media-set-description",'
@@ -513,6 +543,7 @@ def main() -> int:
     nul = chr(0)
     total += write_text("load", "load_options", {n: nul.join(a) for n, a in SEEDS_LOAD.items()}, root="apps")
     total += write_text("load", "serve_request", SEEDS_SERVE, root="apps")
+    total += write_licence_cli()
     print(f"{total} seed file(s) written")
     return 0
 

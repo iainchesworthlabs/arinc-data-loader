@@ -44,7 +44,7 @@ description: The ADL Library and the three tools built on it, the Data Loader, t
 <p>Each release has a package of the programs for each desktop system, and a development package of the library.</p>
 </div>
 <ul class="adl-ticks">
-<li>The Data Loader, the Media Set Generator, the Mock Target, and the command-line programs <code>adl_write_payloads</code> and <code>adl_load</code>.</li>
+<li>The Data Loader, the Media Set Generator, the Mock Target, and the command-line programs <code>adl_write_payloads</code>, <code>adl_load</code> and <code>adl_licence</code>.</li>
 <li>The development package: the headers, the static libraries and the <code>adl</code> CMake package.</li>
 <li>Checksums, a signature for every file, build attestations, and a software bill of materials in SPDX and CycloneDX.</li>
 </ul>

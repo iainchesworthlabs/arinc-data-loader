@@ -22,6 +22,7 @@ which that is not true.
 | `libs/mock_scenario/fuzz` | `scenario`: the input is the mock target's scenario file. A file that is refused says why in one line; one that is read is checked against the limits it states (an action goes with its trigger, a step that draws has a seed, every number in its range), written and read again as the same scenario, and played for a few moments. The seeds are written by `tools/fuzz/make_seeds.py`, and the `mock.scenario` test replays them under the ordinary compilers too. |
 | `libs/licence/fuzz` | `licence`: the signed envelope, the strict JSON reader, the licence payload, a revocation list, the clock file the store keeps and the dates, all from one input. What a reader accepts is written back and read again, and has to come out the same. The seeds are licence files and payloads signed with the published test key, and two clock files. |
 | `libs/scenario_base/fuzz` | `envelope`: the input is a scenario file, read as the mock target's and as the loader's. It checks that a file that is refused says why in one line, and that one that is read keeps every number inside its limit, the steps numbered from 1, a seed for every step that draws, and nothing but the keys the kind named. The seeds are written by `tools/fuzz/make_seeds.py`, as they have no golden data, and the `scenario.base` test replays them under the ordinary compilers too. |
+| `libs/licence_cli/fuzz` | `licence_cli`: the commands of `adl_licence` ([the command](user-guide/command-line.md#adl_licence)): a command line, one word to a tab, and the bytes of a file, which are put where each command can meet them (the file the line names, a licence file and a list of withdrawn licences in each folder, the clock file, and signed with the test key as a licence and as a list). Every run must end with the exit code 0, 1 or 2; `show` and `verify` must write nothing; nothing printed may hold a control character. The seeds are written by `tools/fuzz/make_seeds.py`: one for each command, from the golden licence files. |
 
 A harness is in `libs/<lib>/fuzz`, for a program of the repository's tools in `tools/<tool>/fuzz`, and for a command in `apps/<app>/fuzz`. Each target has a directory of **seed inputs** (`corpus/<name>/`), written by
 `python3 tools/fuzz/make_seeds.py` from the golden data of the tests (`tests/golden`; those of `parse_options` are written by hand: they are command lines, and the `mock.cli` test replays them under the ordinary compilers too; for the text of an address and the command line of `adl_load` they come from the lists in the script), and a directory of
@@ -63,10 +64,16 @@ corpus is meant to stay small and readable.
   every ready pull request and every queue entry. It is part of `CI Status`.
 - `fuzz.yml` fuzzes each target for 60 seconds on every push to `develop` (one run at a time, with at
   most one waiting), and for ten minutes each night. The inputs it finds are kept between runs in the
-  Actions cache; they are not committed. A crash fails the run, uploads the input as the `fuzz-crashes`
-  artifact, and on the nightly run opens or updates one `nightly-analysis` issue. The nightly run takes about
-  three hours (every target in turn, ten minutes each); the job's limit is 210 minutes, and a run that
-  hits it is reported in the same issue.
+  Actions cache; they are not committed. The nightly run is split into three **shards**, each a job of its
+  own that builds the harnesses and fuzzes every third of them in name order, ten minutes each, so that it takes
+  about two hours and a half (27 targets: nine to a shard, 90 minutes of fuzzing and the build) and not five;
+  a shard's limit is 150 minutes, which holds 11 targets, and a shard is added with one number in the list
+  `strategy.matrix.shard` of `fuzz.yml` (a hosted job may run for 360 minutes at most). A push to `develop`
+  and a manual run use one shard, and a manual run can ask for three. A shard keeps the inputs of its own targets
+  in the Actions cache under a key of its own. A crash fails its shard and uploads the input as the
+  `fuzz-crashes-shard-<n>` artifact. The last job of the workflow, named `Fuzz (Linux, Clang)` as the one job was,
+  ends with the result of all the shards, and on the nightly run opens or updates one `nightly-analysis` issue
+  (once, and not by each shard); a shard that hits its limit is cancelled, which counts as a failure there.
 
 - `clusterfuzzlite.yml` runs [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) on a ready pull
   request that changes `libs/`, `tools/licence/`, `cmake/` or the files in `.clusterfuzzlite/`: it builds the harnesses with

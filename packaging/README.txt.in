@@ -15,6 +15,7 @@ What is here
                     (command line)
   adl_load          runs one operation on one target with no window, or looks for
                     targets (command line)
+  adl_licence       shows, imports and removes the licence on this computer (command line)
 
   LICENSE.txt       the GNU General Public License, version 3 or later, which covers
                     these programs

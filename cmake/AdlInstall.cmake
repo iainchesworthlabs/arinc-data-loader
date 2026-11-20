@@ -5,7 +5,7 @@
 # Two packages come out of one install tree, as two install components:
 #
 #   runtime       the three Qt applications (adl_app, adl_media_gen, adl_mock_target) with the Qt
-#                 runtime they need, the command-line tools adl_mock, adl_write_payloads, adl_make_set and adl_load,
+#                 runtime they need, the command-line tools adl_mock, adl_write_payloads, adl_make_set, adl_load and adl_licence,
 #                 README.txt, LICENSE.txt and NOTICES.txt.
 #   development   the libraries other programs can build on, their headers and the CMake package
 #                 (find_package(adl) with the adl::... targets), and LICENSE.txt and NOTICES.txt.

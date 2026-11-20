@@ -32,7 +32,7 @@ work only.
 | Workflow | Purpose | Runs on a private copy? |
 | --- | --- | --- |
 | `ci.yml` | The gate: Policy, the planner, `clang-format`, `platform-isolation`, the documentation build, the build legs, coverage, workflow analysis, the dependency scan, and the aggregator `CI Status`; the RTOS simulators run beside it ([The jobs](#the-jobs-in-ciyml)) | yes |
-| `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
+| `fuzz.yml` | Fuzzes each target for 60 seconds on a push to `develop` and for ten minutes each night, the nightly run in three shards of its own; a crash fails the run and the nightly one opens an issue ([Fuzzing](fuzzing.md)) | yes |
 | `clusterfuzzlite.yml` | Fuzzes the code a pull request changes for ten minutes with ClusterFuzzLite; not a required check ([Fuzzing](fuzzing.md#in-ci)) | yes |
 | `docs.yml` | Builds the site and deploys it to the company site when the branch `site` moves, previews a pull request that changes the documentation, and publishes the pages that forward the old GitHub Pages addresses when `main` moves ([Documentation site](#documentation-site)) | yes |
 | `publish-site.yml` | Run by hand on `develop`: moves the branch `site` to the tip of `develop`, which publishes the documentation without a release ([Publishing](#publishing)) | no - manual only |
@@ -184,7 +184,9 @@ placeholder (`%1`, `%n`) stand for anything, and it asks for each stretch of six
 `docs-site` and as the CTest test `docs.messages`, and `docs/user-guide/messages.md` is where a new message is described. It checks that
 the description is there, and not that it is good. The owner's licence tool is not shipped and is not a program of the guide, so it has a page of its
 own, `docs/licence-owner-tool.md`: every sentence of `tools/licence/src/messages.hpp` and every `exit_*` constant of `tools/licence/src/owner.hpp`
-must be on it, by the same rules.
+must be on it, by the same rules. `adl_licence` is a program of the guide with its sentences in a header of its own, so it is held to the same
+rules on the command-line page: every sentence of `libs/licence_cli/src/messages.hpp` and every `exit_*` constant of
+`libs/licence_cli/include/adl/licence_cli/licence_cli.hpp` must be on `docs/user-guide/command-line.md`.
 
 `adl_make_set` has no catalogue, because it has no Qt, so it is held to its own section of `docs/user-guide/command-line.md` (the section whose heading names `adl_make_set`): every `exit_*` constant of `apps/make_set/include/adl/make_set/command.hpp` must be a row of the table in that section, and every string literal of `apps/make_set/src/command.cpp`, `options.cpp` and `description.cpp` and of `libs/set_maker/src/validate.cpp` (the sentences of the rules that a description is held to), without its comments and `#include` lines, must be in that section, by the same rules.
 

@@ -421,6 +421,75 @@ class OwnerTool(Check):
         self.assertEqual(self.problems(), "")
 
 
+LICENCE_COMMAND_MESSAGES = """namespace adl::licence_cli::message {
+inline constexpr std::string_view usage = R"(usage: adl_licence show
+       adl_licence import <file>
+)";
+inline constexpr std::string_view cannot_read = "cannot read %1: %2";
+inline constexpr std::string_view label_edition = "Edition:";
+}
+"""
+LICENCE_COMMAND_EXIT_CODES = """inline constexpr int exit_ok = 0;
+inline constexpr int exit_failed = 1;
+inline constexpr int exit_usage = 2;
+"""
+LICENCE_COMMAND_SECTION = """
+## `adl_licence`
+
+usage: adl_licence show
+       adl_licence import <file>
+
+The first line of `show` is `Edition: pro`. `cannot read %1: %2`.
+
+| Code | Meaning |
+| --- | --- |
+| 0 | done |
+| 1 | not done |
+| 2 | usage |
+"""
+
+
+class LicenceCommand(Check):
+    """adl_licence is a program of the guide, but its sentences and exit codes are held to its own section of the page.
+
+    The tests of Check that rewrite the command-line page run here too, so the program's files are put in by each test
+    that is about it (`install`), and not by `setUp`.
+    """
+
+    def install(self) -> None:
+        (self.root / "libs" / "licence_cli" / "src").mkdir(parents=True)
+        (self.root / "libs" / "licence_cli" / "include" / "adl" / "licence_cli").mkdir(parents=True)
+        (self.root / "libs" / "licence_cli" / "src" / "messages.hpp").write_text(LICENCE_COMMAND_MESSAGES, encoding="utf-8")
+        self.codes = self.root / "libs" / "licence_cli" / "include" / "adl" / "licence_cli" / "licence_cli.hpp"
+        self.codes.write_text(LICENCE_COMMAND_EXIT_CODES, encoding="utf-8")
+        self.page = self.root / "docs" / "user-guide" / "command-line.md"
+        self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION, encoding="utf-8")
+
+    def test_a_page_that_has_everything_passes(self) -> None:
+        self.install()
+        self.assertEqual(self.problems(), "")
+
+    def test_a_sentence_that_is_not_on_the_page_is_found(self) -> None:
+        self.install()
+        self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION.replace("`cannot read %1: %2`", ""), encoding="utf-8")
+        self.assertIn("'cannot read %1: %2' of adl_licence is not on docs/user-guide/command-line.md", self.problems())
+
+    def test_the_usage_text_is_asked_for_whole(self) -> None:
+        self.install()
+        self.page.write_text(GOOD_PAGE + LICENCE_COMMAND_SECTION.replace("       adl_licence import <file>" + chr(10), ""),
+                             encoding="utf-8")
+        self.assertIn("usage: adl_licence show", self.problems())
+
+    def test_a_new_exit_code_is_found(self) -> None:
+        self.install()
+        self.codes.write_text(LICENCE_COMMAND_EXIT_CODES + "inline constexpr int exit_other = 3;" + chr(10), encoding="utf-8")
+        self.assertIn("the exit code 3 of adl_licence is not a row of the table in docs/user-guide/command-line.md",
+                      self.problems())
+
+    def test_without_the_program_nothing_is_asked(self) -> None:
+        self.assertEqual(self.problems(), "")
+
+
 if __name__ == "__main__":
     unittest.main()
 

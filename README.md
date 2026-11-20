@@ -47,6 +47,8 @@ release key and listed with its checksums and bill of materials
   **`adl_write_payloads`**, a command-line program that writes sample media sets
   (including the ARINC 615 and Boeing 777 layouts of Appendix F) to a directory,
   for trying other loaders.
+- **`adl_licence`**, a command-line program that shows the licence on a computer and
+  imports or removes a licence file (`apps/licence`, over `libs/licence_cli`).
 - **`adl::platform`**, the one place that knows which operating system this is:
   files, memory, threads and priorities, a clock, UDP sockets and message queues,
   as interfaces with an implementation each for Windows, Linux and macOS, and a
@@ -166,6 +168,7 @@ apps/mock_target/       adl_mock_target: a 615A target over real sockets, for de
 apps/mock/              adl_mock: the same target as a command with no window
 libs/mock_target_core/  the mock target's engine, without Qt (shared by the two programs)
 apps/write_payloads/    adl_write_payloads, which writes the samples to a directory
+apps/licence/           adl_licence, which shows, imports and removes the licence on a computer
 apps/load/              adl_load, one operation on one target with no window and no Qt
 apps/*/tests/           each application's own tests
 tests/                  unit, integration and system tests that span libraries; the fake platform;
