@@ -561,6 +561,14 @@ Bytes SimTarget::build_status(const StatusSpec& spec, std::uint16_t counter)
         for (const UploadItem& load : plan_.loads)
         {
             const bool done = spec.code == StatusCode::completed;
+            const auto failed = plan_.failed_loads.find(load.header_name);
+            if (failed != plan_.failed_loads.end() && spec.code != StatusCode::accepted)
+            {
+                loads.push_back(LoadProgress{load.header_name, load.load_part_number,
+                                             static_cast<std::uint8_t>(progress_percent()), StatusCode::item_failed,
+                                             failed->second});
+                continue;
+            }
             loads.push_back(LoadProgress{load.header_name, load.load_part_number,
                                          static_cast<std::uint8_t>(done ? 100 : progress_percent()),
                                          done ? StatusCode::completed : StatusCode::in_progress, ""});

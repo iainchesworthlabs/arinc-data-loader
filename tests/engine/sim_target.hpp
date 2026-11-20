@@ -107,6 +107,9 @@ struct SimPlan
 
     // ---- the data ----
     std::vector<UploadItem> loads;
+    // An upload: the loads, by header file name, that the target reports as failed (0x1007, with this text)
+    // in every status file after the first.
+    std::map<std::string, std::string> failed_loads;
     std::vector<DownloadItem> files;
     bool list_unrequested_file = false; // a download: also writes a file nobody asked for
 

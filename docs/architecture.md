@@ -25,7 +25,7 @@
    adl::media_tree (libs/media_tree): members <-> a directory tree, over adl::arinc665
    adl::loader_core (libs/loader_core): what the loader does without a window and without Qt (the media
    set on disk and its check, the folder a download is written into, the target's address, one operation
-   made and run against a target), over the libraries above; the application calls it
+   made and run against a target, the record of an operation and the file it is written as), over the libraries above; the application calls it
    adl::set_maker (libs/set_maker): the media set generator without a window and without Qt (a plan, the
    making of a set, the reading of one into facts), over adl::loader_core; the generator's window and the
    command adl_make_set build on it
@@ -49,9 +49,13 @@
   disk read and checked into a report (`check_media_set`), the index of its files and the `FileSource` an
   upload reads them through, the `DNLD_DATA_<THW_ID_POS>_<number>` folder a download is written into, the
   target's address, and one operation (an `OperationPlan` of what was chosen, `run_operation` over the host's
-  sockets with the operator's `OperationGate`) reduced to a result and a reason. The loader's application (`apps/app/core`) calls it and puts what it returns in the
-  operator's words and in Qt's types, so a program with no window can do the same by the same rules. It is in
-  the [development package](libraries.md).
+  sockets with the operator's `OperationGate`) reduced to a result and a reason. It also holds the record of
+  an operation (`OperationRecord`), the recorder that fills it from what the engine reports
+  (`OperationRecorder`, an `OperationListener` that logs in English, in the window's sentences) and the writer
+  of the file the record is kept in ([the operation record](file-reference.md#the-operation-record)). The
+  loader's application (`apps/app/core`) calls the first part and puts what it returns in the operator's words
+  and in Qt's types, so a program with no window can do the same by the same rules; the window does not use
+  the recorder. It is in the [development package](libraries.md).
 - **`libs/set_maker`** is the media set generator without a window and without Qt, and is not in the
   development package. A `SetPlan` is what a person decides about a media set (the files, the part numbers,
   the members, the check value types, a batch, and more than one load). `validate` holds a plan to the rules

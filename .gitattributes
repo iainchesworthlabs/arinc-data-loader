@@ -34,3 +34,6 @@ tests/make_set/data/** -text
 # that a seed that is a command line (libs/mock_target_core/fuzz) is the same on every checkout.
 libs/*/fuzz/corpus/** -text
 libs/*/fuzz/regressions/** -text
+
+# The golden files of the operation record are compared byte for byte: a checkout keeps their line feeds.
+tests/loader_core/golden/*.json text eol=lf
