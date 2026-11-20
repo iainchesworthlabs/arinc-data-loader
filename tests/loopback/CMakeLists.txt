@@ -57,7 +57,7 @@ target_include_directories(adl_load_system_test PRIVATE
 target_link_libraries(adl_load_system_test
     PRIVATE
         adl_load_cli
-        adl::mock_core
+        adl::mock_target_core
         adl::arinc615a
         adl::arinc665
         adl::media_tree
