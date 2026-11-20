@@ -1,6 +1,6 @@
 {
   "docs": ["docs/**", "*.md", "mkdocs.yml", "LICENSE*", "changelog.d/**", "tools/docs/**", ".github/actions/docs-site/**",
-           ".github/requirements/docs.*"],
+           ".github/requirements/docs.*", ".github/workflows/docs.yml", ".github/workflows/publish-site.yml"],
   "no_build": [".github/PULL_REQUEST_TEMPLATE*", ".github/ISSUE_TEMPLATE/**", ".github/CODEOWNERS", ".github/dependabot.yml",
                ".github/rulesets/**", ".github/repo-settings.json", ".github/labels.json", "REUSE.toml", ".editorconfig",
                "LICENSES/**", ".git-blame-ignore-revs", "sonar-project.properties", "tools/hooks/**", "tools/policy/**",

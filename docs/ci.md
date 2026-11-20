@@ -412,7 +412,7 @@ the fact instead of re-run.
 
 `Plan` reads the files the pull request or queue entry changes (against the base, or for a queue entry
 the commit it is built on) and `.github/ci/plan.json` sorts them: `docs` (documentation, the site's
-tooling), `no_build` (templates, ruleset files, licence files), `build` (the sources, tests, CMake and
+tooling, and the two workflows that publish it, `docs.yml` and `publish-site.yml`), `no_build` (templates, ruleset files, licence files), `build` (the sources, tests, CMake and
 packaging), `gui` (Qt needed), and `machinery` (the gate's own files: everything runs). A path that none
 of the lists names builds everything, because a false skip is silent and a false build costs minutes.
 
@@ -420,6 +420,12 @@ of the lists names builds everything, because a false skip is silent and a false
   `build` is skipped and `CI Status` accepts it because the plan did not ask for it.
 - A change that touches no GUI builds the libraries without Qt (`gui=false`).
 - A push, a manual run and an empty file list plan everything.
+- **A site update runs no build, and publishing it runs no CI.** A change to pages, the theme, `mkdocs.yml`, the company kit copy, or
+  `docs.yml` or `publish-site.yml` plans no build, so its pull request and its queue entry run the static jobs, the workflow analysis and
+  `Docs build (strict)` and nothing heavier. Publishing it afterwards ([Publishing](#publishing)) is a push to the branch `site`, and the
+  only workflow that a push to `site` starts is `docs.yml` (`ci.yml` runs for pull requests, the queue and `develop`, and `release.yml`
+  for tags). A change to the application, to `CMakeLists.txt`, to the site's own checks in `tools/ci/` or to the gate itself builds everything
+  first, as before. The site's icon is `packaging/linux/icons/adl_app.svg`, a file of the application, so a change to it builds too.
 
 `Docs build (strict)` runs for every change, because a change to code can break a link to it.
 

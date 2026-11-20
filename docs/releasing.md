@@ -124,14 +124,15 @@ patch version is.
 
 ### Publish the documentation
 
-The documentation site, <https://iainchesworthlabs.com/adl/>, is published from the branch `site`, not from a release, so a change to the
+The documentation site, at {{ site_url }}, is published from the branch `site`, not from a release, so a change to the
 pages can go up on its own and a release does not carry it. To publish what `develop` holds:
 
 ```sh
 gh workflow run publish-site.yml --ref develop
 ```
 
-The workflow moves `site` to the tip of `develop`, and the push starts `docs.yml`, which builds and deploys it. Build the site first
+The workflow moves `site` to the tip of `develop`, and the push starts `docs.yml`, which builds and deploys it. No other CI runs for it,
+and a pull request that changes only pages ran no build to get to `develop` ([CI](ci.md#the-planner-and-documentation-only-changes)). Build the site first
 (`mkdocs serve`) and read the pages that changed. After a release, publish again, so that the pages describe the version that is out.
 ([Publishing](ci.md#publishing) has the details and the one-off setup.)
 

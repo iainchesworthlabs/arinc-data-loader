@@ -9,6 +9,9 @@ name: Publish site
 # other branch. `site` holds the source that is built, not built pages. It only ever moves forward along develop: the
 # update is not forced, so a commit that is not ahead of the branch stops the run.
 #
+# No CI runs for this: a push to `site` starts docs.yml and nothing else, and what `develop` holds has been through the
+# merge queue already (a change to pages alone plans no build there, .github/ci/plan.json).
+#
 # The push is made with the release bot's App token, because a push made with GITHUB_TOKEN does not start workflows.
 # The `site-publish-only` ruleset lets that App, and nothing else, create or move the branch.
 
