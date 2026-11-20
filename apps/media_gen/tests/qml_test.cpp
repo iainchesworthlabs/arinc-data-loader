@@ -10,6 +10,7 @@
 #include "adl/gen/source_file_model.hpp"
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/language_manager.hpp"
+#include "adl/ui/licence_model.hpp"
 #include "temp_dir.hpp"
 
 #include <QEventLoop>
@@ -141,6 +142,9 @@ int main(int argc, char* argv[])
     QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &model,
                      &adl::gen::GeneratorModel::retranslate);
     engine.rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    // No licence is installed and no file is read: the window is the Community edition.
+    adl::ui::LicenceModel licence_model{adl::ui::LicenceEnvironment{}};
+    engine.rootContext()->setContextProperty(QStringLiteral("licence"), &licence_model);
     engine.setInitialProperties(
         {{QStringLiteral("app"), QVariant::fromValue(&model)},
          // ADL_DARK=1 renders in the dark scheme (the window sets a dark palette, which is what

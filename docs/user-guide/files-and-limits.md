@@ -8,6 +8,7 @@
 | Files a **download** fetches | `<download folder>/DNLD_DATA_<THW_ID_POS>_<number>/`. The download folder is a [Preference](preferences.md) (default `Documents/ArincDownloads`). Each download makes a new folder; `<number>` is the lowest free one starting at 1, and a download that brings back no file removes its empty folder again, so its number is free again. A file is written under a temporary name ending in `.part` and renamed when it has arrived whole; an existing file is never overwritten |
 | What an upload leaves in the **mock target** | `<storage folder>/<load part number>/<file name>` |
 | What a download can fetch from the mock target | the files in `<storage folder>/holds`, read when the target is started. You make the `holds` folder yourself; the mock target does not |
+| **Licence files** and the clock file | Your licence folder, the machine folder an administrator keeps, and `licence-clock.json` beside your licence folder: [where licence files go](licence.md#where-licence-files-go). An imported licence is a copy in your licence folder; the original stays where it was |
 | The loader's **activity log** | In memory only. It is not written to a file, it is lost when the program closes, and it keeps the last 2000 lines unless you change that in Preferences. Copy what you need before closing |
 | **Settings** (Preferences, last media set, last target, language, window size and position, whether the first-run screen has been passed) | The system's per-user settings store, one per program. On Windows: `HKEY_CURRENT_USER\Software\iainchesworthlabs\ARINC Data Loader` (and `ARINC Media Set Generator`, `ARINC Mock Target`). To start from the first launch again, delete the key (`reg delete "HKCU\Software\iainchesworthlabs\ARINC Data Loader" /f`) while the program is closed. Elsewhere the place is the one Qt's settings use on that system, and has not been checked. If the environment variable `ADL_SETTINGS_DIR` names a folder when a program starts, all three programs keep their settings in an ini file below that folder instead, and write nothing to the usual place |
 
@@ -17,7 +18,7 @@ GNU licence or the project's repository) only when you click such a link in Abou
 
 ## Limits
 
-The limits of the programs (the members in a media set, the length of a file name and of a `THW_ID_POS`, the targets one FIND lists, the time-outs, the ports and the rest) are in one table on [Limits and known issues](limits.md#limits).
+A licence file is at most 64 KiB, and 64 files are read from each licence folder ([Your licence and edition](licence.md#where-licence-files-go)). The limits of the programs (the members in a media set, the length of a file name and of a `THW_ID_POS`, the targets one FIND lists, the time-outs, the ports and the rest) are in one table on [Limits and known issues](limits.md#limits).
 
 ## What has not been checked
 

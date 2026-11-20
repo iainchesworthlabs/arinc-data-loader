@@ -78,6 +78,7 @@ Each file is named `<THW_ID_POS>` and an extension, for example `HNPFMS_L.LCI`. 
 | A download | `<download folder>/DNLD_DATA_<THW_ID_POS>_<number>/` |
 | An upload, in the mock target | `<storage folder>/<load part number>/<file name>` |
 | Settings | The system's per-user settings store ([Configuration reference](configuration.md)) |
+| Licence files | Your licence folder, and the machine folder an administrator keeps ([Your licence and edition](licence.md#where-licence-files-go)) |
 | The activity log and the receipt | In memory only |
 
 ## Keys

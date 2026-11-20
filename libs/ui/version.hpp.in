@@ -9,6 +9,7 @@ inline constexpr char kGitCommit[] = "@ADL_UI_GIT_COMMIT@";
 inline constexpr char kGitCommitFull[] = "@ADL_UI_GIT_COMMIT_FULL@";
 inline constexpr char kGitBranch[] = "@ADL_UI_GIT_BRANCH@";
 inline constexpr char kGitDescribe[] = "@ADL_UI_GIT_DESCRIBE@";
+inline constexpr char kGitCommitTime[] = "@ADL_UI_GIT_COMMIT_TIME@";
 inline constexpr bool kGitDirty = @ADL_UI_GIT_DIRTY@;
 inline constexpr char kBuildTarget[] = "@ADL_UI_BUILD_TARGET@";
 

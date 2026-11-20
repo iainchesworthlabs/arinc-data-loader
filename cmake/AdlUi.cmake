@@ -32,6 +32,8 @@ set(ADL_UI_GIT_COMMIT_FULL "unknown")
 set(ADL_UI_GIT_BRANCH "unknown")
 set(ADL_UI_GIT_DESCRIBE "v${PROJECT_VERSION}")
 set(ADL_UI_GIT_DIRTY 0)
+# When the commit was made (ISO 8601, UTC). The licence check treats it as a time that has certainly passed.
+set(ADL_UI_GIT_COMMIT_TIME "")
 
 find_package(Git QUIET)
 if(GIT_FOUND)
@@ -46,6 +48,11 @@ if(GIT_FOUND)
             COMMAND "${GIT_EXECUTABLE}" -C "${CMAKE_SOURCE_DIR}" rev-parse HEAD
             OUTPUT_VARIABLE ADL_UI_GIT_COMMIT_FULL
             OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+        execute_process(
+            COMMAND "${GIT_EXECUTABLE}" -C "${CMAKE_SOURCE_DIR}" log -1 --format=%cI
+            OUTPUT_VARIABLE ADL_UI_GIT_COMMIT_TIME
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET)
         execute_process(
             COMMAND "${GIT_EXECUTABLE}" -C "${CMAKE_SOURCE_DIR}" describe --tags --always
             OUTPUT_VARIABLE ADL_UI_GIT_DESCRIBE
@@ -75,7 +82,7 @@ set(ADL_UI_BUILD_TARGET
 # A quote or backslash in a branch name must not break the generated string literals.
 foreach(adl_ui_var IN ITEMS
         ADL_UI_VERSION ADL_UI_VERSION_FULL ADL_UI_GIT_COMMIT ADL_UI_GIT_COMMIT_FULL
-        ADL_UI_GIT_BRANCH ADL_UI_GIT_DESCRIBE ADL_UI_BUILD_TARGET)
+        ADL_UI_GIT_BRANCH ADL_UI_GIT_DESCRIBE ADL_UI_GIT_COMMIT_TIME ADL_UI_BUILD_TARGET)
     string(REPLACE "\\" "\\\\" ${adl_ui_var} "${${adl_ui_var}}")
     string(REPLACE "\"" "\\\"" ${adl_ui_var} "${${adl_ui_var}}")
 endforeach()
@@ -85,6 +92,11 @@ file(MAKE_DIRECTORY "${ADL_UI_GENERATED_INCLUDE_DIR}/adl/ui")
 configure_file("${CMAKE_SOURCE_DIR}/libs/ui/version.hpp.in"
                "${ADL_UI_GENERATED_INCLUDE_DIR}/adl/ui/build_info.hpp"
                @ONLY)
+
+# The shared C++ whose strings are in the shared catalogue (adl_ui), not in an application's.
+set(ADL_UI_CPP_TRANSLATED_FILES
+    "${CMAKE_SOURCE_DIR}/libs/ui/include/adl/ui/licence_model.hpp"
+    "${CMAKE_SOURCE_DIR}/libs/ui/licence_model.cpp")
 
 set(ADL_UI_QML_FILES
     "${ADL_UI_QML_DIR}/Theme.qml"
@@ -102,10 +114,13 @@ set(ADL_UI_QML_FILES
     "${ADL_UI_QML_DIR}/BusyMark.qml"
     "${ADL_UI_QML_DIR}/Card.qml"
     "${ADL_UI_QML_DIR}/CheckTile.qml"
+    "${ADL_UI_QML_DIR}/EditionChip.qml"
     "${ADL_UI_QML_DIR}/EmptyState.qml"
     "${ADL_UI_QML_DIR}/FocusRing.qml"
     "${ADL_UI_QML_DIR}/LanguagePicker.qml"
     "${ADL_UI_QML_DIR}/KeyScroll.qml"
+    "${ADL_UI_QML_DIR}/LicenceBanner.qml"
+    "${ADL_UI_QML_DIR}/LicenceDialog.qml"
     "${ADL_UI_QML_DIR}/LicencesDialog.qml"
     "${ADL_UI_QML_DIR}/LogView.qml"
     "${ADL_UI_QML_DIR}/RailBlock.qml"
@@ -114,6 +129,7 @@ set(ADL_UI_QML_FILES
     "${ADL_UI_QML_DIR}/SegmentedControl.qml"
     "${ADL_UI_QML_DIR}/StatTile.qml"
     "${ADL_UI_QML_DIR}/StatusChip.qml"
+    "${ADL_UI_QML_DIR}/SupportDialog.qml"
     "${ADL_UI_QML_DIR}/TaskProgress.qml"
     "${ADL_UI_QML_DIR}/ToneGlyph.qml"
     "${ADL_UI_QML_DIR}/ToneMessage.qml")
@@ -157,7 +173,7 @@ function(adl_generate_ui_notices)
     string(REGEX MATCH "^[0-9]+\\.[0-9]+" _adl_qt_series "${Qt6_VERSION}")
 
     # What differs by platform is the platform's own to say (libs/platform/<name>/platform.cmake).
-    set(_adl_fragments header qt ${ADL_PLATFORM_NOTICE_FRAGMENTS} fonts)
+    set(_adl_fragments header qt ${ADL_PLATFORM_NOTICE_FRAGMENTS} fonts monocypher)
     if(ADL_ENABLE_TRACY)
         list(APPEND _adl_fragments tracy)
     endif()
@@ -183,6 +199,7 @@ function(adl_generate_ui_notices)
             "LGPL3=${ADL_UI_NOTICES_DIR}/licences/LGPL-3.0.txt"
             "OFL=${ADL_UI_FONT_DIR}/OFL.txt"
             "OFL_NOTO_HEBREW=${ADL_UI_FONT_DIR}/NotoSansHebrew-OFL.txt"
+            "MONOCYPHER=${ADL_UI_NOTICES_DIR}/licences/Monocypher.txt"
             "MESA_MIT=${ADL_UI_NOTICES_DIR}/licences/MIT-mesa.txt"
             "DXC_NCSA=${ADL_UI_NOTICES_DIR}/licences/NCSA-dxc.txt"
             "TRACY_BSD=${ADL_UI_NOTICES_DIR}/licences/BSD-3-Clause-Tracy.txt")
@@ -256,12 +273,16 @@ function(adl_generate_ui_translations)
     find_package(Qt6 6.12 REQUIRED COMPONENTS LinguistTools)
     adl_translation_files(ts_files "${ADL_UI_TRANSLATIONS_DIR}" adl_ui)
     set(plurals_ts_file "${ADL_UI_TRANSLATIONS_DIR}/adl_ui_en.ts")
-    set(ui_sources ${ADL_UI_QML_FILES})
+    # The QML of the shared interface, and the C++ that words the licence for every window.
+    set(ui_sources ${ADL_UI_QML_FILES} ${ADL_UI_CPP_TRANSLATED_FILES})
 
+    # The include directory lets lupdate find the header of the licence model, so that its strings are in
+    # the context of the class with its namespace (adl::ui::LicenceModel), which is what tr() looks for.
     qt_add_lupdate(
         SOURCES ${ui_sources}
         TS_FILES ${ts_files}
         PLURALS_TS_FILE "${plurals_ts_file}"
+        INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/libs/ui/include"
         OPTIONS -no-obsolete
         LUPDATE_TARGET adl_ui_lupdate)
     qt_add_lrelease(
@@ -288,7 +309,7 @@ function(adl_add_app_translations qml_target base)
     # The shared QML is a source of the module (it is compiled into it) but its strings belong to
     # the shared catalogue.
     set_property(TARGET ${qml_target} PROPERTY QT_EXCLUDE_SOURCES_FROM_TRANSLATION
-        ${ADL_UI_QML_FILES})
+        ${ADL_UI_QML_FILES} ${ADL_UI_CPP_TRANSLATED_FILES})
 
     # -no-obsolete: an entry whose source string is gone is not kept as translation memory (git
     # history is that); a catalogue lists what the window says.
@@ -343,6 +364,8 @@ function(adl_add_ui_support target)
         "${CMAKE_SOURCE_DIR}/libs/ui/language_codes.cpp"
         "${CMAKE_SOURCE_DIR}/libs/ui/include/adl/ui/language_manager.hpp"
         "${CMAKE_SOURCE_DIR}/libs/ui/language_manager.cpp"
+        "${CMAKE_SOURCE_DIR}/libs/ui/include/adl/ui/licence_model.hpp"
+        "${CMAKE_SOURCE_DIR}/libs/ui/licence_model.cpp"
         "${CMAKE_SOURCE_DIR}/libs/ui/fonts.cpp"
         "${CMAKE_SOURCE_DIR}/libs/ui/window_state.cpp"
         "${CMAKE_SOURCE_DIR}/libs/ui/settings_location.cpp"
@@ -351,4 +374,10 @@ function(adl_add_ui_support target)
     target_include_directories(${target} PRIVATE
         "${CMAKE_SOURCE_DIR}/libs/ui/include"
         "${ADL_UI_GENERATED_INCLUDE_DIR}")
+    # The licence model reads licence files through the store and the platform's file system. The
+    # platform's headers have a name (`forever`) that Qt's keyword macros turn into a loop, so this one
+    # file is compiled without them, as the applications' cores are.
+    target_link_libraries(${target} PRIVATE adl::licence adl::licence_platform adl::platform)
+    set_property(SOURCE "${CMAKE_SOURCE_DIR}/libs/ui/licence_model.cpp"
+        TARGET_DIRECTORY ${target} APPEND PROPERTY COMPILE_DEFINITIONS QT_NO_KEYWORDS)
 endfunction()

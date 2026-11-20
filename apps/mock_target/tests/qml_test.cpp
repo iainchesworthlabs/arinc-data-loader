@@ -8,6 +8,7 @@
 #include "adl/mock/model.hpp"
 #include "adl/ui/fonts.hpp"
 #include "adl/ui/language_manager.hpp"
+#include "adl/ui/licence_model.hpp"
 #include "fake_link.hpp"
 
 #include <QEventLoop>
@@ -123,6 +124,9 @@ int main(int argc, char* argv[])
     QObject::connect(&language_manager, &adl::ui::LanguageManager::currentLanguageChanged, &model,
                      &adl::mock::MockTargetModel::retranslate);
     engine.rootContext()->setContextProperty(QStringLiteral("languageManager"), &language_manager);
+    // No licence is installed and no file is read: the window is the Community edition.
+    adl::ui::LicenceModel licence_model{adl::ui::LicenceEnvironment{}};
+    engine.rootContext()->setContextProperty(QStringLiteral("licence"), &licence_model);
     engine.loadFromModule("ArincMockTarget", "TargetWindow");
 
     if (engine.rootObjects().size() != 1)

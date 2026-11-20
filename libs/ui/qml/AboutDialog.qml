@@ -21,8 +21,13 @@ AppDialog {
                              : qsTr("%1 %2").arg(dialog.appName).arg(Qt.application.version)
     default property alias extra: extraSection.data
 
-    // Licences opens the third-party notices; the window shows them.
+    // The licence model every program makes (a context property); null in a harness that has none.
+    property var licenceModel: typeof licence === "undefined" ? null : licence
+
+    // Licences opens the third-party notices; the window shows them. Licence opens the dialog that says which
+    // edition this is.
     signal showLicences()
+    signal showLicence()
 
     title: dialog.heading
     heading: qsTr("About %1").arg(dialog.appName)
@@ -63,6 +68,29 @@ AppDialog {
             font.pixelSize: Theme.fontSmall
             font.family: Theme.monoFamily
             wrapMode: Text.WordWrap
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            visible: dialog.licenceModel !== null
+            spacing: Theme.space3
+
+            Text {
+                objectName: "aboutEdition"
+                Layout.fillWidth: true
+                text: dialog.licenceModel !== null ? qsTr("Edition: %1.").arg(dialog.licenceModel.editionText) : ""
+                color: Theme.text
+                font.pixelSize: Theme.fontSmall
+                font.family: Theme.monoFamily
+                wrapMode: Text.WordWrap
+            }
+
+            AppButton {
+                objectName: "aboutLicence"
+                text: qsTr("Licence...")
+                onClicked: dialog.showLicence()
+                Accessible.description: qsTr("Open the licence window")
+            }
         }
 
         SectionHeader {

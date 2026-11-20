@@ -9,6 +9,9 @@ implementation of the standard.
 
 ![The mock target, stopped](../images/mock-stopped.png)
 
+At the right of its status bar is the **edition chip**, which says which edition this is and opens the
+[Licence window](licence.md); a licence notice can show under the header. Neither changes what the mock target does.
+
 The window has the settings on the left, numbered, and on the right what the target is doing:
 the current operation, its activity log and the files it has stored. The header chip says
 **STOPPED** or **SERVING**, and **Start** and **Stop** are the two buttons next to it. Every

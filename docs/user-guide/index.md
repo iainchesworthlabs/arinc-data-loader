@@ -35,6 +35,7 @@ This guide is for the person who prepares loads and puts them into equipment: an
 | Change a setting, or see what a setting does | [Preferences and the other dialogs](preferences.md), [Configuration reference](configuration.md) |
 | Use another language, or the dark colours | [Languages and colour](languages-and-colour.md) |
 | Work without the mouse | [Keyboard](keyboard.md) |
+| See which edition I have, import a licence file, or find what the licence includes | [Your licence and edition](licence.md) |
 | Run the command-line program, or know an exit code | [Command line and exit codes](command-line.md) |
 | Fix something that does not work | [Troubleshooting](troubleshooting.md) |
 | Look up a number, a port, a file name | [Quick reference](quick-reference.md) |

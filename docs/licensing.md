@@ -21,9 +21,8 @@ licence.
    licence beside this project's GPL-3.0-or-later, and carries its notice.
    One library is copied into the repository: Monocypher 4.0.2 (`third_party/monocypher`), unmodified,
    under the BSD 2-Clause licence or CC0 1.0 at your choice (`REUSE.toml` and `LICENSES/` name both). It does
-   the Ed25519 signature check of a licence file in `libs/licence`. No program links that library yet. When
-   one does, Monocypher joins the notices it shows, with the notice that is already written
-   (`notices/fragments/monocypher.txt`). The vendored directory is outside the rule that holds the
+   the Ed25519 signature check of a licence file in `libs/licence`, which the three applications link, so
+   Monocypher is in the notices they show (`notices/fragments/monocypher.txt`). The vendored directory is outside the rule that holds the
    preprocessor count at zero (`tools/preprocessor-exclude.txt`), because the code is C and uses it.
    What the applications ship from others is Qt (item 3), the Archivo and
    Noto Sans Hebrew typefaces (item 6) and, on Windows, the runtime files Qt's
