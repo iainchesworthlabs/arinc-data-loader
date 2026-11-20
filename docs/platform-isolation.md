@@ -21,7 +21,7 @@ This is a rule for every contributor, and it is enforced by a check (see
 ```text
 libs/platform/
   interfaces/adl/platform/   what the program needs from a platform: one header each
-    paths.hpp, host.hpp, files.hpp, memory.hpp, threads.hpp, time.hpp,
+    paths.hpp, arguments.hpp, host.hpp, files.hpp, memory.hpp, threads.hpp, time.hpp,
     network.hpp, ipc.hpp, error.hpp, owned.hpp, ring_ipc.hpp
   windows/ linux/ macos/     the platform's own files and its platform.cmake (Linux and macOS
                              take the rest of their implementations from posix/)
@@ -32,6 +32,7 @@ libs/platform/
   posix/                     the implementations the POSIX systems share
   ghs/                       the INTEGRITY-178B native helpers, and the standard-header shims (ghs/std/)
   detail/                    portable helpers every platform links
+  fuzz/                      the libFuzzer harness for detail/command_line.hpp (docs/fuzzing.md)
   CMakeLists.txt             builds adl_platform from what the fragment names
 tests/platform/              the fragment and selector checks, and test cases only one platform can run;
                              the programs that test freertos/ and zephyr/ (zephyr/, zephyr_smoke/, freertos/, rtos_support/)
@@ -139,6 +140,8 @@ The cases already in the tree:
 | --- | --- |
 | `<windows.h>` without the `min`/`max` macros, and with the wide-character API | `WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE` (and `_WIN32_WINNT`) are in the Windows `platform.cmake` and passed to `adl_platform`; no source file defines them |
 | The path of the running executable | `interfaces/adl/platform/paths.hpp`; `windows/paths_windows.cpp`, `linux/paths_linux.cpp`, `macos/paths_macos.cpp` |
+| The computer's name, the folder for a user's data, the folder for an administrator's files | The same `paths.hpp` and `paths_<name>.cpp` files. Windows asks for its known folders. Linux and macOS share `posix/locations_posix.cpp` (the host name and the home directory) and apply the rules in `detail/data_locations.hpp`, which read no environment and are tested on every host |
+| The arguments of a command-line program as UTF-8 (on Windows `main` is given them in the system's code page, which has lost a character it has no letter for), and a path made from UTF-8 text | `interfaces/adl/platform/arguments.hpp` (`arguments`, `path_from_utf8`). Windows reads the wide command line in `windows/arguments_windows.cpp`; every other platform names `detail/arguments_passthrough.cpp`, which returns `argv` as it is. The split of a command line and the conversions between UTF-8 and UTF-16 are in `detail/command_line.hpp`, which reads no system state and is tested on every host. A program's `main` takes its arguments from `arguments` ([architecture](architecture.md#command-line-programs)) |
 | Sockets, files, threads, a clock, memory, queues | The interfaces in `interfaces/adl/platform/`, one implementation per platform ([platform abstraction](platform-abstraction.md)) |
 | `MSG_NOSIGNAL` on one system, a different condition-variable wait on another | A function in `posix/posix_os.hpp`, defined once per system in `linux/os_linux.cpp` or `macos/os_macos.cpp` |
 | An RTOS target that CMake has no name for | `-DADL_TARGET_PLATFORM=<name>`, read only by `cmake/Platform.cmake` |
@@ -171,6 +174,9 @@ The cases already in the tree:
 - Include an OS header (`<windows.h>`, `<unistd.h>`, `<sys/...>`, the Apple
   frameworks, `<mach-o/dyld.h>`, `<emscripten.h>`) outside `libs/platform/` and
   `tests/platform/`.
+- Read `argv` in the `main` of a command-line program, or construct a `std::filesystem::path` from the
+  `std::string` of an argument. Take the arguments from `adl::platform::arguments` and make the path with
+  `adl::platform::path_from_utf8` ([architecture](architecture.md#command-line-programs) says why).
 - Ask the OS what it is at run time (`QSysInfo`, `QOperatingSystemVersion`,
   `Q_OS_*`, `platformName()`, QML's `Qt.platform`) outside the platform section.
 - Test `WIN32`, `APPLE`, `UNIX`, `LINUX`, `ANDROID`, `IOS`, `EMSCRIPTEN`,
@@ -194,9 +200,10 @@ fails, with a `file:line` for each finding, on:
    outside the exemption and pass the check as any shared code does.);
 3. a platform directory without a `platform.cmake`, or a translation unit
    (`.cpp`, `.cc`, `.cxx` or `.mm`) in one that no `platform.cmake` names
-   outside a comment. (`detail/`, `interfaces/`, `posix/` and `ghs/` are not
+   outside a comment. (`detail/`, `interfaces/`, `posix/`, `ghs/` and `fuzz/` are not
    platforms, and are not required to have one; the translation units in `posix/`
-   and `ghs/` must still be named by some fragment);
+   and `ghs/` must still be named by some fragment; those in `detail/`,
+   `interfaces/` and `fuzz/` are not looked for in the fragments);
 4. a test of the operating system (`WIN32`, `APPLE`, `UNIX`, `LINUX`,
    `ANDROID`, `IOS`, `MINGW`, `CYGWIN`, `EMSCRIPTEN`, `CMAKE_SYSTEM_NAME`,
    `$<PLATFORM_ID:...>`) in any CMake file but `cmake/Platform.cmake`, the
@@ -224,6 +231,13 @@ What it does not do: it is a pattern scan, not a parser. It cannot tell that a
 portable-looking call behaves differently on two systems, and compiler tests in
 CMake (`if(MSVC)`, `CXX_COMPILER_ID`) are a different axis and are not matched.
 The rule is held by review as much as by the check.
+
+It looks at the files of this repository, and so does the count of preprocessor
+conditionals and definitions in `tools/preprocessor-baseline.json`. A platform that
+a build takes from a directory outside the repository (`ADL_PLATFORM_DIR`) is in
+neither, and is not bound by the rules above; [what is and is not checked for
+it](platform-abstraction.md#what-is-checked-and-what-is-not) is written down with the
+platform layer.
 
 The CMake side has its own check, the `platform.fragments` test
 (`tests/platform/check_fragments.cmake`). A build includes only the

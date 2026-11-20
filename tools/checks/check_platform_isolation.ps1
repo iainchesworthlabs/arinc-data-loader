@@ -306,8 +306,9 @@ foreach ($dir in $platformDirs) {
 foreach ($dir in $platformDirs) {
     # detail/ is the shared helpers every platform links (apps/app/CMakeLists.txt
     # lists them itself); posix/ and ghs/ are the shared implementations the
-    # fragments name, and are not platforms of their own.
-    if ($dir.Name -in @('detail', 'interfaces', 'posix', 'ghs')) { continue }
+    # fragments name, and are not platforms of their own; fuzz/ is the libFuzzer
+    # harness of detail/ (docs/fuzzing.md), built only when fuzzing is on.
+    if ($dir.Name -in @('detail', 'interfaces', 'posix', 'ghs', 'fuzz')) { continue }
     $fragment = Join-Path $dir.FullName 'platform.cmake'
     if (-not (Test-Path -LiteralPath $fragment)) {
         Add-Violation 'unwired' (Get-RelativePath $dir.FullName) 1 "$($dir.Name)/ has no platform.cmake" `
@@ -315,7 +316,7 @@ foreach ($dir in $platformDirs) {
     }
 }
 foreach ($dir in $platformDirs) {
-    if ($dir.Name -in @('detail', 'interfaces')) { continue }
+    if ($dir.Name -in @('detail', 'interfaces', 'fuzz')) { continue }
     $units = Get-ChildItem -LiteralPath $dir.FullName -Recurse -File |
         Where-Object { $_.Extension.ToLowerInvariant() -in @('.cpp', '.cc', '.cxx', '.mm') }
     foreach ($unit in $units) {

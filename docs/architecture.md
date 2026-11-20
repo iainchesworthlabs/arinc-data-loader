@@ -28,7 +28,7 @@
    an operation), over the libraries above; the application calls it
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
-   target and the mock target application
+   target and the mock target's engine (libs/mock_target_core)
 ```
 
 - **`libs/arinc665`** is the ARINC 665 library: loads, batches and media sets
@@ -82,12 +82,27 @@
   unclear, and [ARINC 615A coverage](arinc615a-coverage.md) the standard section by section.
 - **`libs/arinc615a_mini`** is a second, independent TFTP implementation (lock-step blocks, the time-out and
   retry, the options the loader uses, WAIT and ABORT), deliberately plain and written on the codec, so that the engine is checked against another reading of the standard and not against itself. It uses the codec and the figures in `limits.hpp` (the time-outs, the retry count and the default block size), so those are not independently checked. It is the TFTP of the simulated target of `tests/engine` and of the mock target application.
+- **`libs/mock_target_core`** is the mock target's logic without a window and without Qt: the engine that
+  behaves as an ARINC 615A target (`MockEngine`, event-driven and single-threaded, speaking through the
+  `TargetLink` seam) and the link that runs it over the platform's UDP sockets. It is not installed and
+  not in the `adl` package. The mock target application runs it on a worker thread, and the tests run it
+  against the loader's engine on the fake platform and over loopback sockets.
 - **`libs/arinc615a_runner`** is the thin layer that is the only 615A code that calls the platform: it
   opens the sockets the engine asks for, waits on all of them from one thread with
   `Network::wait_readable`, reads the platform's monotonic clock, and carries out what the engine answers.
   It also has a `FileSource` and a `FileSink` over a directory of the platform's files. That is what
   makes the engine portable to an RTOS (a port replaces the runner) and testable without a network (the
   tests replace the platform with the fake and the target with a simulated one).
+- **`libs/licence`** reads and judges a licence file: the signed envelope (Ed25519, by Monocypher in
+  `third_party/monocypher`), the payload, the state a licence is in (none, valid, expiring, grace, expired,
+  not yet valid, clock suspect or invalid), what it grants, the clock check and the revocation list. It is
+  GUI-free and platform-free: it reads no file and no clock and does not ask the computer's name, so the
+  caller passes them in and every state is tested. It is on a desktop only and is not part of the installed
+  `adl` package. No program links it yet, and nothing a program does depends on a licence. Signing is a
+  separate target (`adl_licence_sign`) for the owner's tool and the tests, and so is the published test key
+  (`adl_licence_test_keys`); no program links either. The library takes no product name except in
+  `product.hpp`, `trusted_keys.cpp` and `revocations_release.cpp`, so that it can move into a repository
+  that more than one product shares.
 - **`apps/app`**, **`apps/media_gen`** and **`apps/mock_target`** are the Qt 6.12 applications, thin layers
   over the libraries: a window to choose a media set, run FIND, pick a target and run the Information,
   Upload and Download operations; a generator for the media set those operations load; and a mock
@@ -126,9 +141,11 @@ route to remove it.
 | `libs/arinc615a` | `adl_arinc615a` | `adl::arinc615a` | `adl::arinc615a` | `adl/arinc615a/*.hpp` |
 | `libs/arinc615a_runner` | `adl_arinc615a_runner` | `adl::arinc615a_runner` | `adl::arinc615a` | `adl/arinc615a/runner.hpp`, `directory_files.hpp` |
 | `libs/arinc615a_mini` | `adl_arinc615a_mini` | `adl::arinc615a_mini` | `adl::arinc615a_mini` | `adl/arinc615a_mini/*.hpp` |
+| `libs/licence` | `adl_licence` (with `adl_licence_sign` and `adl_licence_test_keys`) | `adl::licence` (and `adl::licence_sign`, `adl::licence_test_keys`) | `adl::licence` | `adl/licence/*.hpp` |
 | `apps/app/core` | `adl_app_core` | `adl::app_core` | `adl::app` | `adl/app/*.hpp` |
 | `apps/media_gen/core` | `adl_gen_core` | `adl::gen_core` | `adl::gen` | `adl/gen/*.hpp` |
-| `apps/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/*.hpp` |
+| `libs/mock_target_core` | `adl_mock_target_core` | `adl::mock_target_core` | `adl::mock` | `adl/mock/*.hpp` |
+| `apps/mock_target/core` | `adl_mock_core` | `adl::mock_core` | `adl::mock` | `adl/mock/model.hpp` |
 | `libs/platform` | `adl_platform` | `adl::platform` | `adl::platform` | `adl/platform/*.hpp` |
 | `libs/ui` | `adl_ui_message` | `adl::ui_message` | `adl::ui` | `adl/ui/message.hpp` |
 
@@ -159,6 +176,26 @@ The classes QML reads (`apps/*/core` and `libs/ui`) name their properties, signa
 in `camelCase`, which is QML's convention, and the roles of a list model take Qt's `PascalCase` (`SourcePathRole`);
 the `.clang-tidy` file in each of those directories allows both cases for a method. A new class follows the case of
 its neighbours.
+
+## Command-line programs
+
+A program that is started from a command line (`adl_write_payloads`, and any other that does not open a window) is
+written this way:
+
+- **Its `main` takes its arguments from `adl::platform::arguments` and never reads `argv` itself.**
+  `adl/platform/arguments.hpp` has it: `const std::vector<std::string> arguments = adl::platform::arguments(argc, argv);`
+  is the first line. On Windows `argv` is the command line narrowed to the system's code page, in which a folder or
+  file named with a character outside the page (Japanese on a Western system) has already been lost, and nothing
+  tells the program. `arguments` reads the command line of the process instead and returns each argument as UTF-8, on
+  every system, with the program name first, as `argv` has it.
+- **A path comes from an argument with `adl::platform::path_from_utf8`**, never from `std::filesystem::path{argument}`:
+  on Windows that reads the bytes in the code page, and makes another name without an error.
+- **Text for the person comes from a path with `to_utf8(path.u8string())`** (`paths.hpp`), never `path.string()` or
+  `path.generic_string()`: on Windows those are the code page again, and throw for a character outside it.
+- The three Qt programs take their arguments through Qt, which reads the command line itself, and are not
+  concerned.
+
+[Platform abstraction](platform-abstraction.md#the-programs-arguments-argumentshpp) has how each platform does it.
 
 ## Choices the libraries make
 

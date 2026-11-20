@@ -111,9 +111,11 @@ The workflow stops, and says why, when:
 4. **Approve.** After the build the run waits at *Sign and publish* for your approval (the `release`
    environment). The job signs, checks the signatures against `docs/signing-key.asc`, runs
    `tools/release/verify_release.sh` over the signed files and drafts the release with the notes from
-   `CHANGELOG.md`. For a final release it then moves `main` to the tag, which publishes the
-   documentation site ([Documentation site](ci.md#documentation-site)): the site is the documentation of
-   the latest release, so build it (`mkdocs serve`) and read the pages that changed before you approve.
+   `CHANGELOG.md`. For a final release it then moves `main` to the tag, which publishes the pages that
+   forward the old documentation addresses ([Documentation site](ci.md#documentation-site)), and moves the
+   branch `site` to the tag, which publishes the documentation site ([below](#publish-the-documentation)).
+   The site is the documentation of the release, so build it (`mkdocs serve`) and read the pages that
+   changed before you approve.
 5. **Publish the draft** on the Releases page after reading it.
 
 A hotfix is the same, with its own fragment, tagged from `develop`.
@@ -121,6 +123,22 @@ A hotfix is the same, with its own fragment, tagged from `develop`.
 Abandoning a release after the tag was pushed and before it was published: delete the draft, delete the
 tag locally and on GitHub, fix, and tag again. Once a release is published, it is not changed: a new
 patch version is.
+
+### Publish the documentation
+
+The documentation site, at {{ site_url }}, is published from the branch `site`. A final release moves `site` to the tag (the job
+`Publish the documentation` of `release.yml`, after `main` moves), so the site follows each release, and a pre-release leaves it alone.
+A change to the pages can also go up on its own, between releases. To publish what `develop` holds:
+
+```sh
+gh workflow run publish-site.yml --ref develop
+```
+
+The workflow moves `site` to the tip of `develop`, and the push starts `docs.yml`, which builds and deploys it. It can be run from the
+Actions page too (*Publish site*, *Run workflow*, branch `develop`). No other CI runs for it, and a pull request that changes only pages
+ran no build to get to `develop` ([CI](ci.md#the-planner-and-documentation-only-changes)). Build the site first (`mkdocs serve`) and read
+the pages that changed. If `site` is already ahead of a release tag when the release is made, the release leaves it where it is.
+([Publishing](ci.md#publishing) has the details and the one-off setup.)
 
 ## Setup
 
@@ -131,11 +149,13 @@ belong to this repository:
 | What | Where | Setting |
 | --- | --- | --- |
 | Pages | Settings, Pages | Source: *GitHub Actions* |
-| Variable `PUBLISH_DOCS` | Settings, Secrets and variables, Actions, Variables | `true`. Until it is set, `docs.yml` builds the site on `main` but does not publish it |
+| Variable `PUBLISH_DOCS` | Settings, Secrets and variables, Actions, Variables | `true`. Until it is set, `docs.yml` builds the site on `main` but does not publish the pages that forward the old addresses |
+| Secrets `DOCS_ROLE_ARN`, `DOCS_PREVIEW_ROLE_ARN`, `DOCS_BUCKET`, `DOCS_DISTRIBUTION_ID` | Settings, Secrets and variables, Actions, Secrets | The values the company site's deploy gives for this repository ([CI](ci.md#publishing)). Until they are set, `docs.yml` skips the deploy and the previews with a warning |
 
 The secrets are the organisation's `REPO_GPG_PRIVATE_KEY` and `REPO_GPG_PASSPHRASE` (the signing key) and
-`RELEASE_BOT_APP_ID` and `RELEASE_BOT_PRIVATE_KEY` (the bot that moves `main`). Only the shared publish
-job reads them, in the `release` environment.
+`RELEASE_BOT_APP_ID` and `RELEASE_BOT_PRIVATE_KEY` (the bot that moves `main` and `site`). The shared
+publish job reads them, in the `release` environment. `publish-site.yml` reads the bot's two, with no
+environment, to move `site`, and only on `develop`.
 
 ### The signing key
 
@@ -169,7 +189,7 @@ workflow signs the four programs in place before CPack packs them:
 - **The SBOM** lists what the build reported, never a guess: the first-party programs and libraries,
   Qt (by reference to the kit's own SPDX documents), the typefaces, the runtime files Qt's deployment
   tool placed in a package, the vcpkg packages used for the tests (Catch2: in no package), and the
-  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with hash-locked validators, and the SPDX document is checked to list every typeface in `libs/ui/fonts` (`tools/release/check_sbom_fonts.py`).
+  compiler, CMake and Ninja of each leg. Both documents are checked against their schemas with hash-locked validators, and the SPDX document is checked to list every typeface in `libs/ui/fonts` (`tools/release/check_sbom_fonts.py`). The list of libraries in `tools/release/make_sbom.py` is checked against the libraries the development package installs by a test, `release.sbom_libraries` (`tools/release/check_sbom_libraries.py`).
 - **The attestations and the signature are independent.** A compromised runner could produce a package
   and an honest-looking attestation of it; a compromised key could sign anything. Together they say the
   maintainer's key signed what the maintainer's workflow built.

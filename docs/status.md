@@ -4,7 +4,7 @@ This page is for engineers, technicians and programmers who need to know in one 
 
 ## In short
 
-- **Nothing has been checked against real equipment, against another vendor's loader or target, or against another tool's media sets** ([the user's guide](user-guide/index.md#about-this-release), [the README](../README.md#status)).
+- **Nothing has been checked against real equipment, against another vendor's loader or target, or against another tool's media sets** ([the user's guide](user-guide/limits.md), [the README](../README.md#status)).
 - The tests are the project's own. Both ends of a test, the library and the simulated or mock target, are built from the same reading of the standards. The tests show that the code does what that reading says. They cannot show that the reading is right.
 - The automated tests run on Windows, Linux and macOS in continuous integration. The programs have been used by hand on Windows only.
 - FreeRTOS and Zephyr have run on simulators only. No board has run them.

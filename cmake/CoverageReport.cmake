@@ -9,9 +9,10 @@
 #   1. The portable code in libs/ and apps/write_payloads: at least 90% of lines and 80% of branches.
 #   2. The applications' window-free logic (apps/app/core, apps/mock_target/core and
 #      apps/media_gen/core: the models, the engine's worker, the settings, the generator's and the
-#      mock target's cores), at a lower floor set a little under what the suite measures. It needs
-#      the Qt kit, so the coverage build has to be configured with the applications on; a build
-#      without them measures too little, and the pass fails instead of passing on nothing.
+#      mock target's cores) and the engine the mock target's window is a layer over
+#      (libs/mock_target_core), at a lower floor set a little under what the suite measures. It
+#      needs the Qt kit, so the coverage build has to be configured with the applications on; a
+#      build without them measures too little, and the pass fails instead of passing on nothing.
 #
 #   cmake -DREPO_ROOT=<source root> -DBUILD_DIR=<coverage build dir>
 #         [-DLINE_THRESHOLD=90] [-DBRANCH_THRESHOLD=80]
@@ -85,14 +86,15 @@ if(GCOV)
 endif()
 
 # ---- Pass 1: the portable code ------------------------------------------------------------------
-# The two format libraries, the engine and its runner, the media tree, the loader core, the samples, the payload
-# writer, and the platform interfaces. The OS fragments under libs/platform are not measured (each
+# The two format libraries, the engine and its runner, the media tree, the loader core, the samples, the
+# licence library, the payload writer, and the platform interfaces. Monocypher (third_party) is not ours
+# and is not measured. The OS fragments under libs/platform are not measured (each
 # host builds a different set, and the conformance suite is what holds them to the contract), and
 # neither are the Qt windows: QML cannot be measured, which is why this gate is the libraries' and
 # not a blended figure.
 execute_process(
     COMMAND "${GCOVR}" ${_common}
-        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|media_tree|loader_core|samples|platform/(interfaces|detail))|apps/write_payloads)/.*"
+        --filter "${REPO_ROOT}/(libs/(arinc665|arinc615a|arinc615a_mini|arinc615a_runner|licence|media_tree|loader_core|samples|platform/(interfaces|detail))|apps/write_payloads)/.*"
         --fail-under-line "${LINE_THRESHOLD}"
         --fail-under-branch "${BRANCH_THRESHOLD}"
         --html-details "${_output}/index.html"
@@ -124,16 +126,17 @@ message(STATUS "Coverage meets the minimum: ${LINE_THRESHOLD}% lines and "
                "${BRANCH_THRESHOLD}% branches. Report: ${_output}/index.html")
 
 # ---- Pass 2: the applications' window-free logic -----------------------------------------------
-# The cores of the three applications hold the logic the windows are thin layers over. These
-# directories are plain C++ (with Qt types), and the application tests, the UI suite and the
-# generator and mock target tests drive them. Qt's generated files (moc_*.cpp, *_autogen) are not
-# source and are left out. The floor is a little under what the suite measures today; raise it when
-# the measure rises.
+# The cores of the three applications hold the logic the windows are thin layers over, and the
+# mock target's engine (libs/mock_target_core, no Qt in it) is what its window runs. These
+# directories are plain C++ (with Qt types, but for the engine), and the application tests, the UI
+# suite and the generator and mock target tests drive them. Qt's generated files (moc_*.cpp,
+# *_autogen) are not source and are left out. The floor is a little under what the suite measures
+# today; raise it when the measure rises.
 set(_app_output "${_output}/apps")
 file(MAKE_DIRECTORY "${_app_output}")
 execute_process(
     COMMAND "${GCOVR}" ${_common}
-        --filter "${REPO_ROOT}/apps/(app|mock_target|media_gen)/core/.*"
+        --filter "${REPO_ROOT}/(apps/(app|mock_target|media_gen)/core|libs/mock_target_core)/.*"
         --exclude ".*/moc_[^/]*"
         --exclude ".*/mocs_compilation[^/]*"
         --exclude ".*_autogen/.*"

@@ -11,12 +11,14 @@ if(ADL_ENABLE_CLANG_TIDY)
 endif()
 
 add_executable(adl_unit_tests
+    unit/arguments_test.cpp
     unit/arinc615a_golden_test.cpp
     unit/arinc615a_robustness_test.cpp
     unit/batch_file_test.cpp
     unit/check_value_type_test.cpp
     unit/compatibility_test.cpp
     unit/crc_test.cpp
+    unit/data_locations_test.cpp
     unit/digest_test.cpp
     unit/find_test.cpp
     unit/golden_test.cpp
@@ -39,9 +41,12 @@ add_executable(adl_unit_tests
     unit/tftp_test.cpp
     unit/translations_test.cpp)
 
+# libs/platform is here for the platform's own header-only rules (detail/data_locations.hpp), which
+# hold no operating system and are tested on every host.
 target_include_directories(adl_unit_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/support"
-    "${CMAKE_CURRENT_SOURCE_DIR}/golden")
+    "${CMAKE_CURRENT_SOURCE_DIR}/golden"
+    "${PROJECT_SOURCE_DIR}/libs/platform")
 
 # The Qt Linguist catalogues the translation rules read as files (they need no Qt).
 target_compile_definitions(adl_unit_tests PRIVATE
@@ -77,6 +82,11 @@ target_link_libraries(adl_unit_tests PRIVATE adl_unit_test_flags)
 adl_deploy_sanitizer_runtime(adl_unit_tests)
 
 catch_discover_tests(adl_unit_tests PROPERTIES LABELS "unit")
+
+# The licence library (a desktop build only; libs/licence): its own program of tests, in tests/licence.
+if(TARGET adl::licence_test_keys)
+    add_subdirectory(licence)
+endif()
 
 # The fake platform: a clock, network, file system, memory and threads that run in
 # memory and on a clock that only moves when told to (tests/fake). The engine is
@@ -234,6 +244,24 @@ add_test(NAME platform.selector
         -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_selector.cmake")
 set_tests_properties(platform.selector PROPERTIES LABELS "system")
 
+# A platform kept outside the repository (ADL_PLATFORM_DIR): the fragment and sources of this
+# build's own platform are copied out of the source tree and the project is configured and
+# built from the copy, under another name; and the mistakes that can be made with the option
+# are refused by name. A build that is itself from such a directory has no repository directory
+# to copy.
+if(NOT ADL_PLATFORM_EXTERNAL)
+    add_test(NAME platform.external
+        COMMAND "${CMAKE_COMMAND}"
+            "-DREPO_ROOT=${PROJECT_SOURCE_DIR}"
+            "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/external"
+            "-DGENERATOR=${CMAKE_GENERATOR}"
+            "-DCOMPILER=${CMAKE_CXX_COMPILER}"
+            "-DHOST_PLATFORM=${ADL_PLATFORM}"
+            "-DHOST_DIR=${ADL_PLATFORM_DIR}"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/platform/check_external.cmake")
+    set_tests_properties(platform.external PROPERTIES LABELS "system")
+endif()
+
 # No preprocessor conditionals or defines, no OS headers outside the platform
 # section, no OS tests in CMake outside the selector. CI runs it as its own job
 # too; this is the same check, so a developer sees it fail locally.
@@ -264,6 +292,17 @@ if(ADL_PWSH)
     set_tests_properties(docs.paths PROPERTIES LABELS "system")
 endif()
 
+# The bill of materials names the libraries by hand (tools/release/make_sbom.py), and the development
+# package ships the ones that call adl_install_library. A library on one side only fails here, not on the
+# day of a release.
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME release.sbom_libraries
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/release/check_sbom_libraries.py"
+            "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(release.sbom_libraries PROPERTIES LABELS "system")
+endif()
+
 # The script that compares the benchmarks with the budget (tools/ci/perf_compare.py) is held to what it
 # promises: a result over the limit, a missing or surplus entry and a few nanoseconds of noise.
 find_package(Python3 COMPONENTS Interpreter QUIET)
@@ -271,6 +310,43 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME ci.perf_compare
         COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_perf_compare.py")
     set_tests_properties(ci.perf_compare PROPERTIES LABELS "system")
+
+    # The checks of the documentation site (tools/ci/check_site_kit.py, check_site_address.py and
+    # check_site_layout.py), the old-address pages and the layout hook are held to what they promise: each
+    # passes a good tree and fails, with a reason, on a bad one. No MkDocs and no network; the palette
+    # tests need Node and are skipped without it.
+    add_test(NAME ci.site_checks
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_site_checks.py")
+    set_tests_properties(ci.site_checks PROPERTIES LABELS "system")
+
+    # Every message of the programs' code that says something to the person using them, and every exit code, is
+    # described in the user's guide (tools/ci/check_messages.py, docs/ci.md), and the check itself is held to what it
+    # promises. No network, no MkDocs.
+    add_test(NAME docs.messages
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/check_messages.py"
+            --root "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(docs.messages PROPERTIES LABELS "system")
+    add_test(NAME ci.check_messages
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_check_messages.py")
+    set_tests_properties(ci.check_messages PROPERTIES LABELS "system")
+
+    # No page says the tool is certified, qualified, compliant, approved or guaranteed without an exception the owner
+    # approved (tools/ci/check_claims.py, tools/docs/claims_exceptions.json, docs/ci.md), and the links from the
+    # standards' coverage tables to the tests resolve (tools/ci/check_traceability.py). Each check has its own test.
+    add_test(NAME docs.claims
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/check_claims.py"
+            --root "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(docs.claims PROPERTIES LABELS "system")
+    add_test(NAME ci.check_claims
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_check_claims.py")
+    set_tests_properties(ci.check_claims PROPERTIES LABELS "system")
+    add_test(NAME docs.traceability
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/check_traceability.py"
+            --root "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(docs.traceability PROPERTIES LABELS "system")
+    add_test(NAME ci.check_traceability
+        COMMAND "${Python3_EXECUTABLE}" -I "${PROJECT_SOURCE_DIR}/tools/ci/test_check_traceability.py")
+    set_tests_properties(ci.check_traceability PROPERTIES LABELS "system")
 endif()
 
 # The program that writes the sample media sets: it runs on a directory of its
@@ -301,16 +377,31 @@ set_tests_properties(tools.write_payloads.no_output_directory PROPERTIES
 add_test(NAME tools.write_payloads.list COMMAND adl_write_payloads --list)
 set_tests_properties(tools.write_payloads.list PROPERTIES LABELS "system")
 
+# The folder is named with an accented letter, Japanese and a character outside the Basic Multilingual Plane, which
+# no Windows code page holds all of, and the program starts as a process with that name as its argument
+# (tests/system/write_payloads_unicode.cmake says how it is made sure the name reached it whole).
+add_test(NAME tools.write_payloads.unicode_folder
+    COMMAND "${CMAKE_COMMAND}"
+        "-DPROGRAM=$<TARGET_FILE:adl_write_payloads>"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/payloads-unicode"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/system/write_payloads_unicode.cmake")
+set_tests_properties(tools.write_payloads.unicode_folder PROPERTIES LABELS "system")
+
+# The mock target's engine (libs/mock_target_core): the loader's real engine against it on the fake
+# platform, and the folders it reads and writes. No Qt.
+add_subdirectory(mock_target_core)
+
+# The loopback integration test: the loader's runner over real sockets against the mock target's
+# engine on 127.0.0.1. No Qt.
+add_subdirectory(loopback)
+
 # The application's tests (apps/app), when it is built: they need Qt.
 if(ADL_BUILD_APP)
     add_subdirectory("${PROJECT_SOURCE_DIR}/apps/app/tests" apps/app/tests)
-    # The mock target's tests (apps/mock_target).
+    # The mock target's tests (apps/mock_target): its model and its window.
     add_subdirectory("${PROJECT_SOURCE_DIR}/apps/mock_target/tests" apps/mock_target/tests)
     # The media set generator's tests (apps/media_gen).
     add_subdirectory("${PROJECT_SOURCE_DIR}/apps/media_gen/tests" apps/media_gen/tests)
-    # The loopback integration test: the loader's runner over real sockets against the mock
-    # target's engine on 127.0.0.1 (needs adl::mock_core, so it is behind ADL_BUILD_APP too).
-    add_subdirectory(loopback)
     # The window's UI suite, with Qt Quick Test (tests/ui).
     add_subdirectory(ui)
     # The system smoke tests: the built application programs started as processes (tests/system).

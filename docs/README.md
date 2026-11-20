@@ -14,7 +14,7 @@ for Windows, Linux and macOS:
 
 ## Status
 
-Version 0.1.1 is a preliminary release. The libraries and the three programs work end to end against each
+Version 0.1.2 is a preliminary release. The libraries and the three programs work end to end against each
 other on one machine. **Nothing has been checked against a real target, a real loader or another tool's media
 sets.** [What has been checked](status.md) says what has been and what has not.
 
@@ -45,7 +45,7 @@ materials: [the releases page](https://github.com/iainchesworthlabs/arinc-data-l
 | Make a media set from my files | [Make a media set](user-guide/make-a-media-set.md) |
 | Load or download from a target | [The loader, screen by screen](user-guide/loader.md), then [Find a target](user-guide/find-a-target.md), [Upload](user-guide/upload.md) and [Download](user-guide/download.md) |
 | Know what a word means | [Glossary](glossary.md) |
-| Find a quick answer | [Questions and answers](faq.md) |
+| Find a quick answer | [Questions and answers](user-guide/faq.md) |
 | See which files the programs read and write | [Files the programs read and write](file-reference.md) |
 | Use the libraries in my own program | [Using the libraries](libraries.md) |
 | Build, test or change the software | [Building](building.md), [Testing](testing.md) and [CONTRIBUTING](../CONTRIBUTING.md) |
@@ -53,9 +53,11 @@ materials: [the releases page](https://github.com/iainchesworthlabs/arinc-data-l
 
 ## All the pages
 
-Everything here is in the repository, next to the code it describes, and is published as a website at
-<https://iainchesworthlabs.github.io/arinc-data-loader/> from the first release on ([how](ci.md#documentation-site)).
-The project overview is the [README](../README.md); what changed is the [changelog](../CHANGELOG.md).
+Everything here is in the repository, next to the code it describes. The user's guide and the pages for programmers are also
+published as a website, which the [README](../README.md) names, from the first release on ([how](ci.md#documentation-site)); the
+pages for the people who work on the project are on GitHub only. This file is the index for reading `docs/` on GitHub: the
+website has its own home page. The project overview is the [README](../README.md); what changed is the
+[changelog](../CHANGELOG.md).
 
 ## For people who use the programs
 
