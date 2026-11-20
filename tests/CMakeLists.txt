@@ -191,11 +191,13 @@ catch_discover_tests(adl_engine_tests PROPERTIES LABELS "integration")
 if(TARGET adl::loader_scenario)
     add_executable(adl_loader_scenario_tests
         loader_scenario/fuzz_seeds_test.cpp
+        loader_scenario/mock_target_test.cpp
         loader_scenario/player_test.cpp
         loader_scenario/reader_test.cpp)
 
     target_include_directories(adl_loader_scenario_tests PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/engine"
+        "${CMAKE_CURRENT_SOURCE_DIR}/mock_target_core"
         "${CMAKE_CURRENT_SOURCE_DIR}/support"
         "${PROJECT_SOURCE_DIR}/libs/loader_scenario/fuzz")
     # Where the seeds of the harness are, which the tests replay.
@@ -207,6 +209,7 @@ if(TARGET adl::loader_scenario)
             adl_fake_platform
             adl_sim_target
             adl::loader_scenario
+            adl::mock_target_core
             adl::arinc615a
             adl::arinc615a_runner
             adl::arinc665
