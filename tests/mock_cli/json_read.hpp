@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -71,9 +72,16 @@ struct Json
         }
         return nullptr;
     }
+    // The value of `key` in an object. A test that asks for a key that is not there fails (Catch2 reports the
+    // exception), where a dereference of the null `find` gives would be undefined, and GCC says so at -O2.
     [[nodiscard]] const Json& at(std::string_view key) const
     {
-        return *find(key);
+        const Json* const found = find(key);
+        if (found == nullptr)
+        {
+            throw std::out_of_range("the JSON value has no member '" + std::string(key) + "'");
+        }
+        return *found;
     }
 };
 
