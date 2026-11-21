@@ -269,6 +269,13 @@ target_link_libraries(adl_load_command_tests
         adl::coverage
         Catch2::Catch2WithMain)
 
+# `--scenario` is carried out by a desktop library (apps/load/scenario), as the licence is read by one: its tests run
+# only there, and are given that library, which the others are not.
+if(ADL_PLATFORM_DESKTOP)
+    target_sources(adl_load_command_tests PRIVATE load/scenario_test.cpp)
+    target_link_libraries(adl_load_command_tests PRIVATE adl_load_scenario)
+endif()
+
 adl_deploy_sanitizer_runtime(adl_load_command_tests)
 
 catch_discover_tests(adl_load_command_tests PROPERTIES LABELS "integration")
@@ -335,6 +342,45 @@ target_link_libraries(adl_engine_tests
 adl_deploy_sanitizer_runtime(adl_engine_tests)
 
 catch_discover_tests(adl_engine_tests PROPERTIES LABELS "integration")
+
+# Faults on purpose in the loader's engine (libs/loader_scenario): the scenario player, the reader of its file,
+# and the engine run against the simulated target with the fault hook in place.
+if(TARGET adl::loader_scenario)
+    add_executable(adl_loader_scenario_tests
+        loader_scenario/fuzz_seeds_test.cpp
+        loader_scenario/mock_target_test.cpp
+        loader_scenario/player_test.cpp
+        loader_scenario/reader_test.cpp)
+
+    target_include_directories(adl_loader_scenario_tests PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/engine"
+        "${CMAKE_CURRENT_SOURCE_DIR}/mock_target_core"
+        "${CMAKE_CURRENT_SOURCE_DIR}/support"
+        "${PROJECT_SOURCE_DIR}/libs/loader_scenario/fuzz")
+    # Where the seeds of the harness are, which the tests replay.
+    target_compile_definitions(adl_loader_scenario_tests PRIVATE
+        ADL_SCENARIO_FUZZ_DIR="${PROJECT_SOURCE_DIR}/libs/loader_scenario/fuzz")
+
+    target_link_libraries(adl_loader_scenario_tests
+        PRIVATE
+            adl_fake_platform
+            adl_sim_target
+            adl::loader_scenario
+            adl::mock_target_core
+            adl::arinc615a
+            adl::arinc615a_runner
+            adl::arinc665
+            adl::platform
+            adl::samples
+            adl::warnings
+            adl::sanitizers
+            adl::coverage
+            Catch2::Catch2WithMain)
+
+    adl_deploy_sanitizer_runtime(adl_loader_scenario_tests)
+
+    catch_discover_tests(adl_loader_scenario_tests PROPERTIES LABELS "unit;integration")
+endif()
 
 # The platform layer: the portable types, the fake, and the conformance suite that runs
 # the same checks against the fake and against the real host this build selected.

@@ -29,9 +29,12 @@
    adl::set_maker (libs/set_maker): the media set generator without a window and without Qt (a plan, the
    making of a set, the reading of one into facts), over adl::loader_core; the generator's window and the
    command adl_make_set build on it
+   adl::loader_scenario (libs/loader_scenario): faults on purpose in the loader's engine, from a scenario file
+   (the scenario, its reader and the player of the engine's FaultHook); not installed
    adl::samples (libs/samples): the sample sets; adl_write_payloads writes them out
    adl_load (apps/load): one operation on one target, or several at once with `serve`, with no window and no Qt,
-   over adl::loader_core and the runner; a library of its own (adl_load_cli) is the program, under a short main
+   over adl::loader_core and the runner (and adl::loader_scenario, for `--scenario`); a library of its own
+   (adl_load_cli) is the program, under a short main
    adl::arinc615a_mini (libs/arinc615a_mini): a second TFTP over the codec, for the tests' simulated
    target and the mock target's engine (libs/mock_target_core)
 ```
@@ -94,7 +97,12 @@
   test's script, and runs them on the loader core's `OperationPool`, so that one process holds the
   loader's control port for all of them. What an upload reads before it can start, its media set, is done
   by a `Preparer` (`preparer.cpp`) on a thread of its own, so that a large set does not hold up the
-  operations that are running.
+  operations that are running. With `--scenario` the file is read first, through the platform's file system, and
+  the engine is given the player of `adl::loader_scenario` as its fault hook, which writes each fault it does as a
+  `scenario_step` event; without the option the engine has no hook. As with the licence, `adl_load_cli` knows only a
+  `ScenarioSource` (`scenario.hpp`, a function from the host and the file's name to the faults of one operation), and
+  the program's `main` gives it the one of this system (`adl_load_scenario`, on a desktop, where the scenario libraries
+  are built; a platform that has none gets a source that refuses the option with a sentence).
   The licence an operation ran under goes into its record: `adl_load_cli` knows only a `LicenceSource` (`licence.hpp`, a
   function from the host to the edition, the state and the number), so it and its tests build on every platform, and the
   program's `main` gives it the one that reads this computer's licence files (`adl_load_licence`, on a desktop, over
@@ -131,6 +139,15 @@
   `TargetLink` seam) and the link that runs it over the platform's UDP sockets. It is not installed and
   not in the `adl` package. The mock target application runs it on a worker thread, and the tests run it
   against the loader's engine on the fake platform and over loopback sockets.
+- **`libs/loader_scenario`** makes the loader misbehave on purpose, repeatably, so that a supplier can see how a
+  target reacts: a scenario is an ordered list of steps, each of which says when it is in effect, which of the
+  datagrams the loader sends it acts on, and what it does to them (drop one, send it twice or late, change a byte, a
+  check value or the length, answer with an ERROR, WAIT or ABORT, abort at a chosen moment, go silent). The `Player`
+  carries a scenario out through the engine's `FaultHook` (`libs/arinc615a/include/adl/arinc615a/fault_hook.hpp`),
+  which is the only place the engine knows of faults. The top level of the file, the reading of `when` and the
+  random numbers are `libs/scenario_base`'s, which it shares with the mock target's scenario file; the loader's own
+  are the `on`, `count` and `do` of a step and the player. No Qt, no platform code; it is on a desktop only (the
+  reader uses the licence library's strict JSON reader) and is not part of the installed `adl` package.
 - **`libs/mock_scenario`** is the mock target's scenario: a file that says which fault happens when (the nth request, the
   nth status file, a time since the operation began; any fault the mock target has, a delay, or a fault on a datagram the target sends: lost, repeated, late or reordered), read over the shared
   reader of `libs/scenario_base`, written back in one form, and a `ScenarioPlayer` that is the `FaultPlan` the engine asks.

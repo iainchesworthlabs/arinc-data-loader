@@ -30,6 +30,7 @@ enum class Id : std::uint8_t
     control_port,
     target_port,
     record,
+    scenario,
     media_set,
     load,
     all_loads,
@@ -69,6 +70,7 @@ constexpr std::array<OptionSpec, static_cast<std::size_t>(Id::option_count)> opt
     {"--control-port", Id::control_port, true, false, operations | serve_command},
     {"--target-port", Id::target_port, true, false, operations},
     {"--record", Id::record, true, false, operations},
+    {"--scenario", Id::scenario, true, false, operations},
     {"--media-set", Id::media_set, true, false, bit_of(Command::upload)},
     {"--load", Id::load, true, true, bit_of(Command::upload)},
     {"--all-loads", Id::all_loads, false, false, bit_of(Command::upload)},
@@ -143,6 +145,9 @@ public:
             return port(spec, value, options_.target_port);
         case Id::record:
             options_.record = std::string{value};
+            return std::nullopt;
+        case Id::scenario:
+            options_.scenario = std::string{value};
             return std::nullopt;
         case Id::media_set:
             options_.media_set = std::string{value};
@@ -297,6 +302,7 @@ constexpr std::string_view usage = R"(usage:
   adl_load --version
 
 common: [--local-address <ipv4>] [--control-port <n>] [--target-port <n>] [--json] [--record <file>]
+        [--scenario <file>]
 
 Runs one ARINC 615A operation on one target, or looks for targets, with no window.
 Options are written "--name value"; an option that takes several values is given
@@ -320,6 +326,10 @@ several times (--load A --load B).
   --json        Write one JSON object per line on standard output, one for each event,
                 instead of a line for a person to read.
   --record      Write the operation record, a JSON file, when the operation ends.
+  --scenario    Do something wrong on purpose, as a scenario file says (a file of JSON), so
+                that the way a target reacts can be seen. The file is read and checked first,
+                and a file that is refused is an exit code 5. The events say what the loader
+                did and when. Without the option the loader does nothing of the kind.
   --control-port, --target-port, --local-address
                 The port the loader listens on (default 59), the port the target
                 listens on for the request that starts an operation (default 59;
@@ -329,9 +339,9 @@ several times (--load A --load B).
 
 Exit codes: 0 completed, 1 the operation ran and failed, 2 wrong usage, 3 the media set
 could not be read or changed after it was checked, 4 the target did not answer, 5 a
-local error (a port, a folder or the record file). serve: 0 it stopped as asked,
-whatever happened to its operations, 2 wrong usage, 5 the port could not be opened or
-standard output could not be written.
+local error (a port, a folder, the record file or the scenario file). serve: 0 it
+stopped as asked, whatever happened to its operations, 2 wrong usage, 5 the port could not
+be opened or standard output could not be written.
 The text is English. Killing the program abandons the operation and the target times
 out by itself.
 )";
@@ -452,6 +462,11 @@ std::expected<Options, std::string> parse_run_arguments(std::span<const std::str
             argument == "--help" || argument == "--version")
         {
             return std::unexpected(std::string{argument} + " is not taken in a request: it belongs to the program.");
+        }
+        if (argument == "--scenario")
+        {
+            return std::unexpected(
+                "--scenario is not taken in a request: serve does not do anything wrong on purpose.");
         }
     }
     auto parsed = parse_options(arguments);

@@ -147,6 +147,8 @@ if(ADL_PLATFORM_DESKTOP)
     enable_language(C)
     add_subdirectory(third_party/monocypher)
     add_subdirectory(libs/licence)
+    # Faults on purpose in the loader's engine, from a scenario file (apps/load takes it with --scenario).
+    add_subdirectory(libs/loader_scenario)
     # The same library over the platform layer: the store's file interface and the folders. GPL only.
     add_subdirectory(libs/licence_platform)
     # The commands of adl_licence (show, import, remove, verify), over the store and the platform layer. GPL only.

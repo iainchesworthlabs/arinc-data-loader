@@ -162,6 +162,8 @@ TEST_CASE("a line that is not a request is refused with the reason, and the id w
          "--local-address is not taken in a request"},
         {"run\ta1\tinformation\t--target\t10.0.0.2\t--position\tP\t--control-port\t59", "a1",
          "--control-port is not taken in a request"},
+        {"run\ta1\tinformation\t--target\t10.0.0.2\t--position\tP\t--scenario\tfaults.json", "a1",
+         "--scenario is not taken in a request"},
         {"run\ta1\tinformation\t--help", "a1", "--help is not taken in a request"},
         {"run\ta1\tinformation\t--version", "a1", "--version is not taken in a request"},
         {"run\ta1\tinformation\t--target\t10.0.0.2", "a1", "--position is missing"},

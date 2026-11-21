@@ -31,6 +31,10 @@ public:
 
     void string(std::string_view key, std::string_view value);
     void number(std::string_view key, std::uint64_t value);
+    // A whole number that may be negative.
+    void integer(std::string_view key, std::int64_t value);
+    // A number element of the array that is open.
+    void number_element(std::uint64_t value);
     // A number of seconds with milliseconds, from a whole number of milliseconds: 12345 is 12.345.
     void milliseconds_as_seconds(std::string_view key, std::uint64_t milliseconds);
     void boolean(std::string_view key, bool value);

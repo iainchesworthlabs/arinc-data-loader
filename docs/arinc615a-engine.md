@@ -21,7 +21,9 @@ application, [the application](app.md), is a window over this engine.
 | `tftp_transfer.hpp` | `TftpTransfer`: one file transfer, in both roles and both directions, as a state machine |
 | `checksum.hpp` | `ChecksumVerifier`: the `checksum_<n>` option checked as the bytes arrive |
 | `file_io.hpp` | `FileSource` and `FileSink`: where an upload's files come from and a download's go; `IoResult` |
-| `data_loader.hpp` | `DataLoader`: an operation against one target; `Operation`, `OperationListener`, `Outcome`, `Command`, `LoaderConfig` |
+| `data_loader.hpp` | `DataLoader`: an operation against one target; `Operation`, `OperationListener`, `Outcome`, `LoaderConfig` |
+| `command.hpp` | `Command`: send these bytes, close that socket; what the loader asks of whatever drives it |
+| `fault_hook.hpp` | `FaultHook`: the one place a fault is let into the loader, for a test or a supplier who wants to see how a target reacts to a loader that does something wrong on purpose |
 | `find_client.hpp` | `FindClient`: the broadcast request and the three second window |
 | `limits.hpp` | adds the figures of Attachment 4 and 3: `tftp_timeout` 2 s, `tftp_retries` 1, `dlp_timeout` 13 s, `dlp_retries` 1, `tftp_dally` 2 s, `find_window` 3 s |
 | `runner.hpp` (runner library) | `Runner`: sockets, the wait, the clock, `RunController` |
@@ -267,6 +269,24 @@ open slot until the next wake-up, read what arrived, hand it to the loader, carr
 `on_timer`. It ends when the loader is `idle()`: it has an outcome and every transfer, a lingering receiver
 included, has ended. A `RunController` is polled between waits (every 100 ms by default) for an operator's
 abort or a deferred choice. A datagram that cannot be sent is treated as lost.
+
+## The fault hook
+
+`LoaderServices::faults` is a pointer to a `FaultHook` (`fault_hook.hpp`), null unless the caller sets one. With none
+the loader takes the path it always took. With one, the hook is told at the start of every call into the loader
+(`begin_call`), of every datagram that arrives (`on_arrival`, observation only), and of every command the loader makes
+(`on_command`): it writes into the loader's list what is to be carried out instead, which is nothing (the datagram is
+dropped), the command, a changed command, several (a datagram sent twice) or, later from `on_timer`, a command it
+held back. It may also ask for the loader's own abort at a chosen moment (`take_abort`). The loader does not know a
+fault was made: to it a datagram that was dropped or damaged by the hook is one dropped or damaged on the network,
+and its time-outs and retries go on as they do then. `next_wake()` includes the hook's own, so that a delayed
+datagram goes out when it is due whoever drives the loader. The engine still allocates nothing and throws nothing:
+the hook is `noexcept`, and what it holds is the hook's.
+
+The hook has no fault of its own. `adl::loader_scenario` (`libs/loader_scenario`) is the implementation the
+repository uses, which carries out a scenario file; the file and what each fault does are in the
+[file reference](file-reference.md). A hook is the loader's side of a session only: what the target sends to the
+loader cannot be changed through it.
 
 ## Things chosen where the standard is silent
 
