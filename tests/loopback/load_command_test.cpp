@@ -900,8 +900,11 @@ TEST_CASE("after a loader says ABORT with a code of its own, the target is ready
                            [&target] { return target.listener.wait_for_end(std::chrono::seconds(0)); }));
         REQUIRE(loader.script().status_files().size() == 1);
     }
-    REQUIRE(target.listener.ended_so_far().size() == 1);
-    CHECK(target.listener.ended_so_far()[0] == adl::arinc615a::StatusCode::aborted_by_data_loader);
+    // One copy of the list, so that the compiler sees the index in range after the size is checked (GCC -O3 does not
+    // follow a second call, and warns of a null pointer).
+    const auto ended = target.listener.ended_so_far();
+    REQUIRE(ended.size() == 1);
+    CHECK((!ended.empty() && ended.front() == adl::arinc615a::StatusCode::aborted_by_data_loader));
     // The program, right after: served, not left waiting for a target that has stopped answering.
     const Run run = run_command({"information", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--control-port",
                                  loader_port_text, "--target-port", target_port_text, "--json"});
@@ -923,8 +926,11 @@ TEST_CASE("after a loader has gone away in the middle of an operation, the targe
         static_cast<void>(loader.run("HNPFMS_L.LUI", std::chrono::seconds(1), [] { return false; }));
     }
     REQUIRE(target.listener.wait_for_end(std::chrono::seconds(30)));
-    REQUIRE(target.listener.ended_so_far().size() == 1);
-    CHECK(target.listener.ended_so_far()[0] == adl::arinc615a::StatusCode::aborted_by_target);
+    // One copy of the list, so that the compiler sees the index in range after the size is checked (GCC -O3 does not
+    // follow a second call, and warns of a null pointer).
+    const auto ended = target.listener.ended_so_far();
+    REQUIRE(ended.size() == 1);
+    CHECK((!ended.empty() && ended.front() == adl::arinc615a::StatusCode::aborted_by_target));
     const Run run = run_command({"information", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--control-port",
                                  loader_port_text, "--target-port", target_port_text, "--json"});
     CHECK(run.exit_code == 0);
