@@ -857,7 +857,8 @@ and no line is renamed. Dates are UTC dates, not the computer's local ones.
 | `Revocation lists:` | How many signed lists of withdrawn licences were read and accepted, and how many were refused. Printed when there is one |
 | `Note:` | A line that explains something about what was found |
 
-A `Note:` line is printed when there are licence files and this release has no key to check them with, when a
+A `Note:` line is printed when there are licence files and this build has no key in its list to check them with (a
+release has ADL's four keys, so it does not print this one), when a
 folder holds more than 64 files (the rest are not read) and when a folder could not be read.
 
 ### `adl_licence import <file>`
@@ -973,12 +974,12 @@ Errors are printed on the error output as `<command>: <sentence>`; a command lin
 | cannot read *file*: it does not exist | 1 | Check the name and the folder |
 | cannot read *file*: it is not a file, or it could not be read | 1 | The name is a folder, or you are not allowed to open the file |
 | cannot read *file*: it is larger than 65536 bytes, which no licence file is | 1 | It is not a licence file |
-| This licence needs a newer version of ARINC Data Loader. Install the latest version, then import the licence again. | 1 | The licence was made for a later version than this one |
+| This licence needs a newer version of ARINC Data Loader. Install the latest version, then import the licence again. | 1 | The licence was made for a later version than this one, or with a key this one does not know |
 | This licence was withdrawn. Contact support. | 1 | The owner withdrew the licence, or a list in one of your folders does |
 | This licence is for other computers. This computer is *name*. Ask your administrator for a licence that names it. | 1 | The licence names computers, and this is not one of them |
 | This licence is for another product. Ask for an ARINC Data Loader licence. | 1 | The file is a licence for something else |
 | This file is not a valid ARINC Data Loader licence. It may be damaged or incomplete. Ask for the file again. | 1 | The file is damaged, cut short or not a licence |
-| This version of ARINC Data Loader cannot check licence files yet, so it accepts none. The Community edition works as it always did. | 1 | This release has no key to check a licence with ([What a customer sees until the keys are in](licence.md#what-a-customer-sees-until-the-keys-are-in)) |
+| This version of ARINC Data Loader cannot check licence files yet, so it accepts none. The Community edition works as it always did. | 1 | This build has no key in its list to check a licence with, which a release never has ([A licence the program cannot check](licence.md#a-licence-the-program-cannot-check)) |
 | The licence folder already holds 64 files. Remove one, then import again. | 1 | Remove a file you do not need |
 | The licence could not be saved in *folder*. Check that the folder can be written. | 1 | The disk is full or the folder is read only |
 | *name* is in the licence folder of this computer, which only an administrator can change. | 1 | Ask the administrator, or leave it |
@@ -997,7 +998,7 @@ What a command prints when it works:
 | A program would accept this licence file. | `verify` of a licence |
 | A program would accept this list of withdrawn licences. | `verify` of a list |
 | It is in the licence folder already as *name*. | `verify` of a file that is there already |
-| Note: This version of ARINC Data Loader cannot check licence files yet, so it accepts none. The Community edition works as it always did. | `show`, when there are licence files |
+| Note: This version of ARINC Data Loader cannot check licence files yet, so it accepts none. The Community edition works as it always did. | `show`, when there are licence files and this build has no key in its list |
 | Note: A licence folder holds more than 64 files; the rest were not read. | `show` |
 | Note: A licence folder could not be read. | `show` |
 

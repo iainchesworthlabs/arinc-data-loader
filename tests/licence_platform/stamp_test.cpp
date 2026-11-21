@@ -165,7 +165,7 @@ TEST_CASE("a licence for other computers is the Community edition", "[licence_pl
     CHECK_FALSE(elsewhere.number.has_value());
 }
 
-TEST_CASE("a release that has no keys accepts no licence, so the stamp is Community",
+TEST_CASE("a build whose list has no keys accepts no licence, so the stamp is Community",
           "[licence_platform][stamp][integration]")
 {
     Machine machine;

@@ -2,9 +2,9 @@
 # The tests of adl_licence (libs/licence_cli, apps/licence). The commands run in process over licence files held
 # in memory, with the published test key of RFC 8032 and a time of the test's own, for every state a licence can
 # be in (unit); over this computer's own file system in a scratch folder, with names outside the code page
-# (integration); and the built program is started as a process (system). The program that ships trusts no key
-# yet, so the process tests of a licence use adl_licence_test_program: the same commands with the test key, a
-# clock and a computer name the test sets, and never installed or packed.
+# (integration); and the built program is started as a process (system). The program that ships trusts ADL's
+# own keys and no test key, so the process tests of a licence it accepts use adl_licence_test_program: the same
+# commands with the test key, a clock and a computer name the test sets, and never installed or packed.
 
 add_executable(adl_licence_cli_unit_tests
     cli_test.cpp

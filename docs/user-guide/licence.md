@@ -68,7 +68,7 @@ A licence that is **not valid** says why:
 | Why | Sentence |
 | --- | --- |
 | The file is damaged, incomplete or not a licence | This file is not a valid ARINC Data Loader licence. It may be damaged or incomplete. Ask for the file again. |
-| It was made for a newer version | This licence needs a newer version of ARINC Data Loader. Install the latest version, then import the licence again. |
+| It was made for a newer version, or with a key this version does not know | This licence needs a newer version of ARINC Data Loader. Install the latest version, then import the licence again. |
 | It was withdrawn | This licence was withdrawn. Contact support. |
 | It names other computers | This licence is for other computers. This computer is *name*. Ask your administrator for a licence that names it. |
 | It is for another product | This licence is for another product. Ask for an ARINC Data Loader licence. |
@@ -207,16 +207,23 @@ token. Importing it sets the stored time back to the day the licence was issued,
 A test bench whose clock is reset when it is switched off may show **Check the date**. With nothing switched
 off by a licence, that changes only what this window says, and the licence file stays valid.
 
-## What a customer sees until the keys are in
+## A licence the program cannot check
 
-A licence is checked against the public keys that are built into the program. This version has none, so it
-cannot check a licence file yet, and every file is refused. Importing one says:
+A licence is checked against the public keys that are built into the program: the four keys of ARINC Data Loader,
+two that sign licences and two that sign lists of withdrawn licences. A licence made with another key is one this
+version cannot check. It cannot tell such a licence from one made for a newer version, whose key a later release
+added, so it says:
+
+**This licence needs a newer version of ARINC Data Loader. Install the latest version, then import the licence again.**
+
+A file already in a licence folder shows **Not valid** with the same sentence, and the chip says **Community**. The
+programs work as they did before: nothing about a program depends on a licence.
+
+A copy of the program built with no key in its list can check no file at all, and says:
 
 **This version of ARINC Data Loader cannot check licence files yet, so it accepts none. The Community edition works as it always did.**
 
-A file already in a licence folder shows **Not valid** with the same sentence, and the chip says **Community**. The
-programs work as they did before. A release that carries the keys accepts the licences made for them, and until
-then nothing about a program depends on a licence.
+A release carries the keys, so you do not see that sentence in one.
 
 A computer with no licence file at all shows the Licence window like this:
 
