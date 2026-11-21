@@ -52,6 +52,7 @@ add_executable(adl_load_system_test
     load_command_test.cpp)
 
 target_include_directories(adl_load_system_test PRIVATE
+    "${PROJECT_SOURCE_DIR}/tests/mock_target_core"
     "${PROJECT_SOURCE_DIR}/tests/support")
 
 target_link_libraries(adl_load_system_test

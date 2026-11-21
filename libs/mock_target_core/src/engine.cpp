@@ -889,6 +889,15 @@ void MockEngine::pump_status()
                            finished_ = true;
                            end_operation(spec.code);
                        }
+                       else if (kind == MiniResult::Kind::timed_out)
+                       {
+                           // Neither the status file nor its second try (each two seconds and one retry) was answered:
+                           // the loader has gone, killed or silent for longer than the target waits. The target ends
+                           // the operation, as an abort of its own, and is ready for the next request.
+                           note(Severity::warning, "the loader does not answer: ends the operation");
+                           finished_ = true;
+                           end_operation(StatusCode::aborted_by_target);
+                       }
                    }
                    pump_status();
                });
@@ -1418,11 +1427,18 @@ void MockEngine::on_abort_seen(StatusCode status)
     aborted_ = true;
     ++main_generation_;
     heartbeat_on_ = false;
-    note(Severity::warning, "sees ABORT (" + std::string{to_string(status)} + ")");
+    // 5.4.5.2: the target answers an abort with a status file that echoes its code. The status field holds only the
+    // three codes of an abort; a loader that says ABORT with another code (the standard gives it none) is answered
+    // as what it is, an abort by the data loader, and the answer ends the operation as any other abort does.
+    const bool echoable = status == StatusCode::aborted_by_target || status == StatusCode::aborted_by_data_loader ||
+                          status == StatusCode::aborted_by_operator;
+    note(Severity::warning,
+         "sees ABORT (" + std::string{to_string(status)} + ")" +
+             (echoable ? std::string{}
+                       : " with a code it has no status for, and answers it as aborted by the data loader"));
     status_queue_.clear();
     final_posted_ = true;
-    // 5.4.5.2: the target answers an abort with a status file that echoes its code.
-    post_status(StatusSpec{status, 0, "aborted"});
+    post_status(StatusSpec{echoable ? status : StatusCode::aborted_by_data_loader, 0, "aborted"});
 }
 
 void MockEngine::end_operation(StatusCode code)
