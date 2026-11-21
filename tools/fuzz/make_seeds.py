@@ -268,7 +268,7 @@ SEEDS_LOADER_SCENARIO = {
 
 
 def write_loader_scenario() -> int:
-    out = ROOT / "libs" / "loader_scenario" / "fuzz" / "corpus" / "scenario"
+    out = ROOT / "libs" / "loader_scenario" / "fuzz" / "corpus" / "loader_scenario"
     out.mkdir(parents=True, exist_ok=True)
     seeds: dict[str, bytes] = {name: text.encode("utf-8") for name, text in SEEDS_LOADER_SCENARIO.items()}
     test = (ROOT / "tests" / "loader_scenario" / "reader_test.cpp").read_text(encoding="utf-8")

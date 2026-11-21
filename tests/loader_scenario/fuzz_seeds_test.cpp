@@ -20,7 +20,7 @@ TEST_CASE("the seeds of the scenario fuzzer are read, written and read again, or
     std::size_t refused = 0;
     for (const char* directory : {"corpus", "regressions"})
     {
-        for (const auto& entry : std::filesystem::directory_iterator(fuzz / directory / "scenario"))
+        for (const auto& entry : std::filesystem::directory_iterator(fuzz / directory / "loader_scenario"))
         {
             if (!entry.is_regular_file() || entry.path().extension() != ".bin")
             {

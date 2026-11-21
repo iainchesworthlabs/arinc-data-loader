@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-// What the scenario harness (scenario.cpp) does to the bytes it is given, as a function, so that the unit tests
+// What the scenario harness (loader_scenario.cpp) does to the bytes it is given, as a function, so that the unit tests
 // can run the same thing on the seeds under the ordinary compilers on every preset.
 
 #include "adl/loader_scenario/reader.hpp"
