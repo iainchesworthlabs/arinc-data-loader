@@ -10,10 +10,12 @@
 #include "adl/arinc615a/runner.hpp"
 #include "fake_link.hpp"
 #include "loader_rig.hpp"
+#include "scripted_loader.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <array>
+#include <chrono>
 #include <expected>
 #include <optional>
 #include <string>
@@ -503,6 +505,192 @@ TEST_CASE("a WAIT answer makes the loader ask again", "[mock][injections]")
     CHECK(outcome->code == OutcomeCode::completed);
     CHECK(recorder.saw(Notice::waiting));
     CHECK(target.listener.contains("answers the request with WAIT:1"));
+}
+
+// ---- What the engine does when the loader does not do its part -------------------------------------------
+
+// A loader at 10.0.0.3 that is a script (tests/mock_target_core/scripted_loader.hpp), on the fake network: the
+// loader's engine cannot be made to say ABORT with a code of its own, or to vanish.
+class ScriptedLoader final : public adl::fake::Agent
+{
+public:
+    static constexpr adl::platform::Ipv4Address address{{10, 0, 0, 3}};
+    static constexpr std::uint16_t port = 49300;
+
+    ScriptedLoader(MockRig& rig, LoaderScript::Then then, StatusCode abort_code = StatusCode::aborted_by_data_loader)
+        : rig_(rig), script_(then, port, abort_code)
+    {
+        rig_.network.attach_agent(address, *this);
+    }
+    ~ScriptedLoader() override
+    {
+        rig_.network.detach_agent(address);
+    }
+    ScriptedLoader(const ScriptedLoader&) = delete;
+    ScriptedLoader& operator=(const ScriptedLoader&) = delete;
+
+    void ask_for(std::string_view file)
+    {
+        rig_.network.send(adl::platform::Endpoint{address, port},
+                          adl::platform::Endpoint{MockRig::target_address, rig_.target_port}, script_.request(file));
+    }
+
+    void on_datagram(adl::platform::Instant, const adl::platform::Endpoint& from, const adl::platform::Endpoint& to,
+                     std::span<const std::byte> payload) override
+    {
+        if (const auto reply = script_.react(payload))
+        {
+            rig_.network.send(to, from, *reply);
+        }
+    }
+
+    [[nodiscard]] const LoaderScript& script() const noexcept
+    {
+        return script_;
+    }
+
+private:
+    MockRig& rig_;
+    LoaderScript script_;
+};
+
+// Whether a datagram is the packet `opcode` (3 data, 4 acknowledgement) of `block`.
+[[nodiscard]] bool is_packet(std::span<const std::byte> payload, unsigned opcode, unsigned block)
+{
+    return payload.size() >= 4 && std::to_integer<unsigned>(payload[0]) == 0 &&
+           std::to_integer<unsigned>(payload[1]) == opcode && std::to_integer<unsigned>(payload[2]) == 0 &&
+           std::to_integer<unsigned>(payload[3]) == block;
+}
+
+// When the target sent block `block` of a file to `to` (its time on the fake clock), from the capture.
+[[nodiscard]] std::vector<std::chrono::milliseconds> blocks_sent_to(MockRig& rig, const adl::platform::Ipv4Address& to,
+                                                                    unsigned block)
+{
+    std::vector<std::chrono::milliseconds> times;
+    for (const adl::fake::CapturedPacket& packet : rig.network.captured())
+    {
+        if (packet.from.address == MockRig::target_address && packet.to.address == to &&
+            is_packet(packet.payload, 3, block))
+        {
+            times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(packet.sent.since_origin));
+        }
+    }
+    return times;
+}
+
+// Whether the target can serve an Information operation to the loader's engine now.
+void require_next_operation_served(MockTarget& target)
+{
+    LoaderRecorder recorder;
+    LoaderServices services;
+    services.listener = &recorder;
+    const auto outcome = target.rig.run(InformationOperation{}, services);
+    REQUIRE(outcome);
+    CHECK(outcome->code == OutcomeCode::completed);
+    CHECK(recorder.configuration_lists == 1);
+}
+
+TEST_CASE("a lost acknowledgement of the initialization file is covered by the target's second try", "[mock][timeout]")
+{
+    // Attachment 4, 4-3.1 and 4-3.2: the target sends the last block again after two seconds. The file is one block,
+    // so the acknowledgement that is lost is the one that tells the target it can start. The loader keeps the file
+    // for its dally to answer the repeat; here, on the fake network, the repeat reaches it in time.
+    MockTarget target;
+    bool dropped = false;
+    target.rig.network.set_filter(
+        [&dropped](const adl::fake::PacketInfo& packet)
+        {
+            if (!dropped && packet.from.address == MockRig::loader_address && is_packet(packet.payload, 4, 1))
+            {
+                dropped = true;
+                return adl::fake::Verdict::drop;
+            }
+            return adl::fake::Verdict::deliver;
+        });
+    LoaderRecorder recorder;
+    LoaderServices services;
+    services.listener = &recorder;
+    const auto outcome = target.rig.run(InformationOperation{}, services);
+    REQUIRE(outcome);
+    CHECK(dropped);
+    CHECK(outcome->code == OutcomeCode::completed);
+    const auto sent = blocks_sent_to(target.rig, MockRig::loader_address, 1);
+    // Block 1 of the initialization file went when the loader asked, and again two seconds later (the status files
+    // are written with blocks of their own, from later in the run).
+    REQUIRE(sent.size() >= 2);
+    CHECK(sent[1] - sent[0] == std::chrono::seconds(2));
+}
+
+TEST_CASE("an initialization file that nobody acknowledges is sent twice, and the target is ready for the next request",
+          "[mock][timeout]")
+{
+    MockTarget target;
+    ScriptedLoader loader(target.rig, LoaderScript::Then::acknowledge_nothing);
+    loader.ask_for("HNPFMS_L.LCI");
+    target.rig.world.advance_by(std::chrono::seconds(30));
+    const auto sent = blocks_sent_to(target.rig, ScriptedLoader::address, 1);
+    REQUIRE(sent.size() == 2);
+    CHECK(sent[1] - sent[0] == std::chrono::seconds(2)); // the time-out, and one retry (4-3.1, 4-3.2)
+    CHECK_FALSE(target.engine.operation_running());
+    CHECK(target.listener.ended.empty()); // it never started: the loader did not say it had the file
+    require_next_operation_served(target);
+}
+
+TEST_CASE("a loader that says ABORT with a code of its own ends the operation, and the target is ready for the next",
+          "[mock][abort]")
+{
+    // The standard gives a data loader three codes for an abort, and a status file can hold only those. The target
+    // answers any other as an abort by the data loader, which is what it is, and the answer ends the operation.
+    Config config;
+    config.think_time = std::chrono::milliseconds(100);
+    config.status_period = std::chrono::seconds(1);
+    MockTarget target(config);
+    ScriptedLoader loader(target.rig, LoaderScript::Then::abort_the_first_status_file, static_cast<StatusCode>(0x1FFF));
+    loader.ask_for("HNPFMS_L.LUI");
+    target.rig.world.advance_by(std::chrono::seconds(30));
+    CHECK(target.listener.contains("sees ABORT"));
+    CHECK(target.listener.contains("answers it as aborted by the data loader"));
+    CHECK_FALSE(target.engine.operation_running());
+    CHECK(target.listener.ended == std::vector<Ended>{Ended{"Upload", StatusCode::aborted_by_data_loader, false}});
+    // What the loader was told: the one status file it got is the answer, and it says what the abort was.
+    REQUIRE(loader.script().status_files().size() == 1);
+    const auto status = decode_upload_status(loader.script().status_files()[0]);
+    REQUIRE(status);
+    CHECK(status->status == StatusCode::aborted_by_data_loader);
+    require_next_operation_served(target);
+}
+
+TEST_CASE("a loader that goes silent after the initialization file ends the operation at the target's time-out",
+          "[mock][timeout]")
+{
+    // The target writes its status files to the loader, each with the time-out and the one retry of Attachment 4,
+    // twice over. When a status file cannot be delivered the loader has gone (it was killed, or it is silent for
+    // longer than the target waits), and the target ends the exchange and is ready for the next request. Before,
+    // it wrote a status file every period for ever and served nothing else.
+    Config config;
+    config.think_time = std::chrono::milliseconds(100);
+    config.status_period = std::chrono::seconds(1);
+    MockTarget target(config);
+    ScriptedLoader loader(target.rig, LoaderScript::Then::say_nothing);
+    const auto started = target.rig.world.now();
+    loader.ask_for("HNPFMS_L.LUI");
+    CHECK_FALSE(
+        target.rig.world.wait_until([&target] { return !target.listener.ended.empty(); }, std::chrono::seconds(7)));
+    CHECK(target.engine.operation_running()); // still trying: two seconds, and again, and then the whole file again
+    REQUIRE(
+        target.rig.world.wait_until([&target] { return !target.listener.ended.empty(); }, std::chrono::seconds(10)));
+    const auto took = target.rig.world.now() - started;
+    CHECK(took > std::chrono::seconds(8));
+    CHECK(took < std::chrono::seconds(9));
+    CHECK(target.listener.ended == std::vector<Ended>{Ended{"Upload", StatusCode::aborted_by_target, false}});
+    CHECK(target.listener.contains("the loader does not answer"));
+    CHECK_FALSE(target.engine.operation_running());
+    CHECK(loader.script().status_files().empty());
+    // And nothing is written afterwards: the heartbeat of the operation that ended is over.
+    const auto requests = loader.script().status_requests();
+    target.rig.world.advance_by(std::chrono::seconds(30));
+    CHECK(loader.script().status_requests() == requests);
+    require_next_operation_served(target);
 }
 
 } // namespace

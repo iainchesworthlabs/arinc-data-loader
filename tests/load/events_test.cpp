@@ -192,6 +192,145 @@ TEST_CASE("started carries the program, its version, the events number and the c
     CHECK(event.at("position").text == "HNPFMS_L");
 }
 
+TEST_CASE("started says which scenario file the operation runs, how many steps it has and its seed", "[load][events]")
+{
+    Rig rig(true);
+    rig.writer.started("upload", "10.0.0.2", "HNPFMS_L", ScenarioInfo{"faults/lost block.json", 3, 7});
+    Json event = rig.event();
+    CHECK(keys_after_t(event) == Keys{"program", "version", "events", "command", "target", "position", "scenario",
+                                      "scenario_steps", "scenario_seed"});
+    CHECK(event.at("scenario").text == "faults/lost block.json");
+    CHECK(event.at("scenario_steps").as_number() == 3);
+    CHECK(event.at("scenario_seed").as_number() == 7);
+
+    // A file with no seed says null: a reader finds the key whenever there is a scenario.
+    rig.writer.started("information", "10.0.0.2", "HNPFMS_L", ScenarioInfo{"f.json", 0, std::nullopt});
+    event = rig.event();
+    CHECK(event.at("scenario_steps").as_number() == 0);
+    CHECK(event.at("scenario_seed").is(Json::Kind::null));
+
+    // And no `scenario` key at all without the option.
+    rig.writer.started("information", "10.0.0.2", "HNPFMS_L");
+    event = rig.event();
+    CHECK(keys_after_t(event) == Keys{"program", "version", "events", "command", "target", "position"});
+}
+
+TEST_CASE("scenario_step says what the loader did, with the keys of the action", "[load][events]")
+{
+    Rig rig(true);
+
+    // A datagram dropped: no parameter.
+    ScenarioStepEvent drop;
+    drop.step = 2;
+    drop.trigger = "request";
+    drop.at = 3;
+    drop.operation = "upload";
+    drop.action = "drop";
+    drop.datagram = "data";
+    drop.file = "LOAD1.BIN";
+    drop.block = 2;
+    drop.to = "127.0.0.1:40001";
+    rig.clock.sleep_for(std::chrono::milliseconds(250));
+    rig.writer.scenario_step(drop);
+    Json event = rig.event();
+    CHECK(event.at("event").text == "scenario_step");
+    CHECK(event.at("t").text == "0.250");
+    CHECK(keys_after_t(event) ==
+          Keys{"step", "trigger", "at", "operation", "action", "applied", "datagram", "file", "block", "to"});
+    CHECK(event.at("step").as_number() == 2);
+    CHECK(event.at("trigger").text == "request");
+    CHECK(event.at("at").as_number() == 3);
+    CHECK(event.at("operation").text == "upload");
+    CHECK(event.at("action").text == "drop");
+    CHECK(event.at("applied").boolean);
+    CHECK(event.at("datagram").text == "data");
+    CHECK(event.at("file").text == "LOAD1.BIN");
+    CHECK(event.at("block").as_number() == 2);
+    CHECK(event.at("to").text == "127.0.0.1:40001");
+
+    // A request has no block, and a transfer with no file says null for both.
+    ScenarioStepEvent wait;
+    wait.step = 1;
+    wait.trigger = "status_file";
+    wait.at = 1;
+    wait.operation = "information";
+    wait.action = "wait";
+    wait.datagram = "request";
+    wait.to = "127.0.0.1:59";
+    wait.parameter = "seconds";
+    wait.value = 4;
+    rig.writer.scenario_step(wait);
+    event = rig.event();
+    CHECK(keys_after_t(event) == Keys{"step", "trigger", "at", "operation", "action", "applied", "datagram", "file",
+                                      "block", "to", "seconds"});
+    CHECK(event.at("file").is(Json::Kind::null));
+    CHECK(event.at("block").is(Json::Kind::null));
+    CHECK(event.at("seconds").as_number() == 4);
+
+    // A length that is shorter is a negative number.
+    ScenarioStepEvent shorter = drop;
+    shorter.action = "length";
+    shorter.parameter = "delta";
+    shorter.value = -3;
+    rig.writer.scenario_step(shorter);
+    event = rig.event();
+    CHECK(event.at("delta").text == "-3");
+
+    // The operation's own steps act on no datagram, and a silence with no end has a null length.
+    ScenarioStepEvent silent;
+    silent.step = 4;
+    silent.trigger = "after_ms";
+    silent.at = 20'000;
+    silent.operation = "download_operator_defined";
+    silent.action = "silent";
+    silent.parameter = "for_ms";
+    rig.writer.scenario_step(silent);
+    event = rig.event();
+    CHECK(keys_after_t(event) ==
+          Keys{"step", "trigger", "at", "operation", "action", "applied", "datagram", "file", "block", "to", "for_ms"});
+    CHECK(event.at("datagram").is(Json::Kind::null));
+    CHECK(event.at("file").is(Json::Kind::null));
+    CHECK(event.at("block").is(Json::Kind::null));
+    CHECK(event.at("to").is(Json::Kind::null));
+    CHECK(event.at("for_ms").is(Json::Kind::null));
+    silent.value = 5000;
+    rig.writer.scenario_step(silent);
+    CHECK(rig.event().at("for_ms").as_number() == 5000);
+
+    // The file name of a target's transfer may hold bytes that are not UTF-8: the line is still valid.
+    ScenarioStepEvent odd = drop;
+    odd.file = "A\xFF.BIN";
+    rig.writer.scenario_step(odd);
+    CHECK(rig.event().at("file").text == "A\xEF\xBF\xBD.BIN");
+}
+
+TEST_CASE("finished lists the steps of the scenario that never acted, when there was one", "[load][events]")
+{
+    Rig rig(true);
+
+    FinishedEvent done;
+    done.completed = true;
+    done.reason = "completed";
+    done.detail = "The operation completed.";
+    done.scenario_unused = std::vector<std::size_t>{2, 5};
+    rig.writer.finished(done);
+    Json event = rig.event();
+    CHECK(keys_after_t(event) == Keys{"result", "reason", "status_code", "detail", "exit_code", "scenario_unused"});
+    REQUIRE(event.at("scenario_unused").elements.size() == 2);
+    CHECK(event.at("scenario_unused").elements[0].as_number() == 2);
+    CHECK(event.at("scenario_unused").elements[1].as_number() == 5);
+
+    // Every step acted: the key is there, empty. Without a scenario it is not there.
+    done.scenario_unused = std::vector<std::size_t>{};
+    rig.writer.finished(done);
+    event = rig.event();
+    CHECK(event.at("scenario_unused").is(Json::Kind::array));
+    CHECK(event.at("scenario_unused").elements.empty());
+    done.scenario_unused.reset();
+    rig.writer.finished(done);
+    CHECK(keys_after_t(rig.event()) == Keys{"result", "reason", "status_code", "detail", "exit_code"});
+}
+
 TEST_CASE("target_found names the answer and the THW_ID_POS it makes", "[load][events]")
 {
     Rig rig(true);
@@ -394,6 +533,57 @@ TEST_CASE("without --json each event is one plain line", "[load][events]")
     rig.writer.finished(failed);
     CHECK(rig.line() == "Finished: failed, no_answer (exit code 4): The target did not answer. [2 targets] "
                         "[files in out/DNLD_DATA_X_1] [record in r.json]\n");
+}
+
+TEST_CASE("the scenario in plain lines: the file, each step, and the steps that never acted", "[load][events]")
+{
+    Rig rig(false);
+    rig.writer.started("upload", "10.0.0.2", "HNPFMS_L", ScenarioInfo{"faults.json", 3, 7});
+    CHECK(rig.line().ends_with(": upload, target 10.0.0.2 (HNPFMS_L), scenario faults.json (3 steps, seed 7)\n"));
+    rig.writer.started("information", "10.0.0.2", "HNPFMS_L", ScenarioInfo{"f.json", 1, std::nullopt});
+    CHECK(rig.line().ends_with(": information, target 10.0.0.2 (HNPFMS_L), scenario f.json (1 step)\n"));
+
+    ScenarioStepEvent step;
+    step.step = 2;
+    step.trigger = "request";
+    step.at = 3;
+    step.operation = "upload";
+    step.action = "drop";
+    step.datagram = "data";
+    step.file = "LOAD1.BIN";
+    step.block = 2;
+    step.to = "127.0.0.1:40001";
+    rig.writer.scenario_step(step);
+    CHECK(rig.line() == "Scenario step 2: drop, data datagram of LOAD1.BIN block 2 to 127.0.0.1:40001 (request 3, "
+                        "upload)\n");
+    step.action = "duplicate";
+    step.parameter = "copies";
+    step.value = 3;
+    step.block.reset();
+    step.file = {};
+    rig.writer.scenario_step(step);
+    CHECK(rig.line() == "Scenario step 2: duplicate copies 3, data datagram to 127.0.0.1:40001 (request 3, upload)\n");
+    ScenarioStepEvent silent;
+    silent.step = 1;
+    silent.trigger = "after_ms";
+    silent.at = 500;
+    silent.operation = "information";
+    silent.action = "silent";
+    silent.parameter = "for_ms";
+    rig.writer.scenario_step(silent);
+    CHECK(rig.line() == "Scenario step 1: silent for_ms none (after_ms 500, information)\n");
+
+    FinishedEvent done;
+    done.completed = true;
+    done.reason = "completed";
+    done.detail = "The operation completed.";
+    done.scenario_unused = std::vector<std::size_t>{};
+    rig.writer.finished(done);
+    CHECK(rig.line() == "Finished: completed (exit code 0): The operation completed.\n");
+    done.scenario_unused = std::vector<std::size_t>{2, 5};
+    rig.writer.finished(done);
+    CHECK(rig.line() == "Finished: completed (exit code 0): The operation completed. [scenario steps that never "
+                        "acted: 2, 5]\n");
 }
 
 TEST_CASE("a plain line shows a control character a target sent as a question mark", "[load][events]")

@@ -110,7 +110,7 @@ public:
         std::ostringstream out;
         std::ostringstream err;
         CommandRun result;
-        result.exit_code = adl::load::run(host, arguments, out, err, licence);
+        result.exit_code = adl::load::run(host, arguments, out, err, licence, scenario);
         result.out = out.str();
         result.err = err.str();
         rig.world.advance_by(std::chrono::seconds(1));
@@ -120,6 +120,8 @@ public:
     Rig rig;
     // How a record gets the licence it ran under. None, so a record says null, unless a test gives one.
     adl::load::LicenceSource licence;
+    // How the file of `--scenario` is opened. None, so the option is refused, unless a test gives one.
+    adl::load::ScenarioSource scenario;
 };
 
 // What every `--json` run of an operation has in common: `started` first and `finished` once and last, `event`

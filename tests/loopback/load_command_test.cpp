@@ -25,12 +25,14 @@
 #include "adl/samples/scenarios.hpp"
 #include "bytes.hpp"
 #include "mini_json.hpp"
+#include "scripted_loader.hpp"
 #include "temp_dir.hpp"
 #include "utf8_path.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -96,6 +98,28 @@ struct TargetRecorder final : public adl::mock::EngineListener
     void operation_changed(std::string_view) override {}
     void progress_changed(int) override {}
     void upload_received(const adl::mock::UploadRecord&) override {}
+    void operation_ended(std::string_view, std::optional<adl::arinc615a::StatusCode> status, bool) override
+    {
+        const std::lock_guard lock(mutex);
+        ended.push_back(status);
+        changed.notify_all();
+    }
+
+    // Whether an operation has ended within `timeout` (the engine runs on a thread of its own).
+    [[nodiscard]] bool wait_for_end(std::chrono::seconds timeout)
+    {
+        std::unique_lock lock(mutex);
+        return changed.wait_for(lock, timeout, [this] { return !ended.empty(); });
+    }
+    [[nodiscard]] std::vector<std::optional<adl::arinc615a::StatusCode>> ended_so_far()
+    {
+        const std::lock_guard lock(mutex);
+        return ended;
+    }
+
+    std::mutex mutex;
+    std::condition_variable changed;
+    std::vector<std::optional<adl::arinc615a::StatusCode>> ended;
 };
 
 // The mock target of one scenario, on a thread of its own. `started` is false, with the reason, when the engine
@@ -792,4 +816,123 @@ TEST_CASE("serve with the loader on port 59 reaches a target on another port wit
     REQUIRE_FALSE(own.empty());
     CHECK(own.back().at("reason").text == "completed");
     CHECK(run.events().front().at("control_port").as_number() == 59);
+}
+
+namespace
+{
+
+// A loader written out as a script (tests/mock_target_core/scripted_loader.hpp) on a real socket of the loopback
+// address: what the program adl_load cannot be made to do. It asks for an initialization file, naming its own port,
+// and answers what the target writes to it the way the script says, until `done` is true or the time is up. When it
+// goes out of scope its socket is closed, which is what a loader that was killed leaves.
+class RawLoader
+{
+public:
+    static constexpr std::uint16_t port = 30902;
+
+    RawLoader(adl::test::LoaderScript::Then then,
+              adl::arinc615a::StatusCode abort_code = adl::arinc615a::StatusCode::aborted_by_data_loader)
+        : script_(then, port, abort_code)
+    {
+        auto made = adl::platform::make_host();
+        REQUIRE(made.has_value());
+        host_ = std::move(*made);
+        adl::platform::UdpOptions options;
+        options.local = adl::platform::Endpoint{adl::platform::Ipv4Address::loopback(), port};
+        auto opened = host_->network().open_udp(options);
+        REQUIRE(opened.has_value());
+        socket_ = std::move(*opened);
+    }
+
+    // Asks for `file`, then reacts to the datagrams that come, until `done()` or `how_long`. True if `done()` was.
+    template <typename Done>
+    bool run(std::string_view file, std::chrono::seconds how_long, Done&& done)
+    {
+        const adl::platform::Endpoint target{adl::platform::Ipv4Address::loopback(), target_tftp_port};
+        const adl::arinc615a_mini::Bytes request = script_.request(file);
+        REQUIRE(socket_->send_to(target, request).has_value());
+        const auto deadline = std::chrono::steady_clock::now() + how_long;
+        std::array<std::byte, 4096> buffer{};
+        while (std::chrono::steady_clock::now() < deadline)
+        {
+            if (done())
+            {
+                return true;
+            }
+            const auto got = socket_->receive_from(buffer, std::chrono::milliseconds(100));
+            if (!got || got->truncated)
+            {
+                continue; // nothing came in that time
+            }
+            if (const auto reply = script_.react(std::span<const std::byte>{buffer}.first(got->size)))
+            {
+                REQUIRE(socket_->send_to(got->source, *reply).has_value());
+            }
+        }
+        return done();
+    }
+
+    [[nodiscard]] const adl::test::LoaderScript& script() const noexcept
+    {
+        return script_;
+    }
+
+private:
+    adl::test::LoaderScript script_;
+    std::unique_ptr<adl::platform::Host> host_;
+    adl::platform::Owned<adl::platform::UdpSocket> socket_;
+};
+
+} // namespace
+
+TEST_CASE("after a loader says ABORT with a code of its own, the target is ready for the next operation",
+          "[load][system][timeout]")
+{
+    MockTarget target(mock_config());
+    INFO("the mock target could not start: " << target.not_started.value_or(""));
+    REQUIRE_FALSE(target.not_started.has_value());
+    {
+        // The upload starts; the first status file is answered with ABORT:1FFF, a code that is not one of the three
+        // of an abort. The target answers with a status file of its own and ends the operation.
+        RawLoader loader(adl::test::LoaderScript::Then::abort_the_first_status_file,
+                         static_cast<adl::arinc615a::StatusCode>(0x1FFF));
+        REQUIRE(loader.run("HNPFMS_L.LUI", std::chrono::seconds(20),
+                           [&target] { return target.listener.wait_for_end(std::chrono::seconds(0)); }));
+        REQUIRE(loader.script().status_files().size() == 1);
+    }
+    // One copy of the list, so that the compiler sees the index in range after the size is checked (GCC -O3 does not
+    // follow a second call, and warns of a null pointer).
+    const auto ended = target.listener.ended_so_far();
+    REQUIRE(ended.size() == 1);
+    CHECK((!ended.empty() && ended.front() == adl::arinc615a::StatusCode::aborted_by_data_loader));
+    // The program, right after: served, not left waiting for a target that has stopped answering.
+    const Run run = run_command({"information", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--control-port",
+                                 loader_port_text, "--target-port", target_port_text, "--json"});
+    CHECK(run.exit_code == 0);
+    CHECK(run.finished().at("reason").text == "completed");
+}
+
+TEST_CASE("after a loader has gone away in the middle of an operation, the target ends it and is ready for the next",
+          "[load][system][timeout]")
+{
+    MockTarget target(mock_config());
+    INFO("the mock target could not start: " << target.not_started.value_or(""));
+    REQUIRE_FALSE(target.not_started.has_value());
+    {
+        // The initialization file is read and acknowledged, and the loader is gone: its socket is closed, and nothing
+        // answers the status files the target writes. (The target's time-out is two seconds with one retry, twice
+        // over.)
+        RawLoader loader(adl::test::LoaderScript::Then::say_nothing);
+        static_cast<void>(loader.run("HNPFMS_L.LUI", std::chrono::seconds(1), [] { return false; }));
+    }
+    REQUIRE(target.listener.wait_for_end(std::chrono::seconds(30)));
+    // One copy of the list, so that the compiler sees the index in range after the size is checked (GCC -O3 does not
+    // follow a second call, and warns of a null pointer).
+    const auto ended = target.listener.ended_so_far();
+    REQUIRE(ended.size() == 1);
+    CHECK((!ended.empty() && ended.front() == adl::arinc615a::StatusCode::aborted_by_target));
+    const Run run = run_command({"information", "--target", "127.0.0.1", "--position", "HNPFMS_L", "--control-port",
+                                 loader_port_text, "--target-port", target_port_text, "--json"});
+    CHECK(run.exit_code == 0);
+    CHECK(run.finished().at("reason").text == "completed");
 }

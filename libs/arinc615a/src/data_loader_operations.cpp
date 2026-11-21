@@ -335,7 +335,7 @@ void DataLoader::send_selection(Instant now, std::span<const std::string_view> n
 
 Result<void> DataLoader::provide_selection(Instant now, std::span<const std::string_view> names) noexcept
 {
-    begin_calls();
+    begin_calls(now);
     if (!selection_pending_ || done())
     {
         return std::unexpected(Error::invalid_value);
@@ -782,7 +782,7 @@ void DataLoader::finish_aborted(Instant now, bool confirmed) noexcept
 
 void DataLoader::abort(Instant now, StatusCode status) noexcept
 {
-    begin_calls();
+    begin_calls(now);
     do_abort(now, status);
     end_calls(now);
 }

@@ -65,3 +65,14 @@ TEST_CASE("the usage is printed for --help and one line for --version, exit code
     CHECK(version.out.starts_with("adl_load "));
     CHECK(version.out.ends_with(" events 1\n"));
 }
+
+TEST_CASE("a program that is given no scenario source refuses --scenario with a sentence, before anything is written",
+          "[load][integration][usage][scenario]")
+{
+    CommandRig rig; // no source of scenario files, as on a platform that has none
+    const CommandRun run = rig.run(
+        {"information", "--target", "10.0.0.2", "--position", "HNPFMS_L", "--json", "--scenario", "faults.json"});
+    CHECK(run.exit_code == 5);
+    CHECK(run.out.empty());
+    CHECK(run.err == "adl_load: --scenario faults.json: scenario files are not used by this program on this system\n");
+}

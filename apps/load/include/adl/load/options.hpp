@@ -93,6 +93,9 @@ struct Options
     std::uint16_t target_port = 59;
     // The file the operation record is written to, as given.
     std::optional<std::string> record;
+    // The scenario file: faults on purpose in what the loader sends (docs/file-reference.md#loader-scenario-file), as
+    // given. Only the three commands that run one operation take it; a `serve` request does not.
+    std::optional<std::string> scenario;
 
     // upload: the folder of the media set as given, and the part numbers of the loads to send, or all of them.
     std::string media_set;
