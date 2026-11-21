@@ -169,6 +169,17 @@ void JsonLine::number(std::string_view key, std::uint64_t value)
     out_ += std::to_string(value);
 }
 
+void JsonLine::integer(std::string_view key, std::int64_t value)
+{
+    member(key);
+    out_ += std::to_string(value);
+}
+
+void JsonLine::number_element(std::uint64_t value)
+{
+    number({}, value);
+}
+
 void JsonLine::milliseconds_as_seconds(std::string_view key, std::uint64_t milliseconds)
 {
     member(key);

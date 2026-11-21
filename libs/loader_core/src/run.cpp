@@ -78,6 +78,7 @@ run_engine(adl::platform::Host& host, const RunTarget& target, const adl::arinc6
     loader_services.listener = services.listener;
     loader_services.source = services.upload_source;
     loader_services.sink = services.download_sink;
+    loader_services.faults = services.faults;
     auto loader = std::make_unique<adl::arinc615a::DataLoader>(config, workspace, loader_services);
 
     adl::arinc615a::RunOptions options;

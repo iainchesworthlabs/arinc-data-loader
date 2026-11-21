@@ -81,6 +81,23 @@ OperationKind kind_of(const Options& options)
     return OperationKind::information;
 }
 
+// What the events call the operation, as the record does: the word a scenario step's `operation` is written with.
+std::string_view scenario_operation_of(const Options& options)
+{
+    switch (kind_of(options))
+    {
+    case OperationKind::upload:
+        return "upload";
+    case OperationKind::download_media:
+        return "download_media_defined";
+    case OperationKind::download_operator:
+        return "download_operator_defined";
+    case OperationKind::information:
+        break;
+    }
+    return "information";
+}
+
 // The loads of the media set that --load names, or all of them. Wrong usage tells why.
 std::expected<std::vector<adl::loader_core::LoadChoice>, std::string> choose_loads(const Options& options,
                                                                                    const MediaSetReport& report)
@@ -259,11 +276,26 @@ std::string phrase_of(Reason reason, const OperationResult& result, const Job& j
 } // namespace
 
 OperationCommand::OperationCommand(adl::platform::Host& host, const Options& options, EventWriter& events,
-                                   LicenceSource licence)
+                                   LicenceSource licence, ScenarioSource scenario)
     : host_(host), options_(options), events_(events), licence_(std::move(licence)),
-      address_(adl::loader_core::format_ipv4(options.target)),
+      scenario_source_(std::move(scenario)), address_(adl::loader_core::format_ipv4(options.target)),
       job_(events, kind_of(options), address_, options.position, adl::loader_core::wall_clock_of(host.clock()))
 {
+}
+
+std::optional<std::string> OperationCommand::load_scenario()
+{
+    if (!options_.scenario)
+    {
+        return std::nullopt;
+    }
+    auto plan = scenario_source_.open(host_, *options_.scenario, scenario_operation_of(options_), events_);
+    if (!plan)
+    {
+        return std::move(plan.error());
+    }
+    scenario_ = std::move(*plan);
+    return std::nullopt;
 }
 
 std::optional<std::string> OperationCommand::prepare()
@@ -318,7 +350,8 @@ std::optional<int> OperationCommand::begin()
     // The licence the operation runs under is read now, once, before anything is written, and never again: a record
     // says what the program ran as when it started. Nothing depends on the answer, and the events do not carry it.
     job_.record().licence = licence_.stamp(host_);
-    events_.started(to_string(options_.command), address_, options_.position);
+    events_.started(to_string(options_.command), address_, options_.position,
+                    scenario_ ? std::optional<ScenarioInfo>{scenario_->info()} : std::nullopt);
     if (options_.command == Command::upload)
     {
         if (const std::optional<int> ended = check_media_set_events())
@@ -440,6 +473,7 @@ adl::loader_core::RunServices OperationCommand::services()
     services.upload_source = source_ ? &*source_ : nullptr;
     services.download_sink = sink_ ? &*sink_ : nullptr;
     services.download_folder = folder_;
+    services.faults = scenario_ ? &scenario_->hook() : nullptr;
     return services;
 }
 
@@ -523,14 +557,25 @@ int OperationCommand::finish(Reason reason, std::string detail, const std::strin
     event.download_folder = download_folder;
     event.has_record = options_.record.has_value();
     event.record = std::move(written);
+    if (scenario_)
+    {
+        event.scenario_unused = scenario_->unused();
+    }
     events_.finished(event);
     return event.exit_code;
 }
 
 int run_operation_command(adl::platform::Host& host, const Options& options, EventWriter& events, std::ostream& err,
-                          const LicenceSource& licence)
+                          const LicenceSource& licence, const ScenarioSource& scenario)
 {
-    OperationCommand command(host, options, events, licence);
+    OperationCommand command(host, options, events, licence, scenario);
+    // The scenario file comes first, since it is the cheapest to find wrong and nothing has been opened or written: a
+    // file that cannot be used is a local error, as an operation that cannot run is.
+    if (const std::optional<std::string> problem = command.load_scenario())
+    {
+        err << "adl_load: --scenario " << *options.scenario << ": " << *problem << '\n';
+        return exit_local_error;
+    }
     // What can be wrong with the choice is found before anything is written: that is wrong usage, and no event is
     // written for it.
     if (const std::optional<std::string> problem = command.prepare())

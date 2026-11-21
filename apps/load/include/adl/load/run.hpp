@@ -7,6 +7,7 @@
 // the exit code. Only `serve` reads its input, which is where it takes its requests from.
 
 #include "adl/load/licence.hpp"
+#include "adl/load/scenario.hpp"
 #include "adl/platform/host.hpp"
 
 #include <iosfwd>
@@ -17,13 +18,15 @@ namespace adl::load
 {
 
 // `licence` says how each operation's record gets the licence it ran under (licence.hpp); a program that is given
-// none writes `null` there.
+// none writes `null` there. `scenario` says how the file of `--scenario` is opened (scenario.hpp); a program that is
+// given none refuses the option with a sentence.
 [[nodiscard]] int run(adl::platform::Host& host, std::span<const std::string_view> arguments, std::istream& in,
-                      std::ostream& out, std::ostream& err, const LicenceSource& licence = {});
+                      std::ostream& out, std::ostream& err, const LicenceSource& licence = {},
+                      const ScenarioSource& scenario = {});
 
 // The same with an input that has nothing in it: for the commands that read none. `serve` run this way takes the
 // end of its input as its first request.
 [[nodiscard]] int run(adl::platform::Host& host, std::span<const std::string_view> arguments, std::ostream& out,
-                      std::ostream& err, const LicenceSource& licence = {});
+                      std::ostream& err, const LicenceSource& licence = {}, const ScenarioSource& scenario = {});
 
 } // namespace adl::load

@@ -163,7 +163,7 @@ Result<void> DataLoader::start(Instant now, const Operation& operation) noexcept
     outbound_ = workspace_.subspan(offset, config_.max_protocol_file_bytes);
     offset += config_.max_protocol_file_bytes;
     names_ = std::span<char>{reinterpret_cast<char*>(workspace_.data() + offset), config_.name_pool_bytes};
-    begin_calls();
+    begin_calls(now);
 
     ProtocolFileKind init_kind = ProtocolFileKind::lci;
     if (const auto* upload = std::get_if<UploadOperation>(&operation))
@@ -224,17 +224,34 @@ Result<void> DataLoader::start(Instant now, const Operation& operation) noexcept
 
 // ---- Commands, slots ---------------------------------------------------------------------------
 
-void DataLoader::begin_calls() noexcept
+void DataLoader::begin_calls(Instant now) noexcept
 {
     command_count_ = 0;
+    now_ = now;
+    if (services_.faults != nullptr)
+    {
+        services_.faults->begin_call(now);
+    }
 }
 
-void DataLoader::push(const Command& command) noexcept
+void DataLoader::append(const Command& command) noexcept
 {
     if (command_count_ < commands_.size())
     {
         commands_[command_count_++] = command;
     }
+}
+
+// Every command the loader makes goes through here. With a hook it is the hook's to carry out, or change, or hold.
+void DataLoader::push(const Command& command) noexcept
+{
+    if (services_.faults == nullptr)
+    {
+        append(command);
+        return;
+    }
+    const std::span<Command> room = std::span<Command>{commands_}.subspan(command_count_);
+    command_count_ += std::min(services_.faults->on_command(now_, command, room), room.size());
 }
 
 TransferSettings DataLoader::transfer_settings() const noexcept
@@ -426,6 +443,13 @@ void DataLoader::run_retries(Instant now) noexcept
 
 void DataLoader::end_calls(Instant now) noexcept
 {
+    if (services_.faults != nullptr)
+    {
+        if (const auto status = services_.faults->take_abort(now))
+        {
+            do_abort(now, *status);
+        }
+    }
     check_watchdog(now);
     check_completion(now);
 }
@@ -435,10 +459,14 @@ void DataLoader::end_calls(Instant now) noexcept
 void DataLoader::on_transfer_datagram(Instant now, std::size_t index, const Endpoint& from,
                                       std::span<const std::byte> bytes) noexcept
 {
-    begin_calls();
+    begin_calls(now);
     if (!started_ || index >= slot_count_ || !slots_[index].used)
     {
         return;
+    }
+    if (services_.faults != nullptr)
+    {
+        services_.faults->on_arrival(now, index, from, bytes);
     }
     slots_[index].transfer.on_datagram(now, from, bytes);
     pump(now, index);
@@ -447,7 +475,7 @@ void DataLoader::on_transfer_datagram(Instant now, std::size_t index, const Endp
 
 void DataLoader::on_timer(Instant now) noexcept
 {
-    begin_calls();
+    begin_calls(now);
     if (!started_)
     {
         return;
@@ -461,6 +489,11 @@ void DataLoader::on_timer(Instant now) noexcept
         }
     }
     run_retries(now);
+    if (services_.faults != nullptr)
+    {
+        const std::span<Command> room = std::span<Command>{commands_}.subspan(command_count_);
+        command_count_ += std::min(services_.faults->on_timer(now, room), room.size());
+    }
     end_calls(now);
 }
 
@@ -479,6 +512,10 @@ Instant DataLoader::next_wake() const noexcept
     if (!done())
     {
         wake = earlier_of(wake, watch_deadline_);
+    }
+    if (services_.faults != nullptr && !idle())
+    {
+        wake = earlier_of(wake, services_.faults->next_wake());
     }
     return wake;
 }
@@ -533,10 +570,14 @@ void DataLoader::refuse_abort(const Endpoint& to) noexcept
 
 void DataLoader::on_control_datagram(Instant now, const Endpoint& from, std::span<const std::byte> bytes) noexcept
 {
-    begin_calls();
+    begin_calls(now);
     if (!started_ || done() || from.address != config_.target.address)
     {
         return;
+    }
+    if (services_.faults != nullptr)
+    {
+        services_.faults->on_arrival(now, std::nullopt, from, bytes);
     }
     const auto packet = decode_packet(bytes);
     if (!packet)
