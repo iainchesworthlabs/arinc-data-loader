@@ -144,7 +144,7 @@ jobs:
         uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@54f3b7ecd95fa07034f6f50a057c537ee98cd30d # v0.1.28
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
+        uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # v4.5.0
         with:
           cmakeVersion: "4.4.2"
           ninjaVersion: "1.13.2"

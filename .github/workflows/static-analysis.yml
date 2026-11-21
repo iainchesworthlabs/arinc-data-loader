@@ -58,7 +58,7 @@ jobs:
         uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@54f3b7ecd95fa07034f6f50a057c537ee98cd30d # v0.1.28
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
+        uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # v4.5.0
         with:
           cmakeVersion: "4.4.2"
           ninjaVersion: "1.13.2"
@@ -124,7 +124,7 @@ jobs:
         uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@54f3b7ecd95fa07034f6f50a057c537ee98cd30d # v0.1.28
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
+        uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # v4.5.0
         with:
           cmakeVersion: "4.4.2"
           ninjaVersion: "1.13.2"
@@ -185,7 +185,7 @@ jobs:
         uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@54f3b7ecd95fa07034f6f50a057c537ee98cd30d # v0.1.28
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
+        uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # v4.5.0
         with:
           cmakeVersion: "4.4.2"
           ninjaVersion: "1.13.2"
@@ -243,7 +243,7 @@ jobs:
         uses: iainchesworthlabs/icl-common-infra/actions/setup-vcpkg@54f3b7ecd95fa07034f6f50a057c537ee98cd30d # v0.1.28
 
       - name: Install CMake 4 + Ninja
-        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
+        uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # v4.5.0
         with:
           cmakeVersion: "4.4.2"
           ninjaVersion: "1.13.2"
@@ -255,7 +255,7 @@ jobs:
         run: cmake --preset linux-gcc-sonar
 
       - name: Scan
-        uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
+        uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
