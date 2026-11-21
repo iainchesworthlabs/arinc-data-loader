@@ -282,13 +282,14 @@ TEST_CASE("licence: files that are not valid licences", "[licence][state]")
 
 TEST_CASE("licence: a product build refuses a licence signed with the test key", "[licence][state]")
 {
-    // This release trusts no key yet, so the licence is refused for that. Whatever keys it is given, the
-    // product's list holds no test key.
+    // The product's list holds ADL's own keys and no test key, so the test key is one this release does not
+    // know, and a program reads that as a licence made for a newer version.
     const auto keys = sf::product_trust_list();
     Context where = on(at(2027, 1, 1));
     where.keys = keys;
     const Status result = evaluate(signed_text(annual()), where);
     REQUIRE(result.state == State::invalid);
+    REQUIRE(result.reason == Reason::newer_version);
     REQUIRE(!result.active());
     REQUIRE(!result.value);
     REQUIRE(!check(result, "support").granted);

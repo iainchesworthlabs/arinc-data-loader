@@ -276,7 +276,8 @@ namespace
 {
     if (no_keys)
     {
-        // The release's list of keys is empty until the owner adds the public keys: no file can be checked.
+        // A list with no key in it checks nothing, so an unknown key is not "a newer version". A release has
+        // ADL's keys, so only a build made without them, or a test, comes here.
         return LicenceModel::tr("This version of ARINC Data Loader cannot check licence files yet, so it accepts none. "
                                 "The Community edition works as it always did.");
     }

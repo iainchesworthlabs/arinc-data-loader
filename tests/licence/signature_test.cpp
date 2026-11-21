@@ -414,26 +414,91 @@ TEST_CASE("signed file: a product trusts no test key", "[licence][envelope]")
     REQUIRE(kept[0].key_id == "lic-2026-a");
 }
 
-TEST_CASE("signed file: this release has no licence key yet, so it accepts no licence", "[licence][envelope]")
+TEST_CASE("signed file: this release trusts the four public keys of ARINC Data Loader and no others",
+          "[licence][envelope]")
 {
-    // The owner has not made ADL's signing key. Until its public half is in the trust list, a licence
-    // signed with any key is refused and the programs are the Community edition. When the keys are added
-    // this test is replaced by one that checks their public halves, as the licence test of any product does.
-    REQUIRE(sf::builtin_keys().empty());
-    REQUIRE(sf::product_trust_list().empty());
+    // The public halves made by `adl_licence_owner keygen` on 2026-11-21 and checked against their
+    // `.adlownerpub` files: a signing key and a standby for each of the two purposes. The hex is written here
+    // from the key files, not from trusted_keys.cpp, so a byte changed there fails this test.
+    struct Expected
+    {
+        std::string_view key_id;
+        std::string_view purpose;
+        std::string_view public_key;
+    };
+    constexpr std::array<Expected, 4> expected{{
+        {"lic-2026-a", "licence", "8e4da274de8dbfa62c64b64a0b6a369b1bf7f660fc00f6aa1b635ad180ea5355"},
+        {"rev-2026-a", "revocations", "ace666578367051b5ec737908edea9b241e45a4031b49344a76a8ab20aa319f6"},
+        {"lic-2026-b", "licence", "469ec39ad1f8900942dc996469bc9efff59511263fb9320b907027821db28c06"},
+        {"rev-2026-b", "revocations", "0797724ffea1a523d64ab4c50fe1007b772ef29f6ba6510d34506681e28d1737"},
+    }};
 
+    const auto release = sf::product_trust_list();
+    REQUIRE(release.size() == expected.size());
+    REQUIRE(sf::builtin_keys().size() == expected.size());
+    for (std::size_t i = 0; i < expected.size(); ++i)
+    {
+        INFO(expected[i].key_id);
+        CHECK(release[i].key_id == expected[i].key_id);
+        CHECK(release[i].purpose == expected[i].purpose);
+        CHECK(release[i].key == hex_array<32>(expected[i].public_key));
+        // In force from the start, with nothing withdrawn: a later release sets `not_after` or `revoked_from`.
+        CHECK(release[i].not_before == sf::TimePoint::min());
+        CHECK(release[i].not_after == sf::TimePoint::max());
+        CHECK(!release[i].revoked_from.has_value());
+    }
+
+    // An id names one key, and a key is used for one purpose: no two entries share an id or the bytes.
+    for (std::size_t i = 0; i < release.size(); ++i)
+    {
+        for (std::size_t j = i + 1; j < release.size(); ++j)
+        {
+            CHECK(release[i].key_id != release[j].key_id);
+            CHECK(release[i].key != release[j].key);
+        }
+    }
+
+    // A licence key is trusted for licences and a revocation key for lists, and not the other way about: the id of
+    // a licence key in a file of the other purpose names no key.
+    const std::string payload = "{\"any\":\"payload\"}";
+    for (const sf::TrustedKey& key : release)
+    {
+        const std::string_view other = key.purpose == "licence" ? "revocations" : "licence";
+        const sf::Envelope other_purpose = signing::sign(other, key.key_id, span_of(payload), test_keys::private_key());
+        const auto refused = sf::verify(other_purpose, other, release);
+        REQUIRE(!refused);
+        CHECK(refused.error() == Error::unknown_key);
+    }
+}
+
+TEST_CASE("signed file: a release does not know the test key, and a forgery under a real id is refused",
+          "[licence][envelope]")
+{
     const auto release = sf::product_trust_list();
     const std::string payload = "{\"any\":\"payload\"}";
 
-    // The test key under its own id is unknown to a release.
+    // The test key under its own id is unknown to a release, and a program reads an unknown key as a licence
+    // made for a newer version (which is what a licence signed with a key of a later release is).
     const sf::Envelope own = signing::sign("licence", test_keys::key_id, span_of(payload), test_keys::private_key());
     const auto unknown = sf::verify(own, "licence", release);
     REQUIRE(!unknown);
-    REQUIRE(unknown.error() == Error::unknown_key);
+    CHECK(unknown.error() == Error::unknown_key);
 
     // The same file verifies where the test key is trusted, so the refusal above is the trust list and not
     // a broken file.
     REQUIRE(sf::verify(own, "licence", test_keys::trusted()));
+
+    // The test key's signature under the id of a key the release does trust is a forgery: its key is known,
+    // and its signature does not verify. Its private half is public (RFC 8032), so this is what anyone could
+    // make.
+    for (const sf::TrustedKey& key : release)
+    {
+        INFO(key.key_id);
+        const sf::Envelope forged = signing::sign(key.purpose, key.key_id, span_of(payload), test_keys::private_key());
+        const auto refused = sf::verify(forged, key.purpose, release);
+        REQUIRE(!refused);
+        CHECK(refused.error() == Error::bad_signature);
+    }
 }
 
 TEST_CASE("licence errors: every code has its own message", "[licence][envelope]")

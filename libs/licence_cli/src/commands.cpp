@@ -115,7 +115,8 @@ private:
     switch (reason)
     {
     case lic::Reason::newer_version:
-        // A release with no keys of its own checks nothing, so an unknown key is not "a newer version".
+        // A list with no key in it checks nothing, so an unknown key is not "a newer version". A release has ADL's
+        // keys, so only a build made without them, or a test, comes here.
         return std::string(environment.keys.empty() ? message::note_no_keys : message::refused_newer);
     case lic::Reason::revoked:
         return std::string(message::refused_revoked);

@@ -87,8 +87,10 @@ struct Envelope
 // Whether `key` may have signed a file at `issued_at`.
 [[nodiscard]] Result<void> check_key_window(const TrustedKey& key, TimePoint issued_at);
 
-// The keys built into this program, without any test key. Empty until the owner adds the real public
-// keys. While it is empty every licence is refused and the programs are the Community edition.
+// The keys built into this program, without any test key: the public keys of ARINC Data Loader's licences
+// and of its lists of withdrawn licences (trusted_keys.cpp). A file signed with another key, a test key
+// included, is refused as made for a newer version. A build whose list is empty accepts no file at all, and
+// its programs are the Community edition.
 [[nodiscard]] std::vector<TrustedKey> product_trust_list();
 
 // The keys compiled in (trusted_keys.cpp). Use `product_trust_list` instead; this is exposed for its test.
