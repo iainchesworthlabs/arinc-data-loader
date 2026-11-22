@@ -358,7 +358,8 @@ TEST_CASE("store: an import refuses what is not a licence a program could use, a
     REQUIRE(payload);
     refused(signed_payload(*payload, licence_purpose, "lic-2099-a"), on(now()), Reason::newer_version);
 
-    // No trusted keys at all: what a release with no real key does with every file.
+    // No trusted keys at all (a list a release does not have, but a build of another product could): every file is
+    // refused as made for a newer version.
     auto no_keys = on(now());
     no_keys.keys = {};
     refused(signed_text(annual()), no_keys, Reason::newer_version);

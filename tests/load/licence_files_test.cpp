@@ -107,7 +107,7 @@ TEST_CASE("with no licence file the record says the Community edition and a stat
     CHECK(licence.at("number").is(Json::Kind::null));
 }
 
-TEST_CASE("a release with no keys refuses every licence, and the record says the Community edition",
+TEST_CASE("a build whose list has no keys refuses every licence, and the record says the Community edition",
           "[load][integration][record][licence]")
 {
     CommandRig rig;

@@ -44,8 +44,8 @@ struct LicenceEnvironment
     std::function<licence::TimePoint()> now;
     // What a licence that names computers is compared with.
     std::string computer_name;
-    // The keys a licence is checked against. The release's list is empty until the owner adds the public keys,
-    // so on a release every licence is refused.
+    // The keys a licence is checked against: a release's list holds ADL's public keys. A list with no key in it
+    // (a build made without them, or a test) accepts no file, and the window says so.
     std::vector<licence::signed_file::TrustedKey> keys;
     // When this program was built, or TimePoint::min() when that is not known: a time that has certainly passed.
     licence::TimePoint build_time = licence::TimePoint::min();

@@ -5,9 +5,10 @@
     python3 -X utf8 -I tests/licence_cli/test_adl_licence.py --program <adl_licence> \
         --test-program <adl_licence_test_program> --data tests/licence/data --scratch <folder>
 
-The program that ships trusts no key yet, so what it can be shown is its usage, its words, an empty computer and
-the refusal of every licence (a release with no key accepts none); that is the first half. The second half runs
-adl_licence_test_program, the same commands with the throwaway test key of RFC 8032 and a clock and a computer
+The program that ships trusts the four public keys of ADL and no test key, and the private halves are the owner's
+alone, so what it can be shown is its usage, its words, an empty computer and the refusal of every test licence
+(the test key is one it does not know, which it reads as a licence for a newer version); that is the first half.
+The second half runs adl_licence_test_program, the same commands with the throwaway test key of RFC 8032 and a clock and a computer
 name of the test's own, so that a licence is imported, shown, checked and removed in each state, and the manifest
 of test licences (tests/licence/data/licences/manifest.txt) is judged through the command line. Every run has
 ADL_SETTINGS_DIR set to a folder of its own, so no real licence folder is ever read or written. CTest runs it as
@@ -35,8 +36,8 @@ SCRATCH: Path
 TEST_SEED = bytes.fromhex("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60")
 TEST_SEED_TEXT = base64.urlsafe_b64encode(TEST_SEED).decode("ascii").rstrip("=")
 
-NO_KEYS = ("This version of ARINC Data Loader cannot check licence files yet, so it accepts none. "
-           "The Community edition works as it always did.")
+NEWER_VERSION = ("This licence needs a newer version of ARINC Data Loader. Install the latest version, "
+                 "then import the licence again.")
 IN_FORCE = {"valid", "expiring", "grace"}
 
 
@@ -105,7 +106,7 @@ class Scratch(unittest.TestCase):
 
 
 class Shipped(Scratch):
-    """The program as it ships: no key, so no licence is accepted."""
+    """The program as it ships: ADL's four public keys and no test key, so a test licence is not accepted."""
 
     def test_help_and_version(self) -> None:
         helped = run(PROGRAM, self.settings, "--help")
@@ -138,16 +139,38 @@ class Shipped(Scratch):
         self.assertEqual(result.err, "")
         self.assertFalse(self.settings.exists())
 
-    def test_a_release_with_no_key_accepts_no_licence(self) -> None:
+    def test_a_licence_made_with_the_test_key_is_refused_as_one_for_a_newer_version(self) -> None:
+        # The test key is not one of the keys of the release, so the program does not know it. That is what a
+        # licence made with a key of a later release looks like, and the sentence says so. It is also the check
+        # that no test key reaches a program that ships.
         licence = self.licence("valid.adllic")
         imported = run(PROGRAM, self.settings, "import", licence)
         self.assertEqual(imported.code, 1)
-        self.assertEqual(imported.err.strip(), "import: " + NO_KEYS)
+        self.assertEqual(imported.err.strip(), "import: " + NEWER_VERSION)
         verified = run(PROGRAM, self.settings, "verify", licence)
         self.assertEqual(verified.code, 1)
-        self.assertEqual(verified.err.strip(), "verify: " + NO_KEYS)
+        self.assertEqual(verified.err.strip(), "verify: " + NEWER_VERSION)
         self.assertFalse(self.settings.exists())
         self.assertTrue(licence.exists())
+
+    def test_no_test_licence_in_a_licence_folder_is_in_force(self) -> None:
+        # Every licence the tests made, put where a customer would put one: none is in force, each is listed as not
+        # valid, and the edition stays Community. Nothing is written by looking.
+        licences = self.settings / "licences"
+        licences.mkdir(parents=True)
+        names = sorted(path.name for path in (DATA / "licences").glob("*.adllic"))
+        self.assertGreaterEqual(len(names), 15)
+        for name in names:
+            shutil.copyfile(DATA / "licences" / name, licences / name)
+        before = tree(self.settings)
+        shown = run(PROGRAM, self.settings, "show", now=None)
+        self.assertEqual(shown.code, 0, shown.err)
+        self.assertEqual(shown.lines().get("Edition"), "community")
+        self.assertEqual(shown.lines().get("State"), "invalid")
+        self.assertNotIn("Note:", shown.out)
+        for name in names:
+            self.assertIn(f"  {name} (user, invalid, ", shown.out)
+        self.assertEqual(tree(self.settings), before, "show wrote something")
 
     def test_a_file_that_is_not_there_or_not_a_licence_is_said_so(self) -> None:
         missing = run(PROGRAM, self.settings, "import", self.inbox / "none.adllic")
@@ -170,7 +193,7 @@ class Shipped(Scratch):
 
     def test_names_outside_the_code_page_reach_the_program_whole(self) -> None:
         # A settings folder and a file with accented and Japanese letters in their names. If either name were
-        # changed on the way, the licence would be "not found", and not refused for having no key.
+        # changed on the way, the licence would be "not found", and not refused for its key.
         settings = self.folder / "settings é 日本語"
         licence = self.inbox / "licence é 日本語.adllic"
         shutil.copyfile(DATA / "licences" / "valid.adllic", licence)
@@ -179,7 +202,7 @@ class Shipped(Scratch):
         self.assertEqual(shown.lines().get("State"), "none")
         imported = run(PROGRAM, settings, "import", licence)
         self.assertEqual(imported.code, 1)
-        self.assertEqual(imported.err.strip(), "import: " + NO_KEYS)
+        self.assertEqual(imported.err.strip(), "import: " + NEWER_VERSION)
         missing = run(PROGRAM, settings, "import", self.inbox / "nope é 日本語.adllic")
         self.assertIn("nope é 日本語.adllic", missing.err)
 

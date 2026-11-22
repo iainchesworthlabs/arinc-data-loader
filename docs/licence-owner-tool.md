@@ -79,8 +79,8 @@ A licence file then has `Licence` (the licence number), `Product`, `Kind`, `Edit
 A revocation list has `Sequence`, `Issued`, `Licences withdrawn` and `Keys withdrawn`, each with a `Withdrawn licence` or
 `Withdrawn key` line for every entry.
 
-The keys it checks against are this build's own list (empty until the owner adds ADL's public keys), the test key with
-`--test`, and each public key file given with `--trust`.
+The keys it checks against are this build's own list (ADL's four public keys, in `libs/licence/src/trusted_keys.cpp`), the
+test key with `--test`, and each public key file given with `--trust`.
 
 ### verify
 

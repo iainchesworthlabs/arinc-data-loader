@@ -313,7 +313,7 @@ TEST_CASE("show: a list of withdrawn licences in a folder withdraws a licence", 
     CHECK(contains(ran.out, "Revocation lists: 1 accepted, 1 refused\n"));
 }
 
-TEST_CASE("show: a release that trusts no key says it accepts no licence", "[unit][licence_cli][show]")
+TEST_CASE("show: a build whose list has no key says it accepts no licence", "[unit][licence_cli][show]")
 {
     Rig rig;
     rig.env.keys.clear();
