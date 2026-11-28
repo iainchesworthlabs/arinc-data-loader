@@ -9,9 +9,9 @@
 # (hooks, the `validation` block). Zensical, which reads the same mkdocs.yml, was tried and does not run
 # hooks, so a link from a page to a file outside docs/ fails its strict build.
 mkdocs>=1.6,<2
-mkdocs-material>=9.8.1,<10
+mkdocs-material>=9.8.2,<10
 # mkdocs.yml names pymdownx.slugs.slugify directly, so it is listed here and not left to Material.
 pymdown-extensions>=12.3
 # certifi before 2026.10.19 bundles emSign root CAs with compromised intermediate CA keys
 # (GHSA-6q48-6c7w-9gw2, critical, published 2026-10-20); it comes in through requests, which mkdocs uses.
-certifi>=2026.10.23
+certifi>=2026.11.20
